@@ -95,18 +95,18 @@ namespace Kratos
     ///@{
 
     ThreeStepVPStrategy(ModelPart &rModelPart,
-                      typename TLinearSolver::Pointer pVelocityLinearSolver,
-                      typename TLinearSolver::Pointer pPressureLinearSolver,
-                      bool ReformDofSet = true,
-                      double VelTol = 0.0001,
-                      double PresTol = 0.0001,
-                      int MaxPressureIterations = 1, // Only for predictor-corrector
-                      unsigned int DomainSize = 2) : BaseType(rModelPart, pVelocityLinearSolver, pPressureLinearSolver, ReformDofSet, DomainSize),
-                                                     mVelocityTolerance(VelTol),
-                                                     mPressureTolerance(PresTol),
-                                                     mMaxPressureIter(MaxPressureIterations),
-                                                     mDomainSize(DomainSize),
-                                                     mReformDofSet(ReformDofSet)
+                        typename TLinearSolver::Pointer pVelocityLinearSolver,
+                        typename TLinearSolver::Pointer pPressureLinearSolver,
+                        bool ReformDofSet = true,
+                        double VelTol = 0.0001,
+                        double PresTol = 0.0001,
+                        int MaxPressureIterations = 1, // Only for predictor-corrector
+                        unsigned int DomainSize = 2) : BaseType(rModelPart, pVelocityLinearSolver, pPressureLinearSolver, ReformDofSet, DomainSize),
+                                                       mVelocityTolerance(VelTol),
+                                                       mPressureTolerance(PresTol),
+                                                       mMaxPressureIter(MaxPressureIterations),
+                                                       mDomainSize(DomainSize),
+                                                       mReformDofSet(ReformDofSet)
     {
       KRATOS_TRY;
 
@@ -189,31 +189,31 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
-      double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
-      unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
+      // double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+      // bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+      // unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
       bool converged = false;
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
       KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
-      if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
-      {
-        maxNonLinearIterations *= 2;
-      }
-      if (currentTime < 10 * timeInterval)
-      {
-        if (BaseType::GetEchoLevel() > 1)
-          std::cout << "within the first 10 time steps, I consider the given iteration number x3" << std::endl;
-        maxNonLinearIterations *= 3;
-      }
-      if (currentTime < 20 * timeInterval && currentTime >= 10 * timeInterval)
-      {
-        if (BaseType::GetEchoLevel() > 1)
-          std::cout << "within the second 10 time steps, I consider the given iteration number x2" << std::endl;
-        maxNonLinearIterations *= 2;
-      }
+      // if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
+      // {
+      //   maxNonLinearIterations *= 2;
+      // }
+      // if (currentTime < 10 * timeInterval)
+      // {
+      //   if (BaseType::GetEchoLevel() > 1)
+      //     std::cout << "within the first 10 time steps, I consider the given iteration number x3" << std::endl;
+      //   maxNonLinearIterations *= 3;
+      // }
+      // if (currentTime < 20 * timeInterval && currentTime >= 10 * timeInterval)
+      // {
+      //   if (BaseType::GetEchoLevel() > 1)
+      //     std::cout << "within the second 10 time steps, I consider the given iteration number x2" << std::endl;
+      //   maxNonLinearIterations *= 2;
+      // }
       bool momentumConverged = true;
       bool continuityConverged = false;
       bool fixedTimeStep = false;
@@ -221,11 +221,11 @@ namespace Kratos
       double pressureNorm = 0;
       double velocityNorm = 0;
 
-      this->SetBlockedAndIsolatedFlags();
+      //this->SetBlockedAndIsolatedFlags();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
-        momentumConverged = this->SolveMomentumIteration(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
+        momentumConverged = this->SolveFirstVelocitySystem(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
@@ -367,12 +367,13 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm) override
+    bool SolveFirstVelocitySystem(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
     {
+      std::cout << " SolveFirstVelocitySystem " << std::endl;
 
       ModelPart &rModelPart = BaseType::GetModelPart();
       int Rank = rModelPart.GetCommunicator().MyPID();
-      bool ConvergedMomentum = false;
+      bool momentumConvergence = false;
       double NormDv = 0;
       fixedTimeStep = false;
       // build momentum system and solve for fractional step velocity increment
@@ -388,41 +389,21 @@ namespace Kratos
       if (BaseType::GetEchoLevel() > 1 && Rank == 0)
         std::cout << "-------------- s o l v e d ! ------------------" << std::endl;
 
-      if (it == 0)
-      {
-        velocityNorm = this->ComputeVelocityNorm();
-      }
-
-      double DvErrorNorm = NormDv / velocityNorm;
-      unsigned int iterationForCheck = 2;
       // Check convergence
-      if (it == maxIt - 1)
-      {
-        KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->FixTimeStepMomentum(DvErrorNorm, fixedTimeStep);
-      }
-      else if (it > iterationForCheck)
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-        ConvergedMomentum = this->CheckMomentumConvergence(DvErrorNorm, fixedTimeStep);
-      }
-      else
-      {
-        KRATOS_INFO("Iteration") << it << "  Velocity error: " << DvErrorNorm << std::endl;
-      }
+      momentumConvergence = this->CheckVelocityConvergence(NormDv);
 
-      if (!ConvergedMomentum && BaseType::GetEchoLevel() > 0 && Rank == 0)
+      if (!momentumConvergence && BaseType::GetEchoLevel() > 0 && Rank == 0)
         std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
 
-      return ConvergedMomentum;
+      return momentumConvergence;
     }
 
     bool SolveContinuityIteration(unsigned int it, unsigned int maxIt, double &NormP) override
     {
+      std::cout << " SolveContinuityIteration " << std::endl;
       ModelPart &rModelPart = BaseType::GetModelPart();
       int Rank = rModelPart.GetCommunicator().MyPID();
-      bool ConvergedContinuity = false;
-      bool fixedTimeStep = false;
+      bool continuityConvergence = false;
       double NormDp = 0;
 
       // 2. Pressure solution
@@ -437,38 +418,21 @@ namespace Kratos
       if (BaseType::GetEchoLevel() > 0 && Rank == 0)
         std::cout << "The norm of pressure is: " << NormDp << std::endl;
 
-      if (it == 0)
-      {
-        NormP = this->ComputePressureNorm();
-      }
+      continuityConvergence = CheckPressureConvergence(NormDp);
 
-      double DpErrorNorm = NormDp / (NormP);
-
-      // Check convergence
-      if (it == (maxIt - 1))
-      {
-        KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
-        ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm, fixedTimeStep);
-      }
-      else
-      {
-        KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
-        ConvergedContinuity = this->CheckContinuityConvergence(DpErrorNorm, fixedTimeStep);
-      }
-
-      if (!ConvergedContinuity && BaseType::GetEchoLevel() > 0 && Rank == 0)
+      if (!continuityConvergence && BaseType::GetEchoLevel() > 0 && Rank == 0)
         std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
-      return ConvergedContinuity;
+      return continuityConvergence;
     }
 
-    bool CheckVelocityConvergence(const double NormDv, double &errorNormDv) override
+    bool CheckVelocityConvergence(const double NormDv)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
 
       double NormV = 0.00;
-      errorNormDv = 0;
+      double errorNormDv = 0;
 
 #pragma omp parallel for reduction(+ \
                                    : NormV)
@@ -487,6 +451,10 @@ namespace Kratos
       const double zero_tol = 1.0e-12;
       errorNormDv = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
+      std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
+      std::cout << "The norm of velocity is: " << NormV << std::endl;
+      std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance << std::endl;
+
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {
         std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
@@ -504,13 +472,13 @@ namespace Kratos
       }
     }
 
-    bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP) override
+    bool CheckPressureConvergence(const double NormDp)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
 
-      NormP = 0.00;
-      errorNormDp = 0;
+      double NormP = 0.00;
+      double errorNormDp = 0;
 
 #pragma omp parallel for reduction(+ \
                                    : NormP)
@@ -525,6 +493,10 @@ namespace Kratos
 
       const double zero_tol = 1.0e-12;
       errorNormDp = (NormP < zero_tol) ? NormDp : NormDp / NormP;
+
+      std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
+      std::cout << "         The norm of pressure is: " << NormP << std::endl;
+      std::cout << "         Pressure error: " << errorNormDp << std::endl;
 
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {

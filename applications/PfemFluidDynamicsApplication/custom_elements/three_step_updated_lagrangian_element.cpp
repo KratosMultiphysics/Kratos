@@ -46,7 +46,8 @@ namespace Kratos
     }
     case 5:
     {
-      this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      //this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      CalculateLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       break;
     }
     case 6:
@@ -170,7 +171,7 @@ namespace Kratos
       array_1d<double, 3> BodyForce = ZeroVector(3);
 
       this->EvaluateInPoint(Density, DENSITY, N);
-      this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
+      this->EvaluateInPoint(BodyForce, VOLUME_ACCELERATION, N);
 
       // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
       double OldPressure = 0.0;
@@ -179,12 +180,14 @@ namespace Kratos
       this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
 
       // Add integration point contribution to the local mass matrix
-      const double MassCoeff = Viscosity * GaussWeight;
-      this->AddMomentumMassTerm(MassMatrix, N, MassCoeff);
+      const double MassCoeff = Density * GaussWeight;
+      AddMomentumMassTerm(MassMatrix, N, MassCoeff);
+      //ComputeLumpedMassMatrix(MassMatrix, MassCoeff);
 
       double etaOldPressure = OldPressure * eta;
       // Add RHS contributions to the local system equation
-      this->AddMomentumSystemTerms(rLeftHandSideMatrix, rRightHandSideVector, Density, BodyForce, etaOldPressure, N, rDN_DX, GaussWeight);
+      AddMomentumRHSTerms(rRightHandSideVector, Density, BodyForce, etaOldPressure, N, rDN_DX, GaussWeight);
+      //AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 
       // Add viscous term
       const double ViscousCoeff = Viscosity * GaussWeight;
@@ -192,16 +195,14 @@ namespace Kratos
     }
 
     // Add residual of previous iteration to RHS
-    VectorType LastValues = ZeroVector(LocalSize);
-    this->GetVelocityValues(LastValues, 0);
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, LastValues);
+    VectorType VelocityValues = ZeroVector(LocalSize);
+    this->GetVelocityValues(VelocityValues, 0);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, VelocityValues);
 
     // Add dynamic term
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-    VectorType VelocityValues = ZeroVector(LocalSize);
     VectorType AccelerationValues = ZeroVector(LocalSize);
     this->GetAccelerationValues(AccelerationValues, 0);
-    this->GetVelocityValues(VelocityValues, 0);
     noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
     this->GetVelocityValues(VelocityValues, 1);
     noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
@@ -220,35 +221,32 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void ThreeStepUpdatedLagrangianElement<TDim>::AddMomentumSystemTerms(Matrix &rLHSMatrix,
-                                                                       Vector &rRHSVector,
-                                                                       const double Density,
-                                                                       const array_1d<double, 3> &rBodyForce,
-                                                                       const double OldPressure,
-                                                                       const ShapeFunctionsType &rN,
-                                                                       const ShapeFunctionDerivativesType &rDN_DX,
-                                                                       const double Weight)
+  void ThreeStepUpdatedLagrangianElement<TDim>::AddMomentumRHSTerms(Vector &rRHSVector,
+                                                                    const double Density,
+                                                                    const array_1d<double, 3> &rBodyForce,
+                                                                    const double OldPressure,
+                                                                    const ShapeFunctionsType &rN,
+                                                                    const ShapeFunctionDerivativesType &rDN_DX,
+                                                                    const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     SizeType FirstRow = 0;
 
- 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       // Build RHS
 
-        for (SizeType d = 0; d < TDim; ++d)
-        {
-          // Body force
-          double RHSi = Density * rN[i] * rBodyForce[d];
-          // Pressure gradient (integrated by parts)
-          RHSi += rDN_DX(i, d) * OldPressure;
-          rRHSVector[FirstRow + d] += Weight * RHSi;
-        }
+      for (SizeType d = 0; d < TDim; ++d)
+      {
+        // Body force
+        double RHSi = Density * rN[i] * rBodyForce[d];
+        // Pressure gradient (integrated by parts)
+        RHSi += rDN_DX(i, d) * OldPressure;
+        rRHSVector[FirstRow + d] += Weight * RHSi;
+      }
       FirstRow += TDim;
     }
   }
-
 
   template <unsigned int TDim>
   void ThreeStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
@@ -376,12 +374,10 @@ namespace Kratos
 
   template <unsigned int TDim>
   void ThreeStepUpdatedLagrangianElement<TDim>::ComputeLumpedMassMatrix(Matrix &rMassMatrix,
-                                                                        const double Weight,
-                                                                        double &MeanValue)
+                                                                        const double Weight)
   {
 
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    double Count = 0;
 
     if ((NumNodes == 3 && TDim == 2) || (NumNodes == 4 && TDim == 3))
     {
@@ -394,8 +390,6 @@ namespace Kratos
         {
           unsigned int index = i * TDim + j;
           rMassMatrix(index, index) += Mij;
-          Count += 1.0;
-          MeanValue += Mij;
         }
       }
     }
@@ -417,8 +411,6 @@ namespace Kratos
         {
           unsigned int index = i * TDim + j;
           rMassMatrix(index, index) += Mij * consistent;
-          Count += 1.0;
-          MeanValue += Mij;
         }
       }
     }
@@ -426,7 +418,6 @@ namespace Kratos
     {
       std::cout << "ComputeLumpedMassMatrix 3D quadratic not yet implemented!" << std::endl;
     }
-    MeanValue *= 1.0 / Count;
   }
 
   template <unsigned int TDim>
@@ -454,127 +445,424 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void ThreeStepUpdatedLagrangianElement<TDim>::AddExternalForces(Vector &rRHSVector,
-                                                                  const double Density,
-                                                                  const ShapeFunctionsType &rN,
-                                                                  const double Weight)
-  {
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    SizeType FirstRow = 0;
-
-    array_1d<double, 3> VolumeAcceleration(3, 0.0);
-
-    this->EvaluateInPoint(VolumeAcceleration, VOLUME_ACCELERATION, rN);
-
-    for (SizeType i = 0; i < NumNodes; ++i)
-    {
-      if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      {
-        for (SizeType d = 0; d < TDim; ++d)
-        {
-          // Volume Acceleration
-          rRHSVector[FirstRow + d] += Weight * Density * rN[i] * VolumeAcceleration[d];
-        }
-      }
-      FirstRow += TDim;
-    }
-  }
-
-  template <unsigned int TDim>
   void ThreeStepUpdatedLagrangianElement<TDim>::CalculateLocalPressureSystem(MatrixType &rLeftHandSideMatrix,
                                                                              VectorType &rRightHandSideVector,
                                                                              const ProcessInfo &rCurrentProcessInfo)
   {
-    // GeometryType &rGeom = this->GetGeometry();
-    // const SizeType NumNodes = rGeom.PointsNumber();
+    GeometryType &rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
-    // // Check sizes and initialize
-    // if (rLeftHandSideMatrix.size1() != NumNodes)
-    //   rLeftHandSideMatrix.resize(NumNodes, NumNodes);
+    // Check sizes and initialize
+    if (rLeftHandSideMatrix.size1() != NumNodes)
+      rLeftHandSideMatrix.resize(NumNodes, NumNodes);
 
-    // rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
 
-    // if (rRightHandSideVector.size() != NumNodes)
-    //   rRightHandSideVector.resize(NumNodes);
+    if (rRightHandSideVector.size() != NumNodes)
+      rRightHandSideVector.resize(NumNodes);
 
-    // rRightHandSideVector = ZeroVector(NumNodes);
+    rRightHandSideVector = ZeroVector(NumNodes);
 
-    // // Shape functions and integration points
-    // ShapeFunctionDerivativesArrayType DN_DX;
-    // Matrix NContainer;
-    // VectorType GaussWeights;
-    // this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
-    // const unsigned int NumGauss = GaussWeights.size();
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
 
-    // // Stabilization parameters
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+    // Stabilization parameters
     // double ElemSize = this->ElementSize();
-    // double TauOne;
-    // double TauTwo;
+    // double TauOne = 0;
+    // double TauTwo = 0;
 
-    // const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];
+    //const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    const double eta = 0;
 
-    // // Loop on integration points
-    // for (unsigned int g = 0; g < NumGauss; g++)
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+      const double GaussWeight = GaussWeights[g];
+      const ShapeFunctionsType &N = row(NContainer, g);
+      const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
+
+      double theta = 1.0;
+      bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+
+      // Evaluate required variables at the integration point
+      double Density;
+      array_1d<double, 3> BodyForce = ZeroVector(3);
+
+      this->EvaluateInPoint(Density, DENSITY, N);
+      this->EvaluateInPoint(BodyForce, VOLUME_ACCELERATION, N);
+
+      // array_1d<double, 3> MomentumProjection = ZeroVector(3);
+      // this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
+
+      //        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
+      array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+      this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+
+      // Stabilization parameters
+      // array_1d<double, 3> ConvVel = ZeroVector(3);
+
+      double Viscosity = 0;
+      this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
+
+      // this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
+      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+
+      double DivU = 0;
+      this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
+
+      // // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
+      // const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
+      const double LaplacianCoeff = TimeStep / Density;
+
+      // Add convection, stabilization and RHS contributions to the local system equation
+      for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        // LHS contribution
+        for (SizeType j = 0; j < NumNodes; ++j)
+        {
+          double Lij = 0.0;
+          for (SizeType d = 0; d < TDim; ++d)
+            Lij += rDN_DX(i, d) * rDN_DX(j, d);
+          // Lij *= (LaplacianCoeff + TauOne);
+          Lij *= (LaplacianCoeff);
+          rLeftHandSideMatrix(i, j) += GaussWeight * Lij;
+        }
+
+        // RHS contribution
+
+        // Velocity divergence
+        double RHSi = -N[i] * DivU;
+        // RHSi = -N[i] * rElementalVariables.VolumetricDefRate;
+        // double difference = DivU - rElementalVariables.VolumetricDefRate;
+        // std::cout << "difference" << difference<< DivU<<std::endl;
+
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          // Momentum stabilization
+          // RHSi += rDN_DX(i, d) * TauOne * (Density * (BodyForce[d] /* - Conv*/) - OldPressureGradient[d] - MomentumProjection[d]);
+          RHSi += (eta - 1.0) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
+        }
+
+        rRightHandSideVector[i] += GaussWeight * RHSi;
+      }
+    }
+  }
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                                                      VectorType &rRightHandSideVector,
+                                                                                      const ProcessInfo &rCurrentProcessInfo)
+  {
+
+    GeometryType &rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    // Check sizes and initialize
+    if (rLeftHandSideMatrix.size1() != NumNodes)
+      rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
+
+    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+
+    if (rRightHandSideVector.size() != NumNodes)
+      rRightHandSideVector.resize(NumNodes);
+
+    rRightHandSideVector = ZeroVector(NumNodes);
+
+    // Shape functions and integration points
+    ShapeFunctionDerivativesArrayType DN_DX;
+    Matrix NContainer;
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
+    const unsigned int NumGauss = GaussWeights.size();
+
+    double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+    double theta = 1.0;
+    double ElemSize = this->ElementSize();
+
+    ElementalVariables rElementalVariables;
+    this->InitializeElementalVariables(rElementalVariables);
+
+    double DeviatoricCoeff = 0;
+    double VolumetricCoeff = 0;
+    double Density = 0;
+    double totalVolume = 0;
+    bool computeElement = false;
+
+    MatrixType DynamicStabilizationMatrix = ZeroMatrix(NumNodes, NumNodes);
+
+    // Loop on integration points
+    for (unsigned int g = 0; g < NumGauss; ++g)
+    {
+      const double GaussWeight = GaussWeights[g];
+      totalVolume += GaussWeight;
+      const ShapeFunctionsType &N = row(NContainer, g);
+      const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
+      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      computeElement = true;
+
+      this->EvaluateInPoint(DeviatoricCoeff, DYNAMIC_VISCOSITY, N);
+      this->EvaluateInPoint(Density, DENSITY, N);
+      this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
+
+      VolumetricCoeff *= 0.001 / TimeStep;
+
+      double Tau = 0;
+      this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
+
+      if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+      {
+
+        double StabilizedWeight = Tau * GaussWeight;
+        this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
+
+        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+        this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+          // RHS contribution
+          // Velocity divergence
+          rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+
+          this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
+
+          double laplacianRHSi = 0;
+          double bodyForceStabilizedRHSi = 0;
+          array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+          for (SizeType d = 0; d < TDim; ++d)
+          {
+            laplacianRHSi += StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
+
+            bodyForceStabilizedRHSi += StabilizedWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
+          }
+          rRightHandSideVector[i] += -laplacianRHSi - bodyForceStabilizedRHSi;
+        }
+      }
+    }
+
+    if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+    {
+
+      VectorType PressureValues = ZeroVector(NumNodes);
+      VectorType PressureValuesForRHS = ZeroVector(NumNodes);
+      this->GetPressureValues(PressureValuesForRHS, 0);
+
+      VectorType AccelerationValues = ZeroVector(NumNodes);
+      this->GetAccelerationValues(AccelerationValues, 0);
+
+      // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
+
+      //the LHS matrix up to now just contains the laplacian term and the bound term
+      // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
+
+      this->GetPressureValues(PressureValues, 1);
+      noalias(PressureValuesForRHS) += -PressureValues;
+      MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
+      double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
+
+      this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
+      noalias(rLeftHandSideMatrix) += BulkMatrix;
+      noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
+    }
+  }
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeBulkMatrixLump(Matrix &BulkMatrix,
+                                                                      const double Weight)
+  {
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    if ((NumNodes == 3 && TDim == 2) || (NumNodes == 4 && TDim == 3))
+    {
+      double coeff = 1.0 + TDim;
+      for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        // LHS contribution
+        double Mij = Weight / coeff;
+        BulkMatrix(i, i) += Mij;
+      }
+    }
+    else
+    {
+      std::cout << "... ComputeBulkMatrixLump TO IMPLEMENT" << std::endl;
+    }
+  }
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::CalculateTauPSPG(double &Tau,
+                                                                 double ElemSize,
+                                                                 const double Density,
+                                                                 const double Viscosity,
+                                                                 const ProcessInfo &rCurrentProcessInfo)
+  {
+    double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
+    if (rCurrentProcessInfo.GetValue(DELTA_TIME) < rCurrentProcessInfo.GetValue(PREVIOUS_DELTA_TIME))
+    {
+      DeltaTime = 0.5 * rCurrentProcessInfo.GetValue(DELTA_TIME) + 0.5 * rCurrentProcessInfo.GetValue(PREVIOUS_DELTA_TIME);
+    }
+
+    double MeanVelocity = 0;
+    this->CalcMeanVelocityNorm(MeanVelocity, 0);
+
+    // // Tau Fic
+    //Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
+
+    // // Tau Tezduyar first proposal
+    // double timeScale = 0.5 * (ElemSize / (2 * MeanVelocity) + DeltaTime);
+    // double Reynolds = MeanVelocity * ElemSize * Density / (2.0 * Viscosity);
+    // double ReynoldsFactor = 1.0;
+    // if (Reynolds < 3)
     // {
-    //   const double GaussWeight = GaussWeights[g];
-    //   const ShapeFunctionsType &N = row(NContainer, g);
-    //   const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-
-    //   // Evaluate required variables at the integration point
-    //   double Density;
-    //   array_1d<double, 3> BodyForce = ZeroVector(3);
-    //   array_1d<double, 3> MomentumProjection = ZeroVector(3);
-
-    //   this->EvaluateInPoint(Density, DENSITY, N);
-    //   this->EvaluateInPoint(BodyForce, BODY_FORCE, N);
-    //   this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
-
-    //   //        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-    //   array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
-    //   this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
-
-    //   // Stabilization parameters
-    //   array_1d<double, 3> ConvVel = ZeroVector(3);
-    //   this->EvaluateConvVelocity(ConvVel, N);
-    //   double Viscosity = this->EffectiveViscosity(Density, N, rDN_DX, ElemSize, rCurrentProcessInfo);
-    //   this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
-
-    //   double DivU;
-    //   this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
-
-    //   // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
-    //   const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
-
-    //   // Add convection, stabilization and RHS contributions to the local system equation
-    //   for (SizeType i = 0; i < NumNodes; ++i)
-    //   {
-    //     // LHS contribution
-    //     for (SizeType j = 0; j < NumNodes; ++j)
-    //     {
-    //       double Lij = 0.0;
-    //       for (SizeType d = 0; d < TDim; ++d)
-    //         Lij += rDN_DX(i, d) * rDN_DX(j, d);
-    //       Lij *= (LaplacianCoeff + TauOne);
-
-    //       rLeftHandSideMatrix(i, j) += GaussWeight * Lij;
-    //     }
-
-    //     // RHS contribution
-
-    //     // Velocity divergence
-    //     double RHSi = -N[i] * DivU;
-
-    //     for (SizeType d = 0; d < TDim; ++d)
-    //     {
-    //       // Momentum stabilization
-    //       RHSi += rDN_DX(i, d) * TauOne * (Density * (BodyForce[d] /* - Conv*/) - OldPressureGradient[d] - MomentumProjection[d]);
-    //       RHSi += (eta - 1.0) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
-    //     }
-
-    //     rRightHandSideVector[i] += GaussWeight * RHSi;
-    //   }
+    //   ReynoldsFactor = (ElemSize * ReynoldsFactor / (2 * MeanVelocity)) / 3.0;
     // }
+    // Tau = timeScale * ReynoldsFactor / Density;
+
+    // // Tau Tezduyar second proposal
+    // double timeStepTerm = 2.0 / DeltaTime;
+    // double timeScaleTerm = 2.0 * MeanVelocity / ElemSize;
+    // double viscousTerm = 3.0 * (4 * Viscosity / (Density * pow(ElemSize, 2)));
+    // // std::cout << "timeStepTerm= "<<timeStepTerm<< " timeScaleTerm= "<<timeScaleTerm<< " viscousTerm= "<<viscousTerm << std::endl;
+    // double alternativeTau = pow(timeStepTerm, 2) + pow(timeScaleTerm, 2) + pow(viscousTerm, 2);
+    // Tau = 1.0 / (std::sqrt(alternativeTau) * Density);
+
+    // // Simplest Tau
+    Tau = DeltaTime / Density;
+
+    // std::cout << "Tau= " << Tau << std::endl;
+
+    const double tolerance = 1.0e-13;
+    if (MeanVelocity < tolerance)
+    {
+      Tau = 0;
+    }
+  }
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
+                                                                           const ShapeFunctionDerivativesType &rDN_DX,
+                                                                           const double Weight)
+
+  {
+    // LHS contribution
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+      for (SizeType j = 0; j < NumNodes; ++j)
+      {
+        double Lij = 0.0;
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          Lij += rDN_DX(i, d) * rDN_DX(j, d);
+        }
+        StabLaplacianMatrix(i, j) += Weight * Lij;
+      }
+    }
+  }
+
+  template <>
+  void ThreeStepUpdatedLagrangianElement<2>::AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                                                             const double Tau,
+                                                                             const double Density,
+                                                                             const double Weight,
+                                                                             const double TimeStep,
+                                                                             const ShapeFunctionDerivativesType &rDN_DX,
+                                                                             const ShapeFunctionsType &rN,
+                                                                             const SizeType i)
+  {
+
+    double RHSi = 0;
+    // LHS contribution
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType j = 0; j < NumNodes; ++j)
+    {
+      RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+    }
+    rRightHandSideVector[i] += Weight * Tau * Density * RHSi;
+  }
+
+  template <>
+  void ThreeStepUpdatedLagrangianElement<3>::AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                                                             const double Tau,
+                                                                             const double Density,
+                                                                             const double Weight,
+                                                                             const double TimeStep,
+                                                                             const ShapeFunctionDerivativesType &rDN_DX,
+                                                                             const ShapeFunctionsType &rN,
+                                                                             const SizeType i)
+  {
+
+    double RHSi = 0;
+    //////////////////////////// TO CHEEEEEEEEEEEEEEEEEEEEEEECCCCCCCCCCCCCCCCCCCCKKKKKKKKKKKKKKK///////////////////////
+
+    // LHS contribution
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType j = 0; j < NumNodes; ++j)
+    {
+      double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
+      double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      double termZ = rDN_DX(i, 2) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Z, 0);
+      RHSi += Tau * Density * (termX + termY + termZ);
+    }
+    rRightHandSideVector[i] += Weight * RHSi;
+  }
+
+  template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::InitializeElementalVariables(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+
+    unsigned int voigtsize = 3;
+    if (TDim == 3)
+    {
+      voigtsize = 6;
+    }
+    rElementalVariables.voigtsize = voigtsize;
+
+    rElementalVariables.ConstitutiveMatrix = ZeroMatrix(voigtsize, voigtsize);
+
+    rElementalVariables.DetFgrad = 1.0;
+
+    rElementalVariables.DetFgradVel = 1.0;
+
+    rElementalVariables.DeviatoricInvariant = 1.0;
+
+    rElementalVariables.EquivalentStrainRate = 1.0;
+
+    rElementalVariables.VolumetricDefRate = 1.0;
+
+    rElementalVariables.SpatialDefRate = ZeroVector(voigtsize);
+
+    rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize, false);
+
+    noalias(rElementalVariables.MDGreenLagrangeMaterial) = ZeroVector(voigtsize);
+
+    rElementalVariables.Fgrad = ZeroMatrix(TDim, TDim);
+
+    rElementalVariables.InvFgrad = ZeroMatrix(TDim, TDim);
+
+    rElementalVariables.FgradVel = ZeroMatrix(TDim, TDim);
+
+    rElementalVariables.InvFgradVel = ZeroMatrix(TDim, TDim);
+
+    rElementalVariables.SpatialVelocityGrad = ZeroMatrix(TDim, TDim);
+
+    rElementalVariables.MeanPressure = 0;
+
+    rElementalVariables.CurrentTotalCauchyStress = ZeroVector(voigtsize);
+
+    rElementalVariables.UpdatedTotalCauchyStress = ZeroVector(voigtsize);
+
+    rElementalVariables.CurrentDeviatoricCauchyStress = ZeroVector(voigtsize);
+
+    rElementalVariables.UpdatedDeviatoricCauchyStress = ZeroVector(voigtsize);
+
+    KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>

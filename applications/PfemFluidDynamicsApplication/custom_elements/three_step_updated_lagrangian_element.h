@@ -219,14 +219,13 @@ namespace Kratos
                              const ShapeFunctionsType &rN,
                              const double Weight);
 
-    void AddMomentumSystemTerms(Matrix &rLHSMatrix,
-                                Vector &rRHSVector,
-                                const double Density,
-                                const array_1d<double, 3> &rBodyForce,
-                                const double OldPressure,
-                                const ShapeFunctionsType &rN,
-                                const ShapeFunctionDerivativesType &rDN_DX,
-                                const double Weight);
+    void AddMomentumRHSTerms(Vector &rRHSVector,
+                             const double Density,
+                             const array_1d<double, 3> &rBodyForce,
+                             const double OldPressure,
+                             const ShapeFunctionsType &rN,
+                             const ShapeFunctionDerivativesType &rDN_DX,
+                             const double Weight);
 
     void AddViscousTerm(MatrixType &rDampingMatrix,
                         const ShapeFunctionDerivativesType &rShapeDeriv,
@@ -266,7 +265,7 @@ namespace Kratos
 
     virtual void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables) override{};
+    void InitializeElementalVariables(ElementalVariables &rElementalVariables) override;
 
     ///@}
     ///@name Access
@@ -336,9 +335,30 @@ namespace Kratos
                                                  VectorType &rRightHandSideVector,
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                       VectorType &rRightHandSideVector,
-                                                       const ProcessInfo &rCurrentProcessInfo) override{};
+    void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                               VectorType &rRightHandSideVector,
+                                               const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateTauPSPG(double &TauOne,
+                          double ElemSize,
+                          const double Density,
+                          const double Viscosity,
+                          const ProcessInfo &rCurrentProcessInfo);
+
+    void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
+                                    const ShapeFunctionDerivativesType &rShapeDeriv,
+                                    const double Weight);
+
+    void AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                         const double Tau,
+                                         const double Density,
+                                         const double Weight,
+                                         const double TimeStep,
+                                         const ShapeFunctionDerivativesType &rDN_DX,
+                                         const ShapeFunctionsType &rN,
+                                         const SizeType i);
+
+    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
+                               const double Weight) override;
 
     virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
                                                      VectorType &rRightHandSideVector,
@@ -360,8 +380,7 @@ namespace Kratos
                              const ProcessInfo &rCurrentProcessInfo) override{};
 
     void ComputeLumpedMassMatrix(Matrix &rMassMatrix,
-                                 const double Weight,
-                                 double &MeanValue) override;
+                                 const double Weight);
 
     void AddExternalForces(Vector &rRHSVector,
                            const double Density,

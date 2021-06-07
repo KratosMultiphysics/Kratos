@@ -123,14 +123,23 @@ class PfemFluidSolver(PythonSolver):
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
-                                                              self.velocity_linear_solver,
-                                                              self.pressure_linear_solver,
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                              self.settings["velocity_tolerance"].GetDouble(),
-                                                              self.settings["pressure_tolerance"].GetDouble(),
-                                                              self.settings["maximum_pressure_iterations"].GetInt(),
-                                                              self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+        # self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
+        #                                                       self.velocity_linear_solver,
+        #                                                       self.pressure_linear_solver,
+        #                                                       self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                       self.settings["velocity_tolerance"].GetDouble(),
+        #                                                       self.settings["pressure_tolerance"].GetDouble(),
+        #                                                       self.settings["maximum_pressure_iterations"].GetInt(),
+        #                                                       self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+
+        self.fluid_solver = KratosPfemFluid.ThreeStepVPStrategy(self.computing_model_part,
+                                                                self.velocity_linear_solver,
+                                                                self.pressure_linear_solver,
+                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                                self.settings["velocity_tolerance"].GetDouble(),
+                                                                self.settings["pressure_tolerance"].GetDouble(),
+                                                                self.settings["maximum_pressure_iterations"].GetInt(),
+                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         echo_level = self.settings["echo_level"].GetInt()
 
