@@ -1746,14 +1746,12 @@ private:
             }
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const IndexType equation_id = rDof.EquationId();
             if (equation_id < BaseType::mEquationSystemSize ) {
-                residual_solution[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
+                residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
-        }
+        });
 
         // Apply master slave constraints
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -2057,10 +2055,10 @@ private:
     {
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         double *Tvalues = rTMatrix.value_data().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
-            Tvalues[i] = 0.0;
-        }
+
+        IndexPartition<std::size_t>(rTMatrix.nnz()).for_each([&Tvalues](std::size_t Index){
+            Tvalues[Index] = 0.0;
+        });
 
         IndexMapType solvable_dof_reorder;
 
@@ -2106,18 +2104,18 @@ private:
         if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
-            #pragma omp parallel for
-            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                auto it_dof = it_dof_begin + k;
-                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&](std::size_t Index){
+                auto it_dof = it_dof_begin + Index;
+                if (Index < BaseType::mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                            rb[k] = 0.0;
+                            rb[Index] = 0.0;
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -2146,10 +2144,9 @@ private:
 
         // Filling constant vector
         if (ComputeConstantVector) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
+                rConstantVector[Index] = 0.0;
+            });
         }
 
         // Auxiliar set to reorder master DoFs
@@ -2280,14 +2277,13 @@ private:
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-                auto it_dof = it_dof_begin + i;
-                const IndexType equation_id = it_dof->EquationId();
+            block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+                const IndexType equation_id = rDof.EquationId();
                 if (equation_id < BaseType::mEquationSystemSize ) {
-                    u[equation_id] = it_dof->GetSolutionStepValue() + Dx[equation_id];
+                    u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
                 }
-            }
+            });
+
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
             IndexType counter = 0;
             for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
