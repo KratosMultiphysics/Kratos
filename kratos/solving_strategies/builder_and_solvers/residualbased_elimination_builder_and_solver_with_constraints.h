@@ -1748,7 +1748,7 @@ private:
 
         block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
             const IndexType equation_id = rDof.EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
+            if (equation_id < this->mEquationSystemSize ) {
                 residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
         });
@@ -2279,7 +2279,7 @@ private:
 
             block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
                 const IndexType equation_id = rDof.EquationId();
-                if (equation_id < BaseType::mEquationSystemSize ) {
+                if (equation_id < this->mEquationSystemSize ) {
                     u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
                 }
             });
