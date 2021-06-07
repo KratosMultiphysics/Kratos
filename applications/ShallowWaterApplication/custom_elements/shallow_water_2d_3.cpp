@@ -320,9 +320,8 @@ void ShallowWater2D3::AddDesingularizationTerm(
     MatrixType& rLHS,
     const ElementData& rData)
 {
-    const double length = GetGeometry().Length();
-    const double epsilon = rData.rel_dry_height * length;
-    const double factor = 1e3 * (1.0 - ShallowWaterUtilities().WetFraction(rData.height, epsilon)) / length;
+    double factor = 1e3 / GetGeometry().Length();
+    factor *= 1.0 - ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
     for (size_t i = 0; i < 3; ++i) {
         const size_t block = 3 * i;
         rLHS(block, block) += factor;
@@ -364,6 +363,7 @@ void ShallowWater2D3::ElementData::InitializeData(const ProcessInfo& rCurrentPro
 
 void ShallowWater2D3::ElementData::GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX)
 {
+    dry_height = rel_dry_height * rGeometry.Length();
     height = 0.0;
     flow_rate = ZeroVector(3);
     velocity = ZeroVector(3);
@@ -534,6 +534,7 @@ void ShallowWater2D3::ComputeGradientMatrix(
     const double u_1 = rData.velocity[0];
     const double u_2 = rData.velocity[1];
     const double l = StabilizationParameter(rData);
+    const double w = (rData.height > rData.dry_height)? 1.0 : 0.0;
 
     for (size_t i = 0; i < 3; ++i)
     {
@@ -548,11 +549,11 @@ void ShallowWater2D3::ComputeGradientMatrix(
              *        {   1      0        0     }}
              */
             const double g1_ij = rN[i] * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += g1_ij * 2*u_1;
-            rMatrix(i_block,     j_block + 2) += g1_ij * (-u_1*u_1 + c2);
-            rMatrix(i_block + 1, j_block)     += g1_ij * u_2;
-            rMatrix(i_block + 1, j_block + 1) += g1_ij * u_1;
-            rMatrix(i_block + 1, j_block + 2) -= g1_ij * u_1*u_2;
+            rMatrix(i_block,     j_block)     += g1_ij * w * 2*u_1;
+            rMatrix(i_block,     j_block + 2) += g1_ij * w * (-u_1*u_1 + c2);
+            rMatrix(i_block + 1, j_block)     += g1_ij * w * u_2;
+            rMatrix(i_block + 1, j_block + 1) += g1_ij * w * u_1;
+            rMatrix(i_block + 1, j_block + 2) -= g1_ij * w * u_1*u_2;
             rMatrix(i_block + 2, j_block)     += g1_ij;
 
             /* Second component
@@ -561,11 +562,11 @@ void ShallowWater2D3::ComputeGradientMatrix(
              *        { 0      1            0    }}
              */
             const double g2_ij = rN[i] * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += g2_ij * u_2;
-            rMatrix(i_block,     j_block + 1) += g2_ij * u_1;
-            rMatrix(i_block,     j_block + 2) -= g2_ij * u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += g2_ij * 2*u_2;
-            rMatrix(i_block + 1, j_block + 2) += g2_ij * (-u_2*u_2 + c2);
+            rMatrix(i_block,     j_block)     += g2_ij * w * u_2;
+            rMatrix(i_block,     j_block + 1) += g2_ij * w * u_1;
+            rMatrix(i_block,     j_block + 2) -= g2_ij * w * u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += g2_ij * w * 2*u_2;
+            rMatrix(i_block + 1, j_block + 2) += g2_ij * w * (-u_2*u_2 + c2);
             rMatrix(i_block + 2, j_block + 1) += g2_ij;
 
             double d_ij;
@@ -573,53 +574,53 @@ void ShallowWater2D3::ComputeGradientMatrix(
              * A1*A1
              */
             d_ij = rDN_DX(j,0) * rDN_DX(i,0);
-            rMatrix(i_block,     j_block)     += l * d_ij * (3*pow(u_1,2) + c2);
-            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
-            rMatrix(i_block + 1, j_block)     += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += l * d_ij * pow(u_1,2);
-            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 2, j_block)     += l * d_ij * 2*u_1;
-            rMatrix(i_block + 2, j_block + 2) += l * d_ij * (-pow(u_1,2) + c2);
+            rMatrix(i_block,     j_block)     += l * d_ij * w * (3*pow(u_1,2) + c2);
+            rMatrix(i_block,     j_block + 2) += l * d_ij * w * (-2*pow(u_1,3) + 2*u_1*c2);
+            rMatrix(i_block + 1, j_block)     += l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * w * pow(u_1,2);
+            rMatrix(i_block + 1, j_block + 2) += l * d_ij * w * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 2, j_block)     += l * d_ij * w * 2*u_1;
+            rMatrix(i_block + 2, j_block + 2) += l * d_ij * w * (-pow(u_1,2) + c2);
 
             /* Stabilization y-y
              * A2*A2
              */
             d_ij = rDN_DX(j,1) * rDN_DX(i,1);
-            rMatrix(i_block,     j_block)     += l * d_ij * pow(u_2,2);
-            rMatrix(i_block,     j_block + 1) += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 1, j_block + 1) += l * d_ij * (3*(pow(u_2,2) + c2));
-            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
-            rMatrix(i_block + 2, j_block + 1) += l * d_ij * 2*u_2;
-            rMatrix(i_block + 2, j_block + 2) += l * d_ij * (-pow(u_2,2) + c2);
+            rMatrix(i_block,     j_block)     += l * d_ij * w * pow(u_2,2);
+            rMatrix(i_block,     j_block + 1) += l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 2) += l * d_ij * w * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 1, j_block + 1) += l * d_ij * w * (3*(pow(u_2,2) + c2));
+            rMatrix(i_block + 1, j_block + 2) += l * d_ij * w * (-2*pow(u_2,3) + 2*u_2*c2);
+            rMatrix(i_block + 2, j_block + 1) += l * d_ij * w * 2*u_2;
+            rMatrix(i_block + 2, j_block + 2) += l * d_ij * w * (-pow(u_2,2) + c2);
 
             /* Stabilization x-y
              * A1*A2
              */
             d_ij = rDN_DX(j,0) * rDN_DX(i,1);
-            rMatrix(i_block,     j_block)     += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += l * d_ij * (pow(u_1,2)+c2);
-            rMatrix(i_block,     j_block + 2) += -l * d_ij * 2*pow(u_1,2)*u_2;
-            rMatrix(i_block + 1, j_block)     += l * d_ij * pow(u_2,2);
-            rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) += l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block + 1) += l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * u_1*u_2;
+            rMatrix(i_block,     j_block)     +=  l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) +=  l * d_ij * w * (pow(u_1,2)+c2);
+            rMatrix(i_block,     j_block + 2) += -l * d_ij * w * 2*pow(u_1,2)*u_2;
+            rMatrix(i_block + 1, j_block)     +=  l * d_ij * w * pow(u_2,2);
+            rMatrix(i_block + 1, j_block + 1) +=  l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) +=  l * d_ij * w * (-2*u_1*pow(u_2,2) + u_1*c2);
+            rMatrix(i_block + 2, j_block)     +=  l * d_ij * w * u_2;
+            rMatrix(i_block + 2, j_block + 1) +=  l * d_ij * w * u_1;
+            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * w * u_1*u_2;
 
             /* Stabilization y-x
              * A2*A1
              */
             d_ij = rDN_DX(j,1) * rDN_DX(i,0);
-            rMatrix(i_block,     j_block)     += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += l * d_ij * pow(u_1,2);
-            rMatrix(i_block,     j_block + 2) += l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 1, j_block)     += l * d_ij * (pow(u_2,2) + c2);
-            rMatrix(i_block + 1, j_block + 1) += l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) += -l * d_ij * 2*u_1*pow(u_2,2);
-            rMatrix(i_block + 2, j_block)     += l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block + 1) += l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * u_1*u_2;
+            rMatrix(i_block,     j_block)     +=  l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block,     j_block + 1) +=  l * d_ij * w * pow(u_1,2);
+            rMatrix(i_block,     j_block + 2) +=  l * d_ij * w * (-2*pow(u_1,2)*u_2 + u_2*c2);
+            rMatrix(i_block + 1, j_block)     +=  l * d_ij * w * (pow(u_2,2) + c2);
+            rMatrix(i_block + 1, j_block + 1) +=  l * d_ij * w * 2*u_1*u_2;
+            rMatrix(i_block + 1, j_block + 2) += -l * d_ij * w * 2*u_1*pow(u_2,2);
+            rMatrix(i_block + 2, j_block)     +=  l * d_ij * w * u_2;
+            rMatrix(i_block + 2, j_block + 1) +=  l * d_ij * w * u_1;
+            rMatrix(i_block + 2, j_block + 2) += -l * d_ij * w * u_1*u_2;
         }
     }
 }
@@ -661,6 +662,7 @@ void ShallowWater2D3::ComputeGradientVector(
     const double u_2 = rData.velocity[1];
     const double l = StabilizationParameter(rData);
     const auto topography = rData.topography;
+    const auto w = (rData.height > rData.dry_height)? 1.0 : 0.0;
 
     for (size_t i = 0; i < 3; ++i)
     {
@@ -668,38 +670,38 @@ void ShallowWater2D3::ComputeGradientVector(
         for (size_t j = 0; j < 3; ++j)
         {
             /* First component */
-            rVector[i_block] -= c2 * rN[i] * rDN_DX(j,0) * topography[j];
+            rVector[i_block] -= c2 * rN[i] * rDN_DX(j,0) * w * topography[j];
 
             /* Second component */
-            rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * topography[j];
+            rVector[i_block + 1] -= c2 * rN[i] * rDN_DX(j,1) * w * topography[j];
 
             /* Stabilization x-x
              * A1*G1
              */
             double d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            rVector[i_block]     -= l * d_ij * topography[j] * 2*u_1*c2;
-            rVector[i_block + 1] -= l * d_ij * topography[j] * u_2*c2;
-            rVector[i_block + 2] -= l * d_ij * topography[j] * c2;
+            rVector[i_block]     -= l * d_ij * w * topography[j] * 2*u_1*c2;
+            rVector[i_block + 1] -= l * d_ij * w * topography[j] * u_2*c2;
+            rVector[i_block + 2] -= l * d_ij * w * topography[j] * c2;
 
             /* Stabilization y-y
              * A2*G2
              */
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            rVector[i_block]     -= l * d_ij * topography[j] * u_1*c2;
-            rVector[i_block + 1] -= l * d_ij * topography[j] * 2*u_2*c2;
-            rVector[i_block + 2] -= l * d_ij * topography[j] * c2;
+            rVector[i_block]     -= l * d_ij * w * topography[j] * u_1*c2;
+            rVector[i_block + 1] -= l * d_ij * w * topography[j] * 2*u_2*c2;
+            rVector[i_block + 2] -= l * d_ij * w * topography[j] * c2;
 
             /* Stabilization x-y
              * A1*G2
              */
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            rVector[i_block + 1] -= l * d_ij * topography[j] * u_1*c2;
+            rVector[i_block + 1] -= l * d_ij * w * topography[j] * u_1*c2;
 
             /* Stabilization y-x
              * A2*G1
              */
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            rVector[i_block] -= l * d_ij * topography[j] * u_2*c2;
+            rVector[i_block] -= l * d_ij * w * topography[j] * u_2*c2;
         }
     }
 }
@@ -718,20 +720,24 @@ void ShallowWater2D3::ShockCapturingParameters(
     array_1d<double,3> height_grad;
     AlgebraicResidual(flow_residual, height_residual, flow_grad, height_grad, rData, rDN_DX);
 
+    // slope limits
+    const double min_slope = 0.1;
+    const double max_slope = 1.0;
+    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
+    const double min_q_slope = std::max(eigenvalue * 1.0, min_slope);
+    const double max_q_slope = std::max(eigenvalue * 10.0, max_slope);
+
     // Final assembly of the parameters
     const double length = this->GetGeometry().Length();
-    const double slope = 1e-0;
 
     const double q_residual_norm = norm_2(flow_residual);
     const double q_grad_frobenius = norm_frobenius(flow_grad);
-    const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double q_slope = std::max(eigenvalue * slope, slope);
-    const double q_gradient_norm = std::max(q_grad_frobenius, q_slope);
-    rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / (q_gradient_norm);
+    const double q_gradient_norm = std::min(std::max(q_grad_frobenius, min_q_slope), max_q_slope);
+    rArtViscosity = 0.5 * rData.shock_stab_factor * length * q_residual_norm / q_gradient_norm;
 
     const double h_residual_norm = std::abs(height_residual);
-    const double h_gradient_norm = std::max(norm_2(height_grad), 0.1 * slope);
-    rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / (h_gradient_norm);
+    const double h_gradient_norm = std::min(std::max(norm_2(height_grad), min_slope), max_slope);
+    rArtDiffusion = 0.5 * rData.shock_stab_factor * length * h_residual_norm / h_gradient_norm;
 }
 
 void ShallowWater2D3::ShockCapturingViscosityMatrix(
@@ -917,7 +923,7 @@ double ShallowWater2D3::StabilizationParameter(const ElementData& rData)
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
     const double length = this->GetGeometry().Length();
     const double eigenvalue = norm_2(rData.velocity) + std::sqrt(rData.gravity * rData.height);
-    const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.rel_dry_height * length);
+    const double wet_fraction = ShallowWaterUtilities().WetFraction(rData.height, rData.dry_height);
 
     return length * wet_fraction * rData.stab_factor / (eigenvalue + e);
 }

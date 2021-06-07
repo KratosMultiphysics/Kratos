@@ -4,7 +4,7 @@ from functools import reduce
 from math import sqrt, log, factorial
 from collections.abc import Iterable
 
-from xmc.distributedEnvironmentFramework import *
+from exaqute import task
 
 
 def dynamicImport(fullName):
@@ -54,7 +54,7 @@ def returnInput(*args):
     return args
 
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def returnInput_Task(*args):
     return returnInput(*args)
 
@@ -136,7 +136,7 @@ def summation(*args):
     return sum(args)
 
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def summation_Task(*args):
     return sum(args)
 

@@ -7,7 +7,7 @@ import warnings
 # XMC imports
 from xmc.tools import instantiateObject, summation_Task
 from xmc.methodDefs_monteCarloIndex import updateEstimators
-from xmc.distributedEnvironmentFramework import *
+from exaqute import get_value_from_remote, delete_object
 import xmc.methodDefs_monteCarloIndex.updateEstimators as mdu
 
 

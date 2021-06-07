@@ -325,7 +325,7 @@ public:
      */
     void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
     {
-        mpCurveOnSurface->Spans(rSpans, DirectionIndex,
+        mpCurveOnSurface->Spans(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
@@ -428,8 +428,13 @@ public:
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
-        mpCurveOnSurface->CreateIntegrationPoints(rIntegrationPoints,
-            mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
+        const SizeType points_per_span = mpCurveOnSurface->PolynomialDegree(0) + 1;
+
+        std::vector<double> spans;
+        Spans(spans);
+
+        IntegrationPointUtilities::CreateIntegrationPoints1D(
+            rIntegrationPoints, spans, points_per_span);
     }
 
     ///@}
