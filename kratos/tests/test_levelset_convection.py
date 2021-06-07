@@ -55,10 +55,16 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(40.0)
 
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "eulerian_error_compensation" : false,
+            "element_type" : "levelset_convection_supg"
+        }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
-            KratosMultiphysics.DISTANCE,
             model_part,
-            linear_solver).Execute()
+            linear_solver,
+            levelset_convection_settings).Execute()
 
         max_distance = -1.0
         min_distance = +1.0
@@ -94,9 +100,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(30.0)
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-                kratos_comm, model_part).Execute()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
 
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             model_part,
@@ -105,14 +109,10 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.NODAL_AREA).Execute()
 
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7,
-            "algebraic_stabilization" : false
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             model_part,
@@ -177,9 +177,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
 
         model_part.CloneTimeStep(1.0)
 
-        kratos_comm  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalNeighboursProcess(
-                kratos_comm, model_part).Execute()
+        KratosMultiphysics.FindGlobalNodalNeighboursProcess(model_part).Execute()
 
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             model_part,
@@ -188,15 +186,13 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             KratosMultiphysics.NODAL_AREA).Execute()
 
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "max_CFL" : 1.0,
             "max_substeps" : 0,
             "eulerian_error_compensation" : false,
-            "cross_wind_stabilization_factor" : 0.7,
-            "algebraic_stabilization" : true,
-            "high_order_terms" : true
+            "element_type" : "levelset_convection_algebraic_stabilization",
+            "element_settings" : {
+                "include_anti_diffusivity_terms" : true
+            }
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             model_part,
