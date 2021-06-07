@@ -2105,7 +2105,7 @@ private:
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
 
-            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
                 auto it_dof = it_dof_begin + Index;
                 if (Index < BaseType::mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
