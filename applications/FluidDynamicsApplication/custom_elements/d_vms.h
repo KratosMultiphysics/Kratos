@@ -298,7 +298,7 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    void AddMassLHS(
+    virtual void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
