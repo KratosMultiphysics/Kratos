@@ -21,6 +21,7 @@
 #include "iga_application_variables.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_strategies_to_python.h"
 
 namespace Kratos {
 namespace Python {
@@ -80,8 +81,14 @@ PYBIND11_MODULE(KratosIgaApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PENALTY_FACTOR)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, VECTOR_LAGRANGE_MULTIPLIER_REACTION)
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NITSCHE_STABILIZATION_FACTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_LEVEL)
+
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomStrategiesToPython(m);
 }
 
 } // namespace Python
