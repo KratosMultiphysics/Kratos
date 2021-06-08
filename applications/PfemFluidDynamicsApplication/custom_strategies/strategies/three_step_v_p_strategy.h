@@ -606,12 +606,12 @@ namespace Kratos
 
       if (errorNormDp < mPressureTolerance)
       {
-        std::cout << "         The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Converged!" << std::endl;
+        std::cout << "         The norm of pressure is: " << NormP<< "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Converged!" << std::endl;
         return true;
       }
       else
       {
-        std::cout << "         The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Not converged!" << std::endl;
+        std::cout << "         The norm of pressure is: " << NormP<< "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Not converged!" << std::endl;
         return false;
       }
     }

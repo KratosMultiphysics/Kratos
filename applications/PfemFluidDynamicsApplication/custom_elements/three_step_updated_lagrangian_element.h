@@ -231,6 +231,32 @@ namespace Kratos
                         const ShapeFunctionDerivativesType &rShapeDeriv,
                         const double Weight);
 
+    void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
+                               const ShapeFunctionsType &rN,
+                               const double Weight);
+
+    void ComputeBoundRHSVector(VectorType &BoundRHSVector,
+                               const ShapeFunctionsType &rN,
+                               const double TimeStep,
+                               const double BoundRHSCoeffAcc,
+                               const double BoundRHSCoeffDev) ;
+
+    void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
+                                       const double TimeStep,
+                                       const double BoundRHSCoeffAcc,
+                                       const double BoundRHSCoeffDev,
+                                       const VectorType SpatialDefRate);
+
+    void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
+                                    const ShapeFunctionDerivativesType &rShapeDeriv,
+                                    const double Weight);
+
+    void CalculateTauFIC(double &TauOne,
+                         double ElemSize,
+                         const double Density,
+                         const double Viscosity,
+                         const ProcessInfo &rCurrentProcessInfo);
+
     double ElementSize();
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
@@ -240,7 +266,7 @@ namespace Kratos
       KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
       KRATOS_CATCH("");
     }
-    
+
     /**
          * @param rVariable Use ADVPROJ or VELOCITY
          * @param Output (unused)
@@ -344,18 +370,25 @@ namespace Kratos
                                                  VectorType &rRightHandSideVector,
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                               VectorType &rRightHandSideVector,
-                                               const ProcessInfo &rCurrentProcessInfo) override;
+    void CalculatePSPGLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                  VectorType &rRightHandSideVector,
+                                                  const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateFICLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                  VectorType &rRightHandSideVector,
+                                                  const ProcessInfo &rCurrentProcessInfo);
     void CalculateTauPSPG(double &TauOne,
                           double ElemSize,
                           const double Density,
                           const double Viscosity,
                           const ProcessInfo &rCurrentProcessInfo);
 
-    void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
-                                    const ShapeFunctionDerivativesType &rShapeDeriv,
-                                    const double Weight);
+    void AddStabilizationNodalTermsRHS(VectorType &rRightHandSideVector,
+                                       const double Tau,
+                                       const double Density,
+                                       const double Weight,
+                                       const ShapeFunctionDerivativesType &rDN_DX,
+                                       const SizeType i);
 
     void AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
                                          const double Tau,
