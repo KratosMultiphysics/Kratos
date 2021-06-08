@@ -251,9 +251,6 @@ int TransientPwElement<TDim,TNumNodes>::
     // Verify ProcessInfo variables
 
     // Verify properties
-    if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-            "DENSITY_SOLID does not exist in the material properties or has an invalid value at element", this->Id() )
     if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
             "DENSITY_WATER does not exist in the material properties or has an invalid value at element", this->Id() )
@@ -703,7 +700,6 @@ void TransientPwElement<TDim,TNumNodes>::
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
 
-    // VG: TODO: Check
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     // KRATOS_INFO("1-TransientPwElement::CalculateAndAddRHS()") << std::endl;

@@ -1843,7 +1843,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

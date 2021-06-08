@@ -65,9 +65,6 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     // Verify ProcessInfo variables
 
     // Verify properties
-    if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-            "DENSITY_SOLID does not exist in the material properties or has an invalid value at element", this->Id() )
     if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
             "DENSITY_WATER does not exist in the material properties or has an invalid value at element", this->Id() )
@@ -106,11 +103,6 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
         KRATOS_THROW_ERROR( std::invalid_argument,
                             "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
-
-    if (!Prop.Has( BIOT_COEFFICIENT ))
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "BIOT_COEFFICIENT does not exist in the material properties in element",
                             this->Id() )
 
     if (TDim > 2)
@@ -227,7 +219,6 @@ void SteadyStatePwElement<TDim,TNumNodes>::
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
 
-    // VG: TODO: Check
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     // KRATOS_INFO("1-SteadyStatePwElement::CalculateAndAddRHS()") << std::endl;
