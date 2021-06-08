@@ -42,6 +42,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(model_part.NumberOfProperties(), 1)
         self.assertEqual(model_part.NumberOfNodes(), 6)
         self.assertEqual(model_part.NumberOfProperties(), 1)
+        self.assertEqual(model_part.NumberOfGeometries(), 4)
         self.assertEqual(model_part.NumberOfElements(), 4)
         self.assertEqual(model_part.NumberOfConditions(), 5)
 
@@ -298,12 +299,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         except:
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
-
-    #def test_model_part_io_properties_block(self):
-    #    model_part= current_model.CreateModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
-
 
 class TestModelPartIOMPI(KratosUnittest.TestCase):
     def test_model_part_io_read_entity_data(self):
