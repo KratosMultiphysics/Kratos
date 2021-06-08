@@ -25,8 +25,6 @@ The CoSimulation Application contains the core developments in coupling black-bo
   - [Convergence Criteria](python_scripts/convergence_criteria)
   - [Predictors](python_scripts/predictors)
 
-- Besides the above mentioned functionalities the modular design of the application makes it straight forward to add a new or customized version of e.g. a ConvergenceAccelerator. It is not necessary to have those custom python scripts inside the _CoSimulationApplication_, it is sufficient that they are in a directory that is included in the _PYTHONPATH_ (e.g. the working directory).
-
 - Support for MPI parallelization. This is independent of whether or not the ued solvers support/run in MPI.
 
 - Coupling of Kratos <=> Kratos without overhead since the same database is used and data duplication is avoided.
@@ -99,7 +97,7 @@ Not the passing of the `--using-mpi` flag which tells Kratos that it runs in MPI
 
 The configuration of the coupled simulation is written in `json` format, same as for the rest of Kratos.
 
-The following sections are important:
+It contains two settings:
 - _problem_data_: this setting contains global settings of the coupled problem.
   ~~~js
   "start_time" : 0.0,
@@ -124,7 +122,7 @@ The following sections are important:
 See the next section for a basic example with more explanations.
 ### Basic FSI example
 
-This example is the Wall FSI benchmark which coupled Kratos solvers:
+This example is the Wall FSI benchmark, see [1], chapter 7.5.3. The Kratos solvers are used to solve this problem. The input files for this example can be found [here](tests/fsi_wall)
 
 ~~~js
 {
@@ -235,15 +233,15 @@ This example is the Wall FSI benchmark which coupled Kratos solvers:
 
 ### Structure of the Application
 
-The _CoSimulationApplication_ consists of the following main components (taken from [1]):
+The _CoSimulationApplication_ consists of the following main components (taken from [2]):
 - **SolverWrapper**: Baseclass and CoSimulationApplication-interface for all solvers/codes participating in the coupled simulation, each solver/code has its own specific version.
-- **CoupledSolver**: Implements coupling schemes such as weak/strong coupling withGauss-Seidel/Jacobi pattern.  It derives from SolverWrapper such that it can beused in nested coupled simulations.
+- **CoupledSolver**: Implements coupling schemes such as weak/strong coupling with Gauss-Seidel/Jacobi pattern. It derives from SolverWrapper such that it can beused in nested coupled simulations.
 - **IO**: Responsible for communicating and data exchange with external solvers/codes
-- **DataTransferOperator**: Transfers data from one discretization to another, e.g.by use of mapping techniques
+- **DataTransferOperator**: Transfers data from one discretization to another, e.g. by use of mapping techniques
 - **CouplingOperation**: Tool for customizing coupled simulations
-- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simula-tions by use of relaxation techniques
-- **ConvergenceCriteria**: Checks if convergence is achieved in a strongly coupledsimulation.
-- **Predictor**: Improves the convergence by using a prediction as initial guess for thecoupled solution
+- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simulations by use of relaxation techniques
+- **ConvergenceCriteria**: Checks if convergence is achieved in a strongly coupled simulation.
+- **Predictor**: Improves the convergence by using a prediction as initial guess for the coupled solution
 
 The following UML diagram shows the relation between these components:
 
@@ -251,6 +249,7 @@ The following UML diagram shows the relation between these components:
   <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 400px;"/>
 </p>
 
+Besides the functionalities [listed above](#list-of-features), the modular design of the application makes it straight forward to add a new or customized version of e.g. a _ConvergenceAccelerator_. It is not necessary to have those custom python scripts inside the _CoSimulationApplication_, it is sufficient that they are in a directory that is included in the _PYTHONPATH_ (e.g. the working directory).
 
 ### How to couple a new solver / software-tool?
 
@@ -273,7 +272,7 @@ The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper
 
 
 
-provides the following interface (adapted from [1]):
+provides the following interface (adapted from [2]):
 
 - **Initialize**:
 - **Finalize**:
@@ -291,4 +290,6 @@ A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is t
 
 ## References
 
-- [1] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
+- [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
+-
+- [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
