@@ -230,26 +230,7 @@ void SymbolicStokes<TElementData>::Calculate(
         this->CalculateMaterialResponse(data);
         // Add limits to the strain, and recompute stress if required
         const auto &p_constitutive_law = this->GetConstitutiveLaw();
-        auto strain = data.StrainRate;
-        const double gamma_dot = std::sqrt(2.0 * (std::pow(strain[0],2.0) + std::pow(strain[1],2.0) + std::pow(strain[2],2.0)) + std::pow(strain[3],2.0) + std::pow(strain[4],2.0) + std::pow(strain[5],2.0));
-        double gamma_dot_from_constitutive_law = p_constitutive_law->GetValue(EQ_STRAIN_RATE, gamma_dot_from_constitutive_law);
-        double ratio = std::abs(gamma_dot_from_constitutive_law / gamma_dot);
-        if (ratio < 0.99999 && ratio > 1e-20) {
-            strain *= ratio;
-            auto &r_values = data.ConstitutiveLawValues;
-            Flags &ConstitutiveLawOptions = r_values.GetOptions();
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-            r_values.SetShapeFunctionsValues(data_N);
-            r_values.SetStrainVector(strain);
-            Vector stress(strain.size());
-            r_values.SetStressVector(stress); //this is an ouput parameter
-            p_constitutive_law->CalculateMaterialResponseCauchy(r_values);
-            rOutput = inner_prod(stress, strain);
-        }
-        else {
-            rOutput = inner_prod(data.ShearStress, data.StrainRate);
-        }
+        rOutput = inner_prod(data.ShearStress, data.StrainRate);
     }
     else if (rVariable == EQ_STRAIN_RATE || rVariable == EFFECTIVE_VISCOSITY) {
         TElementData data;
