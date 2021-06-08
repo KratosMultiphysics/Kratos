@@ -8,12 +8,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - [Dependencies](#dependencies)
 - [Structure of the Application](#structure-of-the-application)
 - [Examples](#examples)
-
-- [Basic Usage](#basic-usage)
-- [Advanced Usage](#advanced-usage)
-- [Available Mappers](#Available-Mappers)
-- [When to use which Mapper?](#When-to-use-which-Mapper)
-- [FAQ](#faq)
+- [How to couple a new solver / software-tool?](#how-to-couple-a-new-external-solver--software-tool)
 
 ## List of features
 
@@ -44,10 +39,20 @@ The [MappingApplication](../MappingApplication) is required when mapping is used
 
 ## Structure of the Application
 
-The following UML diagram shows the relation between the components in the _CoSimulationApplication_:
+The _CoSimulationApplication_ consists of the following main components (taken from _Bucher et al., Realizing CoSimulation in and with a multiphysics framework, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review_):
+- **SolverWrapper**: Baseclass and CoSimulationApplication-interface for all solvers/codes participating in the coupled simulation, each solver/code has its own specific version.
+- **CoupledSolver**: Implements coupling schemes such as weak/strong coupling withGauss-Seidel/Jacobi pattern.  It derives from SolverWrapper such that it can beused in nested coupled simulations.
+- **IO**: Responsible for communicating and data exchange with external solvers/codes
+- **DataTransferOperator**: Transfers data from one discretization to another, e.g.by use of mapping techniques
+- **CouplingOperation**: Tool for customizing coupled simulations
+- **ConvergenceAccelerator**: Accelerating the solution in strongly coupled simula-tions by use of relaxation techniques
+- **ConvergenceCriteria**: Checks if convergence is achieved in a strongly coupledsimulation.
+- **Predictor**: Improves the convergence by using a prediction as initial guess for thecoupled solution
+
+The following UML diagram shows the relation between these components:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" alt="Solution" style="width: 400px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 400px;"/>
 </p>
 
 ## Examples
@@ -56,7 +61,7 @@ This section is currently under construction.
 Please refer to the [tests](tests) for examples of how the coupling can be configured.
 Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests are very suitable for getting a basic understanding.
 
-## How to couple a new (external) solver / software-tool?
+## How to couple a new solver / software-tool?
 
 The CoSimulation Application is very modular and designed to be extended to coupling of more solvers / software-tools.This requires basically two components:
 
