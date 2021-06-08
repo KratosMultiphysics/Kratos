@@ -124,13 +124,13 @@ class PfemFluidSolver(PythonSolver):
         self.computing_model_part = self.GetComputingModelPart()
 
         # self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
-        #                                                       self.velocity_linear_solver,
-        #                                                       self.pressure_linear_solver,
-        #                                                       self.settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                       self.settings["velocity_tolerance"].GetDouble(),
-        #                                                       self.settings["pressure_tolerance"].GetDouble(),
-        #                                                       self.settings["maximum_pressure_iterations"].GetInt(),
-        #                                                       self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+        #                                                        self.velocity_linear_solver,
+        #                                                        self.pressure_linear_solver,
+        #                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
+        #                                                        self.settings["velocity_tolerance"].GetDouble(),
+        #                                                        self.settings["pressure_tolerance"].GetDouble(),
+        #                                                        self.settings["maximum_pressure_iterations"].GetInt(),
+        #                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         self.fluid_solver = KratosPfemFluid.ThreeStepVPStrategy(self.computing_model_part,
                                                                 self.velocity_linear_solver,
@@ -154,6 +154,8 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
 
     def AddDofs(self):
 

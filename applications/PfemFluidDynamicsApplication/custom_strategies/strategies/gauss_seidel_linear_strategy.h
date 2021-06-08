@@ -293,10 +293,6 @@ namespace Kratos
                 TSparseSpace::SetToZero(mb);
                 pBuilderAndSolver->BuildRHSAndSolve(pScheme, BaseType::GetModelPart(), mA, mDx, mb);
             }
-
-            std::cout << "SystemMatrix = " << mA << std::endl;
-            std::cout << "solution obtained = " << mDx << std::endl;
-            std::cout << "RHS  = " << mb << std::endl;
             
             if (BaseType::GetEchoLevel() == 3) //if it is needed to print the debug info
             {

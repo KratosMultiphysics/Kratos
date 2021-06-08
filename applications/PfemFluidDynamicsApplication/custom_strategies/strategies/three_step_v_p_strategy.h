@@ -193,6 +193,7 @@ namespace Kratos
       // bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
       // unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
       bool converged = false;
+      double NormV = 0;
 
       unsigned int maxNonLinearIterations = mMaxPressureIter;
 
@@ -218,21 +219,41 @@ namespace Kratos
       bool continuityConverged = false;
       bool fixedTimeStep = false;
 
-      double pressureNorm = 0;
-      double velocityNorm = 0;
-
       //this->SetBlockedAndIsolatedFlags();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
-        momentumConverged = this->SolveFirstVelocitySystem(it, maxNonLinearIterations, fixedTimeStep, velocityNorm);
+        KRATOS_INFO("\n ------------------- ITERATION ") << it << " ------------------- " << std::endl;
 
-        this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
+        // 1. Compute first-step velocity
+        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
+
+        if (it == 0)
+        {
+          mpMomentumStrategy->InitializeSolutionStep();
+        }
+        momentumConverged = this->SolveFirstVelocitySystem(NormV);
+
+        // 2. Pressure solution
+        rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
         if (fixedTimeStep == false)
         {
-          continuityConverged = this->SolveContinuityIteration(it, maxNonLinearIterations, pressureNorm);
+          if (it == 0)
+          {
+            mpPressureStrategy->InitializeSolutionStep();
+          }
+          // 2. Compute pressure
+          continuityConverged = this->SolveContinuityIteration();
         }
+
+        // 3. Compute end-of-step velocity
+        //rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 6);
+
+        this->CalculateEndOfStepVelocity(NormV);
+
+        this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
+
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
           this->UpdateStressStrain();
@@ -367,71 +388,131 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveFirstVelocitySystem(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
+    bool SolveFirstVelocitySystem(double &NormV)
     {
-      std::cout << " SolveFirstVelocitySystem " << std::endl;
+      std::cout << "1. SolveFirstVelocitySystem " << std::endl;
 
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
       bool momentumConvergence = false;
       double NormDv = 0;
-      fixedTimeStep = false;
       // build momentum system and solve for fractional step velocity increment
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 1);
-
-      if (it == 0)
-      {
-        mpMomentumStrategy->InitializeSolutionStep();
-      }
 
       NormDv = mpMomentumStrategy->Solve();
 
-      if (BaseType::GetEchoLevel() > 1 && Rank == 0)
-        std::cout << "-------------- s o l v e d ! ------------------" << std::endl;
-
       // Check convergence
-      momentumConvergence = this->CheckVelocityConvergence(NormDv);
+      momentumConvergence = this->CheckVelocityIncrementConvergence(NormDv, NormV);
 
-      if (!momentumConvergence && BaseType::GetEchoLevel() > 0 && Rank == 0)
+      if (!momentumConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
 
       return momentumConvergence;
     }
 
-    bool SolveContinuityIteration(unsigned int it, unsigned int maxIt, double &NormP) override
+    bool SolveContinuityIteration()
     {
-      std::cout << " SolveContinuityIteration " << std::endl;
-      ModelPart &rModelPart = BaseType::GetModelPart();
-      int Rank = rModelPart.GetCommunicator().MyPID();
+      std::cout << "2. SolveContinuityIteration " << std::endl;
       bool continuityConvergence = false;
       double NormDp = 0;
 
-      // 2. Pressure solution
-      rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
-
-      if (it == 0)
-      {
-        mpPressureStrategy->InitializeSolutionStep();
-      }
       NormDp = mpPressureStrategy->Solve();
 
-      if (BaseType::GetEchoLevel() > 0 && Rank == 0)
-        std::cout << "The norm of pressure is: " << NormDp << std::endl;
+      continuityConvergence = CheckPressureIncrementConvergence(NormDp);
 
-      continuityConvergence = CheckPressureConvergence(NormDp);
-
-      if (!continuityConvergence && BaseType::GetEchoLevel() > 0 && Rank == 0)
+      if (!continuityConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
       return continuityConvergence;
     }
 
-    bool CheckVelocityConvergence(const double NormDv)
+    void CalculateEndOfStepVelocity(const double NormV)
+    {
+
+      std::cout << "3. CalculateEndOfStepVelocity()" << std::endl;
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
+      const int n_elems = rModelPart.NumberOfElements();
+      // bool freeSurfacePressureAlreadySet = false;
+
+      array_1d<double, 3> Out = ZeroVector(3);
+      VariableUtils().SetHistoricalVariableToZero(FRACT_VEL, rModelPart.Nodes());
+      VariableUtils().SetHistoricalVariableToZero(NODAL_VOLUME, rModelPart.Nodes());
+
+#pragma omp parallel for
+      for (int i_elem = 0; i_elem < n_elems; ++i_elem)
+      {
+        const auto it_elem = rModelPart.ElementsBegin() + i_elem;
+        it_elem->Calculate(VELOCITY, Out, rModelPart.GetProcessInfo());
+        Element::GeometryType &geometry = it_elem->GetGeometry();
+        double elementalVolume = 0;
+
+        if (mDomainSize == 2)
+        {
+          elementalVolume = geometry.Area() / 3.0;
+        }
+        else if (mDomainSize == 3)
+        {
+          elementalVolume = geometry.Volume() * 0.25;
+        }
+        // index = 0;
+        unsigned int numNodes = geometry.size();
+        for (unsigned int i = 0; i < numNodes; i++)
+        {
+          double &nodalVolume = geometry(i)->FastGetSolutionStepValue(NODAL_VOLUME);
+          nodalVolume += elementalVolume;
+        }
+      }
+
+      rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
+
+      if (mDomainSize > 2)
+      {
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node)
+        {
+          auto it_node = rModelPart.NodesBegin() + i_node;
+          const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
+          if (!it_node->IsFixed(VELOCITY_X))
+            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+          if (!it_node->IsFixed(VELOCITY_Y))
+            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+          if (!it_node->IsFixed(VELOCITY_Z))
+            it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+        }
+      }
+      else
+      {
+#pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; ++i_node)
+        {
+          auto it_node = rModelPart.NodesBegin() + i_node;
+          const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
+          if (!it_node->IsFixed(VELOCITY_X))
+          {
+            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+            // double incrementX = it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+            // double incrementY = it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+            // std::cout << NodalArea << " FRACT_VEL_X " << it_node->FastGetSolutionStepValue(FRACT_VEL_X) << "     FRACT_VEL_Y " << it_node->FastGetSolutionStepValue(FRACT_VEL_Y) << std::endl;
+            // std::cout << " incrementX " << incrementX << "     incrementY " << incrementY << std::endl;
+          }
+          if (!it_node->IsFixed(VELOCITY_Y))
+          {
+            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+          }
+          // if (it_node->Is(FREE_SURFACE) && freeSurfacePressureAlreadySet == false)
+          // {
+          //   freeSurfacePressureAlreadySet = true;
+          //   it_node->FastGetSolutionStepValue(PRESSURE)=0;
+          // }
+        }
+      }
+      this->CheckVelocityConvergence(NormV);
+    }
+
+    bool CheckVelocityIncrementConvergence(const double NormDv, double &NormV)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
 
-      double NormV = 0.00;
+      NormV = 0.00;
       double errorNormDv = 0;
 
 #pragma omp parallel for reduction(+ \
@@ -451,10 +532,6 @@ namespace Kratos
       const double zero_tol = 1.0e-12;
       errorNormDv = (NormV < zero_tol) ? NormDv : NormDv / NormV;
 
-      std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
-      std::cout << "The norm of velocity is: " << NormV << std::endl;
-      std::cout << "Velocity error: " << errorNormDv << "mVelocityTolerance: " << mVelocityTolerance << std::endl;
-
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {
         std::cout << "The norm of velocity increment is: " << NormDv << std::endl;
@@ -464,15 +541,41 @@ namespace Kratos
 
       if (errorNormDv < mVelocityTolerance)
       {
+        std::cout << "The norm of velocity is: " << NormV << " The norm of velocity increment is: " << NormDv << " Velocity error: " << errorNormDv << " Converged!" << std::endl;
         return true;
       }
       else
       {
+        std::cout << "The norm of velocity is: " << NormV << " The norm of velocity increment is: " << NormDv << " Velocity error: " << errorNormDv << " Not converged!" << std::endl;
         return false;
       }
     }
 
-    bool CheckPressureConvergence(const double NormDp)
+    void CheckVelocityConvergence(const double NormOldV)
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
+
+      double NormV = 0.00;
+
+#pragma omp parallel for reduction(+ \
+                                   : NormV)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < 3; ++d)
+        {
+          NormV += r_vel[d] * r_vel[d];
+        }
+      }
+      NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
+      NormV = sqrt(NormV);
+
+      std::cout << "The norm of velocity is: " << NormV << " Old velocity norm was: " << NormOldV << std::endl;
+    }
+
+    bool CheckPressureIncrementConvergence(const double NormDp)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
@@ -494,23 +597,23 @@ namespace Kratos
       const double zero_tol = 1.0e-12;
       errorNormDp = (NormP < zero_tol) ? NormDp : NormDp / NormP;
 
-      std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
-      std::cout << "         The norm of pressure is: " << NormP << std::endl;
-      std::cout << "         Pressure error: " << errorNormDp << std::endl;
-
       if (BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
       {
         std::cout << "         The norm of pressure increment is: " << NormDp << std::endl;
         std::cout << "         The norm of pressure is: " << NormP << std::endl;
-        std::cout << "         Pressure error: " << errorNormDp << std::endl;
+        std::cout << "         The norm of pressure increment is: " << NormDp << "         Pressure error: " << errorNormDp << std::endl;
       }
 
       if (errorNormDp < mPressureTolerance)
       {
+        std::cout << "         The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Converged!" << std::endl;
         return true;
       }
       else
+      {
+        std::cout << "         The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Not converged!" << std::endl;
         return false;
+      }
     }
 
     bool FixTimeStepMomentum(const double DvErrorNorm, bool &fixedTimeStep) override

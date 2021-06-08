@@ -221,6 +221,73 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
+  void ThreeStepUpdatedLagrangianElement<TDim>::Calculate(const Variable<array_1d<double, 3>> &rVariable,
+                                                          array_1d<double, 3> &rOutput,
+                                                          const ProcessInfo &rCurrentProcessInfo)
+  {
+    if (rVariable == VELOCITY)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      const SizeType NumNodes = rGeom.PointsNumber();
+      const SizeType LocalSize = TDim * NumNodes;
+
+      // Shape functions and integration points
+      ShapeFunctionDerivativesArrayType DN_DX;
+      Matrix NContainer;
+      VectorType GaussWeights;
+      this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
+      const unsigned int NumGauss = GaussWeights.size();
+
+      VectorType NodalVelCorrection = ZeroVector(LocalSize);
+
+      // Loop on integration points
+      for (unsigned int g = 0; g < NumGauss; ++g)
+      {
+        const ShapeFunctionsType &N = row(NContainer, g);
+        const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
+
+        double Density = 0;
+        this->EvaluateInPoint(Density, DENSITY, N);
+
+        const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+        // double timeFactor = 1.0 / rCurrentProcessInfo[BDF_COEFFICIENTS][0];
+        double timeFactor = 0.5 * TimeStep;
+        const double Coeff = GaussWeights[g] * timeFactor / Density;
+
+        // Calculate contribution to the gradient term (RHS)
+        // double DeltaPressure;
+        // this->EvaluateInPoint(DeltaPressure, PRESSURE_OLD_IT, N);
+        double elementalPressure = 0;
+        this->EvaluateInPoint(elementalPressure, PRESSURE, N);
+
+        SizeType RowIndex = 0;
+
+        for (SizeType i = 0; i < NumNodes; ++i)
+        {
+          for (SizeType d = 0; d < TDim; ++d)
+          {
+            // NodalVelCorrection[RowIndex++] += Coeff * rDN_DX(i, d) * DeltaPressure;
+            NodalVelCorrection[RowIndex++] += Coeff * rDN_DX(i, d) * elementalPressure;
+          }
+        }
+      }
+
+      SizeType Index = 0;
+
+      for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
+        array_1d<double, 3> &rTemp = rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          rTemp[d] += NodalVelCorrection[Index++];
+        }
+        rGeom[i].UnSetLock(); // Free the node for other threads
+      }
+    }
+  }
+
+  template <unsigned int TDim>
   void ThreeStepUpdatedLagrangianElement<TDim>::AddMomentumRHSTerms(Vector &rRHSVector,
                                                                     const double Density,
                                                                     const array_1d<double, 3> &rBodyForce,
@@ -451,6 +518,7 @@ namespace Kratos
   {
     GeometryType &rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
+    const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
     // Check sizes and initialize
     if (rLeftHandSideMatrix.size1() != NumNodes)
@@ -479,7 +547,8 @@ namespace Kratos
 
     //const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
     const double eta = 0;
-
+    double VolumetricCoeff = 0;
+    double lumpedBulkCoeff = 0;
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
     {
@@ -487,8 +556,8 @@ namespace Kratos
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
 
-      double theta = 1.0;
-      bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
+      // double theta = 1.0;
+      // bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       // Evaluate required variables at the integration point
       double Density;
@@ -500,7 +569,7 @@ namespace Kratos
       // array_1d<double, 3> MomentumProjection = ZeroVector(3);
       // this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
 
-      //        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
+      // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
 
@@ -510,8 +579,9 @@ namespace Kratos
       double Viscosity = 0;
       this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
 
+      this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
+      lumpedBulkCoeff = GaussWeight / (VolumetricCoeff*TimeStep);
       // this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
-      const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
       double DivU = 0;
       this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
@@ -552,6 +622,20 @@ namespace Kratos
         rRightHandSideVector[i] += GaussWeight * RHSi;
       }
     }
+
+    ///////////////////////////////// bulk matrix ////////////////////////////////
+    VectorType PressureValues = ZeroVector(NumNodes);
+    VectorType PressureValuesForRHS = ZeroVector(NumNodes);
+    this->GetPressureValues(PressureValuesForRHS, 0);
+
+    this->GetPressureValues(PressureValues, 1);
+    noalias(PressureValuesForRHS) += -PressureValues;
+    MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
+
+    this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
+    noalias(rLeftHandSideMatrix) += BulkMatrix;
+    noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
+    ///////////////////////////////// bulk matrix ////////////////////////////////
   }
 
   template <unsigned int TDim>
@@ -610,7 +694,7 @@ namespace Kratos
       this->EvaluateInPoint(Density, DENSITY, N);
       this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
 
-      VolumetricCoeff *= 0.001 / TimeStep;
+      VolumetricCoeff *= TimeStep;
 
       double Tau = 0;
       this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
@@ -645,31 +729,26 @@ namespace Kratos
         }
       }
     }
+    VectorType PressureValues = ZeroVector(NumNodes);
+    VectorType PressureValuesForRHS = ZeroVector(NumNodes);
+    this->GetPressureValues(PressureValuesForRHS, 0);
 
-    if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
-    {
+    // VectorType AccelerationValues = ZeroVector(NumNodes);
+    // this->GetAccelerationValues(AccelerationValues, 0);
 
-      VectorType PressureValues = ZeroVector(NumNodes);
-      VectorType PressureValuesForRHS = ZeroVector(NumNodes);
-      this->GetPressureValues(PressureValuesForRHS, 0);
+    // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
 
-      VectorType AccelerationValues = ZeroVector(NumNodes);
-      this->GetAccelerationValues(AccelerationValues, 0);
+    //the LHS matrix up to now just contains the laplacian term and the bound term
+    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
 
-      // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
+    this->GetPressureValues(PressureValues, 1);
+    noalias(PressureValuesForRHS) += -PressureValues;
+    MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
+    double lumpedBulkCoeff = totalVolume / VolumetricCoeff;
 
-      //the LHS matrix up to now just contains the laplacian term and the bound term
-      // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
-
-      this->GetPressureValues(PressureValues, 1);
-      noalias(PressureValuesForRHS) += -PressureValues;
-      MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-      double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
-
-      this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-      noalias(rLeftHandSideMatrix) += BulkMatrix;
-      noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
-    }
+    this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
+    noalias(rLeftHandSideMatrix) += BulkMatrix;
+    noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
   }
 
   template <unsigned int TDim>

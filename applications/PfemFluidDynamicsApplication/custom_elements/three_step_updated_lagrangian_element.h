@@ -240,6 +240,15 @@ namespace Kratos
       KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
       KRATOS_CATCH("");
     }
+    
+    /**
+         * @param rVariable Use ADVPROJ or VELOCITY
+         * @param Output (unused)
+         * @param rCurrentProcessInfo Process info instance (unused)
+         */
+    void Calculate(const Variable<array_1d<double, 3>> &rVariable,
+                   array_1d<double, 3> &rOutput,
+                   const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
                                 const ProcessInfo &rCurrentProcessInfo) override{};
