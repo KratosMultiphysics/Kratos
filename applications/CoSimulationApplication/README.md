@@ -9,6 +9,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - [Structure of the Application](#structure-of-the-application)
 - [Examples](#examples)
 - [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
+- [References](#references)
 
 ## List of features
 
@@ -39,7 +40,7 @@ The [MappingApplication](../MappingApplication) is required when mapping is used
 
 ## Structure of the Application
 
-The _CoSimulationApplication_ consists of the following main components (taken from _Bucher et al., Realizing CoSimulation in and with a multiphysics framework, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review_):
+The _CoSimulationApplication_ consists of the following main components (taken from [1]):
 - **SolverWrapper**: Baseclass and CoSimulationApplication-interface for all solvers/codes participating in the coupled simulation, each solver/code has its own specific version.
 - **CoupledSolver**: Implements coupling schemes such as weak/strong coupling withGauss-Seidel/Jacobi pattern.  It derives from SolverWrapper such that it can beused in nested coupled simulations.
 - **IO**: Responsible for communicating and data exchange with external solvers/codes
@@ -72,5 +73,27 @@ The second component necessary is an [**IO**](python_scripts/base_classes/co_sim
 In principle three different options are possible for exchanging data with CoSimulation:
 
 - For very simple solvers IO can directly be done in python inside the SolverWrapper, which makes a separate IO superfluous (see e.g. a [python-only single degree of freedom solver](python_scripts/solver_wrappers/sdof))
-- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with CoSimulation. It is currently available for _C++_, _C_, _Fortran_ and _Python_.
+- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with CoSimulation. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly.
 - Using a custom solution based on capabilities that are offered by the solver that is to be coupled.
+
+### Interface of SolverWrapper
+
+The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) provides the following interface (adapted from [1]):
+
+- **Initialize**:
+- **Finalize**:
+- **AdvanceInTime**:
+- **InitializeSolutionStep**:
+- **Predict**:
+- **SolveSolutionStep**:
+- **FinalizeSolutionStep**:
+- **OutputSolutionStep**:
+
+
+### Remote controlled CoSimulation
+A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is the remotely controlled CoSimulation.
+
+
+## References
+
+- [1] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
