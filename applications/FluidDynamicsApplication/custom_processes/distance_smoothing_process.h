@@ -217,7 +217,7 @@ public:
         r_communicator.GetDataCommunicator().Barrier();
 
         block_for_each(r_smoothing_model_part.Nodes(), [&](Node<3>& rNode){
-            const auto& x_i = rNode.Coordinates();
+            const array_1d<double,3>& x_i = rNode.Coordinates();
 
             double weight = 0.0;
             double dist_diff_avg = 0.0;
@@ -232,7 +232,7 @@ public:
                 if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
 
                     auto result = combined_proxy.Get(global_pointer);
-                    const auto x_j = std::get<1>(result);
+                    const array_1d<double,3>& x_j = std::get<1>(result);
 
                     dx = x_i - x_j;
 
