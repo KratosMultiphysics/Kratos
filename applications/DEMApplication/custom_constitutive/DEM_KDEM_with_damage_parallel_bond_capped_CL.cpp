@@ -32,11 +32,11 @@ namespace Kratos {
         }
     }
 
-    double DEM_KDEM_with_damage_parallel_bond_capped::GetContactSigmaMax(SphericContinuumParticle* element) {
+    double DEM_KDEM_with_damage_parallel_bond_capped::GetContactSigmaMax() {
 
         KRATOS_TRY
 
-        double sigma_max_capped = element->GetProperties()[CONTACT_SIGMA_MIN];
+        const double& sigma_max_capped = (*mpProperties)[CONTACT_SIGMA_MIN];
         return sigma_max_capped;
 
         KRATOS_CATCH("")

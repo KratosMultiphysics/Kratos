@@ -324,6 +324,8 @@ public:
 
     void swap(PointerVectorSet& rOther)
     {
+        std::swap(mSortedPartSize,rOther.mSortedPartSize);
+        std::swap(mMaxBufferSize,rOther.mMaxBufferSize);
         mData.swap(rOther.mData);
     }
 
