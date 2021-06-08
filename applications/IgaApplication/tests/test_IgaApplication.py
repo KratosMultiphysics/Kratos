@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
 import run_cpp_unit_tests
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -34,6 +35,8 @@ from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 
+has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
+
 def AssembleTestSuites():
     ''' Populates the test suites to run.
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -63,11 +66,20 @@ def AssembleTestSuites():
         # Coupling tests
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
-        TwoPatchCouplingNitscheShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest,
-        TwoPatchRefinedCouplingNitscheMembraneTest
+        TwoPatchRefinedCouplingLagrangeMembraneTest
         ]))
+
+    if has_linear_solvers_application:
+        from KratosMultiphysics import LinearSolversApplication
+        if LinearSolversApplication.HasFEAST():
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+                # Coupling Nitsche tests
+                TwoPatchCouplingNitscheShell3pTest,
+                TwoPatchRefinedCouplingNitscheMembraneTest
+                ]))
+        else:
+            print("FEAST not available in LinearSolversApplication")
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
