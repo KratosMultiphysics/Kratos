@@ -309,9 +309,9 @@ public:
 					// Add triangle one as condition
 					std::cout<<"  Step 3" <<std::endl;
 					Triangle3D3< Node<3> > triangle1_c(pnode1, pnode2, pnode3);
-					std::cout<<"  Step 2" <<std::endl;
+					std::cout<<"  Step 4" <<std::endl;
 					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(face_id++, triangle1_c, properties);
-					std::cout<<"  Step 3" <<std::endl;
+					std::cout<<"  Step 5" <<std::endl;
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition1);
 
 					// Add triangle two as condition
