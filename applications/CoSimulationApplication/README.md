@@ -253,9 +253,9 @@ Besides the functionalities [listed above](#list-of-features), the modular desig
 
 ### How to couple a new solver / software-tool?
 
-The _CoSimulationApplication_ is very modular and designed to be extended to coupling of more solvers / software-tools. This requires basically two components:
+The _CoSimulationApplication_ is very modular and designed to be extended to coupling of more solvers / software-tools. This requires basically two components on the Kratos side:
 
-The interface between the CoSimulation and a solver is done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
+The interface between the _CoSimulationApplication_ and a solver is done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
 
 The second component necessary is an [**IO**](python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and the _CoSimulationApplication_.
 
@@ -275,20 +275,71 @@ The following picture shows the interaction of these components with the _CoSimu
 
 The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers. It provides the following interface (adapted from [2]):
 
-- **Initialize**: This function is called once at the beginning of the simulation
-- **Finalize**:
-- **AdvanceInTime**:
-- **InitializeSolutionStep**:
-- **Predict**:
-- **SolveSolutionStep**:
-- **FinalizeSolutionStep**:
-- **OutputSolutionStep**:
+- **Initialize**: This function is called once at the beginning of the simulation, it e.g .reads the input files and prepares the internal data structures
+- **AdvanceInTime**: Advancing in time and preparing the data structure for the next time step.
+- **InitializeSolutionStep**: Applying boundary conditions
+- **Predict**: Predicting the solution of this time step to accelerate the solution.
+- **SolveSolutionStep**: Solving the problem for this time step. This is the only function that can be called multiple times in an iterative (strongly coupled) solution procedure.
+- **FinalizeSolutionStep**: Updating internals after solving this time step.
+- **OutputSolutionStep**: Writing output at the end of a time step
+- **Finalize**: Finalizing and cleaning up after the simulation
 
+Each of these functions can implement functionalities to communicate with the external solver, telling it what to do. However, this is often skipped if the data exchange is used for the synchronization of the solvers. This is often done in "classical" coupling tools. I.e. the code to couple internally duplicates the coupling sequence and synchronizes with the coupling tool through the data exchange.
 
+An example of a _SolverWrapper_ coupled to an external solver using this approach can be found [here](python_scripts/solver_wrappers/external/external_solver_wrapper.py). Only the mesh exchange is done explicitly at the beginning of the simulation, the data exchange is done inside _SolveSolutionStep_.
+
+The coupled solver has to duplicate the coupling sequence, it would look e.g. like this (using _CoSimIO_) for a weak coupling:
+~~~
+# solver initializes ...
+
+CoSimIO::ExportMesh(...) # send meshes to the CoSimulationApplication
+
+# start solution loop
+while time < end_time:
+    CoSimIO::ImportData(...) # get interface data
+
+    # solve the time step
+
+    CoSimIO::ExportData(...) # send new data to the CoSimulationApplication
+~~~
+
+While this approach is commonly used, it has the significant drawback that the coupling sequence has to be duplicated, which not only has the potential for bugs and deadlocks but also severly limits the useability when it comes to trying different coupling algorithms. Then not only the input for the _CoSimulationApplication_ has to be changed but also the source code in the external solver!
+
+Hence a better solution is proposed in the next section:
 #### Remote controlled CoSimulation
-A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is the remotely controlled CoSimulation.
+A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is the remotely controlled CoSimulation. The main difference to the "classical" approach which duplicates the coupling sequence in the external solver is to give the full control to CoSimulation. This is the most flexible approach from the point of CoSimulation, as then neither the coupling sequence nor any other coupling logic has to be duplicated in the external solver.
 
+In this approach the external solver registers the functions necessary to perform coupled simulations through the _CoSimIO_. These are then called remotely through the _CoSimulationApplication_. This way any coupling algorithm can be used without changing anything in the external solver.
 
+~~~
+# defining functions to be registered
+def SolveSolution()
+{
+    # external solver solves timestep
+}
+
+def ExportData()
+{
+    # external solver exports data to the CoSimulationApplication
+}
+
+# after defining the functions they can be registered in the CoSimIO:
+
+CoSimIO::Register(SolveSolution)
+CoSimIO::Register(ExportData)
+# ...
+
+# After all teh functions are registered, the Run method is called
+CoSimIO::Run() # this function runs the coupled simulation. It returns only after finishing
+~~~
+
+The _SolverWrapper_ for this approach sends a small control signal in each of its functions to the external solver to tell it what to do. (The example for this is under construction).
+
+A [simple example example can be found in the _CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO/blob/master/tests/integration_tutorials/cpp/run.cpp).
+
+If it is possible for an external solver to implement this approach, it is recommended to use it as it is the most robust and flexible.
+
+Nevertheless both approaches are possible with the _CoSimulationApplication_.
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
