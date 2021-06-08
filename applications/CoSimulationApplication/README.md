@@ -253,28 +253,29 @@ Besides the functionalities [listed above](#list-of-features), the modular desig
 
 ### How to couple a new solver / software-tool?
 
-The CoSimulation Application is very modular and designed to be extended to coupling of more solvers / software-tools.This requires basically two components:
+The _CoSimulationApplication_ is very modular and designed to be extended to coupling of more solvers / software-tools. This requires basically two components:
 
-The interface between the CoSimulation and a solver is the done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
+The interface between the CoSimulation and a solver is done with the [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
 
-The second component necessary is an [**IO**](python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and CoSimulation.
+The second component necessary is an [**IO**](python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and the _CoSimulationApplication_.
 
 In principle three different options are possible for exchanging data with CoSimulation:
 
 - For very simple solvers IO can directly be done in python inside the SolverWrapper, which makes a separate IO superfluous (see e.g. a [python-only single degree of freedom solver](python_scripts/solver_wrappers/sdof))
-- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with CoSimulation. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly.
+- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with the _CoSimulationApplication_. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly. Its modular and Kratos-independent design allows for easy integration into other codes.
 - Using a custom solution based on capabilities that are offered by the solver that is to be coupled.
+
+The following picture shows the interaction of these components with the _CoSimulationApplication_ and the external solver:
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/cosim_coupling.png" style="width: 400px;"/>
+</p>
 
 #### Interface of SolverWrapper
 
-The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers.
+The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers. It provides the following interface (adapted from [2]):
 
-
-
-
-provides the following interface (adapted from [2]):
-
-- **Initialize**:
+- **Initialize**: This function is called once at the beginning of the simulation
 - **Finalize**:
 - **AdvanceInTime**:
 - **InitializeSolutionStep**:
@@ -293,3 +294,4 @@ A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is t
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
 -
 - [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
+-
