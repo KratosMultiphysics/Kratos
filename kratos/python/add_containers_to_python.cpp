@@ -85,7 +85,6 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
 {
     // Data value container
     VariableIndexingUtility<TBinderType, TContainerType, TVariableType>(binder);
-    binder.def("remove", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
     binder.def("Erase", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
 }
     
