@@ -8,7 +8,6 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - [Dependencies](#dependencies)
 - [Examples](#examples)
 - [User Guide](#user-guide)
-  - [Running a coupled simulation](#running-a-coupled-simulation)
   - [Setting up a coupled simulation](#setting-up-a-coupled-simulation)
   - [The json configuration file](#the-json-configuration-file)
 - [Developer Guide](#developer-guide)
@@ -52,9 +51,182 @@ Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests
 
 ## User Guide
 
-### Running a coupled simulation
+This section guides users of the _CoSimulationApplication_ to setting up and performing coupled simulations. The overall workflow is the same as what is used for most Kratos applications. It consists of the following files:
+
+- **MainKratosCoSim.py** This file is to be executed with python to run the coupled simulation
+- **ProjectParametersCoSim.json** This file contains the configuration for the coupled simulation
+
 ### Setting up a coupled simulation
+For running a coulpled simulation at least the two files above are required. In addition, the input for the solvers / codes participating in the coupled simulation are necessary.
+
+The **MainKratosCoSim.py** file looks like this (see also [here](python_scripts/MainKratosCoSim.py):
+
+~~~py
+import KratosMultiphysics as KM
+from KratosMultiphysics.CoSimulationApplication.co_simulation_analysis import CoSimulationAnalysis
+
+"""
+For user-scripting it is intended that a new class is derived
+from CoSimulationAnalysis to do modifications
+Check also "kratos/python_scripts/analysis-stage.py" for available methods that can be overridden
+"""
+
+parameter_file_name = "ProjectParametersCoSim.json"
+with open(parameter_file_name,'r') as parameter_file:
+    parameters = KM.Parameters(parameter_file.read())
+
+simulation = CoSimulationAnalysis(parameters)
+simulation.Run()
+~~~
+
+It can be executed with python:
+
+~~~
+python MainKratosCoSim.py
+~~~
+
+If the coupled simulation runs in a distributed environment (MPI) then MPI is required to launch the script
+
+~~~
+mpiexec -np 4 python MainKratosCoSim.py --using-mpi
+~~~~
+
+Not the passing of the `--using-mpi` flag which tells Kratos that it runs in MPI.
+
+
+
 ### The json configuration file
+
+The configuration of the coupled simulation is written in `json` format, same as for the rest of Kratos.
+
+The following sections are important:
+- _problem_data_: this setting contains global settings of the coupled problem.
+  ~~~json
+  "start_time" : 0.0,
+  "end_time" : 15.0,
+  "echo_level" : 0, // verbosity, higher values mean more output
+  "print_colors" : true, // use colors in the prints
+  "parallel_type" : "OpenMP" // or "MPI"
+  ~~~
+
+- _solver_settings_: the settings of the coupled solver.
+  ~~~json
+  "type" : "coupled_solvers.gauss_seidel_weak", // type of the coupled solver, see python_scripts/coupled_solvers
+  "predictors" : [], // list of predictors
+  "num_coupling_iterations" : 10, // max number of coupling iterations, only available for strongly coupled solvers
+  "convergence_accelerators" : [] // list of convergence accelerators, only available for strongly coupled solvers
+  "convergence_criteria" : [] // list of convergence criteria, only available for strongly coupled solvers
+  "data_transfer_operators" : {} // map of data transfer operators (e.g. mapping)
+  "coupling_sequence" : [] // list specifying in which order the solvers are called
+  "solvers" : {} // map of solvers participating in the coupled simulation, specifying their input and interfaces
+  ~~~~
+
+See the next section for a basic example with more explanations.
+### Basic FSI example
+
+This example is the Wall FSI benchmark which coupled Kratos solvers:
+
+~~~json
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 3.0,
+        "echo_level" : 0, // printing no additional output
+        "print_colors" : true, // using colors for prints
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak", // weakly coupled simulation, no interface convergence is checked
+        "echo_level" : 0, // no additional output from the coupled solver
+        "predictors" : [ // using a predictor to improve the stability of the simulation
+            {
+                "type" : "average_value_based",
+                "solver"         : "fluid",
+                "data_name"      : "load"
+            }
+        ],
+        "data_transfer_operators" : {
+            "mapper" : {
+                "type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_neighbor" // using a simple mapper, see the README in the MappingApplications
+                }
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "structure", // the structural solver comes first
+            "input_data_list": [ // before solving, the following data is imported in the structural solver
+                {
+                    "data"              : "load",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "load", // the fluid loads are mapped onto the structure
+                    "data_transfer_operator" : "mapper", // using the mapper defined above (nearest neighbor)
+                    "data_transfer_operator_options" : ["swap_sign"] // in Kratos, the loads have the opposite sign, hence it has to be swapped
+                }
+            ],
+            "output_data_list": [ // after solving, the displacements are mapped to the fluid solver
+                {
+                    "data"           : "disp",
+                    "to_solver"      : "fluid",
+                    "to_solver_data" : "disp",
+                    "data_transfer_operator" : "mapper"
+                }
+            ]
+        },
+        {
+            "name": "fluid", // the fluid solver solves after the structure
+            "output_data_list": [],
+            "input_data_list": []
+        }
+        ],
+        "solvers" : // here we specify the solvers, their input and interfaces for CoSimulation
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper", // using the Kratos FluidDynamicsApplication for the fluid
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_wall/ProjectParametersCFD" // input file for the fluid solver
+                },
+                "data" : { // definition of interfaces used in the simulation
+                    "disp" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "variable_name" : "MESH_DISPLACEMENT",
+                        "dimension" : 2
+                    },
+                    "load" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_FSI_Interface",
+                        "variable_name" : "REACTION",
+                        "dimension" : 2
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper", // using the Kratos StructuralMechanicsApplication for the structure
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_wall/ProjectParametersCSM" // input file for the structural solver
+                },
+                "data" : { // definition of interfaces used in the simulation
+                    "disp" : {
+                        "model_part_name" : "Structure.GENERIC_FSI_Interface",
+                        "variable_name" : "DISPLACEMENT",
+                        "dimension" : 2
+                    },
+                    "load" : {
+                        "model_part_name" : "Structure.GENERIC_FSI_Interface",
+                        "variable_name" : "POINT_LOAD",
+                        "dimension" : 2
+                    }
+                }
+            }
+        }
+    }
+}
+~~~
 
 
 ## Developer Guide
