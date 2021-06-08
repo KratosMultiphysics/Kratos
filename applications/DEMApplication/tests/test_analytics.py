@@ -140,6 +140,7 @@ class TestAnalytics(KratosUnittest.TestCase):
     # def test_Analytics_3(self):
     #     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "analytics_tests_files")
     #     parameters_file_name = os.path.join(path, "ProjectParametersDEM_multi_layer_ghost.json")
+    #      = os.path.join(path, "MaterialsDEM.json")
     #     model = Kratos.Model()
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 

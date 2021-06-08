@@ -1,0 +1,50 @@
+{
+    "materials":[{
+        "material_name": "mat2",
+        "material_id": 2,
+        "Variables":{
+            "PARTICLE_DENSITY": 2500.0,
+            "YOUNG_MODULUS": 1.0e5,
+            "POISSON_RATIO": 0.20,
+            "PARTICLE_SPHERICITY": 1.0
+        }
+    },{
+        "material_name": "mat3",
+        "material_id": 3,
+        "Variables":{
+            "PARTICLE_DENSITY": 2500.0,
+            "YOUNG_MODULUS": 1.0e5,
+            "POISSON_RATIO": 0.20,
+            "PARTICLE_SPHERICITY": 1.0
+        }
+    }],
+    "material_relations":[{
+        "material_names_list":["mat2", "mat2"],
+        "material_ids_list":[2, 2],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.2,
+            "STATIC_FRICTION": 0.577350269189494,
+            "DYNAMIC_FRICTION": 0.577350269189494,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.01,
+            "ROLLING_FRICTION_WITH_WALLS": 0.01,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    },{
+        "material_names_list":["mat3", "mat3"],
+        "material_ids_list":[3, 3],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.2,
+            "STATIC_FRICTION": 0.577350269189494,
+            "DYNAMIC_FRICTION": 0.577350269189494,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.01,
+            "ROLLING_FRICTION_WITH_WALLS": 0.01,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    }],
+    "material_assignation_table":[
+        ["SpheresPart.DEMParts_particles_1", "mat2"],
+        ["SpheresPart.DEMParts_particles_2", "mat3"]
+    ]
+}

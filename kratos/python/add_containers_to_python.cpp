@@ -68,10 +68,10 @@ struct Array1DModifier
     {
     }
 };
-
+    
 template< class TBinderType, typename TContainerType, typename TVariableType > void VariableIndexingUtility(TBinderType& binder)
 {
-    // Data value container
+    // Data container
     binder.def("__contains__", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
     binder.def("__setitem__", [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
     binder.def("__getitem__", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
@@ -81,6 +81,13 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
     binder.def("Clear", [](TContainerType& container){container.Clear();} );
 }
 
+template< class TBinderType, typename TContainerType, typename TVariableType > void DataValueContainerIndexingUtility(TBinderType& binder)
+{
+    // Data value container
+    VariableIndexingUtility<TBinderType, TContainerType, TVariableType>(binder);
+    binder.def("Erase", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
+}
+    
 void  AddContainersToPython(pybind11::module& m)
 {
     typedef Variable<array_1d<double, 3> > Array1DVariable3;
@@ -161,19 +168,19 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
     DataValueBinder.def("__str__", PrintObject<DataValueContainer>);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
     typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );

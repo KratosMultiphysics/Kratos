@@ -406,17 +406,6 @@ public:
         GetValue(rThisVariable, QueueIndex) = rValue;
     }
 
-//       template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
-// 	{
-// 	  typename ContainerType::iterator i;
-
-// 	  if ((i = std::find_if(mpData.begin(), mpData.end(), IndexCheck(rThisVariable.Key())))  != mpData.end())
-// 	    {
-// 	      i->first->Delete(i->second);
-// 	      mpData.erase(i);
-// 	    }
-// 	}
-
     void Clear()
     {
         DestructAllElements();

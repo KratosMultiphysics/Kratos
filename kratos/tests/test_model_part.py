@@ -110,6 +110,8 @@ class TestModelPart(KratosUnittest.TestCase):
         #here i try to create a node with Id 1 but the coordinates coincide with the ones of the existing node. EXISTING NODE is returned and no error is thrown
         model_part.CreateNewNode(1, 1.00,0.00,0.00)
         self.assertEqual(model_part.NumberOfNodes(), 1)
+        self.assertTrue(model_part.HasNode(1))
+        self.assertFalse(model_part.HasNode(1000000000))
         self.assertEqual(model_part.GetNode(1).Id, 1)
         self.assertEqual(model_part.GetNode(1,0).X, 1.00)
 
@@ -339,6 +341,8 @@ class TestModelPart(KratosUnittest.TestCase):
             model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfElements(), 1)
+        self.assertTrue(model_part.HasElement(1))
+        self.assertFalse(model_part.HasElement(1000000000))
         self.assertEqual(model_part.GetElement(1).Id, 1)
         self.assertEqual(model_part.GetElement(1,0).Id, 1)
         self.assertEqual(model_part.Elements[1].Id, 1)
@@ -454,6 +458,8 @@ class TestModelPart(KratosUnittest.TestCase):
             model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
         self.assertEqual(model_part.NumberOfConditions(), 1)
+        self.assertTrue(model_part.HasCondition(1))
+        self.assertFalse(model_part.HasCondition(1000000000))
         self.assertEqual(model_part.GetCondition(1).Id, 1)
         self.assertEqual(model_part.GetCondition(1,0).Id, 1)
         self.assertEqual(model_part.Conditions[1].Id, 1)
