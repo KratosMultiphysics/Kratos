@@ -17,7 +17,10 @@
 "GravityZ"                         : 0.0,
 "solver_settings" :{
     "strategy"                 : "continuum_sphere_strategy",
-    "RemoveBallsInitiallyTouchingWalls": false
+    "RemoveBallsInitiallyTouchingWalls": false,
+    "material_import_settings"           : {
+        "materials_filename" : "MaterialsDEM.json"
+    }
 },
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
@@ -39,7 +42,7 @@
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 5e-4,
+"MaxTimeStep"                      : 2e-4,
 "FinalTime"                        : 0.20,
 "ControlTime"                      : 100.0,
 "NeighbourSearchFrequency"         : 20,

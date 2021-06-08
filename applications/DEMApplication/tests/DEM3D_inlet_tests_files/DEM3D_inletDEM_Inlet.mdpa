@@ -3,19 +3,6 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 1 // Inlet group: Particle injectors Auto1
-    PARTICLE_DENSITY 25000.0
-    YOUNG_MODULUS 1e6
-    POISSON_RATIO 0.20
-    STATIC_FRICTION 0.577350269189494
-    DYNAMIC_FRICTION 0.577350269189494
-    FRICTION_DECAY 500.0
-    COEFFICIENT_OF_RESTITUTION 0.2
-    PARTICLE_MATERIAL 2
-    ROLLING_FRICTION 0.01
-    ROLLING_FRICTION_WITH_WALLS 0.01
-    PARTICLE_SPHERICITY 1.0
-    DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb2D
-    DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
 End Properties
 
 Begin Nodes
@@ -26,7 +13,6 @@ End Nodes
 
 Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Auto1 // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         IDENTIFIER Inlet_Particle_injectors_Auto1
         INJECTOR_ELEMENT_TYPE SphericParticle3D
@@ -50,7 +36,6 @@ Begin SubModelPart Inlet_Particle_injectors_Auto1 // Group Particle injectors Au
 
   Begin SubModelPart Inlet_Particle_injectors_Auto2 // Group Particle injectors Auto2 // Subtree Inlet
     Begin SubModelPartData
-        PROPERTIES_ID 1
         RIGID_BODY_MOTION 0
         IDENTIFIER Inlet_Particle_injectors_Auto2
         INJECTOR_ELEMENT_TYPE SphericParticle3D
