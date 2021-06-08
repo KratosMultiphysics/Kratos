@@ -920,7 +920,7 @@ namespace Kratos {
 
             ElementsArrayType& pElements = submp.GetCommunicator().LocalMesh().Elements();
 
-            KRATOS_DEBUG_ERROR_IF(pElements.size() == 0) << "ERROR::  << Submodelpart : " << submp[IDENTIFIER] << "does not have any element." << std::endl;
+            KRATOS_ERROR_IF(pElements.size() == 0) << "ERROR::  << Submodelpart : " << submp[IDENTIFIER] << "does not have any element." << std::endl;
 
             ElementsArrayType::iterator it = pElements.ptr_begin();
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
