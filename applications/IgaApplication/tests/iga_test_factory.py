@@ -74,5 +74,8 @@ class ScordelisRoofShell5pTest(IgaTestFactory):
 class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
     file_name = "support_condition_tests/single_patch_refined_test/single_patch_refined_test_penalty"
 
+class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
+    file_name = "support_condition_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
+
 if __name__ == '__main__':
     KratosUnittest.main()

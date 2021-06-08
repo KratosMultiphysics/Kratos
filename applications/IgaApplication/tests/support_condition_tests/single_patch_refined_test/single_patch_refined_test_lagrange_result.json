@@ -1,0 +1,195 @@
+{
+    "TIME": [0.1],
+    "NODE_1": {
+        "DISPLACEMENT_X": [7.643153735411577e-17],
+        "DISPLACEMENT_Y": [-2.6910153347147885e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_2": {
+        "DISPLACEMENT_X": [7.499999999983767e-05],
+        "DISPLACEMENT_Y": [1.796455388434952e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_3": {
+        "DISPLACEMENT_X": [0.00022499999999985037],
+        "DISPLACEMENT_Y": [-2.9036791326698875e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_4": {
+        "DISPLACEMENT_X": [0.00037499999999985185],
+        "DISPLACEMENT_Y": [-4.593419929251624e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_5": {
+        "DISPLACEMENT_X": [0.0005249999999998483],
+        "DISPLACEMENT_Y": [-7.542753063573876e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_6": {
+        "DISPLACEMENT_X": [0.0005999999999998518],
+        "DISPLACEMENT_Y": [-8.555327572578468e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_7": {
+        "DISPLACEMENT_X": [-6.099464296996925e-16],
+        "DISPLACEMENT_Y": [1.0118891805195302e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_8": {
+        "DISPLACEMENT_X": [7.50000000000569e-05],
+        "DISPLACEMENT_Y": [-6.073978422227601e-17],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_9": {
+        "DISPLACEMENT_X": [0.00022499999999989846],
+        "DISPLACEMENT_Y": [-1.9445197209088848e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_10": {
+        "DISPLACEMENT_X": [0.0003749999999999448],
+        "DISPLACEMENT_Y": [-5.054628624792131e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_11": {
+        "DISPLACEMENT_X": [0.0005249999999999322],
+        "DISPLACEMENT_Y": [-7.2325029656085095e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_12": {
+        "DISPLACEMENT_X": [0.0005999999999999275],
+        "DISPLACEMENT_Y": [-8.693382386539256e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_13": {
+        "DISPLACEMENT_X": [8.605716793010869e-16],
+        "DISPLACEMENT_Y": [-2.887379549442122e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_14": {
+        "DISPLACEMENT_X": [7.499999999992871e-05],
+        "DISPLACEMENT_Y": [1.4248700677108414e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_15": {
+        "DISPLACEMENT_X": [0.00022500000000014747],
+        "DISPLACEMENT_Y": [-2.6732483462362997e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_16": {
+        "DISPLACEMENT_X": [0.000375000000000094],
+        "DISPLACEMENT_Y": [-4.743132732037682e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_17": {
+        "DISPLACEMENT_X": [0.0005250000000001026],
+        "DISPLACEMENT_Y": [-7.403481079842576e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_18": {
+        "DISPLACEMENT_X": [0.0006000000000001111],
+        "DISPLACEMENT_Y": [-8.63917757474633e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_19": {
+        "DISPLACEMENT_X": [-4.56366164202696e-16],
+        "DISPLACEMENT_Y": [-6.478206465119591e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_20": {
+        "DISPLACEMENT_X": [7.500000000031101e-05],
+        "DISPLACEMENT_Y": [2.577231940041134e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_21": {
+        "DISPLACEMENT_X": [0.0002250000000001745],
+        "DISPLACEMENT_Y": [-3.170712664329791e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_22": {
+        "DISPLACEMENT_X": [0.00037500000000018476],
+        "DISPLACEMENT_Y": [-4.495578301501156e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_23": {
+        "DISPLACEMENT_X": [0.0005250000000001927],
+        "DISPLACEMENT_Y": [-7.569908920463827e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_24": {
+        "DISPLACEMENT_X": [0.0006000000000001814],
+        "DISPLACEMENT_Y": [-8.565868714967387e-16],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "ELEMENT_1": {},
+    "ELEMENT_2": {},
+    "ELEMENT_3": {},
+    "ELEMENT_4": {},
+    "ELEMENT_5": {},
+    "ELEMENT_6": {},
+    "ELEMENT_7": {},
+    "ELEMENT_8": {},
+    "ELEMENT_9": {},
+    "ELEMENT_10": {},
+    "ELEMENT_11": {},
+    "ELEMENT_12": {},
+    "ELEMENT_13": {},
+    "ELEMENT_14": {},
+    "ELEMENT_15": {},
+    "ELEMENT_16": {},
+    "ELEMENT_17": {},
+    "ELEMENT_18": {},
+    "ELEMENT_19": {},
+    "ELEMENT_20": {},
+    "ELEMENT_21": {},
+    "ELEMENT_22": {},
+    "ELEMENT_23": {},
+    "ELEMENT_24": {},
+    "ELEMENT_25": {},
+    "ELEMENT_26": {},
+    "ELEMENT_27": {},
+    "ELEMENT_28": {},
+    "ELEMENT_29": {},
+    "ELEMENT_30": {},
+    "ELEMENT_31": {},
+    "ELEMENT_32": {},
+    "ELEMENT_33": {},
+    "ELEMENT_34": {},
+    "ELEMENT_35": {},
+    "ELEMENT_36": {},
+    "ELEMENT_37": {},
+    "ELEMENT_38": {},
+    "ELEMENT_39": {},
+    "ELEMENT_40": {},
+    "ELEMENT_41": {},
+    "ELEMENT_42": {},
+    "ELEMENT_43": {},
+    "ELEMENT_44": {},
+    "ELEMENT_45": {},
+    "ELEMENT_46": {},
+    "ELEMENT_47": {},
+    "ELEMENT_48": {},
+    "ELEMENT_49": {},
+    "ELEMENT_50": {},
+    "ELEMENT_51": {},
+    "ELEMENT_52": {},
+    "ELEMENT_53": {},
+    "ELEMENT_54": {},
+    "ELEMENT_55": {},
+    "ELEMENT_56": {},
+    "ELEMENT_57": {},
+    "ELEMENT_58": {},
+    "ELEMENT_59": {},
+    "ELEMENT_60": {},
+    "ELEMENT_61": {},
+    "ELEMENT_62": {},
+    "ELEMENT_63": {},
+    "ELEMENT_64": {},
+    "ELEMENT_65": {},
+    "ELEMENT_66": {},
+    "ELEMENT_67": {},
+    "ELEMENT_68": {},
+    "ELEMENT_69": {},
+    "ELEMENT_70": {},
+    "ELEMENT_71": {},
+    "ELEMENT_72": {}
+}

@@ -23,7 +23,7 @@ from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5p
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
-
+from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
@@ -56,7 +56,8 @@ def AssembleTestSuites():
         TTestModelers,
         TTestNurbsVolumeElements,
         # Weak support tests
-        SinglePatchRefinedSupportPenaltyTest
+        SinglePatchRefinedSupportPenaltyTest,
+        SinglePatchRefinedSupportLagrangeTest
         ]))
 
     nightSuite = suites['nightly']
