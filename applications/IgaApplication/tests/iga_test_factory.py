@@ -70,5 +70,9 @@ class Shell5pHierarchicNonLinearThickBeamTest(IgaTestFactory):
 class ScordelisRoofShell5pTest(IgaTestFactory):
     file_name = "scordelis_roof_test/scordelis_roof_shell_5p"
 
+# Weak support
+class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
+    file_name = "support_condition_tests/single_patch_refined_test/single_patch_refined_test_penalty"
+
 if __name__ == '__main__':
     KratosUnittest.main()
