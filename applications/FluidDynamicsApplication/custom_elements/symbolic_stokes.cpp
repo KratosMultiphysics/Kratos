@@ -228,8 +228,7 @@ void SymbolicStokes<TElementData>::Calculate(
         data.DN_DX = shape_derivatives[0]; // Note: Valid only for linear elements
         // Compute strain and stress
         this->CalculateMaterialResponse(data);
-        // Add limits to the strain, and recompute stress if required
-        const auto &p_constitutive_law = this->GetConstitutiveLaw();
+        // Compute dissipation
         rOutput = inner_prod(data.ShearStress, data.StrainRate);
     }
     else if (rVariable == EQ_STRAIN_RATE || rVariable == EFFECTIVE_VISCOSITY) {
