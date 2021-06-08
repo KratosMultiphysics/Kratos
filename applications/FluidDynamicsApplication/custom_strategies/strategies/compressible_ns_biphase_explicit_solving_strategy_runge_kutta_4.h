@@ -117,7 +117,7 @@ public:
      * @param pExplicitBuilder The pointer to the explicit builder and solver
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         typename ExplicitBuilderType::Pointer pExplicitBuilder,
         bool MoveMeshFlag = false,
@@ -131,7 +131,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         bool MoveMeshFlag = false,
         int RebuildLevel = 0)
@@ -141,11 +141,11 @@ public:
 
     /** Copy constructor.
      */
-    CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(const CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 &Other) = delete;
+    CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(const CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 &Other) = delete;
 
     /** Destructor.
      */
-    virtual ~CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4() = default;
+    virtual ~CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4() = default;
 
     ///@}
     ///@name Operators
@@ -243,6 +243,7 @@ public:
         if (r_process_info[OSS_SWITCH]) {
             block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
                 rNode.SetValue(DENSITY_PROJECTION, 0.0);
+                rNode.SetValue(DENSITY_SOLID_PROJECTION, 0.0);   // Added by Andrea
                 rNode.SetValue(TOTAL_ENERGY_PROJECTION, 0.0);
                 rNode.SetValue(MOMENTUM_PROJECTION, ZeroVector(3));
             });
@@ -428,7 +429,7 @@ private:
         auto& r_model_part = BaseType::GetModelPart();
         const int n_nodes = r_model_part.NumberOfNodes();
         const auto& r_process_info = r_model_part.GetProcessInfo();
-        const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 2;
+        const unsigned int block_size = r_process_info[DOMAIN_SIZE] + 3;     // From +2 to +3 (because it is biphase)
 
         // Get the required data from the explicit builder and solver
         // The lumped mass vector will be used to get the NODAL_AREA for the residuals projection
@@ -438,6 +439,7 @@ private:
         // Initialize the projection values
         block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
             rNode.GetValue(DENSITY_PROJECTION) = 0.0;
+            rNode.GetValue(DENSITY_SOLID_PROJECTION) = 0.0;
             rNode.GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
             rNode.GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
         });
@@ -446,9 +448,11 @@ private:
         std::tuple<double, double, array_1d<double,3>> oss_proj_tls;
         block_for_each(r_model_part.Elements(), oss_proj_tls, [&](Element& rElement, std::tuple<double, double, array_1d<double,3>>& rOssProjTLS){
             double& rho_proj = std::get<0>(rOssProjTLS);
-            double& tot_ener_proj = std::get<1>(rOssProjTLS);
-            array_1d<double,3>& mom_proj = std::get<2>(rOssProjTLS);
+            double& rho_solid_proj = std::get<1>(rOssProjTLS);
+            double& tot_ener_proj = std::get<2>(rOssProjTLS);
+            array_1d<double,3>& mom_proj = std::get<3>(rOssProjTLS);   //Check this order
             rElement.Calculate(DENSITY_PROJECTION, rho_proj, r_process_info);
+            rElement.Calculate(DENSITY_SOLID_PROJECTION, rho_solid_proj, r_process_info);
             rElement.Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
             rElement.Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
         });
@@ -459,6 +463,7 @@ private:
             auto it_node = r_model_part.NodesBegin() + iNode;
             const double nodal_area = r_lumped_mass_vector[iNode * block_size];
             it_node->GetValue(DENSITY_PROJECTION) /= nodal_area;
+            it_node->GetValue(DENSITY_SOLID_PROJECTION) /= nodal_area;
             it_node->GetValue(MOMENTUM_PROJECTION) /= nodal_area;
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) /= nodal_area;
         });
@@ -487,13 +492,16 @@ private:
         block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
             const auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
+            const double& r_rho_solid = rNode.FastGetSolutionStepValue(DENSITY_SOLID);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
+            
             rVelocity = r_mom / r_rho;
-            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;
-            const double sound_velocity = std::sqrt(gamma * R * temp);
-            rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;
+            
+            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;   // Modify
+            const double sound_velocity = std::sqrt(gamma * R * temp);                                 // Modify
+            rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;                           
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;
-            rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;
+            rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;                                // Modify
             rNode.GetValue(SOUND_VELOCITY) = sound_velocity;
             rNode.GetValue(MACH) = norm_2(rVelocity) / sound_velocity;
         });
@@ -535,7 +543,7 @@ private:
 
 
     ///@}
-}; /* Class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 */
+}; /* Class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 */
 
 ///@}
 
@@ -546,4 +554,4 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4  defined */
+#endif /* KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4  defined */

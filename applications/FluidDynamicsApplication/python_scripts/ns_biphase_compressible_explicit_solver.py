@@ -77,6 +77,7 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM) # Momentum DOF
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY) # Total energy DOF
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_DENSITY) # Density DOF reaction
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_DENSITY_SOLID) # Density DOF reaction
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION) # Momentum DOF reaction
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.REACTION_ENERGY) # Total energy DOF reaction
 
@@ -97,6 +98,7 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
     def AddDofs(self):
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DENSITY, KratosFluid.REACTION_DENSITY, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosFluid.DENSITY_SOLID, KratosFluid.REACTION_DENSITY_SOLID, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_X, KratosMultiphysics.REACTION_X, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MOMENTUM_Y, KratosMultiphysics.REACTION_Y, self.main_model_part)
         if domain_size == 3:
