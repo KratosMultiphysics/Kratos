@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4)
-#define KRATOS_COMPRESSIBLE_NAVIER_STOKES_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4
+#if !defined(KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4)
+#define KRATOS_COMPRESSIBLE_NS_BIPHASE_EXPLICIT_SOLVING_STRATEGY_RUNGE_KUTTA_4
 
 // System includes
 #include <functional>
@@ -58,7 +58,7 @@ namespace Kratos
  * @details This is the base class from which we will derive all the explicit strategies (FE, RK4, ...)
  */
 template <class TSparseSpace, class TDenseSpace>
-class CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace>
+class CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4 : public ExplicitSolvingStrategyRungeKutta4<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
@@ -73,8 +73,8 @@ public:
     /// The local vector definition
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-    /// Pointer definition of CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4
-    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4);
+    /// Pointer definition of CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4
+    KRATOS_CLASS_POINTER_DEFINITION(CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4);
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(SHOCK_CAPTURING);
@@ -88,7 +88,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    explicit CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4(
+    explicit CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4(
         ModelPart &rModelPart,
         Parameters ThisParameters)
         : BaseType(rModelPart)
