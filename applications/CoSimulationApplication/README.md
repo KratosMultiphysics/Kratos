@@ -6,7 +6,8 @@ The CoSimulation Application contains the core developments in coupling black-bo
 
 - [List of features](#list-of-features)
 - [Dependencies](#dependencies)
-- [Structure of the Application]()
+- [Structure of the Application](#structure-of-the-application)
+- [Examples](#examples)
 
 - [Basic Usage](#basic-usage)
 - [Advanced Usage](#advanced-usage)
@@ -19,11 +20,12 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - Various features available for CoSimulation:
   - [Coupling Algorithms](python_scripts/coupled_solvers)
   - [Wrappers for various solvers and other software-tools](python_scripts/solver_wrappers)
+  - [Data Transfer Operators (inlcuding Mapping)](python_scripts/data_transfer_operators)
   - [Convergence Accelerators](python_scripts/convergence_accelerators)
   - [Convergence Criteria](python_scripts/convergence_criteria)
   - [Predictors](python_scripts/predictors)
 
-- Besides the above mentioned functionalities the modular design of the application makes it straight forward to add a new or customized version of e.g. a ConvergenceAccelerator. It is not necessary to have those custom python scripts inside the CoSimulation, it is sufficient that they are in a directory that is included in the _PYTHONPATH_.
+- Besides the above mentioned functionalities the modular design of the application makes it straight forward to add a new or customized version of e.g. a ConvergenceAccelerator. It is not necessary to have those custom python scripts inside the _CoSimulationApplication_, it is sufficient that they are in a directory that is included in the _PYTHONPATH_ (e.g. the working directory).
 
 - Support for MPI parallelization. This is independent of whether or not the ued solvers support/run in MPI.
 
@@ -36,6 +38,17 @@ The CoSimulation Application contains the core developments in coupling black-bo
 The CoSimulation Application itself doesn't have any dependencies (except the `KratosCore` / `KratosMPICore` for serial/MPI-compilation).
 
 For running coupled simulations the solvers to be used have to be available. Those dependencies are python-only.
+
+The [MappingApplication](../MappingApplication) is required when mapping is used.
+
+
+## Structure of the Application
+
+The following UML diagram shows the relation between the components in the _CoSimulationApplication_:
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/raw/master/structural_mechanics/validation/beam_roll_up/data/rollup.gif" alt="Solution" style="width: 600px;"/>
+</p>
 
 ## Examples
 
