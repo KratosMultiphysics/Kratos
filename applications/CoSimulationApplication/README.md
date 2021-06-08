@@ -8,7 +8,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - [Dependencies](#dependencies)
 - [Structure of the Application](#structure-of-the-application)
 - [Examples](#examples)
-- [How to couple a new solver / software-tool?](#how-to-couple-a-new-external-solver--software-tool)
+- [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
 
 ## List of features
 
