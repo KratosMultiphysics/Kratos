@@ -925,7 +925,22 @@ namespace Kratos {
             ElementsArrayType::iterator it = pElements.ptr_begin();
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
-            if (rigid_body_element.GetGeometry()[0].IsNot(DEMFlags::COMPUTE_REACTIONS)) continue;
+            Node<3>& central_node = rigid_body_element.GetGeometry()[0];
+
+            if (central_node.Is(DEMFlags::FIXED_VEL_X) && central_node.Is(DEMFlags::FIXED_VEL_Y) && central_node.Is(DEMFlags::FIXED_VEL_Z) && central_node.Is(DEMFlags::FIXED_ANG_VEL_X) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Z)) {
+                if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 0 &&  submp[FORCE_INTEGRATION_GROUP] == 0) continue;
+                }
+                else if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && !submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 0) continue;
+                }
+                else if (!submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[FORCE_INTEGRATION_GROUP] == 0) continue;
+                }
+                else {
+                    continue;
+                }
+            }
 
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
             ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
