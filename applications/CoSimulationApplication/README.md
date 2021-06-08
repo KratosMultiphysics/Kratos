@@ -246,7 +246,7 @@ The _CoSimulationApplication_ consists of the following main components (taken f
 The following UML diagram shows the relation between these components:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 400px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 300px;"/>
 </p>
 
 Besides the functionalities [listed above](#list-of-features), the modular design of the application makes it straight forward to add a new or customized version of e.g. a _ConvergenceAccelerator_. It is not necessary to have those custom python scripts inside the _CoSimulationApplication_, it is sufficient that they are in a directory that is included in the _PYTHONPATH_ (e.g. the working directory).
@@ -268,7 +268,7 @@ In principle three different options are possible for exchanging data with CoSim
 The following picture shows the interaction of these components with the _CoSimulationApplication_ and the external solver:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/cosim_coupling.png" style="width: 400px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/cosim_coupling.png" style="width: 300px;"/>
 </p>
 
 #### Interface of SolverWrapper
@@ -292,6 +292,4 @@ A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is t
 ## References
 
 - [1] Wall, Wolfgang A., _Fluid structure interaction with stabilized finite elements_, PhD Thesis, University of Stuttgart, 1999, http://dx.doi.org/10.18419/opus-127
--
 - [2] Bucher et al., _Realizing CoSimulation in and with a multiphysics framework_, conference proceedings, IX International Conference on Computational Methods for Coupled Problems in Science and Engineering, 2021, under review
--
