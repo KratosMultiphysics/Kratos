@@ -46,7 +46,8 @@
 #include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
 
 // elements
-#include "custom_elements/transient_one_phase_flow_element.hpp"
+#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/steady_state_Pw_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/U_Pw_small_strain_interface_element.hpp"
 #include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
@@ -270,17 +271,30 @@ private:
 
     // elements
     // transient one-phase flow elements:
-    const TransientOnePhaseFlowElement<2,3> mTransientOnePhaseFlowElement2D3N;
-    const TransientOnePhaseFlowElement<2,4> mTransientOnePhaseFlowElement2D4N;
-    const TransientOnePhaseFlowElement<3,4> mTransientOnePhaseFlowElement3D4N;
-    const TransientOnePhaseFlowElement<3,8> mTransientOnePhaseFlowElement3D8N;
+    const TransientPwElement<2,3> mTransientPwElement2D3N;
+    const TransientPwElement<2,4> mTransientPwElement2D4N;
+    const TransientPwElement<3,4> mTransientPwElement3D4N;
+    const TransientPwElement<3,8> mTransientPwElement3D8N;
 
-    const TransientOnePhaseFlowElement<2,6> mTransientOnePhaseFlowElement2D6N;
-    const TransientOnePhaseFlowElement<2,8> mTransientOnePhaseFlowElement2D8N;
-    const TransientOnePhaseFlowElement<2,9> mTransientOnePhaseFlowElement2D9N;
-    const TransientOnePhaseFlowElement<3,10> mTransientOnePhaseFlowElement3D10N;
-    const TransientOnePhaseFlowElement<3,20> mTransientOnePhaseFlowElement3D20N;
-    const TransientOnePhaseFlowElement<3,27> mTransientOnePhaseFlowElement3D27N;
+    const TransientPwElement<2,6> mTransientPwElement2D6N;
+    const TransientPwElement<2,8> mTransientPwElement2D8N;
+    const TransientPwElement<2,9> mTransientPwElement2D9N;
+    const TransientPwElement<3,10> mTransientPwElement3D10N;
+    const TransientPwElement<3,20> mTransientPwElement3D20N;
+    const TransientPwElement<3,27> mTransientPwElement3D27N;
+
+    // Steady-State one-phase flow elements:
+    const SteadyStatePwElement<2,3> mSteadyStatePwElement2D3N;
+    const SteadyStatePwElement<2,4> mSteadyStatePwElement2D4N;
+    const SteadyStatePwElement<3,4> mSteadyStatePwElement3D4N;
+    const SteadyStatePwElement<3,8> mSteadyStatePwElement3D8N;
+
+    const SteadyStatePwElement<2,6> mSteadyStatePwElement2D6N;
+    const SteadyStatePwElement<2,8> mSteadyStatePwElement2D8N;
+    const SteadyStatePwElement<2,9> mSteadyStatePwElement2D9N;
+    const SteadyStatePwElement<3,10> mSteadyStatePwElement3D10N;
+    const SteadyStatePwElement<3,20> mSteadyStatePwElement3D20N;
+    const SteadyStatePwElement<3,27> mSteadyStatePwElement3D27N;
 
     // small strain elements:
     const UPwSmallStrainElement<2,3> mUPwSmallStrainElement2D3N;
