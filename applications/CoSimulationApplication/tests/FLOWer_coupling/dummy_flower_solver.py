@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -10,8 +8,9 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 # Other imports
 from KratosMultiphysics.kratos_utilities import GenerateVariableListFromInput
 import sys, time
+from pathlib import Path
 
-class DummyFLOWerSolver(object):
+class DummyFLOWerSolver:
     """This class emulates the behavior of an the CFD solver FLOWer
     It can be used for testing and development of couplings without actually having to couple to FLOWer
     """
@@ -65,6 +64,11 @@ class DummyFLOWerSolver(object):
         # Note: calling "EMPIRE_API_Connect" is NOT necessary, it is replaced by the next two lines
         KratosCoSim.EMPIRE_API.EMPIRE_API_SetEchoLevel(self.echo_level)
         KratosCoSim.EMPIRE_API.EMPIRE_API_PrintTiming(debugging_settings["api_print_timing"].GetBool())
+
+        while not Path(".EmpireIO").is_dir():
+            # wait until comm folder is created aka until Kratos is started
+            self.__CustomPrint(2, colors.yellow('waiting for Kratos'))
+            time.sleep(0.1)
 
     def Run(self):
         num_coupling_interfaces = self.settings["coupling_interfaces"].size()

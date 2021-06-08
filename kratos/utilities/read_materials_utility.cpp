@@ -16,7 +16,9 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_filesystem.h"
 #include "utilities/read_materials_utility.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos {
 namespace {
@@ -68,12 +70,12 @@ ReadMaterialsUtility::ReadMaterialsUtility(
     Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Read json string in materials file, create Parameters
-    const std::string& materials_filename = Params["Parameters"]["materials_filename"].GetString();
-    std::ifstream infile(materials_filename);
-    KRATOS_ERROR_IF_NOT(infile.good()) << "Materials file: " << materials_filename << " cannot be found" << std::endl;
-    std::stringstream buffer;
-    buffer << infile.rdbuf();
-    Parameters materials(buffer.str());
+    const std::string& r_materials_filename = Params["Parameters"]["materials_filename"].GetString();
+
+    KRATOS_ERROR_IF_NOT(Kratos::filesystem::exists(r_materials_filename)) << "The material file specified with name \"" << r_materials_filename << "\" does not exist!" << std::endl;
+
+    std::ifstream ifs(r_materials_filename);
+    Parameters materials(ifs);
 
     GetPropertyBlock(materials);
 
@@ -172,10 +174,10 @@ void ReadMaterialsUtility::AssignMaterialToProperty(
 
     // Assign variables
     AssignVariablesToProperty(MaterialData, rProperty);
-    
+
     // Assign tables
     AssignTablesToProperty(MaterialData, rProperty);
-    
+
     // Assign CL
     AssignConstitutiveLawToProperty(MaterialData, rProperty);
 
@@ -191,7 +193,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     )
 {
     KRATOS_TRY;
-    
+
     // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (MaterialData.Has("constitutive_law")) {
         Parameters cl_parameters = MaterialData["constitutive_law"];
@@ -205,7 +207,7 @@ void ReadMaterialsUtility::AssignConstitutiveLawToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No constitutive law defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -218,12 +220,12 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     )
 {
     KRATOS_TRY;
- 
+
     // Add / override the values of material parameters in the p_properties
     if (MaterialData.Has("Variables")) {
         Parameters variables = MaterialData["Variables"];
         const Parameters variables_considered = FilterVariables(variables, rProperty.Id());
-        
+
         for (auto iter = variables_considered.begin(); iter != variables_considered.end(); ++iter) {
             const Parameters value = variables_considered.GetValue(iter.name());
 
@@ -280,7 +282,7 @@ void ReadMaterialsUtility::AssignVariablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No variables defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -293,7 +295,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     )
 {
     KRATOS_TRY;
-    
+
     // Add / override tables in the p_properties
     if (MaterialData.Has("Tables")) {
         Parameters tables = MaterialData["Tables"];
@@ -321,7 +323,7 @@ void ReadMaterialsUtility::AssignTablesToProperty(
     } else {
         KRATOS_INFO("Read materials") << "No tables defined for material ID: " << rProperty.Id() << std::endl;
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -449,17 +451,17 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     auto& r_elements_array = r_model_part.Elements();
     auto& r_conditions_array = r_model_part.Conditions();
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
-        auto it_elem = r_elements_array.begin() + i;
-        it_elem->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_elements_array,
+        [&p_prop](Element& rElement)
+        { rElement.SetProperties(p_prop); }
+    );
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        it_cond->SetProperties(p_prop);
-    }
+    block_for_each(
+        r_conditions_array,
+        [&p_prop](Condition& rCondition)
+        { rCondition.SetProperties(p_prop); }
+    );
 
     // Assigning the materials
     AssignMaterialToProperty(material_data, *p_prop);

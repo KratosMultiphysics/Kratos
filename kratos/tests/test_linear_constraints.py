@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -79,6 +77,20 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
             self.linear_solver = KM.SkylineLUFactorizationSolver()
         if solving_with == "Block":
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        elif solving_with == "LM":
+            params = KM.Parameters("""{
+                "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "single"
+            }""")
+            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
+        elif solving_with == "DoubleLM":
+            params = KM.Parameters("""{
+                "diagonal_values_for_dirichlet_dofs"                 : "use_max_diagonal",
+                "silent_warnings"                                    : false,
+                "consider_lagrange_multiplier_constraint_resolution" : "double"
+            }""")
+            self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolverWithLagrangeMultiplier(self.linear_solver, params)
         else: # Block default
             self.builder_and_solver = KM.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         self.scheme = KM.ResidualBasedBossakDisplacementScheme(-0.01)
@@ -89,7 +101,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = False
-        self.strategy = KM.ResidualBasedNewtonRaphsonStrategy(self.mp, self.scheme, self.linear_solver, self.convergence_criterion, self.builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
+        self.strategy = KM.ResidualBasedNewtonRaphsonStrategy(self.mp, self.scheme, self.convergence_criterion, self.builder_and_solver, max_iters, compute_reactions, reform_step_dofs, move_mesh_flag)
         self.strategy.SetEchoLevel(0)
         self.strategy.Initialize()
 
@@ -358,6 +370,22 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def test_advanced_MPC_Constraints(self):
         self._advanced_setup_test("Block", "LU")
 
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_basic_LM_MPC_Constraints(self):
+        self._basic_setup_test("LM", "LU")
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_advanced_LM_MPC_Constraints(self):
+        self._advanced_setup_test("LM", "LU")
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_basic_Double_LM_MPC_Constraints(self):
+        self._basic_setup_test("DoubleLM")
+
+    @KratosUnittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+    def test_advanced_Double_LM_MPC_Constraints(self):
+        self._advanced_setup_test("DoubleLM")
+
 class TestLinearConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -415,7 +443,6 @@ class TestLinearConstraints(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KM.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,

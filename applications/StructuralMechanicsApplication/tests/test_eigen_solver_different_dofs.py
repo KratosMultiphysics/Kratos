@@ -1,11 +1,8 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.StructuralMechanicsApplication as KSM
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import kratos_utilities as kratos_utils
-eigensolvers_application_available = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
 import os
 
 '''
@@ -18,7 +15,7 @@ Beams with DISPLACEMENT and ROTATION dofs and Trusses with only DISPLACEMENT dof
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-@KratosUnittest.skipUnless(eigensolvers_application_available,"Missing required application: EigenSolversApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
     # muting the output
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
@@ -30,14 +27,15 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
         self.execute_test_eigen_with_different_dofs(use_block_builder=False)
 
     def execute_test_eigen_with_different_dofs(self, use_block_builder):
-        with open(GetFilePath("eigen_test/Eigen_different_dofs_parameters.json"),'r') as parameter_file:
-            parameters = KM.Parameters(parameter_file.read())
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            with open(GetFilePath("eigen_test/Eigen_different_dofs_parameters.json"),'r') as parameter_file:
+                parameters = KM.Parameters(parameter_file.read())
 
-        parameters["solver_settings"]["block_builder"].SetBool(use_block_builder)
+            parameters["solver_settings"]["block_builder"].SetBool(use_block_builder)
 
-        model = KM.Model()
-        StructuralMechanicsAnalysis(model, parameters).Run()
-        self.__CheckEigenSolution(model["Structure"])
+            model = KM.Model()
+            StructuralMechanicsAnalysis(model, parameters).Run()
+            self.__CheckEigenSolution(model["Structure"])
 
     def __CheckEigenSolution(self, model_part):
         exp_eigen_values = KM.Vector([2.3779548, 2.465771262])

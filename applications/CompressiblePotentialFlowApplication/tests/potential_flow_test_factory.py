@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
@@ -14,11 +12,6 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 import os
 
-# Check other applications dependency
-hdf5_is_available = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
-eigensolver_is_available = kratos_utilities.CheckIfApplicationsAvailable("EigenSolversApplication")
-externalsolvers_is_available = kratos_utilities.CheckIfApplicationsAvailable("ExternalSolversApplication")
-meshing_is_available = kratos_utilities.CheckIfApplicationsAvailable("MeshingApplication")
 try:
     import stl
     numpy_stl_is_available = True
@@ -26,6 +19,7 @@ except:
     numpy_stl_is_available = False
 
 class WorkFolderScope:
+    # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
         self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
@@ -42,11 +36,8 @@ class PotentialFlowTests(UnitTest.TestCase):
         # Set to true to get post-process files for the test
         self.print_output = False
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication", "HDF5Application")
     def test_Naca0012SmallAdjoint(self):
-        if not externalsolvers_is_available:
-            self.skipTest("Missing required application: ExternalSolversApplication")
-        if not hdf5_is_available:
-            self.skipTest("Missing required application: HDF5Application")
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"
@@ -67,11 +58,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".h5"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallCompressible(self):
-        if not externalsolvers_is_available:
-            self.skipTest("Missing required application: ExternalSolversApplication")
-        if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_compressible_test"
@@ -82,30 +70,29 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_perimeter_computation()
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallTransonic(self):
-        if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_transonic"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_transonic_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.4968313580730855, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.9068468588561012, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
+    @UnitTest.skipIfApplicationsNotAvailable("LinearSolversApplication")
     def test_Naca0012SmallPerturbationCompressible(self):
-        if not eigensolver_is_available:
-            self.skipTest("Missing required application: EigenSolversApplication")
         file_name = "naca0012_small_perturbation_compressible"
         settings_file_name = file_name + "_parameters.json"
         work_folder = "naca0012_small_perturbation_compressible_test"
@@ -121,35 +108,36 @@ class PotentialFlowTests(UnitTest.TestCase):
                 if file_name.endswith(".time"):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("MeshingApplication")
     def test_EmbeddedCircleNoWake(self):
-        if not meshing_is_available:
-            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_no_wake_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
 
+    @UnitTest.skipIfApplicationsNotAvailable("HDF5Application", "MeshingApplication")
     def test_EmbeddedCircle(self):
-        if not hdf5_is_available:
-            self.skipTest("Missing required application: HDF5Application")
-        if not meshing_is_available:
-            self.skipTest("Missing required application: MeshingApplication")
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
         settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
+        settings_comp_penalty_file_name = "embedded_compressible_circle_penalty_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5405047994795951, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -1.0514799328784257, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.8267434236568107, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -1.1267771704301741, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
             self._runTest(settings_penalty_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.28201444027332967, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.38373989115443974, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3586452849311815, 0.0, 1e-6)
+            self._runTest(settings_comp_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.2822496130014952, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.383928586844835, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3588608523566507, 0.0, 1e-6)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
@@ -163,7 +151,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/15_elements_small_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 9, 13, 15]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [1, 10, 14]
@@ -177,7 +165,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [1, 2, 3, 4, 5, 6]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [13, 14, 15, 17, 18, 19, 20, 21, 22, 23]
@@ -191,7 +179,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
 
         with WorkFolderScope(work_folder):
-            self._runTest(settings_file_name)
+            self._runTest(settings_file_name, initialize_only=True)
             reference_wake_elements_id_list = [2, 4, 8, 16, 17, 19, 20]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
@@ -205,11 +193,18 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.734548229630418, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06493669400120756, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7241685913941622, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7312296375421161, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008607693464186337, 0.0, 1e-9)
+
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        work_folder = "body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
@@ -220,6 +215,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         self._validateIdList(solution_element_id_list, reference_element_id_list)
 
     def _validateIdList(self, solution_element_id_list, reference_element_id_list):
+        # TODO replace with unittest.assertListEqual or KratosUnitTest.assertVectorAlmostEqual
         if(abs(len(reference_element_id_list) - len(solution_element_id_list)) > 0.1):
             raise Exception('Lists have different lengths', ' reference_element_id_list = ',
                             reference_element_id_list, ' solution_element_id_list = ', solution_element_id_list)
@@ -227,7 +223,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             for i in range(len(reference_element_id_list)):
                 self._check_results(solution_element_id_list[i], reference_element_id_list[i], 0.0, 1e-9)
 
-    def _runTest(self,settings_file_name):
+    def _runTest(self,settings_file_name, initialize_only = False):
         model = KratosMultiphysics.Model()
         with open(settings_file_name,'r') as settings_file:
             settings = KratosMultiphysics.Parameters(settings_file.read())
@@ -305,10 +301,14 @@ class PotentialFlowTests(UnitTest.TestCase):
                 }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model, settings)
-        potential_flow_analysis.Run()
+        potential_flow_analysis.Initialize()
+        if not initialize_only:
+            potential_flow_analysis.RunSolutionLoop()
+            potential_flow_analysis.Finalize()
         self.main_model_part = model.GetModelPart(settings["solver_settings"]["model_part_name"].GetString())
 
     def _check_results(self, result, reference, rel_tol, abs_tol):
+        # TODO add message directly to t_isclose
         isclosethis = t_isclose(result, reference, rel_tol, abs_tol)
 
         full_msg =  "Failed with following parameters:\n"
@@ -316,6 +316,12 @@ class PotentialFlowTests(UnitTest.TestCase):
         full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
 
         self.assertTrue(isclosethis, msg=full_msg)
+
+    def _check_perimeter_computation(self):
+        body_model_part = self.main_model_part.GetSubModelPart("Body2D_Body")
+        perimeter1 = sum([cond.GetGeometry().Area() for cond in body_model_part.Conditions])
+        perimeter2 = CPFApp.PotentialFlowUtilities.CalculateArea(body_model_part.Conditions)
+        self._check_results(perimeter1, perimeter2, 1e-9, 1e-9)
 
 if __name__ == '__main__':
     UnitTest.main()

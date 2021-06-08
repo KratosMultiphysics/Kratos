@@ -90,13 +90,17 @@ public:
     // --------------------------------------------------------------------------
     void Initialize() override
     {
-        if (mIsMappingInitialized == false)
-        {
-            SetIntegrationMethod();
-            FindNeighbourConditions();
-        }
+        SetIntegrationMethod();
+        FindNeighbourConditions();
 
         MapperVertexMorphing::Initialize();
+    }
+
+    void Update() override
+    {
+        FindNeighbourConditions();
+
+        MapperVertexMorphing::Update();
     }
     // --------------------------------------------------------------------------
 
@@ -254,7 +258,7 @@ private:
             if (mAreaWeightedNodeSum){
                 // Computation of weight according specified weighting function
                 // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                double Aij = mpFilterFunction->compute_weight(node_j.Coordinates(),node_i.Coordinates());
+                double Aij = mpFilterFunction->ComputeWeight(node_j.Coordinates(),node_i.Coordinates());
                 Aij *= nodalAreas[node_j.GetValue(MAPPING_ID)];
 
                 // Add values to list
@@ -300,7 +304,7 @@ private:
 
                         // Computation of weight according specified weighting function
                         // Note that we did not compute the square root of the distances to save this expensive computation (it is not needed here)
-                        double Aij = mpFilterFunction->compute_weight(gp_i_coord,node_i.Coordinates());
+                        double Aij = mpFilterFunction->ComputeWeight(gp_i_coord,node_i.Coordinates());
 
                         // multiply with evaluation of shape function at gauss point
                         Aij *= geom_i.ShapeFunctionValue(pointNumber,localNodeIndex,mIntegrationMethod);;

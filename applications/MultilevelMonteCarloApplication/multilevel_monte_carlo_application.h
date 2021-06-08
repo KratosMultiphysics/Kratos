@@ -53,7 +53,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMultilevelMonteCarloApplication : public KratosApplication {
+class KRATOS_API(MULTILEVEL_MONTE_CARLO_APPLICATION) KratosMultilevelMonteCarloApplication : public KratosApplication {
 public:
 	///@name Type Definitions
 	///@{

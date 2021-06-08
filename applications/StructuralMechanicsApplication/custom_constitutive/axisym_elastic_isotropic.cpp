@@ -76,13 +76,15 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& MaterialProperties = rValues.GetMaterialProperties();
     const double& E = MaterialProperties[YOUNG_MODULUS];
     const double& NU = MaterialProperties[POISSON_RATIO];
 
-    C.clear();
+    if (C.size1() != 4 || C.size2() != 4)
+        C.resize(4, 4);
+    noalias(C) = ZeroMatrix(4, 4);
 
     const double c0 = (1.0-NU);
     const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
@@ -106,7 +108,7 @@ void AxisymElasticIsotropic::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
 
 void AxisymElasticIsotropic::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
+    ConstitutiveLaw::StrainVectorType& rStrainVector
 )
 {
     //1.-Compute total deformation gradient

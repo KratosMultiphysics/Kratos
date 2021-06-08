@@ -326,4 +326,3 @@ public:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_MPM_RESIDUAL_BASED_NEWTON_RAPHSON_STRATEGY  defined */
-

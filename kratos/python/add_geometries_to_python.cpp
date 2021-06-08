@@ -43,6 +43,7 @@
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 // Nurbs Geometries
+#include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
@@ -87,43 +88,27 @@ namespace Python
         return(dummy.IsIdSelfAssigned());
     }
 
-    void CreateQuadraturePointGeometries1(GeometryType& dummy,
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
+    ///@}
+    ///@name Set and Calculate
+    ///@{
+
+    template< class TDataType >
+    void Assign(
+        GeometryType& dummy, const Variable<TDataType>& rVariable, TDataType Value)
     {
-        return(dummy.CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives));
+        dummy.Assign(rVariable, Value);
     }
 
-    array_1d<double,3> GetNormal(
-        GeometryType& dummy,
-        CoordinatesArrayType& LocalCoords
-        )
+    template< class TDataType >
+    TDataType Calculate(
+        GeometryType& dummy, const Variable<TDataType>& rVariable)
     {
-        return( dummy.Normal(LocalCoords) );
+        TDataType Output;
+        dummy.Calculate(rVariable, Output);
+        return Output;
     }
 
-    array_1d<double,3> FastGetNormal(GeometryType& dummy)
-    {
-        CoordinatesArrayType LocalCoords;
-        LocalCoords.clear();
-        return( dummy.Normal(LocalCoords) );
-    }
-
-    array_1d<double,3> GetUnitNormal(
-        GeometryType& dummy,
-        CoordinatesArrayType& LocalCoords
-        )
-    {
-        return( dummy.UnitNormal(LocalCoords) );
-    }
-
-    array_1d<double,3> FastGetUnitNormal(GeometryType& dummy)
-    {
-        CoordinatesArrayType LocalCoords;
-        LocalCoords.clear();
-        return( dummy.UnitNormal(LocalCoords) );
-    }
+    ///@}
 
 void  AddGeometriesToPython(pybind11::module& m)
 {
@@ -152,23 +137,96 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize",&GeometryType::DomainSize)
+    .def("EdgesNumber",&GeometryType::EdgesNumber)
     .def("PointsNumber",&GeometryType::PointsNumber)
+    .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
+    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
+    // Integration
+    .def("IntegrationPointsNumber", [](GeometryType& self)
+        { return(self.IntegrationPointsNumber()); })
     // Quadrature points
-    .def("CreateQuadraturePointGeometries", CreateQuadraturePointGeometries1)
-    .def("Normal",GetNormal)
-    .def("Normal",FastGetNormal)
-    .def("UnitNormal",GetUnitNormal)
-    .def("UnitNormal",FastGetUnitNormal)
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
+        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+    .def("CreateQuadraturePointGeometries", [](GeometryType& self,
+        GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
+        { 
+            IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
+            for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
+                IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
+                integration_points[i] = point_tmp;
+            }
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
+    // Normal
+    .def("Normal", [](GeometryType& self)
+        { const auto& r_type = self.GetGeometryType();
+          KRATOS_WARNING_IF("Geometry", !(r_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || r_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3))
+              << "WARNING:: Your geometry is not linear, please provide local coordinates or a GP index. Normal will be computed at zero local coordinates." << std::endl;
+          CoordinatesArrayType LocalCoords;
+          LocalCoords.clear();
+          return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.Normal(LocalCoords)); })
+    .def("Normal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.Normal(IntegrationPointIndex)); })
+    .def("UnitNormal", [](GeometryType& self)
+        { const auto& r_type = self.GetGeometryType();
+          KRATOS_WARNING_IF("Geometry", !(r_type == GeometryData::KratosGeometryType::Kratos_Line2D2 || r_type == GeometryData::KratosGeometryType::Kratos_Triangle3D3))
+              << "Your geometry is not linear, please provide local coordinates or a GP index. Normal will be computed at zero local coordinates." << std::endl;
+          CoordinatesArrayType LocalCoords;
+          LocalCoords.clear();
+          return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, CoordinatesArrayType& LocalCoords)
+        { return(self.UnitNormal(LocalCoords)); })
+    .def("UnitNormal", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.UnitNormal(IntegrationPointIndex)); })
+     // Jacobian
+    .def("Jacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { Matrix results; return(self.Jacobian(results, IntegrationPointIndex)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self)
+        { Vector results; return(self.DeterminantOfJacobian(results)); })
+    .def("DeterminantOfJacobian", [](GeometryType& self, IndexType IntegrationPointIndex)
+        { return(self.DeterminantOfJacobian(IntegrationPointIndex)); })
+    // ShapeFunctionsValues
+    .def("ShapeFunctionsValues", [](GeometryType& self)
+        { return(self.ShapeFunctionsValues()); })
+    .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex)
+        { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
+    // Mapping
+    .def("GlobalCoordinates", [](GeometryType& self, CoordinatesArrayType& LocalCoordinates)
+        {
+        CoordinatesArrayType result = ZeroVector( 3 );
+        return(self.GlobalCoordinates(result, LocalCoordinates)); })
+    // Geometrical
     .def("Center",&GeometryType::Center)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Assign
+    .def("Assign", Assign<bool>)
+    .def("Assign", Assign<int>)
+    .def("Assign", Assign<double>)
+    .def("Assign", Assign<array_1d<double, 2>>)
+    .def("Assign", Assign<array_1d<double, 3>>)
+    .def("Assign", Assign<array_1d<double, 6>>)
+    .def("Assign", Assign<Vector>)
+    .def("Assign", Assign<Matrix>)
+    // Calculate
+    .def("Calculate", Calculate<bool>)
+    .def("Calculate", Calculate<int>)
+    .def("Calculate", Calculate<double>)
+    .def("Calculate", Calculate<array_1d<double, 2>>)
+    .def("Calculate", Calculate<array_1d<double, 3>>)
+    .def("Calculate", Calculate<array_1d<double, 6>>)
+    .def("Calculate", Calculate<Vector>)
+    .def("Calculate", Calculate<Matrix>)
+    // Print
     .def("__str__", PrintObject<GeometryType>)
+    // Access to nodes
     .def("__getitem__", [](GeometryType& self, unsigned int i){return self(i);} )
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
-//     .def("Points", &GeometryType::ConstGetPoints)
-//     .def("Points", &GeometryType::GetPoints)
     ;
 
     // 2D
@@ -224,6 +282,24 @@ void  AddGeometriesToPython(pybind11::module& m)
     PointerVectorPythonInterface<GeometriesArrayType>().CreateInterface(m, "GeometriesVector");
 
     /// Nurbs Geometries
+    // NurbsVolumeGeometry
+    py::class_<NurbsVolumeGeometry<NodeContainerType>, NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType >(m, "NurbsVolumeGeometry")
+        .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const SizeType, const Vector&, const Vector&, const Vector&>())
+        .def("PolynomialDegreeU", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeU)
+        .def("PolynomialDegreeV", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeV)
+        .def("PolynomialDegreeW", &NurbsVolumeGeometry<NodeContainerType>::PolynomialDegreeW)
+        .def("KnotsU", &NurbsVolumeGeometry<NodeContainerType>::KnotsU)
+        .def("KnotsV", &NurbsVolumeGeometry<NodeContainerType>::KnotsV)
+        .def("KnotsW", &NurbsVolumeGeometry<NodeContainerType>::KnotsW)
+        .def("NumberOfKnotsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsU)
+        .def("NumberOfKnotsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsV)
+        .def("NumberOfKnotsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfKnotsW)
+        .def("IsRational", &NurbsVolumeGeometry<NodeContainerType>::IsRational)
+        .def("NumberOfControlPointsU", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsU)
+        .def("NumberOfControlPointsV", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsV)
+        .def("NumberOfControlPointsW", &NurbsVolumeGeometry<NodeContainerType>::NumberOfControlPointsW)
+        ;
+
     // NurbsSurfaceGeometry3D
     py::class_<NurbsSurfaceGeometry<3, NodeContainerType>, NurbsSurfaceGeometry<3, NodeContainerType>::Pointer, GeometryType >(m, "NurbsSurfaceGeometry3D")
         .def(py::init<const PointsArrayType&, const SizeType, const SizeType, const Vector&, const Vector&>())

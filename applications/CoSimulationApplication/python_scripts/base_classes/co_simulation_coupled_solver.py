@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -22,10 +20,10 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     - holds DataTransferOperators
     - holds CouplingOperations
     - initialization of IOs of solvers
-    - Snychronization of Input and Output
+    - Synchronization of Input and Output
     - Handles the coupling sequence
     """
-    def __init__(self, settings, solver_name):
+    def __init__(self, settings, models, solver_name):
         # perform some initial checks
         if not settings.Has("coupling_sequence"):
             err_msg  = 'No "coupling_sequence" was specified for coupled solver\n'
@@ -47,17 +45,41 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             err_msg += '"{}" of type "{}"'.format(solver_name, self._ClassName())
             raise Exception(err_msg)
 
-        super(CoSimulationCoupledSolver, self).__init__(settings, solver_name)
+        if not isinstance(models, dict) and not models is None:
+            err_msg  = 'A coupled solver can either be passed a dict of Models\n'
+            err_msg += 'or None, got object of type "{}"'.format(type(models))
+            raise Exception(err_msg)
+
+        super().__init__(settings, None, solver_name)
 
         self.process_info = KM.ProcessInfo()
 
-        self.solver_wrappers = self.__CreateSolverWrappers()
+        self.solver_wrappers = self.__CreateSolverWrappers(models)
+
+        # overwriting the Model created in the BaseClass
+        # CoupledSolvers only forward calls to its solvers
+        # this is done with the ModelAccessor
+        self.model = ModelAccessor(self.solver_wrappers)
 
         self.coupling_sequence = self.__GetSolverCoSimulationDetails()
 
         for solver in self.solver_wrappers.values():
             solver.CreateIO(self.echo_level)
             # using the Echo_level of the coupled solver, since IO is needed by the coupling
+
+    def _GetSolver(self, solver_name):
+        solver_name, *sub_solver_names = solver_name.split(".")
+        solver = self.solver_wrappers[solver_name]
+        if len(sub_solver_names) > 0:
+            return solver._GetSolver(".".join(sub_solver_names))
+        else:
+            return solver
+
+    def Initialize(self):
+        for solver in self.solver_wrappers.values():
+            solver.Initialize()
+
+        super().Initialize()
 
         ### Creating the predictors
         self.predictors_list = factories_helper.CreatePredictors(
@@ -77,34 +99,14 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.settings["data_transfer_operators"],
             self.echo_level)
 
-    def _GetSolver(self, solver_name):
-        solver_name, *sub_solver_names = solver_name.split(".")
-        solver = self.solver_wrappers[solver_name]
-        if len(sub_solver_names) > 0:
-            return solver._GetSolver(".".join(sub_solver_names))
-        else:
-            return solver
-
-    def Initialize(self):
-        for solver in self.solver_wrappers.values():
-            solver.Initialize()
-
-        super(CoSimulationCoupledSolver, self).Initialize()
-
         for predictor in self.predictors_list:
             predictor.Initialize()
 
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Initialize()
 
-    def InitializeCouplingInterfaceData(self):
-        super(CoSimulationCoupledSolver, self).InitializeCouplingInterfaceData()
-
-        for solver in self.solver_wrappers.values():
-            solver.InitializeCouplingInterfaceData()
-
     def Finalize(self):
-        super(CoSimulationCoupledSolver, self).Finalize()
+        super().Finalize()
 
         for solver in self.solver_wrappers.values():
             solver.Finalize()
@@ -231,15 +233,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                     cs_tools.cs_print_info("  Skipped", 'not in interval')
                 return
 
-            if from_solver_data.is_outdated:
-                # Importing data from external solvers (if it is outdated)
-                from_solver_data_config = {
-                    "type" : "coupling_interface_data",
-                    "interface_data" : from_solver_data
-                }
-                from_solver.ImportData(from_solver_data_config)
-                from_solver_data.is_outdated = False
-
             # perform the data transfer
             self.__ExecuteCouplingOperations(i_data["before_data_transfer_operations"])
 
@@ -248,13 +241,6 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.__GetDataTransferOperator(data_transfer_operator_name).TransferData(from_solver_data, to_solver_data, i_data["data_transfer_operator_options"])
 
             self.__ExecuteCouplingOperations(i_data["after_data_transfer_operations"])
-
-            # Exporting data to external solvers
-            to_solver_data_config = {
-                "type" : "coupling_interface_data",
-                "interface_data" : to_solver_data
-            }
-            to_solver.ExportData(to_solver_data_config)
 
 
     def __GetDataTransferOperator(self, data_transfer_operator_name):
@@ -269,7 +255,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             self.coupling_operations_dict[coupling_operation_name].Execute()
 
     def PrintInfo(self):
-        super(CoSimulationCoupledSolver, self).PrintInfo()
+        super().PrintInfo()
 
         cs_tools.cs_print_info(self._ClassName(), "Has the following components:")
         for solver in self.solver_wrappers.values():
@@ -284,7 +270,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
     def Check(self):
         # TODO check that there is no self-communication with the same data!
         # self-communication is allowed within a solver, but not on the same data
-        super(CoSimulationCoupledSolver, self).Check()
+        super().Check()
 
         for solver in self.solver_wrappers.values():
             solver.Check()
@@ -295,11 +281,15 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
         for coupling_operation in self.coupling_operations_dict.values():
             coupling_operation.Check()
 
-    def __CreateSolverWrappers(self):
+    def __CreateSolverWrappers(self, models):
         # first create all solvers
         solvers = {}
         for solver_name, solver_settings in self.settings["solvers"].items():
-            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_name)
+            if models == None:
+                solver_model = None
+            else:
+                solver_model = models.get(solver_name) # returns None if "solver_name" is not in models
+            solvers[solver_name] = solver_wrapper_factory.CreateSolverWrapper(solver_settings, solver_model, solver_name)
 
         # then order them according to the coupling-loop
         solvers_map = OrderedDict()
@@ -315,6 +305,12 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
                 err_msg += '"{}" of type "{}"\n'.format(self.name, self._ClassName())
                 err_msg += 'but not used in the "coupling_sequence"!'
                 raise Exception(err_msg)
+
+        if models != None:
+            for solver_name in models.keys():
+                if solver_name not in solvers_map:
+                    raise Exception('A Model was given for solver "{}" but this solver does not exist!'.format(solver_name))
+
 
         return solvers_map
 
@@ -345,8 +341,9 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
 
         return solver_cosim_details
 
+
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "coupling_sequence"        : [],
             "solvers"                  : {},
@@ -354,7 +351,7 @@ class CoSimulationCoupledSolver(CoSimulationSolverWrapper):
             "coupling_operations"      : {},
             "data_transfer_operators"  : {}
         }""")
-        this_defaults.AddMissingParameters(super(CoSimulationCoupledSolver, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
 
         return this_defaults
 
@@ -381,3 +378,25 @@ def GetOutputDataDefaults():
         "after_data_transfer_operations"  : [],
         "interval"                        : [0.0, 1e30]
     }""")
+
+
+class ModelAccessor(object):
+    """Intermediate class for redirecting the access to the Models
+    to the solvers of the CoupledSolver
+    """
+    def __init__(self, solver_wrappers):
+        self.solver_wrappers = solver_wrappers
+
+    def __getitem__(self, key):
+        splitted_key = key.split('.')
+
+        if key == "":
+            raise Exception("No solver_name was specified!")
+        elif key.count('.') == 0:
+            # if only the solver name was given then return the Model itself
+            return self.solver_wrappers[splitted_key[0]].model
+
+        solver_name, model_part_name = key.split('.', 1)
+        # note that model_part_name can still include solver-names in a multicoupling scenario
+
+        return self.solver_wrappers[solver_name].model[model_part_name]

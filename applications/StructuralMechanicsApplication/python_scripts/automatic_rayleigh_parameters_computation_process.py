@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 from KratosMultiphysics import eigen_solver_factory
@@ -52,10 +50,13 @@ class AutomaticRayleighComputationProcess(KM.Process):
 
         # Setting solver settings
         if settings.Has("eigen_system_settings"):
-            if settings["eigen_system_settings"].Has("solver_type"):
-                solver_type = settings["eigen_system_settings"]["solver_type"].GetString()
-                eigen_system_settings = self._auxiliar_eigen_settings(solver_type)
-                default_parameters["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
+            if not settings["eigen_system_settings"].Has("solver_type"):
+              settings["eigen_system_settings"].AddValue("solver_type", default_parameters["eigen_system_settings"]["solver_type"])
+        else:
+            settings.AddValue("eigen_system_settings", default_parameters["eigen_system_settings"])
+        solver_type = settings["eigen_system_settings"]["solver_type"].GetString()
+        eigen_system_settings = self._auxiliar_eigen_settings(solver_type)
+        default_parameters["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
 
         # Overwrite the default settings with user-provided parameters
         self.settings = settings

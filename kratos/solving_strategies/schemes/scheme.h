@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -20,7 +20,10 @@
 
 /* Project includes */
 #include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/openmp_utils.h" //TODO: SOME FILES INCLUDING scheme.h RELY ON THIS. LEAVING AS FUTURE TODO.
+#include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -60,6 +63,9 @@ public:
     /// Pointer definition of Scheme
     KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
+    /// The definition of the current class
+    typedef Scheme< TSparseSpace, TDenseSpace > ClassType;
+
     /// Data type definition
     typedef typename TSparseSpace::DataType TDataType;
     /// Matrix type definition
@@ -85,88 +91,6 @@ public:
     /// Conditions containers definition
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
-    /**
-     * @class LocalSystemComponents
-     * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise schemes private pointers can only be accessed by means of set and get functions
-     * @details This allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
-     */
-    struct LocalSystemComponents
-    {
-    private:
-        ///@name Member Variables
-        ///@{
-        // Elements
-        std::vector<LocalSystemMatrixType> *mpLHS_Element_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Element_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Element_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-
-        // Conditions
-        std::vector<LocalSystemMatrixType> *mpLHS_Condition_Components;
-        const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
-
-        std::vector<LocalSystemVectorType> *mpRHS_Condition_Components;
-        const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-        ///@}
-    public:
-        ///@name Operations
-        ///@{
-        /**
-        * @brief This method initializes the pointer of the member variables
-        */
-        void Initialize()
-        {
-            mpLHS_Element_Components = NULL;
-            mpLHS_Element_Variables  = NULL;
-
-            mpRHS_Element_Components = NULL;
-            mpRHS_Element_Variables  = NULL;
-
-            mpLHS_Condition_Components = NULL;
-            mpLHS_Condition_Variables  = NULL;
-
-            mpRHS_Condition_Components = NULL;
-            mpRHS_Condition_Variables  = NULL;
-        }
-
-        /* Setting pointer variables */
-
-        // Elements
-        void SetLHS_Element_Components ( std::vector<LocalSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-        void SetLHS_Element_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-        void SetRHS_Element_Components ( std::vector<LocalSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-        void SetRHS_Element_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-        bool Are_LHS_Element_Components_Set() { if( mpLHS_Element_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Element_Components_Set() { if( mpRHS_Element_Variables == NULL ) return false; else return true; };
-
-        // Conditions
-        void SetLHS_Condition_Components ( std::vector<LocalSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-        void SetLHS_Condition_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-        void SetRHS_Condition_Components ( std::vector<LocalSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-        void SetRHS_Condition_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-        bool Are_LHS_Condition_Components_Set() { if( mpLHS_Condition_Variables == NULL ) return false; else return true; };
-        bool Are_RHS_Condition_Components_Set() { if( mpRHS_Condition_Variables == NULL ) return false; else return true; };
-
-        /* Getting pointer variables */
-
-        // Elements
-        std::vector<LocalSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-        // Conditions
-        std::vector<LocalSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-        std::vector<LocalSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-        const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-        ///@}
-    };
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -177,6 +101,19 @@ public:
      */
     explicit Scheme()
     {
+        mSchemeIsInitialized = false;
+        mElementsAreInitialized = false;
+        mConditionsAreInitialized = false;
+    }
+    /**
+     * @brief Constructor with Parameters
+     */
+    explicit Scheme(Parameters ThisParameters)
+    {
+        // Validate default parameters
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
         mConditionsAreInitialized = false;
@@ -201,6 +138,19 @@ public:
     ///@name Operators
     ///@{
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    virtual typename ClassType::Pointer Create(Parameters ThisParameters) const
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /**
      * @brief Clone method
      * @return The pointer of the cloned scheme
@@ -208,16 +158,6 @@ public:
     virtual Pointer Clone()
     {
         return Kratos::make_shared<Scheme>(*this) ;
-    }
-
-    /**
-     * @brief Component wise components Get method
-     * @warning Must be defined on the derived classes
-     * @return The local system of components
-     */
-    virtual LocalSystemComponents& GetLocalSystemComponents()
-    {
-        KRATOS_ERROR << "Asking for Local Components to the SCHEME base class which is not component wise and not contains this member variable" << std::endl;
     }
 
     /**
@@ -295,13 +235,7 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Element>(rModelPart);
 
         SetElementsAreInitialized();
 
@@ -319,13 +253,7 @@ public:
 
         KRATOS_ERROR_IF_NOT(mElementsAreInitialized) << "Before initilizing Conditions, initialize Elements FIRST" << std::endl;
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Initialize(r_current_process_info);
-        }
+        EntitiesUtilities::InitializeEntities<Condition>(rModelPart);
 
         SetConditionsAreInitialized();
 
@@ -350,37 +278,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Initializes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Initializes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Initializes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeSolutionStep(r_current_process_info);
-        }
+        // Initializes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -400,37 +299,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes solution step for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes solution step for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeSolutionStep(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes solution step for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeSolutionStep(r_current_process_info);
-        }
+        // Finalizes solution step for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -555,37 +425,8 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        // Finalizes non-linear iteration for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        // Finalizes non-linear iteration  for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->FinalizeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        // Finalizes non-linear iteration for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->FinalizeNonLinearIteration(r_current_process_info);
-        }
+        // Finalizes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
@@ -673,36 +514,6 @@ public:
     }
 
     /**
-     * @brief Function to clean up "element" scratch space after each element is built.
-     * @param rElement The element to compute
-     */
-    virtual void CleanMemory(Element& rElement)
-    {
-        this->CleanMemory(Element::Pointer(&rElement)); // TODO remove this after the transition period and uncomment the following
-        // rElement.CleanMemory();
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CleanMemory(Element::Pointer rCurrentElement)
-    {
-        rCurrentElement->CleanMemory();
-    }
-
-    /**
-     * @brief Function to clean up "condition" scratch space after each condition is built.
-     * @param rCondition The condition to compute
-     */
-    virtual void CleanMemory(Condition& rCondition)
-    {
-        this->CleanMemory(Condition::Pointer(&rCondition)); // TODO remove this after the transition period and uncomment the following
-        // rCondition.CleanMemory();
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CleanMemory(Condition::Pointer rCurrentCondition)
-    {
-        rCurrentCondition->CleanMemory();
-    }
-
-    /**
      * @brief Liberate internal storage.
      * @warning Must be implemented in the derived classes
      */
@@ -724,28 +535,29 @@ public:
     {
         KRATOS_TRY
 
+        //TODO: This is required for the exception handling. It can be removed once we move to the C++ parallelism
+#ifdef KRATOS_SMP_CXX11
+        int num_threads = ParallelUtilities::GetNumThreads();
+#else
+        int num_threads = 1;
+#endif
+
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Checks for all of the elements
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfElements()); i++) {
-            auto it_elem = rModelPart.ElementsBegin() + i;
-            it_elem->Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::ElementsContainerType>(rModelPart.Elements(), num_threads).for_each([&r_current_process_info](const Element& rElement){
+            rElement.Check(r_current_process_info);
+        });
 
         // Checks for all of the conditions
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfConditions()); i++) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
-            it_cond->Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::ConditionsContainerType>(rModelPart.Conditions(), num_threads).for_each([&r_current_process_info](const Condition& rCondition){
+            rCondition.Check(r_current_process_info);
+        });
 
         // Checks for all of the constraints
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.NumberOfMasterSlaveConstraints()); i++) {
-            auto it_constraint = rModelPart.MasterSlaveConstraintsBegin() + i;
-            it_constraint->Check(r_current_process_info);
-        }
+        BlockPartition<const ModelPart::MasterSlaveConstraintContainerType>(rModelPart.MasterSlaveConstraints(), num_threads).for_each([&r_current_process_info](const MasterSlaveConstraint& rConstraint){
+            rConstraint.Check(r_current_process_info);
+        });
 
         return 0;
         KRATOS_CATCH("");
@@ -776,25 +588,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->CalculateSystemContributions(
-            Element::Pointer(&rElement),
-            LHS_Contribution,
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void CalculateSystemContributions(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentElement->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -813,25 +607,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Condition_CalculateSystemContributions(
-            Condition::Pointer(&rCondition),
-            LHS_Contribution,
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_CalculateSystemContributions(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentCondition->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -848,23 +624,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Calculate_RHS_Contribution(
-            Element::Pointer(&rElement),
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentElement->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -881,23 +641,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Condition_Calculate_RHS_Contribution(
-            Condition::Pointer(&rCondition),
-            RHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentCondition->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -914,23 +658,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Calculate_LHS_Contribution(
-            Element::Pointer(&rElement),
-            LHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Calculate_LHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentElement->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rElement.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -947,23 +675,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        this->Condition_Calculate_LHS_Contribution(
-            Condition::Pointer(&rCondition),
-            LHS_Contribution,
-            rEquationIdVector,
-            const_cast<ProcessInfo&>(rCurrentProcessInfo)
-        ); // TODO remove this after the transition period and uncomment the following
-        // rrCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentCondition->CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
+        rCondition.CalculateLeftHandSide(LHS_Contribution, rCurrentProcessInfo);
     }
 
     /**
@@ -980,15 +692,6 @@ public:
     {
         rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void EquationId(
-        Element::Pointer pCurrentElement,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        (pCurrentElement)->EquationIdVector(EquationId, rCurrentProcessInfo);
-    }
 
     /**
      * @brief Functions totally analogous to the precedent but applied to the "condition" objects
@@ -1003,15 +706,6 @@ public:
         )
     {
         rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
-    }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void Condition_EquationId(
-        Condition::Pointer pCurrentCondition,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        (pCurrentCondition)->EquationIdVector(EquationId, rCurrentProcessInfo);
     }
 
     /**
@@ -1028,15 +722,6 @@ public:
     {
         rElement.GetDofList(rDofList, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void GetElementalDofList(
-        Element::Pointer pCurrentElement,
-        Element::DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        pCurrentElement->GetDofList(ElementalDofList, rCurrentProcessInfo);
-    }
 
     /**
      * @brief Function that returns the list of Degrees of freedom to be assembled in the system for a Given condition
@@ -1052,19 +737,27 @@ public:
     {
         rCondition.GetDofList(rDofList, rCurrentProcessInfo);
     }
-    // KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function")
-    virtual void GetConditionDofList(
-        Condition::Pointer pCurrentCondition,
-        Element::DofsVectorType& ConditionDofList,
-        ProcessInfo& rCurrentProcessInfo
-        )
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    virtual Parameters GetDefaultParameters() const
     {
-        pCurrentCondition->GetDofList(ConditionDofList, rCurrentProcessInfo);
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name" : "scheme"
+        })" );
+        return default_parameters;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "scheme";
+    }
 
     ///@}
     ///@name Access
@@ -1122,6 +815,29 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1171,5 +887,3 @@ private:
 } // namespace Kratos.
 
 #endif /* KRATOS_SCHEME  defined */
-
-

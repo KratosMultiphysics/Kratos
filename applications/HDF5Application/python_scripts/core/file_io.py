@@ -5,10 +5,12 @@ license: HDF5Application/license.txt
 
 
 import os
+from pathlib import Path
 
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from .utils import ParametersWrapper
 
 
@@ -80,24 +82,44 @@ def _GetIO(io_type):
 class _FilenameGetter(object):
 
     def __init__(self, settings):
-        filename = settings['file_name']
-        self.filename_parts = filename.split('<time>')
+        self.filename = settings['file_name']
+        self.model_part = None
+
+        if (self.filename.find("<rank>") != -1):
+            raise Exception("Flag \"<rank>\" is not allowed to be used in HDF5 output file namings. Please remove it [ filename = \"" + self.filename + "\" ].")
+
+        if (not self.filename.endswith(".h5")):
+            self.filename += ".h5"
+
+        self.max_files_to_keep = None
+        if ("file_access_mode" in settings.keys() and "max_files_to_keep" in settings.keys()):
+            if (settings["file_access_mode"] == "truncate" and settings["max_files_to_keep"] != "unlimited"):
+                self.max_files_to_keep = int(settings["max_files_to_keep"])
+                if (self.max_files_to_keep <= 0):
+                    raise Exception("max_files_to_keep should be greater than zero.")
+
         if settings.Has('time_format'):
             self.time_format = settings['time_format']
         else:
             self.time_format = ''
 
-    def Get(self, model_part=None):
-        if hasattr(model_part, 'ProcessInfo'):
-            time = model_part.ProcessInfo[KratosMultiphysics.TIME]
-            filename = format(time, self.time_format).join(self.filename_parts)
-        else:
-            filename = ''.join(self.filename_parts)
-        if hasattr(model_part, 'Name'):
-            filename = filename.replace('<model_part_name>', model_part.Name)
-        if not filename.endswith('.h5'):
-            filename += '.h5'
-        return filename
+    def Get(self, model_part):
+        if (self.model_part != model_part):
+            self.model_part = model_part
+            self.file_name_data_collector = KratosMultiphysics.FileNameDataCollector(self.model_part, self.filename, {"<time>": self.time_format})
+
+        new_file_name = self.file_name_data_collector.GetFileName()
+
+        if (self.max_files_to_keep is not None):
+            if (Path(new_file_name).parents[0].is_dir()):
+                list_of_file_names = self.file_name_data_collector.GetSortedFileNamesList(["<time>"])
+                if (len(list_of_file_names) >= self.max_files_to_keep):
+                    # remove files from the second file in case the mesh is only written to the initial file
+                    # then we need to always have that initial file.
+                    for file_name in list_of_file_names[1:len(list_of_file_names) - self.max_files_to_keep + 2]:
+                        kratos_utils.DeleteFileIfExisting(file_name)
+
+        return new_file_name
 
 
 class _FilenameGetterWithDirectoryInitialization(object):

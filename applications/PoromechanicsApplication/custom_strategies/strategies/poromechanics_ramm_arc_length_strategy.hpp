@@ -64,7 +64,6 @@ public:
     PoromechanicsRammArcLengthStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters& rParameters,
@@ -72,7 +71,7 @@ public:
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
-        ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,
+        ) : PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
         {
             mDesiredIterations = rParameters["desired_iterations"].GetInt();
@@ -465,23 +464,6 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check() override
-    {
-        KRATOS_TRY
-
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_LAMBDA);
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_RADIUS_FACTOR);
-
-        return ierr;
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL)
@@ -595,9 +577,9 @@ protected:
             else if( KratosComponents< Variable<array_1d<double,3> > >::Has(VariableName) )
             {
                 typedef Variable<double> component_type;
-                component_type varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
-                component_type vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
-                component_type varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
+                const component_type& varx = KratosComponents< component_type >::Get(VariableName+std::string("_X"));
+                const component_type& vary = KratosComponents< component_type >::Get(VariableName+std::string("_Y"));
+                const component_type& varz = KratosComponents< component_type >::Get(VariableName+std::string("_Z"));
 
                 #pragma omp parallel
                 {

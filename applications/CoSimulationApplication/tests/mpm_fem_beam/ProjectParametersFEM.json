@@ -13,7 +13,7 @@
         "echo_level"                      : 0,
         "analysis_type"                   : "non_linear",
         "linear_solver_settings"          : {
-            "solver_type"   : "EigenSolversApplication.sparse_qr"
+            "solver_type"   : "LinearSolversApplication.sparse_qr"
         },
         "model_import_settings"           : {
             "input_type"     : "mdpa",

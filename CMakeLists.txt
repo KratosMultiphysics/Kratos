@@ -47,6 +47,9 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   SET(INSTALL_PYTHON_USING_LINKS $ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
+# Setting the libs folder for the shared objects built in kratos
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+
 # If no test policy enable by default
 if(NOT DEFINED KRATOS_BUILD_TESTING)
 message("-- No KRATOS_BUILD_TESTING is defined. Setting to ON")
@@ -102,15 +105,27 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
+        MESSAGE(STATUS "Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        IF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+            SET(KRATOS_UNITY_BUILD_BATCH_SIZE 32)
+        ENDIF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -122,7 +137,12 @@ if(GIT_FOUND)
     COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
     OUTPUT_VARIABLE KratosMultiphysics_SHA1_NUMBER
     OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_VARIABLE SHA1_NOT_FOUND
   )
+  if(SHA1_NOT_FOUND)
+    message("Git did not find the SHA1 number. It will be set to 0.")
+    set (KratosMultiphysics_SHA1_NUMBER 0)
+  endif(SHA1_NOT_FOUND)
 else(GIT_FOUND)
   message("Git was not found on your system. SHA1 number will be set to 0.")
   set (KratosMultiphysics_SHA1_NUMBER 0)
@@ -281,25 +301,44 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 ## Find all dependencies
 
-##*****************************
-#find and include OpenMP if possible
+# Select shared memory parallelization
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("**********************************************************")
-	message("OpenMP calculation was excluced artificially. Remove the var")
-	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
-    message("**********************************************************")
-    if(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
-    endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
-else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message(STATUS "OpenMP included")
+	message(FATAL_ERROR "The option \"KRATOS_EXCLUDE_OPENMP\" was removed, use KRATOS_SHARED_MEMORY_PARALLELIZATION=\"None\" instead")
+endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+# default to OpenMP
+if(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+  message("\"KRATOS_SHARED_MEMORY_PARALLELIZATION\" not defined, defaulting to \"OpenMP\"")
+  SET(KRATOS_SHARED_MEMORY_PARALLELIZATION "OpenMP")
+endif(NOT DEFINED KRATOS_SHARED_MEMORY_PARALLELIZATION)
+
+if (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "OpenMP")
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
+    message("Using OpenMP for shared memory parallelization")
+    add_definitions( -DKRATOS_SMP_OPENMP )
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else (OPENMP_FOUND)
+    message(FATAL_ERROR "OpenMP could not be found!")
+    # fallback solution => in future once better supported we can use the C++11 based parallelization instead
+    message("OpenMP could not be found, disabling shared memory parallelization!")
+    add_definitions( -DKRATOS_SMP_NONE )
 	endif (OPENMP_FOUND)
-endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "C++11")
+  message("Using C++11 for shared memory parallelization")
+  add_definitions( -DKRATOS_SMP_CXX11 )
+  message("WARNING: Using C++11 for shared memory parallelization is highly experimental and not fully supported!")
+
+elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
+  add_definitions( -DKRATOS_SMP_NONE )
+  message("Shared memory parallelization is disabled!")
+
+else()
+  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+endif ()
 
 ##*****************************
 # Finding and including BOOST library (version should not matter anymore)
@@ -459,9 +498,14 @@ message("\t Deprecation of NOT_FLAGS : https://github.com/KratosMultiphysics/Kra
 message("\t Removing long deprecated conditions : https://github.com/KratosMultiphysics/Kratos/pull/6475")
 message("\t Changing 'FindNodalNeighboursProcess' constructor signature: https://github.com/KratosMultiphysics/Kratos/pull/4947")
 message("\t Minor update of import mechanism for applications: https://github.com/KratosMultiphysics/Kratos/pull/6556")
+message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
+message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 
-#compiling the triangle library
+# Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )
@@ -475,8 +519,8 @@ install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
 install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
 
 # Install core files for the KratosMultiphysics python module
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" "KratosMultiphysics/kratos_globals.py" )
 
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)

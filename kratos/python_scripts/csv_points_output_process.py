@@ -15,6 +15,7 @@ def Factory(settings, Model):
         "help"                 : "This process writes output for several points given in a .csv-file ('csv_file_path') to a file. Internally it holds an object of type MultiplePointsOutputProcess. Usage: The first line of the .csv-file should state the column names: 'x,y,z'. The following rows should each be one point with its x,y and z value in the respective column of the .csv-file, separated by a comma.",
         "model_part_name"      : "",
         "entity_type"          : "element",
+        "interval"             : [0.0, 1e30],
         "csv_file_path"        : "",
         "output_variables"     : [],
         "historical_value"     : true,

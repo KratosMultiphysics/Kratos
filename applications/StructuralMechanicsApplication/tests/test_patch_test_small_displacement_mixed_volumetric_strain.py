@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -107,7 +105,6 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
             ModelPart,
             scheme,
-            linear_solver,
             builder_and_solver,
             compute_reactions,
             reform_step_dofs,

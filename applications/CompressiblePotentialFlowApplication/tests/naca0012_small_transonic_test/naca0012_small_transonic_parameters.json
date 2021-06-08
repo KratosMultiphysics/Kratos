@@ -22,7 +22,7 @@
         "relative_tolerance": 1e-12,
         "absolute_tolerance": 1e-12,
         "linear_solver_settings"  : {
-                "solver_type"             : "EigenSolversApplication.sparse_lu",
+                "solver_type"             : "LinearSolversApplication.sparse_lu",
                 "verbosity"               : 0
         },
         "volume_model_part_name" : "Parts_Parts_Auto1",
@@ -38,8 +38,14 @@
             "Parameters"    : {
                 "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "free_stream_density"  : 1.225,
-                "mach_infinity": 0.6,
+                "mach_infinity": 0.75,
                 "heat_capacity_ratio": 1.4,
+                "speed_of_sound": 340.3,
+                "inlet_potential": 1.0,
+                "critical_mach": 0.90,
+                "upwind_factor_constant": 1.0,
+                "mach_number_squared_limit":3.0,
+                "initialize_flow_field": false,
                 "perturbation_field": true
             }
         },{
@@ -65,7 +71,7 @@
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
                 "check_variables"  : ["VELOCITY_POTENTIAL"],
-                "input_file_name"  : "transonic_velocity_potential_flow_field_test_results.json",
+                "input_file_name"  : "transonic_velocity_potential_flow_field_mach_075_test_results.json",
                 "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
                 "tolerance"            : 1e-9,
                 "relative_tolerance"   : 1e-12,
@@ -95,7 +101,7 @@
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
             "output_variables" : ["VELOCITY_POTENTIAL"],
-            "output_file_name" : "transonic_velocity_potential_flow_field_test_results.json",
+            "output_file_name" : "transonic_velocity_potential_flow_field_mach_072_test_results.json",
             "model_part_name"  : "MainModelPart.Parts_Parts_Auto1",
             "time_frequency"   : -2
         }

@@ -195,7 +195,7 @@ protected:
     // Member Variables
     ModelPart& mrModelPart;
     std::string mPressureName;
-    std::vector<ModelPart::PropertiesType::Pointer> mpPropertiesVector;
+    ModelPart::PropertiesType::Pointer mpProperty;
 
 };  // Class
 

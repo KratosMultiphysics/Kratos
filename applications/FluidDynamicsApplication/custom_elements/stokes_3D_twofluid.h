@@ -116,7 +116,31 @@ public:
     }
 
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+        bool compute_lhs_matrix = true;
+        CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, compute_lhs_matrix);
+        KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic CalculateLocalSystem")
+    }
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        MatrixType temp = Matrix();
+        bool compute_lhs_matrix = false;
+        CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, compute_lhs_matrix);
+
+        KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic CalculateRightHandSide")
+
+    }
+
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        bool ComputeLHSMatrix)
     {
         KRATOS_TRY
 
@@ -191,40 +215,19 @@ public:
         //here we decide if the element is all FLUID/AIR/MIXED
         if(npos == NumNodes) //all AIR
         {
-            ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
+            ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo, ComputeLHSMatrix);
         }
         else if (nneg == NumNodes) //all FLUID
         {
-            ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
+            ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo, ComputeLHSMatrix);
         }
         else //element includes both FLUID and AIR
         {
-            ComputeElementAsMIXED<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances);
+            ComputeElementAsMIXED<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, rCurrentProcessInfo, distances, ComputeLHSMatrix);
         }
-
 
         KRATOS_CATCH("Error in StokesTwoFluid Element Symbolic")
     }
-
-
-
-
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_TRY
-
-        KRATOS_THROW_ERROR(std::logic_error,"method not implemented yet","");
-
-        KRATOS_CATCH("")
-
-    }
-
-
-
-
-
-
 
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -235,30 +238,13 @@ public:
      * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
      * @return 0 if no errors were found.
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY
 
         // Perform basic element checks
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
-
-        // Check that all required variables have been registered
-        if(VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-        if(DISTANCE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DISTANCE Key is 0. Check if the application was correctly registered.","");
-
-        if(PRESSURE.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"PRESSURE Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-        if(DYNAMIC_TAU.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_TAU Key is 0. Check if the application was correctly registered.","");
-        if(DELTA_TIME.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DELTA_TIME Key is 0. Check if the application was correctly registered.","");
-
-        // Checks on nodes
 
         //check Properties
         if(GetProperties().Has(DENSITY_AIR) == false)
@@ -358,7 +344,7 @@ public:
             Values.SetStrainVector(strain);
 
             Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
-        } 
+        }
         else if(rVariable == EFFECTIVE_VISCOSITY) //compute the heat flux per unit volume induced by the shearing
         {
             double distance_center = 0.0;
@@ -386,7 +372,7 @@ public:
                 Values.SetStrainVector(strain);
 
                 Output = mp_constitutive_law->CalculateValue(Values,rVariable, Output);
-            }         
+            }
         }
 
         KRATOS_CATCH("")
@@ -400,7 +386,8 @@ public:
                              const double& Volume,
                              element_data<4,3>& data,
                              BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                             ProcessInfo& rCurrentProcessInfo)
+                             const ProcessInfo& rCurrentProcessInfo,
+                             bool ComputeLHSMatrix)
     {
         const double air_density = GetProperties()[DENSITY_AIR];
         for (unsigned int i = 0; i < NumNodes; i++)
@@ -417,10 +404,12 @@ public:
              ComputeConstitutiveResponse_AIR(data, air_density, air_nu, rCurrentProcessInfo);
 
             ComputeGaussPointRHSContribution(rhs_local, data);
-            ComputeGaussPointLHSContribution(lhs_local, data);
+            if (ComputeLHSMatrix) {
+                ComputeGaussPointLHSContribution(lhs_local, data);
+                noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            }
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local;
             noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
@@ -459,7 +448,8 @@ public:
                                const double& Volume,
                                element_data<4,3>& data,
                                BoundedMatrix<double,NumNodes, NumNodes>& Ncontainer,
-                               ProcessInfo& rCurrentProcessInfo)
+                               const ProcessInfo& rCurrentProcessInfo,
+                               bool ComputeLHSMatrix)
     {
         const double weight = Volume/static_cast<double>(NumNodes);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
@@ -471,10 +461,11 @@ public:
              ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
             ComputeGaussPointRHSContribution(rhs_local, data);
-            ComputeGaussPointLHSContribution(lhs_local, data);
-
+            if (ComputeLHSMatrix) {
+                ComputeGaussPointLHSContribution(lhs_local, data);
+                noalias(rLeftHandSideMatrix) += weight*lhs_local;
+            }
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) += weight*lhs_local;
             noalias(rRightHandSideVector) += weight*rhs_local;
         }
 
@@ -514,8 +505,9 @@ public:
                                Vector& rRightHandSideVector,
                                const double& Volume,
                                element_data<4,3>& data,
-                               ProcessInfo& rCurrentProcessInfo,
-                               const array_1d<double,NumNodes>& distances
+                               const ProcessInfo& rCurrentProcessInfo,
+                               const array_1d<double,NumNodes>& distances,
+                               bool ComputeLHSMatrix
                               )
     {
             //here do the splitting to determine the gauss points
@@ -540,11 +532,11 @@ public:
                 const double dgauss = inner_prod(distances, Ncenter);
                 if(dgauss > 0)
                 {
-                    ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer,rCurrentProcessInfo);
+                    ComputeElementAsAIR<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer,rCurrentProcessInfo, ComputeLHSMatrix);
                 }
                 else
                 {
-                    ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo);
+                    ComputeElementAsFLUID<MatrixSize,NumNodes>(lhs_local, rhs_local, rLeftHandSideMatrix, rRightHandSideVector, Volume, data, Ncontainer, rCurrentProcessInfo, ComputeLHSMatrix);
                 }
             }
             else
@@ -590,7 +582,9 @@ public:
                     ComputeGaussPointEnrichmentContributions(H,V,Kee,rhs_ee, data, distances, Nenriched, DNenr[igauss]);
 
                     const double weight = volumes[igauss];
-                    noalias(rLeftHandSideMatrix) += weight*lhs_local;
+                    if (ComputeLHSMatrix) {
+                        noalias(rLeftHandSideMatrix) += weight*lhs_local;
+                    }
                     noalias(rRightHandSideVector) += weight*rhs_local;
 
                     noalias(Htot) += weight*H;
@@ -599,7 +593,7 @@ public:
                     noalias(rhs_ee_tot) += weight*rhs_ee;
                 }
 
-                 CondenseEnrichment(rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot, volumes, signs, distances);
+                 CondenseEnrichment(rLeftHandSideMatrix,rRightHandSideVector,Htot,Vtot,Kee_tot, rhs_ee_tot, volumes, signs, distances, ComputeLHSMatrix);
             }
 
         }
@@ -708,7 +702,8 @@ public:
                             array_1d<double,4>& Renr,
                             const Vector& volumes,
                             const Vector& signs,
-                            const array_1d<double,4> distances
+                            const array_1d<double,4> distances,
+                            bool ComputeLHSMatrix
                            )
     {
         const double Dim = 3;
@@ -783,8 +778,10 @@ public:
         BoundedMatrix<double,4,4> inverse_diag;
         MathUtils<double>::InvertMatrix(Kee_tot, inverse_diag,det);
 
-        const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
-        noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
+        if (ComputeLHSMatrix) {
+            const BoundedMatrix<double,4,16> tmp = prod(inverse_diag,Htot);
+            noalias(rLeftHandSideMatrix) -= prod(Vtot,tmp);
+        }
 
         const array_1d<double,4> tmp2 = prod(inverse_diag,Renr);
         noalias(rRightHandSideVector) -= prod(Vtot,tmp2);
@@ -834,7 +831,7 @@ private:
 
 ///@name Private Operations
 ///@{
-    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  ProcessInfo& rCurrentProcessInfo)
+    virtual void ComputeConstitutiveResponse_AIR(element_data<4,3>& data, const double rho, const double nu,  const ProcessInfo& rCurrentProcessInfo)
     {
         const unsigned int strain_size = 6;
 
@@ -898,7 +895,7 @@ private:
         strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
         return strain;
     }
-    
+
 
 ///@}
 ///@name Private  Access

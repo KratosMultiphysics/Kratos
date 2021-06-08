@@ -216,6 +216,8 @@ public:
 
     void SetNumberOfColors(SizeType NewNumberOfColors);
 
+    void AddColors(SizeType NumberOfAddedColors);
+
     NeighbourIndicesContainerType& NeighbourIndices();
 
     NeighbourIndicesContainerType const& NeighbourIndices() const;
@@ -323,6 +325,8 @@ public:
 
     virtual bool SynchronizeVariable(Variable<Matrix> const& rThisVariable);
 
+    virtual bool SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable);
+
     virtual bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable);
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable);
@@ -340,6 +344,8 @@ public:
     virtual bool SynchronizeNonHistoricalVariable(Variable<Vector> const& rThisVariable);
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable);
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable);
 
     /// Synchronize variable in nodal solution step data to the minimum value across all processes.
     /** @param ThisVariable The variable to be synchronized.
@@ -566,5 +572,3 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 } // namespace Kratos.
 
 #endif // KRATOS_COMMUNICATOR_H_INCLUDED  defined
-
-

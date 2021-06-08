@@ -21,7 +21,6 @@
 			"materials_filename"      : "dem_fem_cable_net/cableNetFEMStructuralMaterials.json"
 		},
 		"rotation_dofs"            : false,
-		"use_computing_model_part" : false,
 		"model_part_name" : "Structure",
 		"domain_size"     : 3,
 		"time_stepping":{

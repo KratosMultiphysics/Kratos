@@ -1,5 +1,3 @@
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 import os
 
 # Import Kratos core and apps
@@ -8,8 +6,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
 import KratosMultiphysics.kratos_utilities as kratos_utils
-
-has_eigensolvers_application = kratos_utils.CheckIfApplicationsAvailable("EigenSolversApplication")
 
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -49,6 +45,7 @@ class StructuralResponseFunctionTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(_get_test_working_dir(), __file__):
             self.response_function.Finalize()
 
+            # TODO this should not be written by default!
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".post.bin")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".time")
             kratos_utils.DeleteFileIfExisting(self.problem_name + ".h5")
@@ -144,7 +141,7 @@ class TestStrainEnergyResponseFunction(StructuralResponseFunctionTestFactory):
         self.assertAlmostEqual(self.gradient[4][1], 0.17745756668175833)
         self.assertAlmostEqual(self.gradient[4][2], -1.5466170818541692e-05)
 
-@KratosUnittest.skipUnless(has_eigensolvers_application,"Missing required application: EigenSolversApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
 class TestEigenfrequencyResponseFunction(StructuralResponseFunctionTestFactory):
     file_name = "eigenfrequency_response"
 

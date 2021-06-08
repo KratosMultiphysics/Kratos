@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -23,7 +22,6 @@ class variable_plotter:
                     file_writer.write("ANGULAR_VELOCITY_X  ANGULAR_VELOCITY_Y  ANGULAR_VELOCITY_Z  ")
                     file_writer.write("PARTICLE_MOMENT_X  PARTICLE_MOMENT_Y  PARTICLE_MOMENT_Z\n")
                     self.files.append(file_writer)
-                    #print("The Id " + str(id) + " was found in the model part")
                     break
 
         if len(self.list_of_nodes) != len(list_of_nodes_ids):

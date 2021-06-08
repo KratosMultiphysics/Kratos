@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -47,6 +46,9 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "interval"                    : [0.0,"End"],
             "variable_name"               : "DISPLACEMENT",
             "zero_tolerance_factor"       : 1.0,
+            "integration_order"           : 2,
+            "consider_tessellation"       : false,
+            "normal_check_proportion"     : 0.1,
             "search_parameters" : {
                 "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
@@ -64,9 +66,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
-            },
-            "integration_order"           : 2,
-            "consider_tessellation"       : false
+            }
         }
         """)
 
@@ -85,10 +85,11 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
         base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
+        base_process_settings.AddValue("normal_check_proportion", self.mesh_tying_settings["normal_check_proportion"])
         base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
         # Construct the base process.
-        super(MeshTyingProcess, self).__init__(Model, base_process_settings)
+        super().__init__(Model, base_process_settings)
 
         # Mesh tying configurations
         # Determine if the variable is components or scalar
@@ -112,7 +113,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -121,7 +122,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -130,7 +131,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -139,7 +140,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -148,7 +149,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -157,7 +158,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -166,7 +167,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(MeshTyingProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _get_condition_name(self):
         """ This method returns the condition name
@@ -186,12 +187,12 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         key -- The key to identify the current pair
         """
         # Determine the geometry of the element
-        super(MeshTyingProcess, self)._get_final_string(key)
+        super()._get_final_string(key)
         number_nodes, number_nodes_master = self._compute_number_nodes_elements()
         geometry_element = self.__type_element(number_nodes)
         geometry_element_master = self.__type_element(number_nodes_master)
         # We compute the number of nodes of the conditions
-        number_nodes, number_nodes_master = super(MeshTyingProcess, self)._compute_number_nodes()
+        number_nodes, number_nodes_master = super()._compute_number_nodes()
         if number_nodes != number_nodes_master:
             return geometry_element + str(number_nodes_master) + "N" + geometry_element_master
         else:
@@ -205,7 +206,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         """
 
         # We call to the base process
-        super(MeshTyingProcess, self)._initialize_search_conditions()
+        super()._initialize_search_conditions()
 
         # Setting tying variable
         for prop in self._get_process_model_part().GetProperties():

@@ -19,7 +19,7 @@
 
 
 // Project includes
-#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger_table_output.h"
 
 namespace Kratos
@@ -30,7 +30,7 @@ namespace Kratos
       column_name.erase(column_name.find_last_not_of(" ") + 1);
     }
 
-    const DataCommunicator& r_communicator = DataCommunicator::GetDefault();
+    const DataCommunicator& r_communicator = ParallelEnvironment::GetDefaultDataCommunicator();
     if (r_communicator.Rank() == 0) {
       WriteHeader();
     }

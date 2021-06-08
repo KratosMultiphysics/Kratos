@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -58,7 +57,8 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
-            "consider_tessellation"          : false,
+            "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {
@@ -114,7 +114,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # Construct the base process.
-        super(PenaltyContactProcess, self).__init__(Model, self.contact_settings)
+        super().__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -124,7 +124,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteInitialize()
+        super().ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
@@ -133,7 +133,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteBeforeSolutionLoop()
+        super().ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -143,7 +143,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteInitializeSolutionStep()
+        super().ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -152,7 +152,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self -- It signifies an instance of a class.
         """
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteFinalizeSolutionStep()
+        super().ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -162,7 +162,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteBeforeOutputStep()
+        super().ExecuteBeforeOutputStep()
 
     def ExecuteAfterOutputStep(self):
         """ This method is executed right after the ouput process computation
@@ -172,7 +172,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteAfterOutputStep()
+        super().ExecuteAfterOutputStep()
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
@@ -182,7 +182,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process
-        super(PenaltyContactProcess, self).ExecuteFinalize()
+        super().ExecuteFinalize()
 
     def _get_condition_name(self):
         """ This method returns the condition name
@@ -225,7 +225,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         """
 
         # We call to the base process (in fact not, to avoid writing twice the values)
-        #super(PenaltyContactProcess, self)._initialize_problem_parameters()
+        #super()._initialize_problem_parameters()
 
         # We call the process info
         process_info = self.main_model_part.ProcessInfo

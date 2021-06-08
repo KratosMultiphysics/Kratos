@@ -47,10 +47,6 @@ HypoelasticTemperatureDependent2DLaw::~HypoelasticTemperatureDependent2DLaw() {}
 int HypoelasticTemperatureDependent2DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
                             const ProcessInfo& rCurrentProcessInfo) {
 
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
         << "Incorrect or missing YOUNG_MODULUS provided in process info for HypoelasticTemperatureDependent2DLaw: "
         << rMaterialProperties[YOUNG_MODULUS] << std::endl;

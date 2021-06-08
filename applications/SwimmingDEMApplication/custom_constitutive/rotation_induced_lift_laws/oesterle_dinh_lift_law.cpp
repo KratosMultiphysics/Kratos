@@ -44,7 +44,7 @@ namespace Kratos {
                                                                                 particle_radius,
                                                                                 fluid_kinematic_viscosity);
 
-        if (reynolds_number == 0.0 || rot_reynolds == 0.0){
+        if (std::abs(reynolds_number) < std::numeric_limits<double>::epsilon() || std::abs(rot_reynolds) < std::numeric_limits<double>::epsilon()){
             return;
         }
 

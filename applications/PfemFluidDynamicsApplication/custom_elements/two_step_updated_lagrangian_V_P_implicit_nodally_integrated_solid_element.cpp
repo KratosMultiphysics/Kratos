@@ -68,7 +68,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize()
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -106,7 +106,7 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::UpdateCauchyStress(unsigned int g,
-                                                                                                 ProcessInfo &rCurrentProcessInfo)
+                                                                                                 const ProcessInfo &rCurrentProcessInfo)
   {
     // double theta = this->GetThetaContinuity();
     double theta = 1.0;
@@ -135,7 +135,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
     const GeometryType &rGeom = this->GetGeometry();
@@ -151,7 +151,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
+  int TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo) const
   {
     KRATOS_TRY;
 
@@ -243,10 +243,9 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(
-      MatrixType &rLeftHandSideMatrix,
-      VectorType &rRightHandSideVector,
-      ProcessInfo &rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<TDim>::CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
+                                                                                                              VectorType &rRightHandSideVector,
+                                                                                                              const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -286,7 +285,7 @@ namespace Kratos
     double VolumetricCoeff = 0;
 
     // Loop on integration points
-    for (unsigned int g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < NumGauss; ++g)
     {
       const double GaussWeight = GaussWeights[g];
       totalVolume += GaussWeight;
@@ -323,7 +322,6 @@ namespace Kratos
 
     KRATOS_CATCH("");
   }
-
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2>::CalcElasticPlasticCauchySplitted(
@@ -378,6 +376,8 @@ namespace Kratos
     rElementalVariables.UpdatedTotalCauchyStress[2] =
         2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[2] + rElementalVariables.CurrentTotalCauchyStress[2];
 
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
+
     this->mUpdatedTotalCauchyStress[g] = rElementalVariables.UpdatedTotalCauchyStress;
     this->mUpdatedDeviatoricCauchyStress[g] = rElementalVariables.UpdatedDeviatoricCauchyStress;
   }
@@ -428,6 +428,8 @@ namespace Kratos
     rElementalVariables.UpdatedDeviatoricCauchyStress[3] = rElementalVariables.CurrentDeviatoricCauchyStress[3];
     rElementalVariables.UpdatedDeviatoricCauchyStress[4] = rElementalVariables.CurrentDeviatoricCauchyStress[4];
     rElementalVariables.UpdatedDeviatoricCauchyStress[5] = rElementalVariables.CurrentDeviatoricCauchyStress[5];
+
+    this->SetValue(CAUCHY_STRESS_VECTOR, rElementalVariables.UpdatedTotalCauchyStress);
 
     rElementalVariables.UpdatedTotalCauchyStress[0] = +current_first_lame * rElementalVariables.VolumetricDefRate +
                                                       2.0 * DeviatoricCoeff * rElementalVariables.SpatialDefRate[0] +
