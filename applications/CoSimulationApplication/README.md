@@ -101,7 +101,7 @@ The configuration of the coupled simulation is written in `json` format, same as
 
 The following sections are important:
 - _problem_data_: this setting contains global settings of the coupled problem.
-  ~~~json
+  ~~~js
   "start_time" : 0.0,
   "end_time" : 15.0,
   "echo_level" : 0, // verbosity, higher values mean more output
@@ -110,7 +110,7 @@ The following sections are important:
   ~~~
 
 - _solver_settings_: the settings of the coupled solver.
-  ~~~json
+  ~~~js
   "type" : "coupled_solvers.gauss_seidel_weak", // type of the coupled solver, see python_scripts/coupled_solvers
   "predictors" : [], // list of predictors
   "num_coupling_iterations" : 10, // max number of coupling iterations, only available for strongly coupled solvers
@@ -126,7 +126,7 @@ See the next section for a basic example with more explanations.
 
 This example is the Wall FSI benchmark which coupled Kratos solvers:
 
-~~~json
+~~~js
 {
     "problem_data" :
     {
