@@ -130,6 +130,7 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     // Get unknown variable from convection diffusion settings
     auto& r_conv_diff_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
     const auto& r_unknown_var = r_conv_diff_settings.GetUnknownVariable();
+    const auto& r_flux_var = r_conv_diff_settings.GetSurfaceSourceVariable();
     const auto& r_diffusivity_var = r_conv_diff_settings.GetDiffusionVariable();
 
     // Check (and resize) LHS and RHS matrix
@@ -146,47 +147,79 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(n_nodes);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(n_nodes,n_nodes);
 
-    // Get BC imposition data
-    const double h = GetValue(ELEMENT_H);
-    const double& r_bc_val = GetValue(r_unknown_var);
-    const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
-
     // Get meshless geometry data
     const double w = GetValue(INTEGRATION_WEIGHT);
     //FIXME: Find variables for these
     const auto& r_N = GetValue(BDF_COEFFICIENTS);
     const auto& r_DN_DX = GetValue(LOCAL_AXES_MATRIX);
-    const array_1d<double,3>& r_normal = GetValue(NORMAL);
+    array_1d<double,3>& r_normal = GetValue(NORMAL);
+    r_normal /= norm_2(r_normal);
 
-    // Interpolate conductivity
+    // Interpolate conductivity and get unknown values
     double k = 0.0;
+    Vector unknown_values(n_nodes);
     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        k = r_N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(r_diffusivity_var);
+        k += r_N[i_node] * r_geometry[i_node].FastGetSolutionStepValue(r_diffusivity_var);
+        unknown_values(i_node) = r_geometry[i_node].FastGetSolutionStepValue(r_unknown_var);
     }
 
+    // Check user-defined BCs
+    const bool is_neumann = Has(r_flux_var);
+    const bool is_dirichlet = Has(r_unknown_var);
+    KRATOS_ERROR_IF(is_dirichlet && is_neumann) << "Inconsistent BCs. Condition " << Id() << " has both unknown and flux values to be imposed." << std::endl;
+
     // Calculate boundary integration point contribution
-    double aux_1;
-    double aux_stab;
-    const double aux_weight = w * gamma / h;
-    const double aux_weight_stab = w * k;
-    DenseVector<double> i_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        aux_1 = aux_weight * r_N(i_node);
-        i_node_grad = row(r_DN_DX, i_node);
-        aux_stab = 0.0;
-        for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
-            aux_stab += i_node_grad(d) * r_normal(d);
+    if (is_dirichlet) {
+        // Get Dirichlet BC imposition data
+        const double h = GetValue(ELEMENT_H);
+        const double& r_bc_val = GetValue(r_unknown_var);
+        const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
+
+        // Calculate the Nitsche BC imposition contribution
+        double aux_1;
+        double aux_stab;
+        const double aux_weight = w * gamma / h;
+        const double aux_weight_stab = w * k;
+        DenseVector<double> i_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            aux_1 = aux_weight * r_N(i_node);
+            i_node_grad = row(r_DN_DX, i_node);
+            aux_stab = 0.0;
+            for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
+                aux_stab += i_node_grad(d) * r_normal(d);
+            }
+            aux_stab *= aux_weight_stab;
+            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+                rLeftHandSideMatrix(i_node, j_node) += (aux_1 - aux_stab) * r_N[j_node];
+                rRightHandSideVector(i_node) -= (aux_1 - aux_stab) * r_N[j_node] * unknown_values(j_node);
+            }
+            rRightHandSideVector(i_node) += aux_1 * r_bc_val;
+            rRightHandSideVector(i_node) -= aux_stab * r_bc_val;
         }
-        aux_stab *= aux_weight_stab;
-        for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
-            const double& r_val = r_geometry[j_node].FastGetSolutionStepValue(r_unknown_var);
-            rLeftHandSideMatrix(i_node, j_node) += aux_1 * r_N[j_node];
-            rRightHandSideVector(i_node) -= aux_1 * r_N[j_node] * r_val;
-            rLeftHandSideMatrix(i_node, j_node) -= aux_stab * r_N(j_node);
-            rRightHandSideVector(i_node) += aux_stab * r_N(j_node) * r_val;
+    } else if (is_neumann) {
+        // Get Neumann BC imposition data
+        const double& r_bc_flux_val = GetValue(r_flux_var);
+
+        // Add the external flux contribution
+        double aux_1;
+        double aux_2;
+        DenseVector<double> j_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+            aux_1 = w * r_N[i_node];
+            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+                aux_2 = 0.0;
+                j_node_grad = row(r_DN_DX, j_node);
+                for (std::size_t d = 0; d < j_node_grad.size(); ++d) {
+                    aux_2 += j_node_grad(d) * r_normal(d);
+                }
+                aux_2 *= k;
+                rLeftHandSideMatrix(i_node, j_node) += aux_1 * aux_2;
+                rRightHandSideVector(i_node) -= aux_1 * aux_2 * unknown_values(j_node);
+            }
+            rRightHandSideVector(i_node) += aux_1 * r_bc_flux_val;
         }
-        rRightHandSideVector(i_node) += aux_1 * r_bc_val;
-        rRightHandSideVector(i_node) -= aux_stab * r_bc_val;
+    } else {
+        KRATOS_ERROR << "No BCs are specified in condition " << Id() << "." << std::endl;
     }
 
     KRATOS_CATCH("")

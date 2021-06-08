@@ -186,7 +186,8 @@ public:
 
                     // Store the SBM BC data in the condition database
                     p_cond->SetValue(ELEMENT_H, h);
-                    p_cond->SetValue(NORMAL, pos_int_n[i_g]);
+                    const double n_norm = norm_2(pos_int_n[i_g]);
+                    p_cond->SetValue(NORMAL, pos_int_n[i_g] / n_norm);
                     p_cond->SetValue(INTEGRATION_WEIGHT, pos_int_w[i_g]);
                     p_cond->SetValue(INTEGRATION_COORDINATES, i_g_coords);
 
@@ -442,7 +443,7 @@ private:
         NodesCloudSetType aux_set;
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
             auto p_node = r_split_geom(i_node);
-            if (p_node->Is(INTERFACE)) {
+            if (p_node->Is(BOUNDARY)) {
                 // Add current positive node to map
                 aux_set.insert(p_node);
 
@@ -451,7 +452,7 @@ private:
                 const std::size_t n_neigh = r_pos_node_neigh.size();
                 for (std::size_t i_neigh = 0; i_neigh < n_neigh; ++i_neigh) {
                     auto& r_neigh = r_pos_node_neigh[i_neigh];
-                    if (r_neigh.Is(INTERFACE)) {
+                    if (r_neigh.Is(ACTIVE)) {
                         NodeType::Pointer p_neigh = &r_neigh;
                         aux_set.insert(p_neigh);
                     }
