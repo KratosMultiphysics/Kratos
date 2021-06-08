@@ -17,21 +17,15 @@
     "monteCarloIndexInputDictionary": {
         "costEstimator": "xmc.momentEstimator.MomentEstimator",
         "costEstimatorInputDictionary": {
-            "indexSetDimension": 0,
-            "order": 1,
-            "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
-            "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-            "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
+            "indexSetDimension": 0, "order": 1, "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0", "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
         },
         "indexValue": null,
-        "qoiEstimator": ["xmc.momentEstimator.MomentEstimator"],
-        "qoiEstimatorInputDictionary": [{
-            "indexSetDimension": 0,
-            "order": 1,
-            "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0",
-            "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper",
-            "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"
-        }],
+        "qoiEstimator": [
+            "xmc.momentEstimator.MomentEstimator"
+        ],
+        "qoiEstimatorInputDictionary": [
+            {"indexSetDimension": 0, "order": 1, "updatedPowerSums":"xmc.methodDefs_momentEstimator.updatePowerSums.updatePowerSumsOrder2Dimension0", "centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "centralMomentErrorComputer":"xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"}
+        ],
         "sampler": "xmc.sampleGenerator.SampleGenerator",
         "eventGroupSize": 5
     },
@@ -46,11 +40,10 @@
         "initialNumberBatches": 3
     },
     "randomGeneratorInputDictionary": {
-        "parameters": [0.25,1e-4],
-        "generator": "xmc.methodDefs_randomGeneratorWrapper.generator.returnStandardNormal"
+        "events": [[0.23],[0.24],[0.25],[0.26],[0.27],[0.21],[0.23],[0.25],[0.27],[0.29],[0.23],[0.24],[0.25],[0.26],[0.27]]
     },
     "samplerInputDictionary": {
-        "randomGenerator": "xmc.randomGeneratorWrapper.RandomGeneratorWrapper",
+        "randomGenerator": "xmc.randomGeneratorWrapper.EventDatabase",
         "solverWrapper": "xmc.classDefs_solverWrapper.KratosSolverWrapper.KratosSolverWrapper",
         "solverWrapperIndices": null
     },
@@ -64,8 +57,9 @@
         "numberContributionsPerInstance": 1,
         "parameters": null,
         "printToFile": false,
-        "projectParametersPath": ["poisson_square_2d/problem_settings/parameters_finer.json"],
-        "refinementStrategy": "reading_from_file",
+        "projectParametersPath": "poisson_square_2d/problem_settings/parameters_finer.json",
+        "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
+        "refinementStrategy": "stochastic_adaptive_refinement",
         "outputBatchSize" : 1,
         "taskAllAtOnce": true
     },
