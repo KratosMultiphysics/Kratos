@@ -107,6 +107,17 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
         self.rigid_face_model_part.CreateNewCondition(condition_name, 7, [5, 6, 3], self.rigid_face_model_part.GetProperties()[0])
         self.rigid_face_model_part.CreateNewCondition(condition_name, 8, [3, 6, 4], self.rigid_face_model_part.GetProperties()[0])
 
+        self.rigid_face_model_part.CreateSubModelPart('RigidFacePart')
+        self.rigid_face_submpart = self.rigid_face_model_part.GetSubModelPart('RigidFacePart')
+        rigid_face_part_nodes_id = [node.Id for node in self.rigid_face_model_part.Nodes]
+        self.rigid_face_submpart.AddNodes(rigid_face_part_nodes_id)
+        rigid_face_part_elements_id = [elem.Id for elem in self.rigid_face_model_part.Elements]
+        self.rigid_face_submpart.AddElements(rigid_face_part_elements_id)
+        rigid_face_part_conditions_id = [cond.Id for cond in self.rigid_face_model_part.Conditions]
+        self.rigid_face_submpart.AddConditions(rigid_face_part_conditions_id)
+
+        self.rigid_face_submpart.SetValue(DEM.COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT, True)
+
 class DEM3D_TaylorTestSolution(DEM3D_ForwardEulerTestSolution):
 
     def CheckValues(self, x_vel, dem_pressure):
