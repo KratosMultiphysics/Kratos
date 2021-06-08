@@ -6,9 +6,14 @@ The CoSimulation Application contains the core developments in coupling black-bo
 
 - [List of features](#list-of-features)
 - [Dependencies](#dependencies)
-- [Structure of the Application](#structure-of-the-application)
 - [Examples](#examples)
-- [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
+- [User Guide](#user-guide)
+  - [Running a coupled simulation](#running-a-coupled-simulation)
+  - [Setting up a coupled simulation](#setting-up-a-coupled-simulation)
+  - [The json configuration file](#the-json-configuration-file)
+- [Developer Guide](#developer-guide)
+  - [Structure of the Application](#structure-of-the-application)
+  - [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
 - [References](#references)
 
 ## List of features
@@ -16,7 +21,7 @@ The CoSimulation Application contains the core developments in coupling black-bo
 - Various features available for CoSimulation:
   - [Coupling Algorithms](python_scripts/coupled_solvers)
   - [Wrappers for various solvers and other software-tools](python_scripts/solver_wrappers)
-  - [Data Transfer Operators (inlcuding Mapping)](python_scripts/data_transfer_operators)
+  - [Data Transfer Operators (including Mapping)](python_scripts/data_transfer_operators)
   - [Convergence Accelerators](python_scripts/convergence_accelerators)
   - [Convergence Criteria](python_scripts/convergence_criteria)
   - [Predictors](python_scripts/predictors)
@@ -38,7 +43,25 @@ For running coupled simulations the solvers to be used have to be available. Tho
 The [MappingApplication](../MappingApplication) is required when mapping is used.
 
 
-## Structure of the Application
+## Examples
+
+This section is currently under construction.
+Please refer to the [tests](tests) for examples of how the coupling can be configured.
+Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests are very suitable for getting a basic understanding.
+
+
+## User Guide
+
+### Running a coupled simulation
+### Setting up a coupled simulation
+### The json configuration file
+
+
+## Developer Guide
+
+
+
+### Structure of the Application
 
 The _CoSimulationApplication_ consists of the following main components (taken from [1]):
 - **SolverWrapper**: Baseclass and CoSimulationApplication-interface for all solvers/codes participating in the coupled simulation, each solver/code has its own specific version.
@@ -56,13 +79,8 @@ The following UML diagram shows the relation between these components:
   <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" style="width: 400px;"/>
 </p>
 
-## Examples
 
-This section is currently under construction.
-Please refer to the [tests](tests) for examples of how the coupling can be configured.
-Especially the [Mok-FSI](tests/fsi_mok) and the [Wall-FSI](tests/fsi_wall) tests are very suitable for getting a basic understanding.
-
-## How to couple a new solver / software-tool?
+### How to couple a new solver / software-tool?
 
 The CoSimulation Application is very modular and designed to be extended to coupling of more solvers / software-tools.This requires basically two components:
 
@@ -76,9 +94,14 @@ In principle three different options are possible for exchanging data with CoSim
 - Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with CoSimulation. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly.
 - Using a custom solution based on capabilities that are offered by the solver that is to be coupled.
 
-### Interface of SolverWrapper
+#### Interface of SolverWrapper
 
-The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) provides the following interface (adapted from [1]):
+The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers.
+
+
+
+
+provides the following interface (adapted from [1]):
 
 - **Initialize**:
 - **Finalize**:
@@ -90,7 +113,7 @@ The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper
 - **OutputSolutionStep**:
 
 
-### Remote controlled CoSimulation
+#### Remote controlled CoSimulation
 A unique feature of Kratos CoSimulation (in combination with the _CoSimIO_) is the remotely controlled CoSimulation.
 
 
