@@ -199,19 +199,12 @@ public:
 
         GlobalPointerCommunicator< Node<3 > > pointer_comm(r_data_comm, gp_list);
 
-        auto coordinate_proxy = pointer_comm.Apply(
-            [](GlobalPointer<Node<3> >& global_pointer) -> Point::CoordinatesArrayType
-            {
-                return global_pointer->Coordinates();
-            }
-        );
-
-        auto distance_proxy = pointer_comm.Apply(
-            [&](GlobalPointer<Node<3> >& global_pointer) -> double
-            {
-                return global_pointer->GetValue(DISTANCE);
-            }
-        );
+        auto combined_proxy = pointer_comm.Apply(
+            [&](GlobalPointer<Node<3>> &global_pointer) -> std::pair<double, array_1d<double,3>> {
+                return std::make_pair(
+                    global_pointer->GetValue(DISTANCE),
+                    global_pointer->Coordinates());
+            });
 
         auto contact_proxy = pointer_comm.Apply(
             [&](GlobalPointer<Node<3> >& global_pointer) -> bool
@@ -238,7 +231,9 @@ public:
 
                 if (contact_proxy.Get(global_pointer) == rNode.Is(CONTACT)){
 
-                    const auto x_j = coordinate_proxy.Get(global_pointer);
+                    auto result = combined_proxy.Get(global_pointer);
+                    const auto x_j = std::get<1>(result);
+
                     dx = x_i - x_j;
 
                     const double distance_ij = norm_2(dx);
@@ -250,7 +245,8 @@ public:
 
                     if (distance_ij > 1.0e-12){
                         weight += 1.0/distance_ij;
-                        dist_diff_avg += distance_proxy.Get(global_pointer)/distance_ij;
+                        const double distance_j = std::get<0>(result);
+                        dist_diff_avg += distance_j/distance_ij;
                     }
                 }
             }
