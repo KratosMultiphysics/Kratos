@@ -82,8 +82,10 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
 
         print("Construction of NavierStokesBiphaseCompressibleExplicitSolver finished.")
 
-    def AddVariables(self):     ## Che cosa fa questa funzione? Devono esistere da qualche parte le variabili che aggiungo?
+    def AddVariables(self):     
         
+        print("Adding multiphase compressible fluid solver variables")
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RK4)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.MOMENTUM_RHS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DENSITY_RHS)
@@ -135,7 +137,7 @@ class NavierStokesBiphaseCompressibleExplicitSolver(NavierStokesCompressibleSolv
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.EXTRA_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.GAS_PRESSURE)
         
-        print("Monolithic compressible fluid solver variables added correctly")
+        print("Biphase compressible fluid solver variables added correctly")
 
     def AddDofs(self):
         

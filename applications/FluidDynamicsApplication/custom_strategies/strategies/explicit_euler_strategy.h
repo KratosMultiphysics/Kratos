@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Miguel Maso Sotomayor
+//  Main authors:    Miguel Maso Sotomayor (adapted by Andrea Montanino)
 //
 
 #ifndef KRATOS_EXPLICIT_EULER_STRATEGY_H_INCLUDED
