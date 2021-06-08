@@ -34,6 +34,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "CompressibleBiphaseExplicit"):
             solver_module_name = "navier_stokes_biphase_compressible_explicit_solver"
+        
+        elif (solver_type == "CompressibleBiphaseExplicitNew"):
+            solver_module_name = "ns_biphase_compressible_explicit_solver"
 
         elif (solver_type == "CompressibleBiphaseExplicitDG"):
             solver_module_name = "navier_stokes_biphase_dg_compressible_explicit_solver"
