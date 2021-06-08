@@ -47,7 +47,7 @@ The [MappingApplication](../MappingApplication) is required when mapping is used
 The following UML diagram shows the relation between the components in the _CoSimulationApplication_:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" alt="Solution" style="width: 600px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/CoSimulation_uml.png" alt="Solution" style="width: 400px;"/>
 </p>
 
 ## Examples
