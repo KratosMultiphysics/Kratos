@@ -79,6 +79,14 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
 /***********************************************************************************/
 /***********************************************************************************/
 
+void FindIntersectedGeometricalObjectsProcess::Initialize()
+{
+    GenerateOctree();
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 {
     auto& r_elements_array = mrModelPartIntersected.ElementsArray();
