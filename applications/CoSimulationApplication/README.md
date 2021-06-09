@@ -329,11 +329,48 @@ CoSimIO::Register(SolveSolution)
 CoSimIO::Register(ExportData)
 # ...
 
-# After all teh functions are registered, the Run method is called
+# After all the functions are registered and the solver is fully initialized for CoSimulation, the Run method is called
 CoSimIO::Run() # this function runs the coupled simulation. It returns only after finishing
 ~~~
 
-The _SolverWrapper_ for this approach sends a small control signal in each of its functions to the external solver to tell it what to do. (The example for this is under construction).
+The _SolverWrapper_ for this approach sends a small control signal in each of its functions to the external solver to tell it what to do. This could be implemented as the following:
+
+~~~py
+class RemoteControlSolverWrapper(CoSimulationSolverWrapper):
+
+    def InitializeSolutionStep(self):
+        data_config = {
+            "type"           : "control_signal",
+            "control_signal" : "InitializeSolutionStep"
+        }
+        self.ExportData(data_config)
+
+    def SolveSolutionStep(self):
+
+        data_config = {
+            "type"           : "control_signal",
+            "control_signal" : "InitializeSolutionStep"
+        }
+        self.ExportData(data_config)
+
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
+        super().SolveSolutionStep()
+
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
+
+
+~~~
 
 A [simple example example can be found in the _CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO/blob/master/tests/integration_tutorials/cpp/run.cpp).
 
