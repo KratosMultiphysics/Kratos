@@ -30,38 +30,35 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         # Perform substepping
         pseudo_substepping_time = 0
         if self.DEM_Solution.spheres_model_part.NumberOfElements() > 0:
-            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution.solver.dt))
+            self.FEM_Solution.KratosPrintInfo("Performing DEM Substepping... Explicit time step: " + str(self.DEM_Solution._GetSolver().dt))
             self.FEM_Solution.KratosPrintInfo("")
             while pseudo_substepping_time <= self.FEM_Solution.delta_time:
                 ### Begin Substepping
-                
+
                 self.BeforeSolveDEMOperations()
                 FEMDEM_utilities.InterpolateStructuralSolution(self.FEM_Solution.main_model_part,
                                                                self.FEM_Solution.delta_time,
                                                                self.FEM_Solution.time,
-                                                               self.DEM_Solution.solver.dt,
+                                                               self.DEM_Solution._GetSolver().dt,
                                                                self.DEM_Solution.time)
                 self.UpdateDEMVariables()
 
                 #### SOLVE DEM #########################################
-                self.DEM_Solution.solver.Solve()
+                self.DEM_Solution.SolverSolve()
                 ########################################################
 
-                FEMDEM_utilities.AddExplicitImpulses(self.FEM_Solution.main_model_part, self.DEM_Solution.solver.dt)
+                FEMDEM_utilities.AddExplicitImpulses(self.FEM_Solution.main_model_part, self.DEM_Solution._GetSolver().dt)
 
                 self.DEM_Solution.FinalizeSolutionStep()
-                self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+                # self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution._GetSolver().dt)
 
                 # We reset the position of the slave DEM
                 self.UpdateDEMVariables()
 
-                # DEM GiD print output
-                # self.PrintDEMResults()
-
                 # Advancing in DEM explicit scheme
-                pseudo_substepping_time += self.DEM_Solution.solver.dt
+                pseudo_substepping_time += self.DEM_Solution._GetSolver().dt
             ### End Substepping
-            
+
             # Reset the data base for the FEM
             FEMDEM_utilities.RestoreStructuralSolution(self.FEM_Solution.main_model_part)
 
@@ -83,7 +80,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         # Print required info
         self.PrintPlotsFiles()
-        
+
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -101,15 +98,16 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
 
         if not self.is_slave:
             self.PrintResults()
-            
+
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
 
 #============================================================================================================================
     def BeforeSolveDEMOperations(self):
-        self.DEM_Solution.time += self.DEM_Solution.solver.dt
+        self.DEM_Solution.time += self.DEM_Solution._GetSolver().dt
+        self.DEM_Solution._GetSolver().AdvanceInTime(self.DEM_Solution.time)
         self.DEM_Solution.step += 1
-        self.DEM_Solution.UpdateTimeInModelParts()
+        self.DEM_Solution._GetSolver().Predict()
 
 #============================================================================================================================
     def OnlyUpdateTimeAndStepInDEM(self):

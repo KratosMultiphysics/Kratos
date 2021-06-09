@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 import xmc.tools
 
@@ -11,7 +11,7 @@ def assembleValue(hierarchy, indexEstimations):
     return sum([est for estList in indexEstimations for est in estList])
 
 
-@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
 def assembleValue_Task(hierarchy, indexEstimations):
     """
     Same as assembleValue, but is a PYCOMPSS task
@@ -38,7 +38,7 @@ def assembleBias(hierarchy, indexEstimations):
     return abs(sum(bias_estimations))
 
 
-@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
 def assembleBias_Task(hierarchy, indexEstimations):
     """
     Same as assembleBias, but is a PyCOMPSs task
@@ -56,7 +56,7 @@ def assembleStatisticalError(hierarchy, indexEstimations):
     return assembleValue(hierarchy, indexEstimations)
 
 
-@ExaquteTask(returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=1, indexEstimations={Type: COLLECTION_IN, Depth: 2})
 def assembleStatisticalError_Task(hierarchy, indexEstimations):
     """
     Same as assembleStatisticalError but is a PYCOMPSS task

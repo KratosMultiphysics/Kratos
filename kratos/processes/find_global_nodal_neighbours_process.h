@@ -52,6 +52,12 @@ public:
     ///@{
 
     /// Default constructor.
+    FindGlobalNodalNeighboursProcess(
+        ModelPart& rModelPart)
+        : BaseType(rModelPart, NEIGHBOUR_NODES)
+    {
+    }
+
     /// avg_elems ------ expected number of neighbour elements per node.,
     /// avg_nodes ------ expected number of neighbour Nodes
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
@@ -61,14 +67,15 @@ public:
         const DataCommunicator& rDataCommunicator,
         ModelPart& rModelPart,
         unsigned int avg_nodes)
-        : BaseType(rDataCommunicator, rModelPart, NEIGHBOUR_NODES)
+        : FindGlobalNodalNeighboursProcess(rModelPart)
     {
     }
 
+    KRATOS_DEPRECATED_MESSAGE("Use of DataCommunicator is deprecated. Please use constructor without it.")
     FindGlobalNodalNeighboursProcess(
         const DataCommunicator& rDataCommunicator,
         ModelPart& rModelPart)
-        : BaseType(rDataCommunicator, rModelPart, NEIGHBOUR_NODES)
+        : FindGlobalNodalNeighboursProcess(rModelPart)
     {
     }
 

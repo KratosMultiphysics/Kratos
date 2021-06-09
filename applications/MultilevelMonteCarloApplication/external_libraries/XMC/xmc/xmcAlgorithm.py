@@ -4,7 +4,9 @@ import pathlib as pl
 # XMC imports
 from xmc.tools import dynamicImport, splitOneListIntoTwo
 from xmc.methodDefs_xmcAlgorithm import checkInitialisation, updateTolerance
-from xmc.distributedEnvironmentFramework import get_value_from_remote
+
+# Import ExaQUte API
+from exaqute import get_value_from_remote
 
 
 class XMCAlgorithm:
@@ -110,7 +112,8 @@ class XMCAlgorithm:
         # Random variables of interest
         # Indexwise estimations
         input_dict["estimations"] = [
-            self.indexEstimation(c[0], c[1]) for c in self.estimatorsForHierarchy
+            get_value_from_remote(self.indexEstimation(c[0], c[1]))
+            for c in self.estimatorsForHierarchy
         ]
         # Predictors
         if self.predictorsForHierarchy:
@@ -120,7 +123,8 @@ class XMCAlgorithm:
                 input_dict["models"].append(self.predictor(coord)._valueForParameters)
                 # TODO This should get self.predictor(coord).oldParameters
                 # and default to self.predictor(coord).parameters if they are None
-                input_dict["parametersForModel"].append(self.predictor(coord).parameters)
+                params = get_value_from_remote(self.predictor(coord).parameters)
+                input_dict["parametersForModel"].append(params)
 
         # Sample cost
         # Indexwise estimation
@@ -134,7 +138,9 @@ class XMCAlgorithm:
             input_dict["costModel"] = self.costPredictor()._valueForParameters
             # TODO This should get self.costPredictor().oldParameters
             # and default to self.costPredictor().parameters if they are None
-            input_dict["costParameters"] = self.costPredictor().parameters
+            input_dict["costParameters"] = get_value_from_remote(
+                self.costPredictor().parameters
+            )
 
         # Error parameters
         # TODO - Triple dereference below!! Add method to get errorEstimator parameters

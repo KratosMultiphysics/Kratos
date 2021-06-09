@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {

@@ -40,6 +40,10 @@ namespace Kratos
     // factor for pore pressure calculations: 1: mechanical sign convention, -1: soil mechanics sign convention
     constexpr double PORE_PRESSURE_SIGN_FACTOR = 1.0;
 
+    // Static definition of the size of stress tensor (n x n)
+    constexpr SizeType STRESS_TENSOR_SIZE_2D = 3;
+    constexpr SizeType STRESS_TENSOR_SIZE_3D = 3;
+
     // Static definition of the VoigtSize
     constexpr SizeType VOIGT_SIZE_3D = 6;
     constexpr SizeType VOIGT_SIZE_2D_PLANE_STRESS = 3;
@@ -84,4 +88,4 @@ namespace Kratos
 
 }
 
-#endif	/* KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED */
+#endif  /* KRATOS_GEO_MECHANICS_APPLICATION_CONSTANTS_H_INCLUDED */

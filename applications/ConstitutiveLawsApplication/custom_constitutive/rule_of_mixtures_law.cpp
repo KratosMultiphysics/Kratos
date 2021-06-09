@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
@@ -19,7 +21,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/rule_of_mixtures_law.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 
 namespace Kratos
@@ -910,86 +912,6 @@ void ParallelRuleOfMixturesLaw<TDim>::InitializeMaterial(
     }
 
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "ParallelRuleOfMixturesLaw: No CL defined" << std::endl;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void ParallelRuleOfMixturesLaw<TDim>::InitializeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We perform the InitializeSolutionStep in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->InitializeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void ParallelRuleOfMixturesLaw<TDim>::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We perform the FinalizeSolutionStep in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->FinalizeSolutionStep(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void ParallelRuleOfMixturesLaw<TDim>::InitializeNonLinearIteration(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We perform the InitializeNonLinearIteration in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->InitializeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>
-void ParallelRuleOfMixturesLaw<TDim>::FinalizeNonLinearIteration(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // We perform the FinalizeNonLinearIteration in each layer
-    for (IndexType i_layer = 0; i_layer < mConstitutiveLaws.size(); ++i_layer) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i_layer);
-        ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-
-        p_law->FinalizeNonLinearIteration(r_prop, rElementGeometry, rShapeFunctionsValues, rCurrentProcessInfo);
-    }
 }
 
 /***********************************************************************************/
