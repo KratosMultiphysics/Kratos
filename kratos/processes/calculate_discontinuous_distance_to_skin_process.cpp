@@ -622,7 +622,7 @@ namespace Kratos
     {
         // Get the background mesh model part
         auto &r_model_part = mFindIntersectedObjectsProcess.GetModelPart1();
-        KRATOS_ERROR_IF(r_model_part.NumberOfNodes() == 0)
+        KRATOS_ERROR_IF(r_model_part.GetCommunicator().GlobalNumberOfNodes() == 0)
             << "Background mesh model part has no nodes." << std::endl;
 
         // Compute the domain characteristic length
@@ -631,8 +631,10 @@ namespace Kratos
         std::tie(max_x,max_y,max_z,min_x,min_y,min_z) = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node<3>& rNode){
             return std::make_tuple(rNode[0],rNode[1],rNode[2],rNode[0],rNode[1],rNode[2]);}
         );
+        auto max_vector = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(std::vector<double>{max_x, max_y, max_z});
+        auto min_vector = r_model_part.GetCommunicator().GetDataCommunicator().MinAll(std::vector<double>{min_x, min_y, min_z});
 
-        const double char_length = std::sqrt(std::pow(max_x - min_x, 2) + std::pow(max_y - min_y, 2) + std::pow(max_z - min_z, 2));
+        const double char_length = std::sqrt(std::pow(max_vector[0] - min_vector[0], 2) + std::pow(max_vector[1] - min_vector[1], 2) + std::pow(max_vector[2] - min_vector[2], 2));
         KRATOS_ERROR_IF(char_length < std::numeric_limits<double>::epsilon())
             << "Domain characteristic length is close to zero. Check if there is any node in the model part." << std::endl;
 
