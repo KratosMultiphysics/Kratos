@@ -204,7 +204,9 @@ void FindIntersectedGeometricalObjectsProcess::Execute()
 
 void FindIntersectedGeometricalObjectsProcess::ExecuteInitialize()
 {
-    GenerateOctree();
+    if (mrModelPartIntersected.NumberOfNodes() > 0) {
+        GenerateOctree();
+    }
 }
 
 /***********************************************************************************/
