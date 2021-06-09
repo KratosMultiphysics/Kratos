@@ -106,8 +106,8 @@ void WaveElement<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
     IndexType counter = 0;
     for (IndexType i = 0; i < TNumNodes; i++)
     {
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X, Step);
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(HEIGHT, Step);
     }
 }
@@ -131,7 +131,7 @@ void WaveElement<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_ERROR << "ShallowWater2D3: This method is not supported by the formulation" << std::endl;
+    KRATOS_ERROR << "WaveElement: This method is not supported by the formulation" << std::endl;
 }
 
 template<std::size_t TNumNodes>
