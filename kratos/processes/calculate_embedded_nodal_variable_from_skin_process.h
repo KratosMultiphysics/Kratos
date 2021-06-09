@@ -679,7 +679,7 @@ private:
     void CalculateIntersections()
     {
         mpFindIntersectedGeometricalObjectsProcess = Kratos::make_unique<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
-        mpFindIntersectedGeometricalObjectsProcess->ExecuteInitialize();
+        mpFindIntersectedGeometricalObjectsProcess->Initialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 

@@ -67,7 +67,7 @@ namespace Kratos
     void CalculateDiscontinuousDistanceToSkinProcess<TDim>::Initialize()
     {
         // Initialize the intersected objects process
-        mFindIntersectedObjectsProcess.ExecuteInitialize();
+        mFindIntersectedObjectsProcess.Initialize();
 
         // Initialize the elemental distances to the domain characteristic length
         const double initial_distance = this->CalculateCharacteristicLength();

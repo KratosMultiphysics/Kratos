@@ -65,7 +65,7 @@ namespace Kratos
 	void ApplyRayCastingProcess<TDim>::Execute()
 	{
         if(mIsSearchStructureAllocated) // we have not initialized it yet
-            mpFindIntersectedObjectsProcess->ExecuteInitialize();
+            mpFindIntersectedObjectsProcess->Initialize();
 
 		this->SetRayCastingTolerances();
 
