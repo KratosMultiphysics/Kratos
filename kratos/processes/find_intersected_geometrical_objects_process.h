@@ -402,12 +402,6 @@ public:
     ///@{
 
     /**
-     * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
-     * @todo This should be moved to ExecuteInitialize (base class of Process)
-     */
-    virtual void Initialize();
-
-    /**
      * @brief This method finds the intersected objects with the skin
      * @param rResults The vector containing the intersected objects with the skin
      */
