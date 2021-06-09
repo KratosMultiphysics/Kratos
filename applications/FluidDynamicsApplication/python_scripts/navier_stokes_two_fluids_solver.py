@@ -318,13 +318,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            sinAlpha = math.sin(TimeStep*DT/0.1*math.pi)
-            cosAlpha = math.cos(TimeStep*DT/0.1*math.pi)
-            gravity = 9.81
-            for node in self.main_model_part.Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, gravity*sinAlpha)
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0.0)
-                node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
+            tilting_angle = TimeStep*DT/0.1*math.pi
+            if tilting_angle < 0.5*math.pi:
+                sinAlpha = math.sin(tilting_angle)
+                cosAlpha = math.cos(tilting_angle)
+                gravity = 9.81
+                for node in self.main_model_part.Nodes:
+                    node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, gravity*sinAlpha)
+                    node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0.0)
+                    node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
 
             # Recompute the distance field according to the new level-set position
             if (TimeStep % 500 == 0):
