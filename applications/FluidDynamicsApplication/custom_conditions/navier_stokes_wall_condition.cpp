@@ -798,7 +798,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}
 
-    double beta = 1.0e2;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    double beta = 1.0e3;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
     if (n_pos > 0 && n_neg > 0){
         beta = 1.0e0*beta;}
 
@@ -808,7 +808,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         //        std::abs(1.0/sqrt(sum_of_squares_v) * Kratos::inner_prod(traction,vGauss)) );
     }
 
-    for(unsigned int inode = 0; inode < TNumNodes; inode++){  
+    for(unsigned int inode = 0; inode < TNumNodes; inode++){
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
             for( unsigned int i = 0; i < TDim; i++){
                 //{ Careful: no need to loop over dimension_j
@@ -882,7 +882,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointSimpleNavierSli
         traction[2] = viscous_stress[2]*nGauss[2] + viscous_stress[5]*nGauss[0] + viscous_stress[4]*nGauss[1];
     //}    
 
-    double beta = 1.0e2;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
+    double beta = 1.0e3;//1.0e-2/mean_h; //Both RHS and LHS shood be changed
     if (n_pos > 0 && n_neg > 0){
         beta = 1.0e0*beta;}
 

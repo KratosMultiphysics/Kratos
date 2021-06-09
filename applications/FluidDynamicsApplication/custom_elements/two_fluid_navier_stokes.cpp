@@ -90,15 +90,15 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 1.0e-2;//1.0;//0.7;//
+        const double zeta = 1.0e0;//1.0;//0.7;//
         const double surface_tension_coefficient = 0.0728;//0.0426;//0.0311;//0.072;// //0.1; //0.0322; // //Surface tension coefficient, TODO: get from properties
 
-        const double theta_advancing = 130.0*PI/180.0;
-        const double theta_receding = 110.0*PI/180.0;
+        const double theta_advancing = 180.0*PI/180.0;
+        const double theta_receding = 0.0*PI/180.0;
         //const double theta_static = 117*PI/180.0;
         // const double contact_line_coefficient = surface_tension_coefficient*std::cos(theta_static);
         ////const double contact_line_coefficient = -0.4539905*surface_tension_coefficient;///* 0.5299192642332 */-0.25881904510252076*surface_tension_coefficient;//0.779337965*surface_tension_coefficient;//
-        const double micro_length_scale = 1.0e-9;
+        const double micro_length_scale = 1.0e-5;
 
         this->SetValue(CONTACT_ANGLE, 0.0); // Initialize the contact angle
         this->SetValue(CONTACT_VELOCITY, 0.0); // Initialize the contact line velocity
@@ -113,6 +113,10 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
             (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = zero_vector;
             (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = zero_vector;
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = zero_vector;
+
+            /* if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
+                (*p_geom)[i].Fix(DISTANCE);
+            } */
             }
         }
 
@@ -4084,11 +4088,21 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             if (contact_angle_micro_gp > contact_angle_equilibrium){
                 if (contact_angle_micro_gp >= theta_advancing){
                     contact_angle_equilibrium = theta_advancing;
+                    //KRATOS_WATCH("theta > theta_advancing")
                 } else {
                     contact_angle_equilibrium = contact_angle_micro_gp;
-                    zeta_effective = 1000.0*zeta;
+                    zeta_effective = 1.0e5*zeta;
+                    for (unsigned int j = 0; j < NumNodes; j++){
+                        if ((*p_geom)[j].GetValue(IS_STRUCTURE) == 1.0){
+                            #pragma omp critical
+                            (*p_geom)[j].Fix(DISTANCE);
+                            //KRATOS_WATCH(j)
+                        }
+                    }
                 }
-            }
+            } //else {
+                //KRATOS_WATCH("theta < theta_receding")
+            //}
 
             const double coefficientS = coefficient*std::cos(contact_angle_equilibrium);
 

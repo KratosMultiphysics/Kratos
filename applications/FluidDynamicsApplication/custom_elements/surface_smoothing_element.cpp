@@ -228,7 +228,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
-    const unsigned int num_faces = num_nodes;
+    const unsigned int num_faces = num_nodes; //Simplex element
 
     const double dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
 
@@ -266,14 +266,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.5e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 3.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
-    const double zeta = 1.0e-2;//1.0;//0.7;//
+    const double zeta = 1.0e0;//1.0;//0.7;//
     const double gamma = 0.0728;//0.0426;//0.0311;//
     const double micro_length_scale = 1.0e-9;
 
-    const double theta_advancing = 130.0*PI/180.0;
-    const double theta_receding = 110.0*PI/180.0;
+    const double theta_advancing = 180.0*PI/180.0;
+    const double theta_receding = 0.0*PI/180.0;
     // const double cos_theta_s = -0.4539905;///* 0.5299192642332 */-0.25881904510252076;//0.779337965;//
     // const double theta_s = std::acos(cos_theta_s);
 
@@ -306,11 +306,18 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             }
         }
     } */
-    
+
+    VectorType grad_phi_old = ZeroVector(num_dim);
+    for(unsigned int i = 0; i<num_nodes; i++){
+            for (unsigned int k = 0; k<num_dim; k++){
+                grad_phi_old(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)*DN_DX(i,k);
+            }
+    }
+
     for(unsigned int i = 0; i<num_nodes; i++){
         PHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
-        GradPHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
+        GradPHIold[i] = grad_phi_old;//GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){

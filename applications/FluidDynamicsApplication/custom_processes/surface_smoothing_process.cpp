@@ -128,17 +128,30 @@ void SurfaceSmoothingProcess::Execute()
     std::vector<double> DistDiffAvg(NumNodes, 0.0);
     std::vector<double> NumNeighbors(NumNodes, 0.0);
 
+    /* Model& current_model = mrModelPart.GetModel();
+    auto& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName ); */
+
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         it_node->SetValue(NODAL_AREA, 0.0);
-        it_node->Free(DISTANCE_AUX);
+
+        //it_node->Free(DISTANCE_AUX);
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
-        //if ( it_node->GetValue(IS_STRUCTURE) == 1.0 ){
-        //    it_node->Fix(DISTANCE_AUX);
-        //}
+        /* auto it_node_smoothing = r_smoothing_model_part.NodesBegin() + k;
+        if (it_node->IsFixed(DISTANCE)){
+            it_node_smoothing->Fix(DISTANCE_AUX);
+        } else {
+            it_node_smoothing->Free(DISTANCE_AUX);
+        } */
+
+        if ( it_node->IsFixed(DISTANCE) ) { //GetValue(IS_STRUCTURE) == 1.0 ){
+            it_node->Fix(DISTANCE_AUX);
+        } else {
+            it_node->Free(DISTANCE_AUX);
+        }
     }
 
     //Model& current_model = mrModelPart.GetModel();
@@ -229,7 +242,7 @@ void SurfaceSmoothingProcess::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
-        if (NumNeighbors[it_node->Id()-1] != 0.0 /* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
+        if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
              it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
                 it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
         }
