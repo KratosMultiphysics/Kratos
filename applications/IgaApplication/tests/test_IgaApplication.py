@@ -25,8 +25,10 @@ from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTes
 # Coupling tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
+from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCouplingNitscheShell3pTest
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
+from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPatchRefinedCouplingNitscheMembraneTest
 
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
@@ -69,7 +71,7 @@ def AssembleTestSuites():
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest
+        TwoPatchRefinedCouplingLagrangeMembraneTest,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest
@@ -80,7 +82,10 @@ def AssembleTestSuites():
         if LinearSolversApplication.HasFEAST():
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
                 # Weak support Nitsche test
-                SinglePatchRefinedSupportNitscheTest
+                SinglePatchRefinedSupportNitscheTest,
+                # Coupling Nitsche tests
+                TwoPatchCouplingNitscheShell3pTest,
+                TwoPatchRefinedCouplingNitscheMembraneTest
                 ]))
         else:
             print("FEAST not available in LinearSolversApplication")

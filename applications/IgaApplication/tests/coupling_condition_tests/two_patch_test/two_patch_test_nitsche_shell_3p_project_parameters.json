@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name": "refined_two_patch_model_shell_3p",
+        "problem_name": "two_patch_model_shell_3p",
         "echo_level": 0,
         "parallel_type": "OpenMP",
         "start_time": 0,
@@ -16,7 +16,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_materials.json"
+            "materials_filename": "coupling_condition_tests/two_patch_test/two_patch_test_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -47,7 +47,7 @@
         "Parameters": {
             "echo_level": 0,
             "cad_model_part_name": "IgaModelPart",
-            "geometry_file_name": "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_geometry.cad.json"
+            "geometry_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_geometry.cad.json"
         }
     }, {
         "modeler_name": "IgaModeler",
@@ -55,10 +55,21 @@
             "echo_level": 0,
             "cad_model_part_name": "IgaModelPart",
             "analysis_model_part_name": "IgaModelPart",
-            "physics_file_name": "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane_physics.iga.json"
+            "physics_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_nitsche_shell_3p_physics.iga.json"
         }
     }],
     "processes": {
+	"additional_processes": [{
+            "python_module": "nitsche_stabilization_process",
+            "kratos_module": "IgaApplication",
+            "Parameters": {
+                "model_part_condition_name": "IgaModelPart.Coupling_5",
+            	"eigen_system_settings" : {
+                	"solver_type"       	: "feast"
+            	},
+            "number_of_couplings" : 1
+            }
+        }],
         "dirichlet_process_list": [{
             "kratos_module": "KratosMultiphysics",
             "python_module": "assign_vector_variable_process",
@@ -96,7 +107,7 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane_result.json",
+                "input_file_name": "coupling_condition_tests/two_patch_test/two_patch_test_nitsche_shell_3p_result.json",
                 "model_part_name": "IgaModelPart.StructuralAnalysis",
                 "time_frequency": 0.0
             }

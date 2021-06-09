@@ -36,7 +36,7 @@
         "max_iteration": 100,
         "solver_type": "static",
         "linear_solver_settings": {
-            "solver_type": "LinearSolversApplication.sparse_lu"
+            "solver_type": "LinearSolversApplication.sparse_qr"
         },
         "auxiliary_variables_list": [],
         "auxiliary_dofs_list": [],
