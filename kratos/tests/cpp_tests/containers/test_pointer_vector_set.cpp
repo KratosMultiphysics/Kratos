@@ -19,20 +19,11 @@
 
 // Project includes
 #include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/variables.h"
 #include "containers/model.h"
 #include "containers/pointer_vector_set.h"
 #include "testing/testing.h"
-
-
-#include "containers/data_value_container.h"
-#include "includes/variables.h"
-#include "testing/testing.h"
-#include "containers/model.h"
-#include "includes/model_part.h"
-#include "includes/parallel_environment.h"
-#include "utilities/global_pointer_utilities.h"
-#include "utilities/pointer_communicator.h"
-#include "utilities/retrieve_global_pointers_by_index_functor.h"
 
 namespace Kratos {
 namespace Testing {
@@ -42,11 +33,13 @@ KRATOS_TEST_CASE_IN_SUITE(PointerVectorSetCBeginAndCEnd, KratosCoreFastSuite)
     PointerVectorSet<const Element> test_container;
     auto p_element_1 = Kratos::make_intrusive<Element>(1);
     auto p_element_2 = Kratos::make_intrusive<Element>(2);
+    auto p_element_3 = Kratos::make_intrusive<Element>(3);
     test_container.push_back(p_element_1);
     test_container.push_back(p_element_2);
+    test_container.push_back(p_element_3);
 
     KRATOS_CHECK_EQUAL(test_container.cbegin()->Id(), 1);
-    KRATOS_CHECK_EQUAL((test_container.cend()-1)->Id(), 2);
+    KRATOS_CHECK_EQUAL((test_container.cend()-1)->Id(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestPointerVectorSet, KratosCoreFastSuite)
