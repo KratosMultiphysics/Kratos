@@ -23,6 +23,8 @@
 #include "includes/properties.h"
 #include "includes/define.h"
 
+// brep surface for constexpression of SURFACE_INDEX
+#include "geometries/brep_surface.h"
 
 namespace Kratos
 {

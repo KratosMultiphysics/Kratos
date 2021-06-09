@@ -1,0 +1,22 @@
+{
+    "materials":[{
+        "material_name": "mat1",
+        "material_id": 1,
+        "Variables":{
+            "PARTICLE_DENSITY": 2500.0
+        }
+    }],
+    "material_relations":[{
+        "material_names_list":["mat1", "mat1"],
+        "material_ids_list":[1, 1],
+        "Variables":{
+            "STATIC_FRICTION": 0.009138776996010534,
+            "DYNAMIC_FRICTION": 0.009138776996010534,
+            "FRICTION_DECAY": 500,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Hertz_viscous_Coulomb"
+        }
+    }],
+    "material_assignation_table":[
+        ["SpheresPart", "mat1"]
+    ]
+}
