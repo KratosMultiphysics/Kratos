@@ -53,13 +53,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # Definition of the variables
-        gravity = self.settings["gravity"].GetDouble()
-
-        # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
-
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
@@ -75,6 +68,7 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
+        self._SetProcessInfo()
         self._GetSolutionStrategy().Check()
         self._GetSolutionStrategy().Initialize()
         KM.Logger.PrintInfo(self.__class__.__name__, "Initialization finished")
@@ -126,6 +120,10 @@ class ShallowWaterBaseSolver(PythonSolver):
     def _CreateEstimateDeltaTimeUtility(self):
         # The c++ utility manages all the time step settings
         return SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
+
+    def _SetProcessInfo(self):
+        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
 
     @classmethod
     def GetDefaultParameters(cls):
