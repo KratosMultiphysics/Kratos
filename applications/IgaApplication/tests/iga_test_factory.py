@@ -72,10 +72,10 @@ class ScordelisRoofShell5pTest(IgaTestFactory):
 
 # Weak support
 class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
-    file_name = "support_condition_tests/single_patch_refined_test/single_patch_refined_test_penalty"
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_penalty"
 
 class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
-    file_name = "support_condition_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
 
 if __name__ == '__main__':
     KratosUnittest.main()

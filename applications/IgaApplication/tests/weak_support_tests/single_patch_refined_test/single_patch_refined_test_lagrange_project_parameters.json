@@ -16,7 +16,7 @@
             "input_type": "use_input_model_part"
         },
         "material_import_settings": {
-            "materials_filename": "support_condition_tests/single_patch_refined_test/single_patch_refined_test_materials.json"
+            "materials_filename": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_materials.json"
         },
         "time_stepping": {
             "time_step": 0.1
@@ -38,16 +38,16 @@
         "linear_solver_settings": {
             "solver_type": "LinearSolversApplication.sparse_qr"
         },
-        "auxiliary_variables_list": [],
-        "auxiliary_dofs_list": [],
-        "auxiliary_reaction_list": []
+        "auxiliary_variables_list": ["VECTOR_LAGRANGE_MULTIPLIER","FORCE"],
+        "auxiliary_dofs_list": ["VECTOR_LAGRANGE_MULTIPLIER"],
+        "auxiliary_reaction_list": ["FORCE"]
     },
     "modelers": [{
         "modeler_name": "CadIoModeler",
         "Parameters": {
             "echo_level": 0,
             "cad_model_part_name": "IgaModelPart",
-            "geometry_file_name": "support_condition_tests/single_patch_refined_test/single_patch_refined_test_geometry.cad.json"
+            "geometry_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_geometry.cad.json"
         }
     }, {
         "modeler_name": "IgaModeler",
@@ -55,7 +55,7 @@
             "echo_level": 0,
             "cad_model_part_name": "IgaModelPart",
             "analysis_model_part_name": "IgaModelPart",
-            "physics_file_name": "support_condition_tests/single_patch_refined_test/single_patch_refined_test_penalty_physics.iga.json"
+            "physics_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange_physics.iga.json"
         }
     }],
     "processes": {
@@ -86,8 +86,8 @@
             "kratos_module": "KratosMultiphysics",
             "Parameters": {
                 "check_variables": ["DISPLACEMENT"],
-                "input_file_name": "support_condition_tests/single_patch_refined_test/single_patch_refined_test_penalty_result.json",
-                "model_part_name": "IgaModelPart.StructuralAnalysis",
+                "input_file_name": "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange_result.json",
+                "model_part_name": "IgaModelPart.Load_3",
                 "time_frequency": 0.0
             }
         }]
