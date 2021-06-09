@@ -82,6 +82,15 @@ class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
     
 class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
+# Weak support
+class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_penalty"
+
+class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
+
+class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
 
 if __name__ == '__main__':
     KratosUnittest.main()

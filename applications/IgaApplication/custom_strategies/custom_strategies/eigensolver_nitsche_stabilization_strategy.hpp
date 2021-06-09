@@ -389,95 +389,161 @@ public:
         }
 
         // Obtain the stifness and stabilization matrices on the current interface boundary:
-        // 1. find the DOFs on the current interface boundary
-        Model reduced_model_master;               
-        ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model"); 
-
-        for (auto& r_cond : rModelPart.Conditions()) {
-            
-            auto& r_geom_master = r_cond.GetGeometry().GetGeometryPart(0);
-            auto& r_N_master = r_geom_master.ShapeFunctionsValues();
-
-            for (IndexType i = 0; i<r_N_master.size2();++i)
-            {
-                if(r_N_master(0,i) > 1e-6)
-                {
-                    reduced_model_part_master.AddNode(r_geom_master.pGetPoint(i));
-                }
-            }
-        }
-        const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
-
-        Model reduced_model_slave;               
-        ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model"); 
-
-        for (auto& r_cond : rModelPart.Conditions()) {
-
-            auto& r_geom_slave = r_cond.GetGeometry().GetGeometryPart(1);
-            auto& r_N_slave = r_geom_slave.ShapeFunctionsValues();
-
-            for (IndexType i = 0; i<r_N_slave.size2();++i)
-            {
-                if(r_N_slave(0,i) > 1e-6)
-                {
-                    reduced_model_part_slave.AddNode(r_geom_slave.pGetPoint(i));
-                }
-            }
-        }
-        const std::size_t number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
-
-        // 2. create the result vector
-        Vector rResult;
-        rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
-
-        IndexType i_master = 0;
-        for (auto& r_node : reduced_model_part_master.Nodes()) {
-
-            const IndexType index = i_master * 3;
-            
-            rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
-
-            i_master++;
-        }
-
-        IndexType i_slave = 0;
-        for (auto& r_node : reduced_model_part_slave.Nodes()) {
-
-            const IndexType index = i_slave * 3 + 3 * number_of_nodes_master;
-            
-            rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
-            rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
-            rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
-
-            i_slave++;
-        }
-
-        // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
         SparseMatrixType reduced_stabilization_matrix;
-        reduced_stabilization_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+        SparseMatrixType reduced_stiffness_matrix;
 
-        for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
+        if(rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
         {
-            for (IndexType j = 0; j <= i; j++) 
+            // 1. find the DOFs on the current interface boundary
+            Model reduced_model_master;               
+            ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model"); 
+
+            for (auto& r_cond : rModelPart.Conditions()) {
+                
+                auto& r_geom_master = r_cond.GetGeometry().GetGeometryPart(0);
+                auto& r_N_master = r_geom_master.ShapeFunctionsValues();
+
+                for (IndexType i = 0; i<r_N_master.size2();++i)
+                {
+                    if(r_N_master(0,i) > 1e-6)
+                    {
+                        reduced_model_part_master.AddNode(r_geom_master.pGetPoint(i));
+                    }
+                }
+            }
+            const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
+
+            Model reduced_model_slave;               
+            ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model"); 
+
+            for (auto& r_cond : rModelPart.Conditions()) {
+
+                auto& r_geom_slave = r_cond.GetGeometry().GetGeometryPart(1);
+                auto& r_N_slave = r_geom_slave.ShapeFunctionsValues();
+
+                for (IndexType i = 0; i<r_N_slave.size2();++i)
+                {
+                    if(r_N_slave(0,i) > 1e-6)
+                    {
+                        reduced_model_part_slave.AddNode(r_geom_slave.pGetPoint(i));
+                    }
+                }
+            }
+            const std::size_t number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
+
+            // 2. create the result vector
+            Vector rResult;
+            rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
+
+            IndexType i_master = 0;
+            for (auto& r_node : reduced_model_part_master.Nodes()) {
+
+                const IndexType index = i_master * 3;
+                
+                rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+                rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+                rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+
+                i_master++;
+            }
+
+            IndexType i_slave = 0;
+            for (auto& r_node : reduced_model_part_slave.Nodes()) {
+
+                const IndexType index = i_slave * 3 + 3 * number_of_nodes_master;
+                
+                rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+                rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+                rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+
+                i_slave++;
+            }
+
+            // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
+            reduced_stabilization_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
             {
-                reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
-                if (i != j)
-                    reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                for (IndexType j = 0; j <= i; j++) 
+                {
+                    reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                        reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                }
+            }
+
+            reduced_stiffness_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
+            {
+                for (IndexType j = 0; j <= i; j++) 
+                {
+                    reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                        reduced_stiffness_matrix(j,i) = rStiffnessMatrix(rResult(i),rResult(j));
+                }
             }
         }
-
-        SparseMatrixType reduced_stiffness_matrix;
-        reduced_stiffness_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
-
-        for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++) 
+        else // Support Nitsche condition
         {
-            for (IndexType j = 0; j <= i; j++) 
+            // 1. find the DOFs on the current interface boundary
+            Model reduced_model;               
+            ModelPart& reduced_model_part = reduced_model.CreateModelPart("new_model"); 
+
+            for (auto& r_cond : rModelPart.Conditions()) {
+                
+                auto& r_geom = r_cond.GetGeometry();
+                auto& r_N = r_geom.ShapeFunctionsValues();
+
+                for (IndexType i = 0; i<r_N.size2();++i)
+                {
+                    if(r_N(0,i) > 1e-6)
+                    {
+                        reduced_model_part.AddNode(r_geom.pGetPoint(i));
+                    }
+                }
+            }
+            const std::size_t number_of_nodes = reduced_model_part.NumberOfNodes();
+
+            // 2. create the result vector
+            Vector rResult;
+            rResult.resize((number_of_nodes)*3);
+
+            IndexType i = 0;
+            for (auto& r_node : reduced_model_part.Nodes()) {
+
+                const IndexType index = i * 3;
+                
+                rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
+                rResult[index + 1] = r_node.GetDof(DISPLACEMENT_Y).EquationId();
+                rResult[index + 2] = r_node.GetDof(DISPLACEMENT_Z).EquationId();
+
+                i++;
+            }
+
+            // 3. assigned the value of the reduced stifness and stabilization matrices based on result vector
+            reduced_stabilization_matrix = ZeroMatrix((number_of_nodes)*3,(number_of_nodes)*3);
+
+            for (IndexType i = 0; i < (number_of_nodes)*3; i++) 
             {
-                reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
-                if (i != j)
-                    reduced_stiffness_matrix(j,i) = rStiffnessMatrix(rResult(i),rResult(j));
+                for (IndexType j = 0; j <= i; j++) 
+                {
+                    reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                        reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                }
+            }
+
+            reduced_stiffness_matrix = ZeroMatrix((number_of_nodes)*3,(number_of_nodes)*3);
+
+            for (IndexType i = 0; i < (number_of_nodes)*3; i++) 
+            {
+                for (IndexType j = 0; j <= i; j++) 
+                {
+                    reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                        reduced_stiffness_matrix(j,i) = rStiffnessMatrix(rResult(i),rResult(j));
+                }
             }
         }
 
