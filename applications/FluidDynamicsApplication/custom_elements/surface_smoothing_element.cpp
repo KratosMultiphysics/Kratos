@@ -270,7 +270,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     const double zeta = 1.0e0;//1.0;//0.7;//
     const double gamma = 0.0728;//0.0426;//0.0311;//
-    const double micro_length_scale = 1.0e-9;
+    const double micro_length_scale = 1.0e-5;
 
     const double theta_advancing = 180.0*PI/180.0;
     const double theta_receding = 0.0*PI/180.0;
