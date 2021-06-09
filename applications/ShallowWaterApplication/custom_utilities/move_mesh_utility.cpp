@@ -149,23 +149,30 @@ void MoveMeshUtility::MapToEulerian(
     const Element::Pointer pElement,
     const bool IsFound)
 {
+    if (IsFound) {
     GeometryType r_geom = pElement->GetGeometry();
     for (std::size_t v = 0; v != mScalarVariablesToEulerian.size(); ++v)
     {
         const Variable<double>& r_var = *(mScalarVariablesToEulerian[v]);
-        if (IsFound)
             InterpolateVariable(rNode, rN, r_geom, r_var);
-        else
+        }
+        for (std::size_t v = 0; v != mVectorVariablesToEulerian.size(); ++v)
+        {
+            const Variable<array_1d<double,3>>& r_var = *(mVectorVariablesToEulerian[v]);
+            InterpolateVariable(rNode, rN, r_geom, r_var);
+        }
+    } else {
+        for (std::size_t v = 0; v != mScalarVariablesToEulerian.size(); ++v)
+        {
+            const Variable<double>& r_var = *(mScalarVariablesToEulerian[v]);
             rNode.FastGetSolutionStepValue(r_var) = 0.0;
     }
     for (std::size_t v = 0; v != mVectorVariablesToEulerian.size(); ++v)
     {
         const Variable<array_1d<double,3>>& r_var = *(mVectorVariablesToEulerian[v]);
-        if (IsFound)
-            InterpolateVariable(rNode, rN, r_geom, r_var);
-        else
             rNode.FastGetSolutionStepValue(r_var) = ZeroVector(3);
     }
+}
 }
 
 template<class TDataType>
