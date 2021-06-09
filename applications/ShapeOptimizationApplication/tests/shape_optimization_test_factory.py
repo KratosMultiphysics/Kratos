@@ -79,6 +79,11 @@ class algorithm_gradient_projection_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_gradient_projection_test"
     execution_file = "run_test"
 
+@kratos_unittest.skipIfApplicationsNotAvailable("LinearSolversApplication")
+class algorithm_gradient_projection_local_damping_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_gradient_projection_local_damping_test"
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
 class algorithm_trust_region_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_trust_region_test"

@@ -25,6 +25,7 @@ from shape_optimization_test_factory import algorithm_penalized_projection_test
 from shape_optimization_test_factory import algorithm_trust_region_test
 from shape_optimization_test_factory import trust_region_projector_test
 from shape_optimization_test_factory import algorithm_gradient_projection_test
+from shape_optimization_test_factory import algorithm_gradient_projection_local_damping_test
 from shape_optimization_test_factory import algorithm_bead_optimization_test
 from shape_optimization_test_factory import opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test
@@ -74,6 +75,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([PlaneSymmetryMapperTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([RevolutionMapperTest]))
     smallSuite.addTest(algorithm_gradient_projection_test('test_execution'))
+    smallSuite.addTest(algorithm_gradient_projection_local_damping_test('test_execution'))
     smallSuite.addTest(remeshing_opt_process_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
