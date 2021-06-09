@@ -154,7 +154,7 @@ private:
      * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * It calculates the strain vector
@@ -163,7 +163,7 @@ private:
      */
     void CalculateCauchyGreenStrain(
         ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
+        ConstitutiveLaw::StrainVectorType& rStrainVector
     ) override;
 
     ///@}

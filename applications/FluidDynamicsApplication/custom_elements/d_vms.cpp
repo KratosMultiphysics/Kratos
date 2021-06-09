@@ -191,7 +191,7 @@ int DVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void DVMS<TElementData>::GetValueOnIntegrationPoints(
+void DVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -227,13 +227,13 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
         }
     }
     else {
-        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void DVMS<TElementData>::GetValueOnIntegrationPoints(
+void DVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -294,35 +294,35 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     }
     #endif
     else {
-        QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 template <class TElementData>
-void DVMS<TElementData>::GetValueOnIntegrationPoints(
+void DVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void DVMS<TElementData>::GetValueOnIntegrationPoints(
+void DVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void DVMS<TElementData>::GetValueOnIntegrationPoints(
+void DVMS<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {
-    QSVMS<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    QSVMS<TElementData>::CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

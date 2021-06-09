@@ -49,6 +49,9 @@
 #include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
 #include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
+// sensitivity builder schemes
+#include "solving_strategies/schemes/sensitivity_builder_scheme.h"
+
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
@@ -672,6 +675,20 @@ namespace Kratos
                     }))
                 .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, Parameters >())
                 ;
+
+            py::class_<SensitivityBuilderScheme, typename SensitivityBuilderScheme::Pointer>
+            (m,"SensitivityBuilderScheme")
+                .def(py::init< >())
+                .def("Initialize", &SensitivityBuilderScheme::Initialize)
+                .def("InitializeSolutionStep", &SensitivityBuilderScheme::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &SensitivityBuilderScheme::FinalizeSolutionStep)
+                .def("Finalize", &SensitivityBuilderScheme::Finalize)
+                .def("Update", &SensitivityBuilderScheme::Update)
+                .def("Clear", &SensitivityBuilderScheme::Clear)
+                .def("Check", &SensitivityBuilderScheme::Check)
+                .def("Info", &SensitivityBuilderScheme::Info)
+                ;
+
         }
 
     } // namespace Python.

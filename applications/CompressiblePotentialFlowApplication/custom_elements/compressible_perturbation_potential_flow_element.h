@@ -67,7 +67,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CompressiblePerturbationPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -204,11 +204,6 @@ public:
     ///@}
 protected:
 
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
-
 private:
     ///@name Private Operators
     ///@{
@@ -239,6 +234,16 @@ private:
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                          const ProcessInfo& rCurrentProcessInfo);
 
+    void CalculateLeftHandSideContribution(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, Dim>& rVelocity,
+                                         const ElementalData<NumNodes, Dim>& rData);
+
+    void CalculateRightHandSideContribution(BoundedVector<double, NumNodes>& rRhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, Dim>& rVelocity,
+                                         const ElementalData<NumNodes, Dim>& rData);
+
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
                                                const ProcessInfo& rCurrentProcessInfo);
@@ -253,17 +258,23 @@ private:
     void AssignLeftHandSideSubdividedElement(Matrix& rLeftHandSideMatrix,
                                              Matrix& lhs_positive,
                                              Matrix& lhs_negative,
-                                             const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                              const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data) const;
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                    const ElementalData<NumNodes, Dim>& rData) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                   const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row) const;
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                    const ElementalData<NumNodes, Dim>& rData,
+                                    unsigned int row) const;
 
     void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
                                    const BoundedVector<double, NumNodes>& rUpper_rhs,

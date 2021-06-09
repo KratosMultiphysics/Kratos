@@ -401,22 +401,25 @@ bool RigidFace3D::CheckProjectionFallsInside(SphericParticle *p_particle)
 {
     const array_1d<double, 3>& P = p_particle->GetGeometry()[0].Coordinates();
     const Geometry<Node<3> >& geom = GetGeometry();
-    const array_1d<double, 3> w  = P - geom[0].Coordinates();
-    array_1d<double, 3> u1 = geom[1].Coordinates() - geom[0].Coordinates();
-    array_1d<double, 3> u2 = geom[2].Coordinates() - geom[0].Coordinates();
-    array_1d<double, 3> u2_copy;
-    noalias(u2_copy) = u2;
-    array_1d<double, 3> n;
-    GeometryFunctions::CrossProduct(u1, u2, n);
-    GeometryFunctions::CrossProduct(w, u2_copy, u2);
-    const double beta = DEM_INNER_PRODUCT_3(u2, n);
-    GeometryFunctions::CrossProduct(u1, w, u1);
-    const double gamma = DEM_INNER_PRODUCT_3(u1, n);
-    const double n2 = DEM_INNER_PRODUCT_3(n, n);
-    const double alpha = n2 - beta - gamma;
-
-    const bool falls_inside = alpha >=  0 && beta >=  0 && gamma >= 0 && alpha <= n2 && beta <= n2 && gamma <= n2;
-
+    const array_1d<double, 3>& P1 = geom[0].Coordinates();
+    const array_1d<double, 3>& P2 = geom[1].Coordinates();
+    const array_1d<double, 3>& P3 = geom[2].Coordinates();
+    const array_1d<double, 3> w  = P - P1;
+    array_1d<double, 3> side_1 = P2 - P1;
+    array_1d<double, 3> side_2 = P3 - P1;
+    array_1d<double, 3> normal;
+    array_1d<double, 3> side_1_cross_w;
+    array_1d<double, 3> w_cross_side_2;
+    GeometryFunctions::CrossProduct(side_1, side_2, normal);
+    GeometryFunctions::CrossProduct(side_1, w, side_1_cross_w);
+    GeometryFunctions::CrossProduct(w, side_2, w_cross_side_2);
+    const double normal2 = DEM_INNER_PRODUCT_3(normal, normal);
+    const double beta = DEM_INNER_PRODUCT_3(w_cross_side_2, normal) / normal2;
+    const double gamma = DEM_INNER_PRODUCT_3(side_1_cross_w, normal) / normal2;
+    const double alpha = 1 - beta - gamma;
+    const bool falls_inside = (alpha >= 0 && beta >= 0 && gamma >= 0
+                            && alpha <= 1 && beta <= 1 && gamma <= 1);
+    
     return falls_inside;
 }
 

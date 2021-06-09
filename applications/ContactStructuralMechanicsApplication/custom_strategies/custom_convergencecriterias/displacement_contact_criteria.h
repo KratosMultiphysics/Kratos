@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -311,8 +312,13 @@ public:
      */
     void Initialize( ModelPart& rModelPart ) override
     {
+        // Initialize
         BaseType::mConvergenceCriteriaIsInitialized = true;
 
+        // Check rotation dof
+        mOptions.Set(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED, ContactUtilities::CheckModelPartHasRotationDoF(rModelPart));
+
+        // Initialize header
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         if (r_process_info.Has(TABLE_UTILITY) && mOptions.IsNot(DisplacementContactCriteria::TABLE_IS_INITIALIZED)) {
             TablePrinterPointerType p_table = r_process_info[TABLE_UTILITY];
@@ -321,7 +327,7 @@ public:
             r_table.AddColumn("EXP. RAT", 10);
             r_table.AddColumn("ABS", 10);
             r_table.AddColumn("EXP. ABS", 10);
-            if (mOptions.IsNot(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
+            if (mOptions.Is(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED)) {
                 r_table.AddColumn("RT RATIO", 10);
                 r_table.AddColumn("EXP. RAT", 10);
                 r_table.AddColumn("ABS", 10);
@@ -330,9 +336,6 @@ public:
             r_table.AddColumn("CONVERGENCE", 15);
             mOptions.Set(DisplacementContactCriteria::TABLE_IS_INITIALIZED, true);
         }
-
-        // Check rotation dof
-        mOptions.Set(DisplacementContactCriteria::ROTATION_DOF_IS_CONSIDERED, ContactUtilities::CheckModelPartHasRotationDoF(rModelPart));
     }
 
     /**

@@ -67,7 +67,7 @@ void SolidFace3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 //***********************************************************************************
 
 void SolidFace3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                         ProcessInfo& r_process_info)
+                                         const ProcessInfo& r_process_info)
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;

@@ -21,7 +21,7 @@ namespace Kratos {
             KRATOS_INFO("DEM") << "------------------CONTINUUM SOLVER STRATEGY---------------------" << "\n" << std::endl;
         }
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         DisplayThreadInfo();
 
         RebuildListOfSphericParticles <SphericContinuumParticle> (r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericContinuumParticles);
@@ -172,18 +172,6 @@ namespace Kratos {
 
     }//SolveSolutionStep()
 
-    void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-
-        if (is_time_to_search_neighbours) {
-            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
-            SearchRigidFaceNeighbours();
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-    }
-
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
 
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -301,7 +289,9 @@ namespace Kratos {
 
         if (problem_dimension == 2) {
             minimum_bonds_to_check_if_a_particle_is_skin = 4;
-        } else return; // TODO: IMPLEMENT THIS ALSO IN 3D
+        } else {
+            minimum_bonds_to_check_if_a_particle_is_skin = 5;
+        } //TODO: CHECK THIS 3D IMPLEMENTATION
 
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {
@@ -353,6 +343,19 @@ namespace Kratos {
                 mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
+        KRATOS_TRY
+
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
+            particle->ReorderFEMneighbours();
+        });
+
+
+        BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 
         KRATOS_CATCH("")
     }
@@ -509,7 +512,7 @@ namespace Kratos {
                 }
 
                 std::vector<double> total_error;
-                mNumberOfThreads = OpenMPUtils::GetNumThreads();
+                mNumberOfThreads = ParallelUtilities::GetNumThreads();
                 total_error.resize(mNumberOfThreads);
 
                 #pragma omp parallel for
@@ -582,7 +585,7 @@ namespace Kratos {
             }//while
 
                 if (iteration < maxiteration){
-                KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value \e[1m" << current_coordination_number << "\e[0m using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
+                KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
                 KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
                 r_process_info[CONTINUUM_SEARCH_RADIUS_AMPLIFICATION_FACTOR] = amplification;
@@ -611,7 +614,7 @@ namespace Kratos {
         double total_sum = 0.0;
         int total_non_skin_particles = 0;
 
-        mNumberOfThreads = OpenMPUtils::GetNumThreads();
+        mNumberOfThreads = ParallelUtilities::GetNumThreads();
         neighbour_counter.resize(mNumberOfThreads);
         sum.resize(mNumberOfThreads);
         number_of_non_skin_particles.resize(mNumberOfThreads);
@@ -697,7 +700,7 @@ namespace Kratos {
         bool has_mpi = false;
         Check_MPI(has_mpi);
 
-        std::vector<double> thread_maxima(OpenMPUtils::GetNumThreads(), 0.0);
+        std::vector<double> thread_maxima(ParallelUtilities::GetNumThreads(), 0.0);
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
 
         #pragma omp parallel for
@@ -708,7 +711,7 @@ namespace Kratos {
         }
 
         double maximum_across_threads = 0.0;
-        for (int i = 0; i < OpenMPUtils::GetNumThreads(); i++) {
+        for (int i = 0; i < ParallelUtilities::GetNumThreads(); i++) {
             if (thread_maxima[i] > maximum_across_threads) maximum_across_threads = thread_maxima[i];
         }
 
@@ -904,21 +907,10 @@ namespace Kratos {
 
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
-        Vector rhs_cond;
-        std::vector<unsigned int> condition_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
-        #pragma omp parallel for private (rhs_cond)
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
-            ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
-
-            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                it->FinalizeSolutionStep(r_process_info);
-            }
-        }
-
+        block_for_each(pConditions, [&r_process_info](ModelPart::ConditionType& rCondition){
+            rCondition.FinalizeSolutionStep(r_process_info);
+        });
         KRATOS_CATCH("")
     }
-
 }

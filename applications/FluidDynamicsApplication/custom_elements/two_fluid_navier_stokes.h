@@ -226,10 +226,10 @@ public:
      * @param rValues Vector for the values at the Gauss integration points
      * @param rCurrentProcessInfo ProcessInfo object
      */
-    void GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
-                                        std::vector<double> &rValues,
-                                        const ProcessInfo &rCurrentProcessInfo ) override;
-
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rValues,
+        const ProcessInfo &rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Friends

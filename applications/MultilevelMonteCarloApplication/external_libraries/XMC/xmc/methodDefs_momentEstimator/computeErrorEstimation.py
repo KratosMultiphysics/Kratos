@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
 def centralMomentErrorWrapper(dimension,order,*args):
     if dimension==0:
@@ -16,7 +16,7 @@ def centralMomentErrorWrapper(dimension,order,*args):
     else:
         raise ValueError('Index set of dimension > 2 are not supported yet.')
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def centralMomentErrorWrapper_Task(*args):
     return centralMomentErrorWrapper(*args)
 
@@ -30,7 +30,7 @@ def centralCombinedMomentErrorWrapper(dimension,order,*args):
     else:
         raise ValueError('Index set of dimension > 0 are not supported yet.')
 
-@ExaquteTask(returns=1)
+@task(keep=True, returns=1)
 def centralCombinedMomentErrorWrapper_Task(*args):
     return centralCombinedMomentErrorWrapper(*args)
 

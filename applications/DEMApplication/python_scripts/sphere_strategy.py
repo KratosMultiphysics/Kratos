@@ -110,7 +110,7 @@ class ExplicitStrategy():
 
 
         # TIME RELATED PARAMETERS
-        self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
+        self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
@@ -268,7 +268,7 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
         # TIME RELATED PARAMETERS
-        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
         #-----os.chdir('..')   # check functionality
 
@@ -400,16 +400,22 @@ class ExplicitStrategy():
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self._UpdateTimeInOneModelPart(spheres_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(cluster_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, is_time_to_print)
-        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, is_time_to_print)
+        self._UpdateTimeInOneModelPart(spheres_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(cluster_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(dem_inlet_model_part, time, self.dt, is_time_to_print)
+        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, self.dt, is_time_to_print)
 
-    def _UpdateTimeInOneModelPart(self, model_part, time, is_time_to_print = False):
-        model_part.ProcessInfo[TIME] = time
-        model_part.ProcessInfo[DELTA_TIME] = self.dt
-        model_part.ProcessInfo[TIME_STEPS] += 1
-        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+    @classmethod
+    def _UpdateTimeInOneModelPart(self, model_part, time, dt, is_time_to_print = False):
+        ''' This method is redirected to its cpp version with improved speed.
+        It also has been updated to classmethod and args so it can be called from external App
+        '''
+
+        AuxiliaryUtilities().UpdateTimeInOneModelPart(model_part, time, dt, is_time_to_print)
+        # model_part.ProcessInfo[TIME] = time
+        # model_part.ProcessInfo[DELTA_TIME] = dt
+        # model_part.ProcessInfo[TIME_STEPS] += 1
+        # model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
         (self.cplusplus_strategy).FinalizeSolutionStep()
@@ -683,11 +689,15 @@ class ExplicitStrategy():
         if properties.Has(FRICTION):
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             self.Procedures.KratosPrintWarning("  WARNING: Property FRICTION is deprecated since April 6th, 2020, ")
-            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION and DYNAMIC_FRICTION")
+            self.Procedures.KratosPrintWarning("  replace with STATIC_FRICTION, DYNAMIC_FRICTION and FRICTION_DECAY")
             self.Procedures.KratosPrintWarning("  Automatic replacement is done now.")
             self.Procedures.KratosPrintWarning("-------------------------------------------------")
             properties[STATIC_FRICTION] = properties[FRICTION]
             properties[DYNAMIC_FRICTION] = properties[FRICTION]
+            properties[FRICTION_DECAY] = 500.0
+
+        if not properties.Has(FRICTION_DECAY):
+            properties[FRICTION_DECAY] = 500.0
 
         translational_scheme, error_status, summary_mssg = self.GetTranslationalScheme(translational_scheme_name)
 

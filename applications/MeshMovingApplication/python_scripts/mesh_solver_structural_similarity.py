@@ -29,5 +29,6 @@ class MeshSolverStructuralSimilarity(MeshSolverBase):
                                                              compute_reactions,
                                                              False,
                                                              self.echo_level,
-                                                             poisson_ratio)
+                                                             poisson_ratio,
+                                                             self.reinitialize_model_part_each_step)
         return solving_strategy

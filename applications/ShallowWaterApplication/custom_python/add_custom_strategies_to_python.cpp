@@ -21,7 +21,6 @@
 #include "spaces/ublas_space.h"
 
 // Schemes
-#include "custom_strategies/schemes/residualbased_incrementalupdate_wetting_scheme.h"
 #include "custom_strategies/shallow_water_residual_based_bdf_scheme.h"
 #include "custom_strategies/flux_corrected_shallow_water_scheme.h"
 
@@ -41,16 +40,6 @@ namespace Python
     // Schemes
     typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
 
-    typedef ResidualBasedIncrementalUpdateWettingScheme<SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateWettingScheme;
-    py::class_<
-        ResidualBasedIncrementalUpdateWettingScheme,
-        typename ResidualBasedIncrementalUpdateWettingScheme::Pointer,
-        BaseSchemeType>
-        (m, "ResidualBasedIncrementalUpdateWettingScheme")
-        .def(py::init<>())
-        .def(py::init<Process::Pointer>())
-        ;
-    
     typedef ShallowWaterResidualBasedBDFScheme<SparseSpaceType, LocalSpaceType> ShallowWaterResidualBasedBDFSchemeType;
     py::class_<ShallowWaterResidualBasedBDFSchemeType, ShallowWaterResidualBasedBDFSchemeType::Pointer, BaseSchemeType>
     (m, "ShallowWaterResidualBasedBDFScheme")
@@ -63,6 +52,7 @@ namespace Python
     (m, "FluxCorrectedShallowWaterScheme")
     .def(py::init<std::size_t>())
     .def(py::init<std::size_t, bool>())
+    .def(py::init<Parameters>())
     ;
 
   }

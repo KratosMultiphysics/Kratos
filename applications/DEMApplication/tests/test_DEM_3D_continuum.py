@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -83,7 +81,9 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
                 x_tangential = node.GetSolutionStepValue(DEM.TANGENTIAL_ELASTIC_FORCES)[0]
 
         self.CheckValues(x_vel, z_vel, x_force, z_force, dem_pressure, z_elastic, shear, x_tangential)
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
+
 
 
     def ReadModelParts(self, max_node_Id=0, max_elem_Id=0, max_cond_Id=0):
@@ -146,6 +146,7 @@ class DEM3D_ContinuumTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis
         properties[KratosMultiphysics.POISSON_RATIO] = 0.20
         properties[DEM.STATIC_FRICTION] = 0.5
         properties[DEM.DYNAMIC_FRICTION] = 0.5
+        properties[DEM.FRICTION_DECAY] = 500.0
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         properties[KratosMultiphysics.PARTICLE_MATERIAL] = 1
@@ -178,13 +179,7 @@ class TestDEM3DContinuum(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_DEM_3D_continuum")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContinuumTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("test_DEM_3D_continuum", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_ContinuumTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

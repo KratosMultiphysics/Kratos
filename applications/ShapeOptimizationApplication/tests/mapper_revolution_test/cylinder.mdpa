@@ -1,0 +1,68 @@
+// File created on Sat Apr 24 08:49:15 2021
+// Mesh Information:
+// Number of Nodes: 12
+// Number of Elements: 0
+// Number of Conditions: 6
+// Number of Properties: 1
+// Number of SubModelParts: 1
+//   SubModelPart: design_surface
+//     Number of Nodes: 12
+//     Number of Elements: 0
+//     Number of Conditions: 6
+//     Number of Properties: 1
+//     Number of SubModelParts: 0
+
+Begin Properties 0
+End Properties // 0
+
+Begin Nodes
+	1	4.0000000000	-0.0000000000	1.0000000000
+	2	4.0000000000	-0.0000000000	0.0000000000
+	3	2.0000000000	3.4641016151	1.0000000000
+	4	-2.0000000000	3.4641016151	1.0000000000
+	5	-4.0000000000	0.0000000000	1.0000000000
+	6	-2.0000000000	-3.4641016151	1.0000000000
+	7	2.0000000000	-3.4641016151	1.0000000000
+	8	2.0000000000	3.4641016151	0.0000000000
+	9	-2.0000000000	3.4641016151	0.0000000000
+	10	-4.0000000000	0.0000000000	0.0000000000
+	11	-2.0000000000	-3.4641016151	0.0000000000
+	12	2.0000000000	-3.4641016151	0.0000000000
+End Nodes
+
+Begin Conditions SurfaceCondition3D4N
+	1	0	1	2	8	3
+	2	0	3	8	9	4
+	3	0	4	9	10	5
+	4	0	5	10	11	6
+	5	0	6	11	12	7
+	6	0	7	12	2	1
+End Conditions // SurfaceCondition3D4N
+
+Begin SubModelPart design_surface
+	Begin SubModelPartProperties
+		0
+	End SubModelPartProperties
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		1
+		2
+		3
+		4
+		5
+		6
+	End SubModelPartConditions
+End SubModelPart // design_surface

@@ -5,7 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -68,9 +67,59 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
                     expected_value = -10.0
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
             if node.Id == 4:
                 if self.time > 0.22 and self.time < 0.25:
                     expected_value = 0.2192
+                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
+            if node.Id == 5:
+                if self.time > 0.5999 and self.time < 0.6001:
+                    expected_value = 6.000
+                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = 5.998
+                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value = 6.000
+                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
+                    expected_value = 6.000
+                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = 6.000
+                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 6.000
+                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
+        for node in self.rigid_face_model_part.Nodes:
+            velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
+            angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
+
+            if node.Id == 10:
+                if self.time > 0.5999 and self.time < 0.6001:
+                    expected_value = -0.975
+                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = -1.062
+                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value = 9.664
+                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
+                    expected_value = 5.017
+                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = -1.200
+                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 1.000
+                    self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
+
+            if node.Id == 20:
+                if self.time > 0.5999 and self.time < 0.6001:
+                    expected_value = 7.788
+                    self.CheckValueOfAngularVelocity(velocity, 0, expected_value, tolerance)
+                    expected_value = 0.262
+                    self.CheckValueOfAngularVelocity(velocity, 1, expected_value, tolerance)
+                    expected_value = 0.894
+                    self.CheckValueOfAngularVelocity(velocity, 2, expected_value, tolerance)
+                    expected_value = 0.450
+                    self.CheckValueOfAngularVelocity(angular_velocity, 0, expected_value, tolerance)
+                    expected_value = 2.400
+                    self.CheckValueOfAngularVelocity(angular_velocity, 1, expected_value, tolerance)
+                    expected_value = 5.400
                     self.CheckValueOfAngularVelocity(angular_velocity, 2, expected_value, tolerance)
 
     def CheckValueOfVelocity(self, velocity, component, expected_value, tolerance):
@@ -78,6 +127,10 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
 
     def CheckValueOfAngularVelocity(self, angular_velocity, component, expected_value, tolerance):
         self.assertAlmostEqual(angular_velocity[component], expected_value, delta=tolerance)
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestKinematicConstraints(KratosUnittest.TestCase):
 
@@ -90,14 +143,6 @@ class TestKinematicConstraints(KratosUnittest.TestCase):
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(KinematicConstraintsTestSolution, model, parameters_file_name, 1)
-
-
-    def tearDown(self):
-        file_to_remove = os.path.join("kinematic_constraints_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
-        os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

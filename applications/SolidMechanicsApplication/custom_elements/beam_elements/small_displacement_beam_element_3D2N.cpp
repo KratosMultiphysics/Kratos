@@ -1471,19 +1471,6 @@ int  SmallDisplacementBeamElement3D2N::Check(const ProcessInfo& rCurrentProcessI
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
-    KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
-    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
       {

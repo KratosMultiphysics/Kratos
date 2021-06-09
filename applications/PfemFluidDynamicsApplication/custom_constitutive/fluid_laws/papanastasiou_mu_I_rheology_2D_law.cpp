@@ -77,9 +77,8 @@ namespace Kratos
 
         const double old_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 1);
         const double new_pressure = this->CalculateInGaussPoint(PRESSURE, rValues, 0);
-        const GeometryType &r_geometry = rValues.GetElementGeometry();
 
-        const double theta_momentum = r_geometry[0].GetValue(THETA_MOMENTUM);
+        const double theta_momentum = this->GetThetaMomentumForPressureIntegration();
         double mean_pressure = (1.0 - theta_momentum) * old_pressure + theta_momentum * new_pressure;
         if (mean_pressure > 0.0)
         {
@@ -129,13 +128,6 @@ namespace Kratos
     int PapanastasiouMuIRheology2DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
                                              const ProcessInfo &rCurrentProcessInfo)
     {
-        KRATOS_CHECK_VARIABLE_KEY(STATIC_FRICTION);
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_FRICTION);
-        KRATOS_CHECK_VARIABLE_KEY(INERTIAL_NUMBER_ZERO);
-        KRATOS_CHECK_VARIABLE_KEY(GRAIN_DIAMETER);
-        KRATOS_CHECK_VARIABLE_KEY(GRAIN_DENSITY);
-        KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
-        KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
 
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)
         {

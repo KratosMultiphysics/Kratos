@@ -70,6 +70,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_perimeter_computation()
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
@@ -120,18 +121,23 @@ class PotentialFlowTests(UnitTest.TestCase):
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
         settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
+        settings_comp_penalty_file_name = "embedded_compressible_circle_penalty_parameters.json"
         work_folder = "embedded_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -0.08769331821378197, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.5405047994795951, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -0.04198874676923284, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], -1.0514799328784257, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.8267434236568107, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -1.1267771704301741, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
             self._runTest(settings_penalty_file_name)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.12976919914058177, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.4636936459965071, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.08091879125682809, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.28201444027332967, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.38373989115443974, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3586452849311815, 0.0, 1e-6)
+            self._runTest(settings_comp_penalty_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.2822496130014952, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.383928586844835, 0.0, 1e-6)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.3588608523566507, 0.0, 1e-6)
 
             for file_name in os.listdir(os.getcwd()):
                 if file_name.endswith(".h5"):
@@ -188,7 +194,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7331131286069874, 0.0, 1e-9)
-            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06480686535448453, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7228720706323188, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7287060122732945, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008517301562764179, 0.0, 1e-9)
@@ -300,6 +306,12 @@ class PotentialFlowTests(UnitTest.TestCase):
         full_msg += str(rel_tol) + ", abs_tol = " + str(abs_tol)
 
         self.assertTrue(isclosethis, msg=full_msg)
+
+    def _check_perimeter_computation(self):
+        body_model_part = self.main_model_part.GetSubModelPart("Body2D_Body")
+        perimeter1 = sum([cond.GetGeometry().Area() for cond in body_model_part.Conditions])
+        perimeter2 = CPFApp.PotentialFlowUtilities.CalculateArea(body_model_part.Conditions)
+        self._check_results(perimeter1, perimeter2, 1e-9, 1e-9)
 
 if __name__ == '__main__':
     UnitTest.main()

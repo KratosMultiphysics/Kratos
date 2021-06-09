@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -856,7 +857,7 @@ protected:
             it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
-                const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
+                const double det_f = MathUtils<double>::Det(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {
                         KRATOS_WATCH(it_elem->Id())
@@ -928,7 +929,7 @@ protected:
      * @return Returns the default parameters
      */
 
-    Parameters GetDefaultParameters()
+    Parameters GetDefaultParameters() const override
     {
         Parameters default_parameters = Parameters(R"(
         {

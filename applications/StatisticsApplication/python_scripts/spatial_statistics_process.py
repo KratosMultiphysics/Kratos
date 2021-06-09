@@ -56,7 +56,7 @@ class SpatialStatisticsProcess(Kratos.Process):
                 "write_time_stamp"       : true,
                 "output_file_settings"   : {
                     "file_name"  : "<model_part_name>_<container>_<norm_type>_<method_name>.dat",
-                    "folder_name": "spatial_statistics_output",
+                    "output_path": "spatial_statistics_output",
                     "write_buffer_size" : -1
                 }
             }
@@ -159,8 +159,8 @@ class SpatialStatisticsProcess(Kratos.Process):
             current_output_file_settings = Kratos.Parameters("""{}""")
             current_output_file_settings.AddEmptyValue("file_name")
             current_output_file_settings["file_name"].SetString(output_file_name)
-            current_output_file_settings.AddEmptyValue("folder_name")
-            current_output_file_settings["folder_name"].SetString(output_file_settings["folder_name"].GetString())
+            current_output_file_settings.AddEmptyValue("output_path")
+            current_output_file_settings["output_path"].SetString(output_file_settings["output_path"].GetString())
             # restarting is not supported if STEP is used as the control variable
             if (self.__is_writing_process()):
                 self.output_files.append(TimeBasedAsciiFileWriterUtility(self.__get_model_part(), current_output_file_settings, msg_header))

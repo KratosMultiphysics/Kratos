@@ -173,7 +173,7 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step ) con
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-                                                  std::vector<double>& rValues,
+                                                  const std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -185,7 +185,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                  std::vector<Vector>& rValues,
+                                                  const std::vector<Vector>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -197,7 +197,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                  std::vector<Matrix>& rValues,
+                                                  const std::vector<Matrix>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -920,16 +920,6 @@ void ThermalElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVar
 int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
 {
      KRATOS_TRY
-
-     // Check that all required variables have been registered
-     KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
-     KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
-     KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
 
      return 0;
 

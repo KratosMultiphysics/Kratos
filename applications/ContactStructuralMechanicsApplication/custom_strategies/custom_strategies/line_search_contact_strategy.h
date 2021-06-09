@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -25,6 +26,7 @@
 #include "solving_strategies/strategies/line_search_strategy.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -350,24 +352,17 @@ protected:
         const int num_nodes = static_cast<int>(nodes_array.size()); 
         
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) 
-        {
+        for(int i = 0; i < num_nodes; ++i)  {
             auto it_node = nodes_array.begin() + i;
     
-            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++)
-            {
+            for(auto itDoF = it_node->GetDofs().begin() ; itDoF != it_node->GetDofs().end() ; itDoF++) {
                 const int j = (**itDoF).EquationId();
                 const std::size_t CurrVar = (**itDoF).GetVariable().Key();
                 
-                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z))
-                {          
-                    #pragma omp atomic
-                    normDisp += b[j] * b[j];
-                }
-                else // Corresponding with contact
-                {
-                    #pragma omp atomic
-                    normLM += b[j] * b[j];
+                if ((CurrVar == DISPLACEMENT_X) || (CurrVar == DISPLACEMENT_Y) || (CurrVar == DISPLACEMENT_Z)) {          
+                    AtomicAdd(normDisp, b[j] * b[j]);
+                } else { // Corresponding with contact
+                    AtomicAdd(normLM, b[j] * b[j]);
                 }
             }
         }

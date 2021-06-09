@@ -464,23 +464,6 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check() override
-    {
-        KRATOS_TRY
-
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_LAMBDA);
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_RADIUS_FACTOR);
-
-        return ierr;
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
         if (pv == NULL)

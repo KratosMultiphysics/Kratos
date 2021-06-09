@@ -94,10 +94,14 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Point", num_particle=50, expected_num_particle=1)
 
-    ## Line2D - automatic and 2, 3, 4, 5, 6, 7, and default
+    ## Line2D - automatic and 2, 3, 4, 5, and default
     def test_GenerateMPMParticleConditionLine2DAutomatic(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=0, expected_num_particle=2)
+        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=0, expected_num_particle=1)
+
+    def test_GenerateMPMParticleConditionLine2D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=1, expected_num_particle=1)
 
     def test_GenerateMPMParticleConditionLine2D2P(self):
         current_model = KratosMultiphysics.Model()
@@ -115,17 +119,9 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=5, expected_num_particle=5)
 
-    def test_GenerateMPMParticleConditionLine2D6P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=6, expected_num_particle=6)
-
-    def test_GenerateMPMParticleConditionLine2D7P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=7, expected_num_particle=7)
-
     def test_GenerateMPMParticleConditionLine2DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=50, expected_num_particle=2)
+        self._generate_particle_condition_and_check(current_model, dimension=2, geometry_element="Line", num_particle=50, expected_num_particle=1)
 
     ## Point3D - automatic, 1, and default
     def test_GenerateMPMParticleConditionPoint3DAutomatic(self):
@@ -140,10 +136,14 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Point", num_particle=50, expected_num_particle=1)
 
-    ## Line3D - automatic and 2, 3, 4, 5, 6, 7, and default
+    ## Line3D - automatic and 2, 3, 4, 5, and default
     def test_GenerateMPMParticleConditionLine3DAutomatic(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=0, expected_num_particle=2)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=0, expected_num_particle=1)
+
+    def test_GenerateMPMParticleConditionLine3D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=1, expected_num_particle=1)
 
     def test_GenerateMPMParticleConditionLine3D2P(self):
         current_model = KratosMultiphysics.Model()
@@ -161,83 +161,55 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=5, expected_num_particle=5)
 
-    def test_GenerateMPMParticleConditionLine3D6P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=6, expected_num_particle=6)
-
-    def test_GenerateMPMParticleConditionLine3D7P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=7, expected_num_particle=7)
-
     def test_GenerateMPMParticleConditionLine3DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=50, expected_num_particle=2)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Line", num_particle=50, expected_num_particle=1)
 
-    ## Triangle3D - automatic, 3, 4, 6, 9, 15, 19, 36, and default
+    ## Triangle3D - automatic, 1, 3, 6, 12, and default
     def test_GenerateMPMParticleConditionTriangle3DAutomatic(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=0, expected_num_particle=3)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=0, expected_num_particle=1)
+
+    def test_GenerateMPMParticleConditionTriangle3D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
 
     def test_GenerateMPMParticleConditionTriangle3D3P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_num_particle=3)
 
-    def test_GenerateMPMParticleConditionTriangle3D4P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=4, expected_num_particle=4)
-
     def test_GenerateMPMParticleConditionTriangle3D6P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=6, expected_num_particle=6)
 
-    def test_GenerateMPMParticleConditionTriangle3D9P(self):
+    def test_GenerateMPMParticleConditionTriangle3D12P(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=9, expected_num_particle=9)
-
-    def test_GenerateMPMParticleConditionTriangle3D15P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=15, expected_num_particle=15)
-
-    def test_GenerateMPMParticleConditionTriangle3D19P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=19, expected_num_particle=19)
-
-    def test_GenerateMPMParticleConditionTriangle3D36P(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=36, expected_num_particle=36)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=12, expected_num_particle=12)
 
     def test_GenerateMPMParticleConditionTriangle3DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=50, expected_num_particle=3)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=50, expected_num_particle=1)
 
-    ## Quadrilateral3D - automatic, 4, 5, 8, 13, 20, and default
+    ## Quadrilateral3D - automatic, 1 ,4, 9, 16 and default
     def test_GenerateMPMParticleConditionQuadrilateral3DAutomatic(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=0, expected_num_particle=4)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=0, expected_num_particle=1)
 
     def test_GenerateMPMParticleConditionQuadrilateral3D4N(self):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=4)
 
-    def test_GenerateMPMParticleConditionQuadrilateral3D5N(self):
+    def test_GenerateMPMParticleConditionQuadrilateral3D9N(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=5, expected_num_particle=5)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=9)
 
-    def test_GenerateMPMParticleConditionQuadrilateral3D8N(self):
+    def test_GenerateMPMParticleConditionQuadrilateral3D16N(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=8, expected_num_particle=8)
-
-    def test_GenerateMPMParticleConditionQuadrilateral3D13N(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=13, expected_num_particle=13)
-
-    def test_GenerateMPMParticleConditionQuadrilateral3D20N(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=20, expected_num_particle=20)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=16)
 
     def test_GenerateMPMParticleConditionQuadrilateral3DDefault(self):
         current_model = KratosMultiphysics.Model()
-        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=4)
+        self._generate_particle_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=1)
 
 
 if __name__ == '__main__':

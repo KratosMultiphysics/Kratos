@@ -1,6 +1,6 @@
 # Import base sympy_fe_utilities
 import KratosMultiphysics
-import KratosMultiphysics.sympy_fe_utilities
+import KratosMultiphysics.sympy_fe_utilities as sympy_fe_utilities
 
 # Import sympy
 import sympy
@@ -280,7 +280,7 @@ def SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_
     what_to_substitute -- Components to substitute
     substituted_value -- Variable to substitute
     """
-    return return sympy_fe_utilities.SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_value )
+    return sympy_fe_utilities.SubstituteMatrixValue( where_to_substitute, what_to_substitute, substituted_value )
 
 def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value ):
     """ This method substitutes values into a scalar
@@ -290,7 +290,7 @@ def SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_
     what_to_substitute -- Components to substitute
     substituted_value -- Variable to substitute
     """
-    return return sympy_fe_utilities.SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value )
+    return sympy_fe_utilities.SubstituteScalarValue( where_to_substitute, what_to_substitute, substituted_value )
 
 def GetShapeFunctionDefinitionLine2D2N(x,xg):
     """ This computes the shape functions on 2D line

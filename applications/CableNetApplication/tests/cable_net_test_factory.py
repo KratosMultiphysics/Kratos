@@ -8,7 +8,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 import cable_net_test_case
 import os
 
-have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "ExternalSolversApplication", "CoSimulationApplication")
+have_dem_fem_dependencies = kratos_utils.CheckIfApplicationsAvailable("DEMApplication", "StructuralMechanicsApplication", "MappingApplication", "LinearSolversApplication", "CoSimulationApplication")
 
 # needed to find elements associated with CableNetApplication
 import KratosMultiphysics.CableNetApplication

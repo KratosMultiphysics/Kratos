@@ -7,8 +7,8 @@ def checkInitialisationMC(XMCAlgorithm):
 
     solverWrapperDictionary = XMCAlgorithm.monteCarloSampler.indexConstructorDictionary[
             "samplerInputDictionary"]["solverWrapperInputDictionary"]
-    positionMaxNumberIterationsCriterion=XMCAlgorithm.positionMaxNumberIterationsCriterion
-    tolerances=XMCAlgorithm.stoppingCriterion.tolerances()
+    positionMaxNumberIterationsCriterion = XMCAlgorithm.positionMaxNumberIterationsCriterion
+    tolerances = XMCAlgorithm.stoppingCriterion.tolerances()
     # perform checks
     checkInitialisationSolverWrapper(solverWrapperDictionary)
     if ("asynchronous" in solverWrapperDictionary):
@@ -41,30 +41,25 @@ def checkInitialisationSolverWrapper(solverWrapperDictionary):
     Method checking solver wrapper keys are correctly set. A required key is outputBatchSize, which is needed to organize the quantities of interest into sublists (of future objects). For this reason, outputBatchSize must be smaller than or equal to the total number of quantities of interest. It is required if areSamplesSplit() is true.
     """
 
-    sql = 1 ; ncq = 0 ; nq = 0 ; nmq = 0 ; nmcq = 0 # default values
-    if "outputBatchSize" in solverWrapperDictionary:
-        sql = solverWrapperDictionary["outputBatchSize"]
-    else:
-        warnings.warn("outputBatchSize not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMomentEstimator" in solverWrapperDictionary:
-        nq = solverWrapperDictionary["numberMomentEstimator"]
-    else:
-        warnings.warn("numberMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberCombinedMomentEstimator" in solverWrapperDictionary:
-        ncq = solverWrapperDictionary["numberCombinedMomentEstimator"]
-    else:
-        warnings.warn("numberCombinedMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMultiCombinedMomentEstimator" in solverWrapperDictionary:
-        nmcq = solverWrapperDictionary["numberMultiCombinedMomentEstimator"]
-    else:
-        warnings.warn("numberMultiCombinedMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
-    if "numberMultiMomentEstimator" in solverWrapperDictionary:
-        nmq = solverWrapperDictionary["numberMultiMomentEstimator"]
-    else:
-        warnings.warn("numberMultiMomentEstimator not defined in solverWrapper dictionary. The default value of 0 will be considered.")
+    obs = 1 # default value assigned in the solver wrapper
 
-    if sql > (nq+ncq+nmq+nmcq):
-        raise Exception ("solverWrapperDictionary: outputBatchSize exceeding maximum dimension. Set a value <= numberMomentEstimator + numberCombinedQoI + numberMultiMomentEstimator + numberMultiCombinedMomentEstimator.")
+    if "outputBatchSize" in solverWrapperDictionary:
+        obs = solverWrapperDictionary["outputBatchSize"]
+    else:
+        warnings.warn("outputBatchSize not defined in solverWrapper dictionary. The default value of 1 will be considered.")
+
+    if "qoiEstimator" in solverWrapperDictionary:
+        numqoi = len(solverWrapperDictionary["qoiEstimator"])
+        qoi_estimator = solverWrapperDictionary["qoiEstimator"]
+    else:
+        raise Exception("qoiEstimator not defined in solverWrapper dictionary. This entry is required by the SolverWrapper.")
+
+    if "xmc.momentEstimator.MultiMomentEstimator" in qoi_estimator or "xmc.momentEstimator.MultiCombinedMomentEstimator" in qoi_estimator:
+        if not "sizeMultiXMomentEstimator" in solverWrapperDictionary:
+            raise Exception("solverWrapperDictionary does not contain the key sizeMultiXMomentEstimator. The use of MultiMomentEstimator and MultiCombinedMomentEstimator requires to specify the dimension of such multi-dimensional quantities of interest in the solverWrapperDictionary.")
+
+    if obs > (numqoi):
+        raise Exception ("solverWrapper: outputBatchSize exceeding maximum dimension. Set a value <= number of estimators, namely len(qoiEstimator).")
 
 def checkMaxNumberIterationsCriterion(positionMaxNumberIterationsCriterion,tolerances):
     """

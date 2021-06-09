@@ -71,12 +71,12 @@ void  ElasticIsotropic3DFEMDEM::CalculateMaterialResponsePK2(ConstitutiveLaw::Pa
         Vector& r_stress_vector = rValues.GetStressVector();
         CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
     }
-    
+
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
-    
+
     KRATOS_CATCH("");
 }
 
@@ -281,15 +281,12 @@ int ElasticIsotropic3DFEMDEM::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is invalid value " << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
     KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
     KRATOS_ERROR_IF(rMaterialProperties[DENSITY] < 0.0) << "DENSITY is invalid value " << std::endl;
 
     return 0;

@@ -245,10 +245,10 @@ public:
     ///@{
 
     /**
-     * @brief Base element GetValueOnIntegrationPoints
+     * @brief Base element CalculateOnIntegrationPoints
      * Called to avoid reimplementing the variable types specializations not required
      */
-    using TBaseElement::GetValueOnIntegrationPoints;
+    using TBaseElement::CalculateOnIntegrationPoints;
 
     /**
      * @brief Get the Value On Integration Points object
@@ -257,7 +257,7 @@ public:
      * @param rValues Computed gauss point values
      * @param rCurrentProcessInfo Current process info
      */
-    void GetValueOnIntegrationPoints(
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3>> &rVariable,
         std::vector<array_1d<double, 3>> &rValues,
         const ProcessInfo &rCurrentProcessInfo) override;

@@ -69,7 +69,7 @@ class Solution():
         self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
         self.aux = AuxiliaryUtilities()
-        
+
 
 
         # Set the print function TO_DO: do this better...
@@ -138,18 +138,12 @@ class Solution():
 
     def SetAnalyticFaceWatcher(self):
         from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceWatcherAnalyzer
-        self.face_watcher_dict = dict()
-        self.face_watcher_analysers = dict()
-        for sub_part in self.rigid_face_model_part.SubModelParts:
-            if sub_part[IS_GHOST] == True:
-                name = sub_part.Name
-                self.face_watcher_dict[sub_part.Name] = AnalyticFaceWatcher(sub_part)
-                self.face_watcher_analysers[sub_part.Name] = analytic_data_procedures.FaceWatcherAnalyzer(name=name, analytic_face_watcher=self.face_watcher_dict[sub_part.Name], path=self.main_path)
+        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        for face_watcher in self.face_watcher_dict.values():
-            face_watcher.MakeMeasurements()
+        pass
+        # for face_watcher in self.face_watcher_dict.values():
+        #     face_watcher.MakeMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -472,13 +466,10 @@ class Solution():
                 break
 
     def RunAnalytics(self, time, is_time_to_print=True):
-        for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-            self.MakeAnalyticsMeasurements()
-            if is_time_to_print:
-                self.FaceAnalyzerClass.CreateNewFile()
-                for sp in (sp for sp in self.rigid_face_model_part.SubModelParts if sp[IS_GHOST]):
-                    self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
-                self.FaceAnalyzerClass.RemoveOldFile()
+        pass
+            # self.MakeAnalyticsMeasurements()
+            # if is_time_to_print:
+            #     self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
 
     def IsTimeToPrintPostProcess(self):
         return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.solver.dt
@@ -489,12 +480,9 @@ class Solution():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
-
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
+        self.solver._UpdateTimeInModelParts(self.time, self.IsTimeToPrintPostProcess())
 
-    def UpdateTimeInOneModelPart(self):
-        pass
 
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
@@ -644,7 +632,7 @@ class Solution():
     def _UpdateTimeParameters(self):
         self.time = self.time + self.solver.dt
         self.step += 1
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
+        self.solver.UpdateTimeInModelParts(self.time, self.IsTimeToPrintPostProcess())
 
     def FinalizeSingleTimeStep(self):
         self.solver._MoveAllMeshes(self.time, self.solver.dt)

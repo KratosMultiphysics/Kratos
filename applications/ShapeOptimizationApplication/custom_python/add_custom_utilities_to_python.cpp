@@ -31,12 +31,14 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_normal.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_mesh_independent_normal.h"
+#include "custom_utilities/mapping/mapper_vertex_morphing_symmetric.h"
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/lumped_integration_utility.h"
 #include "custom_utilities/response_functions/surface_area_response_function_utility.h"
+#include "custom_utilities/response_functions/face_angle_response_function_utility.h"
 
 // ==============================================================================
 
@@ -273,6 +275,15 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Map", MapMixed<MapperVertexMorphingMeshIndependentNormal>)
         .def("InverseMap", InverseMapMixed<MapperVertexMorphingMeshIndependentNormal>)
         ;
+    py::class_<MapperVertexMorphingSymmetric >(m, "MapperVertexMorphingSymmetric")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Initialize", &MapperVertexMorphingSymmetric::Initialize)
+        .def("Update", &MapperVertexMorphingSymmetric::Update)
+        .def("Map", MapScalar<MapperVertexMorphingSymmetric>) // TODO
+        .def("Map", MapVector<MapperVertexMorphingSymmetric>)
+        .def("InverseMap", InverseMapScalar<MapperVertexMorphingSymmetric>) // TODO
+        .def("InverseMap", InverseMapVector<MapperVertexMorphingSymmetric>)
+        ;
 
     // ================================================================
     // For a possible damping of nodal variables
@@ -356,6 +367,16 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
+        ;
+
+    // ========================================================================
+    // For geometric response functions
+    // ========================================================================
+    py::class_<FaceAngleResponseFunctionUtility >(m, "FaceAngleResponseFunctionUtility")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &FaceAngleResponseFunctionUtility::Initialize)
+        .def("CalculateValue", &FaceAngleResponseFunctionUtility::CalculateValue)
+        .def("CalculateGradient", &FaceAngleResponseFunctionUtility::CalculateGradient)
         ;
 
     // ========================================================================

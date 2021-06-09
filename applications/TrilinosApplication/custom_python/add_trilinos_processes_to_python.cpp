@@ -73,6 +73,8 @@ void AddProcesses(pybind11::module& m)
 
     typedef TrilinosLevelSetConvectionProcess<2, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLevelSetConvectionProcess2D;
     py::class_<TrilinosLevelSetConvectionProcess2D, TrilinosLevelSetConvectionProcess2D::Pointer, BaseLevelSetConvectionProcess2D>(m, "TrilinosLevelSetConvectionProcess2D")
+        .def(py::init<Epetra_MpiComm&, Model&, TrilinosLinearSolverType::Pointer, Parameters>())
+        .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, Parameters>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double>())
@@ -81,6 +83,8 @@ void AddProcesses(pybind11::module& m)
 
     typedef TrilinosLevelSetConvectionProcess<3, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLevelSetConvectionProcess3D;
     py::class_<TrilinosLevelSetConvectionProcess3D, TrilinosLevelSetConvectionProcess3D::Pointer, BaseLevelSetConvectionProcess3D>(m, "TrilinosLevelSetConvectionProcess3D")
+        .def(py::init<Epetra_MpiComm&, Model&, TrilinosLinearSolverType::Pointer, Parameters>())
+        .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, Parameters>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double>())

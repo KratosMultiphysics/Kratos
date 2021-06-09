@@ -1097,14 +1097,6 @@ int LinearSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
     int ErrorCode = 0;
     ErrorCode = Element::Check(rCurrentProcessInfo);
 
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
-
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {

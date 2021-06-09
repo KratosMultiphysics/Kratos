@@ -31,7 +31,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : pub
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;

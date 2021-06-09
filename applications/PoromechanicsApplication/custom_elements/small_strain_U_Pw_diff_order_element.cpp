@@ -597,7 +597,7 @@ void SmallStrainUPwDiffOrderElement::FinalizeSolutionStep( const ProcessInfo& rC
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,const std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -605,7 +605,7 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variabl
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,std::vector<Vector>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,const std::vector<Vector>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -613,7 +613,7 @@ void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variabl
 
 //----------------------------------------------------------------------------------------
 
-void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,std::vector<Matrix>& rValues,const ProcessInfo& rCurrentProcessInfo )
+void SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,const std::vector<Matrix>& rValues,const ProcessInfo& rCurrentProcessInfo )
 {
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
@@ -1003,7 +1003,6 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties (ElementalVariables& r
 {
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    double BulkModulus = GetProperties()[YOUNG_MODULUS]/(3.0*(1.0-2.0*GetProperties()[POISSON_RATIO]));
     double BulkModulusSolid = GetProperties()[BULK_MODULUS_SOLID];
     rVariables.BiotCoefficient = GetProperties()[BIOT_COEFFICIENT];
     double Porosity = GetProperties()[POROSITY];

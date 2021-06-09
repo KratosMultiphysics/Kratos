@@ -17,11 +17,11 @@
 /* System includes */
 #include <set>
 #include <unordered_set>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 /* External includes */
+#ifdef KRATOS_SMP_OPENMP
+#include <omp.h>
+#endif
 
 /* Project includes */
 #include "utilities/timer.h"
@@ -29,6 +29,8 @@
 #include "includes/key_hash.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -212,7 +214,7 @@ public:
         EquationIdVectorType equation_id;
 
         // Assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
 
         #pragma omp parallel firstprivate(LHS_Contribution, RHS_Contribution, equation_id )
         {
@@ -259,10 +261,11 @@ public:
                 }
             }
         }
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() >=1) << "System build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
+
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished building" << std::endl;
+
 
         KRATOS_CATCH("")
     }
@@ -544,14 +547,14 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
-        const double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto timer = BuiltinTimer();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
         Timer::Stop("Solve");
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
+
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
@@ -687,7 +690,7 @@ public:
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        SizeType nthreads = OpenMPUtils::GetNumThreads();
+        SizeType nthreads = ParallelUtilities::GetNumThreads();
 
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
 
@@ -1077,8 +1080,7 @@ protected:
 #else
                 double& r_a = rb[i_global];
                 const double& v_a = rRHSContribution(i_local);
-                #pragma omp atomic
-                r_a += v_a;
+                AtomicAdd(r_a, v_a);
 #endif
                 AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
 
@@ -1282,8 +1284,7 @@ protected:
 #ifndef USE_LOCKS_IN_ASSEMBLY
             double& r_a = values_vector[last_pos];
             const double& v_a = rALocal(i_local,counter - 1);
-            #pragma omp atomic
-            r_a +=  v_a;
+            AtomicAdd(r_a,  v_a);
 #else
             values_vector[last_pos] += rALocal(i_local,counter - 1);
 #endif
@@ -1302,8 +1303,7 @@ protected:
 #ifndef USE_LOCKS_IN_ASSEMBLY
                     double& r = values_vector[pos];
                     const double& v = rALocal(i_local,j);
-                    #pragma omp atomic
-                    r +=  v;
+                    AtomicAdd(r,  v);
 #else
                     values_vector[pos] += rALocal(i_local,j);
 #endif
@@ -1401,8 +1401,7 @@ private:
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
         } else {
@@ -1415,14 +1414,12 @@ private:
                     double& b_value = rb[i_global];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 } else { // Fixed dof
                     double& b_value = r_reactions_vector[i_global - BaseType::mEquationSystemSize];
                     const double& rhs_value = rRHSContribution[i_local];
 
-                    #pragma omp atomic
-                    b_value += rhs_value;
+                    AtomicAdd(b_value, rhs_value);
                 }
             }
         }

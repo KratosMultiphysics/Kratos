@@ -154,6 +154,11 @@ class MainCoupledFemDem_Solution:
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
 
+        if self.FEM_Solution.ProjectParameters.Has("do_stabilization_solve") == False:
+            self.do_stabilization_solve = False
+        else:
+            self.do_stabilization_solve = self.FEM_Solution.ProjectParameters["do_stabilization_solve"].GetBool()
+
         if self.CreateInitialSkin:
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
@@ -163,7 +168,7 @@ class MainCoupledFemDem_Solution:
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
-        
+
         self.FindNeighboursIfNecessary()
 
 #============================================================================================================================
@@ -335,7 +340,8 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
+            data_communicator = self.FEM_Solution.main_model_part.GetCommunicator().GetDataCommunicator()
+            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(data_communicator, self.FEM_Solution.main_model_part)
             self.nodal_neighbour_finder.Execute()
         else: # 2D
             neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
@@ -481,7 +487,7 @@ class MainCoupledFemDem_Solution:
                 self.ExpandWetNodes()
                 KratosFemDem.UpdatePressureVolumeProcess(self.FEM_Solution.main_model_part).Execute()
                 self.ExpandWetNodes()
-            
+
             self.UpdateDEMVariables()
 
             dem_generator_process = KratosFemDem.GenerateDemProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart)
@@ -509,6 +515,11 @@ class MainCoupledFemDem_Solution:
             utils.SetNonHistoricalVariable(KratosFemDem.GENERATE_DEM, False, elements)
 
             self.ExtrapolatePressureLoad()
+
+            if self.do_stabilization_solve:
+                self.FEM_Solution.KratosPrintInfo("FEM-DEM:: Stabilization Calculation after removing FE...")
+                self.FEM_Solution.solver.Solve()
+                self.ExecuteAfterGeneratingDEM()
 
 
 #RemoveIsolatedFiniteElements============================================================================================================================
@@ -918,11 +929,7 @@ class MainCoupledFemDem_Solution:
     def BeforeSolveDEMOperations(self):
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
-        self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
-                                                                   self.DEM_Solution.time,
-                                                                   self.DEM_Solution.solver.dt,
-                                                                   self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
+        self.DEM_Solution.UpdateTimeInModelParts()
 
 #TransferFEMSkinToDEM============================================================================================================================
     def TransferFEMSkinToDEM(self):
@@ -958,6 +965,7 @@ class MainCoupledFemDem_Solution:
         self.created_props_id = max_id_properties + 1
         props[KratosDEM.STATIC_FRICTION] =  -0.5773502691896257
         props[KratosDEM.DYNAMIC_FRICTION] =  -0.5773502691896257
+        props[KratosDEM.FRICTION_DECAY] = 500
         props[KratosDEM.WALL_COHESION] = 0.0
         props[KratosDEM.COMPUTE_WEAR] = False
         props[KratosDEM.SEVERITY_OF_WEAR] = 0.001

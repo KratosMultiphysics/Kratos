@@ -72,7 +72,12 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")

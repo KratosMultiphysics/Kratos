@@ -78,6 +78,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
@@ -173,6 +174,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2PlasticityPlaneStrain2DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2PlasticityPlaneStrain2DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
@@ -273,6 +275,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
@@ -369,6 +372,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("SmallStrainJ2Plasticity3DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("SmallStrainJ2Plasticity3DLaw");
             const Variable<double>& plastic_strain_variable = KratosComponents<Variable<double>>::Get("ACCUMULATED_PLASTIC_STRAIN");
@@ -469,6 +473,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -544,6 +549,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -624,6 +630,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();
@@ -700,6 +707,7 @@ namespace Kratos
             Properties::Pointer p_elem_prop = r_model_part.CreateNewProperties(0);
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             KRATOS_SKIP_TEST_IF_NOT(KratosComponents<Element>::Has("UpdatedLagrangianElement2D3N")) << "This test needs the StructuralMechanicsApplication" << std::endl;
+            KRATOS_SKIP_TEST_IF_NOT(KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw")) << "This test needs the ConstitutiveLawsApplication" << std::endl;
 
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
             auto p_this_law = r_clone_cl.Clone();

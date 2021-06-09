@@ -101,7 +101,7 @@ namespace Kratos {
                                                 double equiv_poisson,
                                                 double calculation_area,
                                                 SphericContinuumParticle* element1,
-                                                SphericContinuumParticle* element2) {
+                                                SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
         double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
@@ -175,6 +175,7 @@ namespace Kratos {
                 LocalElasticExtraContactForce,
                 LocalCoordSystem,
                 LocalDeltDisp,
+                LocalRelVel,
                 kt_el,
                 equiv_shear,
                 contact_sigma,
@@ -375,9 +376,10 @@ namespace Kratos {
 //     /*
     void DEM_Dempack::CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                 double LocalElasticContactForce[3],
-						double LocalElasticExtraContactForce[3],
+						                        double LocalElasticExtraContactForce[3],
                                                 double LocalCoordSystem[3][3],
                                                 double LocalDeltDisp[3],
+                                                double LocalRelVel[3],
                                                 const double kt_el,
                                                 const double equiv_shear,
                                                 double& contact_sigma,

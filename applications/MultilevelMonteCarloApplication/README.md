@@ -141,31 +141,17 @@ Instructions for installing MMG can be found in the [Kratos wiki](https://github
 
 ### PyCOMPSs
 
-PyCOMPSs is the python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a python environment.
+PyCOMPSs is the Python library required in order to use [COMPSs](https://www.bsc.es/research-and-development/software-and-apps/software-list/comp-superscalar) in a Python environment.
 By default PyCOMPSs is not required in order to run the application.
 In case one wants to run using this library, Kratos needs to be compiled adding the flag `-DUSING_PYCOMPSS=ON \ `.
 
 Instructions for the installation can be found in the [Kratos wiki](https://github.com/KratosMultiphysics/Kratos/wiki/How-to-run-multiple-cases-using-PyCOMPSs). The current version is able to run several thousands of samples at once exploiting PyCOMPSs and maximizing parallelism.
 
-Finally, wherever required, it is needed to switch from:
-``` cmake
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
-```
-to:
-``` cmake
-# Import PyCOMPSs
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-```
-to use the distributed computing capabilities.
+To run with `runcompss`, the environment variable `EXAQUTE_BACKEND=pycompss` must be set to use the distributed computing capabilities.
 
 ### XMC
 
-[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the flag `-DUSING_INTERNAL_XMC=OFF \ ` should be added when compiling Kratos.
+[XMC](https://gitlab.com/RiccardoRossi/exaqute-xmc) is a Python library, with BSD 4 license, designed for hierarchical Monte Carlo methods. The library develops the above-mentioned algorithms, statistical tools and convergence criteria. The library presents a natural integration with Kratos, which is XMC default solver. By default, an internal version of the library is used. If one wants to use an external version of the library, the flag `-DUSING_INTERNAL_XMC=OFF \ ` should be added when compiling Kratos.
 
 ## License
 

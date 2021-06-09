@@ -703,7 +703,6 @@ public:
                     nodes_positions[i*3+0]=geom[i].X();
                     nodes_positions[i*3+1]=geom[i].Y();
                     nodes_positions[i*3+2]=geom[i].Z();
-                    //weighting_inverse_divisor[i]=1.0/((geom[i].FastGetSolutionStepValue(MEAN_SIZE))*1.01);
                 }
 
                 int & number_of_particles_in_elem= mNumOfParticlesInElems[ii];
@@ -870,7 +869,7 @@ public:
         const int max_results = 1000;
 
         //tools for the paralelization
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
         std::vector<unsigned int> elem_partition;
         int number_of_rows = mrModelPart.Elements().size();
         elem_partition.resize(number_of_threads + 1);
@@ -982,7 +981,7 @@ public:
         const int offset = mOffset;
 
         //TOOLS FOR THE PARALELIZATION
-        unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+        unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
         std::vector<unsigned int> elem_partition;
         int number_of_rows=mrModelPart.Elements().size();
         //KRATOS_THROW_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
@@ -2188,7 +2187,6 @@ private:
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DELTA_SCALAR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_VECTOR1, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PROJECTED_SCALAR1, rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MEAN_SIZE, rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(YP, rnode)
 
         return 0;

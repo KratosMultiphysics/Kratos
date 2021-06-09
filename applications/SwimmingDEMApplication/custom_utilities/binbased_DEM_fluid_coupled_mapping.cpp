@@ -1013,10 +1013,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateFluidFraction(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.Nodes().size(), mNodesPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.Nodes().size(), mNodesPartition);
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
             double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
@@ -1045,7 +1045,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 
 //    if (IsFluidVariableToBeTimeFiltered(FLUID_FRACTION)){
 //        #pragma omp parallel for firstprivate(alpha)
-//        for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+//        for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 //            for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
 //                double& fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
 //                double& last_filtering_step_fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION_FILTERED);
@@ -1060,10 +1060,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Calculat
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateFluidMassFraction(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.Nodes().size(), mNodesPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.Nodes().size(), mNodesPartition);
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (NodesArrayType::iterator i_node = this->GetNodePartitionBegin(r_fluid_model_part, k); i_node != this->GetNodePartitionEnd(r_fluid_model_part, k); ++i_node){
             const double fluid_fraction = i_node->FastGetSolutionStepValue(FLUID_FRACTION);
