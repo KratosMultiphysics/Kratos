@@ -235,6 +235,11 @@ public:
         return const_iterator(mData.begin());
     }
 
+    const_iterator cbegin() const
+    {
+        return const_iterator(mData.begin());
+    }
+
     iterator                   end()
     {
         return iterator( mData.end() );
@@ -245,6 +250,11 @@ public:
     }
 
     const_iterator cend()
+    {
+        return const_iterator(mData.end());
+    }
+
+    const_iterator cend() const
     {
         return const_iterator(mData.end());
     }
