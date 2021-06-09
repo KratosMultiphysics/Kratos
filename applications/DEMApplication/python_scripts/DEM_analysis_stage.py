@@ -323,13 +323,13 @@ class DEMAnalysisStage(AnalysisStage):
     
     def HomogenizationUtilitiesInitialize(self, max_node_id=1, max_elem_id=1, max_cond_id=1):
 
-        #TODO:Try to remove self.
         self.projected_homogenization_vars = []
         self.projected_homogenization_vars += [VOLUME_SOLID_FRACTION]
         self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
         self.projected_homogenization_vars += [VELOCITY_PROJECTED]
         self.projected_homogenization_vars += [KratosMultiphysics.NODAL_AREA]
         self.projected_homogenization_vars += [POROSITY_PROJECTED]
+        self.projected_homogenization_vars += [DISPLACEMENT_PROJECTED]
         self.time_filtered_vars = []
         self.time_filtered_vars += [TIME_AVERAGED_ARRAY_3]
         self.time_filtered_vars += [TIME_AVERAGED_DOUBLE]

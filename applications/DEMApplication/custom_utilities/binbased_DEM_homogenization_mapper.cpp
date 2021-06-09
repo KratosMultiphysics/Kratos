@@ -267,12 +267,18 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::Distribute(
         if (*r_destination_variable == VELOCITY_PROJECTED){
             TransferWithConstantWeighing(p_elem, N, p_node, VELOCITY_PROJECTED, VELOCITY);
         }
+        else if (*r_destination_variable == DISPLACEMENT_PROJECTED){
+            TransferWithConstantWeighing(p_elem, N, p_node, DISPLACEMENT_PROJECTED, DISPLACEMENT);
+        }        
     }
 
     else{
 
         if (*r_destination_variable == VELOCITY_PROJECTED){
             TransferWithLinearWeighing(p_elem, N, p_node, VELOCITY_PROJECTED, VELOCITY);
+        }
+        else if (*r_destination_variable == DISPLACEMENT_PROJECTED){
+            TransferWithLinearWeighing(p_elem, N, p_node, DISPLACEMENT_PROJECTED, DISPLACEMENT);
         }
     }
 }
@@ -332,7 +338,7 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithConstantWe
     const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
     array_1d<double, 3>& destination_data  = geom[i_nearest_node].FastGetSolutionStepValue(r_destination_variable);
 
-    if (r_origin_variable == VELOCITY){
+    if (r_origin_variable == VELOCITY || r_origin_variable == DISPLACEMENT){
         const double total_particles_mass    = geom[i_nearest_node].FastGetSolutionStepValue(MASS_SOLID_FRACTION);
         const double particle_mass           = p_node->FastGetSolutionStepValue(NODAL_MASS);
         double weight = particle_mass;
@@ -341,7 +347,6 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithConstantWe
         }
         destination_data += weight * origin_data;
     }
-
     else {
         std::cout << "Variable " << r_origin_variable << " is not supported for transference with constant weights";
     }
@@ -360,9 +365,9 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithLinearWeig
     Geometry<Node<3> >& geom = p_elem->GetGeometry();
     const array_1d<double, 3>& origin_data = p_node->FastGetSolutionStepValue(r_origin_variable);
 
-    if (r_origin_variable == VELOCITY){
+    if (r_origin_variable == VELOCITY || r_origin_variable == DISPLACEMENT){
         for (unsigned int i = 0; i < TDim + 1; ++i){
-            array_1d<double, 3>& particles_velocity = geom[i].FastGetSolutionStepValue(r_destination_variable);
+            array_1d<double, 3>& destination_data = geom[i].FastGetSolutionStepValue(r_destination_variable);
             const double total_particles_mass       = geom[i].FastGetSolutionStepValue(MASS_SOLID_FRACTION);
             const double particle_mass              = p_node->FastGetSolutionStepValue(NODAL_MASS);
 
@@ -375,10 +380,9 @@ void BinBasedDEMHomogenizationMapper<TDim, ParticleType>::TransferWithLinearWeig
                 weight = N[i];
             }
 
-            particles_velocity += weight * origin_data;
+            destination_data += weight * origin_data;
         }
     }
-
     else {
         std::cout << "Variable " << r_origin_variable << " is not supported for transference with linear weights" ;
     }
