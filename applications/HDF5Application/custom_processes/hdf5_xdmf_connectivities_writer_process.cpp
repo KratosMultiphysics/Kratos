@@ -129,7 +129,7 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfPoints(
 
         WriteInfo info;
 
-        mpFile->WriteDataSet(rXdmfNodeIdsPath + "/NodeIds", xdmf_ids, info);
+        mpFile->WriteDataSet(rXdmfNodeIdsPath + "/Points", xdmf_ids, info);
     }
 
     KRATOS_CATCH("");
