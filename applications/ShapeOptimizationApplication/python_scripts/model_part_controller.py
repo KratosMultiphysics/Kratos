@@ -155,10 +155,11 @@ class ModelPartController:
             design_surface_name = design_surface.GetString()
             if self.optimization_model_part.HasSubModelPart(design_surface_name):
                 self.design_surfaces[design_surface_name] = self.optimization_model_part.GetSubModelPart(design_surface_name)
-                KM.Logger.Print("")
-                KM.Logger.PrintInfo("ShapeOpt", "The following design surfaces are defined:\n\n",self.model_settings["design_surfaces"])
             else:
-                raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",design_surface_name)
+                raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",
+                design_surface_name)
+        KM.Logger.Print("")
+        KM.Logger.PrintInfo("ShapeOpt", "The following design surfaces are defined:\n\n",self.model_settings["design_surfaces"])
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions(self):
