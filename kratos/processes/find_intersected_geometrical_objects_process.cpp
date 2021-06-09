@@ -81,6 +81,7 @@ FindIntersectedGeometricalObjectsProcess::FindIntersectedGeometricalObjectsProce
 
 void FindIntersectedGeometricalObjectsProcess::Initialize()
 {
+    KRATOS_WARNING("Using FindIntersectedGeometricalObjectsProcess.Initialize() method is deprecated. Please use the ExecuteInitialize() method intead.");
     if (mrModelPartIntersected.NumberOfNodes() > 0) {
         GenerateOctree();
     }
