@@ -262,13 +262,13 @@ The second component necessary is an [**IO**](python_scripts/base_classes/co_sim
 In principle three different options are possible for exchanging data with CoSimulation:
 
 - For very simple solvers IO can directly be done in python inside the SolverWrapper, which makes a separate IO superfluous (see e.g. a [python-only single degree of freedom solver](python_scripts/solver_wrappers/sdof))
-- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with the _CoSimulationApplication_. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly. Its modular and Kratos-independent design allows for easy integration into other codes.
+- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with the _CoSimulationApplication_. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly. Its modular and Kratos-independent design as _detached interface_ allows for easy integration into other codes.
 - Using a custom solution based on capabilities that are offered by the solver that is to be coupled.
 
 The following picture shows the interaction of these components with the _CoSimulationApplication_ and the external solver:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/cosim_coupling.png" style="width: 300px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/detached_interface.png" style="width: 300px;"/>
 </p>
 
 #### Interface of SolverWrapper
