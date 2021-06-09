@@ -1,0 +1,37 @@
+BeginZE /home/sebastianadpr/Documents/TFM/Mathworks/Mathworks model/Flexible_dipper_arm.gid/Flexible_dipper_arm.vv
+   x -0.745783984661102295 1.05864119529724121
+   y 0.90510261058807373 -0.457746595144271851
+   z -3.46568059921264648 3.46568059921264648
+   e 1.15522682666778564
+   v -0.341302369841053332 0.437029207721755075 0.376681562068423181
+   r -0.742043920866032658
+   m 0.334232956171035767 0.260710328817367554 -0.905714333057403564 0 -0.857346713542938232 0.48324739933013916 -0.177281007170677185 0 0.391465127468109131 0.835764408111572266 0.385036319494247437 0 0 0 0 1
+   c -0.320911198854446411 -0.0126507598906755447 7.08050383850567408e-20
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 0
+   DrawingType 0
+   LightVector -79.5150985717773438 56.6666984558105469 122.627998352050781 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/sebastianadpr/Documents/TFM/Mathworks/Mathworks model/Flexible_dipper_arm.gid/Flexible_dipper_arm.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

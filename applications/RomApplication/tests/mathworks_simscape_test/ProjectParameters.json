@@ -1,0 +1,104 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "Flexible_dipper_arm",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 18.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "Static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "Flexible_dipper_arm"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 1.0
+        },
+        "line_search"                     : false,
+        "convergence_criterion"           : "residual_criterion",
+        "displacement_relative_tolerance" : 0.0001,
+        "displacement_absolute_tolerance" : 1e-9,
+        "residual_relative_tolerance"     : 0.0001,
+        "residual_absolute_tolerance"     : 1e-9,
+        "max_iteration"                   : 10,
+        "rotation_dofs"                   : false,
+        "volumetric_strain_dofs"          : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [],
+        "loads_process_list"       : [],
+        "list_other_processes"     : [{
+            "python_module" : "hrom_stiffness_matrix",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "Parameters"    : {
+                "model_part_list": [
+                    "DISPLACEMENT_Interface_frame_1",
+                    "DISPLACEMENT_Interface_frame_3",
+                    "DISPLACEMENT_Interface_frame_2"
+                ],
+                "list_of_master_coordinates": [
+                    [
+                        -0.5,
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        1.5,
+                        0.0,
+                        0.0
+                    ],
+                    [
+                        0.0,
+                        -0.13,
+                        0.0
+                    ]
+                ],
+                "eps_perturbation" : 1e-5
+            }
+        },{
+            "python_module" : "rom_basis_process",
+            "kratos_module" : "KratosMultiphysics.RomApplication",
+            "Parameters"    : {
+                "variables_to_create_basis"     : ["DISPLACEMENT","REACTION", "PK2_STRESS_VECTOR"],
+                "displacement_basis_tolerance" : 1e-8,
+                "reaction_basis_tolerance" : 1e-8,
+                "stress_basis_tolerance": 1e-6,
+                "restricted_model_part": "GENERIC_Reaction"
+
+            }
+        }
+        ]
+    },
+    "output_processes" : {
+        "gid_output" : [],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                             : "Structure",
+                "output_control_type"                         : "step",
+                "output_interval"                             : 1,
+                "file_format"                                 : "ascii",
+                "output_precision"                            : 7,
+                "output_sub_model_parts"                      : false,
+                "folder_name"                                 : "vtk_output",
+                "save_output_files_in_folder"                 : true,
+                "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION"],
+                "nodal_data_value_variables"                  : [],
+                "element_data_value_variables"                : [],
+                "condition_data_value_variables"              : [],
+                "gauss_point_variables_extrapolated_to_nodes" : ["PK2_STRESS_VECTOR"]
+            }
+        }]
+    }
+}

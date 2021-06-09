@@ -1,0 +1,1 @@
+/home/sebastianadpr/Kratos/applications/RomApplication/python_scripts/update_boundary_condition.py

@@ -1,0 +1,1 @@
+/home/sebastianadpr/Kratos/applications/RomApplication/python_scripts/hrom_stiffness_matrix.py
