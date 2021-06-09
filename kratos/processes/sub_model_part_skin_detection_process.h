@@ -32,7 +32,6 @@ namespace Kratos
  * @class SubModelPartSkinDetectionProcess
  * @brief Create a SubModelPart covering a part of the outside skin of the computation domain where a condition is met.
  * @details For example, create the outer skin for the part of the domain belonging to a given SubModelPart.
- * @author Jordi Cotela
  */
 template<SizeType TDim>
 class KRATOS_API(KRATOS_CORE) SubModelPartSkinDetectionProcess: public SkinDetectionProcess<TDim>
@@ -43,7 +42,6 @@ KRATOS_DEFINE_LOCAL_FLAG( NODE_SELECTED );
 /**
  * @class FaceSelector
  * @brief Internal class used to select which faces to create.
- * @author Jordi Cotela
  */
 class FaceSelector
 {
@@ -58,7 +56,6 @@ public:
  * @class SelectIfOneNodeNotOnSubModelPart
  * @brief Select faces where all nodes belong to given SubModelPart.
  * @see FaceSelector
- * @author Jordi Cotela
  */
 class SelectIfAllNodesOnSubModelPart: public FaceSelector
 {
