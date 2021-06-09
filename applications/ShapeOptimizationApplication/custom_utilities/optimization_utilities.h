@@ -303,11 +303,12 @@ public:
     {
         Vector back_up_vec = rVector;
         const int initial_length = rVector.size();
-        const int final_length = Append ? rModelPart.NumberOfNodes()*3 + initial_length : initial_length; 
+        const int model_part_var_length = rModelPart.NumberOfNodes()*3;
+        const int final_length = Append ? model_part_var_length + initial_length : model_part_var_length;
         rVector.resize(final_length);
 
         if (Append) subrange(rVector, 0, initial_length) = back_up_vec;
-        int i = initial_length;
+        int i = (int)initial_length/3;
         for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
@@ -355,10 +356,9 @@ public:
         if (Append)
             KRATOS_ERROR_IF(initial_size2 != rVariables.size()) <<"Cannot append a different number of variables(columns) to the matrix"<<std::endl;
 
-
         int final_size1 = rModelPart.NumberOfNodes()*3 + initial_size1;
         rMatrix.resize(final_size1, initial_size2);
-        if(Append) subrange(rMatrix, 0,back_up_matrix.size1(), 0,initial_size2) = back_up_matrix;
+        if(Append && initial_size2!=0 && initial_size1!=0) subrange(rMatrix, 0,back_up_matrix.size1(), 0,initial_size2) = back_up_matrix;
 
         int i=(int)initial_size1/3;
         for (const auto& node_i : rModelPart.Nodes())
