@@ -546,7 +546,8 @@ private:
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
-                    knot_vector));
+                    knot_vector,
+                    control_point_weights));
         }
         return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
             NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(

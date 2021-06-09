@@ -306,6 +306,7 @@ namespace Kratos {
                                                                         Element::Pointer injector_element,
                                                                         Properties::Pointer r_params,
                                                                         ModelPart& r_sub_model_part_with_parameters,
+                                                                        std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
                                                                         const Element& r_reference_element,
                                                                         PropertiesProxy* p_fast_properties,
                                                                         bool has_sphericity,
@@ -327,6 +328,7 @@ namespace Kratos {
 
             if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
             else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+            else if (distribution_type == "piecewise_linear") radius = r_random_variables_map[r_sub_model_part_with_parameters.Name()].Sample();
             else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
         }
 
