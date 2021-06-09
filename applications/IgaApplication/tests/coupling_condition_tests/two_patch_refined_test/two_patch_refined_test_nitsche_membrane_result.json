@@ -1,0 +1,153 @@
+{
+    "TIME": [0.1],
+    "NODE_1": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_2": {
+        "DISPLACEMENT_X": [0.00010000000000000089],
+        "DISPLACEMENT_Y": [-6.933270554804844e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_3": {
+        "DISPLACEMENT_X": [0.00019999999999999795],
+        "DISPLACEMENT_Y": [2.269672375343077e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_4": {
+        "DISPLACEMENT_X": [0.00029999999999999954],
+        "DISPLACEMENT_Y": [-2.6143887949129554e-18],
+        "DISPLACEMENT_Z": [1.7989196687567388e-19]
+    },
+    "NODE_5": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_6": {
+        "DISPLACEMENT_X": [0.00010000000000000024],
+        "DISPLACEMENT_Y": [-9.282520741578246e-20],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_7": {
+        "DISPLACEMENT_X": [0.0002],
+        "DISPLACEMENT_Y": [-3.985092574073587e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_8": {
+        "DISPLACEMENT_X": [0.0003],
+        "DISPLACEMENT_Y": [-2.248133481993408e-18],
+        "DISPLACEMENT_Z": [-4.498383357467555e-19]
+    },
+    "NODE_9": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_10": {
+        "DISPLACEMENT_X": [0.00010000000000000087],
+        "DISPLACEMENT_Y": [-6.662178962659697e-21],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_11": {
+        "DISPLACEMENT_X": [0.00019999999999999968],
+        "DISPLACEMENT_Y": [-8.352272693758023e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_12": {
+        "DISPLACEMENT_X": [0.0003000000000000002],
+        "DISPLACEMENT_Y": [-2.3722675414596104e-18],
+        "DISPLACEMENT_Z": [3.6078625888000066e-19]
+    },
+    "NODE_13": {
+        "DISPLACEMENT_X": [0.0],
+        "DISPLACEMENT_Y": [0.0],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_14": {
+        "DISPLACEMENT_X": [0.0001000000000000012],
+        "DISPLACEMENT_Y": [-4.506167381588315e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_15": {
+        "DISPLACEMENT_X": [0.0002000000000000006],
+        "DISPLACEMENT_Y": [-5.759023956303829e-19],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_16": {
+        "DISPLACEMENT_X": [0.0003000000000000019],
+        "DISPLACEMENT_Y": [-2.3061547524315203e-18],
+        "DISPLACEMENT_Z": [-1.0346903628404009e-19]
+    },
+    "NODE_25": {
+        "DISPLACEMENT_X": [0.0002999999999999993],
+        "DISPLACEMENT_Y": [-2.4143823768147625e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_26": {
+        "DISPLACEMENT_X": [0.0004499999999999994],
+        "DISPLACEMENT_Y": [-4.082769068503018e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_27": {
+        "DISPLACEMENT_X": [0.0005999999999999992],
+        "DISPLACEMENT_Y": [-5.749978168804707e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_28": {
+        "DISPLACEMENT_X": [0.00029999999999999987],
+        "DISPLACEMENT_Y": [-2.3576837130640214e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_29": {
+        "DISPLACEMENT_X": [0.0004500000000000003],
+        "DISPLACEMENT_Y": [-4.132443025739308e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_30": {
+        "DISPLACEMENT_X": [0.0006000000000000003],
+        "DISPLACEMENT_Y": [-5.723334683696397e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_31": {
+        "DISPLACEMENT_X": [0.00030000000000000165],
+        "DISPLACEMENT_Y": [-2.2927176257220483e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_32": {
+        "DISPLACEMENT_X": [0.00045000000000000134],
+        "DISPLACEMENT_Y": [-4.341387833675372e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "NODE_33": {
+        "DISPLACEMENT_X": [0.0006000000000000015],
+        "DISPLACEMENT_Y": [-5.642187151443076e-18],
+        "DISPLACEMENT_Z": [0.0]
+    },
+    "ELEMENT_1": {},
+    "ELEMENT_2": {},
+    "ELEMENT_3": {},
+    "ELEMENT_4": {},
+    "ELEMENT_5": {},
+    "ELEMENT_6": {},
+    "ELEMENT_7": {},
+    "ELEMENT_8": {},
+    "ELEMENT_9": {},
+    "ELEMENT_10": {},
+    "ELEMENT_11": {},
+    "ELEMENT_12": {},
+    "ELEMENT_13": {},
+    "ELEMENT_14": {},
+    "ELEMENT_15": {},
+    "ELEMENT_16": {},
+    "ELEMENT_17": {},
+    "ELEMENT_18": {},
+    "ELEMENT_19": {},
+    "ELEMENT_20": {},
+    "ELEMENT_21": {},
+    "ELEMENT_22": {},
+    "ELEMENT_23": {},
+    "ELEMENT_24": {},
+    "ELEMENT_25": {}
+}
