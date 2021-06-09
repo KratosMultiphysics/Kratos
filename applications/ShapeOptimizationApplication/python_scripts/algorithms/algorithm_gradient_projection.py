@@ -168,41 +168,43 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __computeControlPointUpdate(self):
         """adapted from https://msulaiman.org/onewebmedia/GradProj_2.pdf"""
+        eps = 1e-16
+        s = KM.Vector()
+        c = KM.Vector()
         g_a, g_a_variables = self.__getActiveConstraints()
         nabla_f = KM.Vector()
+        total_length = 0
+        for design_surface in self.design_surfaces.values():
+            total_length += design_surface.NumberOfNodes()*3
         for design_surface in self.design_surfaces.values():
             optimization_utilities.AssembleVector(design_surface, nabla_f, KSO.DF1DX_MAPPED, True)
         if len(g_a) == 0:
             KM.Logger.PrintInfo("ShapeOpt", "No constraints active, use negative objective gradient as search direction.")
-            for design_surface in self.design_surfaces.values():
-                s = KM.Vector()
-                s = nabla_f * (-1.0)
-                s *= self.step_size / s.norm_inf()
-                optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.SEARCH_DIRECTION)
-                optimization_utilities.AssignVectorToVariable(design_surface, [0.0]*len(s), KSO.CORRECTION)
-                optimization_utilities.AssignVectorToVariable(design_surface, s, KSO.CONTROL_POINT_UPDATE)
+            s = nabla_f * (-1.0)
+            s_inf_norm = s.norm_inf()
+            if s_inf_norm > eps:
+                s *= self.step_size / s_inf_norm
+            c = s*0.0
+            self.__SetSearchDirectionCorrectionAndCPUpdate(s,c)
             return
-
         N = KM.Matrix()
         KM.Logger.PrintInfo("ShapeOpt", "Assemble vectors and matrices of objective gradient.")
-        for design_surface in self.design_surfaces.values():
-            optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables, True)  # TODO check if gradients are 0.0! - in cpp
 
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
-        solver = dense_linear_solver_factory.ConstructSolver(settings)
+        for design_surface in self.design_surfaces.values():
+            optimization_utilities.AssembleMatrix(design_surface, N, g_a_variables, True)
+            # TODO check if gradients are 0.0! - in cpp
+        linear_solver_settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
+        linear_solver = dense_linear_solver_factory.ConstructSolver(linear_solver_settings)
         KM.Logger.PrintInfo("ShapeOpt", "Calculate projected search direction and correction.")
-        s = KM.Vector()
-        c = KM.Vector()
         optimization_utilities.CalculateProjectedSearchDirectionAndCorrection(
             nabla_f,
             N,
             g_a,
-            solver,
+            linear_solver,
             s,
             c)
-        eps = 1e-16
 
-        if c.norm_inf() > eps:
+        if c.norm_inf() > eps and len(g_a) != 0:
             if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
                 s_inf_norm = s.norm_inf()
@@ -229,23 +231,34 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             else :
                 s *= self.step_size
 
-        s_plus_c = KM.Vector(s+c)
+        self.__SetSearchDirectionCorrectionAndCPUpdate(s,c)
 
+        del(nabla_f)
+        del(N)
+
+
+    def __SetSearchDirectionCorrectionAndCPUpdate(self, s, c):
+        s_plus_c = KM.Vector(s+c)
         previous_end = 0
         for design_surface in self.design_surfaces.values():
             initial_index = previous_end
             final_index = initial_index + design_surface.NumberOfNodes()*3
             previous_end = final_index
+            s_mp = KM.Vector( self.__GetVector(s[initial_index:final_index]) )
+            c_mp = KM.Vector( self.__GetVector(c[initial_index:final_index]) )
+            s_plus_c_mp = KM.Vector( self.__GetVector(s_plus_c[initial_index:final_index]) )
+            optimization_utilities.AssignVectorToVariable(design_surface, s_mp, KSO.SEARCH_DIRECTION)
+            optimization_utilities.AssignVectorToVariable(design_surface, c_mp, KSO.CORRECTION)
+            optimization_utilities.AssignVectorToVariable(design_surface, s_plus_c_mp, KSO.CONTROL_POINT_UPDATE)
 
-            optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(s[initial_index:final_index]), KSO.SEARCH_DIRECTION)
-            optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(c[initial_index:final_index]), KSO.CORRECTION)
-            optimization_utilities.AssignVectorToVariable(design_surface, self.__GetVector(s_plus_c[initial_index:final_index]), KSO.CONTROL_POINT_UPDATE)
+            del(s_mp)
+            del(c_mp)
+            del(s_plus_c_mp)
+
+        del(s_plus_c)
 
     def __GetVector(self, vec_slice):
-        return KM.Vector([i for i in vec_slice])
-
-        return KM.Vector(vec_list)
-
+        return [i for i in vec_slice]
     # --------------------------------------------------------------------------
     def __getActiveConstraints(self):
         active_constraint_values = []
