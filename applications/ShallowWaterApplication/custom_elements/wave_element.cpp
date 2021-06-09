@@ -161,8 +161,6 @@ template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType& rGeometry)
 {
     rData.length = rGeometry.Length();
-    rData.height = 0.0;
-    rData.velocity = ZeroVector(3);
 
     for (IndexType i = 0; i < TNumNodes; i++)
     {
@@ -170,8 +168,6 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
 
         const auto h = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
         const array_1d<double,3> v = rGeometry[i].FastGetSolutionStepValue(VELOCITY);
-        rData.height += h;
-        rData.velocity += v;
 
         rData.topography[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
 
@@ -179,10 +175,29 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
         rData.unknown[block + 1] = v[1];
         rData.unknown[block + 2] = h;
     }
-    const double lumping_factor = 1.0 / TNumNodes;
-    rData.height = std::max(0.0, rData.height);
-    rData.height *= lumping_factor;
-    rData.velocity *= lumping_factor;
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateGaussPointData(
+    ElementData& rData,
+    const array_1d<double,TNumNodes>& rN)
+{
+    rData.height = 0.0;
+    rData.velocity = ZeroVector(3);
+
+    for (IndexType i = 0; i < TNumNodes; i++)
+    {
+        const IndexType block = 3 * i;
+
+        const auto h = rData.unknown[block + 2];
+        array_1d<double,3> v;
+        v[0] = rData.unknown[block];
+        v[1] = rData.unknown[block + 1];
+        v[2] = 0.0;
+
+        rData.height += rN[i] * h;
+        rData.velocity += rN[i] * v;
+    }
 }
 
 template<std::size_t TNumNodes>
@@ -437,18 +452,6 @@ double WaveElement<TNumNodes>::StabilizationParameter(const ElementData& rData) 
     return rData.length * rData.stab_factor;
 }
 
-template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::ToSystemVector(const array_1d<double,3>& rVector) const
-{
-    return ZeroVector(3*TNumNodes);
-}
-
-template<std::size_t TNumNodes>
-typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::ToSystemVector(const double& rScalar) const
-{
-    return ZeroVector(3*TNumNodes);
-}
-
 template<>
 void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -470,6 +473,8 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     array_1d<double,3> N;            // Position of the gauss point
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    CalculateGaussPointData(data, N);
 
     AddWaveTerms(lhs, rhs, data, N, DN_DX);
     AddTopographyTerms(lhs, rhs, data, N, DN_DX);
@@ -511,6 +516,8 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         const array_1d<double,TNumNodes> N = row(N_container, g);
         const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
+        CalculateGaussPointData(data, N);
+
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddTopographyTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
@@ -540,6 +547,8 @@ void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
     array_1d<double,3> N;            // Position of the gauss point
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+
+    CalculateGaussPointData(data, N);
 
     AddMassTerms(mass_matrix, data, N, DN_DX);
 
@@ -571,6 +580,8 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
         const array_1d<double,TNumNodes> N = row(N_container, g);
         const BoundedMatrix<double,TNumNodes,2> DN_DX = DN_DX_container[g];
 
+        CalculateGaussPointData(data, N);
+
         AddMassTerms(mass_matrix, data, N, DN_DX, weight);
     }
     noalias(rMassMatrix) = mass_matrix;
@@ -583,5 +594,8 @@ void WaveElement<TNumNodes>::CalculateDampingMatrix(MatrixType& rDampingMatrix, 
 
 template class WaveElement<3>;
 template class WaveElement<4>;
+template class WaveElement<6>;
+template class WaveElement<8>;
+template class WaveElement<9>;
 
 } // namespace Kratos
