@@ -108,7 +108,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         #TODO: Remove this after the retrocompatibility period
         if custom_settings.Has("bfecc_convection"):
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "\'bfecc_convection\' is no longer supported. Using the standard levelset convection.")
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "the semi-Lagrangian \'bfecc_convection\' is no longer supported. Using the standard Eulerian levelset convection.")
             custom_settings.RemoveValue("bfecc_convection")
             if custom_settings.Has("bfecc_number_substeps"):
                 custom_settings.RemoveValue("bfecc_number_substeps")
