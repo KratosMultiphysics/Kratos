@@ -189,9 +189,6 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
-      // double timeInterval = rCurrentProcessInfo[DELTA_TIME];
-      // bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
-      // unsigned int stepsWithChangedDt = rCurrentProcessInfo[STEPS_WITH_CHANGED_DT];
       bool converged = false;
       double NormV = 0;
 
@@ -199,27 +196,12 @@ namespace Kratos
 
       KRATOS_INFO("\nSolution with two_step_vp_strategy at t=") << currentTime << "s" << std::endl;
 
-      // if ((timeIntervalChanged == true && currentTime > 10 * timeInterval) || stepsWithChangedDt > 0)
-      // {
-      //   maxNonLinearIterations *= 2;
-      // }
-      // if (currentTime < 10 * timeInterval)
-      // {
-      //   if (BaseType::GetEchoLevel() > 1)
-      //     std::cout << "within the first 10 time steps, I consider the given iteration number x3" << std::endl;
-      //   maxNonLinearIterations *= 3;
-      // }
-      // if (currentTime < 20 * timeInterval && currentTime >= 10 * timeInterval)
-      // {
-      //   if (BaseType::GetEchoLevel() > 1)
-      //     std::cout << "within the second 10 time steps, I consider the given iteration number x2" << std::endl;
-      //   maxNonLinearIterations *= 2;
-      // }
       bool momentumConverged = true;
       bool continuityConverged = false;
-      bool fixedTimeStep = false;
 
-      //this->SetBlockedAndIsolatedFlags();
+      this->SetBlockedAndIsolatedFlags();
+
+      this->FreePressure();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
@@ -237,41 +219,30 @@ namespace Kratos
         // 2. Pressure solution
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 5);
 
-        if (fixedTimeStep == false)
+        if (it == 0)
         {
-          if (it == 0)
-          {
-            mpPressureStrategy->InitializeSolutionStep();
-          }
-          // 2. Compute pressure
-          continuityConverged = this->SolveContinuityIteration();
+          mpPressureStrategy->InitializeSolutionStep();
+          this->FixPressure();
         }
+        continuityConverged = this->SolveContinuityIteration();
 
         // 3. Compute end-of-step velocity
-        //rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP, 6);
-
         this->CalculateEndOfStepVelocity(NormV);
 
         this->UpdateTopology(rModelPart, BaseType::GetEchoLevel());
 
-        if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
-        {
-          this->UpdateStressStrain();
-        }
-
-        if ((continuityConverged && momentumConverged) && it > 2)
+        if (continuityConverged && momentumConverged)
         {
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
           rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
           converged = true;
-
+          this->UpdateStressStrain();
           KRATOS_INFO("ThreeStepVPStrategy") << "V-P strategy converged in " << it + 1 << " iterations." << std::endl;
-
           break;
         }
-        if (fixedTimeStep == true)
+        else if (it == (maxNonLinearIterations - 1) && it != 0)
         {
-          break;
+          this->UpdateStressStrain();
         }
       }
 
@@ -304,12 +275,90 @@ namespace Kratos
         OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
         for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
         {
-          /* itElem-> InitializeElementStrainStressState(); */
           itElem->InitializeSolutionStep(rCurrentProcessInfo);
         }
       }
 
       this->CalculateTemporalVariables();
+    }
+
+    void CalculateTemporalVariables() override
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+      for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+           i != rModelPart.NodesEnd(); ++i)
+      {
+
+        array_1d<double, 3> &CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+        array_1d<double, 3> &PreviousVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+
+        array_1d<double, 3> &CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+        array_1d<double, 3> &PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+
+        /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
+        if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
+        {
+          UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
+        }
+        else if ((i)->Is(RIGID))
+        {
+          array_1d<double, 3> Zeros(3, 0.0);
+          (i)->FastGetSolutionStepValue(ACCELERATION, 0) = Zeros;
+          (i)->FastGetSolutionStepValue(ACCELERATION, 1) = Zeros;
+        }
+        else
+        {
+          (i)->FastGetSolutionStepValue(PRESSURE, 0) = 0.0;
+          (i)->FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0) = 0.0;
+          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1) = 0.0;
+          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0) = 0.0;
+          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1) = 0.0;
+          if ((i)->SolutionStepsDataHas(VOLUME_ACCELERATION))
+          {
+            array_1d<double, 3> &VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+            (i)->FastGetSolutionStepValue(ACCELERATION, 0) = VolumeAcceleration;
+            (i)->FastGetSolutionStepValue(VELOCITY, 0) += VolumeAcceleration * rCurrentProcessInfo[DELTA_TIME];
+          }
+        }
+
+        const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+        unsigned int timeStep = rCurrentProcessInfo[STEP];
+        if (timeStep == 1)
+        {
+          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0) = 0;
+          (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1) = 0;
+          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0) = 0;
+          (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1) = 0;
+        }
+        else
+        {
+          double &CurrentPressure = (i)->FastGetSolutionStepValue(PRESSURE, 0);
+          double &PreviousPressure = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+          double &CurrentPressureVelocity = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
+          double &CurrentPressureAcceleration = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
+
+          CurrentPressureAcceleration = CurrentPressureVelocity / timeInterval;
+
+          CurrentPressureVelocity = (CurrentPressure - PreviousPressure) / timeInterval;
+
+          CurrentPressureAcceleration += -CurrentPressureVelocity / timeInterval;
+        }
+      }
+    }
+
+    inline void UpdateAccelerations(array_1d<double, 3> &CurrentAcceleration,
+                                    const array_1d<double, 3> &CurrentVelocity,
+                                    array_1d<double, 3> &PreviousAcceleration,
+                                    const array_1d<double, 3> &PreviousVelocity) 
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      double Dt = rCurrentProcessInfo[DELTA_TIME];
+      // noalias(CurrentAcceleration) = 2.0 * (CurrentVelocity - PreviousVelocity) / Dt - PreviousAcceleration; // 2nd order
+      noalias(CurrentAcceleration) = (CurrentVelocity - PreviousVelocity) / Dt; // 1st order
     }
 
     void Clear() override
@@ -430,7 +479,6 @@ namespace Kratos
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
       const int n_elems = rModelPart.NumberOfElements();
-      // bool freeSurfacePressureAlreadySet = false;
 
       array_1d<double, 3> Out = ZeroVector(3);
       VariableUtils().SetHistoricalVariableToZero(FRACT_VEL, rModelPart.Nodes());
@@ -470,12 +518,15 @@ namespace Kratos
         {
           auto it_node = rModelPart.NodesBegin() + i_node;
           const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
-          if (!it_node->IsFixed(VELOCITY_X))
-            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-          if (!it_node->IsFixed(VELOCITY_Y))
-            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-          if (!it_node->IsFixed(VELOCITY_Z))
-            it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+          if (it_node->IsNot(ISOLATED))
+          {
+            if (!it_node->IsFixed(VELOCITY_X))
+              it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+            if (!it_node->IsFixed(VELOCITY_Y))
+              it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+            if (!it_node->IsFixed(VELOCITY_Z))
+              it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+          }
         }
       }
       else
@@ -485,23 +536,17 @@ namespace Kratos
         {
           auto it_node = rModelPart.NodesBegin() + i_node;
           const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
-          if (!it_node->IsFixed(VELOCITY_X))
+          if (it_node->IsNot(ISOLATED))
           {
-            it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-            // double incrementX = it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-            // double incrementY = it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-            // std::cout << NodalArea << " FRACT_VEL_X " << it_node->FastGetSolutionStepValue(FRACT_VEL_X) << "     FRACT_VEL_Y " << it_node->FastGetSolutionStepValue(FRACT_VEL_Y) << std::endl;
-            // std::cout << " incrementX " << incrementX << "     incrementY " << incrementY << std::endl;
+            if (!it_node->IsFixed(VELOCITY_X))
+            {
+              it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+            }
+            if (!it_node->IsFixed(VELOCITY_Y) && it_node->IsNot(ISOLATED))
+            {
+              it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+            }
           }
-          if (!it_node->IsFixed(VELOCITY_Y))
-          {
-            it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-          }
-          // if (it_node->Is(FREE_SURFACE) && freeSurfacePressureAlreadySet == false)
-          // {
-          //   freeSurfacePressureAlreadySet = true;
-          //   it_node->FastGetSolutionStepValue(PRESSURE)=0;
-          // }
         }
       }
       this->CheckVelocityConvergence(NormV);
@@ -606,13 +651,42 @@ namespace Kratos
 
       if (errorNormDp < mPressureTolerance)
       {
-        std::cout << "         The norm of pressure is: " << NormP<< "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Converged!" << std::endl;
+        std::cout << "         The norm of pressure is: " << NormP << "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Converged!" << std::endl;
         return true;
       }
       else
       {
-        std::cout << "         The norm of pressure is: " << NormP<< "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Not converged!" << std::endl;
+        std::cout << "         The norm of pressure is: " << NormP << "  The norm of pressure increment is: " << NormDp << " Pressure error: " << errorNormDp << " Not converged!" << std::endl;
         return false;
+      }
+    }
+
+    void FixPressure()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        if (it_node->Is(FREE_SURFACE))
+        {
+          it_node->FastGetSolutionStepValue(PRESSURE) = 0;
+          it_node->Fix(PRESSURE);
+        }
+      }
+    }
+
+    void FreePressure()
+    {
+      ModelPart &rModelPart = BaseType::GetModelPart();
+      const int n_nodes = rModelPart.NumberOfNodes();
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        if (it_node->Is(FREE_SURFACE))
+        {
+          it_node->Free(PRESSURE);
+        }
       }
     }
 

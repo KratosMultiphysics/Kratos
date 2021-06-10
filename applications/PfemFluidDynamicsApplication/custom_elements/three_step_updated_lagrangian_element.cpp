@@ -46,9 +46,9 @@ namespace Kratos
     }
     case 5:
     {
-      //this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       //CalculatePSPGLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-      CalculateFICLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      //CalculateFICLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       break;
     }
     case 6:
@@ -182,8 +182,8 @@ namespace Kratos
 
       // Add integration point contribution to the local mass matrix
       const double MassCoeff = Density * GaussWeight;
-      AddMomentumMassTerm(MassMatrix, N, MassCoeff);
-      //ComputeLumpedMassMatrix(MassMatrix, MassCoeff);
+      //AddMomentumMassTerm(MassMatrix, N, MassCoeff);
+      ComputeLumpedMassMatrix(MassMatrix, MassCoeff);
 
       double etaOldPressure = OldPressure * eta;
       // Add RHS contributions to the local system equation
@@ -202,13 +202,22 @@ namespace Kratos
 
     // Add dynamic term
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
+    // // second order
+    // VectorType AccelerationValues = ZeroVector(LocalSize);
+    // this->GetAccelerationValues(AccelerationValues, 0);
+    // noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
+    // this->GetVelocityValues(VelocityValues, 1);
+    // noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
+    // noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
+    // noalias(rLeftHandSideMatrix) += MassMatrix * 2 / TimeStep;
+    // second order
     VectorType AccelerationValues = ZeroVector(LocalSize);
-    this->GetAccelerationValues(AccelerationValues, 0);
-    noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
+    noalias(AccelerationValues) += -VelocityValues / TimeStep;
     this->GetVelocityValues(VelocityValues, 1);
-    noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
+    noalias(AccelerationValues) += VelocityValues / TimeStep; //these are negative accelerations
     noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
-    noalias(rLeftHandSideMatrix) += MassMatrix * 2 / TimeStep;
+    noalias(rLeftHandSideMatrix) += MassMatrix / TimeStep;
+
     // // using BDF coefficients
     // const Vector &rBDFCoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
     // noalias(rLeftHandSideMatrix) += rBDFCoeffs[0] * MassMatrix;
@@ -252,7 +261,8 @@ namespace Kratos
 
         const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
         // double timeFactor = 1.0 / rCurrentProcessInfo[BDF_COEFFICIENTS][0];
-        double timeFactor = 0.5 * TimeStep;
+        // double timeFactor = 0.5 * TimeStep; //second order accelerations
+        double timeFactor = TimeStep; //first order accelerations
         const double Coeff = GaussWeights[g] * timeFactor / Density;
 
         // Calculate contribution to the gradient term (RHS)
@@ -340,6 +350,50 @@ namespace Kratos
       FirstRow += TDim;
     }
   }
+
+  // template <>
+  // void TwoStepUpdatedLagrangianVPImplicitElement<2>::ComputeCompleteTangentTerm(ElementalVariables &rElementalVariables,
+  //                                                                               MatrixType &rDampingMatrix,
+  //                                                                               const ShapeFunctionDerivativesType &rDN_DX,
+  //                                                                               const double secondLame,
+  //                                                                               const double theta,
+  //                                                                               const double Weight)
+  // {
+  //   const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  //   const double FourThirds = 4.0 / 3.0;
+  //   const double nTwoThirds = -2.0 / 3.0;
+
+  //   SizeType FirstRow = 0;
+  //   SizeType FirstCol = 0;
+
+  //   for (SizeType j = 0; j < NumNodes; ++j)
+  //   {
+  //     for (SizeType i = 0; i < NumNodes; ++i)
+  //     {
+  //       const double lagDNXi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 0);
+  //       const double lagDNYi = rDN_DX(i, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(i, 1) * rElementalVariables.InvFgrad(1, 1);
+  //       const double lagDNXj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 0) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 0);
+  //       const double lagDNYj = rDN_DX(j, 0) * rElementalVariables.InvFgrad(0, 1) + rDN_DX(j, 1) * rElementalVariables.InvFgrad(1, 1);
+  //       // lagDNXi=rDN_DX(i,0);
+  //       // lagDNYi=rDN_DX(i,1);
+  //       // lagDNXj=rDN_DX(j,0);
+  //       // lagDNYj=rDN_DX(j,1);
+
+  //       // First Row
+  //       rDampingMatrix(FirstRow, FirstCol) += Weight * *secondLame(FourThirds * lagDNXi * lagDNXj + lagDNYi * lagDNYj) * theta;
+  //       rDampingMatrix(FirstRow, FirstCol + 1) += Weight * secondLame * (nTwoThirds * lagDNXi * lagDNYj + lagDNYi * lagDNXj) * theta;
+
+  //       // Second Row
+  //       rDampingMatrix(FirstRow + 1, FirstCol) += Weight * secondLame * (nTwoThirds * lagDNYi * lagDNXj + lagDNXi * lagDNYj) * theta;
+  //       rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * secondLame * (FourThirds * lagDNYi * lagDNYj + lagDNXi * lagDNXj) * theta;
+
+  //       // Update Counter
+  //       FirstRow += 2;
+  //     }
+  //     FirstRow = 0;
+  //     FirstCol += 2;
+  //   }
+  // }
 
   template <>
   void ThreeStepUpdatedLagrangianElement<2>::AddViscousTerm(MatrixType &rDampingMatrix,
@@ -539,26 +593,19 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    ElementalVariables rElementalVariables;
-    this->InitializeElementalVariables(rElementalVariables);
     // Stabilization parameters
     // double ElemSize = this->ElementSize();
     // double TauOne = 0;
     // double TauTwo = 0;
 
     //const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    const double eta = 0;
-    double VolumetricCoeff = 0;
-    double lumpedBulkCoeff = 0;
+
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
     {
       const double GaussWeight = GaussWeights[g];
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-
-      // double theta = 1.0;
-      // bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       // Evaluate required variables at the integration point
       double Density;
@@ -572,6 +619,7 @@ namespace Kratos
 
       // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+
       this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
 
       // Stabilization parameters
@@ -580,16 +628,12 @@ namespace Kratos
       double Viscosity = 0;
       this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
 
-      this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
-      lumpedBulkCoeff = GaussWeight / (VolumetricCoeff * TimeStep);
-      // this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
-
       double DivU = 0;
       this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
 
       // // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
       // const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
-      const double LaplacianCoeff = 2.0 * TimeStep / Density;
+      const double LaplacianCoeff = TimeStep / Density;
 
       // Add convection, stabilization and RHS contributions to the local system equation
       for (SizeType i = 0; i < NumNodes; ++i)
@@ -601,7 +645,7 @@ namespace Kratos
           for (SizeType d = 0; d < TDim; ++d)
             Lij += rDN_DX(i, d) * rDN_DX(j, d);
           // Lij *= (LaplacianCoeff + TauOne);
-          Lij *= (LaplacianCoeff);
+          Lij *= LaplacianCoeff;
           rLeftHandSideMatrix(i, j) += GaussWeight * Lij;
         }
 
@@ -609,34 +653,16 @@ namespace Kratos
 
         // Velocity divergence
         double RHSi = -N[i] * DivU;
-        // RHSi = -N[i] * rElementalVariables.VolumetricDefRate;
-        // double difference = DivU - rElementalVariables.VolumetricDefRate;
-        // std::cout << "difference" << difference<< DivU<<std::endl;
 
         for (SizeType d = 0; d < TDim; ++d)
         {
           // Momentum stabilization
           // RHSi += rDN_DX(i, d) * TauOne * (Density * (BodyForce[d] /* - Conv*/) - OldPressureGradient[d] - MomentumProjection[d]);
-          RHSi += (eta - 1.0) * LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
+          RHSi += -LaplacianCoeff * rDN_DX(i, d) * OldPressureGradient[d];
         }
-
         rRightHandSideVector[i] += GaussWeight * RHSi;
       }
     }
-
-    ///////////////////////////////// bulk matrix ////////////////////////////////
-    VectorType PressureValues = ZeroVector(NumNodes);
-    VectorType PressureValuesForRHS = ZeroVector(NumNodes);
-    this->GetPressureValues(PressureValuesForRHS, 0);
-
-    this->GetPressureValues(PressureValues, 1);
-    noalias(PressureValuesForRHS) += -PressureValues;
-    MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-
-    this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-    noalias(rLeftHandSideMatrix) += BulkMatrix;
-    noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
-    ///////////////////////////////// bulk matrix ////////////////////////////////
   }
 
   template <unsigned int TDim>
@@ -817,7 +843,7 @@ namespace Kratos
         DeviatoricCoeff = maxViscousValueForStabilization;
       }
 
-            this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
+      this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
       computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
