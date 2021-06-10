@@ -393,6 +393,8 @@ class RemoteControlSolverWrapper(CoSimulationSolverWrapper):
 
 ~~~
 
+A full example for this is currently under development.
+
 If it is possible for an external solver to implement this approach, it is recommended to use it as it is the most robust and flexible.
 
 Nevertheless both approaches are possible with the _CoSimulationApplication_.
