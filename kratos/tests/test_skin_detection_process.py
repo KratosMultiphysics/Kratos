@@ -104,5 +104,28 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
+
+    def test_NotOnSubModelPartSkinDetectionProcess(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere"))
+        model_part_io.ReadModelPart(model_part)
+
+        detect_skin = KratosMultiphysics.SubModelPartSkinDetectionProcess3D(model_part, KratosMultiphysics.Parameters(r"""
+        {
+            "name_auxiliar_model_part": "SkinModelPart",
+            "selection_criteria": "node_not_on_sub_model_part",
+            "selection_settings": {
+                "sub_model_part_names" : ["Partial_Skin_Part"]
+            }
+        }"""))
+        detect_skin.Execute()
+
+        ## DEBUG
+        #self._post_process(model_part)
+
+        self.assertEqual(model_part.NumberOfConditions(), 112)
+
 if __name__ == '__main__':
     KratosUnittest.main()

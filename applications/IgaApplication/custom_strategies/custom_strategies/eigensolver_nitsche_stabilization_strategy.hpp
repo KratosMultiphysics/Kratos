@@ -399,7 +399,6 @@ public:
             ModelPart& reduced_model_part_master = reduced_model_master.CreateModelPart("new_model"); 
 
             for (auto& r_cond : rModelPart.Conditions()) {
-                
                 auto& r_geom_master = r_cond.GetGeometry().GetGeometryPart(0);
                 auto& r_N_master = r_geom_master.ShapeFunctionsValues();
 
@@ -417,7 +416,6 @@ public:
             ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model"); 
 
             for (auto& r_cond : rModelPart.Conditions()) {
-
                 auto& r_geom_slave = r_cond.GetGeometry().GetGeometryPart(1);
                 auto& r_N_slave = r_geom_slave.ShapeFunctionsValues();
 
@@ -437,7 +435,6 @@ public:
 
             IndexType i_master = 0;
             for (auto& r_node : reduced_model_part_master.Nodes()) {
-
                 const IndexType index = i_master * 3;
                 
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
@@ -449,7 +446,6 @@ public:
 
             IndexType i_slave = 0;
             for (auto& r_node : reduced_model_part_slave.Nodes()) {
-
                 const IndexType index = i_slave * 3 + 3 * number_of_nodes_master;
                 
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
@@ -468,7 +464,9 @@ public:
                 {
                     reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
                     if (i != j)
+                    {
                         reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                    }
                 }
             }
 
@@ -480,7 +478,9 @@ public:
                 {
                     reduced_stiffness_matrix(i,j) = rStiffnessMatrix(rResult(i),rResult(j));
                     if (i != j)
+                    {
                         reduced_stiffness_matrix(j,i) = rStiffnessMatrix(rResult(i),rResult(j));
+                    }
                 }
             }
         }
@@ -490,8 +490,7 @@ public:
             Model reduced_model;               
             ModelPart& reduced_model_part = reduced_model.CreateModelPart("new_model"); 
 
-            for (auto& r_cond : rModelPart.Conditions()) {
-                
+            for (auto& r_cond : rModelPart.Conditions()) {        
                 auto& r_geom = r_cond.GetGeometry();
                 auto& r_N = r_geom.ShapeFunctionsValues();
 
@@ -511,7 +510,6 @@ public:
 
             IndexType i = 0;
             for (auto& r_node : reduced_model_part.Nodes()) {
-
                 const IndexType index = i * 3;
                 
                 rResult[index]     = r_node.GetDof(DISPLACEMENT_X).EquationId();
