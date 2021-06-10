@@ -42,7 +42,8 @@ namespace Kratos
         const GeometryType& r_geometry = GetGeometry();
         const SizeType number_of_nodes = r_geometry.size();
 
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
 
         const SizeType dimension = GetGeometry().WorkingSpaceDimension();
         array_1d<double, 3> actual_base_vector = ZeroVector(dimension);
@@ -64,7 +65,7 @@ namespace Kratos
             g2[2] += (GetGeometry().GetPoint( i ).Z0()+current_displacement[(i*dimension)+2]) * r_DN_De(i, 1);
         }
 
-        actual_base_vector = g1 * t[0] + g2 * t[1];
+        actual_base_vector = g1 * tangents[0] + g2 * tangents[1];
 
         return actual_base_vector;
     }
@@ -98,7 +99,8 @@ namespace Kratos
             mReferenceBaseVector.resize(r_number_of_integration_points);
         
         //get properties
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
         const double E = GetProperties()[YOUNG_MODULUS];
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
@@ -128,8 +130,8 @@ namespace Kratos
                 IndexType dirr = r % 3;
 
                 const double epsilon_var_r = actual_base_vector[dirr] *
-                    (r_DN_De(kr, 0) * t[0] 
-                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                    (r_DN_De(kr, 0) * tangents[0] 
+                    + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 if (CalculateStiffnessMatrixFlag) {
                     for (IndexType s = 0; s < mat_size; s++)
@@ -140,16 +142,16 @@ namespace Kratos
 
                         const double epsilon_var_s =
                             actual_base_vector[dirs] *
-                            (r_DN_De(ks, 0) * t[0]
-                            + r_DN_De(ks, 1) * t[1])
+                            (r_DN_De(ks, 0) * tangents[0]
+                            + r_DN_De(ks, 1) * tangents[1])
                             / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                         rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
 
                         if (dirr == dirs) {
                             const double epsilon_var_rs =
-                            (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
-                            (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                            (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
+                            (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                      
                             rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
                         }
@@ -185,7 +187,8 @@ namespace Kratos
             mReferenceBaseVector.resize(r_number_of_integration_points);
         
         //get properties
-        const Vector& t = GetProperties()[TANGENTS];
+        array_1d<double, 3> tangents;
+        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
         const double E = GetProperties()[YOUNG_MODULUS];
         const double A = GetProperties()[CROSS_AREA];
         const double prestress = GetProperties()[PRESTRESS_CAUCHY];
@@ -209,8 +212,8 @@ namespace Kratos
                 IndexType dirr = r % 3;
 
                 const double epsilon_var_r = mReferenceBaseVector[point_number][dirr] *
-                    (r_DN_De(kr, 0) * t[0] 
-                    + r_DN_De(kr, 1) * t[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                    (r_DN_De(kr, 0) * tangents[0] 
+                    + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                 for (IndexType s = 0; s < mat_size; s++)
                 {
@@ -220,16 +223,16 @@ namespace Kratos
 
                     const double epsilon_var_s =
                         mReferenceBaseVector[point_number][dirs] *
-                        (r_DN_De(ks, 0) * t[0]
-                        + r_DN_De(ks, 1) * t[1])
+                        (r_DN_De(ks, 0) * tangents[0]
+                        + r_DN_De(ks, 1) * tangents[1])
                         / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
 
                     rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
 
                     if (dirr == dirs) {
                         const double epsilon_var_rs =
-                        (r_DN_De(kr, 0) * t[0] + r_DN_De(kr, 1) * t[1]) *
-                        (r_DN_De(ks, 0) * t[0] + r_DN_De(ks, 1) * t[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
+                        (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
+                        (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
                     
                         rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
                     }

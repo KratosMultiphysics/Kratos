@@ -516,6 +516,8 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Element, Variable<DenseMatrix<double> > >())
     .def("Initialize", &EntityInitialize<Element>)
     //.def("CalculateLocalSystem", &Element::CalculateLocalSystem)
+    .def("GetSpecifications", &Element::GetSpecifications)
+    .def("Info", &Element::Info)
     .def("__str__", PrintObject<Element>)
     ;
 
@@ -638,6 +640,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("GetSecondDerivativesVector", &EntityGetSecondDerivativesVector2<Condition>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, double>)
     .def("CalculateSensitivityMatrix", &EntityCalculateSensitivityMatrix<Condition, array_1d<double,3>>)
+    .def("GetSpecifications", &Condition::GetSpecifications)
     .def("Info", &Condition::Info)
     .def("__str__", PrintObject<Condition>)
     ;

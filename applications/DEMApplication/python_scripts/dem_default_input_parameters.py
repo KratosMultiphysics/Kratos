@@ -20,6 +20,7 @@ def GetDefaultInputParameters():
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
             "dem_inlet_option"                 : true,
+            "dem_inlets_settings"              : {},
             "seed"                             : 42,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
@@ -172,6 +173,7 @@ def GetDefaultInputParameters():
             "PostFaceNormalImpactVelocity"     : false,
             "PostFaceTangentialImpactVelocity" : false,
             "PostControlModule"                : false,
+            "PostDeltaDisplacement"            : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },

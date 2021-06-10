@@ -181,35 +181,6 @@ public:
     }
 
     ///@}
-    ///@name Point Access
-    ///@{
-
-    PointType& operator[](const SizeType& i) override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    PointType const& operator[](const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    typename PointType::Pointer& operator()(const SizeType& i) override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    const typename PointType::Pointer& operator()(const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    SizeType size() const override
-    {
-        return mpNurbsSurface->size();
-    }
-
-    ///@}
     ///@name Access to Geometry Parts
     ///@{
 
@@ -291,6 +262,21 @@ public:
         }
 
         return false;
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            mpNurbsSurface->Calculate(rVariable, rOutput);
+        }
     }
 
     ///@}

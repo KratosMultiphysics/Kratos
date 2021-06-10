@@ -27,6 +27,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
 #include "includes/lock_object.h"
+#include "includes/parallel_environment.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -81,10 +82,12 @@ public:
     /// Default constructor. - needs to be public for communicator, but it will fail if used in any other mode
     SparseContiguousRowGraph()
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
     }
 
     SparseContiguousRowGraph(IndexType GraphSize)
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial");
         mGraph.resize(GraphSize,false);
         mLocks.resize(GraphSize);
 
@@ -109,7 +112,18 @@ public:
     /// Copy constructor.
     SparseContiguousRowGraph(const SparseContiguousRowGraph& rOther)
     {
+        mpComm = rOther.mpComm;
         this->AddEntries(rOther);
+    }
+
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     ///@}
@@ -464,6 +478,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    DataCommunicator* mpComm;
     GraphType mGraph;
     std::vector<LockObject> mLocks;
 

@@ -13,6 +13,7 @@
 //
 
 // System includes
+#include <mutex>
 #include <algorithm>
 #include <cstdlib> // for std::getenv
 
@@ -24,8 +25,12 @@
 #include "includes/lock_object.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
+
+namespace {
+    std::once_flag flag_once;
+}
+
 
 int ParallelUtilities::GetNumThreads()
 {
@@ -45,7 +50,7 @@ int ParallelUtilities::GetNumThreads()
 void ParallelUtilities::SetNumThreads(const int NumThreads)
 {
     KRATOS_ERROR_IF(NumThreads <= 0) << "Attempting to set NumThreads to <= 0. This is not allowed" << std::endl;
-    
+
 #ifdef KRATOS_SMP_NONE
     // do nothing if is shared memory parallelization is disabled
     return;
@@ -118,22 +123,32 @@ int ParallelUtilities::InitializeNumberOfThreads()
 #endif
 }
 
+LockObject& ParallelUtilities::GetGlobalLock()
+{
+    if (!mspGlobalLock) {
+        std::call_once(flag_once, [](){
+            static LockObject global_lock;
+            mspGlobalLock = &global_lock;
+        });
+    }
+
+    return *mspGlobalLock;
+}
 int& ParallelUtilities::GetNumberOfThreads()
 {
     if (!mspNumThreads) {
-        LockObject lock;
-        lock.lock();
+        const std::lock_guard<LockObject> scope_lock(GetGlobalLock());
         if (!mspNumThreads) {
             static int num_threads;
             num_threads = InitializeNumberOfThreads();
             mspNumThreads = &num_threads;
         }
-        lock.unlock();
     }
 
     return *mspNumThreads;
 }
 
+LockObject* ParallelUtilities::mspGlobalLock = nullptr;
 int* ParallelUtilities::mspNumThreads = nullptr;
 
 }  // namespace Kratos.
