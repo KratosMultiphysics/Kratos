@@ -69,9 +69,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "dynamic_tau": 1.0,
                 "surface_tension": false
             },
-            "levelset_variable_name" : "DISTANCE",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
                 "max_substeps" : 0,
