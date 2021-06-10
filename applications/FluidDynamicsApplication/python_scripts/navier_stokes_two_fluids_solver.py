@@ -110,12 +110,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if custom_settings.Has("bfecc_number_substeps"):
                 custom_settings.RemoveValue("bfecc_number_substeps")
 
-        #TODO: Remove this after the retrocompatibility period
-        if custom_settings.Has("algebraic_stabilization"):
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "Using deprecated convection element mechanism with \'algebraic_stabilization\'. Use \'element_type\' within \'levelset_convection_settings\' instead. Default convection will be used")
-        if custom_settings.Has("cross_wind_stabilization_factor"):
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "Using deprecated convection element mechanism with \'cross_wind_stabilization_factor\'. Use \'element_type\' within \'levelset_convection_settings\' instead. Default convection will be used")
-
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
