@@ -26,6 +26,7 @@ from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTes
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
 from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
+
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
