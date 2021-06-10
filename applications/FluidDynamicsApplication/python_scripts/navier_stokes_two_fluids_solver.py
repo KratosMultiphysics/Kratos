@@ -129,12 +129,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.min_buffer_size = 3
 
         # Set the levelset characteristic variables and add them to the convection settings
-        self._levelset_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["levelset_variable_name"].GetString())
-        self._levelset_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["levelset_gradient_variable_name"].GetString())
-        self._levelset_convection_variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["levelset_convection_variable_name"].GetString())
-        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_variable_name").SetString(self.settings["levelset_variable_name"].GetString())
-        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString(self.settings["levelset_gradient_variable_name"].GetString())
-        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString(self.settings["levelset_convection_variable_name"].GetString())
+        # These are required to be set as some of the auxiliary processes admit user-defined variables
+        self._levelset_variable = KratosMultiphysics.DISTANCE
+        self._levelset_gradient_variable = KratosMultiphysics.DISTANCE_GRADIENT
+        self._levelset_convection_variable = KratosMultiphysics.VELOCITY
+        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_variable_name").SetString("DISTANCE")
+        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
+        self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
 
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
