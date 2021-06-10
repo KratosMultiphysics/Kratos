@@ -200,12 +200,41 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
         // Get Neumann BC imposition data
         const double& r_bc_flux_val = GetValue(r_flux_var);
 
-        // Add the external flux contribution
+        // // Add the weak Neumann BC imposition
+        // double aux_1;
+        // double aux_2;
+        // DenseVector<double> j_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        // for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        //     aux_1 = w * r_N[i_node];
+        //     for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+        //         aux_2 = 0.0;
+        //         j_node_grad = row(r_DN_DX, j_node);
+        //         for (std::size_t d = 0; d < j_node_grad.size(); ++d) {
+        //             aux_2 += j_node_grad(d) * r_normal(d);
+        //         }
+        //         aux_2 *= k;
+        //         rLeftHandSideMatrix(i_node, j_node) += aux_1 * aux_2;
+        //         rRightHandSideVector(i_node) -= aux_1 * aux_2 * unknown_values(j_node);
+        //     }
+        //     rRightHandSideVector(i_node) += aux_1 * r_bc_flux_val;
+        // }
+
+        // Add the Nitsche Neumann BC imposition (RUBEN)
         double aux_1;
         double aux_2;
-        DenseVector<double> j_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        const double h = GetValue(ELEMENT_H);
+        const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
+        const std::size_t n_dim = rCurrentProcessInfo[DOMAIN_SIZE];
+        DenseVector<double> i_node_grad(n_dim);
+        DenseVector<double> j_node_grad(n_dim);
         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            aux_1 = w * r_N[i_node];
+            aux_1 = gamma * r_N[i_node];
+            i_node_grad = row(r_DN_DX, i_node);
+            for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
+                aux_1 += h * i_node_grad(d) * r_normal(d);
+                // aux_1 -= h * i_node_grad(d) * r_normal(d);
+            }
+            aux_1 *= w;
             for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
                 aux_2 = 0.0;
                 j_node_grad = row(r_DN_DX, j_node);
@@ -218,6 +247,34 @@ void LaplacianShiftedBoundaryCondition::CalculateLocalSystem(
             }
             rRightHandSideVector(i_node) += aux_1 * r_bc_flux_val;
         }
+
+        // // Add the Nitsche Neumann BC imposition (RICCARDO)
+        // double aux_1;
+        // double aux_2;
+        // const double h = GetValue(ELEMENT_H);
+        // const double gamma = rCurrentProcessInfo[INITIAL_PENALTY];
+        // DenseVector<double> i_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        // DenseVector<double> j_node_grad(rCurrentProcessInfo[DOMAIN_SIZE]);
+        // for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+        //     aux_1 = r_N[i_node];
+        //     i_node_grad = row(r_DN_DX, i_node);
+        //     for (std::size_t d = 0; d < i_node_grad.size(); ++d) {
+        //         aux_1 -= gamma * h * i_node_grad(d) * r_normal(d);
+        //         // aux_1 += gamma * h * i_node_grad(d) * r_normal(d);
+        //     }
+        //     aux_1 *= w;
+        //     for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+        //         aux_2 = 0.0;
+        //         j_node_grad = row(r_DN_DX, j_node);
+        //         for (std::size_t d = 0; d < j_node_grad.size(); ++d) {
+        //             aux_2 += j_node_grad(d) * r_normal(d);
+        //         }
+        //         aux_2 *= k;
+        //         rLeftHandSideMatrix(i_node, j_node) += aux_1 * aux_2;
+        //         rRightHandSideVector(i_node) -= aux_1 * aux_2 * unknown_values(j_node);
+        //     }
+        //     rRightHandSideVector(i_node) += aux_1 * r_bc_flux_val;
+        // }
     } else {
         KRATOS_ERROR << "No BCs are specified in condition " << Id() << "." << std::endl;
     }
