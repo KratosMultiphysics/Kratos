@@ -77,5 +77,8 @@ class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
 class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
 
+class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
+
 if __name__ == '__main__':
     KratosUnittest.main()
