@@ -2,6 +2,7 @@
 from KratosMultiphysics.CompressiblePotentialFlowApplication import potential_flow_response
 
 try:
+    import KratosMultiphysics.MultilevelMonteCarloApplication
     import xmc
     import exaqute
     import numpy as np

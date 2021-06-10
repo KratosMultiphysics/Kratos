@@ -19,6 +19,7 @@ except:
     numpy_stl_is_available = False
 
 try:
+    import KratosMultiphysics.MultilevelMonteCarloApplication
     import xmc
     import exaqute
     import numpy as np
