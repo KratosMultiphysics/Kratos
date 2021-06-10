@@ -326,6 +326,7 @@ namespace Kratos
         *  to the curvilinear system in voigt notation. */
         std::vector<Matrix> m_T_hat_vector;
 
+        // The reference contravariant basis vector
         std::vector<array_1d< array_1d<double, 3>,2>> m_reference_contravariant_base;
 
         // The normal to the boundary vector
@@ -341,19 +342,22 @@ namespace Kratos
             const KinematicVariables& rKinematicVariables,
             Matrix& rT, Matrix& rT_hat, array_1d<array_1d<double, 3>,2>& rReferenceContraVariantBase);
         
-        // Traction-related functions
+        /// Traction-related functions
+        // Computes the traction
         void CalculateTraction(
             IndexType IntegrationPointIndex,
             array_1d<double, 3>& rTraction,
             const KinematicVariables& rActualKinematic,
             ConstitutiveVariables& rThisConstitutiveVariablesMembrane);
         
+        // Computes the first derivatives of the stresses at the covariant bases
         void CalculateFirstVariationStressCovariant(
             IndexType IntegrationPointIndex,
             Matrix& rFirstVariationStressCovariant,
             const KinematicVariables& rActualKinematic,
             ConstitutiveVariables& rThisConstitutiveVariablesMembrane);
 
+        // Computes the first derivatives of traction
         void CalculateFirstVariationTraction(
             IndexType IntegrationPointIndex,
             Matrix& rFirstVariationTraction,
@@ -361,12 +365,14 @@ namespace Kratos
             const KinematicVariables& rActualKinematic,
             ConstitutiveVariables& rThisConstitutiveVariablesMembrane);
 
+        // Computes the necessary products needed for second derivatives of traction
         void CalculateSecondVariationTractionProduct(
             IndexType IntegrationPointIndex,
             Matrix& rPi,
             const KinematicVariables& rActualKinematic,
             ConstitutiveVariables& rThisConstitutiveVariablesMembrane);
 
+        // Computes the second derivatives of traction
         void CalculateSecondVariationTraction(
             IndexType IntegrationPointIndex,
             Matrix& rSecondVariationTraction,
@@ -378,7 +384,7 @@ namespace Kratos
         /**
         * This functions updates the constitutive variables
         * @param rActualMetric: The actual metric
-        * @param rThisConstitutiveVariables: The constitutive variables to be calculated
+        * @param rThisConstitutiveVariablesMembrane: The constitutive variables to be calculated
         * @param rValues: The CL parameters
         * @param ThisStressMeasure: The stress measure considered
         */

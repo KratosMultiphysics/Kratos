@@ -711,7 +711,7 @@ namespace Kratos
 
     void SupportNitscheCondition::CalculateFirstVariationStressCovariant(
         IndexType IntegrationPointIndex,
-        Matrix& rNCurvilinear,
+        Matrix& rFirstVariationStressCovariant,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariablesMembrane)
     {
@@ -750,7 +750,7 @@ namespace Kratos
         first_variations_stress_cartesian = prod(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix,dE_cartesian);
 
         //Transform the first variations of the 2nd Piola-Kichhoff stresses at the covariant bases
-        rNCurvilinear = prod(m_T_hat_vector[IntegrationPointIndex], first_variations_stress_cartesian);
+        rFirstVariationStressCovariant = prod(m_T_hat_vector[IntegrationPointIndex], first_variations_stress_cartesian);
     }
 
     void SupportNitscheCondition::CalculateFirstVariationTraction(
