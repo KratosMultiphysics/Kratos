@@ -266,14 +266,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 3.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 5.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     const double zeta = 1.0e0;//1.0;//0.7;//
     const double gamma = 0.0728;//0.0426;//0.0311;//
     const double micro_length_scale = 1.0e-5;
 
-    const double theta_advancing = 180.0*PI/180.0;
-    const double theta_receding = 0.0*PI/180.0;
+    const double theta_advancing = 149.0*PI/180.0;
+    const double theta_receding = 115.0*PI/180.0;
     // const double cos_theta_s = -0.4539905;///* 0.5299192642332 */-0.25881904510252076;//0.779337965;//
     // const double theta_s = std::acos(cos_theta_s);
 

@@ -319,7 +319,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             tilting_angle = TimeStep*DT/0.1*math.pi
-            if tilting_angle < 0.5*math.pi:
+            if tilting_angle < (1.0/6.0)*math.pi:
                 sinAlpha = math.sin(tilting_angle)
                 cosAlpha = math.cos(tilting_angle)
                 gravity = 9.81
