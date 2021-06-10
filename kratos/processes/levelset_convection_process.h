@@ -75,6 +75,8 @@ public:
 
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderAndSolverPointerType;
+    typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
+    typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -192,6 +194,10 @@ public:
         for(unsigned int step = 1; step <= n_substep; ++step){
             KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
+
+            if (mIsBfecc || mIncludeAntiDiffusivityTerms){
+                mpGradientCalculator->Execute();
+            }
 
             // Compute shape functions of old and new step
             const double Nold = 1.0 - static_cast<double>(step) / static_cast<double>(n_substep);
@@ -372,6 +378,8 @@ protected:
 
     Parameters mLevelSetConvectionSettings;
 
+    ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -395,6 +403,15 @@ protected:
 
         // Sets the convection diffusion problem settings
         SetConvectionProblemSettings();
+
+        if (mIsBfecc || mIncludeAntiDiffusivityTerms){
+            mpGradientCalculator = Kratos::make_shared<ComputeGradientProcessType>(
+            mrBaseModelPart,
+            *mpLevelSetVar,
+            *mpLevelSetGradientVar,
+            NODAL_AREA,             // TODO: could be set as an input
+            false);
+        }
     }
 
     /**
@@ -599,7 +616,7 @@ protected:
             it_node->SetValue(*mpLevelSetVar, it_node->FastGetSolutionStepValue(*mpLevelSetVar)); //Store mpLevelSetVar
 
             const auto& X_i = it_node->Coordinates();
-            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& grad_i = it_node->GetValue(*mpLevelSetGradientVar);
 
             double S_plus = 0.0;
             double S_minus = 0.0;
@@ -636,7 +653,7 @@ protected:
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             const double distance_i = it_node->FastGetSolutionStepValue(*mpLevelSetVar);
             const auto& X_i = it_node->Coordinates();
-            const auto& grad_i = it_node->GetValue(DISTANCE_GRADIENT);
+            const auto& grad_i = it_node->GetValue(*mpLevelSetGradientVar);
 
             double numerator = 0.0;
             double denominator = 0.0;
@@ -782,11 +799,11 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        mpLevelSetGradientVar = (mIsBfecc || ThisParameters["element_settings"]["requires_distance_gradient"].GetBool()) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
 
         // Limiter related settings
         mIncludeAntiDiffusivityTerms = ThisParameters["element_settings"].Has("include_anti_diffusivity_terms") ? ThisParameters["element_settings"]["include_anti_diffusivity_terms"].GetBool() : false;
+        mpLevelSetGradientVar = (mIsBfecc || mIncludeAntiDiffusivityTerms) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
         mEvaluateLimiter = (mIsBfecc || mIncludeAntiDiffusivityTerms) ? true : false;
     }
 
@@ -831,13 +848,11 @@ private:
         if (ElementType == "levelset_convection_supg") {
             default_parameters = Parameters(R"({
                 "dynamic_tau" : 0.0,
-                "cross_wind_stabilization_factor" : 0.7,
-                "requires_distance_gradient" : false
+                "cross_wind_stabilization_factor" : 0.7
             })");
         } else if (ElementType == "levelset_convection_algebraic_stabilization") {
             default_parameters = Parameters(R"({
-                "include_anti_diffusivity_terms" : false,
-                "requires_distance_gradient" : true
+                "include_anti_diffusivity_terms" : false
             })");
         } else {
             KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element." << std::endl;
