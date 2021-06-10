@@ -133,6 +133,7 @@ class ShallowWaterBaseSolver(PythonSolver):
             "model_part_name"          : "main_model_part",
             "domain_size"              : 2,
             "gravity"                  : 9.81,
+            "density"                  : 1000,
             "model_import_settings"    : {
                 "input_type"               : "mdpa",
                 "input_filename"           : "unknown_name"
