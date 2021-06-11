@@ -32,9 +32,13 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw(const DEMContinuumConstitutiveLaw& rReferenceContinuumConstitutiveLaw);
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere);
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
+
+        virtual void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true);
+
+        virtual void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp);
 
         virtual void Check(Properties::Pointer pProp) const;
 
@@ -81,7 +85,7 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2) {
+                                               SphericContinuumParticle* element2, double indentation) {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
@@ -143,6 +147,7 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                double LocalElasticContactForce[3],
                                                double LocalElasticExtraContactForce[3],
+                                               double ViscoDampingLocalContactForce[3],
                                                double LocalCoordSystem[3][3],
                                                double LocalDeltDisp[3],
                                                double LocalRelVel[3],
@@ -192,6 +197,9 @@ namespace Kratos {
                                    SphericContinuumParticle* element2);
 
         virtual bool CheckRequirementsOfStressTensor();
+
+    protected:
+        Properties::Pointer mpProperties;
 
     private:
 

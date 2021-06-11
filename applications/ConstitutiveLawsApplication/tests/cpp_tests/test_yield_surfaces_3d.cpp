@@ -22,14 +22,14 @@
 // Application includes
 
 // Yields
-#include "custom_advanced_constitutive/yield_surfaces/von_mises_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/rankine_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/simo_ju_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
-#include "custom_advanced_constitutive/yield_surfaces/tresca_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/tresca_yield_surface.h"
 // Plastic Potentials
-#include "custom_advanced_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 
 namespace Kratos
 {
@@ -77,7 +77,7 @@ void GenerateTestVariables(
 /**
 * Check the correct calculation of the uniaxial stress of the yield surfaces
 */
-KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosConstitutiveLawsFastSuite)
 {
     Vector Strain;
     array_1d<double, 6> Stress;
@@ -118,7 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesUniaxialStress, KratosStructuralMechanics
 /**
     * Check the correct calculation of the derivatives of the yield surfaces
     */
-KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosConstitutiveLawsFastSuite)
 {
     double I1, J2;
     Vector Strain;
@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesDerivatives, KratosStructuralMechanicsFas
 /**
     * Check the correct calculation of the initial threshold of the yield surfaces
     */
-KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosConstitutiveLawsFastSuite)
 {
     Properties material_properties;
     Vector Strain;
@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesInitialUniaxialThreshold, KratosStructura
 /**
     * Check the correct calculation of the Damage Parameter of the yield surfaces
     */
-KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosConstitutiveLawsFastSuite)
 {
     Properties material_properties;
     Vector Strain;
@@ -241,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterLinear, KratosStructuralM
 /**
 	* Check the correct calculation of the Damage Parameter of the yield surfaces
 	*/
-KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(YieldSurfacesIDamageParameterExponential, KratosConstitutiveLawsFastSuite)
 {
     Properties material_properties;
     Vector Strain;

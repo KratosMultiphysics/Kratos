@@ -86,7 +86,7 @@ class DistributedImportModelPartUtility:
                     # Create a second io that does not reorder the parts while reading from memory
                     serial_model_part_io = KratosMultiphysics.ModelPartIO(input_filename, import_flags)
 
-                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
+                    partitioner = KratosMetis.MetisDivideHeterogeneousInputInMemoryProcess(model_part_io, serial_model_part_io, self.comm , domain_size, verbosity, sync_conditions)
                     partitioner.Execute()
                     serial_model_part_io.ReadModelPart(self.main_model_part)
 
@@ -135,7 +135,7 @@ class DistributedImportModelPartUtility:
 
     def CreateCommunicators(self):
         ## Construct and execute the Parallel fill communicator (also sets the MPICommunicator)
-        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(),self.comm)
+        ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.main_model_part.GetRootModelPart(), self.comm)
         ParallelFillCommunicator.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("::[DistributedImportModelPartUtility]::", "MPI communicators constructed.")

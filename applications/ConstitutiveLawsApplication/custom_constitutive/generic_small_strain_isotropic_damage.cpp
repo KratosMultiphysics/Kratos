@@ -307,6 +307,8 @@ bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Varia
         return true;
     } else if (rThisVariable == THRESHOLD) {
         return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }

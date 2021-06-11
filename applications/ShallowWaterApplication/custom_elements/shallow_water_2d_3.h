@@ -322,6 +322,7 @@ protected:
         double shock_stab_factor;
         double rel_dry_height;
         double gravity;
+        double dry_height;
 
         double damping;
         array_1d<double,3> boundary_velocity;
