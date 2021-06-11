@@ -234,8 +234,8 @@ void SetValuesOnIntegrationPointsVector( TObject& dummy,
     dummy.SetValuesOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
 }
 
-template< class TDataType >
-TDataType ElementCalculateInterface(Element& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
+template<class TEntityType, class TDataType >
+TDataType EntityCalculateInterface(TEntityType& dummy, Variable<TDataType>& rVariable, const ProcessInfo& rCurrentProcessInfo)
 {
     TDataType aux;
     dummy.Calculate(rVariable, aux, rCurrentProcessInfo);
@@ -486,10 +486,10 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPoints<Element, double>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Element>)
     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
-    .def("Calculate", &ElementCalculateInterface<double>)
-    .def("Calculate", &ElementCalculateInterface<array_1d<double,3> >)
-    .def("Calculate", &ElementCalculateInterface<Vector >)
-    .def("Calculate", &ElementCalculateInterface<Matrix >)
+    .def("Calculate", &EntityCalculateInterface<Element, double>)
+    .def("Calculate", &EntityCalculateInterface<Element, array_1d<double,3> >)
+    .def("Calculate", &EntityCalculateInterface<Element, Vector >)
+    .def("Calculate", &EntityCalculateInterface<Element, Matrix >)
     .def("CalculateLumpedMassVector", &ElementCalculateLumpedMassVector)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Element>)
     .def("CalculateDampingMatrix", &EntityCalculateDampingMatrix<Element>)
@@ -623,7 +623,10 @@ void  AddMeshToPython(pybind11::module& m)
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<array_1d<double, 3> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<vector<double> > >())
 //     .def(SolutionStepVariableIndexingPython<Condition, Variable<DenseMatrix<double> > >())
-
+    .def("Calculate", &EntityCalculateInterface<Condition, double>)
+    .def("Calculate", &EntityCalculateInterface<Condition, array_1d<double,3> >)
+    .def("Calculate", &EntityCalculateInterface<Condition, Vector >)
+    .def("Calculate", &EntityCalculateInterface<Condition, Matrix >)
 
     .def("Initialize", &EntityInitialize<Condition>)
     .def("CalculateMassMatrix", &EntityCalculateMassMatrix<Condition>)
