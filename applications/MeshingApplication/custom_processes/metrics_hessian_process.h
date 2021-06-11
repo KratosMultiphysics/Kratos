@@ -58,6 +58,8 @@ namespace Kratos
             const double NodalH,
             const bool EstimateInterpolationError,
             const double InterpolationError,
+            const bool UseResponseFunctionValueInterpolationError,
+            const int ResponseFunctionInterpolationVariableIndex,
             const double MeshDependentConstant,
             const bool AnisotropyRemeshing,
             const bool EnforceAnisotropyRelativeVariable
@@ -67,11 +69,12 @@ namespace Kratos
             mNodalH(NodalH),
             mEstimateInterpolationError(EstimateInterpolationError),
             mInterpolationError(InterpolationError),
+            mUseResponseFunctionValueInterpolationError(UseResponseFunctionValueInterpolationError),
+            mResponseFunctionInterpolationVariableIndex(ResponseFunctionInterpolationVariableIndex),
             mMeshDependentConstant(MeshDependentConstant),
             mAnisotropyRemeshing(AnisotropyRemeshing),
             mEnforceAnisotropyRelativeVariable(EnforceAnisotropyRelativeVariable)
         {
-
         };
 
         double mAnisotropicRatio;                /// The anisotropic ratio
@@ -80,6 +83,8 @@ namespace Kratos
         double mNodalH;                          /// The size of the local node
         const bool mEstimateInterpolationError;        /// If the error of interpolation will be estimated
         const double mInterpolationError;              /// The error of interpolation allowed
+        const bool mUseResponseFunctionValueInterpolationError;   /// Use the reponse function interpolation error from the adjoint solutions
+        const int mResponseFunctionInterpolationVariableIndex;
         const double mMeshDependentConstant;           /// The mesh constant to remesh (depends of the element type)
         const bool mAnisotropyRemeshing;               /// If we consider anisotropic remeshing
         const bool mEnforceAnisotropyRelativeVariable; /// If we enforce a certain anisotropy relative toa  variable
@@ -284,6 +289,7 @@ private:
      */
     template<SizeType TDim>
     static array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
+        const NodeType& rNode,
         const Vector& rHessian,
         const AuxiliarHessianComputationVariables& rAuxiliarHessianComputationVariables
         );

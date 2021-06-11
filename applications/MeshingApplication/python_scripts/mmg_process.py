@@ -92,14 +92,16 @@ class MmgProcess(KratosMultiphysics.Process):
                 "internal_variable_interpolation_list" :[]
             },
             "hessian_strategy_parameters"              :{
-                "metric_variable"                  : ["DISTANCE"],
-                "non_historical_metric_variable"   : [false],
-                "normalization_factor"             : [1.0],
-                "normalization_alpha"              : [0.0],
-                "normalization_method"             : ["constant"],
-                "estimate_interpolation_error"     : false,
-                "interpolation_error"              : 0.04,
-                "mesh_dependent_constant"          : 0.28125
+                "metric_variable"                               : ["DISTANCE"],
+                "non_historical_metric_variable"                : [false],
+                "normalization_factor"                          : [1.0],
+                "normalization_alpha"                           : [0.0],
+                "normalization_method"                          : ["constant"],
+                "estimate_interpolation_error"                  : false,
+                "interpolation_error"                           : 0.04,
+                "use_response_function_interpolation_error"     : false,
+                "response_function_interpolation_variable_index": [0],
+                "mesh_dependent_constant"                       : 0.28125
             },
             "enforce_current"                  : true,
             "remesh_control_type"              : "step",
@@ -293,6 +295,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.normalization_alpha = self.__list_extender(self.normalization_alpha, variable_types)
             self.normalization_method = self.__generate_string_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_method"])
             self.normalization_method = self.__list_extender(self.normalization_method, variable_types)
+            self.response_function_interpolation_variable_indices = self.__generate_int_list_from_input(self.settings["hessian_strategy_parameters"]["response_function_interpolation_variable_index"])
             len_metric_variables = len(self.metric_variables)
             len_non_historical_metric_variable = len(self.non_historical_metric_variable)
             if len_metric_variables > len_non_historical_metric_variable:
@@ -520,15 +523,18 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_alpha")
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_method")
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_method")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("response_function_interpolation_variable_index")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("response_function_interpolation_variable_index")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable, non_historical_metric_variable, normalization_factor, normalization_alpha, normalization_method in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor, self.normalization_alpha, self.normalization_method):
+            for current_metric_variable, non_historical_metric_variable, normalization_factor, normalization_alpha, normalization_method, response_function_interpolation_variable_index in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor, self.normalization_alpha, self.normalization_method, self.response_function_interpolation_variable_indices):
                 hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_alpha"].SetDouble(normalization_alpha)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_method"].SetString(normalization_method)
+                hessian_parameters["hessian_strategy_parameters"]["response_function_interpolation_variable_index"].SetInt(response_function_interpolation_variable_index)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
         elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "spr":
             # Generate SPR process
@@ -724,6 +730,20 @@ class MmgProcess(KratosMultiphysics.Process):
             raise Exception("::[MmgProcess]:: Time stepping not well defined!")
         else:
             raise Exception("::[MmgProcess]:: Time stepping not defined!")
+
+    def __generate_int_list_from_input(self,param):
+      '''Parse a list of booleans from input.'''
+      # At least verify that the input is an array
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve the boolean from the arrays
+      int_list = []
+
+      for i in range( 0,param.size()):
+          int_list.append(param[i].GetInt())
+
+      return int_list
 
     def __generate_boolean_list_from_input(self,param):
       '''Parse a list of booleans from input.'''
