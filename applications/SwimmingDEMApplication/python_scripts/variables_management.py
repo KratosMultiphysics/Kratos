@@ -371,6 +371,7 @@ class VariablesManager:
 
         if parameters["custom_fluid"]["fluid_model_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_GRADIENT]
+            self.coupling_fluid_vars += [Kratos.FLUID_FRACTION_RATE]
 
         if parameters["coupling"]["coupling_level_type"].GetInt() >= 1:
             self.coupling_fluid_vars += [Kratos.HYDRODYNAMIC_REACTION]
