@@ -37,18 +37,15 @@ namespace Kratos
 ///@{
 
 ///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Implementation of a condition for shallow water waves problems
+/**
+ * @ingroup ShallowWaterApplication
+ * @class WaveCondition
+ * @brief Implementation of a condition for shallow water waves problems
+ * @author Miguel Maso Sotomayor
+ */
 template<std::size_t TNumNodes>
 class WaveCondition : public Condition
 {
@@ -246,14 +243,19 @@ protected:
     static constexpr IndexType mLocalSize = 3 * TNumNodes;
 
     ///@}
-    ///@name Protected member Variables
+    ///@name Protected classes
     ///@{
 
+    struct ConditionData
+    {
+        double gravity;
+        double height;
+        array_1d<double,3> velocity;
+        array_1d<double,3> normal;
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
+        array_1d<double,TNumNodes> topography;
+        LocalVectorType unknown;
+    };
 
     ///@}
     ///@name Protected Operations
@@ -264,28 +266,21 @@ protected:
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DXContainer) const;
 
+    void InitializeData(
+        ConditionData& rData,
+        const ProcessInfo& rProcessInfo);
+
+    void CalculateGaussPointData(
+        ConditionData& rData,
+        const IndexType PointIndex,
+        const array_1d<double,TNumNodes>& rN);
+
     void AddWaveTerms(
+        LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
-        const double Gravity,
-        const double Height,
-        const array_1d<double,3>& rVelocity,
+        ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight = 1.0);
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
 
     ///@}
 
@@ -314,25 +309,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
     }
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
 
     ///@}
     ///@name Un accessible methods

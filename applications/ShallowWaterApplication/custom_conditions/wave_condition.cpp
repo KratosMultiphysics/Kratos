@@ -151,15 +151,94 @@ void WaveCondition<TNumNodes>::CalculateGeometryData(
 }
 
 template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::InitializeData(
+    ConditionData& rData,
+    const ProcessInfo& rProcessInfo)
+{
+    rData.gravity = rProcessInfo[GRAVITY_Z];
+
+    auto& r_geom = GetGeometry();
+    for (IndexType i = 0; i < TNumNodes; i++)
+    {
+        const IndexType block = 3 * i;
+
+        const auto h = r_geom[i].FastGetSolutionStepValue(HEIGHT);
+        const array_1d<double,3> v = r_geom[i].FastGetSolutionStepValue(VELOCITY);
+
+        rData.topography[i] = r_geom[i].FastGetSolutionStepValue(TOPOGRAPHY);
+
+        rData.unknown[block]     = v[0];
+        rData.unknown[block + 1] = v[1];
+        rData.unknown[block + 2] = h;
+    }
+}
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::CalculateGaussPointData(
+    ConditionData& rData,
+    const IndexType PointIndex,
+    const array_1d<double,TNumNodes>& rN)
+{
+    rData.height = 0.0;
+    rData.velocity = ZeroVector(3);
+
+    for (IndexType i = 0; i < TNumNodes; i++)
+    {
+        const IndexType block = 3 * i;
+
+        const auto h = rData.unknown[block + 2];
+        array_1d<double,3> v;
+        v[0] = rData.unknown[block];
+        v[1] = rData.unknown[block + 1];
+        v[2] = 0.0;
+
+        rData.height += rN[i] * h;
+        rData.velocity += rN[i] * v;
+    }
+    auto integration_point = GetGeometry().IntegrationPoints()[PointIndex];
+    rData.normal = GetGeometry().Normal(integration_point);
+}
+
+template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::AddWaveTerms(
+    LocalMatrixType& rMatrix,
     LocalVectorType& rVector,
-    const double Gravity,
-    const double Height,
-    const array_1d<double,3>& rVelocity,
+    ConditionData& rData,
     const array_1d<double,TNumNodes>& rN,
     const double Weight)
 {
+    const double h = rData.height;
+    const double g = rData.gravity;
+    const auto z = rData.topography;
+    const auto n = rData.normal;
 
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        const IndexType i_block = 3 * i;
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            const IndexType j_block = 3 * j;
+            const double n_ij = rN[i] * rN[j];
+
+            /* First component
+             * A_1 = {{ 0   0   g },
+             *        { 0   0   0 },
+             *        { h   0   0 }}
+             */
+            rMatrix(i_block,     j_block + 2) += Weight * n_ij * g * n[0];
+            rMatrix(i_block + 2, j_block)     += Weight * n_ij * h * n[0];
+            rVector(i_block)                  += Weight * n_ij * g * n[0] * z[j];
+
+            /* Second component
+             * A_2 = {{ 0   0   0 },
+             *        { 0   0   g },
+             *        { 0   h   0 }}
+             */
+            rMatrix(i_block + 1, j_block + 2) += Weight * n_ij * g * n[1];
+            rMatrix(i_block + 2, j_block + 1) += Weight * n_ij * h * n[1];
+            rVector(i_block + 1)              += Weight * n_ij * g * n[1] * z[j];
+        }
+    }
 }
 
 template<std::size_t TNumNodes>
@@ -168,16 +247,25 @@ void WaveCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSide
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
 
+    MatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
+
+    CalculateLocalSystem(lhs, rRightHandSideVector, rCurrentProcessInfo);
+}
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rLeftHandSideMatrix.size1() != mLocalSize)
+        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
+
+    if(rRightHandSideVector.size() != mLocalSize)
+        rRightHandSideVector.resize(mLocalSize, false);
+    
+    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
     LocalVectorType rhs = ZeroVector(mLocalSize);
 
-    Vector values = ZeroVector(mLocalSize);
-    GetValuesVector(values);
-    LocalVectorType unknown = values;
-
-    double g;
-    double h;
-    array_1d<double,3> v;
-    array_1d<double,3> n;
+    ConditionData data;
+    InitializeData(data, rCurrentProcessInfo);
 
     Vector weights;
     Matrix N_container;
@@ -189,23 +277,13 @@ void WaveCondition<TNumNodes>::CalculateRightHandSide(VectorType& rRightHandSide
     {
         const double weight = weights[g];
         const array_1d<double,TNumNodes> N = row(N_container, g);
-        AddWaveTerms(rhs, g, h, v, N);
+        CalculateGaussPointData(data, g, N);
+        AddWaveTerms(lhs, rhs, data, N, weight);
     }
+    noalias(rhs) -= prod(lhs, data.unknown);
 
-    noalias(rRightHandSideVector) = area * rhs;
-}
-
-template<std::size_t TNumNodes>
-void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
-{
-    if(rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
-
-    if(rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(mLocalSize, mLocalSize);
-    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    noalias(rLeftHandSideMatrix) = lhs;
+    noalias(rRightHandSideVector) = rhs;
 }
 
 template class WaveCondition<2>;
