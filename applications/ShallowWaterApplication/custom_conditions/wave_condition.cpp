@@ -197,6 +197,7 @@ void WaveCondition<TNumNodes>::CalculateGaussPointData(
     }
     auto integration_point = GetGeometry().IntegrationPoints()[PointIndex];
     rData.normal = GetGeometry().Normal(integration_point);
+    rData.normal /= norm_2(rData.normal);
 }
 
 template<std::size_t TNumNodes>
@@ -227,7 +228,7 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
              */
             rMatrix(i_block,     j_block + 2) += Weight * n_ij * g * n[0];
             rMatrix(i_block + 2, j_block)     += Weight * n_ij * h * n[0];
-            rVector(i_block)                  += Weight * n_ij * g * n[0] * z[j];
+            rVector(i_block)                  -= Weight * n_ij * g * n[0] * z[j];
 
             /* Second component
              * A_2 = {{ 0   0   0 },
@@ -236,7 +237,7 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
              */
             rMatrix(i_block + 1, j_block + 2) += Weight * n_ij * g * n[1];
             rMatrix(i_block + 2, j_block + 1) += Weight * n_ij * h * n[1];
-            rVector(i_block + 1)              += Weight * n_ij * g * n[1] * z[j];
+            rVector(i_block + 1)              -= Weight * n_ij * g * n[1] * z[j];
         }
     }
 }
