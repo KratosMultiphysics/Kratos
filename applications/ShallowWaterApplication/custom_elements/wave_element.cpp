@@ -278,13 +278,13 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             /* Stabilization x-y
              * l / sqrt(gh) * A1 * A2
              */
-            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
+            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
             rMatrix(i_block,     j_block + 1) += Weight * l * c * d_ij;
 
             /* Stabilization y-x
              * l / sqrt(gh) * A1 * A2
              */
-            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
+            d_ij = rDN_DX(i,1) * rDN_DX(j,0);
             rMatrix(i_block + 1, j_block)     += Weight * l * c * d_ij;
         }
     }
@@ -319,12 +319,12 @@ void WaveElement<TNumNodes>::AddTopographyTerms(
             /* Stabilization x-x
              * l / sqrt(gh) * A1 * G1
              */
-            rVector[i_block + 2] += Weight * l * c * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
+            rVector[i_block + 2] -= Weight * l * c * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
 
             /* Stabilization y-y
              * l / sqrt(gh) * A2 * G2
              */
-            rVector[i_block + 2] += Weight * l * c * rDN_DX(i,1) * rDN_DX(j,1) * topography[j];
+            rVector[i_block + 2] -= Weight * l * c * rDN_DX(i,1) * rDN_DX(j,1) * topography[j];
 
             /* Stabilization x-y, y-x
              * A1*G2 = A2*G1 = 0

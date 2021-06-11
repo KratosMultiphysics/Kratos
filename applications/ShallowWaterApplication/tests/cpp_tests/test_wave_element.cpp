@@ -60,7 +60,7 @@ void WaveElementSteadyStateTest(
 
     // Process info creation
     const double gravity = 9.81;
-    const double stab_factor = 0.0;
+    const double stab_factor = 0.01;
     ProcessInfo& r_process_info = model_part.GetProcessInfo();
     r_process_info.SetValue(GRAVITY_Z, gravity);
     r_process_info.SetValue(STABILIZATION_FACTOR, stab_factor);
