@@ -33,6 +33,7 @@
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
+#include "custom_conditions/support_nitsche_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -125,6 +126,7 @@ private:
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
+    const SupportNitscheCondition mSupportNitscheCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;
