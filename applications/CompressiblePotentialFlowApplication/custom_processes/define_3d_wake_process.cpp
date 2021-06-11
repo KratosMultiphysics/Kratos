@@ -74,6 +74,8 @@ void Define3DWakeProcess::ExecuteInitialize()
         r_nodes.SetValue(LOWER_SURFACE, false);
         r_nodes.SetValue(TRAILING_EDGE, false);
     });
+    auto& r_elements = root_model_part.Elements();
+    VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
 
     InitializeTrailingEdgeSubModelpart();
 
