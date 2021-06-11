@@ -151,6 +151,10 @@ public:
 
     ///@}
 
+    virtual IndexedPointGeometryPointerType GenerateTriangle(const int& r_i0,const int& r_i1,const int& r_i2);
+
+    virtual IndexedPointGeometryPointerType GenerateLine(const int& r_i0,const int& r_i1 );
+    
 private:
     ///@name Static Member Variables
     ///@{
