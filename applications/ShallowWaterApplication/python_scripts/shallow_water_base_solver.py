@@ -10,7 +10,7 @@ def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, settings):  # Constructor of the class
+    def __init__(self, model, settings):
         super().__init__(model, settings)
 
         ## Set the element and condition names for the replace settings
@@ -21,17 +21,12 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
-        domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
+        self._SetProcessInfo()
 
     @classmethod
     def GetDefaultParameters(cls):
@@ -70,7 +65,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.GRAVITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
@@ -98,7 +92,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
-        self._SetProcessInfo()
         self._GetSolutionStrategy().Initialize()
         KM.Logger.PrintInfo(self.__class__.__name__, "Initialization finished")
 
@@ -152,6 +145,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def _SetProcessInfo(self):
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
 
     def _ReplaceElementsAndConditions(self):
