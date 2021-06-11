@@ -68,10 +68,12 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
 void Define3DWakeProcess::ExecuteInitialize()
 {
     ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
-    auto& r_nodes = root_model_part.Nodes();
-    VariableUtils().SetNonHistoricalVariable(UPPER_SURFACE, false, r_nodes);
-    VariableUtils().SetNonHistoricalVariable(LOWER_SURFACE, false, r_nodes);
-    VariableUtils().SetNonHistoricalVariable(TRAILING_EDGE, false, r_nodes);
+    block_for_each(root_model_part.Nodes(), [&](Node<3>& r_nodes)
+    {
+        r_nodes.SetValue(UPPER_SURFACE, false);
+        r_nodes.SetValue(LOWER_SURFACE, false);
+        r_nodes.SetValue(TRAILING_EDGE, false);
+    });
 
     InitializeTrailingEdgeSubModelpart();
 
