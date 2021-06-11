@@ -21,6 +21,7 @@ class TestResponseFunction(UnitTest.TestCase):
 
         prop = cls.model_part.GetProperties()[0]
         prop[Kratos.DENSITY] = 1.5
+        prop[Kratos.DYNAMIC_VISCOSITY] = 1.2e-4
         cls.model_part.CreateNewElement("Element2D3N", 1, [2, 3, 1], prop)
 
         cls.model_part.SetBufferSize(1)
@@ -29,6 +30,9 @@ class TestResponseFunction(UnitTest.TestCase):
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.ACCELERATION, 0.0, 50.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.PRESSURE, 0.0, 10.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(cls.model_part, Kratos.BODY_FORCE, 0.0, 20.0, 0)
+
+        cls.model_part.ProcessInfo[Kratos.DELTA_TIME] = 0.04
+        cls.model_part.ProcessInfo[Kratos.DYNAMIC_TAU] = 0.3
 
         cls.response_function = KratosCFD.ResidualResponseFunction2D(Kratos.Parameters("""{
             "continuity_residual_weight": 15.0,
@@ -132,7 +136,10 @@ class TestResponseFunction(UnitTest.TestCase):
     def _IsVectorRelativelyClose(self, vec_a, vec_b, rel_tol, abs_tol):
         self.assertEqual(vec_a.Size(), vec_b.Size())
         for i in range(vec_a.Size()):
-            self.assertTrue(isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol))
+            if (not isclose(vec_b[i], vec_a[i], rel_tol=rel_tol, abs_tol=abs_tol)):
+                msg = "VecA[{:d}] != VecB[{:d}] [ {:f} != {:f} ]. Vectors are: \n\t VecA = {:s}\n\t VecB = {:s}".format(
+                    i, i, vec_a[i], vec_b[i], str(vec_a), str(vec_b))
+                raise AssertionError(msg)
 
 if __name__ == '__main__':
     UnitTest.main()
