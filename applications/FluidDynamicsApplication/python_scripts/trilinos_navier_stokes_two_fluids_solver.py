@@ -20,12 +20,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
     def __init__(self, model, custom_settings):
         super().__init__(model,custom_settings)
 
-        # Avoid using features that are not available in MPI yet
-        self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
-        if self._bfecc_convection:
-            self._bfecc_convection = False
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
     def AddVariables(self):
@@ -130,7 +124,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         levelset_linear_solver = self._GetLevelsetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
-
         levelset_convection_settings = self.settings["levelset_convection_settings"]
         if domain_size == 2:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
