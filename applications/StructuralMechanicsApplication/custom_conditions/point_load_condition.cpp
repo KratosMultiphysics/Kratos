@@ -94,11 +94,8 @@ void PointLoadCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     // Resizing as needed the LHS
     const unsigned int MatSize = NumberOfNodes * Dimension;
 
-    if ( rLeftHandSideMatrix.size1() != MatSize )
-    {
-        rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-    }
-    
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
+   
     KRATOS_CATCH( "" )
 }
 
@@ -116,10 +113,7 @@ void PointLoadCondition::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideM
     // Resizing as needed the LHS
     const unsigned int MatSize = NumberOfNodes * Dimension;
 
-    if ( rLeftHandSideMatrix.size1() != MatSize )
-    {
-        rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-    }
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
     
     KRATOS_CATCH( "" )
 }
@@ -138,11 +132,8 @@ void PointLoadCondition::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSide
     // Resizing as needed the LHS
     const unsigned int MatSize = NumberOfNodes * Dimension;
 
-    if ( rLeftHandSideMatrix.size1() != MatSize )
-    {
-        rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-    }
-    
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
+
     KRATOS_CATCH( "" )
 }
 
