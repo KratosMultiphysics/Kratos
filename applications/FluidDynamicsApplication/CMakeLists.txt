@@ -2,7 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosFluidDynamicsApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/MeshingApplication )
 
 ## define application core sources (pure C++ parts)
 set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
@@ -119,7 +122,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################################
 ## FluidDynamicsApplication core library (C++ parts)
 add_library( KratosFluidDynamicsCore SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES} )
-target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore)
+target_link_libraries( KratosFluidDynamicsCore PUBLIC KratosCore KratosMeshingCore)
 set_target_properties( KratosFluidDynamicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 
 ## FluidDynamicsApplication python module

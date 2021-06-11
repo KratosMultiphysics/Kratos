@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <unordered_map>
 
 // External includes
 
@@ -26,6 +27,8 @@
 // Application includes
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
 #include "fluid_dynamics_application_variables.h"
+
+#include "custom_utilities/element_refinement_utilities.h"
 
 namespace Kratos
 {
@@ -53,11 +56,21 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(SimpleSteadyAdjointScheme);
 
+    using IndexType = std::size_t;
+
     using BaseType = ResidualBasedAdjointStaticScheme<TSparseSpace, TDenseSpace>;
 
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+
+    using EquationIdVectorType = std::vector<IndexType>;
+
+    using AssembledVectorType = std::unordered_map<IndexType, double>;
 
     ///@}
     ///@name Life Cycle
@@ -67,13 +80,21 @@ public:
     explicit SimpleSteadyAdjointScheme(
         AdjointResponseFunction::Pointer pResponseFunction,
         const IndexType Dimension,
-        const IndexType BlockSize)
+        const IndexType BlockSize,
+        const IndexType ResponseErrorEstimationRefinementLevel = 0,
+        const double ResponseAcceptableError = 1e-6,
+        const std::string& rElementName = "",
+        const std::string& rConditionName = "")
         : BaseType(pResponseFunction),
-          mAdjointSlipUtilities(Dimension, BlockSize)
+          mAdjointSlipUtilities(Dimension, BlockSize),
+          mResponseErrorEstimationRefinementLevel(ResponseErrorEstimationRefinementLevel),
+          mElementName(rElementName),
+          mConditionName(rConditionName)
     {
         // Allocate auxiliary memory.
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mAuxMatrices.resize(number_of_threads);
+        mElementRefinementUtilities.resize(number_of_threads);
 
         KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
     }
@@ -149,8 +170,13 @@ private:
     ///@{
 
     std::vector<Matrix> mAuxMatrices;
+    std::vector<ElementRefinementUtilities*> mElementRefinementUtilities;
 
     const FluidAdjointSlipUtilities mAdjointSlipUtilities;
+
+    const IndexType mResponseErrorEstimationRefinementLevel;
+    const std::string mElementName;
+    const std::string mConditionName;
 
     ///@}
     ///@name Private Operations
@@ -209,7 +235,207 @@ private:
         KRATOS_CATCH("");
     }
 
+    virtual void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+
+        if (mResponseErrorEstimationRefinementLevel > 0) {
+            CalculateResponseFunctionInterpolationError(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
+private:
+    void CalculateResponseFunctionInterpolationError(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        const auto& dummy_element = *(rModelPart.ElementsBegin());
+        const auto& dummy_geometry = dummy_element.GetGeometry();
+
+        EquationIdVectorType equation_ids;
+        dummy_element.EquationIdVector(equation_ids, rModelPart.GetProcessInfo());
+        const IndexType number_of_dofs_per_node = equation_ids.size() / dummy_geometry.size();
+
+        // reset the nodal interpolation error value holder
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            rNode.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR, Vector(number_of_dofs_per_node, 0.0));
+        });
+
+        const std::vector<std::string> nodal_historical_variables = {
+            "VELOCITY_X",
+            "VELOCITY_Y",
+            "VELOCITY_Z",
+            "PRESSURE",
+            "ADJOINT_FLUID_VECTOR_1_X",
+            "ADJOINT_FLUID_VECTOR_1_Y",
+            "ADJOINT_FLUID_VECTOR_1_Z",
+            "ADJOINT_FLUID_SCALAR_1",
+            "RANS_SCALAR_1_ADJOINT_1",
+            "RANS_SCALAR_2_ADJOINT_1",
+            "NORMAL_X",
+            "NORMAL_Y",
+            "NORMAL_Z",
+            "DISTANCE",
+            "MESH_VELOCITY_X",
+            "MESH_VELOCITY_Y",
+            "MESH_VELOCITY_Z",
+            "RANS_AUXILIARY_VARIABLE_1",
+            "RANS_AUXILIARY_VARIABLE_2",
+            "TURBULENT_KINETIC_ENERGY",
+            "TURBULENT_KINETIC_ENERGY_RATE",
+            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
+            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2"};
+
+        const std::vector<std::string> nodal_non_historical_variables = {
+            "RELAXED_ACCELERATION_X",
+            "RELAXED_ACCELERATION_Y",
+            "RELAXED_ACCELERATION_Z"
+        };
+
+        const std::vector<std::string> flags_list = {"SLIP", "INLET", "OUTLET"};
+
+        // acceptable error for an element
+        const double acceptable_element_error = 1.0 / rModelPart.GetCommunicator().GlobalNumberOfElements();
+
+        // thread local storage
+        struct TLS
+        {
+            Matrix LHS;
+            Vector RHS;
+            Vector Values;
+            Vector Residuals;
+            Vector ErrorValuesList;
+            EquationIdVectorType EquationIds;
+            bool IsInitialized = false;
+            std::unordered_map<IndexType, double> AssembledValues;
+            std::unordered_map<IndexType, IndexType> ErrorIds;
+        };
+
+        const IndexType number_of_threads = ParallelUtilities::GetNumThreads();
+
+        for (IndexType i = 0; i < number_of_threads; ++i) {
+            mElementRefinementUtilities[i] = new ElementRefinementUtilities(
+                rModelPart,
+                "ElementRefinementUtilities_RefinedModelPart_" + std::to_string(i + 1),
+                dummy_element, mResponseErrorEstimationRefinementLevel,
+                mElementName, mConditionName, nodal_historical_variables,
+                nodal_non_historical_variables, flags_list);
+        }
+
+        block_for_each(rModelPart.Elements(), TLS(), [&](Element& rElement, TLS& rTLS) {
+            const int thread_id = OpenMPUtils::ThisThread();
+            auto p_element_refinement_utilities = mElementRefinementUtilities[thread_id];
+
+            // get refined model part
+            auto& refined_model_part = p_element_refinement_utilities->GetRefinedModelPart();
+            auto& r_process_info = refined_model_part.GetProcessInfo();
+
+            if (!rTLS.IsInitialized) {
+                for (auto& r_element : refined_model_part.Elements()) {
+                    r_element.EquationIdVector(rTLS.EquationIds, r_process_info);
+                    for (IndexType i = 0; i < rTLS.EquationIds.size(); ++i) {
+                        const IndexType equation_id = rTLS.EquationIds[i];
+                        rTLS.AssembledValues[equation_id];
+                        rTLS.ErrorIds[equation_id] = (i % number_of_dofs_per_node);
+                    }
+                }
+
+                rTLS.IsInitialized = true;
+            }
+
+            for (auto& p : rTLS.AssembledValues) {
+                p.second = 0.0;
+            }
+
+            p_element_refinement_utilities->InterpolateToRefinedMeshFromCoarseElement(rElement);
+
+            for (auto& r_element : refined_model_part.Elements()) {
+                r_element.Initialize(r_process_info);
+                r_element.InitializeSolutionStep(r_process_info);
+            }
+
+            for (auto& r_condition : refined_model_part.Conditions()) {
+                r_condition.Initialize(r_process_info);
+                r_condition.InitializeSolutionStep(r_process_info);
+            }
+
+            for (auto& r_element : refined_model_part.Elements()) {
+                CalculateAndAssembleLocalEntityContributions(
+                    r_element, rTLS.LHS, rTLS.Values, rTLS.Residuals,
+                    rTLS.EquationIds, rTLS.AssembledValues, r_process_info);
+            }
+
+            for (auto& r_condition : refined_model_part.Conditions()) {
+                if (r_condition.Is(ACTIVE)) {
+                    CalculateAndAssembleLocalEntityContributions(
+                        r_condition, rTLS.LHS, rTLS.Values, rTLS.Residuals,
+                        rTLS.EquationIds, rTLS.AssembledValues, r_process_info);
+                }
+            }
+
+            if (rTLS.ErrorValuesList.size() != number_of_dofs_per_node) {
+                rTLS.ErrorValuesList.resize(number_of_dofs_per_node, false);
+            }
+
+            noalias(rTLS.ErrorValuesList) = ZeroVector(number_of_dofs_per_node);
+
+            const IndexType number_of_values = rTLS.AssembledValues.size();
+            const double acceptable_refined_element_error = acceptable_element_error / number_of_values;
+
+            for (auto& p : rTLS.AssembledValues) {
+                rTLS.ErrorValuesList[rTLS.ErrorIds.find(p.first)->second] += 1.0 / std::abs(p.second);
+            }
+
+            for (auto& r_node : rElement.GetGeometry()) {
+                r_node.SetLock();
+                r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR) += rTLS.ErrorValuesList * (acceptable_element_error / rElement.GetGeometry().size());
+                r_node.UnSetLock();
+            }
+
+        });
+
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(RESPONSE_FUNCTION_INTERPOLATION_ERROR);
+
+        KRATOS_CATCH("");
+    }
+
+    // This method can be called in parallel regions since this is used inside open mp loops of original model part
+    // and iterated over refined elements of the original model part elements
+    template<class TEntityType>
+    void CalculateAndAssembleLocalEntityContributions(
+        TEntityType& rEntity,
+        Matrix& rLHS,
+        Vector& rValues,
+        Vector& rResiduals,
+        EquationIdVectorType& rEquationIdsVector,
+        AssembledVectorType& rAssembledValues,
+        const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+
+        this->CalculateLHSContribution(rEntity, rLHS, rEquationIdsVector, rProcessInfo);
+        rEntity.GetValuesVector(rValues);
+
+        if (rResiduals.size() != rValues.size()) {
+            rResiduals.resize(rValues.size());
+        }
+
+        noalias(rResiduals) = prod(rLHS, rValues);
+        for (IndexType i = 0; i < rResiduals.size(); ++i) {
+            rAssembledValues.find(rEquationIdsVector[i])->second += rResiduals[i];
+        }
+
+        KRATOS_CATCH("");
+    }
 
 }; /* Class SimpleSteadyAdjointScheme */
 

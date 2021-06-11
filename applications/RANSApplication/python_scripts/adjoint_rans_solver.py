@@ -116,7 +116,9 @@ class AdjointRANSSolver(CoupledRANSSolver):
             },
             "adjoint_solution_controller_settings": {
                 "solution_control_method"  : "none"
-            }
+            },
+            "compute_response_function_interpolation_error"   : false,
+            "acceptable_response_function_interpolation_error": 1e-4
         }""")
 
         self.adjoint_settings = custom_settings
@@ -288,13 +290,13 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
     def _ReplaceElementsAndConditions(self):
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-        new_elem_name = "{:s}{:d}D{:d}N".format(
+        self.new_elem_name = "{:s}{:d}D{:d}N".format(
             self.adjoint_element_map[tuple(self.formulation.GetElementNames())],
             domain_size,
             domain_size + 1
         )
 
-        new_cond_name = "{:s}{:d}D{:d}N".format(
+        self.new_cond_name = "{:s}{:d}D{:d}N".format(
             self.adjoint_condition_map[tuple(self.formulation.GetConditionNames())],
             domain_size,
             domain_size
@@ -302,8 +304,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         ## Set the element and condition names in the Json parameters
         self.settings.AddValue("element_replace_settings", Kratos.Parameters("""{}"""))
-        self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(new_elem_name)
-        self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(new_cond_name)
+        self.settings["element_replace_settings"].AddEmptyValue("element_name").SetString(self.new_elem_name)
+        self.settings["element_replace_settings"].AddEmptyValue("condition_name").SetString(self.new_cond_name)
 
         ## Call the replace elements and conditions process
         Kratos.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
@@ -452,7 +454,14 @@ class AdjointRANSSolver(CoupledRANSSolver):
             self.adjoint_solution_controller.AddTimeSchemeParameters(self.settings["time_scheme_settings"])
             scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(self.settings["time_scheme_settings"], response_function, domain_size, block_size)
         elif scheme_type == "steady":
-            scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(response_function, domain_size, block_size)
+            scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(
+                response_function,
+                domain_size,
+                block_size,
+                self.adjoint_settings["compute_response_function_interpolation_error"].GetBool(),
+                self.adjoint_settings["acceptable_response_function_interpolation_error"].GetDouble(),
+                self.new_elem_name,
+                self.new_cond_name)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
 
