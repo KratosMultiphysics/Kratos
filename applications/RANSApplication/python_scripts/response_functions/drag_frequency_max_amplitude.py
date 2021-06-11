@@ -1,7 +1,7 @@
 """
 This module contains an interface to the available response functions
 """
-import math
+import math, shutil
 import time as timer
 from pathlib import Path
 
@@ -27,7 +27,9 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
             "problem_setup_files"        : {
                 "primal_project_parameters_file" : "PLEASE_SPECIFY_PRIMAL_PROJECT_PARAMETERS_FILE",
                 "adjoint_project_parameters_file": "PLEASE_SPECIFY_ADJOINT_PROJECT_PARAMETERS_FILE"
-            }
+            },
+            "clean_primal_solution": false,
+            "primal_solution_folder_name": "PLEASE_SPECIFY_PRIMAL_SOLUTION_FOLDER_NAME"
         }
         """)
 
@@ -171,6 +173,9 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         self._CalculateSensitivities(model, self.frequency_real_components)
         model = self._RunAdjointProblem("imag", self.problem_setup_file_settings, False)
         self._CalculateSensitivities(model, self.frequency_imag_components)
+
+        if self.response_settings["clean_primal_solution"].GetBool():
+            shutil.rmtree(self.response_settings["primal_solution_folder_name"].GetString())
 
         Kratos.Logger.PrintInfo(self._GetLabel(), "Time needed for solving the total adjoint analysis = ", round(timer.time() - start_time,2),"s")
 
