@@ -13,7 +13,7 @@ class WaveSolver(ShallowWaterBaseSolver):
         super().__init__(model, settings)
         self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
         self.element_name = "WaveElement"
-        self.condition_name = "LineCondition"
+        self.condition_name = "WaveCondition"
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
