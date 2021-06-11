@@ -405,7 +405,7 @@ protected:
         SetConvectionProblemSettings();
 
         if (mIsBfecc || mIncludeAntiDiffusivityTerms){
-            mpGradientCalculator = Kratos::make_shared<ComputeGradientProcessType>(
+            mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
             mrBaseModelPart,
             *mpLevelSetVar,
             *mpLevelSetGradientVar,
