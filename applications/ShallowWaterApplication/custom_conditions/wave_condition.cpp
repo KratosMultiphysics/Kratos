@@ -204,7 +204,7 @@ template<std::size_t TNumNodes>
 void WaveCondition<TNumNodes>::AddWaveTerms(
     LocalMatrixType& rMatrix,
     LocalVectorType& rVector,
-    ConditionData& rData,
+    const ConditionData& rData,
     const array_1d<double,TNumNodes>& rN,
     const double Weight)
 {
@@ -240,6 +240,15 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
             rVector(i_block + 1)              -= Weight * n_ij * g * n[1] * z[j];
         }
     }
+}
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::AddFluxTerms(
+    LocalVectorType& rVector,
+    const ConditionData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const double Weight)
+{
 }
 
 template<std::size_t TNumNodes>
@@ -280,6 +289,7 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
         const array_1d<double,TNumNodes> N = row(N_container, g);
         CalculateGaussPointData(data, g, N);
         AddWaveTerms(lhs, rhs, data, N, weight);
+        AddFluxTerms(rhs, data, N, weight);
     }
     noalias(rhs) -= prod(lhs, data.unknown);
 

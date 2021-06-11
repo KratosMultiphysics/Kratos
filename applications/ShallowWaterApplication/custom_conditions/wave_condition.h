@@ -253,7 +253,7 @@ protected:
         array_1d<double,3> velocity;
         array_1d<double,3> normal;
 
-        array_1d<double,TNumNodes> topography;
+        std::array<double,TNumNodes> topography;
         LocalVectorType unknown;
     };
 
@@ -278,7 +278,13 @@ protected:
     void AddWaveTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
-        ConditionData& rData,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const double Weight = 1.0);
+
+    void AddFluxTerms(
+        LocalVectorType& rVector,
+        const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight = 1.0);
 

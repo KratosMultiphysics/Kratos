@@ -24,9 +24,7 @@ namespace Kratos {
 
 namespace Testing {
 
-typedef ModelPart::IndexType               IndexType;
-typedef ModelPart::NodeIterator     NodeIteratorType;
-
+typedef ModelPart::IndexType IndexType;
 
 void AssembleRHS_condition(Vector& rRHS_element, const Vector& rRHS_condition, const std::vector<IndexType>& rIds)
 {
@@ -114,11 +112,10 @@ void WaveElementSteadyStateTest(
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
 }
 
-
 /**
  * @brief Check the WaveElement2D3N element with still free surface
  */
-KRATOS_TEST_CASE_IN_SUITE(SteadyStillSurfaceWaveElement2D3N, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyStillSurface, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -131,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadyStillSurfaceWaveElement2D3N, ShallowWaterApplica
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography x-gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(SteadyGradientWaveElement2D3N, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyGradient, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -146,7 +143,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadyGradientWaveElement2D3N, ShallowWaterApplication
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography skew gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(SteadySkewGradientWaveElement2D3N, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadySkewGradient, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -158,7 +155,6 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySkewGradientWaveElement2D3N, ShallowWaterApplica
 
     WaveElementSteadyStateTest(manning, height, velocity, slope, height_gradient);
 }
-
 
 } // namespace Testing
 
