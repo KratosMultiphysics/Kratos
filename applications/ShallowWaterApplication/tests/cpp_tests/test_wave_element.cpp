@@ -55,8 +55,6 @@ void WaveElementSteadyStateTest(
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(MANNING);
     model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
-    model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    model_part.AddNodalSolutionStepVariable(VERTICAL_VELOCITY);
 
     // Process info creation
     const double gravity = 9.81;
