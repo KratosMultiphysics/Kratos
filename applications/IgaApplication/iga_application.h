@@ -28,10 +28,12 @@
 #include "custom_conditions/output_condition.h"
 #include "custom_conditions/load_condition.h"
 #include "custom_conditions/load_moment_director_5p_condition.h"
-#include "custom_conditions/penalty_coupling_condition.h"
+#include "custom_conditions/coupling_penalty_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
+#include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
+#include "custom_conditions/support_nitsche_condition.h"
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
@@ -119,10 +121,12 @@ private:
     const OutputCondition mOutputCondition;
     const LoadCondition mLoadCondition;
     const LoadMomentDirector5pCondition mLoadMomentDirector5pCondition;
-    const PenaltyCouplingCondition mPenaltyCouplingCondition;
+    const CouplingPenaltyCondition mCouplingPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
+    const CouplingNitscheCondition mCouplingNitscheCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
+    const SupportNitscheCondition mSupportNitscheCondition;
 
     // Modelers
     const IgaModeler mIgaModeler;

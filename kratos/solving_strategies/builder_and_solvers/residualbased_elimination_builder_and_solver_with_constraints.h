@@ -25,6 +25,7 @@
 #include "utilities/constraint_utilities.h"
 #include "input_output/logger.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -853,9 +854,9 @@ protected:
         std::vector<IndexSetType> indices(equation_size);
 
         // We reserve some indexes on each row
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); ++index)
-            indices[index].reserve(40);
+        block_for_each(indices, [](IndexSetType& rIndices){
+            rIndices.reserve(40);
+        });
 
         /// Definition of the eqautio id vector type
         EquationIdVectorType ids(3, 0);
@@ -990,21 +991,20 @@ protected:
         for (int i = 0; i < static_cast<int>(rA.size1()); i++)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i) {
-            const IndexType row_begin = Arow_indices[i];
-            const IndexType row_end = Arow_indices[i + 1];
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Arow_indices[Index];
+            const IndexType row_end = Arow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+            for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
             }
 
-            indices[i].clear(); //deallocating the memory
+            indices[Index].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
-        }
+        });
 
         rA.set_filled(indices.size() + 1, nnz);
 
@@ -1106,22 +1106,20 @@ protected:
 
         KRATOS_DEBUG_ERROR_IF_NOT(Trow_indices[BaseType::mEquationSystemSize] == nnz) << "Nonzero values does not coincide with the row index definition: " << Trow_indices[BaseType::mEquationSystemSize] << " vs " << nnz << std::endl;
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rT.size1()); ++i) {
-            const IndexType row_begin = Trow_indices[i];
-            const IndexType row_end = Trow_indices[i + 1];
+        IndexPartition<std::size_t>(rT.size1()).for_each([&](std::size_t Index){
+            const IndexType row_begin = Trow_indices[Index];
+            const IndexType row_end = Trow_indices[Index + 1];
             IndexType k = row_begin;
-            for (auto it = master_indices[i].begin(); it != master_indices[i].end(); ++it) {
+            for (auto it = master_indices[Index].begin(); it != master_indices[Index].end(); ++it) {
                 Tcol_indices[k] = *it;
                 Tvalues[k] = 0.0;
                 k++;
             }
 
-            master_indices[i].clear(); //deallocating the memory
+            master_indices[Index].clear(); //deallocating the memory
 
             std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-        }
-
+        });
         rT.set_filled(BaseType::mEquationSystemSize + 1, nnz);
 
         // Setting ones
@@ -1470,19 +1468,18 @@ protected:
                 }
             }
 
-            #pragma omp parallel for
-            for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                const IndexType col_begin = Arow_indices[k];
-                const IndexType col_end = Arow_indices[k+1];
-                const double k_factor = scaling_factors[k];
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&](std::size_t Index){
+                const IndexType col_begin = Arow_indices[Index];
+                const IndexType col_end = Arow_indices[Index+1];
+                const double k_factor = scaling_factors[Index];
                 if (k_factor == 0) {
                     // Zero out the whole row, except the diagonal
                     for (IndexType j = col_begin; j < col_end; ++j)
-                        if (static_cast<int>(Acol_indices[j]) != k )
+                        if (Acol_indices[j] != Index )
                             Avalues[j] = 0.0;
 
                     // Zero out the RHS
-                    rb[k] = 0.0;
+                    rb[Index] = 0.0;
                 } else {
                     // Zero out the column which is associated with the zero'ed row
                     for (IndexType j = col_begin; j < col_end; ++j) {
@@ -1491,7 +1488,7 @@ protected:
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -1749,14 +1746,12 @@ private:
             }
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize ) {
-                residual_solution[equation_id] = it_dof->GetSolutionStepValue() + rDx[equation_id];
+        block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+            const IndexType equation_id = rDof.EquationId();
+            if (equation_id < this->mEquationSystemSize ) {
+                residual_solution[equation_id] = rDof.GetSolutionStepValue() + rDx[equation_id];
             }
-        }
+        });
 
         // Apply master slave constraints
         const TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -2060,10 +2055,10 @@ private:
     {
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         double *Tvalues = rTMatrix.value_data().begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(rTMatrix.nnz()); ++i) {
-            Tvalues[i] = 0.0;
-        }
+
+        IndexPartition<std::size_t>(rTMatrix.nnz()).for_each([&Tvalues](std::size_t Index){
+            Tvalues[Index] = 0.0;
+        });
 
         IndexMapType solvable_dof_reorder;
 
@@ -2109,18 +2104,18 @@ private:
         if (mDoFMasterFixedSet.size() > 0) {
             // NOTE: dofs are assumed to be numbered consecutively
             const auto it_dof_begin = BaseType::mDofSet.begin();
-            #pragma omp parallel for
-            for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
-                auto it_dof = it_dof_begin + k;
-                if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+
+            IndexPartition<std::size_t>(mDoFToSolveSystemSize).for_each([&, this](std::size_t Index){
+                auto it_dof = it_dof_begin + Index;
+                if (Index < this->mEquationSystemSize) {
                     auto it = mDoFSlaveSet.find(*it_dof);
                     if (it == mDoFSlaveSet.end()) {
                         if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                            rb[k] = 0.0;
+                            rb[Index] = 0.0;
                         }
                     }
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("");
@@ -2149,10 +2144,9 @@ private:
 
         // Filling constant vector
         if (ComputeConstantVector) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
+            IndexPartition<std::size_t>(this->mEquationSystemSize).for_each([&rConstantVector](std::size_t Index){
+                rConstantVector[Index] = 0.0;
+            });
         }
 
         // Auxiliar set to reorder master DoFs
@@ -2283,14 +2277,13 @@ private:
 
             TSystemVectorType u(BaseType::mEquationSystemSize);
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-                auto it_dof = it_dof_begin + i;
-                const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < BaseType::mEquationSystemSize ) {
-                    u[equation_id] = it_dof->GetSolutionStepValue() + Dx[equation_id];
+            block_for_each(BaseType::mDofSet, [&, this](Dof<double>& rDof){
+                const IndexType equation_id = rDof.EquationId();
+                if (equation_id < this->mEquationSystemSize ) {
+                    u[equation_id] = rDof.GetSolutionStepValue() + Dx[equation_id];
                 }
-            }
+            });
+
             TSystemVectorType u_bar(mDoFToSolveSystemSize);
             IndexType counter = 0;
             for (IndexType i = 0; i < BaseType::mDofSet.size(); ++i) {
