@@ -35,6 +35,7 @@
 #include "custom_elements/wave_element.h"
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
+#include "custom_conditions/wave_condition.h"
 
 
 namespace Kratos
@@ -203,8 +204,9 @@ namespace Kratos
         const WaveElement<8> mWaveElement2D8N;
         const WaveElement<9> mWaveElement2D9N;
         const ShallowWater2D3 mShallowWater2D3N;
-        // Condition
+        // Conditions
         const NothingCondition<2> mNothingCondition2D2N;
+        const WaveCondition<2> mWaveCondition2D2N;
 
 
         ///@}
