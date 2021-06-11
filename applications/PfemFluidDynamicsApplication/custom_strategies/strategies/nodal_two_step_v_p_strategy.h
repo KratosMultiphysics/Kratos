@@ -128,11 +128,13 @@ namespace Kratos
 							   double VelTol = 0.0001,
 							   double PresTol = 0.0001,
 							   int MaxPressureIterations = 1, // Only for predictor-corrector
+							   unsigned int TimeOrder = 2,
 							   unsigned int DomainSize = 2) : BaseType(rModelPart), // Move Mesh flag, pass as input?
 															  mVelocityTolerance(VelTol),
 															  mPressureTolerance(PresTol),
 															  mMaxPressureIter(MaxPressureIterations),
 															  mDomainSize(DomainSize),
+															  mTimeOrder(TimeOrder),
 															  mReformDofSet(ReformDofSet)
 		{
 			KRATOS_TRY;
@@ -226,6 +228,41 @@ namespace Kratos
 			// }
 
 			return ierr;
+
+			KRATOS_CATCH("");
+		}
+
+		void SetTimeCoefficients(ProcessInfo &rCurrentProcessInfo)
+		{
+			KRATOS_TRY;
+
+			if (mTimeOrder == 2)
+			{
+				//calculate the BDF coefficients
+				double Dt = rCurrentProcessInfo[DELTA_TIME];
+				double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+
+				double Rho = OldDt / Dt;
+				double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+
+				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+				BDFcoeffs.resize(3, false);
+
+				BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);		   //coefficient for step n+1 (3/2Dt if Dt is constant)
+				BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+				BDFcoeffs[2] = TimeCoeff;								   //coefficient for step n-1 (1/2Dt if Dt is constant)
+			}
+			else if (mTimeOrder == 1)
+			{
+				double Dt = rCurrentProcessInfo[DELTA_TIME];
+				double TimeCoeff = 1.0 / Dt;
+
+				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+				BDFcoeffs.resize(2, false);
+
+				BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
+				BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
+			}
 
 			KRATOS_CATCH("");
 		}
@@ -2058,6 +2095,8 @@ namespace Kratos
 		unsigned int mMaxPressureIter;
 
 		unsigned int mDomainSize;
+
+		unsigned int mTimeOrder;
 
 		bool mReformDofSet;
 

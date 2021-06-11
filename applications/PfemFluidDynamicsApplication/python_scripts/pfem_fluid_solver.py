@@ -3,7 +3,6 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 from KratosMultiphysics.python_solver import PythonSolver
 
 
@@ -67,7 +66,8 @@ class PfemFluidSolver(PythonSolver):
             "compute_contact_forces": false,
             "block_builder": false,
             "component_wise": false,
-            "predictor_corrector": true,
+            "predictor_corrector": true,            
+            "time_order": 2,
             "maximum_velocity_iterations": 1,
             "maximum_pressure_iterations": 7,
             "velocity_tolerance": 1e-5,
@@ -123,23 +123,15 @@ class PfemFluidSolver(PythonSolver):
         # Get the computing model part
         self.computing_model_part = self.GetComputingModelPart()
 
-        # self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
-        #                                                        self.velocity_linear_solver,
-        #                                                        self.pressure_linear_solver,
-        #                                                        self.settings["reform_dofs_at_each_step"].GetBool(),
-        #                                                        self.settings["velocity_tolerance"].GetDouble(),
-        #                                                        self.settings["pressure_tolerance"].GetDouble(),
-        #                                                        self.settings["maximum_pressure_iterations"].GetInt(),
-        #                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
-
-        self.fluid_solver = KratosPfemFluid.ThreeStepVPStrategy(self.computing_model_part,
-                                                                self.velocity_linear_solver,
-                                                                self.pressure_linear_solver,
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["velocity_tolerance"].GetDouble(),
-                                                                self.settings["pressure_tolerance"].GetDouble(),
-                                                                self.settings["maximum_pressure_iterations"].GetInt(),
-                                                                self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
+        self.fluid_solver = KratosPfemFluid.TwoStepVPStrategy(self.computing_model_part,
+                                                               self.velocity_linear_solver,
+                                                               self.pressure_linear_solver,
+                                                               self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                               self.settings["velocity_tolerance"].GetDouble(),
+                                                               self.settings["pressure_tolerance"].GetDouble(),
+                                                               self.settings["maximum_pressure_iterations"].GetInt(),
+                                                               self.settings["time_order"].GetInt(),
+                                                               self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         echo_level = self.settings["echo_level"].GetInt()
 
@@ -154,8 +146,6 @@ class PfemFluidSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
 
     def AddDofs(self):
 

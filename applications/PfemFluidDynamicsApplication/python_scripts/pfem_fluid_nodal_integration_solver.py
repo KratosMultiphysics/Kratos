@@ -3,7 +3,6 @@ import os
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 from KratosMultiphysics.PfemFluidDynamicsApplication import pfem_fluid_solver as BaseSolver
 
@@ -35,6 +34,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
                                                                         self.settings["velocity_tolerance"].GetDouble(),
                                                                         self.settings["pressure_tolerance"].GetDouble(),
                                                                         self.settings["maximum_pressure_iterations"].GetInt(),
+                                                                        self.settings["time_order"].GetInt(),
                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
         else:
             self.fluid_solver = KratosPfemFluid.NodalTwoStepVPStrategy(self.computing_model_part,
@@ -44,6 +44,7 @@ class PfemFluidNodalIntegrationSolver(BaseSolver.PfemFluidSolver):
                                                                    self.settings["velocity_tolerance"].GetDouble(),
                                                                    self.settings["pressure_tolerance"].GetDouble(),
                                                                    self.settings["maximum_pressure_iterations"].GetInt(),
+                                                                   self.settings["time_order"].GetInt(),
                                                                    self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION])
 
         echo_level = self.settings["echo_level"].GetInt()

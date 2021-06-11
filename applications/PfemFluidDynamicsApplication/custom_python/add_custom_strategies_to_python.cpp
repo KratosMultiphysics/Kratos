@@ -75,26 +75,21 @@ namespace Kratos
                 ;
 
             py::class_<TwoStepVPStrategyType, TwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "TwoStepVPStrategy")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int>())
-                ;
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
+            ;
 
             py::class_<ThreeStepVPStrategyType, ThreeStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "ThreeStepVPStrategy")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int>())
-                .def("CalculateAccelerations", &ThreeStepVPStrategyType::CalculateAccelerations)
-                .def("CalculateDisplacements", &ThreeStepVPStrategyType::CalculateDisplacementsAndPorosity)
-                // .def("InitializeStressStrain",&ThreeStepVPStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::InitializeStressStrain)
-                ;
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
+            ;
 
             py::class_<TwoStepVPDEMcouplingStrategyType, TwoStepVPDEMcouplingStrategyType::Pointer, TwoStepVPStrategyType>(m, "TwoStepVPDEMcouplingStrategy")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int>());
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
             py::class_<NodalTwoStepVPStrategyType, NodalTwoStepVPStrategyType::Pointer, BaseSolvingStrategyType>(m, "NodalTwoStepVPStrategy")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int>())
-                .def("CalculateAccelerations", &NodalTwoStepVPStrategyType::CalculateAccelerations)
-                .def("CalculateDisplacements", &NodalTwoStepVPStrategyType::CalculateDisplacements);
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
             py::class_<NodalTwoStepVPStrategyForFSIType, NodalTwoStepVPStrategyForFSIType::Pointer, BaseSolvingStrategyType>(m, "NodalTwoStepVPStrategyForFSI")
-                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int>());
+                .def(py::init<ModelPart &, LinearSolverType::Pointer, LinearSolverType::Pointer, bool, double, double, int, unsigned int, unsigned int>());
 
             py::class_<GaussSeidelLinearStrategyType, GaussSeidelLinearStrategyType::Pointer, BaseSolvingStrategyType>(m, "GaussSeidelLinearStrategy")
                 .def(py::init<ModelPart &, BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool>())
