@@ -71,6 +71,7 @@ void Define3DWakeProcess::ExecuteInitialize()
     auto& r_nodes = root_model_part.Nodes();
     VariableUtils().SetNonHistoricalVariable(UPPER_SURFACE, false, r_nodes);
     VariableUtils().SetNonHistoricalVariable(LOWER_SURFACE, false, r_nodes);
+    VariableUtils().SetNonHistoricalVariable(TRAILING_EDGE, false, r_nodes);
 
     InitializeTrailingEdgeSubModelpart();
 
@@ -443,14 +444,14 @@ void Define3DWakeProcess::MarkWakeElements() const
     }
 
     // Variable to store element ids
-    std::vector<std::size_t> wake_elements_ordered_ids;
-    std::vector<std::size_t> trailing_edge_elements_ordered_ids;
+    moodycamel::ConcurrentQueue<std::size_t> wake_elements_ordered_ids_concurrent_queue;
+    moodycamel::ConcurrentQueue<std::size_t> trailing_edge_elements_ordered_ids_concurrent_queue;
 
     block_for_each(root_model_part.Elements(), [&](Element& rElement)
     {
         // Check if the element is touching the trailing edge
         auto& r_geometry = rElement.GetGeometry();
-        CheckIfTrailingEdgeElement(rElement, r_geometry, trailing_edge_elements_ordered_ids);
+        CheckIfTrailingEdgeElement(rElement, r_geometry, trailing_edge_elements_ordered_ids_concurrent_queue);
 
         // Mark wake elements, save their ids, save the elemental distances in
         // the element and in the nodes, and save wake nodes ids
@@ -459,15 +460,12 @@ void Define3DWakeProcess::MarkWakeElements() const
             // Mark wake elements
             rElement.SetValue(WAKE, true);
 
-            // Save wake elements ids
-            #pragma omp critical
-            {
-                wake_elements_ordered_ids.push_back(rElement.Id());
-            }
+            wake_elements_ordered_ids_concurrent_queue.enqueue(rElement.Id());
 
             // Save elemental distances in the element
-            array_1d<double,4>  wake_elemental_distances = ZeroVector(4);
-            wake_elemental_distances = wake_normal_switching_factor * rElement.GetValue(ELEMENTAL_DISTANCES);
+            array_1d<double, 4> wake_elemental_distances = ZeroVector(4);
+            wake_elemental_distances = wake_normal_switching_factor *
+                                       rElement.GetValue(ELEMENTAL_DISTANCES);
             rElement.SetValue(WAKE_ELEMENTAL_DISTANCES, wake_elemental_distances);
 
             // Save elemental distances in the nodes
@@ -477,9 +475,10 @@ void Define3DWakeProcess::MarkWakeElements() const
                 {
                     if (wake_elemental_distances[j] < 0.0)
                     {
-                        wake_elemental_distances[j] = - mTolerance;
+                        wake_elemental_distances[j] = -mTolerance;
                     }
-                    else{
+                    else
+                    {
                         wake_elemental_distances[j] = mTolerance;
                     }
                 }
@@ -490,6 +489,24 @@ void Define3DWakeProcess::MarkWakeElements() const
         }
     });
 
+    // Variable to store element ids
+    std::vector<std::size_t> wake_elements_ordered_ids;
+    std::vector<std::size_t> trailing_edge_elements_ordered_ids;
+
+    bool found_value = true;
+    while (found_value) {
+        std::size_t id;
+        found_value = wake_elements_ordered_ids_concurrent_queue.try_dequeue(id);
+        wake_elements_ordered_ids.push_back(id);
+    }
+
+    found_value = true;
+    while (found_value) {
+        std::size_t id;
+        found_value = trailing_edge_elements_ordered_ids_concurrent_queue.try_dequeue(id);
+        trailing_edge_elements_ordered_ids.push_back(id);
+    }
+
     // Add the trailing edge elements to the trailing_edge_sub_model_part
     AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids, trailing_edge_elements_ordered_ids);
 
@@ -498,21 +515,19 @@ void Define3DWakeProcess::MarkWakeElements() const
 }
 
 // This function checks if the element is touching the trailing edge
-void Define3DWakeProcess::CheckIfTrailingEdgeElement(Element& rElement,
-                                                     Geometry<NodeType>& rGeometry,
-                                                     std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const
+void Define3DWakeProcess::CheckIfTrailingEdgeElement(
+    Element& rElement,
+    const Geometry<NodeType>& rGeometry,
+    moodycamel::ConcurrentQueue<std::size_t>& rTrailingEdgeElementsOrderedIds) const
 {
     // Loop over element nodes
     for (unsigned int i = 0; i < rGeometry.size(); i++)
     {
-        #pragma omp critical
+        // Elements touching the trailing edge are trailing edge elements
+        if (rGeometry[i].GetValue(TRAILING_EDGE))
         {
-            // Elements touching the trailing edge are trailing edge elements
-            if (rGeometry[i].GetValue(TRAILING_EDGE))
-            {
-                rElement.SetValue(TRAILING_EDGE, true);
-                rTrailingEdgeElementsOrderedIds.push_back(rElement.Id());
-            }
+            rElement.SetValue(TRAILING_EDGE, true);
+            rTrailingEdgeElementsOrderedIds.enqueue(rElement.Id());
         }
     }
 }

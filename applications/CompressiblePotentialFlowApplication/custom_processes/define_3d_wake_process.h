@@ -13,6 +13,8 @@
 #if !defined(KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED )
 #define  KRATOS_DEFINE_3D_WAKE_PROCESS_H_INCLUDED
 
+#include "concurrentqueue/concurrentqueue.h"
+
 namespace Kratos
 {
 
@@ -156,8 +158,8 @@ private:
     void MarkWakeElements() const;
 
     void CheckIfTrailingEdgeElement(Element& rElement,
-                                    Geometry<NodeType>& rGeometry,
-                                    std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const;
+                                    const Geometry<NodeType>& rGeometry,
+                                    moodycamel::ConcurrentQueue<std::size_t> & rTrailingEdgeElementsOrderedIds) const;
 
     void AddTrailingEdgeAndWakeElements(std::vector<std::size_t>& rWakeElementsOrderedIds,
                                         std::vector<std::size_t>& rTrailingEdgeElementsOrderedIds) const;
