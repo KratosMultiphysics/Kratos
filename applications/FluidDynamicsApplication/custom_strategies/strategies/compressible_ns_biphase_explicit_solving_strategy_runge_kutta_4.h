@@ -497,11 +497,11 @@ private:
             
             rVelocity = r_mom / r_rho;
             
-            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;   // Modify
-            const double sound_velocity = std::sqrt(gamma * R * temp);                                 // Modify
+            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;   // Modify for biphase flow
+            const double sound_velocity = std::sqrt(gamma * R * temp);                                 // Modify for biphase flow
             rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;                           
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;
-            rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;                                // Modify
+            rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;                                // Modify for biphase flow
             rNode.GetValue(SOUND_VELOCITY) = sound_velocity;
             rNode.GetValue(MACH) = norm_2(rVelocity) / sound_velocity;
         });
