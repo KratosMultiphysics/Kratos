@@ -53,6 +53,9 @@ public:
     template<unsigned int N>
     using BMatrixNN = BoundedMatrix<double, N, N>;
 
+    template<unsigned int N, unsigned int M>
+    using BMatrixNM = BoundedMatrix<double, N, M>;
+
     ///@}
     ///@name Life Cycle
     ///@{
