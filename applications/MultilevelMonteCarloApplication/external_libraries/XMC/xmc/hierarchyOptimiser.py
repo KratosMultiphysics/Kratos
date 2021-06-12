@@ -91,7 +91,7 @@ class HierarchyOptimiser:
         # TODO - Think of a better way to do the following. Very fragile.
         if self.isVarianceBlended is True:
             inputDict["variancesForHierarchy"] = self.varianceBlender.blend(indices, inputDict)
-        elif "estimations" in inputDict.keys() and isinstance(inputDict["estimations"], list):
+        elif "estimations" in inputDict.keys() and inputDict["estimations"]:
             inputDict["variancesForHierarchy"] = inputDict["estimations"][-1]
         sample_numbers = self.optimalSampleNumbers(inputDict, indices)
         sample_numbers = [
