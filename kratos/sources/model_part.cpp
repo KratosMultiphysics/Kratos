@@ -1858,9 +1858,10 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
 void ModelPart::AddGeometry(
     typename GeometryType::Pointer pNewGeometry)
 {
-    if (IsSubModelPart())
-    {
-        mpParentModelPart->AddGeometry(pNewGeometry);
+    if (IsSubModelPart()) {
+        if (!mpParentModelPart->HasGeometry(pNewGeometry->Id())) {
+            mpParentModelPart->AddGeometry(pNewGeometry);
+        }
     }
     /// Check if geometry id already used, is done within the geometry container.
     mGeometries.AddGeometry(pNewGeometry);

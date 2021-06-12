@@ -5,12 +5,14 @@ import sys
 import math
 import KratosMultiphysics.DEMApplication.meshing_utilities as meshing_utilities
 import KratosMultiphysics.DEMApplication.homogenization_projector as homogenization_projector
+import pathlib
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.DEMApplication.DEM_restart_utility import DEMRestartUtility
 import KratosMultiphysics.DEMApplication.dem_default_input_parameters
 from KratosMultiphysics.DEMApplication.analytic_tools import analytic_data_procedures
+from KratosMultiphysics.DEMApplication.materials_assignation_utility import MaterialsAssignationUtility
 
 from importlib import import_module
 
@@ -120,7 +122,8 @@ class DEMAnalysisStage(AnalysisStage):
         #self._solver = self._GetSolver()
         self.SetFinalTime()
         self.AddVariables()
-        super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
+
+        super().__init__(model, self.DEM_parameters)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -211,16 +214,16 @@ class DEMAnalysisStage(AnalysisStage):
         translational_scheme = self.SelectTranslationalScheme()
 
         if translational_scheme is None:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected translational integration scheme not defined. Please select a different scheme')
+
         return translational_scheme
 
     def SetRotationalScheme(self):
         rotational_scheme = self.SelectRotationalScheme()
 
         if rotational_scheme is None:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected rotational integration scheme not defined. Please select a different scheme')
+
         return rotational_scheme
 
     def SetSolver(self):        # TODO why is this still here. -> main_script calls retrocompatibility
@@ -259,6 +262,8 @@ class DEMAnalysisStage(AnalysisStage):
         self.time_old_print = 0.0
 
         self.ReadModelParts()
+
+        self.SetMaterials()
 
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
@@ -393,6 +398,25 @@ class DEMAnalysisStage(AnalysisStage):
 
         return max_node_Id, max_elem_Id, max_cond_Id
 
+
+    def SetMaterials(self):
+
+        self.ReadMaterialsFile()
+
+        model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
+        input_type = model_part_import_settings["input_type"].GetString()
+        if input_type == "rest":
+            return
+
+        materials_setter = MaterialsAssignationUtility(self.model, self.spheres_model_part, self.DEM_material_parameters)
+        materials_setter.AssignMaterialParametersToProperties()
+        materials_setter.AssignPropertiesToEntities()
+
+    def ReadMaterialsFile(self):
+        adapted_to_current_os_relative_path = pathlib.Path(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
+        materials_file_abs_path = os.path.join(self.main_path, str(adapted_to_current_os_relative_path))
+        with open(materials_file_abs_path, 'r') as materials_file:
+            self.DEM_material_parameters = Parameters(materials_file.read())
 
     def SetSearchStrategy(self):
         self._GetSolver().search_strategy = self.parallelutils.GetSearchStrategy(self._GetSolver(), self.spheres_model_part)
@@ -563,7 +587,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.DEM_parameters["dem_inlets_settings"], self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):
@@ -679,7 +703,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         del self.KratosPrintInfo
         del self.all_model_parts
-        del self.demio
+        if self.do_print_results_option:
+            del self.demio
         del self.procedures
         del self.creator_destructor
         del self.dem_fem_search
