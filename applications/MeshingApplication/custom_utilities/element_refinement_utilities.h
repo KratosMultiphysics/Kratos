@@ -16,6 +16,7 @@
 // System includes
 #include <vector>
 #include <utility>
+#include <unordered_map>
 
 // External includes
 
@@ -75,6 +76,8 @@ public:
     ///@name Operations
     ///@{
 
+    void ComputeSurfaceMap();
+
     void InterpolateToRefinedMeshFromCoarseElement(
         const ElementType& rCoarseElement);
 
@@ -89,6 +92,8 @@ public:
 private:
     ///@name Private Member Variables
     ///@{
+
+    ModelPart& mrModelPart;
 
     ModelPart* mpRefinedModelPart;
 
@@ -115,6 +120,11 @@ private:
     std::vector<const Variable<double>*> mNodalNonHistoricalVariablesList;
 
     std::vector<const Flags*> mNodalFlagsList;
+
+    std::vector<std::vector<IndexType>> mSurfacesNodeIndexOrdering;
+
+    // <CoarseElementID, <CoarseConditionId, RefinedSurfaceIndex>>
+    std::unordered_map<IndexType, std::unordered_map<IndexType, IndexType>> mElementSurfaceIndicesMap;
 
     ///@}
     ///@name Private Operations

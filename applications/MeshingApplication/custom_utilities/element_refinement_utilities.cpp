@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <cmath>
 #include <limits>
 
 // External includes
@@ -125,6 +126,20 @@ void CreateSurface(
     rRefinedModelPartSurfaceParentElements.push_back(std::make_pair(&(*p_surface_condition), pElement));
     rSurfaceModelPart.AddCondition(p_surface_condition);
     rSurfaceModelPart.AddNodes(rNodeIds);
+
+    KRATOS_CATCH("");
+}
+
+void ReverseNodeOrder(Geometry<Node<3>>& rGeometry)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_nodes = rGeometry.size();
+    const IndexType number_of_swaps = number_of_nodes / 2;
+
+    for (IndexType i = 0; i < number_of_swaps; ++i) {
+        rGeometry(i).swap(rGeometry(number_of_nodes - i - 1));
+    }
 
     KRATOS_CATCH("");
 }
@@ -291,7 +306,7 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
         // create surface 1
         IndexType surface_index = rSurfaceIndices[0];
         if (surface_index < 4) {
-            KRATOS_WATCH("Creating surface 1");
+            // surface node indices should make the normal outward pointing
             ElementRefinementHelperUtilities::CreateSurface(
                 mRefinedModelPartSurfaceParentElements[surface_index],
                 *mpRefinedModelPart,
@@ -299,13 +314,12 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
                 mStartConditionId++,
                 std::vector<IndexType>{node_ids[0], node_ids[1], node_ids[3]},
                 mrRefinedConditionName);
-            KRATOS_WATCH("Finished creating surface 1");
         }
 
         // create surface 2
         surface_index = rSurfaceIndices[1];
         if (surface_index < 4) {
-            KRATOS_WATCH("Creating surface 2");
+            // surface node indices should make the normal outward pointing
             ElementRefinementHelperUtilities::CreateSurface(
                 mRefinedModelPartSurfaceParentElements[surface_index],
                 *mpRefinedModelPart,
@@ -313,13 +327,12 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
                 mStartConditionId++,
                 std::vector<IndexType>{node_ids[3], node_ids[1], node_ids[2]},
                 mrRefinedConditionName);
-            KRATOS_WATCH("Finished creating surface 2");
         }
 
         // create surface 3
         surface_index = rSurfaceIndices[2];
         if (surface_index < 4) {
-            KRATOS_WATCH("Creating surface 3");
+            // surface node indices should make the normal outward pointing
             ElementRefinementHelperUtilities::CreateSurface(
                 mRefinedModelPartSurfaceParentElements[surface_index],
                 *mpRefinedModelPart,
@@ -327,34 +340,35 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
                 mStartConditionId++,
                 std::vector<IndexType>{node_ids[0], node_ids[3], node_ids[2]},
                 mrRefinedConditionName);
-            KRATOS_WATCH("Finished creating surface 3");
         }
 
         // create surface 4
         surface_index = rSurfaceIndices[3];
         if (surface_index < 4) {
-            KRATOS_WATCH("Creating surface 4");
+            // surface node indices should make the normal outward pointing
             ElementRefinementHelperUtilities::CreateSurface(
                 mRefinedModelPartSurfaceParentElements[surface_index],
                 *mpRefinedModelPart,
                 *mSurfaceModelParts[surface_index], p_properties, p_element,
                 mStartConditionId++,
-                std::vector<IndexType>{node_ids[0], node_ids[1], node_ids[2]},
+                std::vector<IndexType>{node_ids[1], node_ids[0], node_ids[2]},
                 mrRefinedConditionName);
-            KRATOS_WATCH("Finished creating surface 4");
         }
     } else {
-        /*       a(0)
-                  *
-                 / \
-                / 1 \
-         S0   2 *-----* 1  S2
-              / \ 4 / \
-             / 2 \ / 3 \
-             *----*-----*
-           b(1)   0     c(2)
-                  S1
+        /*                   0
+                             *
+                           / | \
+                          /  |  \    (d - surface)
+                         /   |   \
+                        /  a |  c \
+                       /     *     \
+                      /      3      \
+                     /               \
+                    /        b        \
+                   * _________________ *
+                   1                    2
         */
+        // above, a (side),b(bottom),c (side),d (outer surface) are surfaces and 0,1,2,3 are node index order
         // rows index local node, cols coarse mesh node index (a, b, c)
         BMatrixNN<4> sub_triangle_interpolation_values;
 
@@ -388,7 +402,29 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
         this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], rSurfaceIndices[1], rSurfaceIndices[2], 5}));
 
         // create sub triangles by dividing octagon
+        row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
+        row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 3)) * 0.5;
+        row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
+        row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 1)) * 0.5;
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[3], 5}));
 
+        row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 3)) * 0.5;
+        row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 3)) * 0.5;
+        row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 0)) * 0.5;
+        row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, 5, rSurfaceIndices[0]}));
+
+        row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 0)) * 0.5;
+        row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 3)) * 0.5;
+        row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 1)) * 0.5;
+        row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 0)) * 0.5;
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[2], 5, 5, 5}));
+
+        row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 1)) * 0.5;
+        row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 0)) * 0.5;
+        row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 1)) * 0.5;
+        row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 2)) * 0.5;
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[1], 5}));
     }
 
     KRATOS_CATCH("");
@@ -450,61 +486,37 @@ void ElementRefinementUtilities::InterpolateToRefinedMeshFromCoarseElement(
         r_condition.Set(ACTIVE, false);
     }
 
+    const IndexType coarse_element_id = rCoarseElement.Id();
+    const auto& r_surface_details = mElementSurfaceIndicesMap[coarse_element_id];
+
     // copy condition data
     for (auto p_surface_conditions : rCoarseElement.GetValue(NEIGHBOUR_CONDITIONS).GetContainer()) {
-        const auto& r_surface_condition = *p_surface_conditions;
-        const auto& r_surface_geometry = r_surface_condition.GetGeometry();
+        const auto& r_coarse_surface_condition = *p_surface_conditions;
+        const auto& r_coarse_surface_geometry = r_coarse_surface_condition.GetGeometry();
+        const IndexType coarse_surface_id = r_coarse_surface_condition.Id();
 
-        const IndexType start_id = r_surface_geometry[0].Id();
-        bool is_reversed = false;
+        const auto p_itr = r_surface_details.find(coarse_surface_id);
+        const IndexType surface_index = p_itr->second;
+        auto& surface_conditions = mRefinedModelPartSurfaceParentElements[surface_index];
 
-        for (IndexType i = 0; i < r_geometry.size(); ++i) {
-            const IndexType coarse_element_node_id = r_geometry[i].Id();
+        // copy parent element data and flag data
+        for (auto& r_pair : surface_conditions) {
+            auto& r_condition = *r_pair.first;
 
-            // found starting node of the condition
-            if (start_id == coarse_element_node_id) {
-                for (IndexType j = 1; j < r_surface_geometry.size(); ++j) {
-                    if (r_surface_geometry[j].Id() != r_geometry[(i + j) % coarse_element_number_of_nodes].Id()) {
-                        is_reversed = true;
-                        break;
+            // copy coarse surface condition data to refined condition
+            CopyEntityData(r_condition, r_coarse_surface_condition);
+
+            // set the parent element for refined condition properly. This has to be done
+            // because we are clearing the data container of r_condition always
+            r_condition.SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<ElementType>({r_pair.second}));
+
+            // now set flags on the refined condition nodes if surface condition has defined them
+            for (auto& r_node : r_condition.GetGeometry()) {
+                for (const auto p_flag : mNodalFlagsList) {
+                    if (r_coarse_surface_condition.IsDefined(*p_flag)) {
+                        r_node.Set(*p_flag, r_coarse_surface_condition.Is(*p_flag));
                     }
                 }
-
-                const IndexType surface_index =
-                    (mRefinedModelPartSurfaceParentElements.size() - is_reversed + i) %
-                    mRefinedModelPartSurfaceParentElements.size();
-
-                auto& surface_conditions = mRefinedModelPartSurfaceParentElements[surface_index];
-
-                // copy data
-                for (auto& r_pair : surface_conditions) {
-                    CopyEntityData(*(r_pair.first), r_surface_condition);
-                }
-
-                // reverse the order of nodes if reversed coarse condition is found
-                if (is_reversed) {
-                    for (auto& r_pair : surface_conditions) {
-                        auto& r_geometry = r_pair.first->GetGeometry();
-                        for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                            r_geometry(i).swap(r_geometry(r_geometry.PointsNumber() - i));
-                        }
-                    }
-                }
-
-                // copy parent element data and flag data
-                for (auto& r_pair : surface_conditions) {
-                    auto& r_condition = *r_pair.first;
-                    r_condition.SetValue(NEIGHBOUR_ELEMENTS, GlobalPointersVector<ElementType>({r_pair.second}));
-                    for (auto& r_node : r_condition.GetGeometry()) {
-                        for (const auto p_flag : mNodalFlagsList) {
-                            if (r_surface_condition.IsDefined(*p_flag)) {
-                                r_node.Set(*p_flag, r_surface_condition.Is(*p_flag));
-                            }
-                        }
-                    }
-                }
-
-                break;
             }
         }
     }
@@ -522,7 +534,8 @@ ElementRefinementUtilities::ElementRefinementUtilities(
     const std::vector<std::string>& rHistoricalVariableNamesList,
     const std::vector<std::string>& rNonHistoricalVariableNamesList,
     const std::vector<std::string>& rNodalFlagNamesList)
-    : mrReferenceElement(rReferenceElement),
+    : mrModelPart(rModelPart),
+      mrReferenceElement(rReferenceElement),
       mRefinementLevel(RefinementLevel),
       mrRefinedElementName(rRefinedElementName),
       mrRefinedConditionName(rRefinedConditionName)
@@ -557,6 +570,9 @@ ElementRefinementUtilities::ElementRefinementUtilities(
             BMatrixNN<3> interpolation_matrix = IdentityMatrix(3);
             SurfaceIndicesArray<3> surface_indices({0, 1, 2});
             this->RefineElement<2, 3, 3>(RefinementLevel, interpolation_matrix, surface_indices);
+            mSurfacesNodeIndexOrdering.push_back({0, 1});
+            mSurfacesNodeIndexOrdering.push_back({1, 2});
+            mSurfacesNodeIndexOrdering.push_back({2, 0});
         } else {
             KRATOS_ERROR << "Unsupported geometry with " << number_of_nodes << " nodes in 2D provided.\n";
         }
@@ -567,6 +583,10 @@ ElementRefinementUtilities::ElementRefinementUtilities(
             BMatrixNN<4> interpolation_matrix = IdentityMatrix(4);
             SurfaceIndicesArray<4> surface_indices({0, 1, 2, 3});
             this->RefineElement<3, 4, 4>(RefinementLevel, interpolation_matrix, surface_indices);
+            mSurfacesNodeIndexOrdering.push_back({0, 1, 3});
+            mSurfacesNodeIndexOrdering.push_back({3, 1, 2});
+            mSurfacesNodeIndexOrdering.push_back({0, 3, 2});
+            mSurfacesNodeIndexOrdering.push_back({0, 1, 2});
         } else {
             KRATOS_ERROR << "Unsupported geometry with " << number_of_nodes << " nodes in 3D provided.\n";
         }
@@ -614,6 +634,58 @@ ElementRefinementUtilities::ElementRefinementUtilities(
     KRATOS_CATCH("");
 }
 
+
+void ElementRefinementUtilities::ComputeSurfaceMap()
+{
+    KRATOS_TRY
+
+    using namespace ElementRefinementHelperUtilities;
+
+    FindElementSurfaceConditions(mrModelPart);
+
+    // first create all the maps for each element
+    for (const auto& r_element : mrModelPart.Elements()) {
+        mElementSurfaceIndicesMap[r_element.Id()];
+    }
+
+    const IndexType number_of_surfaces = mSurfacesNodeIndexOrdering.size();
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rCoarseElement) {
+        auto& r_element_surface_map = mElementSurfaceIndicesMap.find(rCoarseElement.Id())->second;
+        for (auto p_surface_condition : rCoarseElement.GetValue(NEIGHBOUR_CONDITIONS).GetContainer()) {
+            const IndexType surface_id = p_surface_condition->Id();
+            const auto& r_element_geometry = rCoarseElement.GetGeometry();
+            const auto& r_surface_geometry = p_surface_condition->GetGeometry();
+
+            IndexType surface_index = -1;
+            for (surface_index = 0; surface_index < number_of_surfaces; ++surface_index) {
+                IndexType found_id_count = 0;
+                const auto& node_indices = mSurfacesNodeIndexOrdering[surface_index];
+
+                for (const auto& r_surface_node : r_surface_geometry) {
+                    for (const auto node_index : node_indices) {
+                        found_id_count += (r_element_geometry[node_index].Id() == r_surface_node.Id());
+                    }
+                }
+
+                if (found_id_count == node_indices.size()) {
+                    // found the correct surface
+                    break;
+                }
+            }
+
+            KRATOS_ERROR_IF(surface_index == number_of_surfaces)
+                << "No matching surface found for coarse surface condition "
+                   "with id "
+                << surface_id << " in element " << rCoarseElement.Id() << ".\n";
+
+            r_element_surface_map[surface_id] = surface_index;
+        }
+    });
+
+
+    KRATOS_CATCH("");
+}
 
 void ElementRefinementUtilities::SetIds(const Variable<int>& rVariable)
 {

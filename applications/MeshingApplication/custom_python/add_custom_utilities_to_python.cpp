@@ -157,6 +157,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<ElementRefinementUtilities>(m, "ElementRefinementUtilities")
         .def(py::init<ModelPart&, const std::string&, const Element&, const std::size_t, const std::string, const std::string, const std::vector<std::string>&, const std::vector<std::string>&, const std::vector<std::string>&>())
         .def("InterpolateToRefinedMeshFromCoarseElement", &ElementRefinementUtilities::InterpolateToRefinedMeshFromCoarseElement)
+        .def("ComputeSurfaceMap", &ElementRefinementUtilities::ComputeSurfaceMap)
         .def("SetIds", &ElementRefinementUtilities::SetIds)
         .def("SetConditionParentIds", &ElementRefinementUtilities::SetConditionParentIds)
         .def("GetRefinedModelPart", &ElementRefinementUtilities::GetRefinedModelPart, py::return_value_policy::reference_internal)
@@ -166,3 +167,4 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 } // namespace Python.
 
 } // Namespace Kratos
+
