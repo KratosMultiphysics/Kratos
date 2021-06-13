@@ -36,22 +36,6 @@ namespace ElementRefinementHelperUtilities
 
 using IndexType = std::size_t;
 
-template<class TContainerType>
-IndexType FindMaxId(
-    const TContainerType& rContainer,
-    const DataCommunicator& rDataCommunicator)
-{
-    KRATOS_TRY
-
-    const IndexType local_max_id = IndexPartition<IndexType>(rContainer.size()).for_each<MaxReduction<IndexType>>([&](const IndexType Index) {
-        return (rContainer.begin() + Index)->Id();
-    });
-
-    return rDataCommunicator.MaxAll(local_max_id);
-
-    KRATOS_CATCH("");
-}
-
 template<class TEntityType>
 void CopyEntityData(
     TEntityType& rOutput,
@@ -110,45 +94,7 @@ void AddVariableToList(
     KRATOS_CATCH("");
 }
 
-void CreateSurface(
-    std::vector<std::pair<Condition*, Element*>>& rRefinedModelPartSurfaceParentElements,
-    ModelPart& rRefinedModelPart,
-    ModelPart& rSurfaceModelPart,
-    Properties::Pointer pProperties,
-    Element* pElement,
-    const IndexType ConditionId,
-    const std::vector<IndexType>& rNodeIds,
-    const std::string& rRefinedConditionName)
-{
-    KRATOS_TRY
-
-    auto p_surface_condition = rRefinedModelPart.CreateNewCondition(rRefinedConditionName, ConditionId, rNodeIds, pProperties);
-    rRefinedModelPartSurfaceParentElements.push_back(std::make_pair(&(*p_surface_condition), pElement));
-    rSurfaceModelPart.AddCondition(p_surface_condition);
-    rSurfaceModelPart.AddNodes(rNodeIds);
-
-    KRATOS_CATCH("");
-}
-
-void ReverseNodeOrder(Geometry<Node<3>>& rGeometry)
-{
-    KRATOS_TRY
-
-    const IndexType number_of_nodes = rGeometry.size();
-    const IndexType number_of_swaps = number_of_nodes / 2;
-
-    for (IndexType i = 0; i < number_of_swaps; ++i) {
-        rGeometry(i).swap(rGeometry(number_of_nodes - i - 1));
-    }
-
-    KRATOS_CATCH("");
-}
-
 // template instantiations
-template IndexType FindMaxId<ModelPart::NodesContainerType>(const ModelPart::NodesContainerType&, const DataCommunicator&);
-template IndexType FindMaxId<ModelPart::ConditionsContainerType>(const ModelPart::ConditionsContainerType&, const DataCommunicator&);
-template IndexType FindMaxId<ModelPart::ElementsContainerType>(const ModelPart::ElementsContainerType&, const DataCommunicator&);
-
 template void CopyEntityData<ModelPart::ConditionType>(ModelPart::ConditionType&, const ModelPart::ConditionType&);
 template void CopyEntityData<ModelPart::ElementType>(ModelPart::ElementType&, const ModelPart::ElementType&);
 
@@ -157,6 +103,9 @@ template void CopyEntityData<ModelPart::ElementType>(ModelPart::ElementType&, co
 template <>
 void ElementRefinementUtilities::RefineElement<2, 3, 3>(
     const IndexType RefinementLevel,
+    IndexType& rCurrentNodeId,
+    IndexType& rCurrentConditionId,
+    IndexType& rCurrentElementId,
     const BMatrixNN<3>& rNodalInterpolationValues,
     const SurfaceIndicesArray<3>& rSurfaceIndices)
 {
@@ -188,7 +137,7 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
             }
 
             if (r_current_id == 0) {
-                r_current_id = mStartNodeId++;
+                r_current_id = rCurrentNodeId++;
                 auto p_node = mpRefinedModelPart->CreateNewNode(r_current_id, current_coordinates[0], current_coordinates[1], current_coordinates[2]);
                 p_node->SetValue(NODAL_INTERPOLATION_VALUES, row(rNodalInterpolationValues, i));
             }
@@ -197,7 +146,7 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
         auto p_properties = mrReferenceElement.pGetProperties();
 
         // create elements
-        auto p_element = &*(mpRefinedModelPart->CreateNewElement(mrRefinedElementName, mStartElementId++, node_ids, p_properties));
+        auto p_element = &*(mpRefinedModelPart->CreateNewElement(mrRefinedElementName, rCurrentElementId++, node_ids, p_properties));
 
         // create surface conditions
         for (IndexType i = 0; i < 3; ++i) {
@@ -205,12 +154,9 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
             const IndexType current_surface_index = rSurfaceIndices[i];
 
             if (current_surface_index < 3) {
-                ElementRefinementHelperUtilities::CreateSurface(
-                    mRefinedModelPartSurfaceParentElements[current_surface_index],
-                    *mpRefinedModelPart, *mSurfaceModelParts[current_surface_index],
-                    p_properties, p_element, mStartConditionId++,
-                    std::vector<IndexType>{node_ids[i % 3], node_ids[(i + 1) % 3]},
-                    mrRefinedConditionName);
+                CreateSurfaceCondition(current_surface_index, p_properties,
+                                       p_element, rCurrentConditionId++,
+                                       {node_ids[i % 3], node_ids[(i + 1) % 3]});
             }
         }
     } else {
@@ -232,25 +178,25 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
         row(sub_triangle_interpolation_values, 0) = row(rNodalInterpolationValues, 0);
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
-        this->RefineElement<2, 3, 3>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({rSurfaceIndices[0], 4, rSurfaceIndices[2]}));
+        this->RefineElement<2, 3, 3>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({rSurfaceIndices[0], 4, rSurfaceIndices[2]}));
 
         // triangle 2
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = row(rNodalInterpolationValues, 1);
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
-        this->RefineElement<2, 3, 3>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({rSurfaceIndices[0], rSurfaceIndices[1], 4}));
+        this->RefineElement<2, 3, 3>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({rSurfaceIndices[0], rSurfaceIndices[1], 4}));
 
         // triangle 3
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = row(rNodalInterpolationValues, 2);
-        this->RefineElement<2, 3, 3>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({4, rSurfaceIndices[1], rSurfaceIndices[2]}));
+        this->RefineElement<2, 3, 3>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({4, rSurfaceIndices[1], rSurfaceIndices[2]}));
 
         // triangle 4
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 0)) * 0.5;
-        this->RefineElement<2, 3, 3>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({4, 4, 4}));
+        this->RefineElement<2, 3, 3>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<3>({4, 4, 4}));
     }
 
     KRATOS_CATCH("");
@@ -259,6 +205,9 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
 template <>
 void ElementRefinementUtilities::RefineElement<3, 4, 4>(
     const IndexType RefinementLevel,
+    IndexType& rCurrentNodeId,
+    IndexType& rCurrentConditionId,
+    IndexType& rCurrentElementId,
     const BMatrixNN<4>& rNodalInterpolationValues,
     const SurfaceIndicesArray<4>& rSurfaceIndices)
 {
@@ -291,7 +240,7 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
             }
 
             if (r_current_id == 0) {
-                r_current_id = mStartNodeId++;
+                r_current_id = rCurrentNodeId++;
                 auto p_node = mpRefinedModelPart->CreateNewNode(r_current_id, current_coordinates[0], current_coordinates[1], current_coordinates[2]);
                 p_node->SetValue(NODAL_INTERPOLATION_VALUES, row(rNodalInterpolationValues, i));
             }
@@ -300,59 +249,43 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
         auto p_properties = mrReferenceElement.pGetProperties();
 
         // create elements
-        auto p_element = &*(mpRefinedModelPart->CreateNewElement(mrRefinedElementName, mStartElementId++, node_ids, p_properties));
+        auto p_element = &*(mpRefinedModelPart->CreateNewElement(mrRefinedElementName, rCurrentElementId++, node_ids, p_properties));
 
         // create surface conditions
         // create surface 1
         IndexType surface_index = rSurfaceIndices[0];
         if (surface_index < 4) {
             // surface node indices should make the normal outward pointing
-            ElementRefinementHelperUtilities::CreateSurface(
-                mRefinedModelPartSurfaceParentElements[surface_index],
-                *mpRefinedModelPart,
-                *mSurfaceModelParts[surface_index], p_properties, p_element,
-                mStartConditionId++,
-                std::vector<IndexType>{node_ids[0], node_ids[1], node_ids[3]},
-                mrRefinedConditionName);
+            CreateSurfaceCondition(surface_index, p_properties, p_element,
+                                   rCurrentConditionId++,
+                                   {node_ids[0], node_ids[1], node_ids[3]});
         }
 
         // create surface 2
         surface_index = rSurfaceIndices[1];
         if (surface_index < 4) {
             // surface node indices should make the normal outward pointing
-            ElementRefinementHelperUtilities::CreateSurface(
-                mRefinedModelPartSurfaceParentElements[surface_index],
-                *mpRefinedModelPart,
-                *mSurfaceModelParts[surface_index], p_properties, p_element,
-                mStartConditionId++,
-                std::vector<IndexType>{node_ids[3], node_ids[1], node_ids[2]},
-                mrRefinedConditionName);
+            CreateSurfaceCondition(surface_index, p_properties, p_element,
+                                   rCurrentConditionId++,
+                                   {node_ids[3], node_ids[1], node_ids[2]});
         }
 
         // create surface 3
         surface_index = rSurfaceIndices[2];
         if (surface_index < 4) {
             // surface node indices should make the normal outward pointing
-            ElementRefinementHelperUtilities::CreateSurface(
-                mRefinedModelPartSurfaceParentElements[surface_index],
-                *mpRefinedModelPart,
-                *mSurfaceModelParts[surface_index], p_properties, p_element,
-                mStartConditionId++,
-                std::vector<IndexType>{node_ids[0], node_ids[3], node_ids[2]},
-                mrRefinedConditionName);
+            CreateSurfaceCondition(surface_index, p_properties, p_element,
+                                   rCurrentConditionId++,
+                                   {node_ids[0], node_ids[3], node_ids[2]});
         }
 
         // create surface 4
         surface_index = rSurfaceIndices[3];
         if (surface_index < 4) {
             // surface node indices should make the normal outward pointing
-            ElementRefinementHelperUtilities::CreateSurface(
-                mRefinedModelPartSurfaceParentElements[surface_index],
-                *mpRefinedModelPart,
-                *mSurfaceModelParts[surface_index], p_properties, p_element,
-                mStartConditionId++,
-                std::vector<IndexType>{node_ids[1], node_ids[0], node_ids[2]},
-                mrRefinedConditionName);
+            CreateSurfaceCondition(surface_index, p_properties, p_element,
+                                   rCurrentConditionId++,
+                                   {node_ids[1], node_ids[0], node_ids[2]});
         }
     } else {
         /*                   0
@@ -378,53 +311,53 @@ void ElementRefinementUtilities::RefineElement<3, 4, 4>(
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 3)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], 5, rSurfaceIndices[2], rSurfaceIndices[3]}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], 5, rSurfaceIndices[2], rSurfaceIndices[3]}));
 
         // corner tetrahedra 2 (bottom front left)
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = row(rNodalInterpolationValues, 1);
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 3)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], rSurfaceIndices[1], 5, rSurfaceIndices[3]}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], rSurfaceIndices[1], 5, rSurfaceIndices[3]}));
 
         // corner tetrahedra 3 (bottom front right)
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = row(rNodalInterpolationValues, 2);
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 3)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, rSurfaceIndices[1], rSurfaceIndices[2], rSurfaceIndices[3]}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, rSurfaceIndices[1], rSurfaceIndices[2], rSurfaceIndices[3]}));
 
         // corner tetrahedra 4 (bottom back)
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = row(rNodalInterpolationValues, 3);
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], rSurfaceIndices[1], rSurfaceIndices[2], 5}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[0], rSurfaceIndices[1], rSurfaceIndices[2], 5}));
 
         // create sub triangles by dividing octagon
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 3)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 2)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 1)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[3], 5}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[3], 5}));
 
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 0) + row(rNodalInterpolationValues, 3)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 3)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 1) + row(rNodalInterpolationValues, 2)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, 5, rSurfaceIndices[0]}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, 5, rSurfaceIndices[0]}));
 
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 3)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 0)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[2], 5, 5, 5}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({rSurfaceIndices[2], 5, 5, 5}));
 
         row(sub_triangle_interpolation_values, 0) = (row(rNodalInterpolationValues, 2) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 1) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 0)) * 0.5;
         row(sub_triangle_interpolation_values, 2) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 1)) * 0.5;
         row(sub_triangle_interpolation_values, 3) = (row(rNodalInterpolationValues, 3) + row(rNodalInterpolationValues, 2)) * 0.5;
-        this->RefineElement<3, 4, 4>(RefinementLevel - 1, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[1], 5}));
+        this->RefineElement<3, 4, 4>(RefinementLevel - 1, rCurrentNodeId, rCurrentConditionId, rCurrentElementId, sub_triangle_interpolation_values, SurfaceIndicesArray<4>({5, 5, rSurfaceIndices[1], 5}));
     }
 
     KRATOS_CATCH("");
@@ -438,7 +371,6 @@ void ElementRefinementUtilities::InterpolateToRefinedMeshFromCoarseElement(
     using namespace ElementRefinementHelperUtilities;
 
     const auto& r_geometry = rCoarseElement.GetGeometry();
-    const IndexType coarse_element_number_of_nodes = r_geometry.size();
 
     for (auto& r_node : mpRefinedModelPart->Nodes()) {
         r_node.Coordinates() = ZeroVector(3);
@@ -492,7 +424,6 @@ void ElementRefinementUtilities::InterpolateToRefinedMeshFromCoarseElement(
     // copy condition data
     for (auto p_surface_conditions : rCoarseElement.GetValue(NEIGHBOUR_CONDITIONS).GetContainer()) {
         const auto& r_coarse_surface_condition = *p_surface_conditions;
-        const auto& r_coarse_surface_geometry = r_coarse_surface_condition.GetGeometry();
         const IndexType coarse_surface_id = r_coarse_surface_condition.Id();
 
         const auto p_itr = r_surface_details.find(coarse_surface_id);
@@ -544,17 +475,11 @@ ElementRefinementUtilities::ElementRefinementUtilities(
 
     using namespace ElementRefinementHelperUtilities;
 
-    FindElementSurfaceConditions(rModelPart);
-
     // create new local model part and fill it with elements, conditions and nodes
     auto& r_model = rModelPart.GetModel();
 
     KRATOS_ERROR_IF(r_model.HasModelPart(rRefinedModelPartName))
         << rRefinedModelPartName << " already exists in the model. Please remove it first.\n";
-
-    mStartNodeId = 1; //FindMaxId(r_parent_model_part.Nodes(), r_data_communicator) + 1;
-    mStartConditionId = 1; //FindMaxId(r_parent_model_part.Conditions(), r_data_communicator) + 1;
-    mStartElementId = 1; //FindMaxId(r_parent_model_part.Elements(), r_data_communicator) + 1;
 
     mpRefinedModelPart = &r_model.CreateModelPart(rRefinedModelPartName);
     mpRefinedModelPart->GetNodalSolutionStepVariablesList() = rModelPart.GetNodalSolutionStepVariablesList();
@@ -563,30 +488,25 @@ ElementRefinementUtilities::ElementRefinementUtilities(
     const int domain_size = mpRefinedModelPart->GetProcessInfo()[DOMAIN_SIZE];
     const IndexType number_of_nodes = mrReferenceElement.GetGeometry().size();
 
+    IndexType current_node_id{1}, current_condition_id{1}, current_element_id{1};
+
     if (domain_size == 2) {
         if (number_of_nodes == 3) {
             // create outer surface model_parts;
-            CreateSurfaceAuxiliaries(3);
+            CreateSurfaceAuxiliaries({{0, 1}, {1, 2}, {2, 0}});
             BMatrixNN<3> interpolation_matrix = IdentityMatrix(3);
             SurfaceIndicesArray<3> surface_indices({0, 1, 2});
-            this->RefineElement<2, 3, 3>(RefinementLevel, interpolation_matrix, surface_indices);
-            mSurfacesNodeIndexOrdering.push_back({0, 1});
-            mSurfacesNodeIndexOrdering.push_back({1, 2});
-            mSurfacesNodeIndexOrdering.push_back({2, 0});
+            this->RefineElement<2, 3, 3>(RefinementLevel, current_node_id, current_condition_id, current_element_id, interpolation_matrix, surface_indices);
         } else {
             KRATOS_ERROR << "Unsupported geometry with " << number_of_nodes << " nodes in 2D provided.\n";
         }
     } else if (domain_size == 3) {
         if (number_of_nodes == 4) {
             // create outer surface model_parts;
-            CreateSurfaceAuxiliaries(4);
+            CreateSurfaceAuxiliaries({{0, 1, 3}, {3, 1, 2}, {0, 3, 2}, {0, 1, 2}});
             BMatrixNN<4> interpolation_matrix = IdentityMatrix(4);
             SurfaceIndicesArray<4> surface_indices({0, 1, 2, 3});
-            this->RefineElement<3, 4, 4>(RefinementLevel, interpolation_matrix, surface_indices);
-            mSurfacesNodeIndexOrdering.push_back({0, 1, 3});
-            mSurfacesNodeIndexOrdering.push_back({3, 1, 2});
-            mSurfacesNodeIndexOrdering.push_back({0, 3, 2});
-            mSurfacesNodeIndexOrdering.push_back({0, 1, 2});
+            this->RefineElement<3, 4, 4>(RefinementLevel, current_node_id, current_condition_id, current_element_id, interpolation_matrix, surface_indices);
         } else {
             KRATOS_ERROR << "Unsupported geometry with " << number_of_nodes << " nodes in 3D provided.\n";
         }
@@ -633,7 +553,6 @@ ElementRefinementUtilities::ElementRefinementUtilities(
 
     KRATOS_CATCH("");
 }
-
 
 void ElementRefinementUtilities::ComputeSurfaceMap()
 {
@@ -728,13 +647,37 @@ void ElementRefinementUtilities::SetConditionParentIds(const Variable<int>& rVar
     KRATOS_CATCH("");
 }
 
-void ElementRefinementUtilities::CreateSurfaceAuxiliaries(const IndexType NumberOfSurfaces)
+void ElementRefinementUtilities::CreateSurfaceCondition(
+    const IndexType SurfaceIndex,
+    Properties::Pointer pProperties,
+    Element* pParentElement,
+    const IndexType ConditionId,
+    const std::vector<IndexType>& rNodeIds)
 {
     KRATOS_TRY
 
-    mRefinedModelPartSurfaceParentElements.resize(NumberOfSurfaces);
-    for (IndexType i = 0; i < NumberOfSurfaces; ++i) {
-        mSurfaceModelParts.push_back(&mpRefinedModelPart->CreateSubModelPart("Surface_" + std::to_string(i)));
+    auto p_surface_condition = mpRefinedModelPart->CreateNewCondition(mrRefinedConditionName, ConditionId, rNodeIds, pProperties);
+    mRefinedModelPartSurfaceParentElements[SurfaceIndex].push_back(std::make_pair(&(*p_surface_condition), pParentElement));
+    auto p_current_surface_model_part = mSurfaceModelParts[SurfaceIndex];
+    p_current_surface_model_part->AddCondition(p_surface_condition);
+    p_current_surface_model_part->AddNodes(rNodeIds);
+
+    KRATOS_CATCH("");
+}
+
+void ElementRefinementUtilities::CreateSurfaceAuxiliaries(
+    const std::vector<std::vector<IndexType>>& rSurfaceNodalIndicesList)
+{
+    KRATOS_TRY
+
+    const IndexType number_of_surfaces = rSurfaceNodalIndicesList.size();
+
+    mRefinedModelPartSurfaceParentElements.resize(number_of_surfaces);
+    mSurfacesNodeIndexOrdering.resize(number_of_surfaces);
+    mSurfaceModelParts.resize(number_of_surfaces);
+    for (IndexType i = 0; i < number_of_surfaces; ++i) {
+        mSurfaceModelParts[i] = &mpRefinedModelPart->CreateSubModelPart("Surface_" + std::to_string(i + 1));
+        mSurfacesNodeIndexOrdering[i] = rSurfaceNodalIndicesList[i];
     }
 
     KRATOS_CATCH("");
@@ -747,7 +690,7 @@ ModelPart& ElementRefinementUtilities::GetRefinedModelPart()
 
 // template instantiations
 
-template void ElementRefinementUtilities::RefineElement<2, 3, 3>(const std::size_t, const BoundedMatrix<double, 3, 3>&, const array_1d<std::size_t, 3>&);
-template void ElementRefinementUtilities::RefineElement<3, 4, 4>(const std::size_t, const BoundedMatrix<double, 4, 4>&, const array_1d<std::size_t, 4>&);
+template void ElementRefinementUtilities::RefineElement<2, 3, 3>(const std::size_t, std::size_t&, std::size_t&, std::size_t&, const BoundedMatrix<double, 3, 3>&, const array_1d<std::size_t, 3>&);
+template void ElementRefinementUtilities::RefineElement<3, 4, 4>(const std::size_t, std::size_t&, std::size_t&, std::size_t&, const BoundedMatrix<double, 4, 4>&, const array_1d<std::size_t, 4>&);
 
 } // namespace Kratos

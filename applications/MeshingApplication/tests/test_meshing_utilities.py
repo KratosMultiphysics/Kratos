@@ -96,9 +96,9 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         refined_model_part = element_refinement_utilities.GetRefinedModelPart()
 
         # # check surface areas
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 0), condition_1.GetGeometry().Area(), 12)
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 1), condition_3.GetGeometry().Area(), 12)
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 2), condition_2.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 1), condition_1.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 2), condition_3.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 3), condition_2.GetGeometry().Area(), 12)
 
         # check volume
         self.assertAlmostEqual(self._CalculateVolume(refined_model_part, lambda x: x.Area()), element.GetGeometry().Area(), 12)
@@ -125,6 +125,11 @@ class TestMPIMetrics(KratosUnittest.TestCase):
 
         element_refinement_utilities.ComputeSurfaceMap()
         element_refinement_utilities.InterpolateToRefinedMeshFromCoarseElement(element)
+
+        Kratos.NormalCalculationUtils().CalculateUnitNormals(refined_model_part)
+        self._CheckNormals(condition_1, refined_model_part.GetSubModelPart("Surface_1"))
+        self._CheckNormals(condition_3, refined_model_part.GetSubModelPart("Surface_2"))
+        self._CheckNormals(condition_2, refined_model_part.GetSubModelPart("Surface_3"))
 
         element_refinement_utilities.SetIds(Kratos.SCALE)
         element_refinement_utilities.SetConditionParentIds(Kratos.FIRST_TIME_STEP)
@@ -190,10 +195,10 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         refined_model_part = element_refinement_utilities.GetRefinedModelPart()
 
         # check surface areas
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 0), condition_3.GetGeometry().Area(), 12)
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 1), condition_2.GetGeometry().Area(), 12)
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 2), condition_4.GetGeometry().Area(), 12)
-        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 3), condition_1.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 1), condition_3.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 2), condition_2.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 3), condition_4.GetGeometry().Area(), 12)
+        self.assertAlmostEqual(self._CalculateSurfaceArea(refined_model_part, 4), condition_1.GetGeometry().Area(), 12)
 
         # check volume
         self.assertAlmostEqual(self._CalculateVolume(refined_model_part, lambda x: x.Volume()), element.GetGeometry().Volume(), 12)
@@ -231,21 +236,10 @@ class TestMPIMetrics(KratosUnittest.TestCase):
         element_refinement_utilities.ComputeSurfaceMap()
         element_refinement_utilities.InterpolateToRefinedMeshFromCoarseElement(element)
         Kratos.NormalCalculationUtils().CalculateUnitNormals(refined_model_part)
-        self._CheckNormals(condition_3, refined_model_part.GetSubModelPart("Surface_0"))
-        self._CheckNormals(condition_2, refined_model_part.GetSubModelPart("Surface_1"))
-        self._CheckNormals(condition_4, refined_model_part.GetSubModelPart("Surface_2"))
-        self._CheckNormals(condition_1, refined_model_part.GetSubModelPart("Surface_3"))
-
-
-        element_refinement_utilities.InterpolateToRefinedMeshFromCoarseElement(element)
-        # self._CheckNormals(condition_3, refined_model_part.GetSubModelPart("Surface_0"))
-        # self._CheckNormals(condition_2, refined_model_part.GetSubModelPart("Surface_1"))
-        # self._CheckNormals(condition_4, refined_model_part.GetSubModelPart("Surface_2"))
-        # self._CheckNormals(condition_1, refined_model_part.GetSubModelPart("Surface_3"))
-
-        element_refinement_utilities.InterpolateToRefinedMeshFromCoarseElement(element)
-        element_refinement_utilities.InterpolateToRefinedMeshFromCoarseElement(element)
-
+        self._CheckNormals(condition_3, refined_model_part.GetSubModelPart("Surface_1"))
+        self._CheckNormals(condition_2, refined_model_part.GetSubModelPart("Surface_2"))
+        self._CheckNormals(condition_4, refined_model_part.GetSubModelPart("Surface_3"))
+        self._CheckNormals(condition_1, refined_model_part.GetSubModelPart("Surface_4"))
 
         element_refinement_utilities.SetIds(Kratos.SCALE)
         element_refinement_utilities.SetConditionParentIds(Kratos.FIRST_TIME_STEP)

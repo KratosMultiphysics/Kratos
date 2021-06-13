@@ -78,8 +78,7 @@ public:
 
     void ComputeSurfaceMap();
 
-    void InterpolateToRefinedMeshFromCoarseElement(
-        const ElementType& rCoarseElement);
+    void InterpolateToRefinedMeshFromCoarseElement(const ElementType& rCoarseElement);
 
     void SetIds(const Variable<int>& rVariable);
 
@@ -97,9 +96,14 @@ private:
 
     ModelPart* mpRefinedModelPart;
 
-    std::vector<std::vector<std::pair<ConditionType*, ElementType*>>> mRefinedModelPartSurfaceParentElements;
-
     std::vector<ModelPart*> mSurfaceModelParts;
+
+    std::vector<std::vector<IndexType>> mSurfacesNodeIndexOrdering;
+
+    // <CoarseElementID, <CoarseConditionId, RefinedSurfaceIndex>>
+    std::unordered_map<IndexType, std::unordered_map<IndexType, IndexType>> mElementSurfaceIndicesMap;
+
+    std::vector<std::vector<std::pair<ConditionType*, ElementType*>>> mRefinedModelPartSurfaceParentElements;
 
     const ElementType& mrReferenceElement;
 
@@ -109,22 +113,11 @@ private:
 
     const std::string& mrRefinedConditionName;
 
-    IndexType mStartNodeId;
-
-    IndexType mStartConditionId;
-
-    IndexType mStartElementId;
-
     std::vector<const Variable<double>*> mNodalHistoricalVariablesList;
 
     std::vector<const Variable<double>*> mNodalNonHistoricalVariablesList;
 
     std::vector<const Flags*> mNodalFlagsList;
-
-    std::vector<std::vector<IndexType>> mSurfacesNodeIndexOrdering;
-
-    // <CoarseElementID, <CoarseConditionId, RefinedSurfaceIndex>>
-    std::unordered_map<IndexType, std::unordered_map<IndexType, IndexType>> mElementSurfaceIndicesMap;
 
     ///@}
     ///@name Private Operations
@@ -133,10 +126,21 @@ private:
     template<unsigned int TDim, unsigned int TNumNodes, unsigned int TNumSurfaces>
     void RefineElement(
         const IndexType RefinementLevel,
+        IndexType& rCurrentNodeId,
+        IndexType& rCurrentConditionId,
+        IndexType& rCurrentElementId,
         const BMatrixNN<TNumNodes>& rNodalInterpolationValues,
         const SurfaceIndicesArray<TNumSurfaces>& rSurfaceIndices);
 
-    void CreateSurfaceAuxiliaries(const IndexType NumberOfSurfaces);
+    void CreateSurfaceCondition(
+        const IndexType SurfaceIndex,
+        Properties::Pointer pProperties,
+        Element* pParentElement,
+        const IndexType ConditionId,
+        const std::vector<IndexType>& rNodeIds);
+
+    void CreateSurfaceAuxiliaries(
+        const std::vector<std::vector<IndexType>>& rSurfaceNodalIndicesList);
 
     ///@}
 };
