@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -80,14 +81,9 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    const int nnodes = static_cast<int>(Nodes().size());
-    auto nodes_begin = NodesBegin();
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
-        node_iterator->CloneSolutionStepData();
-    }
+    block_for_each(Nodes(), [&](Node<3>& rNode){
+        rNode.CloneSolutionStepData();
+    });
 
     mpProcessInfo->CloneSolutionStepInfo();
 
@@ -1729,7 +1725,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
         this->AddGeometry(p_new_geometry);
@@ -1746,7 +1742,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1757,7 +1753,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
         this->AddGeometry(p_new_geometry);
@@ -1774,7 +1770,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -2056,14 +2052,9 @@ void ModelPart::SetBufferSize(ModelPart::IndexType NewBufferSize)
 
     mBufferSize = NewBufferSize;
 
-    auto nodes_begin = NodesBegin();
-    const int nnodes = static_cast<int>(Nodes().size());
-    #pragma omp parallel for firstprivate(nodes_begin,nnodes)
-    for(int i = 0; i<nnodes; ++i)
-    {
-        auto node_iterator = nodes_begin + i;
-        node_iterator->SetBufferSize(mBufferSize);
-    }
+    block_for_each(Nodes(), [&](Node<3>& rNode){
+        rNode.SetBufferSize(mBufferSize);
+    });
 
 }
 
