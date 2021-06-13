@@ -364,35 +364,40 @@ protected:
 
         // Auxiliar values
         TDataType residual_dof_value = 0.0;
-        const auto it_dof_begin = rDofSet.begin();
-        const int number_of_dof = static_cast<int>(rDofSet.size());
+        //const auto it_dof_begin = rDofSet.begin();
+        //const int number_of_dof = static_cast<int>(rDofSet.size());
+
+        using MultipleReduction = CombinedReduction<
+            SumReduction<TDataType>,
+            SumReduction<SizeType>>;
 
         // Loop over Dofs
         if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
-
-                const IndexType dof_id = it_dof->EquationId();
+            std::tie(residual_solution_norm, dof_num) = block_for_each<MultipleReduction>(rDofSet, residual_dof_value,  [&](Dof<double>& rDof, TDataType& tls_residual_dof_value ){
+                const IndexType dof_id = rDof.EquationId();
+                TDataType local_residual_solution_norm = TDataType();
+                SizeType local_dof_num = 0;
 
                 if (mActiveDofs[dof_id] == 1) {
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+                    tls_residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
+                    local_residual_solution_norm += std::pow(tls_residual_dof_value, 2);
+                    local_dof_num++;
                 }
-            }
+                return std::make_tuple(local_residual_solution_norm, local_dof_num);
+            });
         } else {
-            #pragma omp parallel for firstprivate(residual_dof_value) reduction(+:residual_solution_norm, dof_num)
-            for (int i = 0; i < number_of_dof; i++) {
-                auto it_dof = it_dof_begin + i;
+            std::tie(residual_solution_norm, dof_num) = block_for_each<MultipleReduction>(rDofSet, residual_dof_value,  [&](Dof<double>& rDof, TDataType& tls_residual_dof_value ){
+                TDataType local_residual_solution_norm = TDataType();
+                SizeType local_dof_num = 0;
 
-                if (!it_dof->IsFixed()) {
-                    const IndexType dof_id = it_dof->EquationId();
-                    residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
-                    residual_solution_norm += std::pow(residual_dof_value, 2);
-                    dof_num++;
+                if (!rDof.IsFixed()) {
+                    const IndexType dof_id = rDof.EquationId();
+                    tls_residual_dof_value = TSparseSpace::GetValue(rb,dof_id);
+                    local_residual_solution_norm += std::pow(tls_residual_dof_value, 2);
+                    local_dof_num++;
                 }
-            }
+                return std::make_tuple(local_residual_solution_norm, local_dof_num);
+            });
         }
 
         rDofNum = dof_num;
