@@ -43,6 +43,7 @@ class MonteCarloSampler:
         # TODO Define these below
         self.indexSet = None
         self.samples = None
+        self.samplesCounter = 0 # this attribute is required only by the joint use of EventDatabase class and asynchronous algorithm
 
     def hierarchy(self):
         extracted_hierarchy = []
@@ -341,8 +342,10 @@ class MonteCarloSampler:
 
     def asynchronousPrepareBatches(self, newHierarchy):
         """
-        Method setting-up batches. If needed, the serialize method is called, to serialize Kratos Model and Kratos Parameters. Otherwise, serialized objects are passed to new batches, to avoid serializing multiple times.
+        Method setting-up batches.
+        If needed, the serialize method is called, to serialize Kratos Model and Kratos Parameters. Otherwise, serialized objects are passed to new batches, to avoid serializing multiple times.
         For each batch, an index constructor dictionary is built. This way, local estimators may be computed in parallel and then update global estimators.
+        If random generator is using fixed samples, i.e. EventDatabase as RandomGeneratorWrapper, _eventCounter attribute is modified accordingly to the batch we are preparing.
         """
 
         newIndices, newSamples = splitOneListIntoTwo(newHierarchy)
@@ -363,12 +366,16 @@ class MonteCarloSampler:
             self.batchesConvergenceFinished = [False for _ in range(self.numberBatches)]
         else:  # iterationCounter > 0
             self.asynchronousUpdateBatches()
-        # create monteCarloIndex instances
+
+        # create new clean monteCarloIndex instances
         for batch in range(self.numberBatches):
             if self.batchesLaunched[batch] is False:
                 index = 0
                 for i in newIndices:
+                    # set index value
                     self.indexConstructorDictionary["indexValue"] = i
+
+                    # initialize monteCarloIndex class of asynchronous batch "batch"
                     self.batchIndices[batch].append(
                         self.indexConstructor(**self.indexConstructorDictionary)
                     )
@@ -378,6 +385,20 @@ class MonteCarloSampler:
                     # build coarser level
                     if index > 0:
                         self.asynchronousSerializeBatchIndices(batch, index, solver=1)
+
+                    # update eventCounter of EventDatabase random generator, if using EventDatabase as RandomGeneratorWrapper
+                    if self.indexConstructorDictionary["samplerInputDictionary"]["randomGenerator"] == "xmc.randomGeneratorWrapper.EventDatabase":
+                        # we may have multiple monteCarloIndex objects, that is multiple levels
+                        for j in range (len(self.batchIndices[batch])):
+                            # set _eventCounter for having independent events for different levels
+                            self.batchIndices[batch][j].sampler.randomGenerator._eventCounter = self.samplesCounter
+                            # update overall samples counter
+                            self.samplesCounter += newSamples[index]
+                    else:
+                        # update overall samples counter
+                        self.samplesCounter += newSamples[index]
+
+                    # update index counter
                     index = index + 1
 
     def asynchronousSerializeBatchIndices(self, batch, index, solver):
@@ -407,29 +428,31 @@ class MonteCarloSampler:
         ].serialized_project_parameters = (
             self.indices[index].sampler.solvers[solver].serialized_project_parameters
         )
-        # custom metric refinement parameters
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].pickled_custom_metric_refinement_parameters = (
-            self.indices[index].sampler.solvers[solver].pickled_custom_metric_refinement_parameters
-        )
-        # custom remesh refinement parameters
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].pickled_custom_remesh_refinement_parameters = (
-            self.indices[index].sampler.solvers[solver].pickled_custom_remesh_refinement_parameters
-        )
         # booleans
         self.batchIndices[batch][index].sampler.solvers[
             solver
         ].is_project_parameters_pickled = True
         self.batchIndices[batch][index].sampler.solvers[solver].is_model_pickled = True
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].is_custom_settings_metric_refinement_pickled = True
-        self.batchIndices[batch][index].sampler.solvers[
-            solver
-        ].is_custom_settings_remesh_refinement_pickled = True
+        # custom metric refinement parameters
+        if self.indices[index].sampler.solvers[solver].refinement_strategy != "reading_from_file":
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].pickled_custom_metric_refinement_parameters = (
+                self.indices[index].sampler.solvers[solver].pickled_custom_metric_refinement_parameters
+            )
+            # custom remesh refinement parameters
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].pickled_custom_remesh_refinement_parameters = (
+                self.indices[index].sampler.solvers[solver].pickled_custom_remesh_refinement_parameters
+            )
+            # booleans
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].is_custom_settings_metric_refinement_pickled = True
+            self.batchIndices[batch][index].sampler.solvers[
+                solver
+            ].is_custom_settings_remesh_refinement_pickled = True
 
     def asynchronousUpdateBatches(self):
         """

@@ -1,14 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Vahid Galavi
 //
 
 // System includes
@@ -19,42 +18,46 @@
 #include "custom_elements/geo_cable_element_3D2N.hpp"
 #include "includes/define.h"
 #include "geo_mechanics_application_variables.h"
+// This will be used as soon as all structural elements are derived
+// #include "../StructuralMechanicsApplication/custom_utilities/structural_mechanics_element_utilities.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
+
+#include "includes/checks.h"
 
 namespace Kratos
 {
-GeoCableElement3D2N::GeoCableElement3D2N(IndexType NewId,
-                                   GeometryType::Pointer pGeometry)
+GeoCableElement3D2N::
+    GeoCableElement3D2N(IndexType NewId,
+                        GeometryType::Pointer pGeometry)
     : GeoTrussElement3D2N(NewId, pGeometry) {}
 
-GeoCableElement3D2N::GeoCableElement3D2N(IndexType NewId,
-                                   GeometryType::Pointer pGeometry,
-                                   PropertiesType::Pointer pProperties)
+GeoCableElement3D2N::
+    GeoCableElement3D2N(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties)
     : GeoTrussElement3D2N(NewId, pGeometry, pProperties) {}
 
 Element::Pointer
-GeoCableElement3D2N::Create(IndexType NewId, NodesArrayType const& rThisNodes,
-                         PropertiesType::Pointer pProperties) const
+    GeoCableElement3D2N::Create(IndexType NewId,
+                                NodesArrayType const& rThisNodes,
+                                PropertiesType::Pointer pProperties) const
 {
     const GeometryType& rGeom = GetGeometry();
-    return Kratos::make_intrusive<GeoCableElement3D2N>(NewId, rGeom.Create(rThisNodes),
-            pProperties);
+    return Kratos::make_intrusive<GeoCableElement3D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
 Element::Pointer
-GeoCableElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
-                         PropertiesType::Pointer pProperties) const
+    GeoCableElement3D2N::Create(IndexType NewId,
+                                GeometryType::Pointer pGeom,
+                                PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<GeoCableElement3D2N>(NewId, pGeom,
-            pProperties);
+    return Kratos::make_intrusive<GeoCableElement3D2N>(NewId, pGeom, pProperties);
 }
 
 GeoCableElement3D2N::~GeoCableElement3D2N() {}
 
-BoundedMatrix<double, GeoTrussElement3D2N::msLocalSize,
-GeoTrussElement3D2N::msLocalSize>
-GeoCableElement3D2N::CreateElementStiffnessMatrix(
-    const ProcessInfo& rCurrentProcessInfo)
+BoundedMatrix<double, TrussElement3D2N::msLocalSize, TrussElement3D2N::msLocalSize>
+GeoCableElement3D2N::CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -80,16 +83,15 @@ GeoCableElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void GeoCableElement3D2N::
-    CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
+    CalculateRightHandSide(VectorType& rRightHandSideVector,
+                           const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
     rRightHandSideVector = ZeroVector(msLocalSize);
 
     BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    UpdateInternalForces(internal_forces);
+    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
 
     if (!mIsCompressed) {
         noalias(rRightHandSideVector) -= internal_forces;
@@ -101,8 +103,9 @@ void GeoCableElement3D2N::
     KRATOS_CATCH("")
 }
 
-void GeoCableElement3D2N::UpdateInternalForces(
-    BoundedVector<double, GeoTrussElement3D2N::msLocalSize>& rInternalForces)
+void GeoCableElement3D2N::
+    UpdateInternalForces(BoundedVector<double, TrussElement3D2N::msLocalSize>& rInternalForces,
+                         const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
@@ -122,19 +125,19 @@ void GeoCableElement3D2N::UpdateInternalForces(
     }
 
     Vector temp_internal_stresses = ZeroVector(msLocalSize);
-    const ProcessInfo temp_process_information;
-    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),temp_process_information);
+    ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
+    Vector temp_stress = ZeroVector(1);
     temp_strain[0] = CalculateGreenLagrangeStrain();
     Values.SetStrainVector(temp_strain);
-    mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
+    Values.SetStressVector(temp_stress);
+    mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-    mInternalStresses = temp_internal_stresses;
-    temp_internal_stresses += mInternalStressesFinalizedPrevious;
+    mInternalStresses = temp_stress;
+    temp_stress += mInternalStressesFinalizedPrevious;
 
     const double normal_force =
-        ((temp_internal_stresses[3] + prestress) * l * A) / L0;
-
+        ((temp_stress[0] + prestress) * l * A) / L0;
 
     mIsCompressed = false;
     if ((normal_force < 0.00)&&(std::abs(l-L0)>numerical_limit)) {
@@ -148,6 +151,34 @@ void GeoCableElement3D2N::UpdateInternalForces(
     rInternalForces = ZeroVector(msLocalSize);
     noalias(rInternalForces) = prod(transformation_matrix, f_local);
     KRATOS_CATCH("");
+}
+
+void GeoCableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<array_1d<double, 3>>& rVariable,
+    std::vector<array_1d<double, 3>>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == FORCE){
+        GeoTrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0){
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
+}
+
+void GeoCableElement3D2N::
+    CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                 std::vector<Vector>& rOutput,
+                                 const ProcessInfo& rCurrentProcessInfo)
+{
+    if ( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+         rVariable == CAUCHY_STRESS_VECTOR         ||
+         rVariable == PK2_STRESS_VECTOR ) {
+        GeoTrussElement3D2N::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
+        if (rOutput[0][0]<0.0) {
+            rOutput[0]=ZeroVector(msDimension);
+        }
+    }
 }
 
 void GeoCableElement3D2N::save(Serializer& rSerializer) const

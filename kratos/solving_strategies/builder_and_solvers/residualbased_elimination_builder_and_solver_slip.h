@@ -27,6 +27,7 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -749,10 +750,9 @@ protected:
         }
 
         //calculate the total size of the system
-        int total_size = 0.0;
-        #pragma omp parallel for reduction(+:total_size)
-        for (int i = 0; i < number_of_threads; i++)
-            total_size += local_sizes[i];
+        std::size_t total_size = IndexPartition<std::size_t>(number_of_threads).for_each<SumReduction<int>>([&](std::size_t Index){
+            return local_sizes[Index];
+        });
 
         A.reserve(total_size, false);
 
@@ -771,12 +771,9 @@ protected:
         vector<unsigned int> matrix_partition;
         CreatePartition(number_of_threads, BaseType::mEquationSystemSize, matrix_partition);
         KRATOS_WATCH(matrix_partition);
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            #pragma omp parallel
-            if (omp_get_thread_num() == k)
-            {
-                for (std::size_t i = matrix_partition[k]; i < matrix_partition[k + 1]; i++)
+
+        IndexPartition<std::size_t>(number_of_threads).for_each([&](std::size_t Index){
+            for (std::size_t i = matrix_partition[Index]; i < matrix_partition[Index + 1]; i++)
                 {
                     std::vector<std::size_t>& row_indices = index_list[i];
 
@@ -786,8 +783,7 @@ protected:
                     }
                     row_indices.clear();
                 }
-            }
-        }
+        });
 #endif
 
 
