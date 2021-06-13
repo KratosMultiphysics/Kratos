@@ -1813,13 +1813,13 @@ protected:
         // Creating a buffer for parallel vector fill
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+
+        IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each([&](std::size_t Index){
             const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
+            const double abs_value_ii = std::abs(rA(Index,Index));
             if (abs_value_ii > max_vector[id])
                 max_vector[id] = abs_value_ii;
-        }
+        });
 
         double max_diag = 0.0;
         for(int i = 0; i < num_threads; ++i) {
@@ -1846,13 +1846,13 @@ protected:
         // Creating a buffer for parallel vector fill
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
+
+        IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each([&](std::size_t Index){
             const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
+            const double abs_value_ii = std::abs(rA(Index,Index));
             if (abs_value_ii < min_vector[id])
                 min_vector[id] = abs_value_ii;
-        }
+        });
 
         double min_diag = std::numeric_limits<double>::max();
         for(int i = 0; i < num_threads; ++i) {
