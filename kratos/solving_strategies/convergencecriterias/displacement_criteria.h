@@ -396,11 +396,11 @@ private:
         TDataType reference_disp_norm = TDataType();
         TDataType dof_value;
 
-        reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, [&](Dof<TDataType>& rDof){
+        reference_disp_norm = block_for_each<SumReduction<TDataType>>(rDofSet, [&](Dof<double>& rDof){
             TDataType local_reference_disp_norm = TDataType();
             if(rDof.IsFree()) {
                 dof_value = rDof.GetSolutionStepValue();
-                reference_disp_norm += dof_value * dof_value;
+                local_reference_disp_norm += dof_value * dof_value;
             }
             return local_reference_disp_norm;
         });
@@ -484,4 +484,3 @@ private:
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_DISPLACEMENT_CRITERIA  defined */
-
