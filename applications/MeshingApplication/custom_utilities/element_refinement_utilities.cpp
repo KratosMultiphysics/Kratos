@@ -201,16 +201,16 @@ void ElementRefinementUtilities::RefineElement<2, 3, 3>(
 
         // create surface conditions
         for (IndexType i = 0; i < 3; ++i) {
+            // surface node indices should make the normal outward pointing
             const IndexType current_surface_index = rSurfaceIndices[i];
+
             if (current_surface_index < 3) {
-                const auto& condition_node_ids = std::vector<IndexType>{node_ids[i % 3], node_ids[(i + 1) % 3]};
-                auto p_surface_condition = mpRefinedModelPart->CreateNewCondition(
-                    mrRefinedConditionName,
-                    mStartConditionId++,
-                    condition_node_ids, p_properties);
-                mRefinedModelPartSurfaceParentElements[current_surface_index].push_back(std::make_pair(&(*p_surface_condition), p_element));
-                mSurfaceModelParts[current_surface_index]->AddCondition(p_surface_condition);
-                mSurfaceModelParts[current_surface_index]->AddNodes(condition_node_ids);
+                ElementRefinementHelperUtilities::CreateSurface(
+                    mRefinedModelPartSurfaceParentElements[current_surface_index],
+                    *mpRefinedModelPart, *mSurfaceModelParts[current_surface_index],
+                    p_properties, p_element, mStartConditionId++,
+                    std::vector<IndexType>{node_ids[i % 3], node_ids[(i + 1) % 3]},
+                    mrRefinedConditionName);
             }
         }
     } else {
