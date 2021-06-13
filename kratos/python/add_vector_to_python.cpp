@@ -216,6 +216,12 @@ namespace Python
                                     tmp[i] = py::cast<double>(input[i]);
                                 return tmp;
                                 }));
+        vector_binder.def(py::init([](const VectorSlice& input){
+                                Vector tmp(input.size());
+                                for(unsigned int i=0; i<tmp.size(); ++i)
+                                    tmp[i] = input[i];
+                                return tmp;
+                                }));
         py::implicitly_convertible<py::list, Vector>();
         py::implicitly_convertible<array_1d<double,3>, Vector>();
 
