@@ -37,6 +37,27 @@ class TestVectorInterface(KratosUnittest.TestCase):
         self.assertEqual(a[1],2)
         self.assertEqual(a[2],3)
 
+    def test_VectorSlice_construction(self):
+        v = Vector(5)
+        for i in range(len(v)):
+            v[i] = i
+
+        v1 = Vector(v[1:4]) # simple slice get
+        self.assertEqual(len(v1),3)
+        for i,value in enumerate(v1):
+            self.assertEqual(value, i+1 )
+
+        v2 = Vector(v[2:]) # open slice get
+        self.assertEqual(len(v2),3)
+        for i,value in enumerate(v2):
+            self.assertEqual(value, i+2 )
+
+        v3 = Vector(v[:3]) # open slice get
+        self.assertEqual(len(v3),3)
+        for i,value in enumerate(v3):
+            self.assertEqual(value, i )
+
+
     def test_scalar_op(self):
         e = Vector(2)
         e[0] = 0.0
