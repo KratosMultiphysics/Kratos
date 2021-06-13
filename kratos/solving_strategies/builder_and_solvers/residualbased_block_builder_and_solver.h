@@ -844,8 +844,8 @@ public:
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
         int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + Index;
+        IndexPartition<std::size_t>(ndofs).for_each([&, this](std::size_t Index){
+            typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
             dof_iterator->SetEquationId(Index);
         });
     }
