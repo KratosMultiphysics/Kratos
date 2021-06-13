@@ -399,15 +399,14 @@ void ModelPart::RemoveNodes(Flags IdentifierFlag)
     // Lambda to remove nodes from a mesh
     auto remove_nodes_from_mesh = [&](ModelPart::MeshType& r_mesh) {
         //count the nodes to be erase
-        const unsigned int nnodes = r_mesh.Nodes().size();
         unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nnodes); ++i) {
-            ModelPart::NodesContainerType::iterator i_node = r_mesh.NodesBegin() + i;
-
-            if( i_node->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
+        erase_count = block_for_each<SumReduction<unsigned int>>(r_mesh.Nodes(), [&](Node<3>& rNode){
+            unsigned int local_erase_count  = 0;
+            if(rNode.IsNot(IdentifierFlag)){
+                local_erase_count++;
+            }
+            return local_erase_count;
+        });
 
         ModelPart::NodesContainerType temp_nodes_container;
         temp_nodes_container.reserve(r_mesh.Nodes().size() - erase_count);
@@ -1081,16 +1080,14 @@ void ModelPart::RemoveElements(Flags IdentifierFlag)
     for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
     {
         //count the elements to be erase
-        const unsigned int nelements = i_mesh->Elements().size();
         unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nelements); ++i)
-        {
-            auto i_elem = i_mesh->ElementsBegin() + i;
-
-            if( i_elem->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
+        erase_count = block_for_each<SumReduction<unsigned int>>(i_mesh->Elements(), [&](Element& rElem){
+            unsigned int local_erase_count  = 0;
+            if(rElem.IsNot(IdentifierFlag)){
+                local_erase_count++;
+            }
+            return local_erase_count;
+        });
 
         ModelPart::ElementsContainerType temp_elements_container;
         temp_elements_container.reserve(i_mesh->Elements().size() - erase_count);
@@ -1328,15 +1325,14 @@ void ModelPart::RemoveMasterSlaveConstraints(Flags IdentifierFlag)
     auto& meshes = this->GetMeshes();
     for(auto it_mesh = meshes.begin() ; it_mesh != meshes.end() ; it_mesh++) {
         // Count the constraints to be erase
-        const SizeType nconstraints = it_mesh->MasterSlaveConstraints().size();
         SizeType erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nconstraints); ++i) {
-            auto it_const = it_mesh->MasterSlaveConstraintsBegin() + i;
-
-            if( it_const->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
+        erase_count = block_for_each<SumReduction<SizeType>>(it_mesh->MasterSlaveConstraints(), [&](MasterSlaveConstraintType& rConst){
+            unsigned int local_erase_count  = 0;
+            if(rConst.IsNot(IdentifierFlag)){
+                local_erase_count++;
+            }
+            return local_erase_count;
+        });
 
         ModelPart::MasterSlaveConstraintContainerType temp_constraints_container;
         temp_constraints_container.reserve(it_mesh->MasterSlaveConstraints().size() - erase_count);
@@ -1591,16 +1587,14 @@ void ModelPart::RemoveConditions(Flags IdentifierFlag)
     for(ModelPart::MeshesContainerType::iterator i_mesh = meshes.begin() ; i_mesh != meshes.end() ; i_mesh++)
     {
         //count the conditions to be erase
-        const unsigned int nconditions = i_mesh->Conditions().size();
         unsigned int erase_count = 0;
-        #pragma omp parallel for reduction(+:erase_count)
-        for(int i=0; i<static_cast<int>(nconditions); ++i)
-        {
-            auto i_cond = i_mesh->ConditionsBegin() + i;
-
-            if( i_cond->IsNot(IdentifierFlag) )
-                erase_count++;
-        }
+        erase_count = block_for_each<SumReduction<unsigned int>>(i_mesh->Conditions(), [&](Condition& rCond){
+            unsigned int local_erase_count  = 0;
+            if(rCond.IsNot(IdentifierFlag)){
+                local_erase_count++;
+            }
+            return local_erase_count;
+        });
 
         ModelPart::ConditionsContainerType temp_conditions_container;
         temp_conditions_container.reserve(i_mesh->Conditions().size() - erase_count);
