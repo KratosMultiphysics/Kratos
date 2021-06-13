@@ -1027,29 +1027,25 @@ public:
         mScaleFactor = GetScaleNorm(rModelPart, rA);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel firstprivate(system_size)
-        {
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
 
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(system_size); ++k) {
-                col_begin = Arow_indices[k];
-                col_end = Arow_indices[k + 1];
-                empty = true;
-                for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if(Avalues[j] != 0.0) {
-                        empty = false;
-                        break;
-                    }
-                }
-
-                if(empty) {
-                    rA(k, k) = mScaleFactor;
-                    rb[k] = 0.0;
+            col_begin = Arow_indices[Index];
+            col_end = Arow_indices[Index + 1];
+            empty = true;
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
+                    empty = false;
+                    break;
                 }
             }
-        }
+
+            if(empty) {
+                rA(Index, Index) = mScaleFactor;
+                rb[Index] = 0.0;
+            }
+        });
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             std::size_t col_begin = Arow_indices[Index];
