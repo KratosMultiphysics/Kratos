@@ -840,7 +840,7 @@ private:
                 "requires_distance_gradient" : true
             })");
         } else {
-            KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element." << std::endl;
+            KRATOS_ERROR << "Default parameters are not implemented for the specified \'" << ElementType << "\' element. Available options are \n\t- \'levelset_convection_supg\'\n\t- \'levelset_convection_algebraic_stabilization\'" << std::endl;
         }
 
         return default_parameters;

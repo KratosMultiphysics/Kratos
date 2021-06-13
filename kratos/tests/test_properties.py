@@ -21,6 +21,19 @@ class TestProperties(KratosUnittest.TestCase):
         self.assertEqual(properties.GetValue(KM.YOUNG_MODULUS), 1.0)
         self.assertEqual(cloned_properties.GetValue(KM.YOUNG_MODULUS), 10.0)
 
+    def test_erase_properties(self):
+        current_model = KM.Model()
+
+        model_part= current_model.CreateModelPart("Main")
+
+        model_part.CreateNewProperties(1)
+        properties = model_part.GetProperties()[1]
+
+        properties.SetValue(KM.YOUNG_MODULUS, 1.0)
+        self.assertEqual(properties.Has(KM.YOUNG_MODULUS), True)
+        properties.Erase(KM.YOUNG_MODULUS)
+        self.assertEqual(properties.Has(KM.YOUNG_MODULUS), False)
+        
     def test_properties_utilities(self):
         current_model = KM.Model()
 
