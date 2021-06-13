@@ -524,7 +524,7 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(this->mEquationSystemSize).for_each([&, this](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
@@ -591,7 +591,7 @@ public:
             TSystemVectorType b_modified(total_size_of_system);
 
             // Copy the RHS
-            IndexPartition<std::size_t>(BaseType::mEquationSystemSize).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(this->mEquationSystemSize).for_each([&, this](std::size_t Index){
                 b_modified[Index] = rb[Index];
             });
 
@@ -915,11 +915,11 @@ protected:
                 Trow_indices[i + 1] = Trow_indices[i] + indices[BaseType::mSlaveIds[i]].size();
             }
 
-            IndexPartition<std::size_t>(slave_size).for_each([&](std::size_t Index){
+            IndexPartition<std::size_t>(slave_size).for_each([&, this](std::size_t Index){
                 const IndexType row_begin = Trow_indices[Index];
                 const IndexType row_end = Trow_indices[Index + 1];
                 IndexType k = row_begin;
-                const IndexType i_slave = BaseType::mSlaveIds[Index];
+                const IndexType i_slave = this->mSlaveIds[Index];
                 for (auto it = indices[i_slave].begin(); it != indices[i_slave].end(); ++it) {
                     Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
