@@ -281,8 +281,8 @@ public:
         BaseType::BuildAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
-            mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&, this](std::size_t Index){
+            mLagrangeMultiplierVector[Index] += rDx[this->mEquationSystemSize + Index];
         });
 
         KRATOS_CATCH("")
@@ -317,8 +317,8 @@ public:
         BaseType::BuildRHSAndSolve(pScheme, rModelPart, rA, rDx, rb);
 
         // Update the Lagrange multiplier solution
-        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
-            mLagrangeMultiplierVector[Index] += rDx[BaseType::mEquationSystemSize + Index];
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&, this](std::size_t Index){
+            mLagrangeMultiplierVector[Index] += rDx[this->mEquationSystemSize + Index];
         });
 
         KRATOS_CATCH("")
@@ -382,8 +382,8 @@ public:
         });
 
         // NOTE: The constraints reactions are already computed when solving the dofs
-        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&](std::size_t Index){
-            const IndexType equation_id = BaseType::mSlaveIds[Index];
+        IndexPartition<std::size_t>(BaseType::mSlaveIds.size()).for_each([&, this](std::size_t Index){
+            const IndexType equation_id = this->mSlaveIds[Index];
             auto it_dof = it_dof_begin + equation_id;
             it_dof->GetSolutionStepReactionValue() = mLagrangeMultiplierVector[mCorrespondanceDofsSlave[equation_id]];
         });
@@ -455,7 +455,7 @@ public:
             }
 
             if(empty) {
-                rA(Index, Index) = BaseType::mScaleFactor;
+                rA(Index, Index) = this->mScaleFactor;
                 rb[Index] = 0.0;
             }
         });
@@ -896,8 +896,8 @@ protected:
 
             // Count the row sizes
             std::size_t nnz = 0;
-            nnz = IndexPartition<std::size_t>(slave_size).for_each<SumReduction<std::size_t>>([&](std::size_t Index){
-                return indices[BaseType::mSlaveIds[Index]].size();
+            nnz = IndexPartition<std::size_t>(slave_size).for_each<SumReduction<std::size_t>>([&, this](std::size_t Index){
+                return indices[this->mSlaveIds[Index]].size();
             });
 
             BaseType::mT = TSystemMatrixType(slave_size, size_indices, nnz);
