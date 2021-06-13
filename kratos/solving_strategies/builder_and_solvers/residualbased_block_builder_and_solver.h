@@ -1778,10 +1778,10 @@ protected:
     double GetDiagonalNorm(TSystemMatrixType& rA)
     {
         double diagonal_norm = 0.0;
-        #pragma omp parallel for reduction(+:diagonal_norm)
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            diagonal_norm += std::pow(rA(i,i), 2);
-        }
+        diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
+            return std::pow(rA(Index,Index), 2);
+        });
+
         return std::sqrt(diagonal_norm);
     }
 
