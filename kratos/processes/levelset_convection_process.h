@@ -518,6 +518,7 @@ protected:
     void InitializeDistanceModelPartDatabases()
     {
         // If required, initialize the limiter elemental and nodal databases
+        const array_1d<double, 3> aux_zero_vector = ZeroVector(3);
         if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
                 block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
         }
