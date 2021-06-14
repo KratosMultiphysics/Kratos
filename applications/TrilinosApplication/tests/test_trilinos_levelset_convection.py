@@ -185,8 +185,8 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         # gid_output.ExecuteFinalizeSolutionStep()
         # gid_output.ExecuteFinalize()
 
-        self.assertAlmostEqual(max_distance, 1.0617777301844604)
-        self.assertAlmostEqual(min_distance, -0.061745786561321375)
+        self.assertAlmostEqual(max_distance, 1.0634680107706003)
+        self.assertAlmostEqual(min_distance, -0.06361967738862996)
 
 class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
 
