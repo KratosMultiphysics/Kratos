@@ -12,17 +12,19 @@ def Factory(settings, Model):
 
 
 def _ParamToStr(param):
-    """Convert input to string type.
-
-    Keyword arguments
-    -----------------
-    param -- Accepted types are Parameters double, Parameters string, int, float, str.
-
-    Returns
-    -------
-    string expression of the input
-
-    """
+    """Convert input to string type."""
+# Workaround until Codacy checks for multiline docstrings are fixed (#8816)
+#     """Convert input to string type.
+#
+#     Keyword arguments
+#     -----------------
+#     param -- Accepted types are Parameters double, Parameters string, int, float, str.
+#
+#     Returns
+#     -------
+#     string expression of the input
+#
+#     """
     if isinstance(param, KratosMultiphysics.Parameters):
         if param.IsNumber():
             sparam = str(param.GetDouble())
@@ -37,22 +39,24 @@ def _ParamToStr(param):
 
 
 def _StrToFunction(expr):
-    """
-    Convert text to a mathematical function.
-
-    Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
-    "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
-    where 't' will be later evaluated as the current simulation time.
-
-    Keyword arguments
-    -----------------
-    expr -- strings with valid expression
-
-    Returns
-    -------
-    generated functions rendered from the input
-
-    """
+    """Convert text to a mathematical function."""
+# Workaround until Codacy checks for multiline docstrings are fixed (#8816)
+#    """
+#    Convert text to a mathematical function.
+#
+#    Input string must be a valid mathematical expression (e.g."1.2", "3.4 + t",
+#    "4.5 * t"). It returns generated functions (e.g. f(1.2), f(3.4+t), f(4.5*t)),
+#    where 't' will be later evaluated as the current simulation time.
+#
+#    Keyword arguments
+#    -----------------
+#    expr -- strings with valid expression
+#
+#    Returns
+#    -------
+#    generated functions rendered from the input
+#
+#    """
     function = KratosMultiphysics.GenericFunctionUtility(expr)
     if function.DependsOnSpace():
         msg = "SetInitialStateProcess: 'x', 'y' and 'z' variables not supported yet"
@@ -61,15 +65,17 @@ def _StrToFunction(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
-    """
-    Set a given value for a certain flag in all the nodes of a submodelpart.
-
-    Only the member variables listed below should be accessed directly.
-
-    Public member variables:
-    Model -- the container of the different model parts.
-    settings -- Kratos parameters containing solver settings.
-    """
+    """Set a given value for a certain flag in all the nodes of a submodelpart."""
+# Workaround until Codacy checks for multiline docstrings are fixed (#8816)
+#    """
+#    Set a given value for a certain flag in all the nodes of a submodelpart.
+#
+#    Only the member variables listed below should be accessed directly.
+#
+#    Public member variables:
+#    Model -- the container of the different model parts.
+#    settings -- Kratos parameters containing solver settings.
+#    """
 
     def __init__(self, Model, settings):
         """Initialize the class."""
