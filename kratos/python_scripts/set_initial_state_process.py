@@ -68,16 +68,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
 
     """Set a given value for a certain flag in all the nodes of a submodelpart."""
 
-# Workaround until Codacy checks for multiline docstrings are fixed (#8816)
-#    """
-#    Set a given value for a certain flag in all the nodes of a submodelpart.
-#
-#    Only the member variables listed below should be accessed directly.
-#
-#    Public member variables:
-#    Model -- the container of the different model parts.
-#    settings -- Kratos parameters containing solver settings.
-#    """
     def __init__(self, Model, settings):
         """Initialize the class."""
         KratosMultiphysics.Process.__init__(self)
