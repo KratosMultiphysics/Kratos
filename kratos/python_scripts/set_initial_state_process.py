@@ -66,8 +66,6 @@ def _StrToFunction(expr):
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
 
-    """Set a given value for a certain flag in all the nodes of a submodelpart."""
-
     def __init__(self, Model, settings):
         """Initialize the class."""
         KratosMultiphysics.Process.__init__(self)
