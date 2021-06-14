@@ -150,10 +150,10 @@ namespace Kratos
                     }
                 }
 
-                // Follower loads
-                if (this->Has(FOLLOWER_LOAD))
+                // Pressure follower loads
+                if (this->Has(PRESSURE_FOLLOWER_LOAD))
                 {
-                    const double follower_load = this->GetValue(FOLLOWER_LOAD);
+                    const double pressure_follower_load = this->GetValue(PRESSURE_FOLLOWER_LOAD);
                     const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
 
                     array_1d<double, 3> normal = r_geometry.Normal(point_number);
@@ -162,9 +162,9 @@ namespace Kratos
                     for (IndexType i = 0; i < number_of_nodes; i++)
                     {
                         IndexType index = 3 * i;
-                        f[index]     += normal[0] * follower_load * r_N(point_number, i) * d_weight;
-                        f[index + 1] += normal[1] * follower_load * r_N(point_number, i) * d_weight;
-                        f[index + 2] += normal[2] * follower_load * r_N(point_number, i) * d_weight;
+                        f[index]     += normal[0] * pressure_follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 1] += normal[1] * pressure_follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 2] += normal[2] * pressure_follower_load * r_N(point_number, i) * d_weight;
                     }
 
                     // compute the load stiffness matrix due to the follower load
@@ -216,7 +216,7 @@ namespace Kratos
                     a2x(2,1) = a2x(1,2);
 
                     // d. compute the left hand side
-                    noalias(rLeftHandSideMatrix) -= integration_weight * follower_load * (prod(trans(N), (prod(a2x, DN_DXi) + prod(a1x, DN_DEta))));
+                    noalias(rLeftHandSideMatrix) -= integration_weight * pressure_follower_load * (prod(trans(N), (prod(a2x, DN_DXi) + prod(a1x, DN_DEta))));
                 }
 
                 // Assembly
