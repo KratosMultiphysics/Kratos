@@ -1,102 +1,103 @@
-import KratosMultiphysics as km
+import KratosMultiphysics as KM
+import KratosMultiphysics.ConstitutiveLawsApplication as CLA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.set_initial_state_process as set_initial_state_process
 
 
 class TestSetInitialStateProcess(KratosUnittest.TestCase):
     def test_set_initial_state_process(self):
-        #ExecuteBasicVTKoutputProcessCheck()
-        km.Logger.GetDefaultOutput().SetSeverity(km.Logger.Severity.WARNING)
-        current_model = km.Model()
-        mp = current_model.CreateModelPart("Main")
-        SetupModelPart3D(mp)
+        KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
 
-        parameters = km.Parameters(
+        # Set up model part
+        model = KM.Model()
+        modelpart = model.CreateModelPart("Main")
+        node1 = modelpart.CreateNewNode(1, 0.0, 0.0, 0.0)
+        node2 = modelpart.CreateNewNode(2, 1.0, 0.0, 0.0)
+        node3 = modelpart.CreateNewNode(3, 0.0, 1.0, 0.0)
+        node4 = modelpart.CreateNewNode(4, 0.0, 0.0, 1.0)
+        modelpart.AddProperties(KM.Properties(1))
+        elem = modelpart.CreateNewElement(
+            "Element3D4N", 1, [1, 2, 3, 4], modelpart.GetProperties()[1]
+        )
+
+        # Set up constitutive law
+        cl = CLA.SmallStrainIsotropicDamage3DLaw()
+        props = modelpart.Properties[0]
+        props.SetValue(KM.CONSTITUTIVE_LAW, cl)
+        props.SetValue(KM.YOUNG_MODULUS, 6)
+        props.SetValue(KM.POISSON_RATIO, 0.3)
+        props.SetValue(CLA.HARDENING_CURVE, 1)
+        props.SetValue(CLA.STRESS_LIMITS, [1.5, 2.3, 3.0])
+        props.SetValue(CLA.HARDENING_PARAMETERS, [0.6, 0.4, 0.0])
+        geom = KM.Tetrahedra3D4(node1, node2, node3, node4)
+        cl_options = KM.Flags()
+        cl_options.Set(KM.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
+        cl_options.Set(KM.ConstitutiveLaw.COMPUTE_STRESS, True)
+        cl_options.Set(KM.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
+        stress_vector = KM.Vector(cl.GetStrainSize())
+        strain_vector = KM.Vector(cl.GetStrainSize())
+        constitutive_matrix = KM.Matrix(cl.GetStrainSize(), cl.GetStrainSize())
+        cl_params = KM.ConstitutiveLawParameters()
+        cl_params.SetOptions(cl_options)
+        cl_params.SetStrainVector(strain_vector)
+        cl_params.SetStressVector(stress_vector)
+        cl_params.SetConstitutiveMatrix(constitutive_matrix)
+        cl_params.SetProcessInfo(modelpart.ProcessInfo)
+        cl_params.SetMaterialProperties(props)
+        cl_params.SetElementGeometry(geom)
+        F = KM.Matrix(3, 3, 0.0)
+        F[0, 0] = F[1, 1] = F[2, 2] = 1
+        cl_params.SetDeformationGradientF(F)
+        cl_params.SetDeterminantF(1)
+
+        # Initialize
+        N = KM.Vector(4)
+        elem.Initialize(modelpart.ProcessInfo)
+        cl.InitializeMaterial(props, geom, N)
+        imposed_strain = [-0.0759, 0.7483, 0.1879, 0.5391, 0.0063, -0.3292]
+        imposed_strain_vector = KM.Vector(imposed_strain)
+        parameters = KM.Parameters(
             """{
             "Parameters" : {
                 "model_part_name": "Main",
-                "imposed_strain_multiplier": "0.0 * t",
-                "imposed_strain": [1,0,0,0,0,0],
-                "imposed_stress_multiplier": "0.0 * t",
-                "imposed_stress": [1,0,0,0,0,0],
-                "imposed_deformation_gradient": [[1,0,0], [0,1,0], [0,0,1]]
+                "imposed_strain_multiplier": "1.0 * t",
+                "imposed_strain": """
+            + "{}".format(imposed_strain)
+            + """
             }
         }"""
         )
+        process = set_initial_state_process.Factory(parameters, model)
 
-        #process =  vtk_output_process.Factory(parameters, current_model)
-        process =  set_initial_state_process.Factory(parameters, current_model)
-
-        process.ExecuteInitialize()
+        # Some iterations
         time = 0.0
         step = 0
-        while (time <= 1.0):
-            time += 0.2
+        while time < 0.99:
+            time += 0.1
+            print(time)
             step += 1
-            mp.ProcessInfo[km.STEP] += 1
-            SetupSolution(mp)
-            #process.ExecuteInitializeSolutionStep()
-            mp.CloneTimeStep(time)
-            process.ExecuteFinalizeSolutionStep()
+            modelpart.ProcessInfo[KM.STEP] += 1
+            modelpart.CloneTimeStep(time)
+
+            zero_strain = KM.Vector([0, 0, 0, 0, 0, 0])
+            cl_params.SetStrainVector(zero_strain)
+            process.ExecuteInitializeSolutionStep()
+            cl.InitializeMaterialResponseCauchy(cl_params)
+
+            cl_params.SetStrainVector(zero_strain)
+            cl.CalculateMaterialResponseCauchy(cl_params)
+
+            cl_params.SetStrainVector(zero_strain)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+
+        strain = cl_params.GetStrainVector()
+        stress = cl_params.GetStressVector()
+        reference_stress_vector = KM.Vector(
+            [1.28659, 3.14916, 1.88274, 0.60914, 0.00712, -0.37197]
+        )
+        self.assertVectorAlmostEqual(strain, imposed_strain_vector, prec=5)
+        self.assertVectorAlmostEqual(stress, reference_stress_vector, prec=5)
 
 
-
-def SetupModelPart3D(mp):
-    mp.AddNodalSolutionStepVariable(km.DISPLACEMENT)
-    mp.AddNodalSolutionStepVariable(km.VELOCITY)
-    mp.AddNodalSolutionStepVariable(km.PRESSURE)
-
-    # Create nodes
-    mp.CreateNewNode(1, 0.0 , 1.0 , 1.0)
-    mp.CreateNewNode(2, 0.0 , 1.0 , 0.0)
-    mp.CreateNewNode(3, 0.0 , 0.0 , 1.0)
-    mp.CreateNewNode(4, 1.0 , 1.0 , 1.0)
-    mp.CreateNewNode(5, 0.0 , 0.0 , 0.0)
-    mp.CreateNewNode(6, 1.0 , 1.0 , 0.0)
-    mp.CreateNewNode(7, 1.0 , 0.0 , 1.0)
-    mp.CreateNewNode(8, 1.0 , 0.0 , 0.0)
-    mp.CreateNewNode(9, 2.0 , 1.0 , 1.0)
-    mp.CreateNewNode(10, 2.0 , 1.0 , 0.0)
-    mp.CreateNewNode(11, 2.0 , 0.0 , 1.0)
-    mp.CreateNewNode(12, 2.0 , 0.0 , 0.0)
-    mp.CreateNewNode(13, 0.0 , 0.0 , 2.0)
-    mp.CreateNewNode(14, 1.0 , 0.0 , 2.0)
-    mp.CreateNewNode(15, 1.0 , 1.0 , 2.0)
-
-    # Create elements
-    mp.CreateNewElement("Element3D4N", 1, [12, 10, 8, 9], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 2, [4, 6, 9, 7], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 3, [11, 7, 9, 8], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 4, [5, 3, 8, 6], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 5, [4, 6, 7, 3], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 6, [2, 3, 5, 6], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 7, [10, 9, 6, 8], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 8, [7, 8, 3, 6], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 9, [7, 8, 6, 9], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 10, [4, 1, 6, 3], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 11, [9, 12, 11, 8], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D4N", 12, [3, 2, 1, 6], mp.GetProperties()[1])
-    mp.CreateNewElement("Element3D6N", 13, [3, 7, 4, 13, 14, 15], mp.GetProperties()[1])
-
-    # Create a submodelpart for boundary conditions
-    bcs = mp.CreateSubModelPart("FixedEdgeNodes")
-    bcs.AddNodes([1, 2, 5])
-
-    bcmn = mp.CreateSubModelPart("MovingNodes")
-    bcmn.AddNodes([13, 14, 15])
-
-
-def SetupSolution(mp):
-    time = mp.ProcessInfo[km.TIME] + 0.158
-    step = mp.ProcessInfo[km.STEP]
-
-    for node in mp.Nodes:
-        node.SetSolutionStepValue(km.DISPLACEMENT,0,[node.X*time,node.Y,node.Z*step])
-        node.SetSolutionStepValue(km.VELOCITY,0,[2*node.X,2*node.Y,2*node.Z])
-        node.SetSolutionStepValue(km.PRESSURE,0,node.X*time*step)
-
-    for i_elem, elem in enumerate(mp.Elements):
-        elem.SetValue(km.DETERMINANT, [i_elem*0.189,time,time*step])
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     KratosUnittest.main()
