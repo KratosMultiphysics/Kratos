@@ -65,6 +65,7 @@ def _StrToFunction(expr):
 
 
 class SetInitialStateProcess(KratosMultiphysics.Process):
+
     """Set a given value for a certain flag in all the nodes of a submodelpart."""
 # Workaround until Codacy checks for multiline docstrings are fixed (#8816)
 #    """
