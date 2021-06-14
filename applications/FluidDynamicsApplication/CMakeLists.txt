@@ -98,6 +98,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calculate_sensitivity_metric_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/element_refinement_process.cpp
 
   # response functions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/drag_frequency_response_function.cpp
