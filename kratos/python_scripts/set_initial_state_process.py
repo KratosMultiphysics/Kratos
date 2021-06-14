@@ -78,7 +78,6 @@ class SetInitialStateProcess(KratosMultiphysics.Process):
 #    Model -- the container of the different model parts.
 #    settings -- Kratos parameters containing solver settings.
 #    """
-
     def __init__(self, Model, settings):
         """Initialize the class."""
         KratosMultiphysics.Process.__init__(self)
