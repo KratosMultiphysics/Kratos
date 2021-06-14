@@ -179,8 +179,7 @@ class TestLevelSetConvection(KratosUnittest.TestCase):
             "eulerian_error_compensation" : true,
             "element_type" : "levelset_convection_algebraic_stabilization",
             "element_settings" : {
-                "include_anti_diffusivity_terms" : true,
-                "requires_distance_gradient" : true
+                "include_anti_diffusivity_terms" : true
             }
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
