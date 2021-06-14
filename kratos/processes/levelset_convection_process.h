@@ -518,14 +518,12 @@ protected:
     void InitializeDistanceModelPartDatabases()
     {
         // If required, initialize the limiter elemental and nodal databases
-        if (mEvaluateLimiter) {
-            if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
+        if (mConvectionElementType == "LevelSetConvectionElementSimplexAlgebraicStabilization") {
                 block_for_each(mpDistanceModelPart->Elements(), [&](Element &rElement) {rElement.SetValue(LIMITER_COEFFICIENT, 0.0);});
-            }
+        }
 
-            if (mElementRequiresLimiter){
+        if (mElementRequiresLimiter){
                 block_for_each(mpDistanceModelPart->Nodes(), [&](Node<3>& rNode){rNode.SetValue(LIMITER_COEFFICIENT, 0.0);});
-            }
         }
     }
 
