@@ -147,7 +147,7 @@ namespace Kratos
                 TriangleGetNewConnectivityGID(idivision, t.data(), mSplitEdges.data(), &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = GenerateTriangle(i0, i1, i2);
+                IndexedPointGeometryPointerType p_aux_partition = GenerateAuxiliaryPartitionTriangle(i0, i1, i2);
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 unsigned int neg = 0, pos = 0;
@@ -211,7 +211,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_line = GenerateLine(node_i_key, node_j_key);
+                        IndexedPointGeometryPointerType p_intersection_line = GenerateIntersectionLine(node_i_key, node_j_key);
                         mPositiveInterfaces.push_back(p_intersection_line);
                         mPositiveInterfacesParentIds.push_back(i_subdivision);
 
@@ -236,7 +236,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_line = GenerateLine(node_i_key ,node_j_key);
+                        IndexedPointGeometryPointerType p_intersection_line = GenerateIntersectionLine(node_i_key ,node_j_key);
                         mNegativeInterfaces.push_back(p_intersection_line);
                         mNegativeInterfacesParentIds.push_back(i_subdivision);
 
@@ -321,7 +321,7 @@ namespace Kratos
                     if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
                         if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
                             // If both nodes are in the candidate nodes list, the subface is exterior
-                            IndexedPointGeometryPointerType p_subface_line = GenerateLine(node_i_key, node_j_key);
+                            IndexedPointGeometryPointerType p_subface_line = GenerateIntersectionLine(node_i_key, node_j_key);
 
                             rExteriorFacesVector.push_back(p_subface_line);
                             rExteriorFacesParentSubdivisionsIdsVector.push_back(i_subdivision);
@@ -334,17 +334,24 @@ namespace Kratos
         }
     };
 
-    DivideTriangle2D3::IndexedPointGeometryPointerType DivideTriangle2D3::GenerateTriangle(const int& r_i0,const int& r_i1,const int& r_i2) {
+    DivideTriangle2D3::IndexedPointGeometryPointerType DivideTriangle2D3::GenerateAuxiliaryPartitionTriangle(
+        const int I0,
+        const int I1,
+        const int I2)
+    {
         return Kratos::make_shared<IndexedPointTriangleType>(
-                    mAuxPointsContainer(r_i0),
-                    mAuxPointsContainer(r_i1),
-                    mAuxPointsContainer(r_i2));
+            mAuxPointsContainer(I0),
+            mAuxPointsContainer(I1),
+            mAuxPointsContainer(I2));
     }
 
-    DivideTriangle2D3::IndexedPointGeometryPointerType DivideTriangle2D3::GenerateLine(const int& r_i0,const int& r_i1) {
+    DivideTriangle2D3::IndexedPointGeometryPointerType DivideTriangle2D3::GenerateIntersectionLine(
+        const int I0,
+        const int I1)
+    {
         return Kratos::make_shared<IndexedPointLineType>(
-                    mAuxPointsContainer(r_i0),
-                    mAuxPointsContainer(r_i1));
+            mAuxPointsContainer(I0),
+            mAuxPointsContainer(I1));
     }
 
 };

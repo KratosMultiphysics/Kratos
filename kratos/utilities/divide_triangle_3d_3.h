@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//   License:        BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//   Main authors:   Pablo Becker
 //
 
 #if !defined(KRATOS_DIVIDE_TRIANGLE_3D_3_UTILS)
@@ -59,10 +59,10 @@ public:
     ///@{
 
     /// Default constructor
-    DivideTriangle3D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
-        DivideTriangle2D3(rInputGeometry, rNodalDistances) {};
+    DivideTriangle3D3(const GeometryType& rInputGeometry, const Vector& rNodalDistances);
+
     /// Destructor
-    ~DivideTriangle3D3() {};
+    ~DivideTriangle3D3();
 
     ///@}
     ///@name Access
@@ -83,18 +83,14 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    IndexedPointGeometryPointerType GenerateTriangle(const int& r_i0,const int& r_i1,const int& r_i2) override {
-    return Kratos::make_shared<IndexedPointTriangleType>(
-                    mAuxPointsContainer(r_i0),
-                    mAuxPointsContainer(r_i1),
-                    mAuxPointsContainer(r_i2));
-    }
+    IndexedPointGeometryPointerType GenerateAuxiliaryPartitionTriangle(
+        const int I0,
+        const int I1,
+        const int I2) override;
 
-    IndexedPointGeometryPointerType GenerateLine(const int& r_i0,const int& r_i1) override {
-    return Kratos::make_shared<IndexedPointLineType>(
-                    mAuxPointsContainer(r_i0),
-                    mAuxPointsContainer(r_i1));
-    }
+    IndexedPointGeometryPointerType GenerateIntersectionLine(
+        const int I0,
+        const int I1) override;
     ///@}
 
 private:
