@@ -29,8 +29,9 @@
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
-
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -59,6 +60,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >            NewmarkDynamicUPwSchemeType;
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
+    typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
+    
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
@@ -68,9 +71,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     class_< NewmarkQuasistaticUPwSchemeType, typename NewmarkQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticUPwScheme")
     .def(init<  double, double, double >());
+
     class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticDampedUPwScheme")
     .def(init<  double, double, double >());
+
     class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkDynamicUPwScheme")
     .def(init<  double, double, double >());
@@ -78,6 +83,10 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticPwScheme")
     .def(init<  double, double, double >());
+
+    class_< BackwardEulerQuasistaticUPwSchemeType, typename BackwardEulerQuasistaticUPwSchemeType::Pointer, BaseSchemeType >
+    (m, "BackwardEulerQuasistaticUPwScheme")
+    .def(init< >());
 
     class_< GeoMechanicsNewtonRaphsonStrategyType, typename GeoMechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "GeoMechanicsNewtonRaphsonStrategy")

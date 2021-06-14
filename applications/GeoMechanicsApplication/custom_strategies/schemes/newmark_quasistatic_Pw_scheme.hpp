@@ -7,8 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
 #if !defined(KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME )

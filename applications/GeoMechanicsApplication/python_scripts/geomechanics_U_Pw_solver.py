@@ -342,6 +342,12 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                     scheme = KratosGeo.NewmarkQuasistaticDampedUPwScheme(beta,gamma,theta)
             else:
               raise Exception("Undefined solution type", solution_type)
+        elif (scheme_type.lower() == "backward_euler"or solution_type.lower() == "backward-euler"):
+            if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
+                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
+            else:
+              raise Exception("Undefined/uncompatible solution type with Backward Euler", solution_type)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 

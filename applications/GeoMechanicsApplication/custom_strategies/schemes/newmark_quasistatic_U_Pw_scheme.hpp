@@ -479,6 +479,12 @@ protected:
     double mDeltaTime;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    NewmarkQuasistaticUPwScheme() : Scheme<TSparseSpace,TDenseSpace>()
+    {
+        mBeta = 0.25;
+        mGamma = 0.5;
+        mTheta = 0.5;
+    }
 
     virtual inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
     {
@@ -503,14 +509,20 @@ protected:
             const array_1d<double,3>& PreviousAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
 
-            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            noalias(CurrentAcceleration) =  (  DeltaDisplacement
+                                             - mDeltaTime*PreviousVelocity 
+                                             - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration )
+                                          / (mBeta*mDeltaTime*mDeltaTime);
+
+            noalias(CurrentVelocity) =  PreviousVelocity
+                                      + (1.0-mGamma)*mDeltaTime*PreviousAcceleration
+                                      + mGamma*mDeltaTime*CurrentAcceleration;
 
             double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
             DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            CurrentDtPressure = (DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure) / (mTheta*mDeltaTime);
         }
 
         KRATOS_CATCH( "" )
