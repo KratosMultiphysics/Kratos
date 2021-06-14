@@ -143,6 +143,10 @@ ElementRefinementProcess::ElementRefinementProcess(
 
     mRefinementLevel = rParameters["refinement_level"].GetInt();
 
+    KRATOS_ERROR_IF(mRefinementLevel <= 0)
+        << "Refinement level should be greater than zero. [ refinement_level = " << mRefinementLevel
+        << " ].\n";
+
     mRefinedElementName = rParameters["refined_element_name"].GetString();
     mRefinedConditionName = rParameters["refined_condition_name"].GetString();
 
@@ -786,6 +790,11 @@ void ElementRefinementProcess::SetConditionParentIds(const Variable<int>& rVaria
 
         }
     });
+}
+
+ModelPart& ElementRefinementProcess::GetThreadLocalModelPart()
+{
+    return *GetThreadLocalStorage().pRefinedModelPart;
 }
 
 std::string ElementRefinementProcess::Info() const

@@ -25,10 +25,9 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_processes/element_refinement_process.h"
 #include "custom_utilities/fluid_adjoint_slip_utilities.h"
 #include "fluid_dynamics_application_variables.h"
-
-#include "custom_utilities/element_refinement_utilities.h"
 
 namespace Kratos
 {
@@ -81,20 +80,14 @@ public:
         AdjointResponseFunction::Pointer pResponseFunction,
         const IndexType Dimension,
         const IndexType BlockSize,
-        const IndexType ResponseErrorEstimationRefinementLevel = 0,
-        const double ResponseAcceptableError = 1e-6,
-        const std::string& rElementName = "",
-        const std::string& rConditionName = "")
+        ElementRefinementProcess::Pointer pElementRefinementProcess = nullptr)
         : BaseType(pResponseFunction),
           mAdjointSlipUtilities(Dimension, BlockSize),
-          mResponseErrorEstimationRefinementLevel(ResponseErrorEstimationRefinementLevel),
-          mElementName(rElementName),
-          mConditionName(rConditionName)
+          mpElementRefinementProcess(pElementRefinementProcess)
     {
         // Allocate auxiliary memory.
         const int number_of_threads = ParallelUtilities::GetNumThreads();
         mAuxMatrices.resize(number_of_threads);
-        mElementRefinementUtilities.resize(number_of_threads);
 
         KRATOS_INFO(this->Info()) << this->Info() << " created [ Dimensionality = " << Dimension << ", BlockSize = " << BlockSize << " ].\n";
     }
@@ -105,6 +98,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void Initialize(ModelPart& rModelPart) override
+    {
+        if (mpElementRefinementProcess) {
+            mpElementRefinementProcess->ExecuteInitialize();
+        }
+    }
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -170,13 +170,10 @@ private:
     ///@{
 
     std::vector<Matrix> mAuxMatrices;
-    std::vector<ElementRefinementUtilities*> mElementRefinementUtilities;
 
     const FluidAdjointSlipUtilities mAdjointSlipUtilities;
 
-    const IndexType mResponseErrorEstimationRefinementLevel;
-    const std::string mElementName;
-    const std::string mConditionName;
+    ElementRefinementProcess::Pointer mpElementRefinementProcess;
 
     ///@}
     ///@name Private Operations
@@ -245,7 +242,7 @@ private:
 
         BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
 
-        if (mResponseErrorEstimationRefinementLevel > 0) {
+        if (mpElementRefinementProcess) {
             CalculateResponseFunctionInterpolationError(rModelPart);
         }
 
@@ -254,6 +251,9 @@ private:
 
     ///@}
 private:
+    ///@name Private operations
+    ///@{
+
     void CalculateResponseFunctionInterpolationError(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -270,39 +270,6 @@ private:
             rNode.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR, Vector(number_of_dofs_per_node, 0.0));
         });
 
-        const std::vector<std::string> nodal_historical_variables = {
-            "VELOCITY_X",
-            "VELOCITY_Y",
-            "VELOCITY_Z",
-            "PRESSURE",
-            "ADJOINT_FLUID_VECTOR_1_X",
-            "ADJOINT_FLUID_VECTOR_1_Y",
-            "ADJOINT_FLUID_VECTOR_1_Z",
-            "ADJOINT_FLUID_SCALAR_1",
-            "RANS_SCALAR_1_ADJOINT_1",
-            "RANS_SCALAR_2_ADJOINT_1",
-            "NORMAL_X",
-            "NORMAL_Y",
-            "NORMAL_Z",
-            "DISTANCE",
-            "MESH_VELOCITY_X",
-            "MESH_VELOCITY_Y",
-            "MESH_VELOCITY_Z",
-            "RANS_AUXILIARY_VARIABLE_1",
-            "RANS_AUXILIARY_VARIABLE_2",
-            "TURBULENT_KINETIC_ENERGY",
-            "TURBULENT_KINETIC_ENERGY_RATE",
-            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE",
-            "TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2"};
-
-        const std::vector<std::string> nodal_non_historical_variables = {
-            "RELAXED_ACCELERATION_X",
-            "RELAXED_ACCELERATION_Y",
-            "RELAXED_ACCELERATION_Z"
-        };
-
-        const std::vector<std::string> flags_list = {"SLIP", "INLET", "OUTLET"};
-
         // acceptable error for an element
         const double acceptable_element_error = 1.0 / rModelPart.GetCommunicator().GlobalNumberOfElements();
 
@@ -318,30 +285,15 @@ private:
             bool IsInitialized = false;
             std::unordered_map<IndexType, double> AssembledValues;
             std::unordered_map<IndexType, IndexType> ErrorIds;
+            ModelPart* pRefinedModelPart;
         };
 
-        const IndexType number_of_threads = ParallelUtilities::GetNumThreads();
-
-        for (IndexType i = 0; i < number_of_threads; ++i) {
-            mElementRefinementUtilities[i] = new ElementRefinementUtilities(
-                rModelPart,
-                "ElementRefinementUtilities_RefinedModelPart_" + std::to_string(i + 1),
-                dummy_element, mResponseErrorEstimationRefinementLevel,
-                mElementName, mConditionName, nodal_historical_variables,
-                nodal_non_historical_variables, flags_list);
-        }
-
         block_for_each(rModelPart.Elements(), TLS(), [&](Element& rElement, TLS& rTLS) {
-            const int thread_id = OpenMPUtils::ThisThread();
-            auto p_element_refinement_utilities = mElementRefinementUtilities[thread_id];
-
-            // get refined model part
-            auto& refined_model_part = p_element_refinement_utilities->GetRefinedModelPart();
-            auto& r_process_info = refined_model_part.GetProcessInfo();
-
             if (!rTLS.IsInitialized) {
-                for (auto& r_element : refined_model_part.Elements()) {
-                    r_element.EquationIdVector(rTLS.EquationIds, r_process_info);
+                rTLS.pRefinedModelPart = &mpElementRefinementProcess->GetThreadLocalModelPart();
+
+                for (auto& r_element : rTLS.pRefinedModelPart->Elements()) {
+                    r_element.EquationIdVector(rTLS.EquationIds, rTLS.pRefinedModelPart->GetProcessInfo());
                     for (IndexType i = 0; i < rTLS.EquationIds.size(); ++i) {
                         const IndexType equation_id = rTLS.EquationIds[i];
                         rTLS.AssembledValues[equation_id];
@@ -352,29 +304,31 @@ private:
                 rTLS.IsInitialized = true;
             }
 
+            auto& r_process_info = rTLS.pRefinedModelPart->GetProcessInfo();
+
             for (auto& p : rTLS.AssembledValues) {
                 p.second = 0.0;
             }
 
-            p_element_refinement_utilities->InterpolateToRefinedMeshFromCoarseElement(rElement);
+            mpElementRefinementProcess->InterpolateThreadLocalRefinedMeshFromCoarseElement(rElement);
 
-            for (auto& r_element : refined_model_part.Elements()) {
+            for (auto& r_element : rTLS.pRefinedModelPart->Elements()) {
                 r_element.Initialize(r_process_info);
                 r_element.InitializeSolutionStep(r_process_info);
             }
 
-            for (auto& r_condition : refined_model_part.Conditions()) {
+            for (auto& r_condition : rTLS.pRefinedModelPart->Conditions()) {
                 r_condition.Initialize(r_process_info);
                 r_condition.InitializeSolutionStep(r_process_info);
             }
 
-            for (auto& r_element : refined_model_part.Elements()) {
+            for (auto& r_element : rTLS.pRefinedModelPart->Elements()) {
                 CalculateAndAssembleLocalEntityContributions(
                     r_element, rTLS.LHS, rTLS.Values, rTLS.Residuals,
                     rTLS.EquationIds, rTLS.AssembledValues, r_process_info);
             }
 
-            for (auto& r_condition : refined_model_part.Conditions()) {
+            for (auto& r_condition : rTLS.pRefinedModelPart->Conditions()) {
                 if (r_condition.Is(ACTIVE)) {
                     CalculateAndAssembleLocalEntityContributions(
                         r_condition, rTLS.LHS, rTLS.Values, rTLS.Residuals,
@@ -387,9 +341,6 @@ private:
             }
 
             noalias(rTLS.ErrorValuesList) = ZeroVector(number_of_dofs_per_node);
-
-            const IndexType number_of_values = rTLS.AssembledValues.size();
-            const double acceptable_refined_element_error = acceptable_element_error / number_of_values;
 
             for (auto& p : rTLS.AssembledValues) {
                 rTLS.ErrorValuesList[rTLS.ErrorIds.find(p.first)->second] += 1.0 / std::abs(p.second);
@@ -407,6 +358,9 @@ private:
 
         KRATOS_CATCH("");
     }
+
+    ///@}
+
 
     // This method can be called in parallel regions since this is used inside open mp loops of original model part
     // and iterated over refined elements of the original model part elements

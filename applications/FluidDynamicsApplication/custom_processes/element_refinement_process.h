@@ -82,6 +82,8 @@ public:
 
     void SetConditionParentIds(const Variable<int>& rVariable);
 
+    ModelPart& GetThreadLocalModelPart();
+
     const Parameters GetDefaultParameters() const override;
 
     ///@}
