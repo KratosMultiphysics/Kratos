@@ -436,7 +436,6 @@ namespace Kratos {
         if (!failure_type) {
             BondedLocalElasticContactForce[0] = OldBondedLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0]; // 0: first tangential
             BondedLocalElasticContactForce[1] = OldBondedLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1]; // 1: second tangential
-
         } else {
             BondedLocalElasticContactForce[0] = 0.0; // 0: first tangential
             BondedLocalElasticContactForce[1] = 0.0; // 1: second tangential

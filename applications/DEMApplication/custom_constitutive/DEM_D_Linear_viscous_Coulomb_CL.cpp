@@ -52,12 +52,19 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         //const double sqrt_equiv_radius = sqrt(equiv_radius);
-
         //const double alpha = 0.05;   // a = sqrt(s(2r-s)) chord formula for a fixed sagita ratio  s/r = 5% s=0.05r
-        const double beta = 1.432;
-        const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
-        mKn = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;
+        //const double beta = 1.432;
+        //const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
+        //mKn = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
+        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
+
+        double equiv_poisson = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson); 
+        double equivalent_radius = 0.5 * radius_sum;
+        double calculation_area = Globals::Pi * equivalent_radius * equivalent_radius;
+        const double unbonded_equivalent_young = 0.5 * (my_young + other_young);
+        const double unbonded_equivalent_shear = unbonded_equivalent_young / (2.0 * (1 + equiv_poisson));
+        mKn = unbonded_equivalent_young * calculation_area * radius_sum_inv;
+        mKt = unbonded_equivalent_shear * calculation_area * radius_sum_inv;
     }
 
     void DEM_D_Linear_viscous_Coulomb::CalculateForces(const ProcessInfo& r_process_info,
