@@ -28,7 +28,7 @@ GenerateDemProcess::GenerateDemProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GenerateDemProcess::Execute() 
+void GenerateDemProcess::Execute()
 {
     auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
     FindGlobalNodalNeighboursProcess nodal_neigh_process(r_comm, mrModelPart);
@@ -95,10 +95,10 @@ void GenerateDemProcess::Execute()
                     }
                     const array_1d<double,3>& r_coordinates = r_node.Coordinates();
                     const int id = this->GetMaximumDEMId() + 1;
-                    
+
                     if (mrDEMModelPart.Elements().size() == 0)
                         this->CreateDEMParticle(id + max_id_FEM_nodes, r_coordinates, p_DEM_properties, 0.8*radius, r_node);
-                    else 
+                    else
                         this->CreateDEMParticle(id, r_coordinates, p_DEM_properties,0.8* radius, r_node);
                 }
             }
@@ -132,6 +132,16 @@ void GenerateDemProcess::CreateDEMParticle(
     rNode.SetValue(IS_DEM, true);
     rNode.SetValue(RADIUS, Radius);
     rNode.SetValue(DEM_PARTICLE_POINTER, spheric_particle);
+
+    // We transfer kinematic information
+    if (rNode.SolutionStepsDataHas(VELOCITY)) {
+        const array_1d<double, 3> vel = rNode.FastGetSolutionStepValue(VELOCITY);
+        array_1d<double, 3>& r_particle_vel = spheric_particle->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        noalias(r_particle_vel) = vel;
+    }
+    const array_1d<double, 3> displ = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+    array_1d<double, 3>& r_particle_displ = spheric_particle->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    noalias(r_particle_displ) = displ;
 }
 
 
@@ -139,7 +149,7 @@ void GenerateDemProcess::CreateDEMParticle(
 /***********************************************************************************/
 
 double GenerateDemProcess::CalculateDistanceBetweenNodes(
-    const NodeType& rNode1, 
+    const NodeType& rNode1,
     const NodeType& rNode2
     )
 {
@@ -160,8 +170,8 @@ double GenerateDemProcess::GetMinimumValue(
     )
 { // this method assumes that the Vector is NOT full of 0.0's
     double aux = 1.0e10;
-    for (int i = 0; i < rValues.size(); i++) 
-        if (aux > rValues[i] && rValues[i] != 0.0) 
+    for (int i = 0; i < rValues.size(); i++)
+        if (aux > rValues[i] && rValues[i] != 0.0)
             aux = rValues[i];
     return aux;
 }
