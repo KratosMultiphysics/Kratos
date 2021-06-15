@@ -199,6 +199,7 @@ class MaterialTest():
 
         h = self.height
         d = self.diameter
+        ymin = -0.000195748 #0.0
 
         eps = 3.0 #2.0
 
@@ -231,25 +232,25 @@ class MaterialTest():
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
-                if (y > eps * r) and (y < (h - eps * r)):
+                if (y > ymin + eps * r) and (y < ymin + (h - eps * r)):
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
 
                     xlat_area = xlat_area + cross_section
 
-            if (y <= eps * r) or (y >= (h - eps * r)):
+            if (y <= ymin + eps * r) or (y >= ymin + (h - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
-                if y <= eps * r:
+                if y <= ymin + eps * r:
 
                     self.BOT.append(node)
                     y_bot_total += y*r
                     weight_bot += r
 
-                elif y >= (h - eps * r):
+                elif y >= ymin + (h - eps * r):
 
                     self.TOP.append(node)
 
@@ -258,7 +259,7 @@ class MaterialTest():
 
                 if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
-                    if y > h / 2:
+                    if y > ymin + h / 2:
 
                         self.XTOPCORNER.append(node)
                         xtopcorner_area = xtopcorner_area + cross_section
@@ -269,12 +270,12 @@ class MaterialTest():
                         xbotcorner_area = xbotcorner_area + cross_section
                 else:
 
-                    if y <= eps * r:
+                    if y <= ymin + eps * r:
 
                         self.XBOT.append(node)
                         xbot_area = xbot_area + cross_section
 
-                    elif y >= (h - eps * r):
+                    elif y >= ymin + (h - eps * r):
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section

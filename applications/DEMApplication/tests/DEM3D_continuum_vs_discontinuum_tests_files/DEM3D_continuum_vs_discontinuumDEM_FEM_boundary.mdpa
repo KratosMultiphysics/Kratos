@@ -2,25 +2,25 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-Begin Properties 3
+Begin Properties 5
   FRICTION 0.5773502691896257
   WALL_COHESION 0.0
   COMPUTE_WEAR 0
   SEVERITY_OF_WEAR 0.001
   IMPACT_WEAR_SEVERITY 0.001
   BRINELL_HARDNESS 200.0
-  YOUNG_MODULUS 1e+20
+  YOUNG_MODULUS 1e11
   POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
-    1  -3.0000000000   15.0000000000   0.0
-    4  -3.0000000000  -3.0000000000   0.0
-    7   30.0000000000  -3.0000000000   0.0
+    17  -3.0000000000    20.0000000000    0.0
+    18  -3.0000000000    -3.0000000000    0.0
+    19   40.0000000000   -3.0000000000    0.0
 End Nodes
 
 Begin Conditions RigidFace3D3N// GUI group identifier: floor
-    1          3     4     7     1
+    17          5     17     18     19
 End Conditions
 
 Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: floor
@@ -44,11 +44,11 @@ Begin SubModelPart 1 // DEM-FEM-Wall - group identifier: floor
     FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
-         1
-         4
-         7
+         17
+         18
+         19
   End SubModelPartNodes
   Begin SubModelPartConditions
-         1
+         17
   End SubModelPartConditions
 End SubModelPart

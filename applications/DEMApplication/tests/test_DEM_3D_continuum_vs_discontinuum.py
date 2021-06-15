@@ -19,6 +19,8 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
+        
+        self.tolerance = 1e-3
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -26,36 +28,48 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
 
     def CheckPositions(self):
        
-        node1  = self.spheres_model_part.GetNode(1)
-        node2  = self.spheres_model_part.GetNode(2)
-        node3  = self.spheres_model_part.GetNode(3)
-        node4  = self.spheres_model_part.GetNode(4)
-        node5  = self.spheres_model_part.GetNode(5)
-        node6  = self.spheres_model_part.GetNode(6)
-        node7  = self.spheres_model_part.GetNode(7)
-        node8  = self.spheres_model_part.GetNode(8)
-        node9  = self.spheres_model_part.GetNode(9)
-        node10 = self.spheres_model_part.GetNode(10)
+        node1   = self.spheres_model_part.GetNode(1)
+        node2   = self.spheres_model_part.GetNode(2)
+        node3   = self.spheres_model_part.GetNode(3)
+        node4   = self.spheres_model_part.GetNode(4)
+        node5   = self.spheres_model_part.GetNode(5)
+        node6   = self.spheres_model_part.GetNode(6)
+        node7   = self.spheres_model_part.GetNode(7)
+        node8   = self.spheres_model_part.GetNode(8)
+        node9   = self.spheres_model_part.GetNode(9)
+        node10  = self.spheres_model_part.GetNode(10)
+        node11  = self.spheres_model_part.GetNode(11)
+        node12  = self.spheres_model_part.GetNode(12)
+        node13  = self.spheres_model_part.GetNode(13)
+        node14  = self.spheres_model_part.GetNode(14)
+        node15  = self.spheres_model_part.GetNode(15)
+        node16  = self.spheres_model_part.GetNode(16)
 
-        dipl1  = node1.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl2  = node2.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl3  = node3.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl4  = node4.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl5  = node5.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl6  = node6.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl7  = node7.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl8  = node8.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl9  = node9.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-        dipl10 = node10.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ1   =  node1.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ2   =  node2.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ3   =  node3.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ4   =  node4.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ5   =  node5.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ6   =  node6.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ7   =  node7.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ8   =  node8.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ9   =  node9.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ10  = node10.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ11  = node11.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ12  = node12.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ13  = node13.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ14  = node14.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ15  = node15.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        displ16  = node16.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
 
-        #self.assertAlmostEqual(dipl1, dipl3)
-        self.assertAlmostEqual(dipl2, dipl4)
-        '''self.assertAlmostEqual(dipl3, dipl5)
-        self.assertAlmostEqual(dipl4, dipl6)
-        self.assertAlmostEqual(dipl5, dipl7)
-        self.assertAlmostEqual(dipl6, dipl8)
-        self.assertAlmostEqual(dipl7, dipl9)
-        self.assertAlmostEqual(dipl8, dipl10)'''
+        self.assertAlmostEqual(displ1,   displ3, delta = self.tolerance)
+        self.assertAlmostEqual(displ2,   displ4, delta = self.tolerance)
+        self.assertAlmostEqual(displ5,   displ7, delta = self.tolerance)
+        self.assertAlmostEqual(displ6,   displ8, delta = self.tolerance)
+        self.assertAlmostEqual(displ9,  displ11, delta = self.tolerance)
+        self.assertAlmostEqual(displ10, displ12, delta = self.tolerance)
+        self.assertAlmostEqual(displ13, displ15, delta = self.tolerance)
+        self.assertAlmostEqual(displ14, displ16, delta = self.tolerance)
 
     @classmethod
     def GetMainPath(self):

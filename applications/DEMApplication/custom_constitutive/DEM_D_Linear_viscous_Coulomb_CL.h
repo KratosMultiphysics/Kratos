@@ -104,7 +104,7 @@ namespace Kratos {
             const double neighbour_friction_decay_coefficient   = neighbour->GetProperties()[FRICTION_DECAY];
             double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
 
-            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
+            if (equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< GetElementId(element)<<std::endl;
             }
 
