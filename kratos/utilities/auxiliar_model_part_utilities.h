@@ -461,6 +461,7 @@ public:
         {
         case (DataLocation::NodeHistorical):{
             const std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             IndexType counter = 0;
             for(auto& r_node : mrModelPart.Nodes()){
@@ -476,16 +477,19 @@ public:
         }
         case (DataLocation::NodeNonHistorical):{
             const std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+            ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
             SetVectorDataFromContainer(mrModelPart.Nodes(), size, rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
             const std::size_t size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+            ImportDataSizeCheckVector(mrModelPart.NumberOfElements()*size , rData.size());
             SetVectorDataFromContainer(mrModelPart.Elements(), size, rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
             const std::size_t size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+            ImportDataSizeCheckVector(mrModelPart.NumberOfConditions()*size , rData.size());
             SetVectorDataFromContainer(mrModelPart.Conditions(), size, rVariable, rData);
             break;
         }
@@ -629,6 +633,13 @@ private:
     void ImportDataSizeCheck(int rContainer_size, int rSize){
         KRATOS_DEBUG_ERROR_IF(rContainer_size != rSize) << "mismatch in size!" << std::endl;
     }
+
+    // Only for SetVectorData()
+    void ImportDataSizeCheckVector(int rContainer_size, int rSize){
+        KRATOS_DEBUG_ERROR_IF(rContainer_size != rSize) << "mismatch in size! Expected size: " << rContainer_size << std::endl;
+    }
+
+
 
 
     ///@}
