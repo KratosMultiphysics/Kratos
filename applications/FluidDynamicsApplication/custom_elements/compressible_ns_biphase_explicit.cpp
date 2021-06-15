@@ -397,7 +397,7 @@ void CompressibleNSBiphaseExplicit<3,4>::GetDofList(
     unsigned int local_index = 0;
     const auto &r_geometry = GetGeometry();
     const unsigned int den_pos = r_geometry[0].GetDofPosition(DENSITY);
-    const unsigned int den_sol_pos = r_geometry[0].GetDofPosition(DENSITY)_SOLID;
+    const unsigned int den_sol_pos = r_geometry[0].GetDofPosition(DENSITY_SOLID);
     const unsigned int mom_pos = r_geometry[0].GetDofPosition(MOMENTUM);
     const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
@@ -597,6 +597,8 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
     rData.lambda = r_properties.GetValue(CONDUCTIVITY);
     rData.c_v = r_properties.GetValue(SPECIFIC_HEAT); // TODO: WE SHOULD SPECIFY WHICH ONE --> CREATE SPECIFIC_HEAT_CONSTANT_VOLUME
     rData.gamma = r_properties.GetValue(HEAT_CAPACITY_RATIO);
+    rData.c_s = r_properties.GetValue(SOLID_MATERIAL_SPECIFIC_HEAT);
+    rData.ros = r_properties.GetValue(SOLID_MATERIAL_DENSITY);
 
     rData.UseOSS = rCurrentProcessInfo[OSS_SWITCH];
     rData.ShockCapturing = rCurrentProcessInfo[SHOCK_CAPTURING_SWITCH];
@@ -2428,7 +2430,7 @@ const double ctot_ener_proj281 =             ctot_ener_proj10 + ctot_ener_proj10
 
 template <>
 void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
-    BoundedVector<double, 12> &rRightHandSideBoundedVector,
+    BoundedVector<double, 15> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -3127,7 +3129,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
 template<>
 void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
-    BoundedVector<double, 20> &rRightHandSideBoundedVector,
+    BoundedVector<double, 24> &rRightHandSideBoundedVector,
     const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY

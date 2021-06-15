@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla (adapted by Andrea Montanino)
 //
 //
 
@@ -199,7 +199,7 @@ public:
      */
     static std::string Name()
     {
-        return "compressible_navier_stokes_explicit_solving_strategy_runge_kutta_4";
+        return "compressible_ns_biphase_explicit_solving_strategy_runge_kutta_4";
     }
 
     /**
@@ -335,9 +335,11 @@ protected:
         r_process_info[TIME_INTEGRATION_THETA] = r_process_info[RUNGE_KUTTA_STEP] == 1 ? 0.0 : 0.5;
 
         // Calculate the Orthogonal SubsScales projections
+        /*
         if (r_process_info[OSS_SWITCH]) {
             CalculateOrthogonalSubScalesProjection();
         }
+        */
     }
 
     void InitializeRungeKuttaLastSubStep() override
@@ -351,9 +353,11 @@ protected:
         r_process_info[TIME_INTEGRATION_THETA] = 1.0;
 
         // Calculate the Orthogonal SubsScales projections
+        /*
         if (r_process_info[OSS_SWITCH]) {
             CalculateOrthogonalSubScalesProjection();
         }
+        */
     }
 
     /**
@@ -422,7 +426,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
+/*
     void CalculateOrthogonalSubScalesProjection()
     {
         // Get model part data
@@ -439,7 +443,7 @@ private:
         // Initialize the projection values
         block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
             rNode.GetValue(DENSITY_PROJECTION) = 0.0;
-            rNode.GetValue(DENSITY_SOLID_PROJECTION) = 0.0;
+            //rNode.GetValue(DENSITY_SOLID_PROJECTION) = 0.0;
             rNode.GetValue(MOMENTUM_PROJECTION) = ZeroVector(3);
             rNode.GetValue(TOTAL_ENERGY_PROJECTION) = 0.0;
         });
@@ -452,7 +456,7 @@ private:
             double& tot_ener_proj = std::get<2>(rOssProjTLS);
             array_1d<double,3>& mom_proj = std::get<3>(rOssProjTLS);   //Check this order
             rElement.Calculate(DENSITY_PROJECTION, rho_proj, r_process_info);
-            rElement.Calculate(DENSITY_SOLID_PROJECTION, rho_solid_proj, r_process_info);
+            //rElement.Calculate(DENSITY_SOLID_PROJECTION, rho_solid_proj, r_process_info);
             rElement.Calculate(MOMENTUM_PROJECTION, mom_proj, r_process_info);
             rElement.Calculate(TOTAL_ENERGY_PROJECTION, tot_ener_proj, r_process_info);
         });
@@ -463,13 +467,13 @@ private:
             auto it_node = r_model_part.NodesBegin() + iNode;
             const double nodal_area = r_lumped_mass_vector[iNode * block_size];
             it_node->GetValue(DENSITY_PROJECTION) /= nodal_area;
-            it_node->GetValue(DENSITY_SOLID_PROJECTION) /= nodal_area;
+            //it_node->GetValue(DENSITY_SOLID_PROJECTION) /= nodal_area;
             it_node->GetValue(MOMENTUM_PROJECTION) /= nodal_area;
             it_node->GetValue(TOTAL_ENERGY_PROJECTION) /= nodal_area;
         });
 
     }
-
+*/
     /**
      * @brief Calculates the non-conservative magnitudes
      * This function calculates the non-conservative magnitudes from the obtained conservative ones
@@ -486,6 +490,8 @@ private:
         const double c_v = r_prop.GetValue(SPECIFIC_HEAT); // Specific heat at constant volume
         const double gamma = r_prop.GetValue(HEAT_CAPACITY_RATIO); // Heat capacity ratio
         const double R = (gamma - 1.0) * c_v; // Ideal gas constant
+        const double rho_s = r_prop.GetValue(SOLID_MATERIAL_DENSITY); // Density of the solid part
+        const double c_s = r_prop.GetValue(SOLID_MATERIAL_SPECIFIC_HEAT); // Specific heat of the solid part
 
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;

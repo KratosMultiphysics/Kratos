@@ -306,6 +306,10 @@ public:
             KRATOS_THROW_ERROR(std::invalid_argument,"SPECIFIC_HEAT Key is 0. Check if the application was correctly registered.","");
         if(HEAT_CAPACITY_RATIO.Key() == 0)
             KRATOS_THROW_ERROR(std::invalid_argument,"HEAT_CAPACITY_RATIO Key is 0. Check if the application was correctly registered.","");
+        if(SOLID_MATERIAL_DENSITY.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,"SOLID_MATERIAL_DENSITY Key is 0. Check if the application was correctly registered.","");
+        if(SOLID_MATERIAL_SPECIFIC_HEAT.Key() == 0)
+            KRATOS_THROW_ERROR(std::invalid_argument,"SOLID_MATERIAL_SPECIFIC_HEAT Key is 0. Check if the application was correctly registered.","");
 
 
 
