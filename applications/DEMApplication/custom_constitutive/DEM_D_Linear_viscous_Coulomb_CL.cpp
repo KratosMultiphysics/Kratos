@@ -57,7 +57,6 @@ namespace Kratos {
         const double beta = 1.432;
         const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
         mKn = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
-        //KRATOS_WATCH(mKn)
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
 
@@ -124,9 +123,6 @@ namespace Kratos {
         const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
         const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
 
-        //KRATOS_WATCH(equiv_visco_damp_coeff_normal)
-        //KRATOS_WATCH(equiv_visco_damp_coeff_tangential)
-
         ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal     * LocalRelVel[2];
@@ -174,7 +170,6 @@ namespace Kratos {
         const double mKn_augmenter = 1.0; // 100.0;
         mKn = mKn_augmenter * equiv_young * Globals::Pi * modified_radius; // 2.0 * equiv_young * sqrt_equiv_radius;
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
-        //KRATOS_WATCH(mKt)
     }
 
     void DEM_D_Linear_viscous_Coulomb::CalculateForcesWithFEM(const ProcessInfo& r_process_info,
@@ -230,7 +225,6 @@ namespace Kratos {
         const double my_mass    = element->GetMass();
         const double gamma = element->GetProperties()[DAMPING_GAMMA];
         const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        //KRATOS_WATCH(normal_damping_coefficient)
         const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];

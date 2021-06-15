@@ -141,7 +141,6 @@ namespace Kratos {
 
         if (indentation >= 0.0) { //COMPRESSION
             LocalElasticContactForce[2] = kn_el * indentation;
-            //KRATOS_WATCH(kn_el)
         } else { //tension
 
             if (!failure_type) {
@@ -182,11 +181,6 @@ namespace Kratos {
                 LocalElasticContactForce[2] = 0.0;
             }
         }
-
-        /*if (element1->Id() == 10) {
-            KRATOS_WATCH(r_process_info[TIME])
-            KRATOS_WATCH(LocalElasticContactForce[2])
-        }*/
 
         KRATOS_CATCH("")
     }
