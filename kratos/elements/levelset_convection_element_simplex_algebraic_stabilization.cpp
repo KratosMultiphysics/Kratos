@@ -192,8 +192,7 @@ namespace Kratos
                 }
 
                 array_1d<double,TDim> grad_phi_mean;
-                for(unsigned int k = 0; k < TDim; k++)
-                {
+                for(unsigned int k = 0; k < TDim; k++) {
                     grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
                 }
 
