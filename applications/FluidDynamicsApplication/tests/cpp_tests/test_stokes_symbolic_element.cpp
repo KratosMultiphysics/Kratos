@@ -100,6 +100,17 @@ namespace Kratos {
 			std::vector<double> LHS_row_0_expected({1875,625,0.166667,-1.16667e-05,-5e-06,0.166667,625,-625,0.166667});
 			KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
 			KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), LHS_row_0_expected, 1.0e-2);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 1.3e-06, 1.0e-2);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
 	    }
 
 		/** Checks the SymbolicStokes2D3N element.
@@ -198,6 +209,16 @@ namespace Kratos {
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
 
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
 	    }
 
         /** Checks the SymbolicStokes2D4N element.
@@ -270,6 +291,17 @@ namespace Kratos {
             std::vector<double> RHS_expected({161.2500018, 213.6458374, -0.1151145824, 36.25000067, 201.0416671, -0.05894791639, 116.8749998, 169.2708304, 0.05245833223, 204.0624977, 156.6666651, -0.02839583341});
             std::vector<double> LHS_row_0_expected({1875.000011, 156.2500033, 0.1666666667, 624.9999939, 156.2499983, 0.1666666667, 312.4999944, -156.2500033, 0.08333333333, 937.5000006, -156.2499983, 0.08333333333});
             KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 2.3328e-06, 1e-02);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
         /** Checks the SymbolicStokes2D4N element.
@@ -375,6 +407,17 @@ namespace Kratos {
                 sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
 	    // /** Checks the SymbolicStokes3D4N element.
@@ -446,6 +489,17 @@ namespace Kratos {
 			std::vector<double> LHS_row_0_expected({388.889,138.889,138.889,0.0416667,-13.8889,-1.66667e-06,-1.66667e-06,0.0416667,125,-138.889,0,0.0416667,125,0,-138.889,0.0416667});
 			KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
 			KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), LHS_row_0_expected, 1.0e-2);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 5.4e-06, 1.0e-2);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D4NStationary, FluidDynamicsApplicationFastSuite)
@@ -567,6 +621,16 @@ namespace Kratos {
             }
 			KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
 
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
 		}
 
         // /** Checks the SymbolicStokes3D6N element.
@@ -644,6 +708,17 @@ namespace Kratos {
             std::vector<double> LHS_row_0_expected({625.0000064, 208.3333356, 104.1666678, 0.05555555556, -3.472222214e-06, -1.666666667e-06, 104.1666661, 0.05555555556, 208.3333321, -208.3333339, 104.1666669, 0.05555555556, 312.5000019, 104.1666678, -104.1666661, 0.02777777778, -2.361111063e-06, -8.333333333e-07, -104.1666678, 0.02777777778, 104.1666654, -104.1666669, -104.1666669, 0.02777777778});
             KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
             KRATOS_CHECK_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 5.4e-06, 1.0e-2);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D6NStationary, FluidDynamicsApplicationFastSuite)
@@ -791,6 +866,17 @@ namespace Kratos {
                 sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
         // /** Checks the SymbolicStokes3D8N element.
@@ -872,6 +958,17 @@ namespace Kratos {
             std::vector<double> LHS_row_0_expected({635.2831243, 50.48076971, 146.0336552, 0.05555555556, 109.6420927, 86.53846153, 129.8076919, 0.05555555556, 53.68589666, -137.0192312, 75.72115373, 0.02777777778, 292.6014983, -165.8653845, 102.7644241, 0.02777777778, 276.1752134, 125.3004811, -146.0336536, 0.02777777778, 20.56623719, 89.24278847, -129.8076935, 0.02777777778, -14.62339902, -38.7620196, -75.72115456, 0.01388888889, 85.00266994, -9.915865479, -102.7644232, 0.01388888889});
             KRATOS_CHECK_VECTOR_NEAR(RHS, RHS_expected, 1.0e-2);
             KRATOS_CHECK_VECTOR_NEAR(row(LHS, 0), LHS_row_0_expected, 1.0e-2);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 8.64054e-06, 1.0e-2);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementSymbolicStokes3D8NStationary, FluidDynamicsApplicationFastSuite)
@@ -1021,6 +1118,17 @@ namespace Kratos {
                 sum_rhs += i_rhs;
             }
             KRATOS_CHECK_NEAR(sum_rhs, 0.0, TOLERANCE);
+
+            // Calculate checks
+            double shear_heat_flux = 0.0;
+            double eq_strain_rate = 0.0;
+            double effective_visc = 0.0;
+            p_element->Calculate(HEAT_FLUX, shear_heat_flux, r_process_info);
+            p_element->Calculate(EQ_STRAIN_RATE, eq_strain_rate, r_process_info);
+            p_element->Calculate(EFFECTIVE_VISCOSITY, effective_visc, r_process_info);
+            KRATOS_CHECK_NEAR(shear_heat_flux, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(eq_strain_rate, 0.0, TOLERANCE);
+            KRATOS_CHECK_NEAR(effective_visc, 0.0, TOLERANCE);
         }
 
 	} // namespace Testing
