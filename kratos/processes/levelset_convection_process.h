@@ -411,7 +411,7 @@ protected:
             mrBaseModelPart,
             *mpLevelSetVar,
             *mpLevelSetGradientVar,
-            NODAL_AREA,             // TODO: could be set as an input
+            NODAL_AREA,
             false);
         }
     }

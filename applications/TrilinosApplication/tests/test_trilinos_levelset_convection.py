@@ -131,12 +131,6 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
         KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.model_part).Execute()
 
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            KratosMultiphysics.DISTANCE,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
-
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "max_CFL" : 1.0,
             "max_substeps" : 0,
