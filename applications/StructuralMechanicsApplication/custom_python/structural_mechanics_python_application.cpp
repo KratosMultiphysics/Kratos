@@ -44,7 +44,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     AddCustomConstitutiveLawsToPython(m);
     AddCustomResponseFunctionUtilitiesToPython(m);
 
-    py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
+    // py::class_<Variable<ShellCrossSection::Pointer>,VariableData >(m,"ShellCrossSectionVariable");
 
     // General pourpose
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER); // The integration order considered on the element

@@ -12,11 +12,12 @@ file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
@@ -28,9 +29,9 @@ list(REMOVE_ITEM KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE ${CMAKE_CURRENT_SO
 list(INSERT KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE 0 ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/constitutive_law_utilities.cpp)
 
 # StructuralMechanics testing sources
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+# if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    # file(GLOB_RECURSE KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+# endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosStructuralMechanicsCore SHARED ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE} ${KRATOS_STRUCTURAL_MECHANICS_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosStructuralMechanicsCore PUBLIC KratosCore)

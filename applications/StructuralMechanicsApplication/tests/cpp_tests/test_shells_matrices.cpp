@@ -31,56 +31,56 @@ namespace {
 
 void CreateShellTestModelPart(std::string const& rElementName, ModelPart& rModelPart)
 {
-    KRATOS_TRY;
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    const Element& r_elem = KratosComponents<Element>::Get(rElementName);
-    r_process_info[DOMAIN_SIZE] = 3;
-    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
-    rModelPart.AddNodalSolutionStepVariable(ROTATION);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
-    rModelPart.AddNodalSolutionStepVariable(DENSITY);
-    rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    rModelPart.AddNodalSolutionStepVariable(THICKNESS);
+    // KRATOS_TRY;
+    // ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    // const Element& r_elem = KratosComponents<Element>::Get(rElementName);
+    // r_process_info[DOMAIN_SIZE] = 3;
+    // rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    // rModelPart.AddNodalSolutionStepVariable(ROTATION);
+    // rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+    // rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+    // rModelPart.AddNodalSolutionStepVariable(DENSITY);
+    // rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    // rModelPart.AddNodalSolutionStepVariable(THICKNESS);
 
-    Matrix coordinates;
-    r_elem.GetGeometry().PointsLocalCoordinates(coordinates);
-    for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i) {
-        rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), 0.0);
-    }
+    // Matrix coordinates;
+    // r_elem.GetGeometry().PointsLocalCoordinates(coordinates);
+    // for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i) {
+    //     rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), 0.0);
+    // }
 
-    std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().PointsNumber());
-    for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i) {
-        node_ids.at(i) = i + 1;
-    }
+    // std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().PointsNumber());
+    // for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i) {
+    //     node_ids.at(i) = i + 1;
+    // }
 
-    auto p_prop = rModelPart.CreateNewProperties(1);
-    rModelPart.CreateNewElement(rElementName, 1, node_ids, p_prop);
-    rModelPart.SetBufferSize(2);
+    // auto p_prop = rModelPart.CreateNewProperties(1);
+    // rModelPart.CreateNewElement(rElementName, 1, node_ids, p_prop);
+    // rModelPart.SetBufferSize(2);
 
-    for (auto& r_node : rModelPart.Nodes()) {
-        r_node.AddDof(DISPLACEMENT_X);
-        r_node.AddDof(DISPLACEMENT_Y);
-        r_node.AddDof(DISPLACEMENT_Z);
-        r_node.AddDof(ROTATION_X);
-        r_node.AddDof(ROTATION_Y);
-        r_node.AddDof(ROTATION_Z);
-    }
+    // for (auto& r_node : rModelPart.Nodes()) {
+    //     r_node.AddDof(DISPLACEMENT_X);
+    //     r_node.AddDof(DISPLACEMENT_Y);
+    //     r_node.AddDof(DISPLACEMENT_Z);
+    //     r_node.AddDof(ROTATION_X);
+    //     r_node.AddDof(ROTATION_Y);
+    //     r_node.AddDof(ROTATION_Z);
+    // }
 
-    (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
-    (*p_prop)[DENSITY] = 1000.0;
-    (*p_prop)[YOUNG_MODULUS] = 1400000.0;
-    (*p_prop)[THICKNESS] = 0.1;
-    (*p_prop)[POISSON_RATIO] = 0.3;
-    (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
-    (*p_prop)[RAYLEIGH_BETA] = 0.03;
+    // (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    // (*p_prop)[DENSITY] = 1000.0;
+    // (*p_prop)[YOUNG_MODULUS] = 1400000.0;
+    // (*p_prop)[THICKNESS] = 0.1;
+    // (*p_prop)[POISSON_RATIO] = 0.3;
+    // (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
+    // (*p_prop)[RAYLEIGH_BETA] = 0.03;
 
-    rModelPart.GetElement(1).Initialize(r_process_info);
-    rModelPart.GetElement(1).Check(r_process_info);
-    rModelPart.GetElement(1).InitializeSolutionStep(r_process_info);
-    rModelPart.GetElement(1).InitializeNonLinearIteration(r_process_info);
+    // rModelPart.GetElement(1).Initialize(r_process_info);
+    // rModelPart.GetElement(1).Check(r_process_info);
+    // rModelPart.GetElement(1).InitializeSolutionStep(r_process_info);
+    // rModelPart.GetElement(1).InitializeNonLinearIteration(r_process_info);
 
-    KRATOS_CATCH("CreateShellTestModelPart");
+    // KRATOS_CATCH("CreateShellTestModelPart");
 }
 
 void ConductShellDampingMatrixTest(std::string const& rElementName, const Matrix& rRefMatrix)

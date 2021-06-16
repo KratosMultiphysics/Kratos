@@ -33,37 +33,37 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_< TrussConstitutiveLaw, typename TrussConstitutiveLaw::Pointer, ConstitutiveLaw >
-    (m, "TrussConstitutiveLaw").def(py::init<>() )
-    ;
+    // py::class_< TrussConstitutiveLaw, typename TrussConstitutiveLaw::Pointer, ConstitutiveLaw >
+    // (m, "TrussConstitutiveLaw").def(py::init<>() )
+    // ;
 
-    py::class_< BeamConstitutiveLaw, typename BeamConstitutiveLaw::Pointer, ConstitutiveLaw >
-    (m, "BeamConstitutiveLaw").def(py::init<>() )
-    ;
+    // py::class_< BeamConstitutiveLaw, typename BeamConstitutiveLaw::Pointer, ConstitutiveLaw >
+    // (m, "BeamConstitutiveLaw").def(py::init<>() )
+    // ;
 
-    py::class_< LinearPlaneStress, typename LinearPlaneStress::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStress2DLaw").def(py::init<>() )
-    ;
+    // py::class_< LinearPlaneStress, typename LinearPlaneStress::Pointer, ConstitutiveLaw >
+    // (m, "LinearElasticPlaneStress2DLaw").def(py::init<>() )
+    // ;
 
-    py::class_< LinearPlaneStrain, typename LinearPlaneStrain::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticPlaneStrain2DLaw").def(py::init<>() )
-    ;
+    // py::class_< LinearPlaneStrain, typename LinearPlaneStrain::Pointer, ConstitutiveLaw >
+    // (m, "LinearElasticPlaneStrain2DLaw").def(py::init<>() )
+    // ;
 
     py::class_< ElasticIsotropic3D, typename ElasticIsotropic3D::Pointer, ConstitutiveLaw >
     (m, "LinearElastic3DLaw").def(py::init<>() )
     ;
 
-    py::class_< AxisymElasticIsotropic, typename AxisymElasticIsotropic::Pointer, ConstitutiveLaw >
-    (m, "LinearElasticAxisym2DLaw").def(py::init<>() )
-    ;
+    // py::class_< AxisymElasticIsotropic, typename AxisymElasticIsotropic::Pointer, ConstitutiveLaw >
+    // (m, "LinearElasticAxisym2DLaw").def(py::init<>() )
+    // ;
 
-    py::class_< UserProvidedLinearElasticLaw<2>, typename UserProvidedLinearElasticLaw<2>::Pointer, ConstitutiveLaw >
-    (m, "UserProvidedLinearElastic2DLaw").def(py::init<>() )
-    ;
+    // py::class_< UserProvidedLinearElasticLaw<2>, typename UserProvidedLinearElasticLaw<2>::Pointer, ConstitutiveLaw >
+    // (m, "UserProvidedLinearElastic2DLaw").def(py::init<>() )
+    // ;
 
-    py::class_< UserProvidedLinearElasticLaw<3>, typename UserProvidedLinearElasticLaw<3>::Pointer, ConstitutiveLaw >
-    (m, "UserProvidedLinearElastic3DLaw").def(py::init<>() )
-    ;
+    // py::class_< UserProvidedLinearElasticLaw<3>, typename UserProvidedLinearElasticLaw<3>::Pointer, ConstitutiveLaw >
+    // (m, "UserProvidedLinearElastic3DLaw").def(py::init<>() )
+    // ;
 }
 
 }  // namespace Python.

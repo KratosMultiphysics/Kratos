@@ -102,59 +102,59 @@ void AssignNodalData4(ModelPart& rModelPart)
 
 void CreateTotalLagrangianTestModelPart(std::string const& rElementName, ModelPart& rModelPart)
 {
-    KRATOS_TRY;
-    ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    const Element& r_elem = KratosComponents<Element>::Get(rElementName);
-    r_process_info[DOMAIN_SIZE] = r_elem.GetGeometry().WorkingSpaceDimension();
-    rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
-    rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-    rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
-    rModelPart.AddNodalSolutionStepVariable(DENSITY);
-    rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-    rModelPart.AddNodalSolutionStepVariable(THICKNESS);
-    Matrix coordinates;
-    r_elem.GetGeometry().PointsLocalCoordinates(coordinates);
-    if (r_process_info[DOMAIN_SIZE] == 2)
-        for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
-            rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), 0.0);
-    else
-        for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
-            rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), coordinates(i, 2));
-    std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().PointsNumber());
-    for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
-        node_ids.at(i) = i + 1;
-    auto p_prop = rModelPart.CreateNewProperties(1);
-    rModelPart.CreateNewElement(rElementName, 1, node_ids, p_prop);
-    rModelPart.SetBufferSize(2);
-    for (auto& r_node : rModelPart.Nodes())
-    {
-        r_node.AddDof(DISPLACEMENT_X);
-        r_node.AddDof(DISPLACEMENT_Y);
-        r_node.AddDof(DISPLACEMENT_Z);
-    }
-    if (r_process_info[DOMAIN_SIZE] == 2) {
-        (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
-    } else {
-        // this test can only be run if the ConstitutiveLawsApp is imported
-        if (!KratosComponents<ConstitutiveLaw>::Has("HyperElasticIsotropicKirchhoff3D")) {
-            return;
-        }
-        (*p_prop)[CONSTITUTIVE_LAW] = KratosComponents<ConstitutiveLaw>::Get("KirchhoffSaintVenantPlaneStrain2DLaw").Clone();
-    }
-    (*p_prop)[DENSITY] = 1000.0;
-    (*p_prop)[YOUNG_MODULUS] = 1400000.0;
-    (*p_prop)[POISSON_RATIO] = 0.4;
-    (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
-    (*p_prop)[RAYLEIGH_BETA] = 0.03;
+    // KRATOS_TRY;
+    // ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+    // const Element& r_elem = KratosComponents<Element>::Get(rElementName);
+    // r_process_info[DOMAIN_SIZE] = r_elem.GetGeometry().WorkingSpaceDimension();
+    // rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+    // rModelPart.AddNodalSolutionStepVariable(VELOCITY);
+    // rModelPart.AddNodalSolutionStepVariable(ACCELERATION);
+    // rModelPart.AddNodalSolutionStepVariable(DENSITY);
+    // rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    // rModelPart.AddNodalSolutionStepVariable(THICKNESS);
+    // Matrix coordinates;
+    // r_elem.GetGeometry().PointsLocalCoordinates(coordinates);
+    // if (r_process_info[DOMAIN_SIZE] == 2)
+    //     for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
+    //         rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), 0.0);
+    // else
+    //     for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
+    //         rModelPart.CreateNewNode(i + 1, coordinates(i, 0), coordinates(i, 1), coordinates(i, 2));
+    // std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().PointsNumber());
+    // for (std::size_t i = 0; i < r_elem.GetGeometry().PointsNumber(); ++i)
+    //     node_ids.at(i) = i + 1;
+    // auto p_prop = rModelPart.CreateNewProperties(1);
+    // rModelPart.CreateNewElement(rElementName, 1, node_ids, p_prop);
+    // rModelPart.SetBufferSize(2);
+    // for (auto& r_node : rModelPart.Nodes())
+    // {
+    //     r_node.AddDof(DISPLACEMENT_X);
+    //     r_node.AddDof(DISPLACEMENT_Y);
+    //     r_node.AddDof(DISPLACEMENT_Z);
+    // }
+    // if (r_process_info[DOMAIN_SIZE] == 2) {
+    //     (*p_prop)[CONSTITUTIVE_LAW] = LinearPlaneStrain::Pointer(new LinearPlaneStrain());
+    // } else {
+    //     // this test can only be run if the ConstitutiveLawsApp is imported
+    //     if (!KratosComponents<ConstitutiveLaw>::Has("HyperElasticIsotropicKirchhoff3D")) {
+    //         return;
+    //     }
+    //     (*p_prop)[CONSTITUTIVE_LAW] = KratosComponents<ConstitutiveLaw>::Get("KirchhoffSaintVenantPlaneStrain2DLaw").Clone();
+    // }
+    // (*p_prop)[DENSITY] = 1000.0;
+    // (*p_prop)[YOUNG_MODULUS] = 1400000.0;
+    // (*p_prop)[POISSON_RATIO] = 0.4;
+    // (*p_prop)[RAYLEIGH_ALPHA] = 0.02;
+    // (*p_prop)[RAYLEIGH_BETA] = 0.03;
 
-    const auto& r_const_process_info = rModelPart.GetProcessInfo();
+    // const auto& r_const_process_info = rModelPart.GetProcessInfo();
 
-    const auto& rConstElemRef = rModelPart.GetElement(1);
-    rConstElemRef.Check(r_const_process_info);
-    rModelPart.GetElement(1).Initialize(r_const_process_info);
-    rModelPart.GetElement(1).InitializeSolutionStep(r_const_process_info);
-    rModelPart.GetElement(1).InitializeNonLinearIteration(r_const_process_info);
-    KRATOS_CATCH("");
+    // const auto& rConstElemRef = rModelPart.GetElement(1);
+    // rConstElemRef.Check(r_const_process_info);
+    // rModelPart.GetElement(1).Initialize(r_const_process_info);
+    // rModelPart.GetElement(1).InitializeSolutionStep(r_const_process_info);
+    // rModelPart.GetElement(1).InitializeNonLinearIteration(r_const_process_info);
+    // KRATOS_CATCH("");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_CalculateLocalSystem, KratosStructuralMechanicsFastSuite)
