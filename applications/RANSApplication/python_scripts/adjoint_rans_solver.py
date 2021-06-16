@@ -4,11 +4,8 @@ import KratosMultiphysics as Kratos
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
-import KratosMultiphysics.HDF5Application as KratosHDF5
 
 from KratosMultiphysics import IsDistributedRun
-from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.core.file_io import Create as CreateHDF5FileIO
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
@@ -226,6 +223,9 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 Kratos.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
+            ## remove fluid_computational_model_part if it exists. It will be there if adaptive mesh refinement is used.
+            if (self.main_model_part.HasSubModelPart("fluid_computational_model_part")):
+                self.main_model_part.RemoveSubModelPart("fluid_computational_model_part")
             ## Executes the check and prepare model process
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
@@ -469,7 +469,12 @@ class AdjointRANSSolver(CoupledRANSSolver):
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
             self.adjoint_solution_controller.AddTimeSchemeParameters(self.settings["time_scheme_settings"])
-            scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(self.settings["time_scheme_settings"], response_function, domain_size, block_size)
+            scheme = GetKratosObjectPrototype("VelocityBossakAdjointScheme")(
+                self.settings["time_scheme_settings"],
+                response_function,
+                domain_size,
+                block_size,
+                element_refinement_process)
         elif scheme_type == "steady":
             scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(
                 response_function,
