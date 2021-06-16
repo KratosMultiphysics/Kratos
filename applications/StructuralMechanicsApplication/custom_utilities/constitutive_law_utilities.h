@@ -367,6 +367,29 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This computes exponential of a matrix
+     * @param rMatrix The input matrix
+     * @param rExponentialMatrix The exponential of the matrix
+     */
+    void CalculateExponentialOfMatrix(
+        const BoundedMatrixType& rMatrix,
+        BoundedMatrixType& rExponentialMatrix);
+
+    /**
+     * @brief This computes factorial of a number
+     */
+    int Factorial(const unsigned int n) {
+        if (n == 0) {
+            return 1;
+        }
+        unsigned int k = n;
+        for (unsigned int i = n - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
      * @brief This computes the linear plastic deformation gradient increment
      * @param rPlasticPotentialDerivative The derivative of the plastic potential
      * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
