@@ -117,8 +117,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
             "adjoint_solution_controller_settings": {
                 "solution_control_method"  : "none"
             },
-            "compute_response_function_interpolation_error"   : false,
-            "acceptable_response_function_interpolation_error": 1e-4
+            "compute_response_function_interpolation_error" : false,
+            "response_function_interpolation_error_settings": {}
         }""")
 
         self.adjoint_settings = custom_settings
@@ -449,6 +449,23 @@ class AdjointRANSSolver(CoupledRANSSolver):
         else:
             block_size = domain_size + 3
 
+        element_refinement_process = None
+        if (self.adjoint_settings["compute_response_function_interpolation_error"].GetBool()):
+            refinement_parameters = self.adjoint_settings["response_function_interpolation_error_settings"]
+            self._CheckAndAddValue(refinement_parameters, "model_part_name", self.GetComputingModelPart().FullName())
+            self._CheckAndAddValue(refinement_parameters, "refined_element_name", self.new_elem_name)
+            self._CheckAndAddValue(refinement_parameters, "refined_condition_name", self.new_cond_name)
+
+            if (not refinement_parameters.Has("nodal_interpolation_settings")):
+                refinement_parameters.AddEmptyValue("nodal_interpolation_settings")
+
+            nodal_interpolation_settings = refinement_parameters["nodal_interpolation_settings"]
+            self._CheckAndAddValueToList(nodal_interpolation_settings, "historical_variables_list", ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
+            self._CheckAndAddValueToList(nodal_interpolation_settings, "non_hitsorical_variables_list", ["RELAXED_ACCELERATION"])
+            self._CheckAndAddValueToList(nodal_interpolation_settings, "flags_list", ["SLIP", "INLET", "OUTLET"])
+
+            element_refinement_process = KratosCFD.ElementRefinementProcess(self.model, refinement_parameters)
+
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
             self.adjoint_solution_controller.AddTimeSchemeParameters(self.settings["time_scheme_settings"])
@@ -458,10 +475,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 response_function,
                 domain_size,
                 block_size,
-                self.adjoint_settings["compute_response_function_interpolation_error"].GetBool(),
-                self.adjoint_settings["acceptable_response_function_interpolation_error"].GetDouble(),
-                self.new_elem_name,
-                self.new_cond_name)
+                element_refinement_process)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
 
@@ -473,3 +487,20 @@ class AdjointRANSSolver(CoupledRANSSolver):
             linear_solver,
             self.settings["consider_periodic_conditions"].GetBool(),
             self.communicator)
+
+    def _CheckAndAddValue(self, parameters, check_string, required_value):
+        if (not parameters.Has(check_string)):
+            parameters.AddEmptyValue(check_string)
+        parameters[check_string].SetString(required_value)
+
+    def _CheckAndAddValueToList(self, parameters, check_string, required_values):
+        if (parameters.Has(check_string)):
+            values = parameters[check_string].GetStringArray()
+            for required_value in required_values:
+                if (required_value not in values):
+                    values.append(required_value)
+
+            parameters[check_string].SetStringArray(values)
+        else:
+            parameters.AddEmptyValue(check_string)
+            parameters[check_string].SetStringArray(required_values)

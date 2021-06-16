@@ -101,6 +101,8 @@ public:
 
     void Initialize(ModelPart& rModelPart) override
     {
+        BaseType::Initialize(rModelPart);
+
         if (mpElementRefinementProcess) {
             mpElementRefinementProcess->ExecuteInitialize();
         }
@@ -153,6 +155,23 @@ public:
 
     }
 
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
+
+        if (mpElementRefinementProcess) {
+            CalculateResponseFunctionInterpolationError(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -165,8 +184,8 @@ public:
 
     ///@}
 
-private:
-    ///@name Static Member Variables
+protected:
+    ///@name Protected Member Variables
     ///@{
 
     std::vector<Matrix> mAuxMatrices;
@@ -230,23 +249,6 @@ private:
             rEntityRotatedResidualFirstDerivatives, rEntityResidualFirstDerivatives, rEntity.GetGeometry());
 
         KRATOS_CATCH("");
-    }
-
-    virtual void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
-    {
-        KRATOS_TRY
-
-        BaseType::FinalizeSolutionStep(rModelPart, A, Dx, b);
-
-        if (mpElementRefinementProcess) {
-            CalculateResponseFunctionInterpolationError(rModelPart);
-        }
-
-        KRATOS_CATCH("")
     }
 
     ///@}
