@@ -376,6 +376,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixType& rExponentialMatrix);
 
     /**
+     * @brief This computes the elastic def gradient tensor
+     * Fe = F*(Fp)^-1
+     * @param rF The total def gradient tensor
+     * @param rFp The plastic def gradient tensor
+     */
+    static Matrix CalculateElasticDeformationGradient(
+        const MatrixType& rF,
+        const MatrixType& rFp
+        );
+    /**
      * @brief This computes factorial of a number
      */
     static int Factorial(const unsigned int n) {
