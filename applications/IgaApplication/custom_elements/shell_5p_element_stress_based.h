@@ -37,8 +37,12 @@ protected:
         //base vectors current and reference
         BoundedVector<double, 3> a1;
         BoundedVector<double, 3> a2;
+        BoundedVector<double, 3> g1;
+        BoundedVector<double, 3> g2;
         BoundedVector<double, 3> A1;
         BoundedVector<double, 3> A2;
+        BoundedVector<double, 3> G1;
+        BoundedVector<double, 3> G2;
 
         BoundedVector<double, 3> dud1;
         BoundedVector<double, 3> dud2;
@@ -50,8 +54,19 @@ protected:
         array_1d<double, 3> dtd1;
         array_1d<double, 3> dtd2;
 
+        //Jacobians
+        BoundedMatrix<double, 3, 3> j;
+        BoundedMatrix<double, 3, 3> J;
+        BoundedMatrix<double, 3, 3> F;
+
+        //Transformationg matrices
+        BoundedMatrix<double, 6, 6> T;
+        BoundedMatrix<double, 6, 6> Tcont;
+
         //differential area
         double dA;
+        //thickness coordinate
+        double zeta;
 
         void setZero()
         {
@@ -61,13 +76,24 @@ protected:
 
             a1 = ZeroVector(3);
             a2 = ZeroVector(3);
+            g1 = ZeroVector(3);
+            g2 = ZeroVector(3);
             A1 = ZeroVector(3);
             A2 = ZeroVector(3);
+            G1 = ZeroVector(3);
+            G2 = ZeroVector(3);
             t = ZeroVector(3);
             dtd1 = ZeroVector(3);
             dtd2 = ZeroVector(3);
             dud1 = ZeroVector(3);
             dud2 = ZeroVector(3);
+
+            j = ZeroMatrix(3, 3);
+            J = ZeroMatrix(3, 3);
+            F = ZeroMatrix(3, 3);
+
+            T = ZeroMatrix(6, 6);
+            Tcont = ZeroMatrix(6, 6);
 
             dA = 0;
         }
@@ -78,19 +104,8 @@ protected:
     */
     struct ConstitutiveVariables
     {
-        Vector StrainVector;
-        Vector StressVector;
-        Matrix ConstitutiveMatrix;
-
-        /**
-        * @param StrainSize: The size of the strain vector in Voigt notation
-        */
-        ConstitutiveVariables(SizeType StrainSize)
-        {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
-        }
+        array_1d<double, 5> StressVector;
+        BoundedMatrix <double, 5, 5> ConstitutiveMatrix;
     };
 
     using Matrix3d = BoundedMatrix<double, 3, 3>;
@@ -108,9 +123,14 @@ protected:
         Matrix3d Q2;
         Matrix3d S1;
         Matrix3d S2;
+        Matrix3d S1d;
+        Matrix3d S2d;
         Matrix3d Chi11;
         Matrix3d Chi12Chi21;
         Matrix3d Chi22;
+        Matrix3d chi11d;
+        Matrix3d chi12dchi21d;
+        Matrix3d chi22d;
     };
 
 public:
@@ -356,9 +376,13 @@ private:
     // Components of the metric coefficient tensor on the contravariant basis
     //std::vector<array_1d<double, 3>> m_A_ab_covariant_vector;
     // Components of the curvature coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 3>> reference_Curvature;
+    //std::vector<array_1d<double, 3>> reference_Curvature;
     // Components of the shear coefficient tensor on the contravariant basis
-    std::vector<array_1d<double, 2>> reference_TransShear;
+    //std::vector<array_1d<double, 2>> reference_TransShear;
+
+    // Reference Jacobians
+    std::vector<Matrix3d> reference_ReferenceJacobianInverse;
+    std::vector<Matrix3d> reference_ReferenceCartesionJacobian;
 
     // Shape functions at all integration points
     Matrix m_N;
@@ -413,6 +437,11 @@ private:
         const VariationVariables& ractVar,
         const ConstitutiveVariables& rThisConstitutiveVariables) const;
 
+    //auto Shell5pStressBasedElement::getMatrixTransformMatrixForVoigtVector(const Matrix3d& t);
+    //array_1d<double, 5> Shell5pStressBasedElement::transformStrainMatrixToVector5P(const Matrix3d& A);
+    ConstitutiveVariables Shell5pStressBasedElement::convertMaterialAndStressFromVoigt(
+        const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S);
+
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric
@@ -420,7 +449,7 @@ private:
     * @param rValues: The CL parameters
     * @param ThisStressMeasure: The stress measure considered
     */
-    void CalculateConstitutiveVariables(
+    ConstitutiveVariables CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         const KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariables,
@@ -451,8 +480,8 @@ private:
     void save(Serializer& rSerializer) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("reference_Curvature", reference_Curvature);
-        rSerializer.save("reference_TransShear", reference_TransShear);
+        rSerializer.save("reference_ReferenceCartesionJacobian", reference_ReferenceCartesionJacobian);
+        rSerializer.save("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
@@ -461,8 +490,8 @@ private:
     void load(Serializer& rSerializer) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("curvature", reference_Curvature);
-        rSerializer.load("reference_TransShear", reference_TransShear);
+        rSerializer.load("reference_ReferenceCartesionJacobian", reference_ReferenceCartesionJacobian);
+        rSerializer.load("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);

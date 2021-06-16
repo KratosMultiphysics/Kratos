@@ -15,10 +15,22 @@
 // External includes
 // Project includes
 // Application includes
-#include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_5p_element_stress_based.h"
 #include <numeric>
 namespace Kratos
 {
+
+    /// Forward declaration of free functions
+    template<int size1, int size2>
+    BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A);
+    BoundedMatrix<double, 2, 2> invert2(const BoundedMatrix<double, 2, 2>& A);
+    BoundedMatrix<double, 3, 3> invert3(const BoundedMatrix<double, 3, 3>& A);
+    BoundedMatrix<double, 6, 6> getMatrixTransformMatrixForVoigtVector(const BoundedMatrix<double, 3, 3>& t);
+    array_1d<double, 5> transformStrainMatrixToVector5P(const BoundedMatrix<double, 3, 3>& A);
+
+    template<typename T1, typename T2>
+    std::pair<BoundedMatrix<double, 5, 5>, BoundedVector<double, 5>> convertMaterialAndStressFromVoigt(
+        const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S);
     ///@name Initialize Functions
     ///@{
 
@@ -30,10 +42,10 @@ namespace Kratos
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         // Prepare memory
-        if (reference_Curvature.size() != r_number_of_integration_points)
-            reference_Curvature.resize(r_number_of_integration_points);
-        if (reference_TransShear.size() != r_number_of_integration_points)
-            reference_TransShear.resize(r_number_of_integration_points);
+        if (reference_ReferenceJacobianInverse.size() != r_number_of_integration_points)
+            reference_ReferenceJacobianInverse.resize(r_number_of_integration_points);
+        if (reference_ReferenceCartesionJacobian.size() != r_number_of_integration_points)
+            reference_ReferenceCartesionJacobian.resize(r_number_of_integration_points);
         if (m_dA_vector.size() != r_number_of_integration_points)
             m_dA_vector.resize(r_number_of_integration_points);
         if (m_cart_deriv.size() != r_number_of_integration_points)
@@ -49,8 +61,8 @@ namespace Kratos
 
             std::tie(kinematic_variables, std::ignore) = CalculateKinematics(point_number);
 
-            reference_Curvature[point_number] = kinematic_variables.curvature;
-            reference_TransShear[point_number] = kinematic_variables.transShear;
+            reference_ReferenceJacobianInverse[point_number] = invert3(kinematic_variables.j);
+            reference_ReferenceCartesionJacobian[point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
         }
         InitializeMaterial();
         KRATOS_CATCH("")
@@ -105,7 +117,7 @@ namespace Kratos
             ConstitutiveLaw::Parameters constitutive_law_parameters(
                 GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-            ConstitutiveVariables constitutive_variables(8); //0..2 membrane, 3..5 curvature, 6..7 transverse shear
+            ConstitutiveVariables constitutive_variables;
             CalculateConstitutiveVariables(
                 point_number,
                 kinematic_variables,
@@ -207,6 +219,33 @@ namespace Kratos
         rKin.curvature[1] = inner_prod(rKin.a2, rKin.dtd2);
         rKin.curvature[2] = inner_prod(rKin.a1, rKin.dtd2) + inner_prod(rKin.a2, rKin.dtd1);
 
+
+        rKin.zeta = 2; //TODO: get thickness coordiante of integration point;
+        rKin.g1 = rKin.a1 + rKin.zeta * rKin.dtd1;
+        rKin.g2 = rKin.a2 + rKin.zeta * rKin.dtd2;
+        //rKin.G1 = rKin.A1 + rKin.zeta * rKin.t0d1;
+        //rKin.G2 = rKin.A2 + rKin.zeta * rKin.t0d2;
+
+        column(rKin.j, 0) = rKin.g1;
+        column(rKin.j, 1) = rKin.g2;
+        column(rKin.j, 2) = rKin.t;
+
+        //column(rKin.J, 0) = rKin.G1;
+        //column(rKin.J, 1) = rKin.G2;
+        //column(rKin.J, 2) = rKin.t0;
+
+        const Matrix3d Jloc = orthonormalizeMatrixColumns(rKin.J);
+
+        double detJ;
+        Matrix3d invJloc = invert3(Jloc);
+
+        const Matrix3d Ts = prod(invJloc , rKin.J);
+
+        rKin.T = getMatrixTransformMatrixForVoigtVector(Ts);
+        rKin.Tcont = getMatrixTransformMatrixForVoigtVector(invert3(Ts));
+        rKin.F = prod(rKin.j, reference_ReferenceJacobianInverse[IntegrationPointIndex]);
+        rKin.F = prod(prod(trans(Jloc), rKin.F) , Jloc);
+
         return std::make_pair(rKin, rVar);
     }
 
@@ -239,7 +278,7 @@ namespace Kratos
         return prod(invJ, trans(r_DN_De));
     }
 
-    void Shell5pStressBasedElement::CalculateConstitutiveVariables(
+    Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::CalculateConstitutiveVariables(
         const IndexType iP,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariables,
@@ -251,10 +290,13 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        subrange(rThisConstitutiveVariables.StrainVector, 0, 3) = rActualKinematic.metricChange;
-        subrange(rThisConstitutiveVariables.StrainVector, 3, 6) = rActualKinematic.curvature - reference_Curvature[iP];
-        subrange(rThisConstitutiveVariables.StrainVector, 6, 8) = rActualKinematic.transShear - reference_TransShear[iP];
-        noalias(rThisConstitutiveVariables.StressVector) = prod(mC, rThisConstitutiveVariables.StrainVector);
+        array_1d<double, 6> SVoigt;
+        BoundedMatrix <double, 6, 6> CVoigt;
+
+        SVoigt = prod(trans(rActualKinematic.Tcont), SVoigt);
+        CVoigt = prod(prod(trans(rActualKinematic.Tcont), CVoigt) , rActualKinematic.Tcont);
+
+        return convertMaterialAndStressFromVoigt(CVoigt, SVoigt);
     }
 
 
@@ -265,7 +307,7 @@ namespace Kratos
     {
         const SizeType number_of_nodes = GetGeometry().size();
 
-        Matrix rB{ ZeroMatrix(8, number_of_nodes * 5) };
+        Matrix rB{ ZeroMatrix(5, number_of_nodes * 5) };
         for (SizeType r = 0; r < number_of_nodes; r++)
         {
             const SizeType kr = 5 * r;
@@ -276,31 +318,26 @@ namespace Kratos
 
             for (int s = 0; s < 3; s++)
             {
-                rB(0, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.a1[s]; //membrane_{,disp}
-                rB(1, kr + s) = m_cart_deriv[iP](1, r) * rActualKinematic.a2[s];
-                rB(2, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.a2[s] + m_cart_deriv[iP](1, r) * rActualKinematic.a1[s];
-
-                rB(3, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.dtd1[s]; //bending_{,disp}
-                rB(4, kr + s) = m_cart_deriv[iP](1, r) * rActualKinematic.dtd2[s];
-                rB(5, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.dtd2[s] + m_cart_deriv[iP](1, r) * rActualKinematic.dtd1[s];
-
-                rB(6, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.t[s];  //trans_shear_{,disp}
-                rB(7, kr + s) = m_cart_deriv[iP](1, r) * rActualKinematic.t[s];
+                rB(0, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.g1[s]; //membrane_{,disp}
+                rB(1, kr + s) = m_cart_deriv[iP](1, r) * rActualKinematic.g2[s];
+                rB(2, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.g2[s] + m_cart_deriv[iP](1, r) * rActualKinematic.g1[s];
+                rB(3, kr + s) = m_cart_deriv[iP](0, r) * rActualKinematic.t[s];  //trans_shear_{,disp}
+                rB(4, kr + s) = m_cart_deriv[iP](1, r) * rActualKinematic.t[s];
             }
 
-            const Vector Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI); //bending_{,dir}
-            const Vector Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
-            const Vector Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
+            const Vector Temp = prod(prod<Vector>(trans(rActualKinematic.g1), WI1), BLAI); //bending_{,dir}
+            const Vector Temp1 = prod(prod<Vector>(trans(rActualKinematic.g2), WI2), BLAI);
+            const Vector Temp2 = prod(prod<Vector>(trans(rActualKinematic.g2), WI1) + prod(trans(rActualKinematic.g1), WI2), BLAI);
             const Vector Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(iP, r), BLAI); //shear_{,dir}
             const Vector Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(iP, r), BLAI);
 
             for (int s = 0; s < 2; s++)
             {
-                rB(3, kr + 3 + s) = Temp(s);
-                rB(4, kr + 3 + s) = Temp1(s);
-                rB(5, kr + 3 + s) = Temp2(s);
-                rB(6, kr + 3 + s) = Temp3(s);
-                rB(7, kr + 3 + s) = Temp4(s);
+                rB(0, kr + 3 + s) = Temp(s);
+                rB(1, kr + 3 + s) = Temp1(s);
+                rB(2, kr + 3 + s) = Temp2(s);
+                rB(3, kr + 3 + s) = Temp3(s);
+                rB(4, kr + 3 + s) = Temp4(s);
             }
         }
         return rB;
@@ -316,10 +353,10 @@ namespace Kratos
         const SizeType number_of_control_points = r_geometry.size();
 
         Matrix Kg{ ZeroMatrix(number_of_control_points * 5, number_of_control_points * 5) };
-        const array_1d<double, 8>& S = rConstitutive.StressVector;
+        const array_1d<double, 5>& S = rConstitutive.StressVector;
 
-        const Matrix3d chiAndSfac = ractVar.Chi11 * S[3] + ractVar.Chi22 * S[4] + ractVar.Chi12Chi21 * S[5]  //S[3..5] are moments
-            + ractVar.S1 * S[6] + ractVar.S2 * S[7]; //S[6..7] is transverse shear
+        const Matrix3d chiAndSfac = ractVar.Chi11 * S[0] + ractVar.Chi22 * S[1] + ractVar.Chi12Chi21 * S[2]
+            + ractVar.S1 * S[3] + ractVar.S2 * S[4];
         for (SizeType i = 0; i < number_of_control_points; i++)
         {
             const SizeType i1 = 5 * i;
@@ -329,8 +366,8 @@ namespace Kratos
             const double dN1i = m_cart_deriv[iP](0, i);
             const double dN2i = m_cart_deriv[iP](1, i);
 
-            const Matrix3d WI1 = ractVar.Q1 * Ni + ractVar.P * dN1i;
-            const Matrix3d WI2 = ractVar.Q2 * Ni + ractVar.P * dN2i;
+            const Matrix3d WI1 = rActKin.zeta * (ractVar.Q1 * Ni + ractVar.P * dN1i);
+            const Matrix3d WI2 = rActKin.zeta * (ractVar.Q2 * Ni + ractVar.P * dN2i);
             const Matrix23d BLAI_T = trans(r_geometry[i].GetValue(DIRECTORTANGENTSPACE));
             for (SizeType j = i; j < number_of_control_points; j++)
             {
@@ -341,38 +378,45 @@ namespace Kratos
                 const double dN1j = m_cart_deriv[iP](0, j);
                 const double dN2j = m_cart_deriv[iP](1, j);
 
-                const Matrix3d WJ1 = ractVar.Q1 * Nj + ractVar.P * dN1j;
-                const Matrix3d WJ2 = ractVar.Q2 * Nj + ractVar.P * dN2j;
+                const Matrix3d WJ1 = rActKin.zeta * (ractVar.Q1 * Nj + ractVar.P * dN1j);
+                const Matrix3d WJ2 = rActKin.zeta * (ractVar.Q2 * Nj + ractVar.P * dN2j);
                 const Matrix32d BLAJ = r_geometry[j].GetValue(DIRECTORTANGENTSPACE);
 
                 const double NS = dN1i * dN1j * S[0] + dN2i * dN2j * S[1] + (dN1i * dN2j + dN2i * dN1j) * S[2];
-                Kg(i1, j1) = Kg(i1 + 1, j1 + 1) = Kg(i1 + 2, j1 + 2) = NS; // membrane_{,disp,disp}*N
+                Kg(i1, j1) = Kg(i1 + 1, j1 + 1) = Kg(i1 + 2, j1 + 2) = NS; // Egl_{,disp,disp}*S
 
-                Matrix3d Temp = S[3] * dN1i * WJ1 + S[4] * dN2i * WJ2 + S[5] * (dN1i * WJ2 + dN2i * WJ1); // bending_{,dir,disp}*M
-                Temp += ractVar.P * Nj * (dN1i * S[6] + dN2i * S[7]);  // shear_{,dir,disp}*Q
+                Matrix3d Temp = S[0] * dN1i * WJ1 + S[1] * dN2i * WJ2 + S[2] * (dN1i * WJ2 + dN2i * WJ1); // Egl_{,dir,disp}*S
+                Temp += ractVar.P * Nj * (dN1i * S[3] + dN2i * S[4]);
 
                 noalias(subrange(Kg, i1, i1 + 3, j4, j4 + 2)) = prod(Temp, BLAJ);
-                Temp = S[3] * dN1j * WI1 + S[4] * dN2j * WI2 + S[5] * (dN1j * WI2 + dN2j * WI1); // bending_{,disp,dir}*M
+                Temp = S[0] * dN1j * WI1 + S[1] * dN2j * WI2 + S[2] * (dN1j * WI2 + dN2j * WI1); // Egl_{,disp,dir}*S
 
-                Temp += ractVar.P * Ni * (dN1j * S[6] + dN2j * S[7]);// shear_{,disp,dir}*Q
+                Temp += ractVar.P * Ni * (dN1j * S[3] + dN2j * S[4]);// Egl_{,disp,dir}*S
 
                 noalias(subrange(Kg, i4, i4 + 2, j1, j1 + 3)) = prod(BLAI_T, Temp);
 
                 const double NdN1 = dN1j * Ni + Nj * dN1i;
                 const double NdN2 = dN2j * Ni + Nj * dN2i;
                 Temp = Ni * Nj * chiAndSfac;  // shear_{,dir,dir}*Q + bending_{,dir,dir}*M
-                Temp += ractVar.S1 * NdN1 * S[3] + ractVar.S2 * NdN2 * S[4] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * S[5];  // bending_{,dir,dir}*M
+                Temp += rActKin.zeta * (ractVar.S1 * NdN1 * S[0] + ractVar.S2 * NdN2 * S[1] + (ractVar.S1 * NdN2 + ractVar.S2 * NdN1) * S[2]);  // Egl_{,dir,dir}*S
 
                 const Matrix23d Temp2 = prod(BLAI_T, Temp); //useless temp due to nonworking ublas prod(prod())
                 noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) = prod(Temp2, BLAJ);
+
+                Temp = prod(WI1, WJ1) * S[0] + prod(WI2 , WJ2) * S[1] + (prod(WI1 , WJ2) + prod(WI2 , WJ1)) * S[2]; //{/zeta^2* t_{,a}\cdot t_{,a}}_{,dir,dir}*S
+                Temp += Ni * Nj * (ractVar.chi11d * S[0] + ractVar.chi22d * S[1] + ractVar.chi12dchi21d * S[2]);
+                Temp += (ractVar.S1d * NdN1 * S[0] + ractVar.S2d * NdN2 * S[1] + (ractVar.S1d * NdN2 + ractVar.S2d * NdN1) * S[2]);
+                const Matrix23d Temp3 = prod(BLAI_T, Temp); //useless temp due to nonworking ublas prod(prod())
+                noalias(subrange(Kg, i4, i4 + 2, j4, j4 + 2)) +=prod(Temp3, BLAJ);
+
             }
             const auto& r_director = r_geometry[i].GetValue(DIRECTOR);
             const double kgT = -inner_prod(r_director /norm_2(r_director),
-                prod(WI1, rActKin.a1) * S[3] +
-                prod(WI2, rActKin.a2) * S[4] +
-                (prod(WI2, rActKin.a1) + prod(WI1, rActKin.a2)) * S[5] +
-                prod(ractVar.P, rActKin.a1) * Ni * S[6] +
-                prod(ractVar.P, rActKin.a2) * Ni * S[7]); //P’_{,dir}*F_{int}
+                prod(WI1, rActKin.g1) * S[0] +
+                prod(WI2, rActKin.g2) * S[1] +
+                (prod(WI2, rActKin.g1) + prod(WI1, rActKin.g2)) * S[2] +
+                prod(ractVar.P, rActKin.a1) * Ni * S[3] +
+                prod(ractVar.P, rActKin.a2) * Ni * S[4]); //P’_{,dir}*F_{int}
             Kg(i1 + 3, i1 + 3) += kgT;
             Kg(i1 + 4, i1 + 4) += kgT;
         }
@@ -504,26 +548,6 @@ namespace Kratos
         return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
     }
 
-    void Shell5pStressBasedElement::CalculateSVKMaterialTangent()
-    {
-        const double nu = this->GetProperties()[POISSON_RATIO];
-        const double Emodul = this->GetProperties()[YOUNG_MODULUS];
-        const double thickness = this->GetProperties().GetValue(THICKNESS);
-        mC = ZeroMatrix(8, 8);
-
-        const double fac1 = thickness * Emodul / (1 - nu * nu); //membrane
-        mC(0, 0) = mC(1, 1) = fac1;
-        mC(2, 2) = fac1 * (1 - nu) * 0.5;
-        mC(1, 0) = mC(0, 1) = fac1 * nu;
-
-        const double fac2 = thickness * thickness * fac1 / 12; // bending
-        mC(3, 3) = mC(4, 4) = fac2;
-        mC(5, 5) = fac2 * (1 - nu) * 0.5;
-        mC(3, 4) = mC(4, 3) = fac2 * nu;
-
-        const double fac3 = thickness * Emodul * 0.5 / (1 + nu); //trans shear
-        mC(6, 6) = mC(7, 7) = fac3;
-    }
 
     BoundedMatrix<double, 3, 2> Shell5pStressBasedElement::TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director)
     {
@@ -548,7 +572,7 @@ namespace Kratos
         return BLA;
     }
 
-    void Shell5pElShell5pStressBasedElementement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+    void Shell5pStressBasedElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
     {
         #pragma omp critical
         GetGeometry().GetGeometryParent(0).SetValue(DIRECTOR_COMPUTED, false);
@@ -587,4 +611,151 @@ namespace Kratos
             }
         }
     }
+
+    /** Transformation of material tangent and Stresses from Voigt to 5P strains notation */
+    Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::convertMaterialAndStressFromVoigt(
+        const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S)
+    {
+        ConstitutiveVariables constVar;
+        constVar.ConstitutiveMatrix(0, 0) = c(0, 0);
+        constVar.ConstitutiveMatrix(0, 1) = c(0, 1);
+        constVar.ConstitutiveMatrix(0, 2) = c(0, 5);
+        constVar.ConstitutiveMatrix(0, 3) = c(0, 4);
+        constVar.ConstitutiveMatrix(0, 4) = c(0, 3);
+
+        constVar.ConstitutiveMatrix(1, 0) = c(1, 0);
+        constVar.ConstitutiveMatrix(1, 1) = c(1, 1);
+        constVar.ConstitutiveMatrix(1, 2) = c(1, 5);
+        constVar.ConstitutiveMatrix(1, 3) = c(1, 4);
+        constVar.ConstitutiveMatrix(1, 4) = c(1, 3);
+
+        constVar.ConstitutiveMatrix(2, 0) = c(5, 0);
+        constVar.ConstitutiveMatrix(2, 1) = c(5, 1);
+        constVar.ConstitutiveMatrix(2, 2) = c(5, 5);
+        constVar.ConstitutiveMatrix(2, 3) = c(5, 4);
+        constVar.ConstitutiveMatrix(2, 4) = c(5, 3);
+
+        constVar.ConstitutiveMatrix(3, 0) = c(4, 0);
+        constVar.ConstitutiveMatrix(3, 1) = c(4, 1);
+        constVar.ConstitutiveMatrix(3, 2) = c(4, 5);
+        constVar.ConstitutiveMatrix(3, 3) = c(4, 4);
+        constVar.ConstitutiveMatrix(3, 4) = c(4, 3);
+
+        constVar.ConstitutiveMatrix(4, 0) = c(3, 0);
+        constVar.ConstitutiveMatrix(4, 1) = c(3, 1);
+        constVar.ConstitutiveMatrix(4, 2) = c(3, 5);
+        constVar.ConstitutiveMatrix(4, 3) = c(3, 4);
+        constVar.ConstitutiveMatrix(4, 4) = c(3, 3);
+
+        constVar.StressVector[0] = S[0];
+        constVar.StressVector[1] = S[1];
+        constVar.StressVector[2] = S[5];
+        constVar.StressVector[3] = S[4];
+        constVar.StressVector[4] = S[3];
+
+        return constVar;
+    }
+
+    // Rearange 3x3 strain matrix to usual 5P strain vector
+    array_1d<double, 5> transformStrainMatrixToVector5P(const BoundedMatrix<double, 3, 3>& A)
+    {
+        array_1d<double, 5> a({ A(0,0),
+            A(1, 1),
+            2.0 * A(1, 0),
+            2.0 * A(2, 0),
+            2.0 * A(2, 1) });
+        return a;
+    }
+
+
+    /** Transformation
+ *  Acurv = t^+ . Acart . t   ->    AcurvVoigt = T.AcartVoigt
+ */
+    BoundedMatrix<double, 6, 6> getMatrixTransformMatrixForVoigtVector(
+        const BoundedMatrix<double, 3, 3>& t
+    )
+    {
+        BoundedMatrix<double, 6, 6> T;
+        T(0, 0) = t(0, 0) * t(0, 0);
+        T(0, 1) = t(1, 0) * t(1, 0);
+        T(0, 2) = t(2, 0) * t(2, 0);
+        T(0, 3) = t(2, 0) * t(1, 0);
+        T(0, 4) = t(2, 0) * t(0, 0);
+        T(0, 5) = t(1, 0) * t(0, 0);
+
+        T(1, 0) = t(0, 1) * t(0, 1);
+        T(1, 1) = t(1, 1) * t(1, 1);
+        T(1, 2) = t(2, 1) * t(2, 1);
+        T(1, 3) = t(2, 1) * t(1, 1);
+        T(1, 4) = t(2, 1) * t(0, 1);
+        T(1, 5) = t(1, 1) * t(0, 1);
+
+        T(2, 0) = t(0, 2) * t(0, 2);
+        T(2, 1) = t(1, 2) * t(1, 2);
+        T(2, 2) = t(2, 2) * t(2, 2);
+        T(2, 3) = t(2, 2) * t(1, 2);
+        T(2, 4) = t(2, 2) * t(0, 2);
+        T(2, 5) = t(1, 2) * t(0, 2);
+
+        T(3, 0) = 2 * t(0, 1) * t(0, 2);
+        T(3, 1) = 2 * t(1, 1) * t(1, 2);
+        T(3, 2) = 2 * t(2, 1) * t(2, 2);
+        T(3, 3) = t(1, 1) * t(2, 2) + t(1, 2) * t(2, 1);
+        T(3, 4) = t(0, 1) * t(2, 2) + t(0, 2) * t(2, 1);
+        T(3, 5) = t(0, 1) * t(1, 2) + t(0, 2) * t(1, 1);
+
+        T(4, 0) = 2 * t(0, 0) * t(0, 2);
+        T(4, 1) = 2 * t(1, 0) * t(1, 2);
+        T(4, 2) = 2 * t(2, 0) * t(2, 2);
+        T(4, 3) = t(1, 0) * t(2, 2) + t(1, 2) * t(2, 0);
+        T(4, 4) = t(0, 0) * t(2, 2) + t(0, 2) * t(2, 0);
+        T(4, 5) = t(0, 0) * t(1, 2) + t(0, 2) * t(1, 0);
+
+        T(5, 0) = 2 * t(0, 0) * t(0, 1);
+        T(5, 1) = 2 * t(1, 0) * t(1, 1);
+        T(5, 2) = 2 * t(2, 0) * t(2, 1);
+        T(5, 3) = t(1, 0) * t(2, 1) + t(1, 1) * t(2, 0);
+        T(5, 4) = t(0, 0) * t(2, 1) + t(0, 1) * t(2, 0);
+        T(5, 5) = t(0, 0) * t(1, 1) + t(0, 1) * t(1, 0);
+
+        return T;
+    }
+
+
+
+
+
+
+    template<int size1, int size2>
+    BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A) {
+        //Gram Schmidt Ortho
+        BoundedMatrix<double, size1, size2> Q = A;
+
+        column(Q, 0) = column(Q, 0) / norm_2(column(Q, 0));
+
+        for (int colIndex = 1; colIndex < Q.size2(); colIndex++) {
+            matrix_range<BoundedMatrix<double, 3, 3> > mr2(Q, range(0, Q.size1()), range(0, colIndex));
+            column(Q, colIndex) -= prod(mr2, (prod(trans(mr2), column(A, colIndex))));
+            column(Q, colIndex) = column(Q, colIndex) / norm_2(column(Q, colIndex));
+        }
+
+        return Q;
+    }
+
+    BoundedMatrix<double, 2, 2> invert2(const BoundedMatrix<double, 2, 2>& A)
+    {
+        double detA;
+        BoundedMatrix<double, 2, 2> invA;
+        MathUtils<double>::InvertMatrix2(A, invA, detA);
+        return invA;
+    }
+
+    BoundedMatrix<double, 3, 3> invert3(const BoundedMatrix<double, 3, 3>& A)
+    {
+        double detA;
+        BoundedMatrix<double, 3, 3> invA;
+        MathUtils<double>::InvertMatrix3(A, invA, detA);
+        return invA;
+    }
+
 } // Namespace Kratos
