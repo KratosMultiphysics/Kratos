@@ -737,7 +737,15 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
     const MatrixType& rRe
     )
 {
-    
+    Matrix Fp(Dimension, Dimension);
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
+        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    BoundedMatrixType r_exponential_tensor;
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(plastic_flow, r_exponential_tensor);
+    noalias(Fp) = prod(rRe, rOldFp);
+    Fp = prod(r_exponential_tensor, Fp);
+    Fp = prod(rRe, Fp);
+    return Fp;
 }
 
 /***********************************************************************************/

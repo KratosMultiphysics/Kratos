@@ -371,14 +371,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
      * @param rMatrix The input matrix
      * @param rExponentialMatrix The exponential of the matrix
      */
-    void CalculateExponentialOfMatrix(
+    static void CalculateExponentialOfMatrix(
         const BoundedMatrixType& rMatrix,
         BoundedMatrixType& rExponentialMatrix);
 
     /**
      * @brief This computes factorial of a number
      */
-    int Factorial(const unsigned int n) {
+    static int Factorial(const unsigned int n) {
         if (n == 0) {
             return 1;
         }
