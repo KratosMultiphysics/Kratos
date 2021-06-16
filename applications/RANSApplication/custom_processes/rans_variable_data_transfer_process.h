@@ -52,8 +52,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using VariableType = Variable<double>;
-
     using NodeType = ModelPart::NodeType;
 
     using CopyVariableDataListItem = std::tuple<const std::string, const bool, const std::string, const bool>;
@@ -72,6 +70,15 @@ public:
 
     RansVariableDataTransferProcess(
         Model& rModel,
+        const std::string& rSourceModelPartName,
+        const std::string& rDestinationModelPartName,
+        const std::vector<std::string>& rCopyExecutionPoints,
+        const std::vector<CopyVariableDataListItem>& rCopyVariableDataList,
+        const int EchoLevel);
+
+    RansVariableDataTransferProcess(
+        Model& rSourceModel,
+        Model& rDestinationModel,
         const std::string& rSourceModelPartName,
         const std::string& rDestinationModelPartName,
         const std::vector<std::string>& rCopyExecutionPoints,
@@ -139,6 +146,7 @@ private:
         FINALIZE = 6
     };
 
+    template<class TVariableType>
     class CopyVariableData
     {
     public:
@@ -146,9 +154,9 @@ private:
         ///@{
 
         explicit CopyVariableData(
-            const VariableType& rSourceVariable,
+            const TVariableType& rSourceVariable,
             const bool IsSourceVariableHistorical,
-            const VariableType& rDestinationVariable,
+            const TVariableType& rDestinationVariable,
             const bool IsDestinationVariableHistorical);
 
         ///@}
@@ -165,9 +173,9 @@ private:
         ///@name Private Member Variables
         ///@{
 
-        const VariableType& mrSourceVariable;
+        const TVariableType& mrSourceVariable;
         const bool mIsSourceVariableHistorical;
-        const VariableType& mrDestinationVariable;
+        const TVariableType& mrDestinationVariable;
         const bool mIsDestinationVariableHistorical;
 
         void (CopyVariableData::*mCopyMethod)(const NodeType& rSourceNode, NodeType& rDestinationNode) const;
@@ -187,7 +195,8 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    Model& mrModel;
+    Model& mrSourceModel;
+    Model& mrDestinationModel;
     int mEchoLevel;
 
     std::string mSourceModelPartName;
@@ -195,7 +204,10 @@ private:
 
     std::vector<ExecutionPoint> mExecutionPointsList;
 
-    std::vector<CopyVariableData> mCopyVariableDataList;
+    std::vector<CopyVariableData<Variable<double>>> mCopyDoubleVariableDataList;
+    std::vector<CopyVariableData<Variable<array_1d<double, 3>>>> mCopyArray3DVariableDataList;
+    std::vector<CopyVariableData<Variable<Vector>>> mCopyVectorVariableDataList;
+    std::vector<CopyVariableData<Variable<Matrix>>> mCopyMatrixVariableDataList;
 
     ///@}
     ///@name Private Operations
