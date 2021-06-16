@@ -1,0 +1,104 @@
+{
+    "materials":[{
+        "material_name": "mat_spheres1",
+        "material_id": 1,
+        "Variables":{
+            "PARTICLE_DENSITY": 1000.0,
+            "YOUNG_MODULUS": 1000000.0,
+            "POISSON_RATIO": 0.20
+        }
+    },{
+        "material_name": "mat_spheres2",
+        "material_id": 2,
+        "Variables":{
+            "PARTICLE_DENSITY": 1000.0,
+            "YOUNG_MODULUS": 1000000.0,
+            "POISSON_RATIO": 0.20
+        }
+    },{
+        "material_name": "mat_walls1",
+        "material_id": 3,
+        "Variables":{
+            "YOUNG_MODULUS": 1000000.0,
+            "POISSON_RATIO": 0.20
+        }
+    },{
+        "material_name": "mat_walls2",
+        "material_id": 4,
+        "Variables":{
+            "YOUNG_MODULUS": 1000000.0,
+            "POISSON_RATIO": 0.20
+        }
+    }],
+    "material_relations":[{
+        "material_names_list":["mat_spheres1", "mat_spheres1"],
+        "material_ids_list":[1, 1],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.4,
+            "STATIC_FRICTION": 0.55,
+            "DYNAMIC_FRICTION": 0.55,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.0,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "CONICAL_DAMAGE_CONTACT_RADIUS": 1.0e-5,
+            "CONICAL_DAMAGE_MAX_STRESS": 1.0e6,
+            "CONICAL_DAMAGE_ALPHA": 75.0,
+            "CONICAL_DAMAGE_GAMMA": -0.15,
+            "LEVEL_OF_FOULING": 0.25,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Conical_damage"
+        }
+    },{
+        "material_names_list":["mat_spheres2", "mat_spheres2"],
+        "material_ids_list":[2, 2],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.4,
+            "STATIC_FRICTION": 0.55,
+            "DYNAMIC_FRICTION": 0.55,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.0,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "PARTICLE_COHESION": 30.0e3,
+            "INITIAL_COHESION": 10.0e3,
+            "AMOUNT_OF_COHESION_FROM_STRESS": 0.2,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Stress_Dependent_Cohesive"
+        }
+    },{
+        "material_names_list":["mat_spheres1", "mat_walls1"],
+        "material_ids_list":[1, 3],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.4,
+            "STATIC_FRICTION": 0.55,
+            "DYNAMIC_FRICTION": 0.55,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.0,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "CONICAL_DAMAGE_CONTACT_RADIUS": 1.0e-5,
+            "CONICAL_DAMAGE_MAX_STRESS": 1.0e6,
+            "CONICAL_DAMAGE_ALPHA": 75.0,
+            "CONICAL_DAMAGE_GAMMA": -0.15,
+            "LEVEL_OF_FOULING": 0.25,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Conical_damage"
+        }
+    },{
+        "material_names_list":["mat_spheres2", "mat_walls2"],
+        "material_ids_list":[2, 4],
+        "Variables":{
+            "COEFFICIENT_OF_RESTITUTION": 0.4,
+            "STATIC_FRICTION": 0.55,
+            "DYNAMIC_FRICTION": 0.55,
+            "FRICTION_DECAY": 500,
+            "ROLLING_FRICTION": 0.0,
+            "ROLLING_FRICTION_WITH_WALLS": 0.0,
+            "PARTICLE_COHESION": 30.0e3,
+            "INITIAL_COHESION": 10.0e3,
+            "AMOUNT_OF_COHESION_FROM_STRESS": 0.2,
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME": "DEM_D_Stress_Dependent_Cohesive"
+        }
+    }],
+    "material_assignation_table":[
+        ["SpheresPart.Mat1", "mat_spheres1"],
+        ["SpheresPart.Mat2","mat_spheres2"],
+        ["RigidFacePart.Surface1", "mat_walls1"],
+        ["RigidFacePart.Surface2", "mat_walls2"]
+    ]
+}

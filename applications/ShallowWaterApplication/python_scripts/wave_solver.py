@@ -13,7 +13,7 @@ class WaveSolver(ShallowWaterBaseSolver):
         super().__init__(model, settings)
         self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
         self.element_name = "WaveElement"
-        self.condition_name = "LineCondition"
+        self.condition_name = "WaveCondition"
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
@@ -27,8 +27,8 @@ class WaveSolver(ShallowWaterBaseSolver):
         self.main_model_part.AddNodalSolutionStepVariable(SW.VERTICAL_VELOCITY)
 
     def _SetProcessInfo(self):
-        stabilization_factor = self.settings["stabilization_factor"].GetDouble()
-        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, stabilization_factor)
+        super()._SetProcessInfo()
+        self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
 
     def _CreateScheme(self):
         order = self.settings["time_integration_order"].GetInt()

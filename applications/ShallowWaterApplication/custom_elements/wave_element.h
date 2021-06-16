@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_WaveElement_H_INCLUDED
-#define KRATOS_WaveElement_H_INCLUDED
+#ifndef KRATOS_WAVE_ELEMENT_H_INCLUDED
+#define KRATOS_WAVE_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -301,6 +301,8 @@ protected:
 
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
 
+    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+
     void CalculateGeometryData(
         Vector &rGaussWeights,
         Matrix &rNContainer,
@@ -338,10 +340,6 @@ protected:
         const double Weight = 1.0);
 
     virtual double StabilizationParameter(const ElementData& rData) const;
-
-    LocalVectorType ToSystemVector(const array_1d<double,3>& rVector) const;
-
-    LocalVectorType ToSystemVector(const double& rScalar) const;
 
     ///@}
     ///@name Protected  Access
@@ -430,4 +428,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WaveElement_H_INCLUDED  defined
+#endif // KRATOS_WAVE_ELEMENT_H_INCLUDED  defined
