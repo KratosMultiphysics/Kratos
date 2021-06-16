@@ -139,7 +139,7 @@ public:
 
 
         //here we get all the variables we will need
-        array_1d<double,TNumNodes> phi, phi_old;
+        array_1d<double,TNumNodes> phi, phi_old, acceleration_component;
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -150,6 +150,8 @@ public:
 
             v[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             vold[i] = GetGeometry()[i].FastGetSolutionStepValue(rConvVar,1);
+
+            acceleration_component[i] = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE_ACCELERATION);
         }
         array_1d<double,TDim> grad_phi_halfstep = prod(trans(DN_DX), 0.5*(phi+phi_old));
         const double norm_grad = norm_2(grad_phi_halfstep);
@@ -220,7 +222,7 @@ public:
 
         //adding the second and third term in the formulation
         noalias(rLeftHandSideMatrix)  = (dt_inv + theta*beta*div_v)*aux1;
-        noalias(rRightHandSideVector) = (dt_inv - (1.0 - theta)*beta*div_v)*prod(aux1,phi_old);
+        noalias(rRightHandSideVector) = (dt_inv - (1.0 - theta)*beta*div_v)*prod(aux1,phi_old) + prod(aux1,acceleration_component);
 
         //terms in aux2
         noalias(rLeftHandSideMatrix) += theta*aux2;
