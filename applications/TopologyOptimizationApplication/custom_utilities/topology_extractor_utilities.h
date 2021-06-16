@@ -273,7 +273,9 @@ public:
 				if(it->first.size()==3)
 				{	std::cout<<"  Schleife 3" <<std::endl;
 					// Getting original order is important to properly reproduce skin face including its normal orientation
+					std::cout<<"  before constructing vector" <<std::endl;
 					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					std::cout<<"  after constructing vector" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
 					std::cout<<"  pnode1 done" <<std::endl;
@@ -305,10 +307,15 @@ public:
 					std::cout<<"  Step 2" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
+					std::cout<<"  pnode1 done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
+					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+					std::cout<<"  pnode3 done" <<std::endl;
 					Node < 3 >::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
+					std::cout<<"  pnode4 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
+					std::cout<<"  Surfacemesh done" <<std::endl;
 
 					// Add triangle one as condition
 					std::cout<<"  Step 3" <<std::endl;
