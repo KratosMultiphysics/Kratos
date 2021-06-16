@@ -24,6 +24,7 @@
 #include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_5p_element_stress_based.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -119,6 +120,7 @@ private:
     const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
+    const Shell5pStressBasedElement mShell5pStressBasedElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
