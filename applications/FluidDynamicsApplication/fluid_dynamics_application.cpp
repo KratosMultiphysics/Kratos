@@ -236,6 +236,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS( VELOCITY_GRADIENT_TENSOR )
     KRATOS_REGISTER_3D_TENSOR_VARIABLE_WITH_COMPONENTS( SHAPE_SENSITIVITY_GRADIENT_TENSOR )
 
+    KRATOS_REGISTER_VARIABLE( RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY )
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
