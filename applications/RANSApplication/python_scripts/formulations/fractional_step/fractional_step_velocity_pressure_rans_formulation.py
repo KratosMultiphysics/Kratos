@@ -334,6 +334,12 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def GetConditionNames(self):
         return [self.condition_name]
 
+    def GetSolvingVariables(self):
+        if (self.GetDomainSize() == 2):
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
+        else:
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
+
     def _CheckTransientConvergence(self, variable, settings):
         relative_error, absolute_error = RansVariableUtilities.CalculateTransientVariableConvergence(
             self.GetBaseModelPart(),
