@@ -61,10 +61,8 @@ namespace Kratos {
 
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
 
-        const double unbonded_equivalent_young = 0.5 * (element->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS] + neighbor->GetProperties()[LOOSE_MATERIAL_YOUNG_MODULUS]);
-        const double equivalent_young = 0.5 * (element->GetProperties()[YOUNG_MODULUS] + neighbor->GetProperties()[YOUNG_MODULUS]);
-        const double bonded_equivalent_young = equivalent_young - unbonded_equivalent_young;
-        
+        const double bonded_equivalent_young = (*mpProperties)[YOUNG_MODULUS];
+
         ElasticLocalRotationalMoment[0] = -rot_k * bonded_equivalent_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ElasticLocalRotationalMoment[1] = -rot_k * bonded_equivalent_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
         ElasticLocalRotationalMoment[2] = -rot_k * bonded_equivalent_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;

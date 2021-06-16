@@ -1,14 +1,13 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:     BSD License
-//           license: structural_mechanics_application/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//
-//
+//  Main authors:    Vahid Galavi
 //
 
 #if !defined(KRATOS_GEO_CR_BEAM_ELEMENT_LINEAR_3D2N_H_INCLUDED )
@@ -22,22 +21,34 @@
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_linear_3D2N.hpp"
 
 namespace Kratos
 {
 /**
  * @class GeoCrBeamElementLinear3D2N
  *
- * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from GeoCrBeamElement3D2N
+ * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from CrBeamElement3D2N
  *
- * @author Klaus B Sautter
+ * @author Vahid Galavi
  */
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElementLinear3D2N : public GeoCrBeamElement3D2N
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElementLinear3D2N : public CrBeamElement3D2N
 {
 
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElementLinear3D2N);
+
+    typedef CrBeamElement3D2N BaseType;
+    typedef BaseType::GeometryType GeometryType;
+    typedef BaseType::NodesArrayType NodesArrayType;
+    typedef BaseType::PropertiesType PropertiesType;
+    typedef BaseType::IndexType IndexType;
+    typedef BaseType::SizeType SizeType;
+    typedef BaseType::MatrixType MatrixType;
+    typedef BaseType::VectorType VectorType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef BaseType::DofsVectorType DofsVectorType;
 
     GeoCrBeamElementLinear3D2N() {};
     GeoCrBeamElementLinear3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -54,11 +65,9 @@ public:
     * @param pProperties The pointer to property
     * @return The pointer to the created element
     */
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-    ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override;
 
     /**
     * @brief Creates a new element
@@ -67,46 +76,25 @@ public:
     * @param pProperties The pointer to property
     * @return The pointer to the created element
     */
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-    ) const override;
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                      std::vector< array_1d<double, 3 > >& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
+protected:
 
-    /**
-     * @brief This function calculates the element stiffness w.r.t. deformation modes
-     */
-    BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const override;
-
-    void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput,
-     const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector< array_1d<double, 3 > >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        const Variable<Vector >& rVariable,
-        std::vector< Vector >& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
+    Vector mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
+    Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
 private:
 

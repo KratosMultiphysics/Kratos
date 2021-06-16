@@ -24,6 +24,7 @@ add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 
 # Clean
 clear

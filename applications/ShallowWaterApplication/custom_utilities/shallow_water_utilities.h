@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "shallow_water_application_variables.h"
 
 
 namespace Kratos
@@ -185,6 +186,35 @@ public:
         return std::sqrt(l2_norm);
     }
 
+    /*
+     * @brief Compute the horizontal hydrostatic pressures
+     */
+    template<class TContainerType>
+    array_1d<double,3> ComputeHydrostaticForces(TContainerType& rContainer, const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(GRAVITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : GRAVITY is not defined in the ProcessInfo" << std::endl;
+        KRATOS_ERROR_IF_NOT(rProcessInfo.Has(DENSITY)) << "ShallowWaterUtilities::ComputeHydrostaticForces : DENSITY is not defined in the ProcessInfo" << std::endl;
+        const double gravity = rProcessInfo.GetValue(GRAVITY_Z);
+        const double density = rProcessInfo.GetValue(DENSITY);
+
+        array_1d<double,3> forces = ZeroVector(3);
+        forces  = block_for_each<SumReduction<array_1d<double,3>>>(
+            rContainer, [&](typename TContainerType::value_type& rEntity){
+                const auto& r_geom = rEntity.GetGeometry();
+                const double area = r_geom.Area();
+                const array_1d<double,3> normal = r_geom.UnitNormal(r_geom[0]); // At the first Point
+                double height = 0.0;
+                for (auto& r_node : r_geom) {
+                    height += r_node.FastGetSolutionStepValue(HEIGHT);
+                }
+                height /= r_geom.size();
+                array_1d<double,3> local_force = EvaluateHydrostaticForce<TContainerType>(density, gravity, height, area, normal);
+                return local_force;
+            }
+        );
+        return forces;
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -214,6 +244,14 @@ private:
 
     template<bool THistorical>
     double GetValue(NodeType& rNode, const Variable<double>& rVariable);
+
+    template<class TContainerType>
+    array_1d<double,3> EvaluateHydrostaticForce(
+        const double Density,
+        const double Gravity,
+        const double Height,
+        const double Area,
+        const array_1d<double,3>& rNormal);
 
     ///@}
 

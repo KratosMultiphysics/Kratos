@@ -105,7 +105,6 @@ namespace Kratos
         array_1d< array_1d<double,3 >, TNumNodes> v, vold;
 
         array_1d<double,3 > X_mean_tmp = ZeroVector(3);
-        array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
         array_1d< array_1d<double,3 >, TNumNodes> X_node;
         double phi_mean_old = 0.0;
         double phi_mean = 0.0;
@@ -123,8 +122,6 @@ namespace Kratos
             X_mean_tmp += r_node.Coordinates();
             X_node[i] = r_node.Coordinates();
 
-            grad_phi_mean_tmp += r_node.GetValue(r_grad_var);
-
             phi_mean_old += r_node.FastGetSolutionStepValue(r_unknown_var,1);
             phi_mean += r_node.FastGetSolutionStepValue(r_unknown_var);
         }
@@ -134,14 +131,11 @@ namespace Kratos
         phi_mean *= aux_weight;
         phi_mean_old *= aux_weight;
 
-        array_1d<double,TDim> X_mean, grad_phi_mean;
+        array_1d<double,TDim> X_mean;
         for(unsigned int k = 0; k < TDim; k++)
         {
-            grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
             X_mean[k] = aux_weight*X_mean_tmp[k];
         }
-
-        array_1d<double,TDim> grad_phi_diff = prod(trans(DN_DX), phi_old) - grad_phi_mean;
 
         BoundedMatrix<double,TNumNodes, TNumNodes> K_matrix = ZeroMatrix(TNumNodes, TNumNodes); // convection
         BoundedMatrix<double,TNumNodes, TNumNodes> S_matrix = ZeroMatrix(TNumNodes, TNumNodes); // LHS stabilization
@@ -190,6 +184,18 @@ namespace Kratos
 
             // If the high-order terms are necessary
             if (limiter > 1.0e-15){
+                array_1d<double,3 > grad_phi_mean_tmp = ZeroVector(3);
+
+                for (unsigned int i = 0; i < TNumNodes; ++i){
+                    const auto& r_node = r_geom[i];
+                    grad_phi_mean_tmp += r_node.GetValue(r_grad_var);
+                }
+
+                array_1d<double,TDim> grad_phi_mean;
+                for(unsigned int k = 0; k < TDim; k++) {
+                    grad_phi_mean[k] = aux_weight*grad_phi_mean_tmp[k];
+                }
+
                 for (unsigned int i = 0; i < TNumNodes; ++i){
                     S_vector[i] += ( (phi_gauss_old - phi_mean_old) - inner_prod( grad_phi_mean, (X_gauss - X_mean) ) )*N[i];
                 }

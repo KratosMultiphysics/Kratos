@@ -124,8 +124,8 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tension_limit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
-        const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
+        const double tension_limit = GetContactSigmaMax();
+        const double& damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double limit_force = 0.0;
 
@@ -207,9 +207,9 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        const double tau_zero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
-        const double internal_friction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
-        const double damage_energy_coeff = 0.5 * (element1->GetProperties()[SHEAR_ENERGY_COEF] + element2->GetProperties()[SHEAR_ENERGY_COEF]);
+        const double& tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+        const double& internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
+        const double& damage_energy_coeff = (*mpProperties)[SHEAR_ENERGY_COEF];
         double k_unload = 0.0;
         double tau_strength = 0.0;
 
@@ -286,22 +286,9 @@ namespace Kratos {
                 }
             }
         } else {
-
-            const double my_tg_of_static_friction_angle        = element1->GetProperties()[STATIC_FRICTION];
-            const double neighbour_tg_of_static_friction_angle = element2->GetProperties()[STATIC_FRICTION];
-            const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
-
-            const double my_tg_of_dynamic_friction_angle        = element1->GetProperties()[DYNAMIC_FRICTION];
-            const double neighbour_tg_of_dynamic_friction_angle = element2->GetProperties()[DYNAMIC_FRICTION];
-            const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
-
-            const double my_friction_decay_coefficient          = element1->GetProperties()[FRICTION_DECAY];
-            const double neighbour_friction_decay_coefficient   = element2->GetProperties()[FRICTION_DECAY];
-            double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
-
-            if (equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
-            }
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
