@@ -294,3 +294,25 @@ def CreateBlockBuilderAndSolver(
                 linear_solver, KratosCFD.PATCH_INDEX)
         else:
             return ResidualBasedBlockBuilderAndSolver(linear_solver)
+
+def GetTimeDerivativeVariable(variable):
+    if (variable == Kratos.VELOCITY_X):
+        return Kratos.ACCELERATION_X
+    elif (variable == Kratos.VELOCITY_Y):
+        return Kratos.ACCELERATION_Y
+    elif (variable == Kratos.VELOCITY_Z):
+        return Kratos.ACCELERATION_Z
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY):
+        return KratosRANS.TURBULENT_KINETIC_ENERGY_RATE
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    else:
+        return None
