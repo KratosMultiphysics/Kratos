@@ -34,7 +34,7 @@ namespace Kratos
             KRATOS_CHECK_IS_FALSE(this_cl.Has(DOMAIN_SIZE));                  // Integer
             KRATOS_CHECK_IS_FALSE(this_cl.Has(NODAL_H));                      // Double
             KRATOS_CHECK_IS_FALSE(this_cl.Has(DISPLACEMENT));                 // Array 1D
-            KRATOS_CHECK_IS_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
+            // KRATOS_CHECK_IS_FALSE(this_cl.Has(INITIAL_STRAIN));               // Vector
             KRATOS_CHECK_IS_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
         }
 
