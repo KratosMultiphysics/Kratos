@@ -11,6 +11,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariable
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -85,6 +86,8 @@ class CoupledRANSSolver(PythonSolver):
         else:
             self.ramp_up_interval = None
 
+        self.automatic_mesh_refinement_step = 0
+
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
 
@@ -124,7 +127,34 @@ class CoupledRANSSolver(PythonSolver):
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
             },
-            "constants": {}
+            "constants": {},
+            "adaptive_mesh_refinement_based_on_response_function": false,
+            "adaptive_mesh_refinement_based_on_response_function_settings": {
+                "primal_problem_project_parameters_file_name" : "PLEASE_SPECIFY_PRIMAL_PROBLEM_PROJECT_PARAMETERS_FILE_NAME",
+                "adjoint_problem_project_parameters_file_name": "PLEASE_SPECIFY_ADJOINT_PROBLEM_PROJECT_PARAMETERS_FILE_NAME",
+                "time_range"                                  : [0.0, 1e+30],
+                "step_interval"                               : 10,
+                "output_model_part_name"                      : "adapted_mesh",
+                "mmg_process_parameters": {
+                    "strategy"               : "hessian",
+                    "automatic_remesh"       : false,
+                    "enforce_current"        : false,
+                    "maximal_size"           : 0.5,
+                    "minimal_size"           : 1e-3,
+                    "hessian_strategy_parameters":{
+                        "metric_variable": ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"],
+                        "non_historical_metric_variable": [false, false, false],
+                        "interpolation_error": 1e-5,
+                        "use_response_function_interpolation_error": true,
+                        "response_function_interpolation_variable_index": [0, 1, 2]
+                    },
+                    "model_part_name" : "FluidModelPart",
+                    "step_frequency"  : 1,
+                    "force_min"       : true,
+                    "force_max"       : true,
+                    "echo_level"      : 3
+                }
+            }
         }""")
 
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -173,6 +203,9 @@ class CoupledRANSSolver(PythonSolver):
                     self.__class__.__name__,
                     "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json."
                 )
+            ## remove fluid_computational_model_part if it exists. It will be there if adaptive mesh refinement is used.
+            if (self.main_model_part.HasSubModelPart("fluid_computational_model_part")):
+                self.main_model_part.RemoveSubModelPart("fluid_computational_model_part")
             ## Executes the check and prepare model process
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
@@ -224,6 +257,15 @@ class CoupledRANSSolver(PythonSolver):
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
         new_time = current_time + dt
+
+        if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
+            adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
+            automatic_mesh_refinement_time_range = adaptive_mesh_refinement_settings["time_range"].GetVector()
+
+            if (new_time >= automatic_mesh_refinement_time_range[0] and new_time <= automatic_mesh_refinement_time_range[1]):
+                if (self.automatic_mesh_refinement_step % adaptive_mesh_refinement_settings["step_interval"].GetInt() == 0):
+                    self._ExecuteAdaptiveMeshRefinementBasedOnResponseFunction(new_time)
+                self.automatic_mesh_refinement_step += 1
 
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[Kratos.STEP] += 1
@@ -361,5 +403,105 @@ class CoupledRANSSolver(PythonSolver):
 
             break
 
+    def _ExecuteAdaptiveMeshRefinementBasedOnResponseFunction(self, current_time):
+        if (not self.is_steady):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Performing adaptive mesh refinement...")
+
+            adaptive_mesh_refinement_based_on_response_function_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
+
+            # write the current mesh so primal and adjoint problems can read it properly
+            Kratos.ModelPartIO(adaptive_mesh_refinement_based_on_response_function_settings["output_model_part_name"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
+            # set the starting point of the simulation to current step
+            dt = self._ComputeDeltaTime()
+            time_steps = adaptive_mesh_refinement_based_on_response_function_settings["step_interval"].GetInt()
+            start_time = current_time
+            end_time = current_time + dt * time_steps
+
+            # compute the list of variables to be passed as initial conditions for primal
+            # and adjoint problem
+            list_of_solving_variables = []
+            for var in self.formulation.GetSolvingVariables():
+                time_derivative_vars_list = self._GetTimeDerivativeVariablesRecursively(var)
+                for time_derivative_var in time_derivative_vars_list:
+                    list_of_solving_variables.append(time_derivative_var)
+
+            total_variables_list = []
+            for var in list_of_solving_variables:
+                total_variables_list.append((var.Name(), True, var.Name(), True))
+            total_variables_list.append(("RELAXED_ACCELERATION", False, "RELAXED_ACCELERATION", False))
+
+            # open primal parameters
+            with open(adaptive_mesh_refinement_based_on_response_function_settings["primal_problem_project_parameters_file_name"].GetString(),'r') as parameter_file:
+                primal_parameters = Kratos.Parameters(parameter_file.read())
+
+            primal_parameters["problem_data"]["start_time"].SetDouble(start_time)
+            primal_parameters["problem_data"]["end_time"].SetDouble(end_time)
+
+            # solve the primal problem
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving primal problem for error analysis...")
+            from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
+            primal_model = Kratos.Model()
+            primal_simulation = RANSAnalysis(primal_model, primal_parameters)
+            primal_simulation.Initialize()
+
+            # copy initialization data to primal solver
+            KratosRANS.RansVariableDataTransferProcess(
+                self.main_model_part.GetModel(),
+                primal_model,
+                self.main_model_part.FullName(),
+                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
+                ["execute"],
+                total_variables_list,
+                self.echo_level).Execute()
+
+            primal_simulation.RunSolutionLoop()
+            primal_simulation.Finalize()
+
+            # open adjoint problem
+            with open(adaptive_mesh_refinement_based_on_response_function_settings["adjoint_problem_project_parameters_file_name"].GetString(),'r') as parameter_file:
+                adjoint_parameters = Kratos.Parameters(parameter_file.read())
+
+            adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time)
+            adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
+
+            # run adjoint problem
+            # importing is done here to avoid circular dependency
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving adjoint problem for error analysis...")
+            from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
+            adjoint_model = Kratos.Model()
+            adjoint_simulation = AdjointRANSAnalysis(adjoint_model, adjoint_parameters)
+            adjoint_simulation.Run()
+
+            # copy interpolation error data from adjoint model.
+            KratosRANS.RansVariableDataTransferProcess(
+                adjoint_model,
+                self.main_model_part.GetModel(),
+                adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
+                self.main_model_part.FullName(),
+                ["execute"],
+                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False)],
+                self.echo_level).Execute()
+
+            # perform adaptive remeshing
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Remeshing based on response function error analysis...")
+            from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess
+            remeshing_process = MmgProcess(self.main_model_part.GetModel(), adaptive_mesh_refinement_based_on_response_function_settings["mmg_process_parameters"])
+            remeshing_process.ExecuteInitialize()
+            remeshing_process.ExecuteInitializeSolutionStep()
+            remeshing_process.ExecuteFinalizeSolutionStep()
+            remeshing_process.ExecuteFinalize()
+
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
+
     def Finalize(self):
         self.formulation.Finalize()
+
+    def _GetTimeDerivativeVariablesRecursively(self, var):
+        time_derivative_var = GetTimeDerivativeVariable(var)
+        if (time_derivative_var is None):
+            return [var]
+        else:
+            v = [var]
+            v.extend(self._GetTimeDerivativeVariablesRecursively(time_derivative_var))
+            return v
