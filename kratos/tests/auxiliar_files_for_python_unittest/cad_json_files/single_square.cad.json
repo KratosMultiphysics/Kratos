@@ -125,6 +125,41 @@
           "embedded_loops": [],
           "embedded_edges": [],
           "embedded_points": []
+        },
+        {
+          "brep_id": 15,
+          "swapped_surface_normal": false,
+          "surface": {
+            "is_trimmed": true,
+            "is_rational": true,
+            "degrees": [ 1, 1 ],
+            "knot_vectors": [
+              [ 0, 0, 15, 15 ],
+              [ 0, 0, 10, 10 ]
+            ],
+            "control_points": [
+              [
+                21,
+                [ 0, 10, 0, 1 ]
+              ],
+              [
+                22,
+                [ 15, 10, 0, 1 ]
+              ],
+              [
+                23,
+                [ 0, 0, 0, 1 ]
+              ],
+              [
+                24,
+                [ 15, 0, 0, 1 ]
+              ]
+            ]
+          },
+          "boundary_loops": [],
+          "embedded_loops": [],
+          "embedded_edges": [],
+          "embedded_points": []
         }
       ],
       "edges": [
