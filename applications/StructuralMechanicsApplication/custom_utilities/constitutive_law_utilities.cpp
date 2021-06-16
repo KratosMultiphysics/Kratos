@@ -882,7 +882,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
     noalias(rExponentialMatrix)         = IdentityMatrix(Dimension);
     BoundedMatrixType r_exponent_matrix = IdentityMatrix(Dimension);
 
-    while (norm_series_term > tolerance || series_term < max_iter) {
+    while (norm_series_term > 1.0e-8 || series_term < max_iter) {
         r_exponent_matrix = prod(r_exponent_matrix, rMatrix);
         factorial = Factorial(series_term);
         noalias(rExponentialMatrix) += prod(r_exponent_matrix, rMatrix) / factorial;
