@@ -61,11 +61,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
+    @classmethod
+    def GetMainPath(self):
+        return os.getcwd()
+
     def __init__(self, model, parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
         self.model = model
-        self.main_path = os.getcwd()
+        self.main_path = self.GetMainPath()
 
         self.SetProjectParameters(parameters)
 
@@ -103,9 +107,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         import KratosMultiphysics.SwimmingDEMApplication.swimming_dem_default_input_parameters as only_swimming_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
+        self.swimming_dem_default_project_parameters = only_swimming_defaults.GetDefaultInputParameters()
+        self.dem_default_project_parameters = dem_defaults.GetDefaultInputParameters()
 
-        self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults.GetDefaultInputParameters())
-        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
+        self.project_parameters.ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters)
+        self.project_parameters["coupling"]["backward_coupling"].ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters["coupling"]["backward_coupling"])
+        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(self.dem_default_project_parameters)
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
