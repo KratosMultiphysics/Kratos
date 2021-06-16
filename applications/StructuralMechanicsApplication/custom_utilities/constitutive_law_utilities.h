@@ -400,6 +400,21 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This computes the exponential plastic deformation gradient
+     * @param rElasticTrial The elastic trial deformation gradient
+     * @param rPlasticPotentialDerivative The derivative of the plastic potential
+     * @param PlasticConsistencyFactorIncrement The incremenetal of plastic flow
+     * @param rRe The rotation decomposition of the elastic eformation
+     * @note Formula 14.75 in Souza book
+     */
+    static MatrixType CalculateExponentialPlasticDeformationGradient(
+        const MatrixType& rOldFp,
+        const BoundedVectorType& rPlasticPotentialDerivative,
+        const double PlasticConsistencyFactorIncrement,
+        const MatrixType& rRe
+        );
+
+    /**
      * @brief This computes the elastic deformation gradient
      * @param rElasticTrial The elastic trial deformation gradient
      * @param rPlasticPotentialDerivative The derivative of the plastic potential

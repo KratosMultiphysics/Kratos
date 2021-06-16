@@ -730,6 +730,20 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradient(
+    const MatrixType& rOldFp,
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe
+    )
+{
+    
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
     const MatrixType& rElasticTrial,
     const BoundedVectorType& rPlasticPotentialDerivative,
