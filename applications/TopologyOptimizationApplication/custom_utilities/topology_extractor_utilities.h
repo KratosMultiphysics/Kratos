@@ -276,9 +276,13 @@ public:
 					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
+					std::cout<<"  pnode1 done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
+					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+					std::cout<<"  pnode3 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
+					std::cout<<"  Surfacemesh done" <<std::endl;
 
 					// Add skin face as condition
 					Triangle3D3< Node<3> > triangle_c(pnode1, pnode2, pnode3);
