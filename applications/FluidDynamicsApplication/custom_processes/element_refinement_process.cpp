@@ -548,6 +548,7 @@ void ElementRefinementProcess::ComputeSurfaceMap()
         }
     });
 
+    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << "Surface map computed for " << r_model_part.Name() << ".\n";
 
     KRATOS_CATCH("");
 }
