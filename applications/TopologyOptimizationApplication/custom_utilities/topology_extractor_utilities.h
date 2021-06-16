@@ -21,6 +21,9 @@
 // External includes
 #include <pybind11/pybind11.h>   
 #include <boost/numeric/ublas/storage.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 #include "../custom_elements/small_displacement_simp_element.h"
 // Project includes
@@ -306,6 +309,7 @@ public:
 					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 					std::cout<<"  Step 2" <<std::endl;
 
+					std::cout<<"  before pnode1" <<std::endl;
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
 					std::cout<<"  pnode1 done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
