@@ -79,7 +79,7 @@ TopologyExtractorUtilities().ExtractSurfaceMesh(extracted_volume_model_part, ext
         #                                            "MultiFileFlag": "SingleFile"
          #                                       },
           #                                      "nodal_results"       : ["X_PHYS"]
-           #                                 }sdf
+           #                                 }
             #                            }
              #                           """)
               #s                      )
