@@ -1,6 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 import KratosMultiphysics.MeshingApplication as KratosMesh
+if KratosMultiphysics.IsDistributedRun():
+    import KratosMultiphysics.mpi as KratosMPI
+    print("[DEBUG][geo_mesher] import KratosMultiphysics.mpi")
 
 from geo_processor import GeoProcessor
 import triangle
@@ -17,11 +20,11 @@ class GeoMesher( GeoProcessor ):
         self.HasExtrusionHeight = False
 
         # useful variables for volumetric mesh and for division into sectors
-        self.x_center = float()
-        self.y_center = float()
-        self.r_boundary = float()
-        self.r_ground = float()
-        self.r_buildings = float()
+        self.x_center = float()     # X coordinate of the center of the domain
+        self.y_center = float()     # Y coordinate of the center of the domain
+        self.r_boundary = float()   # radius of cylindrical domain
+        self.r_ground = float()     # radius of ground (smoothing between r_ground and r_boundary)
+        self.r_buildings = float()  # radius of the portion on which the buildings will be placed
 
     """ TEST FUNCTIONS """
     def Mesh_2D(self):
@@ -232,15 +235,15 @@ class GeoMesher( GeoProcessor ):
             marker = mesh.face_markers[j]
             if ( marker == 1 ):
                 # cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
-                cond = self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+                cond = self.ModelPart.CreateNewCondition("WallCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
                 bottom_cond.append( j+1 )
             elif ( marker == 2 ):
                 # cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
-                cond = self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+                cond = self.ModelPart.CreateNewCondition("WallCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
                 top_cond.append( j+1 )
             elif ( marker == 3 ):
                 # cond = self.ModelPart.CreateNewCondition("Condition3D", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
-                cond = self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
+                cond = self.ModelPart.CreateNewCondition("WallCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties )
                 lateral_cond.append( j+1 )
 
         bottom_model_part.AddConditions( bottom_cond )
@@ -354,12 +357,12 @@ class GeoMesher( GeoProcessor ):
         ZeroVector[3] = 0.0; ZeroVector[4] = 0.0; ZeroVector[5] = 0.0
 
         for node in self.ModelPart.Nodes:
-        	node.SetValue(KratosMesh.METRIC_TENSOR_3D, ZeroVector)
+            node.SetValue(KratosMesh.METRIC_TENSOR_3D, ZeroVector)
 
         # We define a metric using the ComputeLevelSetSolMetricProcess
         level_set_param = KratosMultiphysics.Parameters("""
-        	{
-        		"minimal_size"                         : """ + str(min_size) + """,
+            {
+                "minimal_size"                         : """ + str(min_size) + """,
                 "maximal_size"                         : """ + str(max_size) + """,
                 "sizing_parameters":
                 {
@@ -376,8 +379,8 @@ class GeoMesher( GeoProcessor ):
                     "boundary_layer_max_distance"           : """ + str(max_dist) + """,
                     "interpolation"                         : "linear"
         }
-        	}
-        	""")
+            }
+            """)
         # level_set_param = KratosMultiphysics.Parameters("""
         #     {
         #         "minimal_size"                         : """ + str(min_size) + """,
@@ -396,9 +399,101 @@ class GeoMesher( GeoProcessor ):
 
         # We create the remeshing process
         remesh_param = KratosMultiphysics.Parameters("""{ }""")
-        MmgProcess = KratosMesh.MmgProcess3D(self.ModelPart, remesh_param)
-        MmgProcess.Execute()
 
+        if KratosMultiphysics.IsDistributedRun():
+            # MPI -> ParMMG
+            # KratosMultiphysics.mpi.ParallelFillCommunicator(self.ModelPart).Execute()
+            KratosMPI.ParallelFillCommunicator(self.ModelPart).Execute()
+            pmmg_process = KratosMesh.ParMmgProcess3D(self.ModelPart, remesh_param)
+            pmmg_process.Execute()
+            print("[DEBUG][geo_mesher][RefineMesh_test] ParMMG DONE!")
+        else:
+            # serial -> MMG
+            mmg_process = KratosMesh.MmgProcess3D(self.ModelPart, remesh_param)
+            mmg_process.Execute()
+            print("[DEBUG][geo_mesher][RefineMesh_test] MMG DONE!")
+
+#######################################################################################################################
+    def RefineMesh_mpi(self, min_size, max_size, max_dist=1.0):
+        # test function to refine the mesh
+        
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess( self.ModelPart )
+        find_nodal_h.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.ModelPart.Nodes)
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(self.ModelPart, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        # We set to zero the metric
+        # the metric tensor is a symmetric matrix; therefore we can provide just the upper triangular part
+        # the convention MMG API is: (m11, m12, m13, m22, m23, m33)
+        ZeroVector = KratosMultiphysics.Vector(6)
+        ZeroVector[0] = 0.0; ZeroVector[1] = 0.0; ZeroVector[2] = 0.0
+        ZeroVector[3] = 0.0; ZeroVector[4] = 0.0; ZeroVector[5] = 0.0
+
+        for node in self.ModelPart.Nodes:
+            node.SetValue(KratosMesh.METRIC_TENSOR_3D, ZeroVector)
+
+        # We define a metric using the ComputeLevelSetSolMetricProcess
+        level_set_param = KratosMultiphysics.Parameters("""
+            {
+                "minimal_size"                         : """ + str(min_size) + """,
+                "maximal_size"                         : """ + str(max_size) + """,
+                "sizing_parameters":
+                {
+                    "reference_variable_name"          : "DISTANCE",
+                    "boundary_layer_max_distance"      : """ + str(max_dist) + """,
+                    "interpolation"                    : "linear"
+                },
+                "enforce_current"                      : true,
+                "anisotropy_remeshing"                 : true,
+                "anisotropy_parameters":
+                {
+                    "reference_variable_name"              : "DISTANCE",
+                    "hmin_over_hmax_anisotropic_ratio"      : 1.0,
+                    "boundary_layer_max_distance"           : """ + str(max_dist) + """,
+                    "interpolation"                         : "linear"
+                }
+            }
+            """)
+        # level_set_param = KratosMultiphysics.Parameters("""
+        #     {
+        #         "minimal_size"                         : """ + str(min_size) + """,
+        #         "maximal_size"                         : """ + str(max_size) + """,
+        #         "sizing_parameters":
+        #         {
+        #             "reference_variable_name"          : "DISTANCE",
+        #             "boundary_layer_max_distance"      : """ + str(max_dist) + """,
+        #             "interpolation"                    : "linear"
+        #         }
+        # 	}
+        # 	""")
+        # "boundary_layer_max_distance"      : 1.0,
+        metric_process = KratosMesh.ComputeLevelSetSolMetricProcess3D(self.ModelPart, KratosMultiphysics.DISTANCE_GRADIENT, level_set_param)
+        metric_process.Execute()
+
+        # We create the remeshing process
+        remesh_param = KratosMultiphysics.Parameters("""{ }""")
+
+
+        if KratosMultiphysics.IsDistributedRun():
+            # MPI -> ParMMG
+            # KratosMPI.ParallelFillCommunicator(self.ModelPart).Execute()
+            pmmg_process = KratosMesh.ParMmgProcess3D(self.ModelPart, remesh_param)
+            pmmg_process.Execute()
+            print("[DEBUG][geo_mesher][RefineMesh_test] ParMMG DONE!")
+        else:
+            # serial -> MMG
+            mmg_process = KratosMesh.MmgProcess3D(self.ModelPart, remesh_param)
+            mmg_process.Execute()
+            print("[DEBUG][geo_mesher][RefineMesh_test] MMG DONE!")
+# END MPI
+#############################################################################################################################################
 
     def MeshCircleWithTerrainPoints( self, h_value=0.0, circ_division=60, extract_center=False ):
 
@@ -743,14 +838,17 @@ class GeoMesher( GeoProcessor ):
         self.x_center = (x_min + x_max)/2
         self.y_center = (y_min + y_max)/2
 
+        # TODO: DEVONO ESSERE IMPOSTATI TRAMITE IL FILE JSON! NON QUI
         # radius calculation, considering the smaller side of the rectangle
         self.r_boundary = min((x_max-x_min), (y_max-y_min))/2       # radius of the domain
-        self.r_ground = self.r_boundary * 2.0 / 3.0                 # 2/3 of the radius of the domain (this value can be different)
-        self.r_buildings = self.r_boundary / 3.0                    # 1/3 of the radius of the domain (this value can be different)
+        # self.r_ground = self.r_boundary * 2.0 / 3.0                 # 2/3 of the radius of the domain (this value can be different)
+        # self.r_buildings = self.r_boundary / 3.0                    # 1/3 of the radius of the domain (this value can be different)
+        self.r_ground = self.r_boundary * 8.0 / 10.0                 # test values
+        self.r_buildings = self.r_boundary * 6.0 / 10.0              # test values
 
         # buffering zone
         delta = self.r_boundary/20         # evaluate this value!!!
-        print("*** delta: ", delta)
+        print("[DEBUG][MeshCircleWithTerrainPoints_old] delta: ", delta)
 
         """ we delete nodes outside the circumference """
         del_id = []             # list where there are the ids to be deleted because are outside of r_boundary
@@ -808,11 +906,12 @@ class GeoMesher( GeoProcessor ):
         """ TRIANGLE """
         coord_2D = []       # vertically list with X and Y coordinates (TO AVOID NUMPY VSTACK)
         all_points = []     # list with all coordinates of nodes
+        # Bottom
         for node in self.ModelPart.Nodes:
             coord_2D.append([node.X, node.Y])     # we add coordinates X and Y of terrain nodes
             all_points.append((node.X, node.Y, node.Z))
 
-        # we add circumference nodes into coord_2D list
+        # Bottom: we add circumference nodes into coord_2D list
         for i in range(len(x_circle)):
             coord_2D.append([x_circle[i], y_circle[i]])
 
@@ -823,6 +922,7 @@ class GeoMesher( GeoProcessor ):
         inner_id_terrain = len(all_points)		# id up to this moment
         list_id_circle_bottom = []				# list with only ids of the bottom circle
 
+        # Bottom
         for i in range(len(x_circle)):
             all_points.append((x_circle[i], y_circle[i], z_min))
             list_id_circle_bottom.append(i + inner_id_terrain)
@@ -830,7 +930,7 @@ class GeoMesher( GeoProcessor ):
         all_facets = []		# list with all node ids of faces
         all_markers = []	# list of integers [1 = bottom, 2 = topper and 3 = lateral]
 
-        # we fill the list for "bottom"
+        # Bottom: fill in the "facets" and "markers" lists
         for face in triangle_dict["triangles"]:
             all_facets.append([face[0], face[1], face[2]])
             all_markers.append(1)
@@ -865,7 +965,7 @@ class GeoMesher( GeoProcessor ):
             all_markers.append(3)
 
         """ TETGEN (VIA MESHPY) """
-        ### using Meshpy for the creation of an initial mesh https://mathema.tician.de/software/meshpy/
+        ### using Meshpy for the creation of an initial mesh https://documen.tician.de/meshpy/
         mesh_info = MeshInfo()
         mesh_info.set_points(all_points)
         mesh_info.set_facets(all_facets, markers=all_markers)
@@ -896,7 +996,7 @@ class GeoMesher( GeoProcessor ):
         for j in range(len(mesh.faces)):
             points = mesh.faces[j]
             marker = mesh.face_markers[j]
-            self.ModelPart.CreateNewCondition("SurfaceCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
+            self.ModelPart.CreateNewCondition("WallCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
             if (marker == 1):
                 bottom_cond.append(j+1)
             elif (marker == 2):
@@ -930,31 +1030,265 @@ class GeoMesher( GeoProcessor ):
             self.ModelPart.CreateNewElement("Element3D4N", (k+1), [points[0]+1, points[1]+1, points[2]+1, points[3]+1], properties)
 
 
-        """ OPTIONAL VALUES """
-        # [NG] code under construction
-        # we create a sub model part (if extract_center = True) and fill it with conditions that are inside r_buildings
-        if extract_center:
-            # we extract the center of the geometry and we add them in a sub model part
-            center_cond = self.ModelPart.CreateSubModelPart("CenterCondition")
+        # """ OPTIONAL VALUES """
+        # # [NG] code under construction
+        # # we create a sub model part (if extract_center = True) and fill it with conditions that are inside r_buildings
+        # if extract_center:
+        #     # we extract the center of the geometry and we add them in a sub model part
+        #     center_cond = self.ModelPart.CreateSubModelPart("CenterCondition")
 
-            for cond in self.ModelPart.GetSubModelPart("BottomModelPart").Conditions:
-                list_nodes = []     # node ids of the condition\
-                for node in cond.GetNodes():
-                    list_nodes.append(node.Id)
-                    dist = math.sqrt(((self.x_center-node.X)**2) + ((self.y_center-node.Y)**2))
+        #     for cond in self.ModelPart.GetSubModelPart("BottomModelPart").Conditions:
+        #         list_nodes = []     # node ids of the condition\
+        #         for node in cond.GetNodes():
+        #             list_nodes.append(node.Id)
+        #             dist = math.sqrt(((self.x_center-node.X)**2) + ((self.y_center-node.Y)**2))
                     
-                    # if (dist > r_ground):       # Only for a test. The value correcr is r_buildings
-                    if (dist > self.r_buildings):
-                        break   # if at least one node is external to r_buildings, we reject the entire condition
+        #             # if (dist > r_ground):       # Only for a test. The value correcr is r_buildings
+        #             if (dist > self.r_buildings):
+        #                 break   # if at least one node is external to r_buildings, we reject the entire condition
                         
-                else:
-                    # we get here if all nodes of the condition are inside the r_buildings
-                    center_cond.AddNodes(list_nodes)
-                    center_cond.AddCondition(cond, 0)
+        #         else:
+        #             # we get here if all nodes of the condition are inside the r_buildings
+        #             center_cond.AddNodes(list_nodes)
+        #             center_cond.AddCondition(cond, 0)
+
+
+
+
+
+    def MeshCircleWithTerrainPoints_MOD(self, h_value=0.0, circ_division=60, num_sector=12):
+        "A function that creates a cylindrical volumetric mesh"
+        # TODO: check the differences with "MeshCircleWithTerrainPoints"
+
+        ### reading points from model part
+        X = []; Y = []; Z = []      # lists are generated to use predefined operations
+        ids_all = []                # id node with Z!=0
+        coord_2D = []               # list with XY coordinates of vertices [X, Y]
+        for node in self.ModelPart.Nodes:
+            X.append(node.X)
+            Y.append(node.Y)
+            Z.append(node.Z)
+            ids_all.append(node.Id)
+            coord_2D.append([node.X, node.Y])
+
+        # calculating minimum and maximum value of X, Y and Z coordinates of the entire initial domain
+        x_min = min(X);    x_max = max(X)
+        y_min = min(Y);    y_max = max(Y)
+        # z_min = min(Z);    z_max = max(Z)     # EDIT 02 SEPTEMBER 2019
+
+        # the centre of the circle
+        self.x_center = (x_min + x_max)/2
+        self.y_center = (y_min + y_max)/2
+
+        # TODO: DEVONO ESSERE IMPOSTATI TRAMITE IL FILE JSON! NON QUI
+        # radius calculation, considering the smaller side of the rectangle
+        # self.r_boundary = min((x_max-x_min), (y_max-y_min))/2       # radius of the domain
+        # self.r_ground = self.r_boundary * 2.0 / 3.0                 # 2/3 of the radius of the domain (this value can be different)
+        # self.r_buildings = self.r_boundary / 3.0                    # 1/3 of the radius of the domain (this value can be different)
+        # self.r_ground = self.r_boundary * 8.0 / 10.0                 # test values
+        # self.r_buildings = self.r_boundary * 6.0 / 10.0              # test values
+        print("r_boundary: ", self.r_boundary)
+        print("r_ground: ", self.r_ground)
+        print("r_buildings: ", self.r_buildings)
+
+
+        # buffering zone
+        delta = self.r_boundary/20         # evaluate this value!!!
+        print("[DEBUG][MeshCircleWithTerrainPoints_old] delta: ", delta)
+
+        """ we delete nodes outside the circumference """
+        del_id = []             # list where there are the ids to be deleted because are outside of r_boundary
+        Z = []
+        # for index in idx_to_smooth:
+        for node in self.ModelPart.Nodes:
+            x_curr = node.X             # current X coordinate
+            y_curr = node.Y             # current Y coordinate
+
+            dist = math.sqrt(((self.x_center-x_curr)**2)+((self.y_center-y_curr)**2))     # calculate the distance between current node and center of circle
+
+            if (dist > self.r_boundary-delta):
+                del_id.append(node.Id)
+                continue
+            else:
+                # we fill the Z list to compute the minimum with the only nodes inside the domain
+                Z.append(node.Z)        # this list is useful to compute the min(Z) after
+
+        # the nodes from SubModelPart("bottom_terrain") that are outside the r_boundary-delta are deleted
+        for node in self.ModelPart.Nodes:
+            node.Set(KratosMultiphysics.TO_ERASE,False)
+
+        for id in del_id:
+            self.ModelPart.GetNode(id).Set(KratosMultiphysics.TO_ERASE,True)
+
+        self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+        # JUST FOR THE TESTS (CHECK IT)
+        if Z:
+            z_min = min(Z)
+            z_max = max(Z)      # EDIT 02 SEPTEMBER 2019
+        else:
+            z_min = 0
+            z_max = 0
+
+        """ SMOOTHING PROCEDURE """
+        for node in self.ModelPart.Nodes:
+            x_curr = node.X
+            y_curr = node.Y
+            dist = math.sqrt(((self.x_center-x_curr)**2)+((self.y_center-y_curr)**2))
+            if dist > self.r_ground:
+                Z_beta = (-(dist-self.r_ground) / (self.r_boundary-self.r_ground))+1       # we calculate beta
+                self.ModelPart.GetNode(node.Id).Z = (node.Z - z_min) * Z_beta + z_min
+
+        # this step is useful to the n sectors
+        circ_division = num_sector * round(circ_division / num_sector)
+        # a list with the division points of the circumference
+        theta = self._custom_range(0.0, 2*math.pi, 2*math.pi/circ_division)  # circ_division is the number of division of the 2*pi
+
+        # lists with nodes on circle boundary
+        x_circle = []; y_circle = []
+        for th in theta:
+            x_circle.append(self.r_boundary * math.cos(th) + self.x_center)   # we move the node along X to consider that the circle have not the centre in (0.0, 0.0)
+            y_circle.append(self.r_boundary * math.sin(th) + self.y_center)   # we move the node along Y to consider that the circle have not the centre in (0.0, 0.0)
+
+        """ TRIANGLE """
+        coord_2D_bottom = []    # list with X and Y coordinates (only bottom)
+        coord_2D_top = []       # list with X and Y coordinates (only top)
+        all_points_3D = []      # list with all 3D coordinates of nodes
+
+        all_facets = []         # list with all node ids of faces
+        all_markers = []        # list of integers [1 = bottom, 2 = topper and 3 = lateral]
+
+        # circumference nodes
+        for i in range(len(x_circle)):
+            coord_2D_bottom.append([x_circle[i], y_circle[i]])          # Bottom
+            coord_2D_top.append([x_circle[i], y_circle[i]])             # Top
+            all_points_3D.append((x_circle[i], y_circle[i], z_min))     # Bottom
+
+        # Bottom: inner nodes
+        for node in self.ModelPart.Nodes:
+            coord_2D_bottom.append([node.X, node.Y])     # we add coordinates X and Y of bottom
+            all_points_3D.append((node.X, node.Y, node.Z))
+
+        # Bottom: triangle
+        A = dict(vertices = coord_2D_bottom)
+        triangle_dict_bottom = triangle.triangulate(A)     # triangle_dict_bottom {vertices: [...], triangles: [...], vertex_markers: [...]}
+
+        # Bottom: number of bottom nodes
+        n_bottom_nodes = len(triangle_dict_bottom["vertices"])
+
+        # Bottom: fill in the "facets" and "markers" lists
+        for face in triangle_dict_bottom["triangles"]:
+            all_facets.append([face[0], face[1], face[2]])
+            all_markers.append(1)
+
+        # Top: triangle
+        volume_height = z_max + h_value
+        B = dict(vertices = coord_2D_top)
+        triangle_dict_top = triangle.triangulate(B)     # triangle_dict_top {vertices: [...], triangles: [...], vertex_markers: [...]}
+        
+        # Top: updated all_points_3D with top nodes
+        for node in triangle_dict_top["vertices"]:
+            all_points_3D.append((node[0], node[1], volume_height))
+        
+        # Top: fill in the "facets" and "markers" lists
+        for face in triangle_dict_top["triangles"]:
+            all_facets.append([ face[0]+n_bottom_nodes,
+                                face[1]+n_bottom_nodes,
+                                face[2]+n_bottom_nodes])        # list of lists. "...+n_bottom_nodes"
+            all_markers.append(2)
+
+        for n, coord in enumerate(coord_2D_top[:-1]):
+            all_facets.append([n, n+1, n+n_bottom_nodes+1, n+n_bottom_nodes])
+            all_markers.append(3)
+        # the last value
+        all_facets.append([n+1, 0, n_bottom_nodes, n+n_bottom_nodes+1])
+        all_markers.append(3)
+
+
+        """ TETGEN (VIA MESHPY) """
+        ### using Meshpy for the creation of an initial mesh https://documen.tician.de/meshpy/
+        mesh_info = MeshInfo()
+        mesh_info.set_points(all_points_3D)
+        mesh_info.set_facets(all_facets, markers=all_markers)
+
+        # build the mesh
+        mesh = build(mesh_info)
+        self.ModelPart.Nodes.clear()
+        self.ModelPart.Elements.clear()
+        self.ModelPart.Conditions.clear()
+
+        lateral_model_part = self.ModelPart.CreateSubModelPart("LateralModelPart")
+        bottom_model_part = self.ModelPart.CreateSubModelPart("BottomModelPart")
+        top_model_part = self.ModelPart.CreateSubModelPart("TopModelPart")
+        properties = self.ModelPart.Properties[0]
+
+        bottom_cond = [];   bottom_points = []
+        top_cond = [];      top_points = []
+        lateral_cond = [];  lateral_points = []
+
+        # AWARE: Shift by 1 in index!!!
+        ### Nodes
+        for i in range(len(mesh.points)):
+            # node id is shifted up by 1
+            coords = mesh.points[i]
+            self.ModelPart.CreateNewNode((i+1), coords[0], coords[1], coords[2])
+
+        ### Conditions and Nodes in SubModelParts
+        for j in range(len(mesh.faces)):
+            points = mesh.faces[j]
+            marker = mesh.face_markers[j]
+            self.ModelPart.CreateNewCondition("WallCondition3D3N", (j+1), [points[0]+1, points[1]+1, points[2]+1], properties)
+            if (marker == 1):
+                bottom_cond.append(j+1)
+            elif (marker == 2):
+                top_cond.append(j+1)
+            elif (marker == 3):
+                lateral_cond.append(j+1)
+            else:
+                KratosMultiphysics.Logger.PrintWarning("GeoMesher", "Marker {} not valid. 1 = bottom, 2 = topper and 3 = lateral".format(marker))
+
+        bottom_model_part.AddConditions(bottom_cond)
+        top_model_part.AddConditions(top_cond)
+        lateral_model_part.AddConditions(lateral_cond)
+
+        for cond in bottom_model_part.Conditions:
+            for node in cond.GetNodes():
+                bottom_points.append(node.Id)
+        for cond in top_model_part.Conditions:
+            for node in cond.GetNodes():
+                top_points.append(node.Id)
+        for cond in lateral_model_part.Conditions:
+            for node in cond.GetNodes():
+                lateral_points.append(node.Id)
+
+        bottom_model_part.AddNodes(bottom_points)
+        top_model_part.AddNodes(top_points)
+        lateral_model_part.AddNodes(lateral_points)
+
+        ### Elements
+        for k in range(len(mesh.elements)):
+            points = mesh.elements[k]
+            self.ModelPart.CreateNewElement("Element3D4N", (k+1), [points[0]+1, points[1]+1, points[2]+1, points[3]+1], properties)
+
+
+
+
+
+
+
+
+
 
 
     def MeshSectors(self, n_sectors=12):
-        "this function divide the LateralModelPart into n sub model parts"
+        """ function to split the LateralModelPart into n SubModelParts
+
+        Args:
+            n_sectors: number of sectors into which the ModelPart must be divided
+
+        Returns:
+            ModelPart updated with n SubModelPart for each sector
+        """
 
         if not (self.ModelPart.HasSubModelPart("LateralModelPart")):
             KratosMultiphysics.Logger.PrintWarning("GeoMesher", "LateralModelPart not found!")
@@ -998,9 +1332,38 @@ class GeoMesher( GeoProcessor ):
                     sub_model_part_sect.AddNodes(points)
 
                     break
+        
+        # LateralModelPart has been split and therefore can be removed
+        self.ModelPart.RemoveSubModelPart("LateralModelPart")
  
 #########################################################################################################################################################################
 
+
+    def extract_center(self, terrain_model_part):
+        """ function to create a ModelPart with "elements" of the central portion
+
+        Args:
+            terrain_model_part: ModelPart of the terrain
+
+        Returns:
+            ModelPart with the elements belonging to the central portion
+        """
+        
+        model = KratosMultiphysics.Model()
+        self.center_model_part = model.CreateModelPart("center_model_part")
+        prop = self.center_model_part.Properties[0]
+        smp_bottom = terrain_model_part.GetSubModelPart("BottomModelPart")
+
+        for cond in smp_bottom.Conditions:
+            nodes = cond.GetNodes()
+            for node in nodes:
+                dist = math.sqrt(((self.x_center-node.X)**2) + ((self.y_center-node.Y)**2))
+                if (dist > self.r_buildings*1.2):
+                    break
+            else:
+                for node in nodes:
+                    self.center_model_part.CreateNewNode(node.Id, node.X, node.Y, node.Z)
+                self.center_model_part.CreateNewElement("Element2D3N", cond.Id, [nodes[0].Id, nodes[1].Id, nodes[2].Id], prop)
 
 
 
