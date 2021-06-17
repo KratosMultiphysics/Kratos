@@ -79,14 +79,31 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        //TODO: Sometimes we do not compute mean values this way. Sometimes we use 2xy/(x+y)
-        const double unbonded_equivalent_young = (*mpProperties)[YOUNG_MODULUS];
-        const double unbonded_equivalent_shear = unbonded_equivalent_young / (2.0 * (1 + equiv_poisson));
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
 
-        mUnbondedNormalElasticConstant = unbonded_equivalent_young * calculation_area / initial_dist;
-        mUnbondedTangentialElasticConstant = unbonded_equivalent_shear * calculation_area / initial_dist;
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
 
-        const double bonded_equiv_young = 0.5 * (element1->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS] + element2->GetProperties()[BONDED_MATERIAL_YOUNG_MODULUS]);
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+
+        //Normal and Tangent elastic constants
+        const double beta = 1.432;
+        const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
+        mUnbondedNormalElasticConstant = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
+        mUnbondedTangentialElasticConstant = 4.0 * equiv_shear * mUnbondedNormalElasticConstant / equiv_young;
+
+        const double bonded_equiv_young = (*mpProperties)[BONDED_MATERIAL_YOUNG_MODULUS];
         const double bonded_equiv_shear = bonded_equiv_young / (2.0 * (1 + equiv_poisson));
 
         kn_el = bonded_equiv_young * calculation_area / initial_dist;
@@ -254,9 +271,7 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        const double equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
         equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);

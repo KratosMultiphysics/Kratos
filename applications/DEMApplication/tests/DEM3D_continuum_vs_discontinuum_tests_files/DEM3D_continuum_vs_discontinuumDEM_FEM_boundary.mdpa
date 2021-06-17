@@ -3,16 +3,6 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 5
-  STATIC_FRICTION 0.15
-  DYNAMIC_FRICTION 0.15
-  FRICTION_DECAY 500.0
-  WALL_COHESION 0.0
-  COMPUTE_WEAR 0
-  SEVERITY_OF_WEAR 0.001
-  IMPACT_WEAR_SEVERITY 0.001
-  BRINELL_HARDNESS 200.0
-  YOUNG_MODULUS 1e11
-  POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
@@ -21,7 +11,7 @@ Begin Nodes
     19   40.0000000000   -3.0000000000    0.0
 End Nodes
 
-Begin Conditions RigidFace3D3N// GUI group identifier: floor
+Begin Conditions RigidFace3D3N // GUI group identifier: floor
     17          5     17     18     19
 End Conditions
 

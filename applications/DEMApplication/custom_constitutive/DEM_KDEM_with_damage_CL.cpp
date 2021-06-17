@@ -20,6 +20,13 @@ namespace Kratos {
         this->Check(pProp);
     }
 
+    void DEM_KDEM_with_damage::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_with_damage to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
+        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+        TransferParametersToProperties(parameters, pProp);
+        this->Check(pProp);
+    }
+
     void DEM_KDEM_with_damage::Check(Properties::Pointer pProp) const {
 
         if (!pProp->Has(SHEAR_ENERGY_COEF)) {

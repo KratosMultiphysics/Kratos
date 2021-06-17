@@ -3,6 +3,9 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 
 import time
 import sys
+import os
+print(os.getpid())
+
 """ model = KratosMultiphysics.Model()
 solution = Main.Solution(model)
 solution.Run() """
