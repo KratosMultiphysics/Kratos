@@ -110,7 +110,7 @@ namespace Kratos {
         ComputeNewNeighboursHistoricalData();
 
         if (fem_model_part.Nodes().size() > 0) {
-            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
+            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             SearchRigidFaceNeighbours();
             SetInitialFemContacts();
             ComputeNewRigidFaceNeighboursHistoricalData();
@@ -127,7 +127,7 @@ namespace Kratos {
             SearchNeighbours();
             ComputeNewNeighboursHistoricalData();
 
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
             ComputeNewRigidFaceNeighboursHistoricalData();
         }
