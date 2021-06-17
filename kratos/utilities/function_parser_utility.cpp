@@ -165,6 +165,7 @@ void BasicGenericFunctionUtility::InitializeParser()
             // C like ternary operator
             std::vector<std::string> splitted_string;
             if (c_like) {
+                KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, ":")) << "Parsing error in function: " << mFunctionBody << " ? defined, but not :" << std::endl;
                 splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
                 KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
                 condition = splitted_string[0];
@@ -172,6 +173,7 @@ void BasicGenericFunctionUtility::InitializeParser()
                 first_function = splitted_string[0];
                 second_function = splitted_string[1];
             } else { // Python like ternary operator
+                KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
                 std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
                 KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
                 splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
