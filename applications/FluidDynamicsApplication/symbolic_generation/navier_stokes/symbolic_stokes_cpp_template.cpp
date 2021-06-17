@@ -217,7 +217,7 @@ void SymbolicStokes<TElementData>::Calculate(
         const unsigned int num_nodes = r_geometry.PointsNumber();
         Vector data_N(num_nodes);
         for (unsigned int i = 0; i < num_nodes; i++) {
-            data_N[i] = 1.0 / num_nodes;
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
         }
         data.N = data_N;
         // Shape functions gradients
@@ -240,7 +240,7 @@ void SymbolicStokes<TElementData>::Calculate(
         const unsigned int num_nodes = r_geometry.PointsNumber();
         Vector data_N(num_nodes);
         for (unsigned int i = 0; i < num_nodes; i++) {
-            data_N[i] = 1.0 / num_nodes;
+            data_N[i] = 1.0 / static_cast<double>(num_nodes);
         }
         data.N = data_N;
         // Shape function gradients
