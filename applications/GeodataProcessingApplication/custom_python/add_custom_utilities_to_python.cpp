@@ -74,6 +74,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     // to fill cfd model part
     py::class_<FillCfdModelpartUtilities>(m,"FillCfdModelpartUtilities")
         .def(py::init< ModelPart& >())
+        .def("FillModelPart", &FillCfdModelpartUtilities::FillModelPart)
         .def("FillPartsFluid", &FillCfdModelpartUtilities::FillPartsFluid)
         .def("FillInlet", &FillCfdModelpartUtilities::FillInlet)
         .def("FillOutlet", &FillCfdModelpartUtilities::FillOutlet)
