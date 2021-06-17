@@ -119,12 +119,14 @@ else:
 
 	# we cut a circular portion of the terrain, we perform smoothing procedure and we compute the volume mesh
 	height = 100.0
-	num_sector = 12
+	# num_sector = 12		# now in json file
+	num_sectors = preprocessor.file_param["problem_data"]["num_sectors"].GetInt()
+	print("\n\n[DEBUG PY] number of sectors: {}\n".format(num_sectors))
 	
-	mesher.MeshCircleWithTerrainPoints_old(height, 40, num_sector, extract_center)	# if extract_center=True we create a sub model part with conditions that are inside r_buildings
+	mesher.MeshCircleWithTerrainPoints_old(height, 40, num_sectors, extract_center)	# if extract_center=True we create a sub model part with conditions that are inside r_buildings
 
 	# we populate the sub model part sectors
-	mesher.MeshSectors(num_sector)
+	mesher.MeshSectors(num_sectors)
 
 	# writing GiD file
 	mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/01_Mesh_cylinder".format(num_test), "GiD_PostAscii")
@@ -200,9 +202,9 @@ else:
 	# obj file name
 	# obj_file_in = "data/buildings/buildings_barcellona_test.obj"
 	obj_file_in = "data/buildings/buildings_num_20.obj"
-	# importer.ObjImport(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
+	# importer.ObjImportBuildings(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
 	importer.ObjToSplit(obj_file_in)
-	# importer.ObjImport(obj_file_in, "BuildingModelPart", False)		# (obj_file_name_input, name_model_part, change_coord)
+	# importer.ObjImportBuildings(obj_file_in, "BuildingModelPart", False)		# (obj_file_name_input, name_model_part, change_coord)
 	building_model_part = importer.GetGeoModelPart()
 print("[DEBUG PY]\n", building_model_part)
 
@@ -340,31 +342,35 @@ model = GeoModel()
 model.SetGeoModelPart(main_model_part)
 model.GenerateCfdModelPart()
 
-model.FillPartsFluid("Parts_Fluid")
-stop_03_1 = time.time()
-print("[DEBUG PY]\t-> Parts_Fluid filled in ", (stop_03_1-stop_03))
+stop_A = time.time()
+KratosGeo.FillCfdModelpartUtilities(main_model_part).FillModelPart(model.GetGeoCfdModelPart())
+print("[DEBUG PY]\t-> FillModelPart filled in ", (time.time()-stop_A))
 
-model.FillNoslip("SKIN_ISOSURFACE")
-stop_03_2 = time.time()
-print("[DEBUG PY]\t-> SKIN_ISOSURFACE filled in ", (stop_03_2-stop_03_1))
+# model.FillPartsFluid("Parts_Fluid")
+# stop_03_1 = time.time()
+# print("[DEBUG PY]\t-> Parts_Fluid filled in ", (stop_03_1-stop_03))
 
-model.FillSlip("TopModelPart")
-stop_03_3 = time.time()
-print("[DEBUG PY]\t-> TopModelPart filled in ", (stop_03_3-stop_03_2))
+# model.FillNoslip("SKIN_ISOSURFACE")
+# stop_03_2 = time.time()
+# print("[DEBUG PY]\t-> SKIN_ISOSURFACE filled in ", (stop_03_2-stop_03_1))
 
-model.FillSlip("BottomModelPart")
-stop_03_4 = time.time()
-print("[DEBUG PY]\t-> BottomModelPart filled in ", (stop_03_4-stop_03_3))
+# model.FillSlip("TopModelPart")
+# stop_03_3 = time.time()
+# print("[DEBUG PY]\t-> TopModelPart filled in ", (stop_03_3-stop_03_2))
 
-model.FillInlet("Inlet")
-stop_03_5 = time.time()
-print("[DEBUG PY]\t-> Inlet filled in ", (stop_03_5-stop_03_4))
+# model.FillSlip("BottomModelPart")
+# stop_03_4 = time.time()
+# print("[DEBUG PY]\t-> BottomModelPart filled in ", (stop_03_4-stop_03_3))
 
-model.FillOutlet("Outlet")
-stop_04 = time.time()
-print("[DEBUG PY]\t-> Outlet filled in ", (stop_04-stop_03_5))
+# model.FillInlet("Inlet")
+# stop_03_5 = time.time()
+# print("[DEBUG PY]\t-> Inlet filled in ", (stop_03_5-stop_03_4))
 
-print("\n[DEBUG PY] Filled time: {}\n".format(stop_04-stop_03))
+# model.FillOutlet("Outlet")
+# stop_04 = time.time()
+# print("[DEBUG PY]\t-> Outlet filled in ", (stop_04-stop_03_5))
+
+# print("\n[DEBUG PY] Filled time: {}\n".format(stop_04-stop_03))
 
 print("\n[DEBUG PY] GeoCfdModelPart AFTER\n", model.GetGeoCfdModelPart())
 

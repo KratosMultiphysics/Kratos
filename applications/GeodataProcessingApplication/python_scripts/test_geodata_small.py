@@ -15,7 +15,7 @@ import os
 
 start_time = time.time()
 # the name of the test
-num_test = "020_small"
+num_test = "001_small"
 print("\n\n[DEBUG PY] TEST ", num_test, "\n\n")
 
 # we create a new folders for this test
@@ -203,9 +203,9 @@ else:
 	print("\n[DEBUG PY] IMPORT BUILDINGS FROM OBJ FILE\n")
 	# obj file name
 	obj_file_in = "data/buildings/buildings_num_4.obj"
-	# importer.ObjImport(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
+	# importer.ObjImportBuildings(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
 	importer.ObjToSplit(obj_file_in)
-	# importer.ObjImport(obj_file_in, "BuildingModelPart", False)		# (obj_file_name_input, name_model_part, change_coord)
+	# importer.ObjImportBuildings(obj_file_in, "BuildingModelPart", False)		# (obj_file_name_input, name_model_part, change_coord)
 	building_model_part = importer.GetGeoModelPart()
 print("[DEBUG PY]\n", building_model_part)
 
@@ -240,39 +240,39 @@ print("\n\n[DEBUG PY] START PROCESS BUILDING")
 building.SetGeoModelPart(main_model_part)		# it is a duplicate. CHECK IT
 building.ImportBuilding(building_model_part)
 
-# # 1st cut
-# print("\n\n[DEBUG PY] STEP 1\n")
-# # distance field from hull
-# building.ComputeDistanceFieldFromHull(False, 1e-7)
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostAscii")
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostBinary")
-# # writing file mdpa
-# mdpa_out_name = "cfd_data/test_{}/mdpa_file/04_Box_buildings_distance_field_1".format(num_test)
-# building.WriteMdpaOutput(mdpa_out_name)
-# # subtract buildings
-# building.SubtractBuildingMOD(5.0, 100.0, 0.1, "Linear", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_internal_regions=false
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostAscii")
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostBinary")
-# # writing file mdpa
-# mdpa_out_name = "cfd_data/test_{}/mdpa_file/05_Box_buildings_subtracted_1".format(num_test)
-# building.WriteMdpaOutput(mdpa_out_name)
+# 1st cut
+print("\n\n[DEBUG PY] STEP 1\n")
+# distance field from hull
+building.ComputeDistanceFieldFromHull(False, 1e-7)
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/04_Box_buildings_distance_field_1".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/04_Box_buildings_distance_field_1".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
+# subtract buildings
+building.SubtractBuildingMOD(5.0, 100.0, 0.1, "Linear", "STANDARD", "false")			# interpolation = constant; disc_type = STANDARD; remove_internal_regions=false
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/05_Box_buildings_subtracted_1".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/05_Box_buildings_subtracted_1".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
 
-# # 2nd cut
-# print("\n\n[DEBUG PY] STEP 2\n")
-# # distance field from hull
-# building.ComputeDistanceFieldFromHull(False, 1e-7)
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostAscii")
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostBinary")
-# # writing file mdpa
-# mdpa_out_name = "cfd_data/test_{}/mdpa_file/06_Box_buildings_distance_field_2".format(num_test)
-# building.WriteMdpaOutput(mdpa_out_name)
-# # subtract buildings
-# building.SubtractBuildingMOD(3.0, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = linear; disc_type = STANDARD; remove_internal_regions=false
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostAscii")
-# building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostBinary")
-# # writing file mdpa
-# mdpa_out_name = "cfd_data/test_{}/mdpa_file/07_Box_buildings_subtracted_2".format(num_test)
-# building.WriteMdpaOutput(mdpa_out_name)
+# 2nd cut
+print("\n\n[DEBUG PY] STEP 2\n")
+# distance field from hull
+building.ComputeDistanceFieldFromHull(False, 1e-7)
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/06_Box_buildings_distance_field_2".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/06_Box_buildings_distance_field_2".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
+# subtract buildings
+building.SubtractBuildingMOD(3.0, 10.0, 0.1, "Constant", "STANDARD", "false")			# interpolation = linear; disc_type = STANDARD; remove_internal_regions=false
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostAscii")
+building.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/07_Box_buildings_subtracted_2".format(num_test), "GiD_PostBinary")
+# writing file mdpa
+mdpa_out_name = "cfd_data/test_{}/mdpa_file/07_Box_buildings_subtracted_2".format(num_test)
+building.WriteMdpaOutput(mdpa_out_name)
 
 # 3rd cut
 print("\n\n[DEBUG PY] STEP 3\n")
@@ -295,7 +295,7 @@ debug.SetGeoModelPart(building.GetGeoModelPart())
 dir_out = "cfd_data/test_{}/gid_file/Binary/".format(num_test)
 debug.ExportSubModelPart(dir_out)
 
-input("DEBUG DONE!")
+# input("DEBUG DONE!")
 
 
 # we update main_model_part

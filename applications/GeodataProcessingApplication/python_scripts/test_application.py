@@ -287,7 +287,7 @@ else:
 	print("\n*** IMPORT BUILDINGS FROM OBJ FILE ***\n")
 	# obj file name
 	obj_file_in = "data/buildings/buildings.obj"
-	importer.ObjImport(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
+	importer.ObjImportBuildings(obj_file_in, "BuildingModelPart", True)		# (obj_file_name_input, name_model_part, change_coord)
 	building_model_part = importer.GetGeoModelPart()
 
 # we write GiD file
