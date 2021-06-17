@@ -21,6 +21,7 @@ class GeoPreprocessor( GeoProcessor ):
     def __init__( self ):
         super(GeoPreprocessor, self).__init__()
         self.point_list = []
+        self._json_initialization()
     
     def ComputeBoundingBox2D(self, x_min, x_max, y_min, y_max, incr):
         x_min -= incr
@@ -182,6 +183,31 @@ class GeoPreprocessor( GeoProcessor ):
     # for obj files
     #########################################################################
 
+    def ReadOBJ(self, obj_file_name_input):
+        """ function to read all vertices of the OBJ file
+
+        Args:
+            obj_file_name_input: file to read
+
+        Returns:
+            fills the variable "point_list"
+        """
+
+        filename_in, extension_in = os.path.splitext(obj_file_name_input)
+        print("Reading from file " + filename_in + extension_in)
+
+        if (extension_in.upper() != ".OBJ"):
+            KratosMultiphysics.Logger.PrintWarning("GeoPreprocessor", "This function operates on OBJ files only.")
+
+        with open (obj_file_name_input) as read_file:
+            for row in read_file.readlines():
+                row = row.split()
+                if (row[0] == "v" and all(self._IsFloat(n) for n in row[1:])):
+                    X_coord, Y_coord, Z_coord = [float(coord) for coord in row[1:]]
+
+                    self.point_list.append([X_coord, Y_coord, Z_coord])
+
+
     def ExtractBuildingsOBJ (self, obj_file_in, obj_file_out):
         with open (obj_file_in) as read_file:
             string = ""
@@ -317,7 +343,6 @@ class GeoPreprocessor( GeoProcessor ):
         print("Minimal height defined as")
         print("min_height = ", min_height)
 
-        # the coordinates are already modified and (x=0,y=0) is located at x_min, y_min
         del_list = []
         for num in range(len(self.point_list)):
             coord = self.point_list[num]
@@ -505,6 +530,18 @@ class GeoPreprocessor( GeoProcessor ):
     ########################################################################
     # auxiliary functions
     #########################################################################
+
+    def _json_initialization(self):
+        "json initialization with default values"
+
+        self.file_param = KratosMultiphysics.Parameters("""{
+            "problem_data"     : {
+                "problem_name"  : "Geodata_file",
+                "num_sectors"   : 12,
+                "direction"     : 1,
+                "directions"    : []
+            }
+        }""")
 
     def _CheckListOfVisitedPoints( self, list_visited_points ):
 
