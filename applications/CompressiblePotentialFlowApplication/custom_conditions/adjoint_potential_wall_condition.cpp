@@ -181,7 +181,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(const
 }
 
 template <class TPrimalCondition>
-void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     auto normal = this-> GetValue(NORMAL);
     mpPrimalCondition -> SetValue(NORMAL, normal);

@@ -53,7 +53,7 @@ namespace Kratos
         auto free_stream_density = root_model_part.GetProcessInfo()[FREE_STREAM_DENSITY];
         double free_stream_velocity_norm = norm_2(free_stream_velocity);
         KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
-        auto r_current_process_info = rModelPart.GetProcessInfo();
+        const auto r_current_process_info = rModelPart.GetProcessInfo();
 
         array_1d<double, 3> force_coefficient_pres;
         force_coefficient_pres.clear();
@@ -150,15 +150,15 @@ namespace Kratos
                 const auto normal = rAdjointElement.GetValue(NORMAL);
 
                 std::vector<double> pressure_coefficient_vector;
-                r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
                 double pressure_coefficient = pressure_coefficient_vector[0];
                 force_coefficient_pres = -normal*pressure_coefficient/ mReferenceChord;;
 
                 std::vector<array_1d<double,3>> velocity_vector;
-                r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
                 array_1d<double,3> velocity = velocity_vector[0];
                 std::vector<double> density_vector;
-                r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
                 double density = density_vector[0];
                 double velocity_projection = inner_prod(normal,velocity);
                 array_1d<double,3> disturbance = velocity - free_stream_velocity;
@@ -175,13 +175,13 @@ namespace Kratos
                     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
                 }
 
-                r_this_element.GetValueOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
                 double pressure_coefficient_pert = pressure_coefficient_vector[0];
                 force_coefficient_pres = -normal*pressure_coefficient_pert/ mReferenceChord;;
 
-                r_this_element.GetValueOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
                 array_1d<double,3> velocity_pert = velocity_vector[0];
-                r_this_element.GetValueOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
+                r_this_element.CalculateOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
                 double density_pert = density_vector[0];
                 velocity_projection = inner_prod(normal,velocity_pert);
                 disturbance = velocity_pert - free_stream_velocity;
