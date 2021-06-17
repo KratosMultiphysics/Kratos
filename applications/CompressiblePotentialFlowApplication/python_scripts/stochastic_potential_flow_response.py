@@ -43,8 +43,27 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self.identifier = identifier
         self.response_settings = response_settings
-        self.xmc_settings_path = response_settings["xmc_settings"].GetString()
-        self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
+
+        if not response_settings["primal_settings"].GetString() == "":
+            self.primal_settings = response_settings["primal_settings"].GetString()
+        else:
+            raise Exception("Please set the path to the primal parameters in \"primal_settings\"")
+
+        if not response_settings["adjoint_settings"].GetString() == "":
+            self.adjoint_settings = response_settings["adjoint_settings"].GetString()
+        else:
+            raise Exception("Please set the path to the adjoint parameters in \"adjoint_settings\"")
+
+        if not response_settings["xmc_settings"].GetString() == "":
+            self.xmc_settings_path = response_settings["xmc_settings"].GetString()
+        else:
+            raise Exception("Please set the path to the XMC parameters in \"xmc_settings\"")
+
+        if not response_settings["design_surface_sub_model_part_name"].GetString() == "":
+            self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
+        else:
+            raise Exception("Please set the name of the design surface submodelpart in \"design_surface_sub_model_part_name\"")
+
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         self.risk_measure = response_settings["risk_measure"].GetString()
 
