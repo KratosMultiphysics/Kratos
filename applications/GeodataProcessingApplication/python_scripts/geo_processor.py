@@ -27,7 +27,9 @@ class GeoProcessor:
     # delete geo model part
     def DelGeoModelPart(self):
         if self.HasModelPart:
-            self.ModelPart.DeleteModelPart("ModelPart")
+            model = self.ModelPart.GetModel()
+            model.DeleteModelPart(self.ModelPart.Name)
+            # self.ModelPart.DeleteModelPart("ModelPart")
             self.HasModelPart = False
         else:
             Kratos.Logger.PrintWarning("GeoProcessor", "No model part is present")
@@ -87,7 +89,7 @@ class GeoProcessor:
             }
             """)
         gid_parameters["result_file_configuration"]["gidpost_flags"].AddEmptyValue("GiDPostMode")
-        gid_parameters["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].SetString(gid_post_mode)      # the options are: GiD_PostAscii / GiD_PostAscii
+        gid_parameters["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].SetString(gid_post_mode)      # the options are: GiD_PostAscii / GiD_PostBinary
         
         gid_output = GiDOutputProcess(self.ModelPart, output_name, gid_parameters)
         gid_output.ExecuteInitialize()
@@ -96,9 +98,6 @@ class GeoProcessor:
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
-# GiD_PostBinary
-# GiD_PostAscii
-# "node_output"         : true
 
 
     def WriteMdpaOutput( self, mdpa_file_name="model_part"):
