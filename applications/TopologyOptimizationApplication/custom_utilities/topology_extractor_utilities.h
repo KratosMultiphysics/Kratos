@@ -194,27 +194,29 @@ public:
 		std::cout<<"::[Surface Mesh Extraction]::"<<std::endl;
 
 		// Some type-definitions
-		typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
-		typedef std::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
+		typedef std::unordered_map<vector<IndexType>, IndexType, KeyHasher, KeyComparor > hashmap;
+		typedef std::unordered_map<vector<IndexType>, vector<IndexType>, KeyHasher, KeyComparor > hashmap_vec;
 
 		// Some working variable
 		unsigned int domain_size = 3;
 
 		// Create map to ask for number of faces for the given set of node ids representing on face in the model part
 		hashmap n_faces_map;
+		const int num_elements = static_cast<int>(rExtractedVolumeModelPart.NumberOfElements());
+    	const auto elements_begin = rExtractedVolumeModelPart.ElementsBegin();
 
 		// Fill map that counts number of faces for given set of nodes
 		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
 		{
 			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
 
-			for(unsigned int face=0; face<faces.size(); face++)
+			for(IndexType face=0; face<faces.size(); face++)
 			{
 				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
+				vector<IndexType> ids(faces[face].size());
 
 				// Store node ids
-				for(unsigned int i=0; i<faces[face].size(); i++)
+				for(IndexType i=0; i<faces[face].size(); i++)
 					ids[i] = faces[face][i].Id();
 
 				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -232,16 +234,16 @@ public:
 		// Fill map that gives original node order for set of nodes
 		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
 		{
-			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().GenerateFaces();
 
-			for(unsigned int face=0; face<faces.size(); face++)
+			for(IndexType face=0; face<faces.size(); face++)
 			{
 				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
-				vector<unsigned int> unsorted_ids(faces[face].size());
+				vector<IndexType> ids(faces[face].size());
+				vector<IndexType> unsorted_ids(faces[face].size());
 
 				// Store node ids
-				for(unsigned int i=0; i<faces[face].size(); i++)
+				for(IndexType i=0; i<faces[face].size(); i++)
 				{
 					ids[i] = faces[face][i].Id();
 					unsorted_ids[i] = faces[face][i].Id();
@@ -256,7 +258,7 @@ public:
 		}
 
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-		unsigned int face_id = 1;
+		IndexType face_id = 1;
 		rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Create reference conditions and elements to be assigned to a new skin-model-part
@@ -277,7 +279,7 @@ public:
 				{	std::cout<<"  Schleife 3" <<std::endl;
 					// Getting original order is important to properly reproduce skin face including its normal orientation
 					std::cout<<"  before constructing vector" <<std::endl;
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 					std::cout<<"  after constructing vector" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
@@ -306,7 +308,7 @@ public:
 					std::cout<<"  Schleife 4" <<std::endl;
 					// Getting original order is important to properly reproduce skin including its normal orientation
 					std::cout<<"  Step 1" <<std::endl;
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 					std::cout<<"  Step 2" <<std::endl;
 
 					std::cout<<"  before pnode1" <<std::endl;
