@@ -599,7 +599,20 @@ class GeoBuilding( GeoProcessor ):
 
     # def ShiftBuildingOnTerrain(self, buildings_model_part, terrain_model_part):       # OLD CODE
     def ShiftBuildingOnTerrain(self, terrain_model_part):       # [TEST] we pass the ModelPart instead of the "building_model_part"
-        "function to shift Buildings on terrain. Each Building must be in a SubModelPart"
+        """ function to shift Buildings on terrain
+
+        Note:
+            - at the beginning the buildings are all positioned at quota z=0
+            - each building must be in a SubModelPart
+            - buildings that do not need to be shifted have already been deleted
+
+        Args:
+            terrain_model_part: central portion of terrain on which the buildings will be placed    # TODO: check it
+
+        Returns:
+            - the SubModelPart of the buildings is updated with the new position of the buildings
+            - buildings outside of center_model_part are deleted
+        """
         
         # TODO: remove numpy
         # TODO: [OK] we can pass buildings_model_part with "SetGeoModelPart(buildings_model_part)" in the main script instead of as a parameter
@@ -607,25 +620,30 @@ class GeoBuilding( GeoProcessor ):
         # TODO: move buildings on terrain; delete buildings that are not moved
 
         import numpy as np
-        print("CONTROLLARE SE IL MODELPART È PIENO:\n", self.ModelPart);input("ShiftBuildingOnTerrain")
 
-        N = KratosMultiphysics.Vector(3)
+        # N = KratosMultiphysics.Vector(3)      # OLD CODE
         coords = KratosMultiphysics.Array3()
 
-        locate_on_background = KratosMultiphysics.BinBasedFastPointLocator2D(terrain_model_part)
-        locate_on_background.UpdateSearchDatabase()
+        # OLD CODE
+        # locate_on_background = KratosMultiphysics.BinBasedFastPointLocator2D(terrain_model_part)
+        # locate_on_background.UpdateSearchDatabase()
+
+        BU = KratosGeo.BuildingUtilities(terrain_model_part)
+
 
         already_moved = []            # list with all nodes already moved
 
-        # KratosMultiphysics.ModelPartIO("data/building_model_part_ORG", KratosMultiphysics.IO.WRITE).WriteModelPart(self.ModelPart)
-        ID_vertex = self._find_max_node_id() + 1
+        # ID_vertex = self._find_max_node_id() + 1
 
-        # we set all nodes as not visited
-        for node in self.ModelPart.Nodes:
-            node.Set(KratosMultiphysics.VISITED, False)
+        # # we set all nodes as not visited
+        # for node in self.ModelPart.Nodes:
+        #     node.Set(KratosMultiphysics.VISITED, False)
+        
+        # list of SubModelPart to delete
+        building_to_delete = []
 
-        # for num_building in range(self.ModelPart.NumberOfSubModelParts()):
         for current_sub_model in self.ModelPart.SubModelParts:
+            print("[DEBUG][geo_building][ShiftBuildingOnTerrain] Building name: ", current_sub_model.Name)
             # each Building is in a different sub_model_part
             
             displacement = []        # the vector where we save the Z coordinate to evaluate the minimum for each building
@@ -639,20 +657,30 @@ class GeoBuilding( GeoProcessor ):
                 coords[0] = node_building.X
                 coords[1] = node_building.Y
                 coords[2] = node_building.Z
-                
+
+                # OLD CODE
                 # "found" is a boolean variable (True if "node" is inside the mesh element)
                 # "pelem" is a pointer to element that contain the node of the Building
-                [found, N, pelem] = locate_on_background.FindPointOnMesh(coords)        # here we have the terrain element (but it is on xy plane)
+                # [found, N, pelem] = locate_on_background.FindPointOnMesh(coords)        # here we have the terrain element (but it is on xy plane)
 
-                # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside
-                if not found:
+                # return the ID of the element containing the located point (from coords)
+                # if (id_elem = 0) the point is outside from the elements
+                id_elem = BU.CheckIfInternal(coords)
+
+                # we check if all the nodes are inside terrain_model_part. If at least one node is outside, the whole building must be outside (and deleted)
+                if (id_elem == 0):
                     # displacement.append(0.0)        # adding 0.0, the minimum of the dispacement (in this building) will be 0.0
                     # continue
+                    building_to_delete.append(current_sub_model.Name)
                     break
 
-                if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
-                    KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "\"pelem\" is not a KratosMultiphysics Element.")
-                    continue
+                # OLD CODE
+                # if not isinstance(pelem, KratosMultiphysics.Element):            # if "pelem" is not a "Kratos.Element", we go to the next node
+                #     KratosMultiphysics.Logger.PrintWarning("GeoBuilding", "\"pelem\" is not a KratosMultiphysics Element.")
+                #     continue
+
+                # we extract the element with the id_elem
+                pelem = terrain_model_part.GetElement(id_elem)
                 
                 # calculation of the intersection point between Building and terrain
                 Norm = self._normal_triangle(pelem)
@@ -678,9 +706,6 @@ class GeoBuilding( GeoProcessor ):
                 if displacement:
                     shift = min(displacement)
                     # shift = max(displacement)
-                # else:
-                #     shift = 0.0            # if "displacement" is empty, we add the quantity 0.0
-            
 
             # ###################################################################################################################
             # # WITH FLAGS
@@ -696,25 +721,70 @@ class GeoBuilding( GeoProcessor ):
             # ###################################################################################################################
 
 
-            # TODO: CHECK IT! DOES NOT WORK WELL...
-            # check on the nodes shared by multiple elements
-            node_mod = {}    # dictionary where the key is the old node Id and the "value" is the new node Id
+            """ THERE IS NO LONGER A NEED FOR THIS PIECE OF CODE BECAUSE THE PROBLEM OF SURFACES SHARED
+                BETWEEN MULTIPLE BUILDINGS HAS BEEN SOLVED WHEN CONVERTING THE OSM FILE TO OBJ """
+            # # TODO: CHECK IT! DOES NOT WORK WELL...
+            # # check on the nodes shared by multiple elements
+            # node_mod = {}    # dictionary where the key is the old node Id and the "value" is the new node Id
+            # for node in current_sub_model.Nodes:
+            #     if node.Id in already_moved:                    # if it is one of the already moved nodes
+            #         print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
+            #         self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + shift))    # a new node with different Id and Z coordinate shifted
+            #         node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
+            #         node.Id = ID_vertex                          # update the Id node of the element
+            #         ID_vertex += 1
+            #     else:
+            #         already_moved.append(node.Id)                # fill "already_moved" with current Id node
+            #         node.Z = node.Z + shift
+            # for old_node, new_node in node_mod.items():
+            #     current_sub_model.AddNodes([new_node])          # add the new nodes in the current sub model part
+            #     current_sub_model.RemoveNode(old_node)          # remove the old nodes that are now replaced
+            
             for node in current_sub_model.Nodes:
-                if node.Id in already_moved:                    # if it is one of the already moved nodes
-                    print("*** node {} already visited. We will clone the node and split the geometry. ***".format(node.Id))
-                    self.ModelPart.CreateNewNode(ID_vertex, node.X, node.Y, (node.Z + shift))    # a new node with different Id and Z coordinate shifted
-                    node_mod[node.Id] = ID_vertex                # fill the dictionary with the node to be removed (the key) and the node to be added (the value) in this current_sub_model
-                    node.Id = ID_vertex                          # update the Id node of the element
-                    ID_vertex += 1
-                else:
-                    already_moved.append(node.Id)                # fill "already_moved" with current Id node
-                    node.Z = node.Z + shift
-            for old_node, new_node in node_mod.items():
-                current_sub_model.AddNodes([new_node])          # add the new nodes in the current sub model part
-                current_sub_model.RemoveNode(old_node)          # remove the old nodes that are now replaced
+                if (node.Z > 0.0):  # extrusion
+                    node.Z += shift
 
         """ CHECK THIS """
         self.HasBuildingHull = True
+
+
+    def DeleteBuildingsOutsideBoundary(self, x_center, y_center, radius):
+        """ function to delete buildings outside a circle
+
+        Args:
+            x_center: X coordinate of the center of the boundary
+            y_center: Y coordinate of the center of the boundary
+            radius: radius of cylindrical domain
+
+        Returns:
+            the updated ModelPart without the buildings outside the boundary
+        """
+
+        import math
+
+        del_sub_model = []      # list with the buildings to be delete
+        for current_sub_model in self.ModelPart.SubModelParts:
+            for node in current_sub_model.Nodes:
+                dist = math.sqrt(((x_center-node.X)**2) + ((y_center-node.Y)**2))
+                if (dist > radius):
+                    del_sub_model.append(current_sub_model)
+        
+        del_sub_model = list(set(del_sub_model))
+        count = 0
+        for sub_to_delete in del_sub_model:
+            count+=1
+            # print(sub_to_delete.Name)
+            for elem in sub_to_delete.Elements:
+                # elem to be deleted
+                elem.Set(KratosMultiphysics.TO_ERASE, True)
+                for node in elem.GetNodes():
+                    # node to be deleted
+                    node.Set(KratosMultiphysics.TO_ERASE, True)
+        
+            self.ModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
+            self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
+            self.ModelPart.RemoveSubModelPart(sub_to_delete)
+        print("[DEBUG][GeoBuilding][DeleteBuildingsOutsideBoundary] ", count, "buildings deleted!")
 
 
     # def DeleteBuildingsUnderValue(self, buildings_model_part, z_value=1e-7):      # OLD CODE
@@ -755,6 +825,7 @@ class GeoBuilding( GeoProcessor ):
 ### --- auxiliary functions --- ### -------------------------------------
 
     def _generate_building_model_part( self, name ):
+        " initializes the ModelPart "
 
         current_model = self.ModelPart.GetModel()
 
@@ -776,7 +847,8 @@ class GeoBuilding( GeoProcessor ):
 
 
     def _set_variational_distance_process_serial(self, complete_model, aux_name):
-        # Construct the variational distance calculation process
+        " Construct the variational distance calculation process "
+
         serial_settings = KratosMultiphysics.Parameters("""
             {
                 "linear_solver_settings"   : {
@@ -784,28 +856,44 @@ class GeoBuilding( GeoProcessor ):
                 }
             }
         """)
-        import python_linear_solver_factory
+        from KratosMultiphysics import python_linear_solver_factory
         linear_solver = python_linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
         maximum_iterations = 2
+        # if complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+        #     variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+        #         complete_model,
+        #         linear_solver,
+        #         maximum_iterations,
+        #         KratosMultiphysics.VariationalDistanceCalculationProcess2D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        #         aux_name )
+        # else:
+        #     variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+        #         complete_model,
+        #         linear_solver,
+        #         maximum_iterations,
+        #         KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        #         aux_name )
         if complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
                 complete_model,
                 linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
                 aux_name )
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 complete_model,
                 linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
                 aux_name )
 
         return variational_distance_process
 
 
     def _normal_triangle(self, elem):
+        " compute the norm of the triangle "
+
         P1 = elem.GetNode(0)
         P2 = elem.GetNode(1)
         P3 = elem.GetNode(2)
@@ -815,6 +903,20 @@ class GeoBuilding( GeoProcessor ):
         Nz = (P2.X-P1.X)*(P3.Y-P1.Y) - (P3.X-P1.X)*(P2.Y-P1.Y)
 
         return [Nx, Ny, Nz]
-    
+
+
     def _find_max_node_id(self):
+        " return the maximum Node id "
         return max((node.Id for node in self.ModelPart.Nodes))
+
+
+    def _dot_product(self, a, b):
+        " return the dot product "
+
+        return sum(x*y for x,y in zip(a,b))
+
+
+    def _vector_diff(self, a, b):
+        " difference between vectors "
+
+        return [x-y for x,y in zip(a,b)]
