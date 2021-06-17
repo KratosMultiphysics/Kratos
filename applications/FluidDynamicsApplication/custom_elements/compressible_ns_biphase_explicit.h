@@ -104,6 +104,10 @@ public:
         double lambda_sc;   // Heat conductivity (shock capturing)
         double c_v;         // Heat capacity at constant volume
         double gamma;       // Heat capacity ratio
+        double ros;         // Material solid density
+        double c_s;         // Solid material specific heat
+
+        double time_step;   // Current time step
 
         bool UseOSS;         // Use orthogonal subscales
         bool ShockCapturing; // Activate shock capturing

@@ -279,9 +279,11 @@ public:
         // Perform the shock capturing detection and artificial values calculation
         // This needs to be done at the end of the step in order to include the future shock
         // capturing magnitudes in the next automatic dt calculation
+        /*
         if (mShockCapturing) {
             mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
         }
+        */
     }
 
     /// Turn back information as a string.
