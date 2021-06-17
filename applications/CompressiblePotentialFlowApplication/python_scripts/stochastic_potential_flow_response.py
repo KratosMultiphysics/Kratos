@@ -9,7 +9,7 @@ import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
 from exaqute import get_value_from_remote
-import json
+import json, os
 
 def _GetModelPart(model, solver_settings):
     model_part_name = solver_settings["model_part_name"].GetString()
@@ -32,6 +32,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.xmc_settings_path = response_settings["xmc_settings"].GetString()
         self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
+        if response_settings.Has("output_pressure_file_path"):
+            self.output_pressure_file_path = response_settings["output_pressure_file_path"].GetString()
+        else:
+            self.output_pressure_file_path = ""
         # Create the primal solver
         with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
             primal_parameters = Parameters( parameter_file.read() )
@@ -50,8 +54,14 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # Store current design
         self.current_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
+    def Initialize(self):
+
+        if not self.output_pressure_file_path == "" and not os.path.exists(self.output_pressure_file_path):
+            os.makedirs(self.output_pressure_file_path)
+
     def InitializeSolutionStep(self):
         self.current_model_part.RemoveSubModelPart("fluid_computational_model_part")
+        self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.current_model_part)
 
         self._RunXMC()
@@ -70,13 +80,35 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
             self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
             estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central))))
-
+        qoi_counter += 1
         # linearly sum estimators: this summation operation is valid for expected value and central moments
         # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
         self._value = sum(estimator_container)
 
+        # save pressure coefficient
+        pressure_dict = {}
+        member = 0
+        for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+            estimator_container = [] # here we append contribution for each index/level
+            variance_container = [] # here we append contribution for each index/level
+            for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
+                self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
+                estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].multiValue(order=order, component = member, isCentral=is_central))))
+                variance_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].multiValue(order=2, component = member, isCentral=True))))
+            pressure_coefficient = sum(estimator_container) # sum raw/central moment estimations on different indeces/levels
+            variance_pressure_coefficient = sum(variance_container) # sum raw/central moment estimations on different indeces/levels
+            member += 1
+            pressure_dict[node.Id] = {}
+            pressure_dict[node.Id]["coordinates"] = [node.X, node.Y, node.Z]
+            pressure_dict[node.Id]["pressure_coefficient"] = pressure_coefficient
+            pressure_dict[node.Id]["variance_pressure_coefficient"] = variance_pressure_coefficient
+            node.SetValue(KratosMultiphysics.PRESSURE_COEFFICIENT, pressure_coefficient)
+        qoi_counter += 1
+        if not self.output_pressure_file_path == "":
+            with open(self.output_pressure_file_path+"/pressure_"+str(self.step)+".json", 'w') as fp:
+                json.dump(pressure_dict, fp,indent=4, sort_keys=True)
+
         # save shape sensitivity
-        qoi_counter = 1
         member = 0
         for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
             shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
@@ -250,6 +282,18 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         """
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
         Logger.PrintInfo("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
+
+        pressure_coefficient = []
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+        if (self.mapping is not True):
+            for node in self.adjoint_analysis._GetSolver().main_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+
+        elif (self.mapping is True):
+            raise(Exception(("Mapping not contemplated yet for pressure coefficient!")))
+        qoi_list.append(pressure_coefficient)
 
         shape_sensitivity = []
         if (self.mapping is not True):

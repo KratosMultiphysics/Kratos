@@ -19,10 +19,12 @@
         "costEstimatorInputDictionary": {"indexSetDimension": 0, "order": 1},
         "qoiEstimator": [
             "xmc.momentEstimator.MomentEstimator",
+            "xmc.momentEstimator.MultiMomentEstimator",
             "xmc.momentEstimator.MultiMomentEstimator"
         ],
         "qoiEstimatorInputDictionary": [
             {"indexSetDimension": 0,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper"},
+            {"variableDimension": 4,"order": 1},
             {"variableDimension": 12,"order": 1}],
         "sampler": "xmc.sampleGenerator.SampleGenerator"
     },
