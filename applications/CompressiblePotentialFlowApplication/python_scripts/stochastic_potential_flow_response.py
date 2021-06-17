@@ -253,7 +253,6 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         mach = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].GetDouble()
         self.primal_model_part = self._GetSolver().main_model_part
 
-
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
         # Create the adjoint solver
@@ -279,9 +278,8 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
     def ModifyInitialProperties(self):
         """
-        Method introducing the stochasticity in the right hand side.
+        Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
         """
-        '''Introduce here the stochasticity in the Mach number and the angle of attack'''
         mach = self.sample[1]
         alpha =  self.sample[2]
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
