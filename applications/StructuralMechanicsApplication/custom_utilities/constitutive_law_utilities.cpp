@@ -749,7 +749,8 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
     const MatrixType& rOldFp,
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
-    const MatrixType& rRe
+    const MatrixType& rRe,
+    MatrixType& rFpIncrement
     )
 {
     Matrix Fp(Dimension, Dimension);

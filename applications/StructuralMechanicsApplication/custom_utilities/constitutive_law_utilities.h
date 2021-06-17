@@ -421,7 +421,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const MatrixType& rOldFp,
         const BoundedVectorType& rPlasticPotentialDerivative,
         const double PlasticConsistencyFactorIncrement,
-        const MatrixType& rRe
+        const MatrixType& rRe,
+        MatrixType& rFpIncrement
         );
 
     /**
