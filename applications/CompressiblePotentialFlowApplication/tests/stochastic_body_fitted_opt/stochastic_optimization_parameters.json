@@ -57,9 +57,7 @@
                 "xmc_settings"       : "xmc_parameters.json",
                 "design_surface_sub_model_part_name" : "Body2D_Body",
                 "auxiliary_mdpa_path" : "current_design",
-                "primal_data_transfer_with_python"       : true,
-                "gradient_mode"          : "semi_analytic",
-                "step_size"              :  1e-6
+                "primal_data_transfer_with_python"       : true
             },
             "type"       : "maximization",
             "analyzer" : "kratos",

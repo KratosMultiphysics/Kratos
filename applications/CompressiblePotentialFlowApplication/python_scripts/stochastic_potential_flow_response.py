@@ -27,11 +27,27 @@ def _GetModelPart(model, solver_settings):
 class AdjointResponseFunction(ResponseFunctionInterface):
 
     def __init__(self, identifier, response_settings, model):
+        default_parameters = KratosMultiphysics.Parameters( """
+            {
+                "response_type": "stochastic_adjoint_lift_potential_jump",
+                "risk_measure": "expected_value",
+                "primal_settings": "",
+                "adjoint_settings": "",
+                "xmc_settings": "",
+                "design_surface_sub_model_part_name": "",
+                "auxiliary_mdpa_path": "auxiliary_mdpa",
+                "primal_data_transfer_with_python": true,
+                "output_pressure_file_path": ""
+            }  """ )
+        response_settings.ValidateAndAssignDefaults(default_parameters)
+
         self.identifier = identifier
         self.response_settings = response_settings
         self.xmc_settings_path = response_settings["xmc_settings"].GetString()
         self.design_surface_sub_model_part_name = response_settings["design_surface_sub_model_part_name"].GetString()
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
+        self.risk_measure = response_settings["risk_measure"].GetString()
+
         if response_settings.Has("output_pressure_file_path"):
             self.output_pressure_file_path = response_settings["output_pressure_file_path"].GetString()
         else:
@@ -66,12 +82,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self._RunXMC()
 
-        # TODO: here we should retrieve the risk measure we want to use for optimization
-        #       at the moment we are using the expected value estimation
-        risk_measure = "expected_value"
-        if risk_measure == "expected_value":
+        if self.risk_measure == "expected_value":
             order = 1 ; is_central = False
-        elif risk_measure == "variance":
+        elif self.risk_measure == "variance":
             order = 2 ; is_central = True
 
         # save lift coefficient
