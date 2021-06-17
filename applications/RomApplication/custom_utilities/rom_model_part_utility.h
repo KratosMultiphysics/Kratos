@@ -8,7 +8,7 @@
 //  Kratos default license: kratos/license.txt
 //
 //  Main authors:    SEBASTIAN ARES DE PARGA REGALADO
-//                   RAUL BRAVO
+//            
 //
 
 #if !defined( ROM_MODEL_PART_UTILITY_H_INCLUDED )
@@ -18,10 +18,10 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "spaces/ublas_space.h"
+#include "spaces/ublas_space.h"/*
 #include "utilities/math_utils.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-#include "utilities/svd_utils.h"
+#include "utilities/svd_utils.h"*/
 
 /* Application includes */
 #include "rom_application_variables.h"
