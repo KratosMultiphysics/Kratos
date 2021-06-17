@@ -23,12 +23,12 @@
 #include "includes/define.h"
 
 // Application includes
-#include "hdf5_application_define.h"
+#include "custom_io/hdf5_container_component_io.h"
 #include "custom_io/hdf5_file.h"
+#include "hdf5_application_define.h"
 
 namespace Kratos
 {
-
 class Parameters;
 class Communicator;
 
@@ -41,11 +41,25 @@ namespace HDF5
 ///@{
 
 /// A class for IO of non-historical nodal values in HDF5.
-class NodalDataValueIO
+class NodalDataValueIO : public ContainerComponentIO<NodesContainerType,
+                                                     NodeType,
+                                                     Variable<array_1d<double, 3>>,
+                                                     Variable<double>,
+                                                     Variable<int>,
+                                                     Variable<Vector<double>>,
+                                                     Variable<Matrix<double>>>
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = ContainerComponentIO<NodesContainerType,
+                                          NodeType,
+                                          Variable<array_1d<double, 3>>,
+                                          Variable<double>,
+                                          Variable<int>,
+                                          Variable<Vector<double>>,
+                                          Variable<Matrix<double>>>;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(NodalDataValueIO);
@@ -55,25 +69,30 @@ public:
     ///@{
 
     /// Constructor.
-    NodalDataValueIO(Parameters Settings, File::Pointer pFile);
+    NodalDataValueIO(Parameters Settings, File::Pointer pFile)
+        : BaseType(Settings, pFile, "/NodalDataValues")
+    {
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
-    void WriteNodalResults(NodesContainerType const& rNodes);
+    void WriteNodalResults(NodesContainerType const& rNodes)
+    {
+        this->WriteContainerComponents(rNodes);
+    }
 
-    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm);
+    void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm)
+    {
+        this->ReadContainerComponents(rNodes, rComm);
+    }
 
     ///@}
 
 private:
     ///@name Member Variables
     ///@{
-
-    File::Pointer mpFile;
-    std::string mPrefix;
-    std::vector<std::string> mVariableNames;
 
     ///@}
     ///@name Private Operations

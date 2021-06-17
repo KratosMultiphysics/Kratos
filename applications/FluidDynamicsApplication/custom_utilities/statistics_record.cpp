@@ -1,6 +1,23 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Jordi Cotela
+//
+
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/define.h"
-#include "includes/element.h"
 #include "containers/variable.h"
+#include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
 #include "statistics_record.h"
@@ -68,7 +85,7 @@ void StatisticsRecord::SampleIntegrationPointResults(ModelPart& rModelPart)
     for( int i = 0; i < number_of_elements; i++)
     {
         auto it_elem = rModelPart.ElementsBegin() + i;
-        it_elem->GetValueOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
+        it_elem->CalculateOnIntegrationPoints(UPDATE_STATISTICS,dummy,r_process_info);
     }
 }
 

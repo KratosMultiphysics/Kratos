@@ -7,10 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
+#include <cmath>
+#include <iomanip>
 
 // External includes
 
@@ -190,7 +192,7 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
         const double cos_angle = std::cos(2 * Globals::Pi * i / num_animation_steps);
 
         for (SizeType j=0; j<num_eigenvalues; ++j) {
-            const std::string label = GetLabel(j, eigenvalue_vector[j]);
+            const std::string label = GetLabel(j, num_eigenvalues, eigenvalue_vector[j]);
 
             #pragma omp parallel for
             for (int k=0; k<static_cast<int>(mrModelPart.NumberOfNodes()); ++k) {
@@ -199,18 +201,12 @@ void PostprocessEigenvaluesProcess::ExecuteFinalizeSolutionStep()
                 const Matrix& r_node_eigenvectors = (nodes_begin+k)->GetValue(EIGENVECTOR_MATRIX);
 
                 KRATOS_ERROR_IF_NOT(r_node_dofs.size() == r_node_eigenvectors.size2())
-                    << "Number of results on node #" << (nodes_begin+i)->Id() << " is wrong" << std::endl;
+                    << "Number of results on node #" << (nodes_begin+k)->Id() << " is wrong" << std::endl;
 
                 SizeType l = 0;
                 for (auto& r_dof : r_node_dofs) {
                     r_dof->GetSolutionStepValue(0) = cos_angle * r_node_eigenvectors(j,l++);
                 }
-            }
-
-            // Reconstruct the animation on slave-dofs
-            if (mrModelPart.NumberOfMasterSlaveConstraints() > 0) {
-                ConstraintUtilities::ResetSlaveDofs(mrModelPart);
-                ConstraintUtilities::ApplyConstraints(mrModelPart);
             }
 
             p_eigen_io_wrapper->PrintOutput(label, i, requested_double_results, requested_vector_results);
@@ -225,7 +221,7 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
         const std::string variable_name = mOutputParameters["list_of_result_variables"].GetArrayItem(i).GetString();
 
         if( KratosComponents< Variable<double> >::Has( variable_name ) ) {
-            const Variable<double > variable = KratosComponents< Variable<double > >::Get(variable_name);
+            const Variable<double >& variable = KratosComponents< Variable<double > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
@@ -233,15 +229,13 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 
             rRequestedDoubleResults.push_back(variable);
         } else if (KratosComponents< Variable< array_1d<double, 3> > >::Has(variable_name) ) {
-            const Variable<array_1d<double,3> > variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
+            const Variable<array_1d<double,3> >& variable = KratosComponents< Variable<array_1d<double,3> > >::Get(variable_name);
 
             KRATOS_ERROR_IF_NOT(mrModelPart.GetNodalSolutionStepVariablesList().Has( variable ))
                 << "Requesting EigenResults for a Variable that is not in the ModelPart: "
                 << variable << std::endl;
 
             rRequestedVectorResults.push_back(variable);
-        } else if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(variable_name) ) {
-            KRATOS_ERROR << "Vector Components cannot be querried, name: " << variable_name << std::endl;
         } else {
             KRATOS_ERROR << "Invalid Type of Variable, name: " << variable_name << std::endl;
         }
@@ -249,12 +243,13 @@ void PostprocessEigenvaluesProcess::GetVariables(std::vector<Variable<double>>& 
 }
 
 std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue,
+                                                    const int NumberOfEigenvalues,
                                                     const double EigenvalueSolution) const
 {
     double label_number;
 
     std::stringstream parser;
-    parser << (NumberOfEigenvalue + 1);
+    parser << std::setfill('0') << std::setw(std::floor(std::log10(NumberOfEigenvalues))+1) << (NumberOfEigenvalue + 1);
     std::string label = parser.str();
 
     const std::string lable_type = mOutputParameters["label_type"].GetString();
@@ -265,9 +260,12 @@ std::string PostprocessEigenvaluesProcess::GetLabel(const int NumberOfEigenvalue
     } else if (lable_type == "frequency") {
         label += "_EigenFrequency_[Hz]_";
         label_number = std::sqrt(EigenvalueSolution) / (2 * Globals::Pi);
+    } else if(lable_type == "load_multiplier"){
+        label += "_LoadMultiplier_[-]_";
+        label_number = EigenvalueSolution;
     } else {
         KRATOS_ERROR << "The requested label_type \"" << lable_type << "\" is not available!\n"
-                        << "Available options are: \"angular_frequency\", \"frequency\"" << std::endl;
+                        << "Available options are: \"angular_frequency\", \"frequency\", \"load_multiplier\"" << std::endl;
     }
 
     // reset the stringstream

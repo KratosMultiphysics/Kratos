@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -65,6 +66,9 @@ class BuilderAndSolver
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the current class
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Definition of the size type
     typedef std::size_t SizeType;
@@ -117,98 +121,30 @@ public:
     /// Pointer definition of BuilderAndSolver
     KRATOS_CLASS_POINTER_DEFINITION(BuilderAndSolver);
 
-    /**
-     * @brief This struct is used in the component wise calculation only is defined here and is used to declare a member variable in the component wise builder and solver
-     * @details Private pointers can only be accessed by means of set and get functions this allows to set and not copy the Element_Variables and Condition_Variables which will be asked and set by another strategy object
-     */
-    struct GlobalSystemComponents
-    {
-    private:
-
-      // Elements
-      std::vector<TSystemMatrixType> *mpLHS_Element_Components;
-      const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Element_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Element_Components;
-      const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Element_Variables;
-
-      // Conditions
-      std::vector<TSystemMatrixType> *mpLHS_Condition_Components;
-      const std::vector< Variable< LocalSystemMatrixType > > *mpLHS_Condition_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Condition_Components;
-      const std::vector< Variable< LocalSystemVectorType > > *mpRHS_Condition_Variables;
-
-    public:
-
-      void Initialize()
-      {
-	mpLHS_Element_Components = NULL;
-	mpLHS_Element_Variables  = NULL;
-
-	mpRHS_Element_Components = NULL;
-	mpRHS_Element_Variables  = NULL;
-
-	mpLHS_Condition_Components = NULL;
-	mpLHS_Condition_Variables  = NULL;
-
-	mpRHS_Condition_Components = NULL;
-	mpRHS_Condition_Variables  = NULL;
-      }
-
-      // Setting pointer variables
-
-      // Elements
-      void SetLHS_Element_Components ( std::vector<TSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-      void SetLHS_Element_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-      void SetRHS_Element_Components ( std::vector<TSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-      void SetRHS_Element_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-      bool Are_LHS_Element_Components_Set() { if( mpLHS_Element_Variables == NULL ) return false; else return true; };
-      bool Are_RHS_Element_Components_Set() { if( mpRHS_Element_Variables == NULL ) return false; else return true; };
-
-      // Conditions
-      void SetLHS_Condition_Components ( std::vector<TSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-      void SetLHS_Condition_Variables     ( const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-      void SetRHS_Condition_Components ( std::vector<TSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-      void SetRHS_Condition_Variables     ( const std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-      bool Are_LHS_Condition_Components_Set() { if( mpLHS_Condition_Variables == NULL ) return false; else return true; };
-      bool Are_RHS_Condition_Components_Set() { if( mpRHS_Condition_Variables == NULL ) return false; else return true; };
-
-      //getting pointer variables
-
-      // Elements
-      std::vector<TSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-      const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-      const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-      // Conditions
-      std::vector<TSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-      const std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-      const std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-    };
-
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit BuilderAndSolver()
+    {
+    }
 
     /**
      * @brief Default constructor with Parameters
      * @param pNewLinearSystemSolver The linear solver for the system of equations
      * @param ThisParameters The configuration parameters
      */
-    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    explicit BuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        )
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-        })" );
-
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
@@ -218,8 +154,7 @@ public:
      * @brief Default constructor.
      * @param pNewLinearSystemSolver The linear solver for the system of equations
      */
-    explicit BuilderAndSolver(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver)
+    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
     }
@@ -230,24 +165,28 @@ public:
     {
     }
 
+    /**
+     * @brief Create method
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    virtual ClassType::Pointer Create(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) const
+    {
+        return Kratos::make_shared<ClassType>(pNewLinearSystemSolver,ThisParameters);
+    }
 
     ///@}
     ///@name Operators
     ///@{
 
     /**
-     * Component wise components Get method
-     */
-    virtual GlobalSystemComponents& GetGlobalSystemComponents()
-    {
-      KRATOS_THROW_ERROR(std::logic_error, "Asking for Global Components to the BUIDER and SOlVER base class which is not component wise and not contains this member variable","")
-    }
-
-    /**
      * @brief This method returns the flag mCalculateReactionsFlag
      * @return The flag that tells if the reactions are computed
      */
-    bool GetCalculateReactionsFlag()
+    bool GetCalculateReactionsFlag() const
     {
         return mCalculateReactionsFlag;
     }
@@ -265,31 +204,43 @@ public:
      * @brief This method returns the flag mDofSetIsInitialized
      * @return The flag that tells if the dof set is initialized
      */
-    bool GetDofSetIsInitializedFlag()
+    bool GetDofSetIsInitializedFlag() const
     {
         return mDofSetIsInitialized;
     }
 
-    void SetDofSetIsInitializedFlag(bool flag)
+    /**
+     * @brief This method sets the flag mDofSetIsInitialized
+     * @param DofSetIsInitialized The flag that tells if the dof set is initialized
+     */
+    void SetDofSetIsInitializedFlag(bool DofSetIsInitialized)
     {
-        mDofSetIsInitialized = flag;
+        mDofSetIsInitialized = DofSetIsInitialized;
     }
 
-    void SetReshapeMatrixFlag(bool flag)
-    {
-        mReshapeMatrixFlag = flag;
-    }
-
-    bool GetReshapeMatrixFlag()
+    /**
+     * @brief This method returns the flag mReshapeMatrixFlag
+     * @return The flag that tells if we need to reshape the LHS matrix
+     */
+    bool GetReshapeMatrixFlag() const
     {
         return mReshapeMatrixFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mReshapeMatrixFlag
+     * @param ReshapeMatrixFlag The flag that tells if we need to reshape the LHS matrix
+     */
+    void SetReshapeMatrixFlag(bool ReshapeMatrixFlag)
+    {
+        mReshapeMatrixFlag = ReshapeMatrixFlag;
     }
 
     /**
      * @brief This method returns the value mEquationSystemSize
      * @return Size of the system of equations
      */
-    unsigned int GetEquationSystemSize()
+    unsigned int GetEquationSystemSize() const
     {
         return mEquationSystemSize;
     }
@@ -298,9 +249,9 @@ public:
      * @brief This method return the linear solver used
      * @return mpLinearSystemSolver The linear solver used
      */
-    typename TLinearSolver::Pointer GetLinearSystemSolver()
+    typename TLinearSolver::Pointer GetLinearSystemSolver() const
     {
-      return mpLinearSystemSolver;
+        return mpLinearSystemSolver;
     }
 
     /**
@@ -320,8 +271,9 @@ public:
      */
     virtual void BuildLHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -333,8 +285,9 @@ public:
      */
     virtual void BuildRHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -347,9 +300,10 @@ public:
      */
     virtual void Build(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -362,8 +316,9 @@ public:
      */
     virtual void BuildLHS_CompleteOnFreeRows(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -376,8 +331,9 @@ public:
      */
     virtual void BuildLHS_Complete(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA
+        )
     {
     }
 
@@ -388,9 +344,9 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void SystemSolve(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
     )
     {
     }
@@ -406,11 +362,36 @@ public:
      */
     virtual void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
+    }
+
+    /**
+     * @brief Function to perform the building and solving phase at the same time Linearizing with the database at the old iteration
+     * @details It is ideally the fastest and safer function to use when it is possible to solve just after building
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
+     */
+    virtual void BuildAndSolveLinearizedOnPreviousIteration(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb,
+        const bool MoveMesh
+        )
+    {
+        KRATOS_ERROR << "No special implementation available for "
+            << "BuildAndSolveLinearizedOnPreviousIteration "
+            << " please use UseOldStiffnessInFirstIterationFlag=false in the settings of the strategy "
+            << std::endl;
     }
 
     /**
@@ -423,10 +404,11 @@ public:
      */
     virtual void BuildRHSAndSolve(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -441,10 +423,11 @@ public:
      */
     virtual void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -457,9 +440,10 @@ public:
      */
     virtual void ApplyDirichletConditions_LHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx
+        )
     {
     }
 
@@ -472,23 +456,40 @@ public:
      */
     virtual void ApplyDirichletConditions_RHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
     /**
-     * @brief Applies the constraints
-     * @param pScheme The pointer to the integration scheme
-     * @param rModelPart The model part to compute
-     * @param rb The RHS vector of the system of equations
+     * @brief Applies the constraints with master-slave relation matrix (RHS only)
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS vector
+     */
+    virtual void ApplyRHSConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
+    {
+    }
+
+    /**
+     * @brief Applies the constraints with master-slave relation matrix
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      */
     virtual void ApplyConstraints(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
-        TSystemVectorType& rb)
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -500,8 +501,8 @@ public:
      */
     virtual void SetUpDofSet(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part
-    )
+        ModelPart& rModelPart
+        )
     {
     }
 
@@ -517,9 +518,7 @@ public:
      * @brief It organises the dofset in order to speed up the building phase
      * @param rModelPart The model part to compute
      */
-    virtual void SetUpSystem(
-        ModelPart& r_model_part
-    )
+    virtual void SetUpSystem(ModelPart& rModelPart)
     {
     }
 
@@ -537,7 +536,7 @@ public:
         TSystemVectorPointerType& pDx,
         TSystemVectorPointerType& pb,
         ModelPart& rModelPart
-    )
+        )
     {
     }
 
@@ -549,10 +548,11 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void InitializeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -564,10 +564,11 @@ public:
      * @param rb The RHS vector of the system of equations
      */
     virtual void FinalizeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -581,10 +582,11 @@ public:
      */
     virtual void CalculateReactions(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
     {
     }
 
@@ -598,8 +600,7 @@ public:
         this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
-        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
-            << "Clear Function called" << std::endl;
+        KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0) << "Clear Function called" << std::endl;
     }
 
     /**
@@ -609,13 +610,44 @@ public:
      * @param rModelPart The model part to compute
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         return 0;
         KRATOS_CATCH("");
     }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "name"       : "builder_and_solver",
+            "echo_level" : 1
+        })" );
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "builder_and_solver";
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    ///@}
+    ///@name Access
+    ///@{
 
     /**
      * @brief It sets the level of echo for the solving strategy
@@ -636,18 +668,10 @@ public:
      * @brief It returns the echo level
      * @return The echo level of the builder and solver
      */
-    int GetEchoLevel()
+    int GetEchoLevel() const
     {
         return mEchoLevel;
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    ///@}
-    ///@name Access
-    ///@{
 
     ///@}
     ///@name Inquiry
@@ -689,25 +713,17 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /** Pointer to the Model.
-     */
-    typename TLinearSolver::Pointer mpLinearSystemSolver;
+    typename TLinearSolver::Pointer mpLinearSystemSolver = nullptr; /// Pointer to the linear solver
 
-    DofsArrayType mDofSet;
+    DofsArrayType mDofSet; /// The set containing the DoF of the system
 
-    bool mReshapeMatrixFlag = false;
+    bool mReshapeMatrixFlag = false;  /// If the matrix is reshaped each step
 
-    /// flag taking care if the dof set was initialized ot not
-    bool mDofSetIsInitialized = false;
+    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
-    /// flag taking in account if it is needed or not to calculate the reactions
-    bool mCalculateReactionsFlag = false;
+    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
-    /// number of degrees of freedom of the problem to be solve
-    unsigned int mEquationSystemSize;
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
+    unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
 
     int mEchoLevel = 0;
 
@@ -720,6 +736,30 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method validate and assign default parameters
+     * @param rParameters Parameters to be validated
+     * @param DefaultParameters The default parameters
+     * @return Returns validated Parameters
+     */
+    virtual Parameters ValidateAndAssignParameters(
+        Parameters ThisParameters,
+        const Parameters DefaultParameters
+        ) const
+    {
+        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+        return ThisParameters;
+    }
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    virtual void AssignSettings(const Parameters ThisParameters)
+    {
+        mEchoLevel = ThisParameters["echo_level"].GetInt();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -779,4 +819,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_BUILDER_AND_SOLVER  defined */
-

@@ -16,12 +16,8 @@
 #include "includes/model_part.h"
 #include "containers/model.h"
 
-
 namespace Kratos {
     namespace Testing {
-        typedef Node<3> NodeType;
-        typedef std::size_t IndexType;
-
         /**
         *  Here the clone operator is test
         */
@@ -38,25 +34,20 @@ namespace Kratos {
             // Definition of properties
             auto p_prop = model_part.CreateNewProperties(1);
 
-            // List onf nodes
-            std::vector<NodeType::Pointer> list_nodes(3);
-            list_nodes[0] = p_node1;
-            list_nodes[1] = p_node2;
-            list_nodes[2] = p_node3;
-
-            auto p_cond = model_part.CreateNewCondition("Condition3D", 1, PointerVector<NodeType>{list_nodes}, p_prop);
+            auto p_cond = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, {{1, 2, 3}}, p_prop);
 
             p_cond->SetValue(DISTANCE, 12.1);
+            p_cond->SetValue(VELOCITY, ZeroVector(3));
             p_cond->SetValue(VELOCITY_X, 32.4);
             p_cond->Set(ACTIVE, true);
 
-            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, PointerVector<NodeType>{list_nodes});
+            Condition::Pointer p_clone_of_cond = p_cond->Clone(2, p_cond->GetGeometry());
 
             KRATOS_CHECK_EQUAL(p_clone_of_cond->Id(), 2);
             KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(DISTANCE), 12.1);
             KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_X), 32.4);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Y), 0.00);
-            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Z), 0.00);
+            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Y), 0.0);
+            KRATOS_CHECK_DOUBLE_EQUAL(p_clone_of_cond->GetValue(VELOCITY_Z), 0.0);
             KRATOS_CHECK(p_clone_of_cond->Is(ACTIVE));
         }
     }  // namespace Testing.

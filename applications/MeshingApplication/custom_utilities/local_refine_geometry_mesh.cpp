@@ -465,13 +465,13 @@ namespace Kratos
             const int& number_elem,
             const Element::Pointer father_elem,
             Element::Pointer child_elem,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             )
     {
         // NOTE: Right now there is not an interpolation at all, it just copying the values
         std::vector<Vector> values;
-        father_elem->GetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
-        child_elem->SetValueOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
     }
 
 

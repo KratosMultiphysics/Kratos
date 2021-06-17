@@ -12,7 +12,7 @@ namespace Kratos
 	using namespace GeometryFunctions;
 //************************************************************************************
 //************************************************************************************
-RigidEdge3D::RigidEdge3D( IndexType NewId,
+RigidEdge2D::RigidEdge2D( IndexType NewId,
         GeometryType::Pointer pGeometry)
     : DEMWall( NewId, pGeometry )
 {
@@ -22,14 +22,14 @@ RigidEdge3D::RigidEdge3D( IndexType NewId,
 //************************************************************************************
 //**** life cycle ********************************************************************
 //************************************************************************************
-RigidEdge3D::RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
+RigidEdge2D::RigidEdge2D( IndexType NewId, GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
                                             )
     : DEMWall( NewId, pGeometry, pProperties )
 {
 }
 
-RigidEdge3D::RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
+RigidEdge2D::RigidEdge2D( IndexType NewId, GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         Condition::Pointer Master,
         Condition::Pointer Slave,
@@ -47,17 +47,17 @@ RigidEdge3D::RigidEdge3D( IndexType NewId, GeometryType::Pointer pGeometry,
 //********************************************************
 
 
-Condition::Pointer RigidEdge3D::Create( IndexType NewId,
+Condition::Pointer RigidEdge2D::Create( IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer( new RigidEdge3D(NewId, GetGeometry().Create(ThisNodes),
+    return Condition::Pointer( new RigidEdge2D(NewId, GetGeometry().Create(ThisNodes),
                                pProperties));
 }
 /**
  * Destructor. Never to be called manually
  */
-RigidEdge3D::~RigidEdge3D()
+RigidEdge2D::~RigidEdge2D()
 {
 }
 
@@ -67,20 +67,18 @@ RigidEdge3D::~RigidEdge3D()
 * calculates only the RHS vector (certainly to be removed due to contact algorithm)
 */
 
-void RigidEdge3D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+void RigidEdge2D::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 
-//  mTgOfFrictionAngle = GetProperties()[FRICTION];
     if (! rCurrentProcessInfo[IS_RESTARTED]){
-        this->GetGeometry()[0].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-        this->GetGeometry()[1].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
-
-        this->GetGeometry()[0].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
-        this->GetGeometry()[1].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        for (SizeType i=0;i<this->GetGeometry().size();++i){
+            this->GetGeometry()[i].FastGetSolutionStepValue(NON_DIMENSIONAL_VOLUME_WEAR) = 0.0;
+            this->GetGeometry()[i].FastGetSolutionStepValue(IMPACT_WEAR) = 0.0;
+        }
     }
 }
 
 
-void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
+void RigidEdge2D::ComputeConditionRelativeData(int rigid_neighbour_index,
                                                SphericParticle* const particle,
                                                double LocalCoordSystem[3][3],
                                                double& DistPToB,
@@ -146,128 +144,24 @@ void RigidEdge3D::ComputeConditionRelativeData(int rigid_neighbour_index,
     }
 }//ComputeConditionRelativeData
 
-void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info)
-{
+void RigidEdge2D::CalculateNormal(array_1d<double, 3>& rnormal){
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
+    if (GetGeometry().size()>1){
+        const auto& n0 = GetGeometry()[0];
+        const auto& n1 = GetGeometry()[1];
 
-    if (rRightHandSideVector.size() != MatSize)
-    {
-        rRightHandSideVector.resize(MatSize, false);
+        double delta_x = n1.X() - n0.X();
+        double delta_y = n1.Y() - n0.Y();
+
+        rnormal[0] = - delta_y;
+        rnormal[1] = delta_x;
+        rnormal[2] = 0.0;
+
+        rnormal /= MathUtils<double>::Norm3(rnormal);
     }
-    rRightHandSideVector = ZeroVector(MatSize);
-
-    std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-
-    for (unsigned int i=0; i<rNeighbours.size(); i++)
-    {
-        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
-
-        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
-
-        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-        {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
-
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
-
-                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
-                double weight = 0.0;
-
-                double ContactForce[3] = {0.0};
-
-                const array_1d<double, 3>& neighbour_rigid_faces_contact_force = rNeighbours[i]->mNeighbourRigidFacesTotalContactForce[i_nei];
-
-                ContactForce[0] = neighbour_rigid_faces_contact_force[0];
-                ContactForce[1] = neighbour_rigid_faces_contact_force[1];
-                ContactForce[2] = neighbour_rigid_faces_contact_force[2];
-
-                for (unsigned int k=0; k< number_of_nodes; k++)
-                {
-                    weight = weights_vector[k];
-
-                    unsigned int w =  k * 3;
-
-                    rRightHandSideVector[w + 0] += -ContactForce[0] * weight;
-                    rRightHandSideVector[w + 1] += -ContactForce[1] * weight;
-                    rRightHandSideVector[w + 2] += -ContactForce[2] * weight;
-                }
-
-            }//if the condition neighbour of my sphere neighbour is myself.
-        }//Loop spheres neighbours (condition)
-    }//Loop condition neighbours (spheres)
-
 }
 
-void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info)
-{
-
-  const unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
-
-    if (rElasticForces.size() != MatSize)
-    {
-        rElasticForces.resize(MatSize, false);
-    }
-    rElasticForces = ZeroVector(MatSize);
-
-    std::vector<SphericParticle*>& rNeighbours = this->mNeighbourSphericParticles;
-
-    for (unsigned int i=0; i<rNeighbours.size(); i++)
-    {
-
-        if(rNeighbours[i]->Is(BLOCKED)) continue; //Inlet Generator Spheres are ignored when integrating forces.
-
-        std::vector<DEMWall*>& rRFnei = rNeighbours[i]->mNeighbourRigidFaces;
-
-        for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
-        {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
-
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
-                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
-                double weight = 0.0;
-
-                double ContactElasticForce[3] = {0.0};
-
-                const array_1d<double, 3>& neighbour_rigid_faces_elastic_contact_force = rNeighbours[i]->mNeighbourRigidFacesElasticContactForce[i_nei];
-                ContactElasticForce[0] = neighbour_rigid_faces_elastic_contact_force[0];
-                ContactElasticForce[1] = neighbour_rigid_faces_elastic_contact_force[1];
-                ContactElasticForce[2] = neighbour_rigid_faces_elastic_contact_force[2];
-
-                for (unsigned int k=0; k< number_of_nodes; k++)
-                {
-                    weight = weights_vector[k];
-
-                    unsigned int w =  k * 3;
-
-                    rElasticForces[w + 0] += -ContactElasticForce[0] * weight;
-                    rElasticForces[w + 1] += -ContactElasticForce[1] * weight;
-                    rElasticForces[w + 2] += -ContactElasticForce[2] * weight;
-                }
-            }//if the condition neighbour of my sphere neighbour is myself.
-        }//Loop spheres neighbours (condition)
-    }//Loop condition neighbours (spheres)
-}
-
-void RigidEdge3D::CalculateNormal(array_1d<double, 3>& rnormal){
-
-    double delta_x = GetGeometry()[1].X() - GetGeometry()[0].X();
-    double delta_y = GetGeometry()[1].Y() - GetGeometry()[0].Y();
-
-    rnormal[0] = - delta_y;
-    rnormal[1] = delta_x;
-    rnormal[2] = 0.0;
-
-    rnormal /= MathUtils<double>::Norm3(rnormal);
-}
-
-
-
-void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
+void RigidEdge2D::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info)
 {
   if (rVariable == RIGID_FACE_COMPUTE_MOVEMENT)
   {
@@ -382,7 +276,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 
 }
 
-void RigidEdge3D::FinalizeSolutionStep(ProcessInfo& r_process_info)
+void RigidEdge2D::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {
 
 

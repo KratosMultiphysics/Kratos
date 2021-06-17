@@ -72,21 +72,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_< PoromechanicsNewtonRaphsonStrategyType, typename PoromechanicsNewtonRaphsonStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonStrategy")
-    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
     py::class_< PoromechanicsRammArcLengthStrategyType, typename PoromechanicsRammArcLengthStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsRammArcLengthStrategy")
-    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&PoromechanicsRammArcLengthStrategyType::UpdateLoads);
     py::class_< PoromechanicsNewtonRaphsonNonlocalStrategyType, typename PoromechanicsNewtonRaphsonNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsNewtonRaphsonNonlocalStrategy")
-    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
     py::class_< PoromechanicsRammArcLengthNonlocalStrategyType, typename PoromechanicsRammArcLengthNonlocalStrategyType::Pointer, BaseSolvingStrategyType >
     (m, "PoromechanicsRammArcLengthNonlocalStrategy")
-    .def( py::init< ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
+    .def( py::init< ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >());
 
 }

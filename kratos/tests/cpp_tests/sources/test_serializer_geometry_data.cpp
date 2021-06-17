@@ -72,7 +72,7 @@ namespace Kratos {
                 );
         }
 
-        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2(ModelPart& rModelPart) {
+        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2DTest(ModelPart& rModelPart) {
             auto triangle = GeneratePointsTriangle2D3TestQP(rModelPart);
 
             auto integration_points = triangle->IntegrationPoints();
@@ -97,6 +97,22 @@ namespace Kratos {
                     triangle->Points(),
                     data_container,
                     triangle.get()));
+
+            return p_this_quadrature_point;
+        }
+
+        Geometry<Node<3>>::Pointer GenerateQuadraturePoint2DTestLoad() {
+
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                GeometryData::GI_GAUSS_1,
+                IntegrationPoint<3>(),
+                Matrix(),
+                Matrix());
+
+            Geometry<Node<3>>::Pointer p_this_quadrature_point(
+                Kratos::make_shared<QuadraturePointGeometry<Node<3>, 2>>(
+                    GeometryType::PointsArrayType(3),
+                    data_container));
 
             return p_this_quadrature_point;
         }
@@ -128,6 +144,54 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(line_saved->GetDefaultIntegrationMethod(), line_loaded->GetDefaultIntegrationMethod());
 
             KRATOS_CHECK_EQUAL(&(line_saved->GetGeometryData()), &(line_loaded->GetGeometryData()));
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerQuadraturePoint, KratosCoreFastSuite)
+        {
+            Model model;
+            auto& mp = model.CreateModelPart("SerializerQuadraturePoint");
+
+            StreamSerializer serializer;
+
+            auto quadrature_saved = GenerateQuadraturePoint2DTest(mp);
+
+            auto quadrature_loaded = GenerateQuadraturePoint2DTestLoad(); // Empty quadrature point geometry
+
+            serializer.save("qp", quadrature_saved);
+            serializer.load("qp", quadrature_loaded);
+
+            // Check coordinates
+            for(unsigned int i = 0; i < 3; ++i){
+                KRATOS_CHECK_NEAR((*quadrature_saved)[i].X(), (*quadrature_loaded)[i].X(), 1e-6);
+                KRATOS_CHECK_NEAR((*quadrature_saved)[i].Y(), (*quadrature_loaded)[i].Y(), 1e-6);
+                KRATOS_CHECK_NEAR((*quadrature_saved)[i].Z(), (*quadrature_loaded)[i].Z(), 1e-6);
+            }
+            // Check size and dimension
+            KRATOS_CHECK_EQUAL(quadrature_saved->size(), quadrature_loaded->size());
+            KRATOS_CHECK_EQUAL(quadrature_saved->WorkingSpaceDimension(), quadrature_loaded->WorkingSpaceDimension());
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetDefaultIntegrationMethod(), quadrature_loaded->GetDefaultIntegrationMethod());
+
+            // Check integration point
+            IntegrationPoint<3> point_loaded = quadrature_loaded->GetGeometryData().IntegrationPoints()[0];
+            IntegrationPoint<3> point_saved = quadrature_saved->GetGeometryData().IntegrationPoints()[0];
+            KRATOS_CHECK_NEAR(point_saved.X(), point_loaded.X(), 1e-6);
+            KRATOS_CHECK_NEAR(point_saved.Y(), point_loaded.Y(), 1e-6);
+            KRATOS_CHECK_NEAR(point_saved.Z(), point_loaded.Z(), 1e-6);
+            KRATOS_CHECK_NEAR(point_saved.Weight(), point_loaded.Weight(),1e-6);
+
+            // Check shape functions values
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->ShapeFunctionsValues(),
+                                     quadrature_loaded->ShapeFunctionsValues(), 1e-6);
+
+            // Check shape functions local gradients
+            KRATOS_CHECK_EQUAL(quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients().size(),1);
+            KRATOS_CHECK_MATRIX_NEAR(quadrature_saved->GetGeometryData().ShapeFunctionsLocalGradients()[0],
+                                     quadrature_loaded->GetGeometryData().ShapeFunctionsLocalGradients()[0], 1e-6);
+
+            // Check Dimensions of geometry data
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().Dimension(), quadrature_loaded->GetGeometryData().Dimension());
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().WorkingSpaceDimension(), quadrature_loaded->GetGeometryData().WorkingSpaceDimension());
+            KRATOS_CHECK_EQUAL(quadrature_saved->GetGeometryData().LocalSpaceDimension(), quadrature_loaded->GetGeometryData().LocalSpaceDimension());
         }
     } // namespace Testing
 }  // namespace Kratos.

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 ## @module iqnils
 # This module contains the class MVQNConvergenceAccelerator
 # Author: Wei He
@@ -19,9 +17,9 @@ import numpy as np
 from copy import deepcopy
 from collections import deque
 
-def Create(settings, solver_wrapper):
+def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
-    return MVQNConvergenceAccelerator(settings, solver_wrapper)
+    return MVQNConvergenceAccelerator(settings)
 
 ## Class MVQNConvergenceAccelerator.
 # This class contains the implementation of the MVQN method and helper functions.
@@ -30,8 +28,8 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## The constructor.
     # @param horizon Maximum number of vectors to be stored in each time step.
     # @param alpha Relaxation factor for computing the update, when no vectors available.
-    def __init__( self, settings, solver_wrapper):
-        super(MVQNConvergenceAccelerator, self).__init__(settings, solver_wrapper)
+    def __init__( self, settings):
+        super().__init__(settings)
 
         horizon = self.settings["horizon"].GetInt()
         self.alpha = self.settings["alpha"].GetDouble()
@@ -108,10 +106,10 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
             self.X.clear()
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "horizon" : 15,
             "alpha"   : 0.125
         }""")
-        this_defaults.AddMissingParameters(super(MVQNConvergenceAccelerator, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

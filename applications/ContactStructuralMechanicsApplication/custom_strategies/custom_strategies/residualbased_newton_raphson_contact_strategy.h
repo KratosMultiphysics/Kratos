@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -80,6 +81,8 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
     typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
@@ -116,21 +119,44 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart),
+          mpMyProcesses(nullptr),
+          mpPostProcesses(nullptr)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Auxiliar assign
+        mConvergenceCriteriaEchoLevel = BaseType::mpConvergenceCriteria->GetEchoLevel();
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         IndexType MaxIterations = 30,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
@@ -138,8 +164,8 @@ public:
         Parameters ThisParameters =  Parameters(R"({})"),
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
-    )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        )
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -157,7 +183,7 @@ public:
     /**
      * @brief Default constructor
      * @param rModelPart The model part of the problem
-     * @param p_scheme The integration scheme
+     * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param MaxIterations The maximum number of iterations
@@ -165,10 +191,48 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-
     ResidualBasedNewtonRaphsonContactStrategy(
         ModelPart& rModelPart,
-        typename TSchemeType::Pointer p_scheme,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        IndexType MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false,
+        Parameters ThisParameters =  Parameters(R"({})"),
+        ProcessesListType pMyProcesses = nullptr,
+        ProcessesListType pPostProcesses = nullptr
+    )
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        mThisParameters(ThisParameters),
+        mpMyProcesses(pMyProcesses),
+        mpPostProcesses(pPostProcesses)
+    {
+        KRATOS_TRY;
+
+        mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
+
+        Parameters default_parameters = GetDefaultParameters();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewLinearSolver The linear solver employed
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of iterations
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    ResidualBasedNewtonRaphsonContactStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -180,7 +244,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, p_scheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -198,12 +262,29 @@ public:
     /**
      * Destructor.
      */
-
     ~ResidualBasedNewtonRaphsonContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename StrategyBaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -223,9 +304,9 @@ public:
 
         // We predict contact pressure in case of contact problem
         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
             if (frictional) {
-                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+                VariableUtils().SetVariable(WEIGHTED_SLIP, zero_array, nodes_array);
             }
 
             // Compute the current gap
@@ -260,7 +341,7 @@ public:
 //
 //         // We predict contact pressure in case of contact problem
 //         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
-//             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+//             VariableUtils().SetVariable(WEIGHTED_GAP, 0.0, nodes_array);
 //
 //             // Compute the current gap
 //             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
@@ -433,6 +514,36 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_contact_strategy",
+            "adaptative_strategy"                 : false,
+            "split_factor"                        : 10.0,
+            "max_number_splits"                   : 3,
+            "inner_loop_iterations"               : 5
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -472,11 +583,26 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
+
     /**
      * @brief Solves the current step.
      * @details This function returns true if a solution has been found, false otherwise.
      */
-
     bool BaseSolveSolutionStep()
     {
         KRATOS_TRY;
@@ -780,7 +906,6 @@ protected:
      * @param b The RHS vector
      * @param MoveMesh The flag that tells if the mesh should be moved
      */
-
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -818,10 +943,10 @@ protected:
 
             // We check now the deformation gradient
             std::vector<Matrix> deformation_gradient_matrices;
-            it_elem->GetValueOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
+            it_elem->CalculateOnIntegrationPoints( DEFORMATION_GRADIENT, deformation_gradient_matrices, r_process_info);
 
             for (IndexType i_gp = 0; i_gp  < deformation_gradient_matrices.size(); ++i_gp) {
-                const double det_f = MathUtils<double>::DetMat(deformation_gradient_matrices[i_gp]);
+                const double det_f = MathUtils<double>::Det(deformation_gradient_matrices[i_gp]);
                 if (det_f < 0.0) {
                     if (mConvergenceCriteriaEchoLevel > 0) {
                         KRATOS_WATCH(it_elem->Id())
@@ -889,24 +1014,6 @@ protected:
     }
 
     /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "inner_loop_iterations"            : 5
-        })" );
-
-        return default_parameters;
-    }
-
-    /**
      * @brief This method prints information after solving the problem
      */
 
@@ -966,10 +1073,6 @@ protected:
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access

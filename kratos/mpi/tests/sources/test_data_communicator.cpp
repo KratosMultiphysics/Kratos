@@ -30,6 +30,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorRankAndSize, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorInquiryChecks, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    KRATOS_CHECK_EQUAL(serial_communicator.IsDefinedOnThisRank(), true);
+    KRATOS_CHECK_EQUAL(serial_communicator.IsNullOnThisRank(), false);
+    KRATOS_CHECK_EQUAL(serial_communicator.IsDistributed(), false);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
 {
     KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);

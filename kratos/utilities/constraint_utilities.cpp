@@ -17,6 +17,8 @@
 
 // Project includes
 #include "utilities/constraint_utilities.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -24,7 +26,7 @@ namespace ConstraintUtilities
 {
 void ComputeActiveDofs(
     ModelPart& rModelPart,
-    std::vector<bool>& rActiveDofs,
+    std::vector<int>& rActiveDofs,
     const ModelPart::DofsArrayType& rDofSet
     )
 {
@@ -33,27 +35,29 @@ void ComputeActiveDofs(
     // Base active dofs
     rActiveDofs.resize(rDofSet.size());
 
-    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
-    for(int i=0; i<static_cast<int>(rActiveDofs.size()); ++i) {
-        rActiveDofs[i] = true;
-    }
+    block_for_each(
+        rActiveDofs,
+        [](int& r_dof)
+        { r_dof = 1; }
+    );
 
-    //PLEASE DO NOT MAKE THIS LOOP PARALLEL - std::vector<bool> cannot be written to in parallel
-    for (int i = 0; i<static_cast<int>(rDofSet.size()); ++i) {
-        const auto it_dof = rDofSet.begin() + i;
-        if (it_dof->IsFixed()) {
-            rActiveDofs[it_dof->EquationId()] = false;
+    block_for_each(
+        rDofSet,
+        [&rActiveDofs](const ModelPart::DofType& rDof){
+            if (rDof.IsFixed()){
+                rActiveDofs[rDof.EquationId()] = 0;
+            }
         }
-    }
+    );
 
     // Filling rActiveDofs when MPC exist
     if (rModelPart.NumberOfMasterSlaveConstraints() > 0) {
         for (const auto& r_mpc : rModelPart.MasterSlaveConstraints()) {
             for (const auto& r_dof : r_mpc.GetMasterDofsVector()) {
-                rActiveDofs[r_dof->EquationId()] = false;
+                rActiveDofs[r_dof->EquationId()] = 0;
             }
             for (const auto& r_dof : r_mpc.GetSlaveDofsVector()) {
-                rActiveDofs[r_dof->EquationId()] = false;
+                rActiveDofs[r_dof->EquationId()] = 0;
             }
         }
     }
@@ -68,30 +72,24 @@ void ResetSlaveDofs(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    // The number of constraints
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     // Setting to zero the slave dofs
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
+    block_for_each(
+        rModelPart.MasterSlaveConstraints(),
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
+        {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
-            if (constraint_is_active) {
-                it_const->ResetSlaveDofs(r_current_process_info);
-            }
+            if (constraint_is_active)
+                rConstraint.ResetSlaveDofs(r_current_process_info);
         }
-    }
+    );
 
     KRATOS_CATCH("")
 }
@@ -103,30 +101,25 @@ void ApplyConstraints(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
-    // The number of constraints
-    const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
     // The current process info
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
     // Adding MPC contribution
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(guided, 512)
-        for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-            auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
+    block_for_each(
+        rModelPart.MasterSlaveConstraints(),
+        [&r_current_process_info](MasterSlaveConstraint& rConstraint)
+        {
             // Detect if the constraint is active or not. If the user did not make any choice the constraint
             // It is active by default
             bool constraint_is_active = true;
-            if (it_const->IsDefined(ACTIVE))
-                constraint_is_active = it_const->Is(ACTIVE);
+            if (rConstraint.IsDefined(ACTIVE))
+                constraint_is_active = rConstraint.Is(ACTIVE);
 
             if (constraint_is_active) {
-                it_const->Apply(r_current_process_info);
+                rConstraint.Apply(r_current_process_info);
             }
         }
-    }
+    );
 
     KRATOS_CATCH("")
 }
@@ -145,30 +138,30 @@ void PreComputeExplicitConstraintConstribution(
     KRATOS_ERROR_IF_NOT(rDofVariableNames.size() == rResidualDofVariableNames.size()) << "PreComputeExplicitConstraintConstribution not properly defined variables" << std::endl;
 
     // Defining variable maps
-    std::unordered_map<std::size_t, Variable<double>> double_variable_map;
-    typedef ModelPart::VariableComponentType VariableComponentType;
-    std::unordered_map<std::size_t, VariableComponentType> components_variable_map;
+    std::unordered_map<std::size_t, const Variable<double>*> variable_map;
 
     std::size_t counter = 0;
     for (auto& r_dof_variable_name : rDofVariableNames) {
         const std::string& r_reaction_variable_name = rResidualDofVariableNames[counter];
 
         if (KratosComponents<Variable<double>>::Has(r_dof_variable_name)) {
-            double_variable_map.insert(std::pair<std::size_t, Variable<double>>(KratosComponents<Variable<double>>::Get(r_dof_variable_name).Key(), KratosComponents<Variable<double>>::Get(r_reaction_variable_name)));
+            const auto& r_check_dof = KratosComponents<Variable<double>>::Get(r_dof_variable_name);
+            const auto& r_residual_dof = KratosComponents<Variable<double>>::Get(r_reaction_variable_name);
+            variable_map.insert({r_check_dof.Key(),&r_residual_dof});
         } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_dof_variable_name)) {
             // Getting the dof to check
-            const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_X");
-            const VariableComponentType& r_check_dof_y = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_Y");
-            const VariableComponentType& r_check_dof_z = KratosComponents<VariableComponentType>::Get(r_dof_variable_name + "_Z");
+            const Variable<double>& r_check_dof_x = KratosComponents<Variable<double>>::Get(r_dof_variable_name + "_X");
+            const Variable<double>& r_check_dof_y = KratosComponents<Variable<double>>::Get(r_dof_variable_name + "_Y");
+            const Variable<double>& r_check_dof_z = KratosComponents<Variable<double>>::Get(r_dof_variable_name + "_Z");
 
             // Getting the residual dofs
-            const VariableComponentType& r_residual_dof_x = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_X");
-            const VariableComponentType& r_residual_dof_y = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Y");
-            const VariableComponentType& r_residual_dof_z = KratosComponents<VariableComponentType>::Get(r_reaction_variable_name + "_Z");
+            const Variable<double>& r_residual_dof_x = KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_X");
+            const Variable<double>& r_residual_dof_y = KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_Y");
+            const Variable<double>& r_residual_dof_z = KratosComponents<Variable<double>>::Get(r_reaction_variable_name + "_Z");
 
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_x.Key(), r_residual_dof_x));
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_y.Key(), r_residual_dof_y));
-            components_variable_map.insert(std::pair<std::size_t, VariableComponentType>(r_check_dof_z.Key(), r_residual_dof_z));
+            variable_map.insert({r_check_dof_x.Key(), &r_residual_dof_x});
+            variable_map.insert({r_check_dof_y.Key(), &r_residual_dof_y});
+            variable_map.insert({r_check_dof_z.Key(), &r_residual_dof_z});
         } else {
             KRATOS_ERROR << "Variable is not an array or a double" << std::endl;
         }
@@ -210,11 +203,8 @@ void PreComputeExplicitConstraintConstribution(
                 if (r_dof_slave->Id() != p_slave_node->Id())
                     p_slave_node = rModelPart.pGetNode(r_dof_slave->Id());
 
-                if (double_variable_map.find(slave_variable_key) != double_variable_map.end()) {
-                    const auto& r_aux_var = double_variable_map.find(slave_variable_key)->second;
-                    slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
-                } else if (components_variable_map.find(slave_variable_key) != components_variable_map.end()) {
-                    const auto& r_aux_var = components_variable_map.find(slave_variable_key)->second;
+                if (variable_map.find(slave_variable_key) != variable_map.end()) {
+                    const auto& r_aux_var = *(variable_map.find(slave_variable_key)->second);
                     slave_solution_vector[counter] = p_slave_node->FastGetSolutionStepValue(r_aux_var);
                 } else {
                     slave_solution_vector[counter] = 0.0;
@@ -234,16 +224,10 @@ void PreComputeExplicitConstraintConstribution(
                 if (r_dof_master->Id() != p_master_node->Id())
                     p_master_node = rModelPart.pGetNode(r_dof_master->Id());
 
-                if (double_variable_map.find(master_variable_key) != double_variable_map.end()) {
-                    const auto& r_aux_var = double_variable_map.find(master_variable_key)->second;
+                if (variable_map.find(master_variable_key) != variable_map.end()) {
+                    const auto& r_aux_var = *(variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
-                    #pragma omp atomic
-                    aux_value += master_solution_vector[counter];
-                } else if (components_variable_map.find(master_variable_key) != components_variable_map.end()) {
-                    const auto& r_aux_var = components_variable_map.find(master_variable_key)->second;
-                    double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
-                    #pragma omp atomic
-                    aux_value += master_solution_vector[counter];
+                    AtomicAdd(aux_value, master_solution_vector[counter]);
                 }
 
                 ++counter;
@@ -268,24 +252,23 @@ void PreComputeExplicitConstraintMassAndInertia(
     KRATOS_TRY
 
     // Defining variable maps
-    typedef ModelPart::VariableComponentType VariableComponentType;
-    std::unordered_map<std::size_t, Variable<double>> displacement_variable_map;
-//     std::unordered_map<std::size_t, VariableComponentType> displacement_variable_map; // NOTE: Mass should be components for consistency
-//     std::unordered_map<std::size_t, VariableComponentType> rotation_variable_map; // TODO: Add in the future
+    std::unordered_map<std::size_t, const Variable<double>*> displacement_variable_map;
+//     std::unordered_map<std::size_t, const Variable<double>*> displacement_variable_map; // NOTE: Mass should be components for consistency
+//     std::unordered_map<std::size_t, const Variable<double>*> rotation_variable_map; // TODO: Add in the future
 
     // Getting the displacement dof to check
-    const VariableComponentType& r_check_dof_x = KratosComponents<VariableComponentType>::Get(DofDisplacementVariableName + "_X");
-    const VariableComponentType& r_check_dof_y = KratosComponents<VariableComponentType>::Get(DofDisplacementVariableName + "_Y");
-    const VariableComponentType& r_check_dof_z = KratosComponents<VariableComponentType>::Get(DofDisplacementVariableName + "_Z");
+    const Variable<double>& r_check_dof_x = KratosComponents<Variable<double>>::Get(DofDisplacementVariableName + "_X");
+    const Variable<double>& r_check_dof_y = KratosComponents<Variable<double>>::Get(DofDisplacementVariableName + "_Y");
+    const Variable<double>& r_check_dof_z = KratosComponents<Variable<double>>::Get(DofDisplacementVariableName + "_Z");
 
     // Getting the residual dofs
     const Variable<double>& r_mass_dof_x = KratosComponents<Variable<double>>::Get(MassVariableName);
     const Variable<double>& r_mass_dof_y = r_mass_dof_x;
     const Variable<double>& r_mass_dof_z = r_mass_dof_x;
 
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_x.Key(), r_mass_dof_x));
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_y.Key(), r_mass_dof_y));
-    displacement_variable_map.insert(std::pair<std::size_t, Variable<double>>(r_check_dof_z.Key(), r_mass_dof_z));
+    displacement_variable_map.insert({r_check_dof_x.Key(), &r_mass_dof_x});
+    displacement_variable_map.insert({r_check_dof_y.Key(), &r_mass_dof_y});
+    displacement_variable_map.insert({r_check_dof_z.Key(), &r_mass_dof_z});
 
     // Getting auxiliar variables
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -328,7 +311,7 @@ void PreComputeExplicitConstraintMassAndInertia(
 
             if (displacement_variable_map.find(slave_variable_key) != displacement_variable_map.end()) {
                 if (slave_mass_map_counter.find(dof_id) == slave_mass_map_counter.end()) {
-                    const auto& r_aux_var = displacement_variable_map.find(slave_variable_key)->second;
+                    const auto& r_aux_var = *(displacement_variable_map.find(slave_variable_key)->second);
                     slave_solution_vector[counter] = p_slave_node->GetValue(r_aux_var);
                     slave_mass_map_counter.insert(dof_id);
                 } else {
@@ -355,11 +338,9 @@ void PreComputeExplicitConstraintMassAndInertia(
 
             if (displacement_variable_map.find(master_variable_key) != displacement_variable_map.end()) {
                 if (mass_mass_map_counter.find(dof_id) == mass_mass_map_counter.end()) {
-                    const auto& r_aux_var = displacement_variable_map.find(master_variable_key)->second;
+                    const auto& r_aux_var = *(displacement_variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->GetValue(r_aux_var);
-
-                    #pragma omp atomic
-                    aux_value += master_solution_vector[counter];
+                    AtomicAdd(aux_value, master_solution_vector[counter]);
 
                     mass_mass_map_counter.insert(dof_id);
                 }

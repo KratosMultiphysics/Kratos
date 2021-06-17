@@ -4,7 +4,7 @@
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "HyperElastic3DLaw",
+                "name" : "LinearElastic3DLaw",
                 "combination_factors"      : [0.4, 0.3, 0.3 ]
             },
             "Variables"        : {
@@ -15,7 +15,7 @@
             "properties_id"   : 11,
             "Material"        : {
                 "constitutive_law" : {
-                    "name" : "HyperElastic3DLaw"
+                    "name" : "LinearElastic3DLaw"
                 },
                 "Variables"        : {
                     "THICKNESS"     : 0.000889,
@@ -28,7 +28,7 @@
                 "properties_id"   : 21,
                 "Material"        : {
                     "constitutive_law" : {
-                        "name" : "HyperElastic3DLaw"
+                        "name" : "LinearElastic3DLaw"
                     },
                     "Variables"        : {
                         "THICKNESS"     : 0.000889,
@@ -73,7 +73,7 @@
             "properties_id"   : 13,
             "Material"        : {
                 "constitutive_law" : {
-                    "name" : "HyperElastic3DLaw"
+                    "name" : "LinearElastic3DLaw"
                 },
                 "Variables"        : {
                     "THICKNESS"     : 0.000889,

@@ -16,6 +16,11 @@ def Prefix(pattern, model_part, time_format=''):
     if hasattr(model_part, 'ProcessInfo'):
         time = model_part.ProcessInfo[KratosMultiphysics.TIME]
         prefix = format(time, time_format).join(pattern.split('<time>'))
+        if KratosMultiphysics.STEP in model_part.ProcessInfo:
+            prefix = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
+        else:
+            # to be removed once analysis stage sets the STEP variable.
+            prefix = prefix.replace('<step>', "0")
     else:
         prefix = pattern
     if hasattr(model_part, 'Name'):
@@ -103,7 +108,94 @@ class ElementDataValueInput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5ElementDataValueIO(
-            self.GetSettings(model_part).Get(), hdf5_file).ReadElementResults(model_part.Elements)
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementResults(model_part.Elements,
+                                                                              model_part.GetCommunicator())
+
+class ElementFlagValueOutput(VariableIO):
+    '''Writes non-historical element flag values to a file.'''
+
+    def __init__(self, settings):
+        super(ElementFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteElementFlags(model_part.Elements)
+
+
+class ElementFlagValueInput(VariableIO):
+    '''Reads non-historical element flag values from a file.'''
+
+    def __init__(self, settings):
+        super(ElementFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadElementFlags(model_part.Elements,
+                                                                            model_part.GetCommunicator())
+
+class ElementGaussPointOutput(VariableIO):
+    '''Write element integration point values to a file.'''
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementGaussPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteElementGaussPointValues(
+                model_part.Elements,
+                model_part.GetCommunicator().GetDataCommunicator(),
+                model_part.ProcessInfo)
+
+class ConditionDataValueOutput(VariableIO):
+    '''Writes non-historical element data values to a file.'''
+
+    def __init__(self, settings):
+        super(ConditionDataValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionDataValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionResults(model_part.Conditions)
+
+
+class ConditionDataValueInput(VariableIO):
+    '''Reads non-historical element data values from a file.'''
+
+    def __init__(self, settings):
+        super(ConditionDataValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionDataValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionResults(model_part.Conditions,
+                                                                                model_part.GetCommunicator())
+
+class ConditionFlagValueOutput(VariableIO):
+    '''Writes non-historical element flag values to a file.'''
+
+    def __init__(self, settings):
+        super(ConditionFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionFlags(model_part.Conditions)
+
+
+class ConditionFlagValueInput(VariableIO):
+    '''Reads non-historical element flag values from a file.'''
+
+    def __init__(self, settings):
+        super(ConditionFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).ReadConditionFlags(model_part.Conditions,
+                                                                              model_part.GetCommunicator())
+
+class ConditionGaussPointOutput(VariableIO):
+    '''Write condition integration point values to a file.'''
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ConditionGaussPointOutput(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteConditionGaussPointValues(
+                model_part.Conditions,
+                model_part.GetCommunicator().GetDataCommunicator(),
+                model_part.ProcessInfo)
 
 
 class NodalSolutionStepDataOutput(VariableIO):
@@ -114,7 +206,7 @@ class NodalSolutionStepDataOutput(VariableIO):
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(
-            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part.Nodes, 0)
+            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part, 0)
 
 
 class NodalSolutionStepDataInput(VariableIO):
@@ -127,7 +219,7 @@ class NodalSolutionStepDataInput(VariableIO):
         nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         nodal_io.ReadNodalResults(
-            model_part.Nodes, model_part.GetCommunicator(), 0)
+            model_part, 0)
 
 
 class NodalDataValueOutput(VariableIO):
@@ -153,6 +245,29 @@ class NodalDataValueInput(VariableIO):
         primal_io.ReadNodalResults(
             model_part.Nodes, model_part.GetCommunicator())
 
+class NodalFlagValueOutput(VariableIO):
+    '''Writes non-historical nodal flag values to a file.'''
+
+    def __init__(self, settings):
+        super(NodalFlagValueOutput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        KratosHDF5.HDF5NodalFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalFlags(model_part.Nodes)
+
+
+class NodalFlagValueInput(VariableIO):
+    '''Reads non-historical nodal flag values from a file.'''
+
+    def __init__(self, settings):
+        super(NodalFlagValueInput, self).__init__(settings)
+
+    def __call__(self, model_part, hdf5_file):
+        primal_io = KratosHDF5.HDF5NodalFlagValueIO(
+            self.GetSettings(model_part).Get(), hdf5_file)
+        primal_io.ReadNodalFlags(
+            model_part.Nodes, model_part.GetCommunicator())
+
 
 class PrimalBossakOutput(VariableIO):
     '''Writes nodal solution step data to a file for Bossak time schemes.
@@ -174,7 +289,7 @@ class PrimalBossakOutput(VariableIO):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.SetAlphaBossak(self.alpha_bossak)
-        primal_io.WriteNodalResults(model_part.Nodes)
+        primal_io.WriteNodalResults(model_part)
 
 
 class PrimalBossakInput(VariableIO):
@@ -190,7 +305,7 @@ class PrimalBossakInput(VariableIO):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(
             self.GetSettings(model_part).Get(), hdf5_file)
         primal_io.ReadNodalResults(
-            model_part.Nodes, model_part.GetCommunicator())
+            model_part)
 
 
 class MoveMesh:
@@ -220,16 +335,36 @@ def Create(settings):
         return PartitionedModelPartOutput(settings)
     elif operation_type == 'element_data_value_output':
         return ElementDataValueOutput(settings)
+    elif operation_type == 'element_flag_value_output':
+        return ElementFlagValueOutput(settings)
     elif operation_type == 'element_data_value_input':
         return ElementDataValueInput(settings)
+    elif operation_type == 'element_flag_value_input':
+        return ElementFlagValueInput(settings)
+    elif operation_type == 'element_integration_point_output':
+        return ElementGaussPointOutput(settings)
+    elif operation_type == 'condition_data_value_output':
+        return ConditionDataValueOutput(settings)
+    elif operation_type == 'condition_flag_value_output':
+        return ConditionFlagValueOutput(settings)
+    elif operation_type == 'condition_data_value_input':
+        return ConditionDataValueInput(settings)
+    elif operation_type == 'condition_flag_value_input':
+        return ConditionFlagValueInput(settings)
+    elif operation_type == 'condition_integration_point_output':
+        return ConditionGaussPointOutput(settings)
     elif operation_type == 'nodal_solution_step_data_output':
         return NodalSolutionStepDataOutput(settings)
     elif operation_type == 'nodal_solution_step_data_input':
         return NodalSolutionStepDataInput(settings)
     elif operation_type == 'nodal_data_value_output':
         return NodalDataValueOutput(settings)
+    elif operation_type == 'nodal_flag_value_output':
+        return NodalFlagValueOutput(settings)
     elif operation_type == 'nodal_data_value_input':
         return NodalDataValueInput(settings)
+    elif operation_type == 'nodal_flag_value_input':
+        return NodalFlagValueInput(settings)
     elif operation_type == 'primal_bossak_output':
         return PrimalBossakOutput(settings)
     elif operation_type == 'primal_bossak_input':

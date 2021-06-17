@@ -12,7 +12,7 @@
 #include "includes/element.h"
 #include "geometries/geometry.h"
 #include "includes/properties.h"
-#include "utilities/indexed_object.h"
+#include "includes/indexed_object.h"
 #include "containers/global_pointers_vector.h"
 #include "custom_elements/rigid_body_element.h"
 

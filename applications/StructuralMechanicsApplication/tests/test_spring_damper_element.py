@@ -1,11 +1,17 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics import eigen_solver_factory
 
 from math import sqrt, sin, cos, pi, exp, atan
+
+from KratosMultiphysics import kratos_utilities
+if kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication"):
+    from KratosMultiphysics import LinearSolversApplication
+    feast_available = LinearSolversApplication.HasFEAST()
+else:
+    feast_available = False
 
 class SpringDamperElementTests(KratosUnittest.TestCase):
     def setUp(self):
@@ -58,7 +64,6 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
 
@@ -68,7 +73,6 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
                                                                         scheme,
-                                                                        linear_solver,
                                                                         convergence_criterion,
                                                                         builder_and_solver,
                                                                         max_iters,
@@ -182,7 +186,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.001
         time = 0.0
-        end_time = 4.0
+        end_time = 0.01
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -232,7 +236,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.01
         time = 0.0
-        end_time = 10.0
+        end_time = 0.1
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -275,7 +279,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         #time integration parameters
         dt = 0.05
         time = 0.0
-        end_time = 20.0
+        end_time = 1.0
         step = 0
 
         self._set_and_fill_buffer(mp,2,dt)
@@ -294,14 +298,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), \
                 current_analytical_displacement_y_2,delta=5e-2)
 
+    @KratosUnittest.skipUnless(feast_available,"FEAST is missing")
     def test_undamped_mdof_system_eigen(self):
-        import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-        # FEAST is available otherwise this test is not being called
-        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "PastixSolver"):
-            self.skipTest("Pastix Solver is not available")
-
         current_model = KratosMultiphysics.Model()
-
         mp = self._set_up_mdof_system(current_model)
 
         #set parameters
@@ -311,32 +310,27 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_DISPLACEMENT_STIFFNESS,[400.0,400.0,400.0])
 
         #create solver
-        eigen_solver_parameters = KratosMultiphysics.Parameters("""
-            {
-                "solver_type": "FEAST",
-                "print_feast_output": false,
-                "perform_stochastic_estimate": false,
-                "solve_eigenvalue_problem": true,
-                "lambda_min": 0.0,
-                "lambda_max": 4.0e5,
-                "number_of_eigenvalues": 2,
-                "search_dimension": 18,
-                "linear_solver_settings": {
-                    "solver_type" : "pastix",
-                    "echo_level" : 0
-                }
-            }""")
-        feast_system_solver = ExternalSolversApplication.PastixComplexSolver(eigen_solver_parameters["linear_solver_settings"])
-        eigen_solver = ExternalSolversApplication.FEASTSolver(eigen_solver_parameters, feast_system_solver)
-        scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        eigensolver_settings = KratosMultiphysics.Parameters("""{
+            "solver_type": "feast",
+            "symmetric": true,
+            "e_min": 0.0,
+            "e_max": 4.0e5,
+            "subspace_size": 18
+        }""")
+
+        eigen_solver = eigen_solver_factory.ConstructSolver(eigensolver_settings)
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_solver)
 
-        solver = StructuralMechanicsApplication.EigensolverStrategy(
-            mp,
-            scheme,
-            builder_and_solver)
+        eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
+        mass_matrix_diagonal_value = 1.0
+        stiffness_matrix_diagonal_value = -1.0
+        eig_strategy = StructuralMechanicsApplication.EigensolverStrategy(mp,
+                                                                    eigen_scheme,
+                                                                    builder_and_solver,
+                                                                    mass_matrix_diagonal_value,
+                                                                    stiffness_matrix_diagonal_value)
 
-        solver.Solve()
+        eig_strategy.Solve()
 
         current_eigenvalues = [ev for ev in mp.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
         analytical_eigenvalues = [5,20]

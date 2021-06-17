@@ -10,7 +10,7 @@
 
 import KratosMultiphysics as KM
 from .packaging_response_base import PackagingResponseBase
-from .. import custom_math as cm
+from KratosMultiphysics.ShapeOptimizationApplication.utilities import custom_math as cm
 
 class PlaneBasedPackaging(PackagingResponseBase):
     """
@@ -33,12 +33,12 @@ class PlaneBasedPackaging(PackagingResponseBase):
         self.plane_normal = cm.ScalarVectorProduct(1.0/cm.Norm2(self.plane_normal), self.plane_normal)
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "plane_origin"          : [0.0, 0.0, 0.0],
             "plane_normal"          : [0.0, 0.0, 1.0]
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def _DistanceVectorToPlane(self, node):

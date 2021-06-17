@@ -57,7 +57,7 @@ namespace ConstraintUtilities
      */
     void KRATOS_API(KRATOS_CORE) ComputeActiveDofs(
         ModelPart& rModelPart,
-        std::vector<bool>& rActiveDofs,
+        std::vector<int>& rActiveDofs,
         const ModelPart::DofsArrayType& rDofSet
         );
 

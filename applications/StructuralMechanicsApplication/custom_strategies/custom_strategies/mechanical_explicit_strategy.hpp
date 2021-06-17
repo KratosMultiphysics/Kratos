@@ -68,7 +68,7 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef ModelPart::VariableComponentType VariableComponentType;
+
     /// DoF types definition
     typedef typename Node<3>::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;

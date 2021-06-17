@@ -215,7 +215,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::GetValuesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJPElement::GetValuesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -249,7 +249,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJPElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -279,7 +279,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJPElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();

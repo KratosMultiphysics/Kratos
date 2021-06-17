@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/data_communicator.h"
+#include "includes/fill_communicator.h"
 
 namespace Kratos
 {
@@ -31,6 +32,23 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
+
+class KRATOS_API(KRATOS_CORE) EnvironmentManager
+{
+  public:
+    typedef std::unique_ptr<EnvironmentManager> Pointer;
+
+    EnvironmentManager(EnvironmentManager& rOther) = delete;
+
+    virtual ~EnvironmentManager() = default;
+
+    virtual bool IsInitialized() const = 0;
+
+    virtual bool IsFinalized() const = 0;
+
+  protected:
+    EnvironmentManager() = default;
+};
 
 /// Holder for general data related to MPI (or suitable serial equivalents for non-MPI runs).
 /** This class manages a registry of DataCommunicators, which can be used to perform MPI communication.
@@ -66,9 +84,59 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Get the MPI Comm size, as given by the default DataCommunicator.
     static int GetDefaultSize();
 
+    /// Get the MPI Comm size, as given by the default DataCommunicator.
+    static std::string RetrieveRegisteredName(const DataCommunicator& rComm);
+
     ///@}
     ///@name Operations
     ///@{
+
+    static void SetUpMPIEnvironment(EnvironmentManager::Pointer pEnvironmentManager);
+
+    /**
+     * @brief Registers the fill communicator factory
+     * This method takes the provided fill communicator pointer factory and saves it to be used later on
+     * @param FillCommunicatorFactory Factory function returning a pointer to a (parrallel or serial) fill communicator
+     */
+    static void RegisterFillCommunicatorFactory(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
+
+    /**
+     * @brief Registers the fill communicator factory
+     * This method takes the provided fill communicator pointer factory and saves it to be used later on
+     * @param CommunicatorFactory Factory function returning a pointer to a (parrallel or serial) communicator
+     */
+    template<class TDataCommunicatorInputType>
+    static void RegisterCommunicatorFactory(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory);
+
+    /**
+     * @brief Create a fill communicator object
+     * This method uses the previously registered fill communicator factory for the creation of a new fill communicator pointer
+     * @param rModelPart Model part to which the fill communicator will be applied
+     * @return FillCommunicator::Pointer Pointer to the new fill communicator instance
+     */
+    static FillCommunicator::Pointer CreateFillCommunicator(ModelPart& rModelPart);
+
+    /**
+     * @brief Create a Communicator object
+     * This method uses the previously registered communicator factory for the creation of a new communicator pointer
+     * @param rModelPart Model part required to retrieve the variables list from it
+     * @param rDataCommunicatorName Name of the data communicator to be retrieved for the communicator construction
+     * @return Communicator::UniquePointer Unique pointer to the new communicator
+     */
+    static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
+      ModelPart& rModelPart,
+      const std::string& rDataCommunicatorName);
+
+    /**
+     * @brief Create a Communicator object
+     * This method uses the previously registered communicator factory for the creation of a new communicator pointer
+     * @param rModelPart Model part required to retrieve the variables list from it
+     * @param pDataCommunicator Pointer to the data communicator to be used for the communicator construction
+     * @return Communicator::UniquePointer Unique pointer to the new communicator
+     */
+    static Communicator::UniquePointer CreateCommunicatorFromGlobalParallelism(
+      ModelPart& rModelPart,
+      DataCommunicator& rDataCommunicator);
 
     /// Add a new DataCommunicator instance to the ParallelEnvironment.
     /** @param rName The name to be used to identify the DataCommunicator within ParallelEnvironment.
@@ -77,8 +145,14 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
      */
     static void RegisterDataCommunicator(
         const std::string& rName,
-        const DataCommunicator& rPrototype,
+        DataCommunicator::UniquePointer pPrototype,
         const bool Default = DoNotMakeDefault);
+
+    /// Remove a DataCommunicator instance from the ParallelEnvironment.
+    /** @param rName The name used to register the DataCommunicator within ParallelEnvironment.
+     */
+    static void UnregisterDataCommunicator(
+        const std::string& rName);
 
     ///@}
     ///@name Inquiry
@@ -90,6 +164,10 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     /// Get the registered name of the current default.
     /** This is a convenience function to help with temporarily changing the default DataCommunicator. */
     static std::string GetDefaultDataCommunicatorName();
+
+    static bool MPIIsInitialized();
+
+    static bool MPIIsFinalized();
 
     ///@}
     ///@name Input and output
@@ -123,10 +201,19 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     static void Create();
 
+    void SetUpMPIEnvironmentDetail(EnvironmentManager::Pointer pEnvironmentManager);
+
+    void RegisterFillCommunicatorFactoryDetail(std::function<FillCommunicator::Pointer(ModelPart&)> FillCommunicatorFactory);
+
+    template<class TDataCommunicatorInputType>
+    void RegisterCommunicatorFactoryDetail(std::function<Communicator::UniquePointer(ModelPart&, TDataCommunicatorInputType&)> CommunicatorFactory);
+
     void RegisterDataCommunicatorDetail(
         const std::string& Name,
-        const DataCommunicator& rPrototype,
+        DataCommunicator::UniquePointer pPrototype,
         const bool Default = DoNotMakeDefault);
+
+    void UnregisterDataCommunicatorDetail(const std::string& Name);
 
     DataCommunicator& GetDataCommunicatorDetail(const std::string& rName) const;
 
@@ -139,6 +226,10 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
     ///@{
 
     bool HasDataCommunicatorDetail(const std::string& rName) const;
+
+    bool MPIIsInitializedDetail() const;
+
+    bool MPIIsFinalizedDetail() const;
 
     ///@}
     ///@name Private Access
@@ -169,8 +260,16 @@ class KRATOS_API(KRATOS_CORE) ParallelEnvironment
 
     std::unordered_map<std::string, DataCommunicator::UniquePointer>::iterator mDefaultCommunicator;
 
+    std::function<FillCommunicator::Pointer(ModelPart&)> mFillCommunicatorFactory;
+
+    std::function<Communicator::UniquePointer(ModelPart&, const std::string&)> mCommunicatorStringFactory;
+
+    std::function<Communicator::UniquePointer(ModelPart&, DataCommunicator&)> mCommunicatorReferenceFactory;
+
     int mDefaultRank;
     int mDefaultSize;
+
+    EnvironmentManager::Pointer mpEnvironmentManager;
 
     static ParallelEnvironment* mpInstance;
     static bool mDestroyed;

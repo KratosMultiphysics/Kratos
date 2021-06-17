@@ -34453,7 +34453,7 @@ Begin Elements Fluid2D
 End Elements
 
 
-Begin Conditions Condition2D
+Begin Conditions LineCondition2D2N
 22827 0        1        3
 22828 0        3        6
 22829 0        6        11

@@ -169,3 +169,13 @@ Begin SubModelPart sensitivity_mp // Group Beam // Subtree Parts
     End SubModelPart
 End SubModelPart
 
+Begin SubModelPart response_mp
+    Begin SubModelPartNodes
+        6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+

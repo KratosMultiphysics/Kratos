@@ -75,7 +75,7 @@ namespace Kratos
  * as a projection from the virtual mesh. This is required to consistently
  * initialize the historical values when nodes change its topological status.
  */
-class FixedMeshALEUtilities
+class KRATOS_API(MESH_MOVING_APPLICATION) FixedMeshALEUtilities
 {
 public:
     ///@name Type Definitions
@@ -288,7 +288,7 @@ private:
      * Return the default FM-ALE settings
      * @return Parameters json string encapsulation the default settings
      */
-    Parameters GetDefaultSettings();
+    Parameters GetDefaultParameters();
 
     /**
      * @brief Set the Linear Solver Pointer object

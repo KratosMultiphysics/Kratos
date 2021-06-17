@@ -28,7 +28,7 @@
 #include "geometries/geometry_data.h"
 #include "geometries/point.h"
 #include "containers/pointer_vector.h"
-
+#include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
 
@@ -143,6 +143,7 @@ public:
     */
     typedef std::size_t SizeType;
 
+
     typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
 
@@ -220,9 +221,25 @@ public:
     ///@name Life Cycle
     ///@{
 
-    Geometry() : mpGeometryData(&GeometryDataInstance())
+    /// Standard Constructor. Generates self assigned id.
+    Geometry()
+        : mId(GenerateSelfAssignedId())
+        , mpGeometryData(&GeometryDataInstance())
     {
+    }
 
+    /// Standard Constructor with a geometry Id
+    Geometry(IndexType GeomertyId)
+        : mpGeometryData(&GeometryDataInstance())
+    {
+        SetId(GeomertyId);
+    }
+
+    /// Standard Constructor with a Name
+    Geometry(std::string GeometryName)
+        : mId(GenerateId(GeometryName))
+        , mpGeometryData(&GeometryDataInstance())
+    {
     }
 
     /** Complete argument constructor. This constructor gives a
@@ -283,41 +300,70 @@ public:
     have gaussian orden two ThisShapeFunctionsValues[GI_GAUSS_2]
     must be an empty ShapeFunctionsGradientsType.
     */
-    Geometry(const PointsArrayType &ThisPoints,
-             GeometryData const *pThisGeometryData = &GeometryDataInstance())
-        :  mpGeometryData(pThisGeometryData),
-           mPoints(ThisPoints)
+    Geometry(
+        const PointsArrayType &ThisPoints,
+        GeometryData const *pThisGeometryData = &GeometryDataInstance())
+        : mId(GenerateSelfAssignedId())
+        , mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
     {
     }
 
-    /** Copy constructor.
-    Construct this geometry as a copy of given geometry.
+    Geometry(
+        IndexType GeometryId,
+        const PointsArrayType& ThisPoints,
+        GeometryData const* pThisGeometryData = &GeometryDataInstance())
+        : mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
+    {
+        SetId(GeometryId);
+    }
 
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    Geometry(
+        std::string GeometryName,
+        const PointsArrayType& ThisPoints,
+        GeometryData const* pThisGeometryData = &GeometryDataInstance())
+        : mId(GenerateId(GeometryName))
+        , mpGeometryData(pThisGeometryData)
+        , mPoints(ThisPoints)
+    {
+    }
+
+    /**
+    * @brief Copy constructor
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
     Geometry( const Geometry& rOther )
-        : mpGeometryData( rOther.mpGeometryData ),
-          mPoints( rOther.mPoints)
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mPoints(rOther.mPoints),
+          mData(rOther.mData)
     {
     }
 
-
-    /** Copy constructor from a geometry with other point type.
-    Construct this geometry as a copy of given geometry which
-    has different type of points. The given goemetry's
-    TOtherPointType* must be implicity convertible to this
-    geometry PointType.
-
-    @note This copy constructor don't copy the points and new
-    geometry shares points with given source geometry. It's
-    obvious that any change to this new geometry's point affect
-    source geometry's points too.
+    /**
+    * @brief Copy constructor with TOtherPointType
+    *
+    *        Copies geometry with a different type of points.
+    *        TOtherPointType* must be implicity convertible
+    *        to TPointType of the original geometry.
+    *
+    * @note Does not copy the points but shares same points with
+    *       the original geometry. Any change to the points of the
+    *       copied geometry affect point of original geometry, too.
+    * @note Copied geometry shares the same Id as the
+    *       original geometry.
     */
-    template<class TOtherPointType> Geometry( Geometry<TOtherPointType> const & rOther )
-        : mpGeometryData(rOther.mpGeometryData)
+    template<class TOtherPointType>
+    Geometry( Geometry<TOtherPointType> const & rOther )
+        : mId(rOther.mId),
+          mpGeometryData(rOther.mpGeometryData),
+          mData(rOther.mData)
     {
         mPoints = new PointsArrayType(rOther.begin(), rOther.end());
     }
@@ -353,6 +399,7 @@ public:
     {
         mpGeometryData = rOther.mpGeometryData;
         mPoints = rOther.mPoints;
+        mData = rOther.mData;
 
         return *this;
     }
@@ -389,22 +436,22 @@ public:
     ///@name PointerVector Operators
     ///@{
 
-     virtual TPointType& operator[](const SizeType& i)
+    TPointType& operator[](const SizeType& i)
     {
         return mPoints[i];
     }
 
-    virtual TPointType const& operator[](const SizeType& i) const
+    TPointType const& operator[](const SizeType& i) const
     {
         return mPoints[i];
     }
 
-    virtual PointPointerType& operator()(const SizeType& i)
+    PointPointerType& operator()(const SizeType& i)
     {
         return mPoints(i);
     }
 
-    virtual ConstPointPointerType& operator()(const SizeType& i) const
+    ConstPointPointerType& operator()(const SizeType& i) const
     {
         return mPoints(i);
     }
@@ -413,89 +460,105 @@ public:
     ///@name PointerVector Operations
     ///@{
 
-    virtual iterator                   begin()
+    iterator                   begin()
     {
         return iterator(mPoints.begin());
     }
-    virtual const_iterator             begin() const
+    const_iterator             begin() const
     {
         return const_iterator(mPoints.begin());
     }
-    virtual iterator                   end()
+    iterator                   end()
     {
         return iterator(mPoints.end());
     }
-    virtual const_iterator             end() const
+    const_iterator             end() const
     {
         return const_iterator(mPoints.end());
     }
-    virtual ptr_iterator               ptr_begin()
+    ptr_iterator               ptr_begin()
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_const_iterator         ptr_begin() const
+    ptr_const_iterator         ptr_begin() const
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_iterator               ptr_end()
+    ptr_iterator               ptr_end()
     {
         return mPoints.ptr_end();
     }
-    virtual ptr_const_iterator         ptr_end() const
+    ptr_const_iterator         ptr_end() const
     {
         return mPoints.ptr_end();
     }
-    virtual PointReferenceType        front()       /* nothrow */
+    PointReferenceType        front()       /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual ConstPointReferenceType  front() const /* nothrow */
+    ConstPointReferenceType  front() const /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual PointReferenceType        back()        /* nothrow */
+    PointReferenceType        back()        /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
-    virtual ConstPointReferenceType  back() const  /* nothrow */
+    ConstPointReferenceType  back() const  /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
 
-    virtual SizeType size() const
+    SizeType size() const
     {
         return mPoints.size();
     }
-    virtual SizeType max_size() const
+
+    /**
+    * @detail Returns the number of the points/ nodes
+    *         belonging to this geometry.
+    * @return Number of points/ nodes.
+    */
+    SizeType PointsNumber() const {
+        return this->size();
+    }
+
+    /// Returns number of points per direction.
+    virtual SizeType PointsNumberInDirection(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
+    }
+
+    SizeType max_size() const
     {
         return mPoints.max_size();
     }
 
-    virtual void swap(GeometryType& rOther)
+    void swap(GeometryType& rOther)
     {
         mPoints.swap(rOther.mPoints);
     }
 
-    virtual void push_back(PointPointerType x)
+    void push_back(PointPointerType x)
     {
         mPoints.push_back(x);
     }
 
-    virtual void clear()
+    void clear()
     {
         mPoints.clear();
     }
 
-    virtual void reserve(int dim)
+    void reserve(int dim)
     {
         mPoints.reserve(dim);
     }
 
-    virtual int capacity()
+    int capacity()
     {
         return mPoints.capacity();
     }
@@ -505,22 +568,170 @@ public:
     /////@{
 
     ///** Gives a reference to underly normal container. */
-    virtual PointPointerContainerType& GetContainer()
+    PointPointerContainerType& GetContainer()
     {
         return mPoints.GetContainer();
     }
 
     /** Gives a constant reference to underly normal container. */
-    virtual const PointPointerContainerType& GetContainer() const
+    const PointPointerContainerType& GetContainer() const
     {
         return mPoints.GetContainer();
     }
 
     ///@}
+    ///@name Data Container
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& GetData()
+    {
+      return mData;
+    }
+
+    DataValueContainer const& GetData() const
+    {
+      return mData;
+    }
+
+    void SetData(DataValueContainer const& rThisData)
+    {
+      mData = rThisData;
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /* Assigns a value to the geometry,
+     * according to a variable.
+     * Allows dynamic interfaces with each respective geometry.
+     */
+
+    /// Assign with bool
+    virtual void Assign(
+        const Variable<bool>& rVariable,
+        const bool Input) {}
+
+    /// Assign with int
+    virtual void Assign(
+        const Variable<int>& rVariable,
+        const int Input) {}
+
+    /// Assign with double
+    virtual void Assign(
+        const Variable<double>& rVariable,
+        const double Input) {}
+
+    /// Assign with array_1d<double, 2>
+    virtual void Assign(
+        const Variable<array_1d<double, 2>>& rVariable,
+        const array_1d<double, 2>& rInput) {}
+
+    /// Assign with array_1d<double, 3>
+    virtual void Assign(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const array_1d<double, 3>& rInput) {}
+
+    /// Assign with array_1d<double, 6>
+    virtual void Assign(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const array_1d<double, 6>& rInput) {}
+
+    /// Assign with Vector
+    virtual void Assign(
+        const Variable<Vector>& rVariable,
+        const Vector& rInput) {}
+
+    /// Assign with Matrix
+    virtual void Assign(
+        const Variable<Matrix>& rVariable,
+        const Matrix& rInput) {}
+
+    /* Calculate either provides, gets or calculates a certain value,
+     * according to a variable.
+     */
+
+    /// Calculate with bool
+    virtual void Calculate(
+        const Variable<bool>& rVariable,
+        bool& rOutput) const {}
+
+    /// Calculate with int
+    virtual void Calculate(
+        const Variable<int>& rVariable,
+        int& rOutput) const {}
+
+    /// Calculate with double
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput) const {}
+
+    /// Calculate with array_1d<double, 2>
+    virtual void Calculate(
+        const Variable<array_1d<double, 2>>& rVariable,
+        array_1d<double, 2>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 3>
+    virtual void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 6>
+    virtual void Calculate(
+        const Variable<array_1d<double, 6>>& rVariable,
+        array_1d<double, 6>& rOutput) const {}
+
+    /// Calculate with Vector
+    virtual void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const {}
+
+    /// Calculate with Matrix
+    virtual void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput) const {}
+
+    ///@}
     ///@name Inquiry
     ///@{
 
-    virtual bool empty() const
+    bool empty() const
     {
         return mPoints.empty();
     }
@@ -529,9 +740,120 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Pointer Create( PointsArrayType const& ThisPoints ) const
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const
     {
-        return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
+        // Create geometry
+        auto p_geom = this->Create(0, rThisPoints);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const
+    {
+        auto p_geom = this->Create(0, rThisPoints);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const GeometryType& rGeometry
+    ) const
+    {
+        // Create geometry
+        auto p_geom = this->Create(0, rGeometry);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        const GeometryType& rGeometry
+    ) const
+    {
+        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        const GeometryType& rGeometry
+        ) const
+    {
+        auto p_geom = this->Create(0, rGeometry);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
     }
 
     /** This methods will create a duplicate of all its points and
@@ -542,26 +864,92 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-     // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
-     // {
-     //     Geometry< Point >::PointsArrayType NewPoints;
+    ///@}
+    ///@name Geometry Data and Geometry Shape Function Container
+    ///@{
 
-     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    /**
+    * @brief GeometryData contains all information about dimensions
+    *        and has a set of precomputed values for integration points
+    *        and shape functions, including derivatives.
+    * @return the geometry data of a certain geometry class.
+    */
+    GeometryData const& GetGeometryData() const
+    {
+        return *mpGeometryData;
+    }
 
-     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
-     //     {
-     //        NewPoints.push_back(Kratos::make_shared< Point >((*mpPointVector)[i]));
-     //     }
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     *        E.g. QuadraturePointGeometries.
+     */
+    virtual void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>&  rGeometryShapeFunctionContainer)
+    {
+        KRATOS_ERROR <<
+            "Calling SetGeometryShapeFunctionContainer from base geometry class."
+            << std::endl;
+    }
 
-     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
+    ///@}
+    ///@name Id
+    ///@{
 
-     //     //creating a geometry with the new points
-     //     Geometry< Point >::Pointer p_clone( new Geometry< Point >( NewPoints ) );
+    /// Id of this Geometry
+    IndexType const& Id() const
+    {
+        return mId;
+    }
 
-     //     p_clone->ClonePoints();
+    /// Returns if id was generated from a geometry name
+    bool IsIdGeneratedFromString()
+    {
+        return IsIdGeneratedFromString(mId);
+    }
 
-     //     return p_clone;
-     // }
+    /// Returns if id was generated by itself
+    bool IsIdSelfAssigned()
+    {
+        return IsIdSelfAssigned(mId);
+    }
+
+    /// Sets Id of this Geometry
+    void SetId(const IndexType Id)
+    {
+        // The first bit of the Id is used to detect if Id
+        // is int or hash of name. Second bit defines if Id
+        // is self assigned or not.
+        KRATOS_ERROR_IF(IsIdGeneratedFromString(Id)
+            || IsIdSelfAssigned(Id))
+            << "Id: " << Id << " out of range. The Id must me lower than 2^62 = 4.61e+18. "
+            << "Geometry being recognized as generated from string: " << IsIdGeneratedFromString(Id)
+            << ", self assigned: " << IsIdSelfAssigned(Id) << "."
+            << std::endl;
+
+        mId = Id;
+    }
+
+    /// Sets Id with the use of the name of this geometry
+    void SetId(const std::string& rName)
+    {
+        mId = GenerateId(rName);
+    }
+
+    /// Gets the corresponding hash-Id to a string name
+    static inline IndexType GenerateId(const std::string& rName)
+    {
+        // Create id hash from provided name.
+        std::hash<std::string> string_hash_generator;
+        auto id = string_hash_generator(rName);
+
+        // Sets first bit to one.
+        SetIdGeneratedFromString(id);
+
+        // Sets second bit to zero.
+        SetIdNotSelfAssigned(id);
+
+        return id;
+    }
 
     ///@}
     ///@name Parent
@@ -591,6 +979,126 @@ public:
         KRATOS_ERROR <<
             "Calling SetGeometryParent from base geometry class."
             << std::endl;
+    }
+
+    ///@}
+    ///@name Geometry part functions
+    ///@{
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return reference to corresponding geometry.
+     */
+    virtual GeometryType& GetGeometryPart(const IndexType Index)
+    {
+        return *pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the
+    *        the geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return const reference to corresponding geometry.
+    */
+    virtual const GeometryType& GetGeometryPart(const IndexType Index) const
+    {
+        return *pGetGeometryPart(Index);
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the pointer
+    *        of a geometry part, corresponding to the Index.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return pointer to corresponding geometry.
+    */
+    virtual typename GeometryType::Pointer pGetGeometryPart(const IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Used for composite geometries. It returns the const pointer
+    *        of a geometry part, corresponding to the Index.
+    * @details This index is dependent on the derived implementation.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return const pointer to corresponding geometry.
+    */
+    virtual const typename GeometryType::Pointer pGetGeometryPart(const IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'pGetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Allows to exchange certain geometries.
+     * @param Index of the geometry part. 0->Master; 1->Slave
+     * @param pGeometry The new geometry to add
+     */
+    virtual void SetGeometryPart(
+        const IndexType Index,
+        GeometryType::Pointer pGeometry
+        )
+    {
+        KRATOS_ERROR << "Calling base class 'SetGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Allows to enhance the coupling geometry, with another geometry.
+     * @param pGeometry The new geometry to add
+     */
+    virtual IndexType AddGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'AddGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param pGeometry The new geometry to remove
+     */
+    virtual void RemoveGeometryPart(GeometryType::Pointer pGeometry)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+     * @brief Removes a geometry part
+     * @param Index of the geometry part.
+     */
+    virtual void RemoveGeometryPart(const IndexType Index)
+    {
+        KRATOS_ERROR << "Calling base class 'RemoveGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @brief Use to check if certain Indexed object is
+    *        within the geometry parts of this geometry.
+    * @param Index of the geometry part. This index can be used differently
+    *        within the derived classes.
+    * @return true if has geometry part
+    */
+    virtual bool HasGeometryPart(const IndexType Index) const
+    {
+        KRATOS_ERROR << "Calling base class 'HasGeometryPart' method instead of derived function."
+            << " Please check the definition in the derived class. " << *this << std::endl;
+    }
+
+    /**
+    * @return the number of geometry parts that this geometry contains.
+    */
+    virtual SizeType NumberOfGeometryParts() const
+    {
+        return 0;
     }
 
     ///@}
@@ -740,13 +1248,19 @@ public:
         return mpGeometryData->LocalSpaceDimension();
     }
 
-    /** Returns number of the points which this geometry has.
-     *
-     * @return SizeType, number of the points in this geometry.
-     */
-    SizeType PointsNumber() const {
-      return this->size();
+    ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the geometry in a certain direction
+    virtual SizeType PolynomialDegree(IndexType LocalDirectionIndex) const
+    {
+        KRATOS_ERROR << "Trying to access PolynomialDegree from geometry base class." << std::endl;
     }
+
+    ///@}
+    ///@name Geometrical Informations
+    ///@{
 
     /** This method calculate and return Length or charactereistic
      * length of this geometry depending to it's dimension. For one
@@ -1106,7 +1620,7 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex, ThisMethod);
         const double norm_normal = norm_2(normal_vector);
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
@@ -1115,21 +1629,6 @@ public:
             << "ERROR: The normal norm is zero or almost zero: "
             << norm_normal << std::endl;
         return normal_vector;
-    }
-
-    ///@}
-    ///@name  Geometry Data
-    ///@{
-
-    /**
-    * @brief GeometryData contains all information about dimensions
-    *        and has a set of precomputed values for integration points
-    *        and shape functions, including derivatives.
-    * @return the geometry data of a certain geometry class.
-    */
-    GeometryData const& GetGeometryData() const
-    {
-        return *mpGeometryData;
     }
 
     ///@}
@@ -1281,29 +1780,6 @@ public:
         KRATOS_TRY
         return mPoints[Index];
         KRATOS_CATCH(mPoints);
-    }
-
-    /**
-    * @brief This function is necessary for composite geometries. It returns the
-    * geometry part which is accessable with a certain index.
-    * @details This index
-    * is dependent on the derived implementation.
-    * @param Index of the geometry part. This index can be used differently
-    *        within the derived classes
-    * @return geometry, which is connected through the Index
-     */
-    virtual GeometryType& GetGeometryPart(IndexType Index) const
-    {
-        KRATOS_ERROR << "Calling base class 'GetGeometryPart' method instead of derived function."
-            <<" Please check the definition in the derived class. " << *this << std::endl;
-    }
-
-    /**
-    * @return the number of geometry parts that this geometry contains.
-    */
-    virtual SizeType NumberOfGeometryParts() const
-    {
-        return 0;
     }
 
     /**
@@ -1739,6 +2215,64 @@ public:
     const IntegrationPointsArrayType& IntegrationPoints( IntegrationMethod ThisMethod ) const
     {
         return mpGeometryData->IntegrationPoints( ThisMethod );
+    }
+
+    /* Creates integration points according to its quadrature rule.
+     * @return integration points.
+     */
+    virtual void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const
+    {
+        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    ///@}
+    ///@name Quadrature Point Geometries
+    ///@{
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param rIntegrationPoints list of integration points.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints)
+    {
+        KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+    }
+
+    /* @brief This method creates a list of quadrature point geometries
+     *        from a list of integration points. It creates the list of
+     *        integration points byitself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    virtual void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives)
+    {
+        IntegrationPointsArrayType IntegrationPoints;
+        CreateIntegrationPoints(IntegrationPoints);
+
+        this->CreateQuadraturePointGeometries(
+            rResultGeometries,
+            NumberOfShapeFunctionDerivatives,
+            IntegrationPoints);
     }
 
     ///@}
@@ -2905,16 +3439,34 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
     * @param IntegrationPointIndex the corresponding contorl point of this geometry
-    * @return the shape function or derivative value related to the input parameters
-    *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */
     const Matrix& ShapeFunctionDerivatives(
         IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        return mpGeometryData->ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, ThisMethod);
+    }
+
+    /*
+    * @brief access to the shape function derivatives.
+    * @param DerivativeOrderIndex defines the wanted order of the derivative
+    *        0 is NOT accessible
+    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @return the shape function derivative matrix.
+    *         The matrix is structured: (derivative dN_de / dN_du , the corresponding node)
+    */
+    const Matrix& ShapeFunctionDerivatives(
+        IndexType DerivativeOrderIndex,
+        IndexType IntegrationPointIndex) const
+    {
+        return mpGeometryData->ShapeFunctionDerivatives(
+            DerivativeOrderIndex, IntegrationPointIndex, GetDefaultIntegrationMethod());
     }
 
     /** This method gives second order derivatives of all shape
@@ -3020,116 +3572,95 @@ public:
         return rResult;
     }
 
+    virtual int Check() const
+    {
+        KRATOS_TRY
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
 
-    /** Returns geometry information as a string.
-     * Returns geometry information as a string.
-     *
-     * @return String contains information about this geometry.
-     *
-     * @see Name()
-     */
-    virtual std::string Info() const {
-      std::stringstream buffer;
-      buffer << Dimension() << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    /// Return geometry information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Geometry # "
+            << std::to_string(mId) << ": "
+            << Dimension() << " dimensional geometry in "
+            << WorkingSpaceDimension() << "D space";
 
-      return buffer.str();
+        return buffer.str();
     }
 
-    /** Returns the name of the geometry as a string.
-     * Returns the name of the geometry as a string.
-     *
-     * Note: compiler's RVO should optimize this code automatically.
-     *
-     * @return String with the name of the geometry.
-     *
-     * @see Info()
-     */
+    /// Returns name.
     virtual std::string Name() const {
-      std::string geometryName = "BaseGeometry";
-      KRATOS_ERROR << "Base geometry does not have a name." << std::endl;
-      return geometryName;
+        std::string geometryName = "BaseGeometry";
+        KRATOS_ERROR << "Base geometry does not have a name." << std::endl;
+        return geometryName;
     }
 
-    /** Prints information about this object.
-     * Prints information about this object.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintName()
-     * @see PrintData()
-     */
-    virtual void PrintInfo(std::ostream& rOStream) const {
-      rOStream << Dimension()  << " dimensional geometry in " << WorkingSpaceDimension() << "D space";
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
     }
 
-    /** Prints the name of the geometry.
-     * Prints the name of the geometry.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintInfo()
-     * @see PrintData()
-     */
+    /// Print name.
     virtual void PrintName(std::ostream& rOstream) const {
-      rOstream << Name() << std::endl;
+        rOstream << Name() << std::endl;
     }
 
-    /** Print geometry's data into given stream.
-     * Prints it's points by the order they stored in the
-     * geometry and then center point of geometry.
-     *
-     * @param rOStream Output Stream.
-     *
-     * @see PrintInfo()
-     * @see PrintName()
-     */
-    virtual void PrintData( std::ostream& rOStream ) const {
-      if(mpGeometryData) {
-        mpGeometryData->PrintData( rOStream );
-      }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        if (mpGeometryData) {
+            mpGeometryData->PrintData(rOStream);
+        }
 
-      rOStream << std::endl;
-      rOStream << std::endl;
-
-      for (unsigned int i = 0; i < this->size(); ++i) {
-        rOStream << "\tPoint " << i + 1 << "\t : ";
-        mPoints[i].PrintData(rOStream);
         rOStream << std::endl;
-      }
+        rOStream << std::endl;
 
-      rOStream << "\tCenter\t : ";
+        for (unsigned int i = 0; i < this->size(); ++i) {
+            rOStream << "\tPoint " << i + 1 << "\t : ";
+            mPoints[i].PrintData(rOStream);
+            rOStream << std::endl;
+        }
 
-      Center().PrintData( rOStream );
+        rOStream << "\tCenter\t : ";
 
-      rOStream << std::endl;
-      rOStream << std::endl;
-      // rOStream << "\tLength\t : " << Length() << std::endl;
-      // rOStream << "\tArea\t : " << Area() << std::endl;
+        Center().PrintData(rOStream);
 
-      // Charlie: Volume is not defined by every geometry (2D geometries),
-      // which can cause this call to generate a KRATOS_ERROR while trying
-      // to call the base class Volume() method.
+        rOStream << std::endl;
+        rOStream << std::endl;
+        // rOStream << "\tLength\t : " << Length() << std::endl;
+        // rOStream << "\tArea\t : " << Area() << std::endl;
 
-      // rOStream << "\tVolume\t : " << Volume() << std::endl;
+        // Charlie: Volume is not defined by every geometry (2D geometries),
+        // which can cause this call to generate a KRATOS_ERROR while trying
+        // to call the base class Volume() method.
 
-      // Charlie: Can this be deleted?
+        // rOStream << "\tVolume\t : " << Volume() << std::endl;
 
-      // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
-      //   rOStream << "    Point " << i+1 << "\t            : ";
-      //   mPoints[i].PrintData(rOStream);
-      //   rOStream << std::endl;
-      // }
-      //
-      // rOStream << "    Center\t            : ";
-      // Center().PrintData(rOStream);
-      // rOStream << std::endl;
-      // rOStream << std::endl;
-      // rOStream << "    Length                  : " << Length() << std::endl;
-      // rOStream << "    Area                    : " << Area() << std::endl;
-      // rOStream << "    Volume                  : " << Volume();
+        // Charlie: Can this be deleted?
+
+        // for(unsigned int i = 0 ; i < mPoints.size() ; ++i) {
+        //   rOStream << "    Point " << i+1 << "\t            : ";
+        //   mPoints[i].PrintData(rOStream);
+        //   rOStream << std::endl;
+        // }
+        //
+        // rOStream << "    Center\t            : ";
+        // Center().PrintData(rOStream);
+        // rOStream << std::endl;
+        // rOStream << std::endl;
+        // rOStream << "    Length                  : " << Length() << std::endl;
+        // rOStream << "    Area                    : " << Area() << std::endl;
+        // rOStream << "    Volume                  : " << Volume();
     }
 
 
@@ -3373,20 +3904,75 @@ protected:
 
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    // static const GeometryData msEmptyGeometryData;
-
-    ///@}
     ///@name Member Variables
     ///@{
+
+    IndexType mId;
 
     GeometryData const* mpGeometryData;
 
     static const GeometryDimension msGeometryDimension;
 
     PointsArrayType mPoints;
+
+    DataValueContainer mData;
+
+
+    ///@}
+    ///@name Id Bit-Change Operations
+    ///@{
+
+    /// Gets the corresponding self assigned id from pointer
+    IndexType GenerateSelfAssignedId() const
+    {
+        // Create id hash from provided name.
+        IndexType id = reinterpret_cast<IndexType>(this);
+
+        // Sets second bit to zero.
+        SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        SetIdNotGeneratedFromString(id);
+
+        return id;
+    }
+
+    /// Checks first bit in Id. 0 -> id; 1 -> name/ string
+    static inline bool IsIdGeneratedFromString(IndexType Id)
+    {
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 1));
+    }
+
+    /// Sets first bit in Id to 1 -> name/ string
+    static inline void SetIdGeneratedFromString(IndexType& Id)
+    {
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 1));
+    }
+
+    /// Sets first bit in Id to 0 -> no name/ string
+    static inline void SetIdNotGeneratedFromString(IndexType& Id)
+    {
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 1));
+    }
+
+    /// Checks second bit in Id. 0 -> defined id; 1 -> self assigned
+    static inline bool IsIdSelfAssigned(IndexType Id)
+    {
+        return Id & (IndexType(1) << (sizeof(IndexType) * 8 - 2));
+    }
+
+    /// Sets second bit in Id to 1 -> self assigned
+    static inline void SetIdSelfAssigned(IndexType& Id)
+    {
+        Id |= (IndexType(1) << (sizeof(IndexType) * 8 - 2));
+    }
+
+    /// Sets second bit in Id to 0 -> not self assigned
+    static inline void SetIdNotSelfAssigned(IndexType& Id)
+    {
+        Id &= ~(IndexType(1) << (sizeof(IndexType) * 8 - 2));
+    }
+
     ///@}
     ///@name Serialization
     ///@{
@@ -3395,23 +3981,27 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
+        rSerializer.save("Id", mId);
         rSerializer.save( "Points", mPoints);
+        rSerializer.save("Data", mData);
     }
 
     virtual void load( Serializer& rSerializer )
     {
+        rSerializer.load("Id", mId);
         rSerializer.load( "Points", mPoints );
-    }
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
+        rSerializer.load("Data", mData);
+   }
 
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Sets Id of this Geometry (avoids checks, can be used only as private)
+    void SetIdWithoutCheck(const IndexType Id)
+    {
+        mId = Id;
+    }
 
     static const GeometryData& GeometryDataInstance()
     {

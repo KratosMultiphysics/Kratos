@@ -6,7 +6,7 @@ import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 # Import the mechanical solver base class
-import solid_mechanics_monolithic_solver as BaseSolver
+import KratosMultiphysics.SolidMechanicsApplication.solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return SegregatedSolver(Model, custom_settings)
@@ -36,10 +36,10 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         # Create solvers list
         self.solvers = []
         solvers_list = self.settings["solvers"]
+        import importlib
         for i in range(solvers_list.size()):
-            solver_module = __import__(solvers_list[i]["solver_type"].GetString())
+            solver_module = importlib.import_module("KratosMultiphysics.SolidMechanicsApplication."+solvers_list[i]["solver_type"].GetString())
             self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"], Model))
-
         # Model
         self.model = Model
 

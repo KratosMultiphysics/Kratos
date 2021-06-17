@@ -115,30 +115,18 @@ public:
     */
     void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        mDiagonal.resize(int(TSparseSpaceType::Size(rX)));
-        mTemp.resize(int(TSparseSpaceType::Size(rX)));
-
-        int i;
+        mDiagonal.resize(TSparseSpaceType::Size(rX));
+        mTemp.resize(TSparseSpaceType::Size(rX));
 
         const DataType zero = DataType();
-// 	  const DataType one = DataType(1.00);
 
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(rA.size1()) ; ++i)
-        {
-            double diag_Aii = rA(i,i);
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t Index){
+            double diag_Aii = rA(Index,Index);
             if(diag_Aii != zero)
-                mDiagonal[i] = 1.00 / sqrt(fabs(diag_Aii));
+                mDiagonal[Index] = 1.00 / std::sqrt(std::abs(diag_Aii));
             else
                 KRATOS_THROW_ERROR(std::logic_error,"zero found in the diagonal. Diagonal preconditioner can not be used","");
-        }
-// 	      mDiagonal[i] = one;
-
-        /* 	  std::cout << "mDiagonal : " << mDiagonal << std::endl; */
-
-        /* for(i = 0 ; i < rA.RowsNumber() ; ++i)
-           for(j = 0 ; j < rA.RowsNumber() ; ++j) */
-
+        });
 
     }
 
@@ -149,40 +137,38 @@ public:
 
     void Mult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            mTemp[i] = rX[i] * mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            mTemp[Index] = rX[Index] * mDiagonal[Index];
+        });
+
         TSparseSpaceType::Mult(rA,mTemp, rY);
         ApplyLeft(rY);
     }
 
     void TransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            mTemp[i] = rX[i] * mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            mTemp[Index] = rX[Index] * mDiagonal[Index];
+        });
+
         TSparseSpaceType::TransposeMult(rA,mTemp, rY);
         ApplyRight(rY);
     }
 
     VectorType& ApplyLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
@@ -195,43 +181,36 @@ public:
     */
     VectorType& ApplyTransposeLeft(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyTransposeRight(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& ApplyInverseRight(VectorType& rX) override
     {
-// 	  const DataType zero = DataType();
-
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            /*	    if(mDiagonal[i] != zero)*/
-            rX[i] /= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] /= mDiagonal[Index];
+        });
 
         return rX;
     }
 
     VectorType& Finalize(VectorType& rX) override
     {
-        int i;
-        #pragma omp parallel for private(i)
-        for(i = 0 ; i < int(TSparseSpaceType::Size(rX)) ; ++i)
-            rX[i] *= mDiagonal[i];
+        IndexPartition<std::size_t>(TSparseSpaceType::Size(rX)).for_each([&](std::size_t Index){
+            rX[Index] *= mDiagonal[Index];
+        });
 
         return rX;
     }
@@ -387,4 +366,3 @@ inline std::ostream& operator << (std::ostream& OStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_DIAGONAL_PRECONDITIONER_H_INCLUDED  defined
-

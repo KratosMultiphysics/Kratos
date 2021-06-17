@@ -1458,7 +1458,7 @@ Begin Elements Element2D3N// GUI group identifier: Fluid
        822          1         22         21         15
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: Fluid_interface
+Begin Conditions LineCondition2D2N// GUI group identifier: Fluid_interface
 1 0 5 7
 2 0 7 9
 3 0 9 11

@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.FemToDemApplication
 import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 

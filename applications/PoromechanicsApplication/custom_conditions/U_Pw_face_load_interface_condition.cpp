@@ -26,7 +26,7 @@ Condition::Pointer UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Create(IndexTy
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize()
+void UPwFaceLoadInterfaceCondition<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     

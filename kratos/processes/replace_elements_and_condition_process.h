@@ -65,11 +65,6 @@ public:
     {
         KRATOS_TRY
 
-        Parameters default_parameters( R"({
-            "element_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
-            "condition_name" : "PLEASE_PRESCRIBE_VARIABLE_NAME"
-        } )" );
-
         const std::string element_name = Settings["element_name"].GetString();
         const std::string condition_name = Settings["condition_name"].GetString();
 
@@ -79,7 +74,7 @@ public:
         KRATOS_ERROR_IF(condition_name != "" && !KratosComponents<Condition>::Has(condition_name)) << "Condition name not found in KratosComponents< Condition > -- name is " << condition_name << std::endl;
 
         // Now validate agains defaults -- this also ensures no type mismatch
-        Settings.ValidateAndAssignDefaults(default_parameters);
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
 
         KRATOS_CATCH("")
     }
@@ -109,6 +104,18 @@ public:
 
     /// Execute method is used to execute the ReplaceElementsAndConditionsProcess algorithms.
     void Execute() override;
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        const Parameters default_parameters( R"({
+            "element_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
+            "condition_name" : "PLEASE_PRESCRIBE_VARIABLE_NAME"
+        } )" );
+        return default_parameters;
+    }
 
     ///@}
     ///@name Input and output

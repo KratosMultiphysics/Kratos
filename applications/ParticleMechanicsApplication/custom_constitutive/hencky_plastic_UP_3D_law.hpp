@@ -31,7 +31,7 @@ namespace Kratos
  */
 
 
-class HenckyElasticPlasticUP3DLaw : public HenckyElasticPlastic3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HenckyElasticPlasticUP3DLaw : public HenckyElasticPlastic3DLaw
 {
 //protected:
 

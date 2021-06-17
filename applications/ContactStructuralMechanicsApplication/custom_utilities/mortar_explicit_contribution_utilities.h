@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -147,7 +148,7 @@ public:
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false,
         const bool ComputeDualLM = true,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        const Variable<double>& rAreaVariable = NODAL_AREA
         );
     /**
      * @brief This method computes the explicit contributions of the mortar contact conditions
@@ -171,7 +172,7 @@ public:
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false,
         const bool ComputeDualLM = true,
-        Variable<double>& rAreaVariable = NODAL_AREA,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
         const bool ConsiderObjetiveFormulation = false
         );
 
@@ -188,7 +189,7 @@ public:
     static bool ExplicitCalculateAe(
         const GeometryType& rSlaveGeometry,
         GeneralVariables& rVariables,
-        ConditionArrayListType& rConditionsPointsSlave,
+        const ConditionArrayListType& rConditionsPointsSlave,
         BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
         const IntegrationMethod& rIntegrationMethod,
         const double AxiSymCoeff = 1.0
@@ -207,13 +208,13 @@ public:
      * @param DualLM If the dual LM is considered or not
      */
     static void ExplicitCalculateKinematics(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         GeneralVariables& rVariables,
         const BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        GeometryPointType& rGeometryDecomp,
+        const GeometryPointType& rGeometryDecomp,
         const bool DualLM = true
         );
 
@@ -230,7 +231,7 @@ public:
     static void ComputeNodalArea(
         PairedCondition* pCondition,
         const ProcessInfo& rCurrentProcessInfo,
-        Variable<double>& rAreaVariable = NODAL_AREA,
+        const Variable<double>& rAreaVariable = NODAL_AREA,
         const IndexType IntegrationOrder = 2,
         const bool AxisymmetricCase = false
         );
@@ -256,7 +257,7 @@ public:
         const bool AxisymmetricCase = false,
         const bool ComputeNodalArea = false,
         const bool ComputeDualLM = true,
-        Variable<double>& rAreaVariable = NODAL_AREA
+        const Variable<double>& rAreaVariable = NODAL_AREA
         );
 
     /**
@@ -272,13 +273,13 @@ public:
      * @param DualLM If the dual LM is considered or not
      */
     static void CalculateKinematics(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         GeneralVariables& rVariables,
         const DerivativeDataType& rDerivativeData,
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        GeometryPointType& rGeometryDecomp,
+        const GeometryPointType& rGeometryDecomp,
         const bool DualLM = true
         );
 
@@ -290,7 +291,7 @@ public:
      * @param rLocalPoint The current local point
      */
     static void MasterShapeFunctionValue(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         GeneralVariables& rVariables,
         const array_1d<double, 3>& rNormalMaster,
         const PointType& rLocalPoint
@@ -306,7 +307,7 @@ namespace AuxiliarOperationsUtilities
      * @param rNSlave The shape functions of the slave side
      */
     double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) GetAxisymmetricCoefficient(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         const Vector& rNSlave
         );
 
@@ -317,7 +318,7 @@ namespace AuxiliarOperationsUtilities
      * @return Radius: The radius of axisymmetry
      */
     double KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) CalculateRadius(
-        PairedCondition* pCondition,
+        const PairedCondition* pCondition,
         const Vector& rNSlave
         );
 }

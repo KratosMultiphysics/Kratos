@@ -2,6 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** Configuring KratosExternalSolversApplication ****")
 
+message("    !!! DEPRECATION WARNING !!!")
+message("    The ExternalSolversApplication is deprecated in favor of the LinearSolversApplication")
+message("    It is no longer updated/maintained and will be removed in the future, tentatively in July 2021")
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
@@ -66,17 +70,6 @@ else(${INCLUDE_PASTIX} MATCHES ON)
     set(PASTIX_LINK_LIB "")
 endif(${INCLUDE_PASTIX} MATCHES ON)
 
-if(${INCLUDE_FEAST} MATCHES ON)
-  include(CMakeAddFortranSubdirectory)
-  cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST NO_EXTERNAL_INSTALL )
-  if (NOT DEFINED FEAST_ROOT)
-    set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/FEAST/3.0 )
-  endif(NOT DEFINED FEAST_ROOT)
-  include_directories( ${FEAST_ROOT}/include )
-#   link_directories( ${FEAST_ROOT}/lib/x64 )
-  add_definitions(-DINCLUDE_FEAST)
-endif(${INCLUDE_FEAST} MATCHES ON)
-
 ## Generate variables with the sources
 set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/externalsolvers_application.cpp
@@ -94,12 +87,12 @@ else(${INCLUDE_PASTIX} MATCHES ON)
         target_link_libraries(KratosExternalSolversApplication PRIVATE KratosCore superlu  )
 endif(${INCLUDE_PASTIX} MATCHES ON)
 
-if(${INCLUDE_FEAST} MATCHES ON)
-  set(FEAST_LINK_LIBS feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
-  target_link_libraries(KratosExternalSolversApplication PRIVATE ${FEAST_LINK_LIBS})
-endif(${INCLUDE_FEAST} MATCHES ON)
-
 set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosExternalSolversApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -110,11 +103,6 @@ set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 #     set_target_properties(KratosExternalSolversApplication PROPERTIES SUFFIX .so)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Add Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosExternalSolversApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py KratosMultiphysics/ExternalSolversApplication/__init__.py )
@@ -141,4 +129,3 @@ install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 # Install blas and lapack
 install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
 install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
-

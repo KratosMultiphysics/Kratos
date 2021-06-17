@@ -12,8 +12,7 @@
                             "YOUNG_MODULUS": 2.06900E+11 ,
                             "DENSITY": 1.00000E+03,
                             "POISSON_RATIO": 2.90000E-01,
-                            "THICKNESS": 1.00000,
-                            "FRICTION_COEFFICIENT": 0.0
+                            "THICKNESS": 1.00000
                     },
                     "Tables": {}
             }
@@ -30,8 +29,7 @@
                             "YOUNG_MODULUS": 2.06900E+11 ,
                             "DENSITY": 1.00000E+03,
                             "POISSON_RATIO": 2.90000E-01,
-                            "THICKNESS": 1.00000,
-                            "FRICTION_COEFFICIENT": 0.0
+                            "THICKNESS": 1.00000
                     },
                     "Tables": {}
             }

@@ -81,9 +81,16 @@ public:
 
     /// Default constructor.
     /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    FindGlobalNodalElementalNeighboursProcess(const DataCommunicator& rComm, 
+    FindGlobalNodalElementalNeighboursProcess(ModelPart& model_part)
+        : mr_model_part(model_part),
+          mrComm(model_part.GetCommunicator().GetDataCommunicator())
+    {
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("Use of DataCommunicator is deprecated. Please use constructor without it.")
+    FindGlobalNodalElementalNeighboursProcess(const DataCommunicator& rComm,
                                               ModelPart& model_part)
-        : mrComm(rComm),mr_model_part(model_part)
+        : FindGlobalNodalElementalNeighboursProcess(model_part)
     {
     }
 
@@ -199,32 +206,14 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const DataCommunicator& mrComm;
     ModelPart& mr_model_part;
+    const DataCommunicator& mrComm;
     unsigned int mavg_nodes;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-
-
-    //TODO: remove in favor of generic implementation in communicator
-    template< class TDataType>
-    TDataType SendRecv(TDataType& send_buffer, int send_rank, int recv_rank)
-    {
-        MpiSerializer send_serializer;
-        send_serializer.save("data",send_buffer);
-        std::string send_string = send_serializer.GetStringRepresentation();
-
-        std::string recv_string = mrComm.SendRecv(send_string, send_rank, send_rank);
-
-        MpiSerializer recv_serializer(recv_string);
-
-        TDataType recv_data;
-        recv_serializer.load("data",recv_data);
-        return recv_data;
-    }
 
 
     ///@}
@@ -287,6 +276,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FIND_GLOBAL_NODAL_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_FIND_GLOBAL_NODAL_ELEMENTAL_NEIGHBOURS_PROCESS_H_INCLUDED  defined
 
 

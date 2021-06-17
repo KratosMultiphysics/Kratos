@@ -165,7 +165,7 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Clone(IndexType NewId, NodesArrayType c
  * @param rResult: the condition equation ID vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if (rResult.size() != number_of_nodes)
@@ -179,7 +179,7 @@ void @{KRATOS_NAME_CAMEL}::EquationIdVector(EquationIdVectorType& rResult, Proce
  * @param ConditionDofList: the list of DOFs
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& CurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if (rConditionDofList.size() != number_of_nodes)
@@ -206,7 +206,7 @@ void @{KRATOS_NAME_CAMEL}::GetDofList(DofsVectorType& rConditionDofList, Process
 void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -216,7 +216,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateLocalSystem(
  * @param rLeftHandSideMatrix: the condition left hand side matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -226,7 +226,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix
  * @param rRightHandSideVector: the condition right hand side vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
@@ -240,7 +240,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateRightHandSide(VectorType& rRightHandSideVect
 void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesContributions(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != 0)
         rLeftHandSideMatrix.resize(0, 0, false);
@@ -254,7 +254,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesContributions(
  * @param rLeftHandSideMatrix: the condition left hand side matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != 0)
         rLeftHandSideMatrix.resize(0, 0, false);
@@ -266,7 +266,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSid
  * @param rRightHandSideVector: the condition right hand side vector
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != 0)
     rRightHandSideVector.resize(0, false);
@@ -292,7 +292,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateFirstDerivativesRHS(VectorType& rRightHandSi
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesContributions(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != 0)
         rLeftHandSideMatrix.resize(0, 0, false);
@@ -308,7 +308,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesContributions(
  */
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesLHS(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rLeftHandSideMatrix.size1() != 0)
         rLeftHandSideMatrix.resize(0, 0, false);
@@ -322,7 +322,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesLHS(
  */
 void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesRHS(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != 0)
         rRightHandSideVector.resize(0, false);
@@ -334,7 +334,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateSecondDerivativesRHS(
  * @param rMassMatrix: the condition mass matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rMassMatrix.size1() != 0)
         rMassMatrix.resize(0, 0, false);
@@ -346,7 +346,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
  * @param rDampingMatrix: the condition damping matrix
  * @param rCurrentProcessInfo: the current process info instance
  */
-void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     if (rDampingMatrix.size1() != 0)
         rDampingMatrix.resize(0, 0, false);
@@ -361,7 +361,7 @@ void @{KRATOS_NAME_CAMEL}::CalculateDampingMatrix(MatrixType& rDampingMatrix, Pr
  * @param rCurrentProcessInfo
  * this method is: MANDATORY
  */
-int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo)
+int @{KRATOS_NAME_CAMEL}::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

@@ -465,7 +465,7 @@ public:
 
     }
 
-    TSystemMatrixType& GetSystemMatrix()
+    TSystemMatrixType& GetSystemMatrix() override
     {
         TSystemMatrixType& mA = *mpA;
 

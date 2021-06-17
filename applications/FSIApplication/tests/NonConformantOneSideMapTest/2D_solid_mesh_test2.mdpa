@@ -132,7 +132,7 @@ Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Structure
         38          1         78         77         75         76
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: Solid_interface
+Begin Conditions LineCondition2D2N// GUI group identifier: Solid_interface
 1 0 2 4
 2 0 4 6
 3 0 6 8

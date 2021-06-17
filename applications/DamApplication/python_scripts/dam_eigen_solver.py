@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as KratosExternal
+import KratosMultiphysics.EigenSolversApplication as KratosEigen
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import KratosMultiphysics.DamApplication as KratosDam
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -29,14 +29,16 @@ class DamEigenSolver():
                 "input_file_label": 0
             },
             "eigensolver_settings":{
-                "solver_type": "FEAST",
-                "print_feast_output"          : true,
-                "perform_stochastic_estimate" : false,
-                "solve_eigenvalue_problem"    : true,
+                "solver_type": "feast",
+                "echo_level" : 0,
+                "symmetric" : true,
+                "search_lowest_eigenvalues" : false,
+                "search_highest_eigenvalues" : false,
                 "compute_modal_contribution"  : false,
-                "lambda_min"                  : 0.0,
-                "lambda_max"                  : 500.0,
-                "search_dimension"            : 4
+                "e_min" : 0.0,
+                "e_max" : 500.0,
+                "subspace_size" : 4,
+                "number_of_eigenvalues" : 0
             },
             "problem_domain_sub_model_part_list": ["solid_model_part"],
             "processes_sub_model_part_list": [""]
@@ -104,8 +106,11 @@ class DamEigenSolver():
         solver_type = self.eigensolver_settings["solver_type"].GetString()
         solution_type = self.settings["solution_type"].GetString()
 
-        if solver_type == "FEAST":
-            self.linear_solver = KratosExternal.FEASTSolver(self.eigensolver_settings)
+        if solver_type == "FEAST" or solver_type == "feast":
+            from KratosMultiphysics import eigen_solver_factory
+            self.linear_solver = eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
+            mass_matrix_diagonal_value = 1.0
+            stiffness_matrix_diagonal_value = -1.0
         else:
             raise Exception("solver_type is not yet implemented.")
 
@@ -120,6 +125,8 @@ class DamEigenSolver():
             self.main_model_part,
             self.scheme,
             self.builder_and_solver,
+            mass_matrix_diagonal_value,
+            stiffness_matrix_diagonal_value,
             self.compute_modal_contribution)
 
 

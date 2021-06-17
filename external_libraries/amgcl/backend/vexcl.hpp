@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -202,52 +202,43 @@ struct vexcl {
     }
 
     struct gather {
-        mutable vex::gather<value_type> Gv;
-        mutable vex::gather<rhs_type> Gr;
-        mutable std::vector<value_type> Tv;
-        mutable std::vector<rhs_type> Tr;
+        size_t n;
+        mutable vex::gather G;
+        mutable std::vector<char> buf;
 
         gather(size_t src_size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : Gv(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end()))
-            , Gr(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end()))
-            , Tv(I.size()), Tr(I.size())
+            : n(I.size()), G(prm.context(), src_size, std::vector<size_t>(I.begin(), I.end()))
         { }
 
-        void operator()(const vex::vector<value_type> &src, vex::vector<value_type> &dst) const {
-            Gv(src, Tv);
-            vex::copy(Tv, dst);
+        template <class S, class D>
+        void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
+            if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
+            auto t = reinterpret_cast<D*>(buf.data());
+            G(src, t);
+            vex::copy(t, t + n, dst.begin());
         }
 
-        void operator()(const vex::vector<value_type> &vec, std::vector<value_type> &vals) const {
-            Gv(vec, vals);
-        }
-
-        template <class T>
-        typename std::enable_if<!std::is_same<value_type, T>::value, void>::type
-        operator()(const vex::vector<T> &src, vex::vector<T> &dst) const {
-            Gr(src, Tr);
-            vex::copy(Tr, dst);
-        }
-
-        template <class T>
-        typename std::enable_if<!std::is_same<value_type, T>::value, void>::type
-        operator()(const vex::vector<T> &vec, std::vector<T> &vals) const {
-            Gr(vec, vals);
+        template <class S, class D>
+        void operator()(const vex::vector<S> &vec, std::vector<D> &vals) const {
+            G(vec, vals);
         }
     };
 
     struct scatter {
-        mutable vex::scatter<value_type> S;
-        mutable std::vector<value_type> tmp;
+        size_t n;
+        mutable vex::scatter S;
+        mutable std::vector<char> buf;
 
         scatter(size_t size, const std::vector<ptrdiff_t> &I, const params &prm)
-            : S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
-            , tmp(I.size())
+            : n(I.size()), S(prm.context(), size, std::vector<size_t>(I.begin(), I.end()))
         { }
 
-        void operator()(const vector &src, vector &dst) const {
-            vex::copy(src, tmp);
-            S(tmp, dst);
+        template <class S, class D>
+        void operator()(const vex::vector<S> &src, vex::vector<D> &dst) const {
+            if (buf.size() < sizeof(D) * n) buf.resize(sizeof(D) * n);
+            auto t = reinterpret_cast<D*>(buf.data());
+            vex::copy(src.begin(), src.end(), t);
+            S(t, dst);
         }
     };
 
@@ -421,6 +412,17 @@ struct vmul_impl<
             z = a * x * y;
     }
 };
+
+template <class T, class V>
+struct reinterpret_impl<T, vex::vector<V>>
+{
+    typedef vex::vector<typename std::decay<T>::type> return_type;
+
+    static return_type get(const vex::vector<V> &x) {
+        return x.template reinterpret<typename std::decay<T>::type>();
+    }
+};
+
 
 } // namespace backend
 } // namespace amgcl

@@ -248,6 +248,9 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
+#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+
 struct triangulateio
 {
     REAL *pointlist;                                               /* In / out */
@@ -298,3 +301,5 @@ void trifree();
 //#ifdef __cplusplus extern "C"
 //}
 //#endif
+
+#endif

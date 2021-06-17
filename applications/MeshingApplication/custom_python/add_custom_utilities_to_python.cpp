@@ -47,40 +47,10 @@ namespace Python
 {
 namespace py = pybind11;
 
-void RecursiveEnsureModelPartOwnsProperties(ModelPart& rModelPart)
-{
-    MeshingUtilities::RecursiveEnsureModelPartOwnsProperties(rModelPart);
-}
-
-void RecursiveEnsureModelPartOwnsPropertiesWithClear(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
-{
-    MeshingUtilities::RecursiveEnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
-}
-
-void EnsureModelPartOwnsProperties(ModelPart& rModelPart)
-{
-    MeshingUtilities::EnsureModelPartOwnsProperties(rModelPart);
-}
-
-void EnsureModelPartOwnsPropertiesWithClear(
-    ModelPart& rModelPart,
-    const bool RemovePreviousProperties
-    )
-{
-    MeshingUtilities::EnsureModelPartOwnsProperties(rModelPart, RemovePreviousProperties);
-}
-
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     // MeshingUtilities
     auto mod_meshing_utilities = m.def_submodule("MeshingUtilities");
-    mod_meshing_utilities.def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsProperties);
-    mod_meshing_utilities.def("RecursiveEnsureModelPartOwnsProperties", RecursiveEnsureModelPartOwnsPropertiesWithClear);
-    mod_meshing_utilities.def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsProperties);
-    mod_meshing_utilities.def("EnsureModelPartOwnsProperties", EnsureModelPartOwnsPropertiesWithClear);
     mod_meshing_utilities.def("BlockThresholdSizeElements", &MeshingUtilities::BlockThresholdSizeElements);
     mod_meshing_utilities.def("ComputeElementsSize", &MeshingUtilities::ComputeElementsSize);
 
@@ -175,7 +145,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<Cutting_Isosurface_Application >(m,"Cutting_Isosurface_Application")
     .def(py::init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
-    .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
     .def("GenerateVectorialVarCut", &Cutting_Isosurface_Application::GenerateVariableCut< array_1d < double, 3 > >)
     .def("AddModelPartElements", &Cutting_Isosurface_Application::AddModelPartElements)
     .def("AddSkinConditions", &Cutting_Isosurface_Application::AddSkinConditions)

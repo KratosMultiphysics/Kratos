@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#if !defined(KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED )
-#define  KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#ifndef KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
+#define KRATOS_SHALLOW_WATER_APPLICATION_H_INCLUDED
 
 ///@defgroup ShallowWaterApplication Kratos Shallow Water Application
 ///@brief Basic set of tools to solve the shallow water equations.
@@ -31,11 +31,11 @@
 #include "includes/kratos_application.h"
 
 // Shallow water includes
-#include "custom_elements/shallow_element.h"
-#include "custom_elements/rv_swe.h"
-#include "custom_elements/cv_swe.h"
 #include "custom_elements/swe.h"
+#include "custom_elements/wave_element.h"
+#include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
+#include "custom_conditions/wave_condition.h"
 
 
 namespace Kratos
@@ -194,21 +194,19 @@ namespace Kratos
         ///@{
 
         // Elements
-        const ShallowElement mShallowElement2D3N;
-        const RV_SWE<3, Eulerian> mRVSWE2D3N;
-        const RV_SWE<4, Eulerian> mRVSWE2D4N;
-        const RV_SWE<3, PFEM2> mPFEM2RVSWE2D3N;
-        const RV_SWE<4, PFEM2> mPFEM2RVSWE2D4N;
-        const CV_SWE<3, Eulerian> mCVSWE2D3N;
-        const CV_SWE<4, Eulerian> mCVSWE2D4N;
-        const CV_SWE<3, PFEM2> mPFEM2CVSWE2D3N;
-        const CV_SWE<4, PFEM2> mPFEM2CVSWE2D4N;
         const SWE<3, Eulerian> mSWE2D3N;
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
-        // Condition
+        const WaveElement<3> mWaveElement2D3N;
+        const WaveElement<6> mWaveElement2D6N;
+        const WaveElement<4> mWaveElement2D4N;
+        const WaveElement<8> mWaveElement2D8N;
+        const WaveElement<9> mWaveElement2D9N;
+        const ShallowWater2D3 mShallowWater2D3N;
+        // Conditions
         const NothingCondition<2> mNothingCondition2D2N;
+        const WaveCondition<2> mWaveCondition2D2N;
 
 
         ///@}

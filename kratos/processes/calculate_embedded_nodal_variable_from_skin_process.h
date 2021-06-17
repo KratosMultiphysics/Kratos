@@ -182,42 +182,6 @@ public:
     ///@{
 
     /**
-     * @brief Get the Default Settings object
-     * This method returns the default parameters for this proces.
-     * Note that it is required to be static since it is called during
-     * the construction of the object so no instantation exists yet.
-     * @return Parameters Default parameters json string
-     */
-    static Parameters GetDefaultSettings()
-    {
-        Parameters default_settings(R"(
-        {
-            "base_model_part_name": "",
-            "skin_model_part_name": "",
-            "skin_variable_name": "",
-            "embedded_nodal_variable_name": "",
-            "buffer_position": 0,
-            "gradient_penalty_coefficient": 0.0,
-            "aux_model_part_name": "IntersectedElementsModelPart",
-            "linear_solver_settings": {
-                "preconditioner_type": "amg",
-                "solver_type": "amgcl",
-                "smoother_type": "ilu0",
-                "krylov_type": "cg",
-                "max_iteration": 1000,
-                "verbosity": 0,
-                "tolerance": 1e-8,
-                "scaling": false,
-                "block_size": 1,
-                "use_block_matrices_if_possible": true
-            }
-        }
-        )");
-
-        return default_settings;
-    }
-
-    /**
      * @brief Construct a new Calculate Embedded Nodal Variable From Skin Process object
      * Constructor with model and json settings
      * @param rModel Model container
@@ -229,7 +193,7 @@ public:
         : CalculateEmbeddedNodalVariableFromSkinProcess(
             rModel.GetModelPart(rSettings["base_model_part_name"].GetString()),
             rModel.GetModelPart(rSettings["skin_model_part_name"].GetString()),
-            [] (Parameters x) -> Parameters {x.ValidateAndAssignDefaults(GetDefaultSettings()); return x;} (rSettings))
+            [] (Parameters x) -> Parameters {x.ValidateAndAssignDefaults(StaticGetDefaultParameters()); return x;} (rSettings))
     {
     }
 
@@ -344,7 +308,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    virtual void Clear()
+    void Clear() override
     {
         Model& current_model = mrBaseModelPart.GetModel();
         ModelPart& r_intersected_edges_model_part = current_model.GetModelPart( mAuxModelPartName );
@@ -353,6 +317,50 @@ public:
         r_intersected_edges_model_part.Conditions().clear();
 
         mpSolvingStrategy->Clear();
+    }
+
+    /**
+     * @brief Get the Default Settings object
+     * This method returns the default parameters for this proces.
+     * Note that it is required to be static since it is called during
+     * the construction of the object so no instantation exists yet.
+     * @return Parameters Default parameters json string
+     */
+    static Parameters StaticGetDefaultParameters()
+    {
+        Parameters default_settings(R"(
+        {
+            "base_model_part_name": "",
+            "skin_model_part_name": "",
+            "skin_variable_name": "",
+            "embedded_nodal_variable_name": "",
+            "buffer_position": 0,
+            "gradient_penalty_coefficient": 0.0,
+            "aux_model_part_name": "IntersectedElementsModelPart",
+            "linear_solver_settings": {
+                "preconditioner_type": "amg",
+                "solver_type": "amgcl",
+                "smoother_type": "ilu0",
+                "krylov_type": "cg",
+                "max_iteration": 1000,
+                "verbosity": 0,
+                "tolerance": 1e-8,
+                "scaling": false,
+                "block_size": 1,
+                "use_block_matrices_if_possible": true
+            }
+        }
+        )");
+
+        return default_settings;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
     }
 
     ///@}
@@ -463,12 +471,11 @@ protected:
     {
         const auto &rUnknownVariable = EmbeddedNodalVariableFromSkinTypeHelperClass<TVarType>::GetUnknownVariable();
         const auto &r_int_elems_model_part = (mrBaseModelPart.GetModel()).GetModelPart(mAuxModelPartName);
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < static_cast<int>(r_int_elems_model_part.NumberOfNodes()); ++i_node) {
-            const auto it_node = r_int_elems_model_part.NodesBegin() + i_node;
-            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(it_node->Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
-            r_emb_nod_val = it_node->FastGetSolutionStepValue(rUnknownVariable);
-        }
+
+        block_for_each(r_int_elems_model_part.Nodes(), [&](Node<3>& rNode){
+            auto &r_emb_nod_val = (mrBaseModelPart.GetNode(rNode.Id())).FastGetSolutionStepValue(mrEmbeddedNodalVariable, mBufferPosition);
+            r_emb_nod_val = rNode.FastGetSolutionStepValue(rUnknownVariable);
+        });
     }
 
     inline void AddIntersectedElementsVariables(ModelPart &rModelPart) const
@@ -599,7 +606,6 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>>(
             r_aux_model_part,
             p_scheme,
-            mpLinearSolver,
             p_builder_and_solver,
             calculate_reactions,
             reform_dof_at_each_iteration,
@@ -673,7 +679,7 @@ private:
     void CalculateIntersections()
     {
         mpFindIntersectedGeometricalObjectsProcess = Kratos::make_unique<FindIntersectedGeometricalObjectsProcess>(mrBaseModelPart, mrSkinModelPart);
-        mpFindIntersectedGeometricalObjectsProcess->Initialize();
+        mpFindIntersectedGeometricalObjectsProcess->ExecuteInitialize();
         mpFindIntersectedGeometricalObjectsProcess->FindIntersections();
     }
 

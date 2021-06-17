@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -20,7 +18,7 @@ def Create(settings, solver_wrapper):
 class AverageValuePredictor(CoSimulationPredictor):
     # @param beta factor for weighting last and current value of the predicted values. Can be set in interval: [0, 1.0]
     def __init__(self, settings, solver_wrapper):
-        super(AverageValuePredictor, self).__init__(settings, solver_wrapper)
+        super().__init__(settings, solver_wrapper)
         self.beta = self.settings["beta"].GetDouble()
         if self.beta > 1.0 or self.beta < 0:
             raise Exception("Wrong value for beta. Admissible interval [0.0, 1.0]")
@@ -41,9 +39,9 @@ class AverageValuePredictor(CoSimulationPredictor):
         self._UpdateData(self.predicted_data)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "beta"     : 0.5
         }""")
-        this_defaults.AddMissingParameters(super(AverageValuePredictor, cls)._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
