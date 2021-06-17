@@ -89,31 +89,73 @@ class GeoImporter( GeoProcessor ):
         #     geom_id += 1
 
         dict_Building = {}      # key: Building ids; value: element ids
+        dict_Node = {}          # key: Building ids; value: node ids
         Building_id = 0         # we initialize the Building id. It is a progressive number
         list_visited = []       # node visited
+        #######################################################################################################################
+
         for elem in self.ModelPart.Elements:
+            current_id = 0  # temporary key (useful to store nodes and elements in dictionaries)
             temp_list = []
-            new_building = True
+
+            nnn = elem.GetNodes()
+            print("\nelem.Id: {}; node: {}".format(elem.Id, [nnn[0].Id, nnn[1].Id, nnn[2].Id]))
+            print("\ttemp_list before: ", temp_list)
+
             for node in elem.GetNodes():
-                if not (node.Id in list_visited):
+                print("\t\tnode: ", node.Id)
+                if not bool(dict_Node):
+                    # dict_Node is empty
                     temp_list.append(node.Id)
+                    print("\t\tdict_Node was empty")
+                else:
+                    new_node = True     # True only if the Node is not in the dictionary
+                    for i_building, list_nodes in dict_Node.items():
+                        if not (node.Id in list_nodes):
+                            # node is not in the dict
+                            # # temp_list.append(node.Id)
+                            new_node = True
+                            print("\t\tNode {} is not in Building {}".format(node.Id, i_building))
+                        else:
+                            # node is in dict
+                            current_id = i_building
+                            print("\t\tNode {} is in dict at Building: {}".format(node.Id, i_building))
+                            new_node = False
+                            break
+                    
+                    if new_node:
+                        # we add node.Id in temp_list only if the node is not in the entire dictionary
+                        temp_list.append(node.Id)
+
+            
+
+
+            print("\ttemp_list: ", temp_list)
 
             if (len(temp_list) == 3):
                 # in this case all nodes are in a different Building
-                list_visited = []       # we restore the list_visited. We will process a new Building
+                Building_id += 1                                # id of the new Building
+                dict_Building[Building_id] = [elem.Id]
+                dict_Node[Building_id] = temp_list
             else:
-                new_building = False
-                
+                # if at least one node is in dict_Building, in current_id there is a Building id
+                dict_Building[current_id].append(elem.Id)       # we append the Element id in the dictionary
+                dict_Node[current_id].extend(temp_list)         # we extend the Node ids in the dictionary
             
-            # we add "temp_list" into "list_visited"
-            list_visited.extend(temp_list)
+            print("\tdict_Node: {}".format(dict_Node))
 
-            if new_building:
-                Building_id += 1
-                dict_Building[Building_id] = [elem.Id]    
-            else:
-                # we append the Element id in the dictionary
-                dict_Building[Building_id].append(elem.Id)
+            
+            # # we add "temp_list" into "list_visited"
+            # list_visited.extend(temp_list)
+
+            # if new_building:
+            #     Building_id += 1
+            #     dict_Building[Building_id] = [elem.Id]
+            # else:
+            #     # we append the Element id in the dictionary
+            #     dict_Building[Building_id].append(elem.Id)
+
+        #######################################################################################################################
 
         current_sub_model_building = self.ModelPart
         for building_id, elem_id in dict_Building.items():
@@ -137,15 +179,25 @@ class GeoImporter( GeoProcessor ):
         #########################################################################################################
 
 
+    def ObjImportBuildings(self, obj_file_name_input, name_model_part="ModelPart", change_coord=False, building_groups=True):
+        """ function to import buildings from OBJ format
 
-    """ FUNCTION UNDER CONSTRUCTION """
-    def ObjImport(self, obj_file_name_input, name_model_part="ModelPart", change_coord=True, building_groups=True):
-        "function to import the OBJ file"
-        # building_groups=True means a sub_model_part for each building
-            # PLEASE NOTE: in this case in the file there must be "o Building..." for each different Building
+        Note:
+            - the buildings must be divided in object like "o Building<building_id>"
+            - OSM2World tool reference: http://osm2world.org/
 
+        Args:
+            obj_file_name_input: OBJ file path
+            name_model_part: ModelPart name
+            change_coord: True value to convert coord Y=-Z and Z=Y (useful for importing OBJ buildings obtained from OSM2World tool)
+            building_groups: True value for a SubModelPart for each building; False value otherwise
+
+        Returns:
+            a ModelPart with the geometry of buildings
+        """
+
+        print("[DEBUG][geo_importer][ObjImportBuildings] START ObjImportBuildings\n")
         self._InitializeModelPart(name_model_part)
-        print("\n***** START ObjImport: geo_importer/ObjImport *****\n")
 
         if building_groups:
             bool_building = False   # boolean with value True if the geometry is a building
@@ -154,7 +206,7 @@ class GeoImporter( GeoProcessor ):
 
         # read buildings model to extract verices and elements information
         with open (obj_file_name_input) as read_file:
-            vertex_coord = []		# here the coordinates of the node will be saved
+            # vertex_coord = []		# here the coordinates of the node will be saved
             num_building = 1		# progressive number to count the number of buildings
             vertices_to_element = [0,0,0]
 
@@ -165,14 +217,17 @@ class GeoImporter( GeoProcessor ):
 
             current_sub_model_building = self.ModelPart # we set the ModelPart in current_sub_model_building if we haven't groups in obj file
 
-            # print("***** NUMBER OF LINES: ", len(read_file.readlines()))
-
             for row in read_file.readlines():
                 row = row.split()
                 if row:							# check if "row" is empty. To avoid an error about "out of range"
+                    vertex_coord = []
                     if (row[0] == "v"):			# vertex: "v 0.0 0.0 0.0"
-                        for coord in row[1:]:
-                            vertex_coord.append(float(coord))
+                        if ("#" in row):
+                            # exclude the comment part
+                            row = row[:4]
+                        vertex_coord = [float(coord) for coord in row[1:]]
+                        # for coord in row[1:]:
+                        #     vertex_coord.append(float(coord))
                         
                         # we create new nodes in SubModelPart
                         if change_coord:
@@ -229,8 +284,40 @@ class GeoImporter( GeoProcessor ):
 
         # we erase unused nodes
         self.ModelPart.RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE)
-
         self.HasModelPart = True
+
+
+    def ObjImport(self, obj_file_name_input, name_model_part="ModelPart"):
+        """ import from OBJ file
+
+        Args:
+            obj_file_name_input: OBJ file path
+            name_model_part: ModelPart name
+
+        Returns:
+            a ModelPart with the geometry
+        """
+
+        self._InitializeModelPart(name_model_part)
+
+        with open (obj_file_name_input) as read_file:
+            node_id = 1
+            elem_id = 1
+
+            for row in read_file.readlines():
+                row = row.split()
+                if row:     # check if "row" is empty
+                    if (row[0] == "v"):
+                        coord_x, coord_y, coord_z = [float(coord) for coord in row[1:]]
+                        self.ModelPart.CreateNewNode(node_id, coord_x, coord_y, coord_z)
+                        node_id += 1
+                    
+                    elif (row[0] == "f"):
+                        node_1, node_2, node_3 = [int(nodes) for nodes in row[1:]]
+                        self.ModelPart.CreateNewElement("Element2D3N", elem_id, [node_1, node_2, node_3], self.ModelPart.GetProperties()[1])
+                        elem_id += 1
+            
+            self.HasModelPart = True
 
 
     ### --- function imports the nodes from a *.stl file --- ###
@@ -284,8 +371,8 @@ class GeoImporter( GeoProcessor ):
         self.HasModelPart = True
 
 
-    """ This function is able to add an STL file into an existent ModelPart """
     def AddStlImport (self, stl_file_name_input, current_building_model_part):
+        """ This function is able to add an STL file into an existent ModelPart """
 
         with open (stl_file_name_input) as read_file:
 
@@ -355,7 +442,7 @@ class GeoImporter( GeoProcessor ):
 #########################################################################
 
     def _IsFloat( self, value):
-        # detecting if a conversion in float is possible
+        """ detecting if a conversion in float is possible """
         try:
             float( value )
             return True
@@ -364,7 +451,7 @@ class GeoImporter( GeoProcessor ):
 
 
     def _InitializeModelPart( self, name_model_part="ModelPart" ):
-        # this function adds all variables that will be needed during the pipeline (please add)
+        """ this function adds all variables that will be needed during the pipeline (please add) """
 
         current_model = KratosMultiphysics.Model()
         self.ModelPart = current_model.CreateModelPart(name_model_part)
@@ -388,9 +475,11 @@ class GeoImporter( GeoProcessor ):
         self.ModelPart.Elements.clear()
         self.ModelPart.Conditions.clear()
 
+        self.HasModelPart = True
+
 
     def _DeleteNodeOnBase(self, node_dict):
-        # this function delete all nodes with Z == 0
+        """ this function delete all nodes with Z == 0 """
 
         for coords, _ in list(node_dict.items()):
             if (coords[2] == 0.0):    # if (Z == 0.0) the node is excluded
