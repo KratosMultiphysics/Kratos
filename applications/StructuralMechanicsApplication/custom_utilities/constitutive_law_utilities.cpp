@@ -745,6 +745,30 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformationGradient
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
+    const MatrixType& rFp,
+    Vector& rPlasticStrainVector
+    )
+{
+    // Doing resize in case is needed
+    if (rPlasticStrainVector.size() != VoigtSize)
+        rPlasticStrainVector.resize(VoigtSize, false);
+
+    // Identity matrix
+    MatrixType identity_matrix(Dimension, Dimension);
+    noalias(identity_matrix) = IdentityMatrix(Dimension);
+
+    // Calculate E matrix
+    const BoundedMatrixType Ep_matrix = 0.5 * (prod(trans(rFp), rFp) - identity_matrix);
+
+    // Green-Lagrangian plastic Strain Calculation
+    noalias(rPlasticStrainVector) = MathUtils<double>::StrainTensorToVector(Ep_matrix, TVoigtSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradient(
     const MatrixType& rOldFp,
     const BoundedVectorType& rPlasticPotentialDerivative,

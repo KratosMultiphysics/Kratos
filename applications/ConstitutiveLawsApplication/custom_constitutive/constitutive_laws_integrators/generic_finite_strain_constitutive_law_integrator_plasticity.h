@@ -200,8 +200,10 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         double plastic_consistency_factor_increment = 0.0;
         double threshold_indicator                  = rUniaxialStress - rThreshold;
-        Vector plastic_strain                       = ZeroVector(VoigtSize);
-        Vector delta_plastic_strain                 = ZeroVector(VoigtSize);
+
+        Vector plastic_strain       = ZeroVector(VoigtSize);
+        Vector delta_plastic_strain = ZeroVector(VoigtSize);
+        Vector aux_vector(VoigtSize);
 
         Matrix plastic_deformation_gradient_increment(Dimension,Dimension);
         Matrix elastic_deformation_gradient(Dimension,Dimension);
@@ -220,30 +222,39 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
             if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
 
+            // Update Fp
             noalias(rPlasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateExponentialPlasticDeformationGradient(rPlasticDeformationGradient,
-                    rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re,
-                    plastic_deformation_gradient_increment);
-            
+                    CalculateExponentialPlasticDeformationGradient(rPlasticDeformationGradient,
+                        rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re,
+                        plastic_deformation_gradient_increment);
 
+            // Compute Plastic strain from Fp
+            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(rPlasticDeformationGradient,
+                                                                              plastic_strain);
+            // Compute Plastic strain increment from Fp increment
+            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(plastic_deformation_gradient_increment,
+                                                                              delta_plastic_strain);
+            // Recompute Fe
+            noalias(elastic_deformation_gradient) = ConstitutiveLawUtilities<VoigtSize>::
+                CalculateElasticDeformationGradient(rPreviousDeformationGradient, rPlasticDeformationGradient);
 
+            // Let's compute the updated stress with the new Fe
+            rValues.SetDeterminantF(MathUtils<double>::Det(elastic_deformation_gradient));
+            rValues.SetDeformationGradientF(elastic_deformation_gradient);
+            rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
+            noalias(rPredictiveStressVector) = aux_vector;
 
-
-
+            // Check again yield condition
+            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector,
+                rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative,
+                rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
+                rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
+            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+                break;
+            } else {
+                ++iteration;
+            }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
         rValues = values_backup;
         if (iteration >= max_iter) {
             KRATOS_WARNING("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;

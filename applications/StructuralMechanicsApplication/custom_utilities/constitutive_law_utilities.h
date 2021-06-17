@@ -426,6 +426,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
+     * @brief This computes the plastic strain from Fp
+     * @param rFp The plastic deformation gradient
+     * @param rPlasticStrainVector The plastic strain vector
+     */
+    static void CalculatePlasticStrainFromFp(
+        const MatrixType &rFp,
+        Vector &rPlasticStrainVector);
+
+    /**
      * @brief This computes the elastic deformation gradient
      * @param rElasticTrial The elastic trial deformation gradient
      * @param rPlasticPotentialDerivative The derivative of the plastic potential
