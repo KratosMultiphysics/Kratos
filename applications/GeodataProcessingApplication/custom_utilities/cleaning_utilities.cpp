@@ -86,50 +86,108 @@ namespace Kratos
     // }
 
 
+    // void CleaningUtilities::CleanConditions(){
+    //     const int initial_cond = mrModelPart.Conditions().size();
+    //     // auto& r_conditions_array = mrModelPart.Conditions();
+
+    //     // nodes in ModelPart
+    //     const auto& r_nodes_array = mrModelPart.Nodes();        // list_node
+    //     std::set<int> nodes_set(begin(r_nodes_array), end(r_nodes_array));    // we conver the array into a set
+
+    //     KRATOS_INFO("\nCleaningUtilities") << "nodes_set.size(): " << nodes_set.size() << std::endl;
+
+    //     // we get Conditions from BottomModelPart
+    //     auto& r_bottom_model_part = mrModelPart.GetSubModelPart("BottomModelPart");
+    //     // const int initial_bottom_cond = r_bottom_model_part.Conditions().size();
+    //     auto& r_bottom_conditions_array = r_bottom_model_part.Conditions();
+
+    //     KRATOS_INFO("\nCleaningUtilities") << "r_bottom_conditions_array.size(): " << r_bottom_conditions_array.size() << std::endl;
+
+    //     for (int i_cond = 0; i_cond < static_cast<int>(r_bottom_conditions_array.size()); ++i_cond) {
+    //         const auto cond = r_bottom_conditions_array.begin() + i_cond;
+    //         auto& r_geom = cond->GetGeometry();  // nodes
+
+    //         KRATOS_INFO("\tCondition") << cond->Id() << std::endl;
+
+    //         for (unsigned int i_node = 0; i_node < r_geom.size(); ++i_node) {
+    //             KRATOS_INFO("\t\tNode") << r_geom[i_node].Id() << std::endl;
+    //             // bool exist = std::find(std::begin(r_nodes_array), std::end(r_nodes_array), r_geom[i_node]) != std::end(r_nodes_array);
+    //             // bool exist = std::find(std::begin(nodes_set), std::end(nodes_set), r_geom[i_node]) != std::end(nodes_set);
+    //             // if (!exist){
+    //             //     // we delete the condition (and break from loop) if at least one node it is not in main model part
+    //             //     KRATOS_INFO("\t CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+    //             //     cond->Set(TO_ERASE, true);
+    //             //     break;
+    //             // }
+
+    //             // auto existing_node_it = r_nodes_array.find(r_geom[i_node].Id());
+    //             if (nodes_set.find(r_geom[i_node].Id()) != nodes_set.end()) {
+    //             // if (existing_node_it == r_nodes_array.end()) {
+    //                 // we delete the condition (and break from loop) if at least one node it is not in main model part
+    //                 KRATOS_INFO("\t CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+    //                 cond->Set(TO_ERASE, true);
+    //                 break;
+    //             }
+
+    //             // /*** TRY WITH AT FUNCTION ***/
+    //             // // TODO: solve the segmentation fault that appears when these lines are performed
+    //             // auto existing_node_it = r_nodes_array.find(r_geom[i_node].Id());
+    //             // if (existing_node_it == mrModelPart.NodesEnd()) {
+    //             //     // we delete the condition (and break from loop) if at least one node it is not in main model part
+    //             //     KRATOS_INFO("\t* CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+    //             //     cond->Set(TO_ERASE, true);
+    //             //     break;
+    //             // }
+    //         }
+    //     }
+
+    //     mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+    //     const int final_cond = mrModelPart.Conditions().size();
+    //     KRATOS_INFO("\nCleaningUtilities") << "In total " << (initial_cond - final_cond) <<" superfluous conditions were cleared" << std::endl;
+    // }
+
     void CleaningUtilities::CleanConditions(){
         const int initial_cond = mrModelPart.Conditions().size();
-        // auto& r_conditions_array = mrModelPart.Conditions();
 
         // nodes in ModelPart
         const auto& r_nodes_array = mrModelPart.Nodes();        // list_node
-        std::set<int> nodes_set(begin(r_nodes_array), end(r_nodes_array));    // we conver the array into a set
 
-        KRATOS_INFO("\nCleaningUtilities") << "nodes_set.size(): " << nodes_set.size() << std::endl;
-
-        // we get Conditions from BottomModelPart
+        // we get Nodes and Conditions from BottomModelPart
         auto& r_bottom_model_part = mrModelPart.GetSubModelPart("BottomModelPart");
-        // const int initial_bottom_cond = r_bottom_model_part.Conditions().size();
+        auto& r_bottom_nodes_array = r_bottom_model_part.Nodes();
         auto& r_bottom_conditions_array = r_bottom_model_part.Conditions();
 
-        KRATOS_INFO("\nCleaningUtilities") << "r_bottom_conditions_array.size(): " << r_bottom_conditions_array.size() << std::endl;
+        KRATOS_INFO("\t* CleanConditions") << "size r_bottom_nodes_array " << r_bottom_nodes_array.size() << std::endl;
+
+        // all Nodes in BottomModelPart will set as "TO_ERASE true"
+        for (int i_node = 0; i_node < static_cast<int>(r_bottom_nodes_array.size()); ++i_node) {
+            auto node = r_nodes_array.begin() + i_node;
+            node->Set(TO_ERASE, true);
+        }
+
+        // all Node in mrModelPart will set as "TO_ERASE false"
+        // in this case only superfluous nodes remain as "TO_ERASE true"
+        for (int i_node = 0; i_node < static_cast<int>(r_nodes_array.size()); ++i_node) {
+            auto node = r_nodes_array.begin() + i_node;
+            node->Set(TO_ERASE, false);
+        }
 
         for (int i_cond = 0; i_cond < static_cast<int>(r_bottom_conditions_array.size()); ++i_cond) {
             const auto cond = r_bottom_conditions_array.begin() + i_cond;
-            auto& r_geom = cond->GetGeometry();  // nodes
+            auto& r_geom = cond->GetGeometry();  // Nodes
 
             for (unsigned int i_node = 0; i_node < r_geom.size(); ++i_node) {
-                // bool exist = std::find(std::begin(r_nodes_array), std::end(r_nodes_array), r_geom[i_node]) != std::end(r_nodes_array);
-                bool exist = std::find(std::begin(nodes_set), std::end(nodes_set), r_geom[i_node]) != std::end(nodes_set);
-                if (!exist){
-                    // we delete the condition (and break from loop) if at least one node it is not in main model part
-                    KRATOS_INFO("\t CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
+                if (r_geom[i_node].Is(TO_ERASE)) {
+                    // if at least one Node in current Condition is as TO_ERASE true, the current Condition will be delete
+                    KRATOS_INFO("\t* CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
                     cond->Set(TO_ERASE, true);
                     break;
                 }
-
-                // /*** TRY WITH AT FUNCTION ***/
-                // // TODO: solve the segmentation fault that appears when these lines are performed
-                // auto existing_node_it = r_nodes_array.find(r_geom[i_node].Id());
-                // if (existing_node_it == mrModelPart.NodesEnd()) {
-                //     // we delete the condition (and break from loop) if at least one node it is not in main model part
-                //     KRATOS_INFO("\t* CleanConditions") << "The Condition " << cond->Id() <<" will be delete!" << std::endl;
-                //     cond->Set(TO_ERASE, true);
-                //     break;
-                // }
             }
         }
 
         mrModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+        mrModelPart.RemoveNodesFromAllLevels(TO_ERASE);
         const int final_cond = mrModelPart.Conditions().size();
         KRATOS_INFO("\nCleaningUtilities") << "In total " << (initial_cond - final_cond) <<" superfluous conditions were cleared" << std::endl;
     }
