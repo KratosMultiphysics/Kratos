@@ -209,12 +209,22 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         Matrix elastic_deformation_gradient(Dimension,Dimension);
         Matrix Re(Dimension,Dimension), Ue(Dimension,Dimension);
 
+        KRATOS_WATCH("**************")
+        KRATOS_WATCH(rUniaxialStress)
+        KRATOS_WATCH(rThreshold)
+        KRATOS_WATCH(rValues.GetDeformationGradientF())
+        // KRATOS_WATCH(rPreviousDeformationGradient)
+        // KRATOS_WATCH(rPlasticDeformationGradient)
+        const Matrix F_back = rValues.GetDeformationGradientF();
+        const double detFbackpu = rValues.GetDeterminantF();
+        KRATOS_WATCH("**************")
+
         // Backward Euler
         while (iteration <= max_iter) {
-
+            // KRATOS_WATCH(rPlasticDeformationGradient)
             // Compute Fe
             noalias(elastic_deformation_gradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateElasticDeformationGradient(rPreviousDeformationGradient, rPlasticDeformationGradient);
+                CalculateElasticDeformationGradient(F_back, rPlasticDeformationGradient);
 
             // Decomposition Fe = Re*Ue
             ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(elastic_deformation_gradient, Re, Ue);
@@ -229,19 +239,28 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                         plastic_deformation_gradient_increment);
 
             // Compute Plastic strain from Fp
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(rPlasticDeformationGradient,
-                                                                              plastic_strain);
+            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
+                rPlasticDeformationGradient, plastic_strain);
+
             // Compute Plastic strain increment from Fp increment
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(plastic_deformation_gradient_increment,
-                                                                              delta_plastic_strain);
+            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
+                plastic_deformation_gradient_increment, delta_plastic_strain);
+
             // Recompute Fe
             noalias(elastic_deformation_gradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateElasticDeformationGradient(rPreviousDeformationGradient, rPlasticDeformationGradient);
+                CalculateElasticDeformationGradient(F_back, rPlasticDeformationGradient);
 
             // Let's compute the updated stress with the new Fe
-            rValues.SetDeterminantF(MathUtils<double>::Det(elastic_deformation_gradient));
-            rValues.SetDeformationGradientF(elastic_deformation_gradient);
+            rValues.SetDeterminantF(MathUtils<double>::Det(elastic_deformation_gradient)); //***************
+            rValues.SetDeformationGradientF(elastic_deformation_gradient);                 //***************
+            // rValues.SetDeterminantF(detFbackpu); //***************
+            // rValues.SetDeformationGradientF(F_back);                 //***************
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
+
+            // Reset rValues
+            rValues.SetDeterminantF(detFbackpu);
+            rValues.SetDeformationGradientF(F_back);
+
             noalias(rPredictiveStressVector) = aux_vector;
 
             // Check again yield condition
@@ -249,12 +268,25 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                 rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative,
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
+
+            // KRATOS_WATCH(threshold_indicator)
+            // KRATOS_WATCH(plastic_strain)
+            // KRATOS_WATCH(rUniaxialStress)
+            // KRATOS_WATCH(rPredictiveStressVector)
+            KRATOS_WATCH("--------------")
+            KRATOS_WATCH(rUniaxialStress)
+            KRATOS_WATCH(rThreshold)
+            KRATOS_WATCH(rPlasticDeformationGradient)
+            KRATOS_WATCH(elastic_deformation_gradient)
+            KRATOS_WATCH(plastic_deformation_gradient_increment)
+            KRATOS_WATCH("--------------")
             if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
             }
         }
+        KRATOS_ERROR << "SS";
         rValues = values_backup;
         if (iteration >= max_iter) {
             KRATOS_WARNING("Backward Euler Plasticity", 20) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
