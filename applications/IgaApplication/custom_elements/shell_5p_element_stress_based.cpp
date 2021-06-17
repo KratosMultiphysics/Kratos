@@ -44,8 +44,8 @@ namespace Kratos
         // Prepare memory
         if (reference_ReferenceJacobianInverse.size() != r_number_of_integration_points)
             reference_ReferenceJacobianInverse.resize(r_number_of_integration_points);
-        if (reference_ReferenceCartesionJacobian.size() != r_number_of_integration_points)
-            reference_ReferenceCartesionJacobian.resize(r_number_of_integration_points);
+        if (reference_ReferenceCartesianJacobian.size() != r_number_of_integration_points)
+            reference_ReferenceCartesianJacobian.resize(r_number_of_integration_points);
         if (m_dA_vector.size() != r_number_of_integration_points)
             m_dA_vector.resize(r_number_of_integration_points);
         if (m_cart_deriv.size() != r_number_of_integration_points)
@@ -62,7 +62,7 @@ namespace Kratos
             std::tie(kinematic_variables, std::ignore) = CalculateKinematics(point_number);
 
             reference_ReferenceJacobianInverse[point_number] = invert3(kinematic_variables.j);
-            reference_ReferenceCartesionJacobian[point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
+            reference_ReferenceCartesianJacobian[point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
         }
         InitializeMaterial();
         KRATOS_CATCH("")
@@ -84,7 +84,7 @@ namespace Kratos
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
 
-        CalculateSVKMaterialTangent();
+
         KRATOS_CATCH("");
     }
 
@@ -244,7 +244,7 @@ namespace Kratos
         rKin.T = getMatrixTransformMatrixForVoigtVector(Ts);
         rKin.Tcont = getMatrixTransformMatrixForVoigtVector(invert3(Ts));
         rKin.F = prod(rKin.j, reference_ReferenceJacobianInverse[IntegrationPointIndex]);
-        rKin.F = prod(prod(trans(Jloc), rKin.F) , Jloc);
+        rKin.F = prod(prod<Matrix3d>(trans(Jloc), rKin.F) , Jloc);
 
         return std::make_pair(rKin, rVar);
     }
@@ -292,9 +292,10 @@ namespace Kratos
 
         array_1d<double, 6> SVoigt;
         BoundedMatrix <double, 6, 6> CVoigt;
+        //TODO: Fill SVoigt and CVoigt from somewhere, also take care of the S33=0 condition, maybe later
 
         SVoigt = prod(trans(rActualKinematic.Tcont), SVoigt);
-        CVoigt = prod(prod(trans(rActualKinematic.Tcont), CVoigt) , rActualKinematic.Tcont);
+        CVoigt = prod(prod<BoundedMatrix <double, 6, 6>>(trans(rActualKinematic.Tcont), CVoigt) , rActualKinematic.Tcont);
 
         return convertMaterialAndStressFromVoigt(CVoigt, SVoigt);
     }
@@ -722,20 +723,17 @@ namespace Kratos
     }
 
 
-
-
-
-
     template<int size1, int size2>
     BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A) {
-        //Gram Schmidt Ortho
+        //Gram Schmidt Orthogonalization
         BoundedMatrix<double, size1, size2> Q = A;
 
         column(Q, 0) = column(Q, 0) / norm_2(column(Q, 0));
 
         for (int colIndex = 1; colIndex < Q.size2(); colIndex++) {
-            matrix_range<BoundedMatrix<double, 3, 3> > mr2(Q, range(0, Q.size1()), range(0, colIndex));
-            column(Q, colIndex) -= prod(mr2, (prod(trans(mr2), column(A, colIndex))));
+            matrix_range<bounded_matrix<double, size1, size2> > mr2(Q, range(0, Q.size1()), range(0, colIndex));
+           // bounded_vector<double, size1> v = prod(trans(mr2), column(A, colIndex));
+            column(Q, colIndex) -= prod(mr2, prod< bounded_vector<double, size1>>(trans(mr2), column(A, colIndex)));
             column(Q, colIndex) = column(Q, colIndex) / norm_2(column(Q, colIndex));
         }
 

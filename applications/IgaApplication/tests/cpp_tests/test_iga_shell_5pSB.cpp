@@ -14,7 +14,7 @@
 
 #include "test_creation_utility.h"
 
-#include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_5p_element_stress_based.h"
 #include "custom_utilities/director_utilities.h"
 
 namespace Kratos
@@ -31,7 +31,7 @@ namespace Testing
     ///@name Operations
     ///@{
 
-    typename Shell5pElement::Pointer GetShell5pElement(
+    typename Shell5pStressBasedElement::Pointer GetShell5pSBElement(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         // Set the element properties
@@ -46,10 +46,10 @@ namespace Testing
             rModelPart, PolynomialDegree, IntegrationPoint);
 
 
-        return Kratos::make_intrusive<Shell5pElement>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<Shell5pStressBasedElement>(1, p_quadrature_point, p_elem_prop);
     }
 
-    Parameters GetDirectorParametersSimpleTest()
+    Parameters GetDirectorParametersSimpleTestSB()
     {
         return Parameters(R"(
         {
@@ -62,7 +62,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP3, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP3, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -74,12 +74,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 3, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
@@ -113,7 +113,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4.
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP4, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP4, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -124,12 +124,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 4, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -164,7 +164,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5.
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP5, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP5, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -175,12 +175,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 5, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -216,7 +216,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3 (with initial displacement)
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP3Disp, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP3Disp, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -227,12 +227,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 3, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -279,7 +279,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=4 (with initial displacement)
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP4Disp, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP4Disp, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -290,12 +290,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0469100770306680, 0.211324865405187, 0, 0.0592317212640473);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 4, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 4, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 
@@ -347,7 +347,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=5 (with initial displacement)
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP5Disp, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP5Disp, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -358,12 +358,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0337652428984240, 0.211324865405187, 0, 0.0428311230947926);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 5, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElement(r_model_part, 5, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 

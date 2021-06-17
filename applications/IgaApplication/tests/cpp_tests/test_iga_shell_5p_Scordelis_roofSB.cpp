@@ -15,7 +15,7 @@
 #include "test_creation_utility_Scordelis_roof.h"
 #include "test_creation_utility.h"
 
-#include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_5p_element_stress_based.h"
 #include "custom_utilities/director_utilities.h"
 
 
@@ -33,7 +33,7 @@ namespace Testing
     ///@name Operations
     ///@{
 
-    typename Shell5pElement::Pointer GetShell5pElementScordelis(
+    typename Shell5pStressBasedElement::Pointer GetShell5pSBElementScordelis(
         ModelPart& rModelPart, SizeType PolynomialDegree, IntegrationPoint<3> IntegrationPoint)
     {
         // Set the element properties
@@ -47,10 +47,10 @@ namespace Testing
         auto p_quadrature_point = TestCreationUtilityScordelisRoof::GetQuadraturePointGeometry(
             rModelPart, PolynomialDegree, IntegrationPoint);
 
-        return Kratos::make_intrusive<Shell5pElement>(1, p_quadrature_point, p_elem_prop);
+        return Kratos::make_intrusive<Shell5pStressBasedElement>(1, p_quadrature_point, p_elem_prop);
     }
 
-    Parameters GetDirectorParametersScordelisLoTest()
+    Parameters GetDirectorParametersScordelisLoTestSB()
     {
         return Parameters(R"(
         {
@@ -63,7 +63,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell5pElement with a polynomial degree of p=4 (Scordelis Lo Roof).
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP4Scordelis, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP4Scordelis, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -75,12 +75,12 @@ namespace Testing
 
         IntegrationPoint<3> integration_point(0.953089922969332, 0.953089922969332, 0.0, 0.014033587215607);
 
-        auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 4, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElementScordelis(r_model_part, 4, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Check(r_process_info);
         p_shell_5p_element->Initialize(r_process_info);
@@ -112,7 +112,7 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell5pElement with a polynomial degree of p=5 (Scordelis Lo Roof).
-    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP5Scordelis, KratosIgaFast5PSuite)
+    KRATOS_TEST_CASE_IN_SUITE(IgaShell5pSBElementP5Scordelis, KratosIgaFast5PSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart");
@@ -123,12 +123,12 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.619309593041599, 0.966234757101576, 0.0, 0.020041279329452);
-        auto p_shell_5p_element = GetShell5pElementScordelis(r_model_part, 5, integration_point);
+        auto p_shell_5p_element = GetShell5pSBElementScordelis(r_model_part, 5, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
 
-        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTest()).ComputeDirectors();
+        DirectorUtilities(r_model_part, GetDirectorParametersScordelisLoTestSB()).ComputeDirectors();
 
         p_shell_5p_element->Initialize(r_process_info);
 

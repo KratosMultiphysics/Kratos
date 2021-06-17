@@ -382,7 +382,7 @@ private:
 
     // Reference Jacobians
     std::vector<Matrix3d> reference_ReferenceJacobianInverse;
-    std::vector<Matrix3d> reference_ReferenceCartesionJacobian;
+    std::vector<Matrix3d> reference_ReferenceCartesianJacobian;
 
     // Shape functions at all integration points
     Matrix m_N;
@@ -462,9 +462,6 @@ private:
 
 
     /// Helper
-    void CalculateSVKMaterialTangent();
-
-
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
 
@@ -480,7 +477,7 @@ private:
     void save(Serializer& rSerializer) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("reference_ReferenceCartesionJacobian", reference_ReferenceCartesionJacobian);
+        rSerializer.save("reference_ReferenceCartesianJacobian", reference_ReferenceCartesianJacobian);
         rSerializer.save("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
@@ -490,7 +487,7 @@ private:
     void load(Serializer& rSerializer) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("reference_ReferenceCartesionJacobian", reference_ReferenceCartesionJacobian);
+        rSerializer.load("reference_ReferenceCartesianJacobian", reference_ReferenceCartesianJacobian);
         rSerializer.load("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
