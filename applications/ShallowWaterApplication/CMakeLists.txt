@@ -12,6 +12,7 @@ file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_friction_laws/*.cpp
 )
 
 ## define python interface sources
@@ -37,6 +38,12 @@ pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHAL
 target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore)
 set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosShallowWaterCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosShallowWaterApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .pyd)
@@ -46,12 +53,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosShallowWaterCore)
-    cotire(KratosShallowWaterApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py KratosMultiphysics/ShallowWaterApplication/__init__.py )

@@ -27,6 +27,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "custom_utilities/fluid_auxiliary_utilities.h"
 #include "custom_utilities/fluid_post_process_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
@@ -166,6 +167,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init< ModelPart&, const double >())
         .def("SetLimitAsMultipleOfGravitionalAcceleration", &AccelerationLimitationUtilities::SetLimitAsMultipleOfGravitionalAcceleration)
         .def("Execute", &AccelerationLimitationUtilities::Execute)
+        ;
+
+    // Auxiliary utilities
+    py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
+        .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
+        .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
+        .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         ;
 
     // Post process utilities

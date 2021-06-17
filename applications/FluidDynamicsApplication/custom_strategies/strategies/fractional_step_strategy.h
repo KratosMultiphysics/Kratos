@@ -24,6 +24,7 @@
 #include "processes/process.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/variable_utils.h"
+#include "utilities/entities_utilities.h"
 
 // Application includes
 #include "custom_utilities/solver_settings.h"
@@ -174,6 +175,9 @@ public:
                 }
             }
         }
+
+        // Initialize all the elemnets and conditions
+        EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
     }
 
     int Check() override

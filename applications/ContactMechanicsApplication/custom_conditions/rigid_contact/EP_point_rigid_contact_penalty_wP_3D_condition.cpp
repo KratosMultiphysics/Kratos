@@ -79,7 +79,7 @@ namespace Kratos
 
    // ADD A NEW DOF DUE TO THE WATER
    void EPPointRigidContactPenaltywP3DCondition::GetDofList(DofsVectorType& rConditionDofList,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -104,7 +104,7 @@ namespace Kratos
    //***********************************************************************************
 
    void EPPointRigidContactPenaltywP3DCondition::EquationIdVector(EquationIdVectorType& rResult,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 

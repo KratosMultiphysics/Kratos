@@ -183,7 +183,7 @@ class UpdateThermalModelPartProcess : public Process {
             Geometry<Node<3>>& r_geometry = i_cond->GetGeometry();
             Condition::NodesArrayType cond_nodes;
             cond_nodes.reserve(r_geometry.size());
-            for (int i = 0; i < r_geometry.size(); i++)
+            for (unsigned int i = 0; i < r_geometry.size(); i++)
               cond_nodes.push_back(r_geometry(i));
 
             // Property to be used in the creation of condition
@@ -211,12 +211,12 @@ class UpdateThermalModelPartProcess : public Process {
       {
         // Loop over each condition node
         Geometry<Node<3>>& cond_geometry = i_cond->GetGeometry();
-        for (int i = 0; i < cond_geometry.size(); i++)
+        for (unsigned int i = 0; i < cond_geometry.size(); i++)
         {
           // Loop over neighbour elements
           bool fix = true;
           ElementWeakPtrVectorType& neighbour_elements = cond_geometry(i)->GetValue(NEIGHBOUR_ELEMENTS);
-          for (int j = 0; j < neighbour_elements.size(); j++)
+          for (unsigned int j = 0; j < neighbour_elements.size(); j++)
           {
             // Check if neighbour element is fluid
             GeometryType neighbour_elements_geom = neighbour_elements(j)->GetGeometry();

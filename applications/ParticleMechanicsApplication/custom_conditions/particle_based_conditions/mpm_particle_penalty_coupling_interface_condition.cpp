@@ -190,7 +190,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateInterfaceContactForc
     // Prepare variables
     GeneralVariables Variables;
     const double & r_mpc_area = this->GetIntegrationWeight();
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
 
     // Interpolate the force to mpc_force assuming linear shape function
     array_1d<double, 3 > mpc_force = ZeroVector(3);
@@ -259,7 +259,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateOnIntegrationPoints(
 
 void MPMParticlePenaltyCouplingInterfaceCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)

@@ -263,6 +263,7 @@ protected:
         TElementData& rData,
         MatrixType &rMassMatrix);
 
+    using QSVMS<TElementData>::CalculateTau;
     void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,

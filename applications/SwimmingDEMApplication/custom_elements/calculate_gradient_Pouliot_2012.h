@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeGradientPouliot2012
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeGradientPouliot2012);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeGradientPouliot2012);
 
     typedef ComputeComponentGradientSimplex<TDim, TNumNodes> BaseType;
     /// Node type (default is: Node<3>)

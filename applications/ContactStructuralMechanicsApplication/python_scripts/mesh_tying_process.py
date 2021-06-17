@@ -46,6 +46,9 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             "interval"                    : [0.0,"End"],
             "variable_name"               : "DISPLACEMENT",
             "zero_tolerance_factor"       : 1.0,
+            "integration_order"           : 2,
+            "consider_tessellation"       : false,
+            "normal_check_proportion"     : 0.1,
             "search_parameters" : {
                 "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
@@ -63,9 +66,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "lower_bounding_box_coefficient"  : 0.0,
                     "higher_bounding_box_coefficient" : 1.0
                 }
-            },
-            "integration_order"           : 2,
-            "consider_tessellation"       : false
+            }
         }
         """)
 
@@ -84,6 +85,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         base_process_settings.AddValue("zero_tolerance_factor", self.mesh_tying_settings["zero_tolerance_factor"])
         base_process_settings.AddValue("integration_order", self.mesh_tying_settings["integration_order"])
         base_process_settings.AddValue("consider_tessellation", self.mesh_tying_settings["consider_tessellation"])
+        base_process_settings.AddValue("normal_check_proportion", self.mesh_tying_settings["normal_check_proportion"])
         base_process_settings.AddValue("search_parameters", self.mesh_tying_settings["search_parameters"])
 
         # Construct the base process.
