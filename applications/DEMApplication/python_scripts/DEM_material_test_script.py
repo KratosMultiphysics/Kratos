@@ -52,7 +52,7 @@ class MaterialTest():
             self.tau_rel_std_dev_table.append(0.0)
             self.sigma_ratio_table.append(0.0)
 
-        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0
+        self.graph_counter = 0; self.renew_pressure = 0; self.Pressure = 0.0; self.pressure_to_apply = 0.0; self.CN_graph_counter = 0
 
         self.length_correction_factor = 1.0
 
@@ -180,6 +180,9 @@ class MaterialTest():
             extended_length = self.height + (self.height - inner_initial_height)
 
             self.length_correction_factor = self.height/extended_length
+        
+        absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_CN.grf")
+        self.CN_export = open(absolute_path_to_file, 'w')
 
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
@@ -423,6 +426,17 @@ class MaterialTest():
                     self.Flush(self.graph_export_volumetric)
 
         self.graph_counter += 1
+
+    def PrintCoordinationNumberGraph(self, time, solver):
+
+        if self.CN_graph_counter == self.graph_frequency:
+            self.CN_graph_counter = 0
+            dummy = 0
+            CN = self.solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+            self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
+            self.Flush(self.CN_export)
+
+        self.CN_graph_counter += 1
 
     def PrintChart(self):
 
