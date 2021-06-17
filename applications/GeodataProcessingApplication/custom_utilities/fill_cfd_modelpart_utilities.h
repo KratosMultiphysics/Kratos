@@ -81,6 +81,12 @@ namespace Kratos
     ///@{
 
     /**
+     * @brief Function to fill cfd model part
+     * @param NewModelPart The cfd model part
+     */
+    void FillModelPart(ModelPart& NewModelPart);
+
+    /**
      * @brief Function to fill "Parts_Fluid" sub model part
      *
      */
@@ -105,15 +111,13 @@ namespace Kratos
      * @brief Function to fill "Slip" sub model part
      *
      */
-    void FillSlip(ModelPart& OriginModelPart, const std::string& ConditionModelName);
-    // ModelPart& FillSlip (ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    void FillSlip(const std::string& ConditionModelName);
 
     /**
      * @brief Function to fill "NoSlip" sub model part
      *
      */
-    void FillNoslip(ModelPart& OriginModelPart, const std::string& ConditionModelName);
-    // ModelPart& FillNoslip (ModelPart& OriginModelPart, const std::string& ConditionModelName);
+    void FillNoslip(const std::string& ConditionModelName);
 
 
     ///@}
