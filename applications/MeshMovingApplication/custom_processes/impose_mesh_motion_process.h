@@ -18,6 +18,7 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "utilities/quaternion.h"
+#include "utilities/interval_utility.h"
 
 namespace Kratos
 {
@@ -52,7 +53,7 @@ public:
      *  or a "rotation_axis" and "rotation_angle" pair. Default parameters:
      *  {
      *      "model_part_name"       : "",
-     *      "interval"              : [0.0, 1e30],
+     *      "interval"              : [0.0, "End"],
      *      "rotation_definition"   : "rotation_axis",
      *      "euler_angles"          : [0.0, 0.0, 0.0],
      *      "rotation_axis"         : [0.0, 0.0, 1.0],
@@ -68,7 +69,7 @@ public:
      *  @details The rotation can be defined by either "euler_angles"
      *  or a "rotation_axis" and "rotation_angle" pair. Default parameters:
      *  {
-     *      "interval"              : [0.0, 1e30],
+     *      "interval"              : [0.0, "End"],
      *      "rotation_definition"   : "rotation_axis",
      *      "euler_angles"          : [0.0, 0.0, 0.0],
      *      "rotation_axis"         : [0.0, 0.0, 1.0],
@@ -131,13 +132,13 @@ private:
         
     ModelPart& mrModelPart;
 
+    IntervalUtility mIntervalUtility;
+    
     Matrix mRotationMatrix;
 
     array_1d<double,3> mReferencePoint;
 
     array_1d<double,3> mTranslationVector;
-
-    array_1d<double,2> mInterval;
 
     ///@}
 };

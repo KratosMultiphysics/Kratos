@@ -32,7 +32,8 @@ ImposeMeshMotionProcess::ImposeMeshMotionProcess(Model& rModel, Parameters param
 
 ImposeMeshMotionProcess::ImposeMeshMotionProcess(ModelPart& rModelPart, Parameters parameters) :
     Process(),
-    mrModelPart(rModelPart)
+    mrModelPart(rModelPart),
+    mIntervalUtility(parameters) // initialized here because IntervalUtility has no default constructor
 {
     KRATOS_TRY;
 
@@ -54,12 +55,10 @@ void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
     Vector vector_parameter;
 
     // Parse interval
-    vector_parameter = parameters.GetValue("interval").GetVector();
-    KRATOS_CHECK(vector_parameter.size() == 2);
-    mInterval[0] = vector_parameter[0];
-    mInterval[1] = vector_parameter[1];
+    mIntervalUtility = IntervalUtility(parameters);
 
     // Parse translation
+    vector_parameter = parameters.GetValue("interval").GetVector();
     array_1d<double,3> translation_vector;
     vector_parameter = parameters.GetValue("translation_vector").GetVector();
     if (vector_parameter.size() != 3) {
@@ -204,7 +203,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 
     const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
 
-    if (mInterval[0] <= time && time <= mInterval[1]) {
+    if (mIntervalUtility.IsInInterval(time)) {
         block_for_each(mrModelPart.Nodes(),
             [this](Node<3>& rNode) {
                 array_1d<double,3> transformed_point = rNode;
@@ -223,7 +222,7 @@ const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
     return Parameters(R"(
     {
         "model_part_name"       : "",
-        "interval"              : [0.0, 1e30],
+        "interval"              : [0.0, "End"],
         "rotation_definition"   : "rotation_axis",
         "euler_angles"          : [0.0, 0.0, 0.0],
         "rotation_axis"         : [0.0, 0.0, 1.0],
