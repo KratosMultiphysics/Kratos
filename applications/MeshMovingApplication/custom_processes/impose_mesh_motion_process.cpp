@@ -14,6 +14,7 @@
 #include "impose_mesh_motion_process.h"
 
 // Project includes
+#include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "includes/mesh_moving_variables.h"
@@ -23,11 +24,22 @@ namespace Kratos
 {
 
 
+ImposeMeshMotionProcess::ImposeMeshMotionProcess(Model& rModel, Parameters parameters) :
+    ImposeMeshMotionProcess(rModel.GetModelPart(parameters.GetValue("model_part_name").GetString()), parameters)
+{
+    
+}
+
+
 ImposeMeshMotionProcess::ImposeMeshMotionProcess(ModelPart& rModelPart, Parameters parameters) :
     Process(),
     mrModelPart(rModelPart)
 {
     KRATOS_TRY;
+
+    if (rModelPart.FullName() != parameters.GetValue("model_part_name").GetString()) {
+        KRATOS_ERROR << "Expecting model part named '" << parameters.GetValue("model_part_name").GetString() << "' but got '" << rModelPart.FullName() << "' instead";
+    }
 
     this->LoadFromParameters(parameters);
 
@@ -191,13 +203,17 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
 
-    block_for_each(mrModelPart.Nodes(),
-        [this](Node<3>& rNode) {
-            array_1d<double,3> transformed_point = rNode;
-            this->Transform(transformed_point);
-            rNode.SetValue(MESH_DISPLACEMENT, transformed_point - rNode);
-        }
-    );
+    const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
+
+    if (mInterval[0] <= time && time <= mInterval[1]) {
+        block_for_each(mrModelPart.Nodes(),
+            [this](Node<3>& rNode) {
+                array_1d<double,3> transformed_point = rNode;
+                this->Transform(transformed_point);
+                rNode.GetSolutionStepValue(MESH_DISPLACEMENT) = transformed_point - rNode;
+            }
+        ); // block_for_each
+    } // if time in interval
 
     KRATOS_CATCH("");
 }
@@ -209,7 +225,7 @@ const Parameters ImposeMeshMotionProcess::GetDefaultParameters() const
     {
         "model_part_name"       : "",
         "interval"              : [0.0, 1e30],
-        "rotation_definition"   : "euler_angles",
+        "rotation_definition"   : "rotation_axis",
         "euler_angles"          : [0.0, 0.0, 0.0],
         "rotation_axis"         : [0.0, 0.0, 1.0],
         "reference_point"       : [0.0, 0.0, 0.0],

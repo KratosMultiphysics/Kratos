@@ -11,6 +11,7 @@
 #include "add_custom_processes_to_python.h"
 
 // Project inlcudes
+#include "containers/model.h"
 #include "custom_processes/impose_mesh_motion_process.h"
 
 namespace Kratos
@@ -21,6 +22,7 @@ namespace Python
 void AddCustomProcessesToPython(pybind11::module& rModule)
 {
     pybind11::class_<ImposeMeshMotionProcess,ImposeMeshMotionProcess::Pointer,Process>(rModule, "ImposeMeshMotionProcess")
+        .def(pybind11::init<Model&, Parameters>())
         .def(pybind11::init<ModelPart&, Parameters>())
         ;
 }

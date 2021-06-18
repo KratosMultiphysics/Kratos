@@ -61,6 +61,22 @@ public:
      *  }
      *  @note The euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
      */
+    ImposeMeshMotionProcess(Model& rModel, Parameters parameters);
+
+    /** Constructor
+     *  @details The rotation can be defined by either "euler_angles"
+     *  or a "rotation_axis" and "rotation_angle" pair. Default parameters:
+     *  {
+     *      "interval"              : [0.0, 1e30],
+     *      "rotation_definition"   : "rotation_axis",
+     *      "euler_angles"          : [0.0, 0.0, 0.0],
+     *      "rotation_axis"         : [0.0, 0.0, 1.0],
+     *      "reference_point"       : [0.0, 0.0, 0.0]
+     *      "rotation_angle"        : 0,
+     *      "translation_vector"    : [0.0, 0.0, 0.0],
+     *  }
+     *  @note The euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
+     */
     ImposeMeshMotionProcess(ModelPart& rModelPart, Parameters parameters);
 
     ///@}
