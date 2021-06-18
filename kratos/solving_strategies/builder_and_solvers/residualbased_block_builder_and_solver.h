@@ -1029,12 +1029,11 @@ public:
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            std::size_t col_begin = 0, col_end  = 0;
             bool empty = true;
 
-            col_begin = Arow_indices[Index];
-            col_end = Arow_indices[Index + 1];
-            empty = true;
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index + 1];
+            
             for (std::size_t j = col_begin; j < col_end; ++j) {
                 if(Avalues[j] != 0.0) {
                     empty = false;
@@ -1049,8 +1048,8 @@ public:
         });
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            std::size_t col_begin = Arow_indices[Index];
-            std::size_t col_end = Arow_indices[Index+1];
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
             const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
