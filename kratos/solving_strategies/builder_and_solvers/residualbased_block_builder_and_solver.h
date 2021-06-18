@@ -844,7 +844,7 @@ public:
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
         int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        IndexPartition<std::size_t>(ndofs).for_each([&, this](std::size_t Index){
+        IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
             typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
             dof_iterator->SetEquationId(Index);
         });
@@ -1007,10 +1007,9 @@ public:
         Vector scaling_factors (system_size);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        IndexPartition<std::size_t>(ndofs).for_each([&](std::size_t Index){
+        IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&](std::size_t Index){
             auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
                 scaling_factors[Index] = 0.0;
@@ -1624,17 +1623,17 @@ protected:
             Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
         }
 
-        IndexPartition<std::size_t>(A.size1()).for_each([&](std::size_t Index){
-            const unsigned int row_begin = Arow_indices[Index];
-            const unsigned int row_end = Arow_indices[Index+1];
+        IndexPartition<std::size_t>(A.size1()).for_each([&](std::size_t i){
+            const unsigned int row_begin = Arow_indices[i];
+            const unsigned int row_end = Arow_indices[i+1];
             unsigned int k = row_begin;
-            for (auto it = indices[Index].begin(); it != indices[Index].end(); it++) {
+            for (auto it = indices[i].begin(); it != indices[i].end(); it++) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
                 k++;
             }
 
-            indices[Index].clear(); //deallocating the memory
+            indices[i].clear(); //deallocating the memory
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
@@ -1814,12 +1813,13 @@ protected:
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
 
-        IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each([&](std::size_t Index){
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(Index,Index));
+            const double abs_value_ii = std::abs(rA(i,i));
             if (abs_value_ii > max_vector[id])
                 max_vector[id] = abs_value_ii;
-        });
+        }
 
         double max_diag = 0.0;
         for(int i = 0; i < num_threads; ++i) {
@@ -1847,12 +1847,13 @@ protected:
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
 
-        IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each([&](std::size_t Index){
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(Index,Index));
+            const double abs_value_ii = std::abs(rA(i,i));
             if (abs_value_ii < min_vector[id])
                 min_vector[id] = abs_value_ii;
-        });
+        }
 
         double min_diag = std::numeric_limits<double>::max();
         for(int i = 0; i < num_threads; ++i) {
