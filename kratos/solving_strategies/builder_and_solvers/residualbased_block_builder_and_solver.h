@@ -842,7 +842,6 @@ public:
     {
         //int free_id = 0;
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
-        int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
             typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
