@@ -121,7 +121,9 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
             CalculateCharacteristicLength(rValues.GetElementGeometry());
 
-        this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, r_strain_vector);
+        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
+            this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, r_strain_vector);
+        }
 
         // We compute the stress or the constitutive matrix
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||

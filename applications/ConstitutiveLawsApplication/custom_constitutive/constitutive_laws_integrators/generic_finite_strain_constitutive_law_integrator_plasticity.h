@@ -249,10 +249,6 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             rValues.SetDeformationGradientF(rTrialElasticDeformationGradient);
             rConstitutiveLaw.CalculateValue(rValues, rStressVariable, aux_vector);
 
-            // Reset rValues
-            rValues.SetDeterminantF(current_F_det_backup);
-            rValues.SetDeformationGradientF(current_F_backup);
-
             noalias(rPredictiveStressVector) = aux_vector;
 
             // Check again yield condition
