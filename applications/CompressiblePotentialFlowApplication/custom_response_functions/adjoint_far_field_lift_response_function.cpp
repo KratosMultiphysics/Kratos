@@ -4,11 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nunez
+//  Main authors:    Marc Nunez, Inigo Lopez
 //
 
 
@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-    AdjointLiftFarFieldCoordinatesResponseFunction::AdjointLiftFarFieldCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
+    AdjointLiftFarFieldResponseFunction::AdjointLiftFarFieldResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
      : AdjointPotentialResponseFunction(rModelPart, ResponseSettings)
     {
 
@@ -53,9 +53,9 @@ namespace Kratos
 
     }
 
-    AdjointLiftFarFieldCoordinatesResponseFunction::~AdjointLiftFarFieldCoordinatesResponseFunction(){}
+    AdjointLiftFarFieldResponseFunction::~AdjointLiftFarFieldResponseFunction(){}
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::InitializeSolutionStep() {
+    void AdjointLiftFarFieldResponseFunction::InitializeSolutionStep() {
         VariableUtils().SetNonHistoricalVariableToZero(NORMAL, mrModelPart.Elements());
         mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
         double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
@@ -67,7 +67,7 @@ namespace Kratos
         mCurrentLift = this->CalculateValue(mrModelPart);
     }
 
-    double AdjointLiftFarFieldCoordinatesResponseFunction::CalculateValue(ModelPart& rModelPart)
+    double AdjointLiftFarFieldResponseFunction::CalculateValue(ModelPart& rModelPart)
     {
         KRATOS_TRY;
 
@@ -115,7 +115,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculateGradient(const Element& rAdjointElement,
+    void AdjointLiftFarFieldResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -167,7 +167,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
+    void AdjointLiftFarFieldResponseFunction::CalculateGradient(const Condition& rAdjointCondition,
                                    const Matrix& rResidualGradient,
                                    Vector& rResponseGradient,
                                    const ProcessInfo& rProcessInfo)
@@ -178,7 +178,7 @@ namespace Kratos
     }
 
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointLiftFarFieldResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -189,7 +189,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointLiftFarFieldResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -200,7 +200,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+    void AdjointLiftFarFieldResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -211,7 +211,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLiftFarFieldCoordinatesResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+    void AdjointLiftFarFieldResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
                                              const Variable<array_1d<double, 3>>& rVariable,
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
@@ -222,7 +222,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointLiftFarFieldCoordinatesResponseFunction::ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo)
+    double AdjointLiftFarFieldResponseFunction::ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
