@@ -14,7 +14,6 @@
 #include "impose_mesh_motion_process.h"
 
 // Project includes
-#include "containers/model.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "includes/mesh_moving_variables.h"

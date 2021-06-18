@@ -14,6 +14,7 @@
 #define KRATOS_IMPOSE_MESH_MOTION_PROCESS_INCLUDED
 
 // Project includes
+#include "containers/model.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "utilities/quaternion.h"
