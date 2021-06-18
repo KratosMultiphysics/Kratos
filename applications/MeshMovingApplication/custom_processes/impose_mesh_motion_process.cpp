@@ -209,7 +209,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
             [this](Node<3>& rNode) {
                 array_1d<double,3> transformed_point = rNode;
                 this->Transform(transformed_point);
-                rNode.GetSolutionStepValue(MESH_DISPLACEMENT) = transformed_point - rNode;
+                noalias(rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT)) = transformed_point - rNode;
             }
         ); // block_for_each
     } // if time in interval
