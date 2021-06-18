@@ -214,15 +214,8 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension);
 
-        // KRATOS_WATCH("******* ANTES DE INTEGRAR *******")
-        // KRATOS_WATCH(rUniaxialStress)
-        // KRATOS_WATCH(rThreshold)
-        // KRATOS_WATCH(rValues.GetDeformationGradientF())
-        // KRATOS_WATCH(rTrialElasticDeformationGradient)
-        // KRATOS_WATCH(rPlasticDeformationGradient)
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
         const double current_F_det_backup = rValues.GetDeterminantF();
-        // KRATOS_WATCH("**************")
 
         // Backward Euler
         while (iteration <= max_iter) {
@@ -268,27 +261,12 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
 
-            // KRATOS_WATCH(threshold_indicator)
-            // KRATOS_WATCH(plastic_strain)
-            // KRATOS_WATCH(rUniaxialStress)
-            // KRATOS_WATCH(rPredictiveStressVector)
-            // KRATOS_WATCH("-------DESPUES DE INTEGRAR -------")
-            // KRATOS_WATCH(delta_plastic_strain)
-            // KRATOS_WATCH(plastic_strain)
-            // KRATOS_WATCH(rUniaxialStress)
-            // KRATOS_WATCH(rPlasticDissipation)
-            // KRATOS_WATCH(rPlasticDeformationGradient)
-            // KRATOS_WATCH(rTrialElasticDeformationGradient)
-            // KRATOS_WATCH(plastic_deformation_gradient_increment)
-            // KRATOS_WATCH("--------------")
-
             if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
             }
         }
-        // KRATOS_ERROR << "SS";
         rValues = values_backup;
         if (iteration >= max_iter) {
             KRATOS_WARNING("Backward Euler Plasticity", 20) <<
