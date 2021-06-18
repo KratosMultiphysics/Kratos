@@ -212,7 +212,8 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         const Matrix old_elastic_def_grad = ConstitutiveLawUtilities<VoigtSize>::
             CalculateElasticDeformationGradient(rPreviousDeformationGradient,
-                rPlasticDeformationGradient)
+                                                rPlasticDeformationGradient);
+        const Matrix trial_Fe_backpu = rTrialElasticDeformationGradient;
 
         noalias(plastic_deformation_backup) = rPlasticDeformationGradient;
         noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension);
@@ -220,27 +221,29 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         KRATOS_WATCH("******* ANTES DE INTEGRAR *******")
         KRATOS_WATCH(rUniaxialStress)
         KRATOS_WATCH(rThreshold)
-        KRATOS_WATCH(rValues.GetDeformationGradientF())
+        // KRATOS_WATCH(rValues.GetDeformationGradientF())
         KRATOS_WATCH(rTrialElasticDeformationGradient)
-        KRATOS_WATCH(rPlasticDeformationGradient)
+        // KRATOS_WATCH(rPlasticDeformationGradient)
         const Matrix F_back = rValues.GetDeformationGradientF();
         const double detFbackpu = rValues.GetDeterminantF();
         KRATOS_WATCH("**************")
 
         // Backward Euler
         while (iteration <= max_iter) {
-            // Update Fe
-            noalias(rTrialElasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateExponentialElasticDeformationGradient(rTrialElasticDeformationGradient,
-                    rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re,
-                    plastic_deformation_gradient_increment);
 
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
-            // plastic_consistency_factor_increment = 0.01;
             if (plastic_consistency_factor_increment < 0.0) plastic_consistency_factor_increment = 0.0;
 
             // Decomposition Fe = Re*Ue
             ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(rTrialElasticDeformationGradient, Re, Ue);
+
+            // Update Fe
+            noalias(rTrialElasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
+                CalculateExponentialElasticDeformationGradient(trial_Fe_backpu,
+                    rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
+
+
+
 
 
 
@@ -253,9 +256,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             // ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
             //     plastic_deformation_gradient_increment, delta_plastic_strain);
 
-            // Recompute Fe
-            // noalias(rTrialElasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
-            //     CalculateElasticDeformationGradient(F_back, rPlasticDeformationGradient);
+
 
             // Let's compute the updated stress with the new Fe
             rValues.SetDeterminantF(MathUtils<double>::Det(rTrialElasticDeformationGradient)); //***************
@@ -279,12 +280,12 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             // KRATOS_WATCH(rUniaxialStress)
             // KRATOS_WATCH(rPredictiveStressVector)
             KRATOS_WATCH("-------DESPUES DE INTEGRAR -------")
-            KRATOS_WATCH(plastic_consistency_factor_increment)
+            // KRATOS_WATCH(plastic_consistency_factor_increment)
             KRATOS_WATCH(rUniaxialStress)
             KRATOS_WATCH(rThreshold)
-            KRATOS_WATCH(rPlasticDeformationGradient)
-            KRATOS_WATCH(rTrialElasticDeformationGradient)
-            KRATOS_WATCH(plastic_deformation_gradient_increment)
+            // KRATOS_WATCH(rPlasticDeformationGradient)
+            // KRATOS_WATCH(rTrialElasticDeformationGradient)
+            // KRATOS_WATCH(plastic_deformation_gradient_increment)
             KRATOS_WATCH("--------------")
 
 

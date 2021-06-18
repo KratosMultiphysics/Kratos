@@ -745,6 +745,21 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformationGradient
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticDeformationGradientFromElastic(
+    const MatrixType& rF,
+    const MatrixType& rFe
+    )
+{
+    MatrixType invFe(Dimension, Dimension);
+    double aux_det = 0.0;
+    MathUtils<double>::InvertMatrix(rFe, invFe, aux_det);
+    return prod(invFe, rF);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
     const MatrixType& rFp,
     Vector& rPlasticStrainVector
@@ -796,8 +811,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformat
     const MatrixType& rTrialFe,
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
-    const MatrixType& rRe,
-    MatrixType& rFeIncrement
+    const MatrixType& rRe
     )
 {
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
@@ -832,45 +846,6 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateTrialElasticDeformationGra
     return prod(F_incr, old_Fe);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
-    const MatrixType& rElasticTrial,
-    const BoundedVectorType& rPlasticPotentialDerivative,
-    const double PlasticConsistencyFactorIncrement,
-    const MatrixType& rRe
-    )
-{
-    // Define elastic deformation gradient
-    MatrixType elastic_deformation_gradient(Dimension, Dimension);
-
-    // Define plastic flow
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
-
-    // Declare the different eigen decomposition matrices
-    BoundedMatrixType eigen_values_matrix, eigen_vectors_matrix;
-
-    // We compute the exponential matrix
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(plastic_flow, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (std::size_t i = 0; i < Dimension; ++i) {
-        eigen_values_matrix(i, i) = std::exp(-eigen_values_matrix(i, i));
-    }
-
-    // Calculate exponential matrix
-    MathUtils<double>::BDBtProductOperation(elastic_deformation_gradient, eigen_values_matrix, eigen_vectors_matrix);
-
-    // Pre and post multiply by Re
-    elastic_deformation_gradient = prod(elastic_deformation_gradient, rRe);
-    elastic_deformation_gradient = prod(trans(rRe), elastic_deformation_gradient);
-    elastic_deformation_gradient = prod(rElasticTrial, elastic_deformation_gradient);
-
-    return elastic_deformation_gradient;
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
