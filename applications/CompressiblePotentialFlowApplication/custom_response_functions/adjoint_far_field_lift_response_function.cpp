@@ -63,33 +63,39 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        auto& far_field_sub_model_part = rModelPart.GetSubModelPart(mFarFieldModelPartName);
+        auto& far_field_sub_model_part = rModelPart.GetRootModelPart().GetSubModelPart(mFarFieldModelPartName);
         const auto r_current_process_info = rModelPart.GetProcessInfo();
 
         array_1d<double, 3> force_coefficient_pres;
         force_coefficient_pres.clear();
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
-        for(int i = 0; i <  static_cast<int>(far_field_sub_model_part.NumberOfConditions()); ++i) {
-            auto it_cond=far_field_sub_model_part.ConditionsBegin()+i;
-            auto& r_geometry = it_cond->GetGeometry();
+
+        typedef CombinedReduction<SumReduction<array_1d<double, 3>>,SumReduction<array_1d<double, 3>>> CustomReduction;
+        std::tie(force_coefficient_pres, force_coefficient_vel) =
+        block_for_each<CustomReduction>(far_field_sub_model_part.Conditions(), [&](Condition& rCondition) {
+            auto& r_geometry = rCondition.GetGeometry();
+            array_1d<double, 3> local_force_coefficient_pres;
+            array_1d<double, 3> local_force_coefficient_vel;
+
             // Computing normal
             array_1d<double,3> aux_coordinates;
             r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
             const auto normal = r_geometry.Normal(aux_coordinates);
-            it_cond-> SetValue(NORMAL, normal);
+            rCondition.SetValue(NORMAL, normal);
 
-            it_cond->Initialize(r_current_process_info);
-            it_cond->FinalizeNonLinearIteration(r_current_process_info);
-            double pressure_coefficient = it_cond->GetValue(PRESSURE_COEFFICIENT);
-            force_coefficient_pres -= normal*pressure_coefficient;
+            rCondition.Initialize(r_current_process_info);
+            rCondition.FinalizeNonLinearIteration(r_current_process_info);
+            double pressure_coefficient = rCondition.GetValue(PRESSURE_COEFFICIENT);
+            local_force_coefficient_pres = -normal*pressure_coefficient;
 
-            auto velocity = it_cond->GetValue(VELOCITY);
-            double density = it_cond->GetValue(DENSITY);
+            auto velocity = rCondition.GetValue(VELOCITY);
+            double density = rCondition.GetValue(DENSITY);
             double velocity_projection = inner_prod(normal,velocity);
             array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
-            force_coefficient_vel -= velocity_projection * disturbance * density;
-        }
+            local_force_coefficient_vel = -velocity_projection * disturbance * density;
+            return std::make_tuple(local_force_coefficient_pres, local_force_coefficient_vel);
+        });
 
         force_coefficient_pres = force_coefficient_pres / mReferenceChord;
         force_coefficient_vel = force_coefficient_vel/(mDynamicPressure*mReferenceChord);
