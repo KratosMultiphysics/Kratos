@@ -64,6 +64,7 @@ class MaterialTest():
 
         self.new_strain = 0.0
         self.LoadingVelocity = 0.0
+        self.MeasuringSurface = 1.0
 
         # for the graph plotting
         if "material_test_settings" in DEM_parameters.keys():
@@ -71,7 +72,6 @@ class MaterialTest():
             self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
-            self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
             self.y_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["YCoordinateOfCylinderBottomBase"].GetDouble()
             self.z_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["ZCoordinateOfCylinderBottomBase"].GetDouble()
         else:
@@ -79,11 +79,11 @@ class MaterialTest():
             self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["TestType"].GetString()
-            self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
             self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
             self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
 
         self.ComputeLoadingVelocity()
+        self.ComputeMeasuringSurface()
         self.problem_name = self.parameters["problem_name"].GetString()
         self.initial_time = datetime.datetime.now()
 
@@ -193,6 +193,9 @@ class MaterialTest():
             if smp[BOTTOM]:
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
+    
+    def ComputeMeasuringSurface(self):
+        self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
 
     def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
@@ -200,7 +203,6 @@ class MaterialTest():
         total_cross_section = 0.0
 
         # Cylinder dimensions
-
         h = self.height
         d = self.diameter
         y_min = self.y_coordinate_of_cylinder_bottom_base
@@ -362,7 +364,7 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bts += force_node_y
 
-            self.total_stress_bts = 2.0 * total_force_bts /(math.pi * self.height * self.diameter)
+            self.total_stress_bts = 2.0 * total_force_bts / (math.pi * self.height * self.diameter)
             self.strain_bts += -100 * self.LoadingVelocity * dt / self.diameter
 
         else:
@@ -378,22 +380,22 @@ class MaterialTest():
                 force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_top += force_node_y
 
-            self.total_stress_top = total_force_top/(self.MeasuringSurface)
+            self.total_stress_top = total_force_top / self.MeasuringSurface
 
             for node in self.bot_mesh_nodes:
                 force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
                 total_force_bot += force_node_y
 
-            self.total_stress_bot = total_force_bot/(self.MeasuringSurface)
+            self.total_stress_bot = total_force_bot / self.MeasuringSurface
 
-            self.total_stress_mean = 0.5*(self.total_stress_bot + self.total_stress_top)
+            self.total_stress_mean = 0.5 * (self.total_stress_bot + self.total_stress_top)
 
             if self.test_type =="Shear":
                 self.strain += dt
                 self.total_stress_top = total_force_top/1.0 # applied force divided by efective shear cylinder area 2*pi*0.0225*0.08
                 self.total_stress_mean = self.total_stress_top
 
-            if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure != 0.0:
+            if (self.test_type == "Triaxial" or self.test_type == "Hydrostatic") and self.ConfinementPressure:
 
                 self.Pressure = min(self.total_stress_mean, self.ConfinementPressure * 1e6)
 

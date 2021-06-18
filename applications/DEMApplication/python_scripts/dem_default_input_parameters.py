@@ -122,7 +122,6 @@ def GetDefaultInputParameters():
                 "LoadingVelocity"                  : -0.10,
                 "SpecimenLength"                   : 0.3,
                 "SpecimenDiameter"                 : 0.15,
-                "MeasuringSurface"                 : 0.01767145867644375,
                 "YCoordinateOfCylinderBottomBase"  : 0.0,
                 "ZCoordinateOfCylinderBottomBase"  : 0.0
             },
