@@ -37,10 +37,11 @@ ImposeMeshMotionProcess::ImposeMeshMotionProcess(ModelPart& rModelPart, Paramete
 {
     KRATOS_TRY;
 
-    if (rModelPart.FullName() != parameters.GetValue("model_part_name").GetString()) {
-        KRATOS_ERROR << "Expecting model part named '" << parameters.GetValue("model_part_name").GetString() << "' but got '" << rModelPart.FullName() << "' instead";
-    }
+    // Check model part name
+    KRATOS_ERROR_IF(rModelPart.FullName() != parameters.GetValue("model_part_name").GetString())
+    << "Expecting model part named '" << parameters.GetValue("model_part_name").GetString() << "' but got '" << rModelPart.FullName() << "' instead";
 
+    // Parse input and initialize
     this->LoadFromParameters(parameters);
 
     KRATOS_CATCH("");
