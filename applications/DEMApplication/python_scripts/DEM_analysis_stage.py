@@ -327,7 +327,9 @@ class DEMAnalysisStage(AnalysisStage):
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
 
     def HomogenizationUtilitiesInitialize(self, max_node_id=1, max_elem_id=1, max_cond_id=1):
-
+        self.KratosPrintInfo("This step is done before reading the mdpas to avoid repetition of indices (the homogenization mesh has a fixed number of nodes and elements)")
+        self.KratosPrintInfo("However, as we don't have DEM elements or walls, we cannot use the automatic feature of the bounding box!!!")
+        self.KratosPrintInfo("TODO: solve this somehow")
         self.projected_homogenization_vars = []
         self.projected_homogenization_vars += [VOLUME_SOLID_FRACTION]
         self.projected_homogenization_vars += [MASS_SOLID_FRACTION]
