@@ -207,9 +207,10 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
 
         Vector plastic_strain       = ZeroVector(VoigtSize);
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
-        Vector aux_vector(VoigtSize);
+        Vector aux_vector(VoigtSize), previous_stress_vector(VoigtSize);
 
         Matrix plastic_deformation_gradient_increment(Dimension,Dimension);
+        Matrix old_Fe(Dimension,Dimension);
         Matrix Re(Dimension,Dimension), Ue(Dimension,Dimension);
 
         const Matrix trial_Fe_backup = rTrialElasticDeformationGradient;
@@ -220,6 +221,14 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
         const double current_F_det_backup = rValues.GetDeterminantF();
 
+        // Compute the previous stress vector
+        noalias(old_Fe) = ConstitutiveLawUtilities<VoigtSize>::CalculateElasticDeformationGradient(
+            rPreviousDeformationGradient, rPlasticDeformationGradient);
+        rValues.SetDeterminantF(MathUtils<double>::Det(old_Fe));
+        rValues.SetDeformationGradientF(old_Fe);
+        rConstitutiveLaw.CalculateValue(rValues, rStressVariable, previous_stress_vector);
+
+        BoundedArrayType kin_hard_stress_vector;
 
         // Backward Euler
         while (iteration <= max_iter) {
@@ -258,8 +267,11 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
             // Update back-stress
             SmallStrainIntegratorType::CalculateBackStress(rPredictiveStressVector, rValues, previous_stress_vector,
                                                         delta_plastic_strain, rBackStressVector);
+
+            noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
+
             // Check again yield condition
-            threshold_indicator = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector,
+            threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector,
                 rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative,
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain, rBackStressVector);
