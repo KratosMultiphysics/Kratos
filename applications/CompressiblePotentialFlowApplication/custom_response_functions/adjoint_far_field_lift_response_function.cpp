@@ -127,7 +127,7 @@ namespace Kratos
         bool is_cond = false;
         std::size_t counter = 0;
         for (std::size_t i_node=0; i_node<r_adjoint_geometry.size(); ++i_node){
-            if (r_adjoint_geometry[i_node].Is(INLET)){
+            if (r_adjoint_geometry[i_node].GetValue(FAR_FIELD)){
                 counter++;
             }
         }

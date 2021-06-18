@@ -13,6 +13,7 @@
 // Project includes
 #include "apply_far_field_process.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -36,6 +37,8 @@ void ApplyFarFieldProcess::Execute()
     if (mInitializeFlowField){
         InitializeFlowField();
     }
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, false, mrModelPart.GetRootModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, true, mrModelPart.Nodes());
 }
 
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()
@@ -78,11 +81,6 @@ void ApplyFarFieldProcess::AssignFarFieldBoundaryConditions()
     for (int i = 0; i < static_cast<int>(mrModelPart.Conditions().size()); i++) {
         auto it_cond = mrModelPart.ConditionsBegin() + i;
         auto& r_geometry = it_cond->GetGeometry();
-
-        for (std::size_t i_node = 0; i_node<r_geometry.size(); i_node++)
-        {
-            r_geometry[i_node].Set(INLET, true);
-        }
 
         // Computing normal
         array_1d<double,3> aux_coordinates;
