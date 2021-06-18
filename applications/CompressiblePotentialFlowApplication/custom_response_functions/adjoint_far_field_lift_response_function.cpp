@@ -63,16 +63,15 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ModelPart& root_model_part = rModelPart.GetRootModelPart();
-        auto& far_field_model_part = root_model_part.GetSubModelPart("PotentialWallCondition2D_Far_field_Auto1");
+        auto& far_field_sub_model_part = rModelPart.GetSubModelPart(mFarFieldModelPartName);
         const auto r_current_process_info = rModelPart.GetProcessInfo();
 
         array_1d<double, 3> force_coefficient_pres;
         force_coefficient_pres.clear();
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
-        for(int i = 0; i <  static_cast<int>(far_field_model_part.NumberOfConditions()); ++i) {
-            auto it_cond=far_field_model_part.ConditionsBegin()+i;
+        for(int i = 0; i <  static_cast<int>(far_field_sub_model_part.NumberOfConditions()); ++i) {
+            auto it_cond=far_field_sub_model_part.ConditionsBegin()+i;
             auto& r_geometry = it_cond->GetGeometry();
             // Computing normal
             array_1d<double,3> aux_coordinates;
