@@ -2,14 +2,17 @@ import math
 import datetime
 import shutil
 import weakref
+import os
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
+import KratosMultiphysics as Kratos
 
 class MaterialTest():
 
     def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
+        
         self.parameters = DEM_parameters
         self.graphs_path = graphs_path
         self.post_path = post_path
@@ -18,7 +21,7 @@ class MaterialTest():
         self.Procedures = weakref.proxy(procedures)
         self.solver = weakref.proxy(solver)
 
-        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = [];
+        self.top_mesh_nodes = []; self.bot_mesh_nodes = []; self.top_mesh_fem_nodes = []; self.bot_mesh_fem_nodes = []
 
         self.xtop_area = 0.0
         self.xbot_area = 0.0
@@ -70,17 +73,16 @@ class MaterialTest():
             self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
             self.MeasuringSurface = self.parameters["material_test_settings"]["MeasuringSurface"].GetDouble()
-            self.MeshType = self.parameters["material_test_settings"]["MeshType"].GetString()
-            #self.MeshPath = self.parameters["material_test_settings"]["MeshPath"].GetString()
-
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["ZCoordinateOfCylinderBottomBase"].GetDouble()
         else:
             self.height = self.parameters["SpecimenLength"].GetDouble()
             self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["TestType"].GetString()
             self.MeasuringSurface = self.parameters["MeasuringSurface"].GetDouble()
-            self.MeshType = self.parameters["MeshType"].GetString()
-            self.MeshPath = self.parameters["MeshPath"].GetString()
+            self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
+            self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
 
         self.ComputeLoadingVelocity()
         self.problem_name = self.parameters["problem_name"].GetString()
@@ -202,7 +204,7 @@ class MaterialTest():
 
         h = self.height
         d = self.diameter
-        ymin = -0.000195748 #0.0
+        y_min = self.y_coordinate_of_cylinder_bottom_base
 
         eps = 3.0 #2.0
 
@@ -235,25 +237,25 @@ class MaterialTest():
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.LAT.append(node)
 
-                if (y > ymin + eps * r) and (y < ymin + (h - eps * r)):
+                if (y > y_min + eps * r) and (y < y_min + (h - eps * r)):
 
                     self.SKIN.append(element)
                     self.XLAT.append(node)
 
                     xlat_area = xlat_area + cross_section
 
-            if (y <= ymin + eps * r) or (y >= ymin + (h - eps * r)):
+            if (y <= y_min + eps * r) or (y >= y_min + (h - eps * r)):
 
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
                 self.SKIN.append(element)
 
-                if y <= ymin + eps * r:
+                if y <= y_min + eps * r:
 
                     self.BOT.append(node)
                     y_bot_total += y*r
                     weight_bot += r
 
-                elif y >= ymin + (h - eps * r):
+                elif y >= y_min + (h - eps * r):
 
                     self.TOP.append(node)
 
@@ -262,7 +264,7 @@ class MaterialTest():
 
                 if (x * x + z * z) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
 
-                    if y > ymin + h / 2:
+                    if y > y_min + h / 2:
 
                         self.XTOPCORNER.append(node)
                         xtopcorner_area = xtopcorner_area + cross_section
@@ -273,12 +275,12 @@ class MaterialTest():
                         xbotcorner_area = xbotcorner_area + cross_section
                 else:
 
-                    if y <= ymin + eps * r:
+                    if y <= y_min + eps * r:
 
                         self.XBOT.append(node)
                         xbot_area = xbot_area + cross_section
 
-                    elif y >= ymin + (h - eps * r):
+                    elif y >= y_min + (h - eps * r):
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
@@ -297,7 +299,7 @@ class MaterialTest():
         h = self.height
         d = self.diameter
         eps = 3.0 #2.0
-        zmin = -0.0002687005
+        z_min = self.z_coordinate_of_cylinder_bottom_base
 
         for element in self.spheres_model_part.Elements:
 
@@ -311,7 +313,7 @@ class MaterialTest():
             if (x * x + y * y) >= ((0.5 * d - eps * r) * (0.5 * d - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
-            if (z <= zmin + eps * r) or (z >= zmin + (h - eps * r)):
+            if (z <= z_min + eps * r) or (z >= z_min + (h - eps * r)):
                 element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
 
         self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")

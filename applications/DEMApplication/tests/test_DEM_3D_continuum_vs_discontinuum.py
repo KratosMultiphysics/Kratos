@@ -26,7 +26,7 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
         self.CheckPositions()
 
     def CheckPositions(self):
-       
+
         node1   = self.spheres_model_part.GetNode(1)
         node2   = self.spheres_model_part.GetNode(2)
         node3   = self.spheres_model_part.GetNode(3)
