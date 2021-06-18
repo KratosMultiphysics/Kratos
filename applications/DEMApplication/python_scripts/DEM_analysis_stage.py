@@ -325,7 +325,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         if self.DEM_parameters["output_configuration"]["print_number_of_neighbours_histogram"].GetBool():
             self.PreUtilities.PrintNumberOfNeighboursHistogram(self.spheres_model_part, os.path.join(self.graphs_path, "number_of_neighbours_histogram.txt"))
-    
+
     def HomogenizationUtilitiesInitialize(self, max_node_id=1, max_elem_id=1, max_cond_id=1):
 
         self.projected_homogenization_vars = []
@@ -370,7 +370,7 @@ class DEMAnalysisStage(AnalysisStage):
                                                                                     lower_corner_coordinates,
                                                                                     higher_corner_coordinates,
                                                                                     number_of_divisions)
-        
+
         else:
             print("Please select 2D or 3D problem type")
 
@@ -379,7 +379,7 @@ class DEMAnalysisStage(AnalysisStage):
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.homogenization_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.homogenization_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.homogenization_model_part)
-        
+
         self.projection_module = homogenization_projector.ProjectionModule(
             self.homogenization_model_part,
             self.spheres_model_part,
@@ -390,7 +390,7 @@ class DEMAnalysisStage(AnalysisStage):
         )
 
         self.projection_module.UpdateDatabase(element_size)
-        
+
         # Calculate NODAL_AREA
         domain_size = self.DEM_parameters["Dimension"].GetInt()
         nodal_area_process = KratosMultiphysics.CalculateNodalAreaProcess(self.homogenization_model_part, domain_size)
@@ -511,7 +511,7 @@ class DEMAnalysisStage(AnalysisStage):
                 model_part_io = self.model_part_reader(file_path, max_node_id + 1, max_elem_id + 1, max_cond_id + 1)
 
             model_part_io.ReadModelPart(model_part)
-            
+
         ReadModelPart(self.spheres_model_part, self.GetDiscreteElementsInputFileTag(), max_node_id, max_elem_id, max_cond_id)
         max_node_id, max_elem_id, max_cond_id = UpdateMaxIds(max_node_id, max_elem_id, max_cond_id, self.spheres_model_part)
         old_max_elem_id_spheres = max_elem_id
@@ -533,10 +533,10 @@ class DEMAnalysisStage(AnalysisStage):
         ReadModelPart(self.dem_inlet_model_part, self.GetDEMInletInputFileTag(), max_node_id, max_elem_id, max_cond_id)
 
     def ReadModelParts(self, max_node_id=0, max_elem_id=0, max_cond_id=0):
-        
+
         if self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool():
             max_node_id, max_elem_id, max_cond_id = self.HomogenizationUtilitiesInitialize(max_node_id, max_elem_id, max_cond_id)
-        
+
         model_part_import_settings = self.DEM_parameters["solver_settings"]["model_import_settings"]
         input_type = model_part_import_settings["input_type"].GetString()
 
@@ -578,6 +578,10 @@ class DEMAnalysisStage(AnalysisStage):
     def PrintResults(self):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
+            #Projecting Homogenization variables
+            if self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool():
+                #TODO:Decide if this should be in the python strategy
+                self.projection_module.ProjectFromParticles()
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
@@ -637,11 +641,6 @@ class DEMAnalysisStage(AnalysisStage):
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
-        
-        #Projecting Homogenization variables
-        if self.DEM_parameters["homogenization_utility_settings"]["active"].GetBool():
-            #TODO:Decide if this should be in the python strategy
-            self.projection_module.ProjectFromParticles()
 
     def OutputSolutionStep(self):
         #### PRINTING GRAPHS ####
