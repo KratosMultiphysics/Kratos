@@ -7,12 +7,11 @@ import os
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.DEMApplication import DEM_procedures as DEM_procedures
-import KratosMultiphysics as Kratos
 
 class MaterialTest():
 
     def __init__(self, DEM_parameters, procedures, solver, graphs_path, post_path, spheres_model_part, rigid_face_model_part):
-        
+
         self.parameters = DEM_parameters
         self.graphs_path = graphs_path
         self.post_path = post_path
