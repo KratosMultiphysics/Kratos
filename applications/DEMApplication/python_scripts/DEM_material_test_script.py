@@ -180,7 +180,7 @@ class MaterialTest():
             extended_length = self.height + (self.height - inner_initial_height)
 
             self.length_correction_factor = self.height/extended_length
-        
+
         absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + "_CN.grf")
         self.CN_export = open(absolute_path_to_file, 'w')
 

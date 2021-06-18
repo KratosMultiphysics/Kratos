@@ -2,7 +2,6 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
@@ -19,7 +18,7 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-        
+
         self.tolerance = 2.5e-5
 
     def FinalizeSolutionStep(self):
