@@ -593,7 +593,9 @@ public:
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
         block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            // NOTE: this is initialzed to - the value of dx prediction
             dx_prediction[rDof.EquationId()] = -(rDof.GetSolutionStepValue() - rDof.GetSolutionStepValue(1));
+
         });
 
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
