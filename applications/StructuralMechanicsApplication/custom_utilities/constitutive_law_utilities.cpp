@@ -793,6 +793,50 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
 
 template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
+    const MatrixType& rTrialFe,
+    const BoundedVectorType& rPlasticPotentialDerivative,
+    const double PlasticConsistencyFactorIncrement,
+    const MatrixType& rRe,
+    MatrixType& rFeIncrement
+    )
+{
+    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
+        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
+    BoundedMatrixType r_exponential_tensor;
+    ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(-plastic_flow, r_exponential_tensor);
+
+    Matrix aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
+    noalias(aux_1) = prod(rTrialFe, trans(rRe));
+    noalias(aux_2) = prod(r_exponential_tensor, rRe);
+    return prod(aux_1, aux_2);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateTrialElasticDeformationGradient(
+    const MatrixType& rCurrentF,
+    const MatrixType& rOldF,
+    const MatrixType& rOldFp
+    )
+{
+    Matrix inv_old_F(Dimension, Dimension), F_incr(Dimension, Dimension);
+    Matrix old_Fe(Dimension, Dimension), inv_old_Fp(Dimension, Dimension);
+    double aux_det = 0.0;
+    MathUtils<double>::InvertMatrix(rOldF,  inv_old_F,  aux_det);
+    MathUtils<double>::InvertMatrix(rOldFp, inv_old_Fp, aux_det);
+
+    noalias(old_Fe) = prod(rOldF,     inv_old_Fp);
+    noalias(F_incr) = prod(rCurrentF, inv_old_F);
+    return prod(F_incr, old_Fe);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
     const MatrixType& rElasticTrial,
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
