@@ -969,7 +969,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
         noalias(rExponentialMatrix) += r_exponent_matrix / factorial;
         norm_series_term = std::abs(norm_frobenius(r_exponent_matrix) / factorial);
         series_term++;
-    }}
+    }
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

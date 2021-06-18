@@ -349,7 +349,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
-                /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+                /* Inside "IntegrateStressVector" the predictive_stress_vector
+                    is updated to verify the yield criterion */
                 TConstLawIntegratorType::IntegrateStressVector(
                     *this, ALMANSI_STRAIN_VECTOR, KIRCHHOFF_STRESS_VECTOR,
                     predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
@@ -359,7 +360,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2); // this modifies the ConstitutiveMatrix
+                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff); // this modifies the ConstitutiveMatrix
                 }
             }
         }
