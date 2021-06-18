@@ -980,7 +980,8 @@ public:
 
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
         block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-            const int i = rDof.EquationId();
+            const std::size_t i = rDof.EquationId();
+
             rDof.GetSolutionStepReactionValue() = -b[i];
         });
     }
