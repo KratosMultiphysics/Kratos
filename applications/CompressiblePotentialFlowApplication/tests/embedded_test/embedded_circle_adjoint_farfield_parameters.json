@@ -19,7 +19,6 @@
         "response_function_settings" : {
                 "response_type"     : "adjoint_lift_far_field",
                 "far_field_model_part_name"         : "PotentialWallCondition2D_Far_field_Auto1",
-                "use_kratos"        : true,
                 "gradient_mode"     : "semi_analytic",
                 "step_size"         : 1e-6
         },

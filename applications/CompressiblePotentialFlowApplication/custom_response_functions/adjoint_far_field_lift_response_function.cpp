@@ -19,27 +19,36 @@
 #include "adjoint_far_field_lift_response_function.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "utilities/variable_utils.h"
-#include "custom_conditions/potential_wall_condition.h"
-#include "custom_conditions/adjoint_potential_wall_condition.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
     AdjointLiftFarFieldCoordinatesResponseFunction::AdjointLiftFarFieldCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings)
      : AdjointPotentialResponseFunction(rModelPart, ResponseSettings)
     {
-        // This response function currently only works in 2D!
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        const int domain_size = r_current_process_info[DOMAIN_SIZE];
-        KRATOS_ERROR_IF(domain_size != 2) << "Invalid DOMAIN_SIZE: " << domain_size << std::endl;
 
-        // Reading the reference chord from the parameters
-        mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
-        KRATOS_ERROR_IF(!ResponseSettings.Has("far_field_model_part_name")) << "Please define the far "
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "reference_chord"             : 1.0,
+            "far_field_model_part_name"   : "",
+            "wake_normal"                 : [0,1,0],
+            "analyzer"                    : "kratos",
+            "response_type"               : "adjoint_lift_far_field",
+            "gradient_mode"               : "semi_analytic",
+            "step_size"                   : 1e-6
+        })" );
+        ResponseSettings.ValidateAndAssignDefaults(default_parameters);
+
+        KRATOS_ERROR_IF(ResponseSettings["far_field_model_part_name"].GetString()=="") << "Please define the far "
             "field model part name in the response settings \"far_field_model_part_name\"!" << std::endl;
         mFarFieldModelPartName = ResponseSettings["far_field_model_part_name"].GetString();
-        const double eps = std::numeric_limits<double>::epsilon();
-        KRATOS_ERROR_IF(mReferenceChord < eps)
+
+        mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
+        KRATOS_ERROR_IF(mReferenceChord < std::numeric_limits<double>::epsilon())
             << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
+
+        mWakeNormal = ResponseSettings["wake_normal"].GetVector();
+        mStepSize = ResponseSettings["step_size"].GetDouble();
 
     }
 
@@ -54,9 +63,7 @@ namespace Kratos
         double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
         auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
         mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
-        mWakeNormal[0] = -wake_direction[1];
-        mWakeNormal[1] = wake_direction[0];
-        mUnperturbedLift = this->CalculateValue(mrModelPart);
+        mCurrentLift = this->CalculateValue(mrModelPart);
     }
 
     double AdjointLiftFarFieldCoordinatesResponseFunction::CalculateValue(ModelPart& rModelPart)
@@ -116,7 +123,6 @@ namespace Kratos
 
         rResponseGradient = ZeroVector(rResidualGradient.size1());
         auto& r_adjoint_geometry = rAdjointElement.GetGeometry();
-        double epsilon = 1e-9;
 
         bool is_cond = false;
         std::size_t counter = 0;
@@ -138,22 +144,22 @@ namespace Kratos
                 double lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
-                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
+                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += mStepSize;
                 }
                 else{
-                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
+                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += mStepSize;
                 }
 
                 double perturbed_lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
-                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
+                    r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= mStepSize;
                 }
                 else {
-                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= epsilon;
+                    r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= mStepSize;
                 }
 
-                rResponseGradient[i_node] = (perturbed_lift-lift)/epsilon;
+                rResponseGradient[i_node] = (perturbed_lift-lift)/mStepSize;
             }
         }
 
@@ -243,22 +249,6 @@ namespace Kratos
         auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
 
         return inner_prod(force_coefficient, mWakeNormal);
-
-        KRATOS_CATCH("");
-    }
-
-    void AdjointLiftFarFieldCoordinatesResponseFunction::GetNeighboringElementPointer()
-    {
-        KRATOS_TRY;
-
-        for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
-        {
-            if ((*elem_it)->Is(STRUCTURE)){
-                mpNeighboringElement = (*elem_it);
-                return;
-            }
-        }
-        KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
 
         KRATOS_CATCH("");
     }
