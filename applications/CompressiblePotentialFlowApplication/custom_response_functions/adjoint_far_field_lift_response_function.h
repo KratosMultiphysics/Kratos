@@ -5,14 +5,14 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
+//  Main authors:    Marc Nunez
 //
 
-#ifndef ADJOINT_LIFT_FAR_FIELD_COORDINATES_RESPONSE_FUNCTION_H
-#define ADJOINT_LIFT_FAR_FIELD_COORDINATES_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H
+#define ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H
 
 
 // System includes
@@ -222,4 +222,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H_INCLUDED
+#endif // ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H_INCLUDED
