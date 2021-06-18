@@ -218,6 +218,8 @@ namespace Python
                                 }));
         vector_binder.def(py::init([](const VectorSlice& input){
                                 Vector tmp(input.size());
+                                // check if this works directly:
+                                Vector tmp2(input);
                                 for(unsigned int i=0; i<tmp.size(); ++i)
                                     tmp[i] = input[i];
                                 return tmp;
