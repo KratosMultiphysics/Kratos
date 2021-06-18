@@ -176,6 +176,10 @@ private:
     Element::Pointer mpNeighboringElement;
     double mReferenceChord;
     double mUnperturbedLift;
+    double mDynamicPressure;
+    std::string mFarFieldModelPartName;
+    array_1d<double, 3> mFreeStreamVelocity;
+    array_1d<double, 3> mWakeNormal;
 
 
     ///@}
@@ -187,6 +191,9 @@ private:
     ///@{
 
     void GetNeighboringElementPointer();
+
+    double ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo);
+
 
     ///@}
     ///@name Private  Access

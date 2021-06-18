@@ -18,6 +18,9 @@
 // Project includes
 #include "adjoint_far_field_lift_response_function.h"
 #include "compressible_potential_flow_application_variables.h"
+#include "utilities/variable_utils.h"
+#include "custom_conditions/potential_wall_condition.h"
+#include "custom_conditions/adjoint_potential_wall_condition.h"
 
 namespace Kratos
 {
@@ -31,6 +34,9 @@ namespace Kratos
 
         // Reading the reference chord from the parameters
         mReferenceChord = ResponseSettings["reference_chord"].GetDouble();
+        KRATOS_ERROR_IF(!ResponseSettings.Has("far_field_model_part_name")) << "Please define the far "
+            "field model part name in the response settings \"far_field_model_part_name\"!" << std::endl;
+        mFarFieldModelPartName = ResponseSettings["far_field_model_part_name"].GetString();
         const double eps = std::numeric_limits<double>::epsilon();
         KRATOS_ERROR_IF(mReferenceChord < eps)
             << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
@@ -40,6 +46,16 @@ namespace Kratos
     AdjointLiftFarFieldCoordinatesResponseFunction::~AdjointLiftFarFieldCoordinatesResponseFunction(){}
 
     void AdjointLiftFarFieldCoordinatesResponseFunction::InitializeSolutionStep() {
+        VariableUtils().SetNonHistoricalVariableToZero(NORMAL, mrModelPart.Elements());
+        mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+        double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
+        KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
+        auto wake_direction = mFreeStreamVelocity/free_stream_velocity_norm;
+        double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
+        auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
+        mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
+        mWakeNormal[0] = -wake_direction[1];
+        mWakeNormal[1] = wake_direction[0];
         mUnperturbedLift = this->CalculateValue(mrModelPart);
     }
 
@@ -49,10 +65,6 @@ namespace Kratos
 
         ModelPart& root_model_part = rModelPart.GetRootModelPart();
         auto& far_field_model_part = root_model_part.GetSubModelPart("PotentialWallCondition2D_Far_field_Auto1");
-        auto free_stream_velocity = root_model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
-        auto free_stream_density = root_model_part.GetProcessInfo()[FREE_STREAM_DENSITY];
-        double free_stream_velocity_norm = norm_2(free_stream_velocity);
-        KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
         const auto r_current_process_info = rModelPart.GetProcessInfo();
 
         array_1d<double, 3> force_coefficient_pres;
@@ -68,34 +80,24 @@ namespace Kratos
             const auto normal = r_geometry.Normal(aux_coordinates);
             it_cond-> SetValue(NORMAL, normal);
 
-            it_cond->Initialize(r_current_process_info); // TO-DO: Move the initialize outside this loop
+            it_cond->Initialize(r_current_process_info);
             it_cond->FinalizeNonLinearIteration(r_current_process_info);
-            double pressure_coefficient = it_cond-> GetValue(PRESSURE_COEFFICIENT);
+            double pressure_coefficient = it_cond->GetValue(PRESSURE_COEFFICIENT);
             force_coefficient_pres -= normal*pressure_coefficient;
 
             auto velocity = it_cond->GetValue(VELOCITY);
             double density = it_cond->GetValue(DENSITY);
             double velocity_projection = inner_prod(normal,velocity);
-            array_1d<double,3> disturbance = velocity - free_stream_velocity;
+            array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
             force_coefficient_vel -= velocity_projection * disturbance * density;
         }
 
         force_coefficient_pres = force_coefficient_pres / mReferenceChord;
-
-        auto wake_direction = free_stream_velocity/free_stream_velocity_norm;
-        array_1d<double,3> wake_normal;
-        wake_normal[0] = -wake_direction[1];
-        wake_normal[1] = wake_direction[0];
-
-        double free_stream_velocity_2 = inner_prod(free_stream_velocity, free_stream_velocity);
-        double dynamic_pressure = 0.5 * free_stream_velocity_2 * free_stream_density;
-        force_coefficient_vel = force_coefficient_vel/(dynamic_pressure*mReferenceChord);
+        force_coefficient_vel = force_coefficient_vel/(mDynamicPressure*mReferenceChord);
 
         auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
 
-        double lift =  inner_prod(force_coefficient, wake_normal);
-
-        return lift;
+        return inner_prod(force_coefficient, mWakeNormal);
 
         KRATOS_CATCH("");
     }
@@ -107,66 +109,28 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-
         rResponseGradient = ZeroVector(rResidualGradient.size1());
-        auto this_id = rAdjointElement.Id();
-        auto& r_this_element = mrModelPart.GetElement(this_id);
-        auto& r_geometry = r_this_element.GetGeometry();
+        auto& r_adjoint_geometry = rAdjointElement.GetGeometry();
         double epsilon = 1e-9;
-
-        ModelPart& root_model_part = mrModelPart.GetRootModelPart();
-        auto free_stream_velocity = root_model_part.GetProcessInfo()[FREE_STREAM_VELOCITY];
-        auto free_stream_density = root_model_part.GetProcessInfo()[FREE_STREAM_DENSITY];
-        double free_stream_velocity_norm = norm_2(free_stream_velocity);
-        KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
-        auto r_current_process_info = mrModelPart.GetProcessInfo();
-        auto wake_direction = free_stream_velocity/free_stream_velocity_norm;
-        double free_stream_velocity_2 = inner_prod(free_stream_velocity, free_stream_velocity);
-        double dynamic_pressure = 0.5 * free_stream_velocity_2 * free_stream_density;
-
-        array_1d<double,3> wake_normal;
-        wake_normal[0] = -wake_direction[1];
-        wake_normal[1] = wake_direction[0];
 
         bool is_cond = false;
         std::size_t counter = 0;
-        for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
-            if (r_geometry[i_node].Is(INLET)){
+        for (std::size_t i_node=0; i_node<r_adjoint_geometry.size(); ++i_node){
+            if (r_adjoint_geometry[i_node].Is(INLET)){
                 counter++;
             }
         }
 
-        if (counter > r_geometry.WorkingSpaceDimension()-1){
+        if (counter > r_adjoint_geometry.WorkingSpaceDimension()-1){
             is_cond = true;
         }
 
         if (is_cond) {
+            auto& r_this_element = mrModelPart.GetElement(rAdjointElement.Id());
+            auto& r_geometry = r_this_element.GetGeometry();
             for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
 
-                array_1d<double, 3> force_coefficient_pres;
-                force_coefficient_pres.clear();
-                array_1d<double, 3> force_coefficient_vel;
-                force_coefficient_vel.clear();
-                const auto normal = rAdjointElement.GetValue(NORMAL);
-
-                std::vector<double> pressure_coefficient_vector;
-                r_this_element.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                double pressure_coefficient = pressure_coefficient_vector[0];
-                force_coefficient_pres = -normal*pressure_coefficient/ mReferenceChord;;
-
-                std::vector<array_1d<double,3>> velocity_vector;
-                r_this_element.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                array_1d<double,3> velocity = velocity_vector[0];
-                std::vector<double> density_vector;
-                r_this_element.CalculateOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                double density = density_vector[0];
-                double velocity_projection = inner_prod(normal,velocity);
-                array_1d<double,3> disturbance = velocity - free_stream_velocity;
-                force_coefficient_vel = -velocity_projection * disturbance * density/(dynamic_pressure*mReferenceChord);
-
-                auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
-
-                double lift =  inner_prod(force_coefficient, wake_normal);
+                double lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += epsilon;
@@ -175,20 +139,7 @@ namespace Kratos
                     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += epsilon;
                 }
 
-                r_this_element.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, r_current_process_info);
-                double pressure_coefficient_pert = pressure_coefficient_vector[0];
-                force_coefficient_pres = -normal*pressure_coefficient_pert/ mReferenceChord;;
-
-                r_this_element.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, r_current_process_info);
-                array_1d<double,3> velocity_pert = velocity_vector[0];
-                r_this_element.CalculateOnIntegrationPoints(DENSITY,density_vector, r_current_process_info);
-                double density_pert = density_vector[0];
-                velocity_projection = inner_prod(normal,velocity_pert);
-                disturbance = velocity_pert - free_stream_velocity;
-                force_coefficient_vel = -velocity_projection * disturbance * density_pert/(dynamic_pressure*mReferenceChord);
-
-                auto force_coefficient_pert = force_coefficient_pres + force_coefficient_vel;
-                double perturbed_lift =  inner_prod(force_coefficient_pert, wake_normal);
+                double perturbed_lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= epsilon;
@@ -256,6 +207,38 @@ namespace Kratos
     {
         KRATOS_TRY;
         rSensitivityGradient = ZeroVector(rSensitivityMatrix.size1());
+        KRATOS_CATCH("");
+    }
+
+    double AdjointLiftFarFieldCoordinatesResponseFunction::ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
+
+        array_1d<double, 3> force_coefficient_pres;
+        force_coefficient_pres.clear();
+        array_1d<double, 3> force_coefficient_vel;
+        force_coefficient_vel.clear();
+        const auto normal = rElement.GetValue(NORMAL);
+
+        std::vector<double> pressure_coefficient_vector;
+        rElement.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, rProcessInfo);
+        double pressure_coefficient = pressure_coefficient_vector[0];
+        force_coefficient_pres = -normal*pressure_coefficient/ mReferenceChord;;
+
+        std::vector<array_1d<double,3>> velocity_vector;
+        rElement.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, rProcessInfo);
+        array_1d<double,3> velocity = velocity_vector[0];
+        std::vector<double> density_vector;
+        rElement.CalculateOnIntegrationPoints(DENSITY,density_vector, rProcessInfo);
+        double density = density_vector[0];
+        double velocity_projection = inner_prod(normal,velocity);
+        array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
+        force_coefficient_vel = -velocity_projection * disturbance * density/(mDynamicPressure*mReferenceChord);
+
+        auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
+
+        return inner_prod(force_coefficient, mWakeNormal);
+
         KRATOS_CATCH("");
     }
 
