@@ -127,44 +127,7 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (node.Y + 2.0 * node.X), 0.0)
 
-    def test_ApplyFunctionToNodesUtilityTimeEvolutionCTernary(self):
-        parameters = KM.Parameters ("""{
-            "origin" : [0,0,0],
-            "axes"   : [[0,1,0],[1,0,0],[0,0,1]]
-
-        }""")
-
-        function = KM.GenericFunctionUtility("t<2.0 ? x+2*y : 2*x+y", parameters)
-
-        this_model = KM.Model()
-        model_part = this_model.CreateModelPart("Main", 2)
-        current_process_info = model_part.ProcessInfo
-        current_process_info[KM.DOMAIN_SIZE] = 2
-
-        model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(KM.VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
-
-        model_part_io = KM.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
-        model_part_io.ReadModelPart(model_part)
-
-        current_process_info[KM.TIME] = 0.0
-        time = current_process_info[KM.TIME]
-        while time < 3.0:
-            current_process_info[KM.TIME] = current_process_info[KM.TIME] + 1.0
-            time = current_process_info[KM.TIME]
-
-            utility = KM.ApplyFunctionToNodesUtility(model_part.Nodes, function)
-            utility.ApplyFunction(KM.VISCOSITY, time)
-
-            if time < 2.0:
-                for node in model_part.Nodes:
-                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (node.Y + 2.0 * node.X), 0.0)
-            else:
-                for node in model_part.Nodes:
-                    self.assertEqual(node.GetSolutionStepValue(KM.VISCOSITY) - (2.0 * node.Y + node.X), 0.0)
-
-    def test_ApplyFunctionToNodesUtilityTimeEvolutionPythonTernary(self):
+    def test_ApplyFunctionToNodesUtilityTimeEvolutionTernary(self):
         parameters = KM.Parameters ("""{}""")
         function = KM.GenericFunctionUtility("1.5*(0.5*(1-cos(0.5*pi*t))*2.0)*(4.0/0.1681)*y*(0.41-y) if t<2.0 else 1.5*(2.0)*(4.0/0.1681)*y*(0.41-y)", parameters)
 
