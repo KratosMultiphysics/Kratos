@@ -153,9 +153,8 @@ void BasicGenericFunctionUtility::InitializeParser()
         const te_variable vars[] = {{"x", &x}, {"y", &y}, {"z", &z}, {"t", &t}, {"X", &X}, {"Y", &Y}, {"Z", &Z}};
 
         /* Compile the expression with variables. */
-        const bool c_like = StringUtilities::ContainsPartialString(mFunctionBody, "?") ? true : false;
-        const bool python_like = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
-        if (!(c_like || python_like)) {
+        const bool python_like_ternary = StringUtilities::ContainsPartialString(mFunctionBody, "if") ? true : false;
+        if (!python_like_ternary) {
             mpTinyExpr[0] = te_compile(mFunctionBody.c_str(), vars, 7, &err);
             KRATOS_ERROR_IF_NOT(mpTinyExpr[0]) << "Parsing error in function: " << mFunctionBody << std::endl;
         } else { // Ternary operator
@@ -164,25 +163,15 @@ void BasicGenericFunctionUtility::InitializeParser()
 
             // C like ternary operator
             std::vector<std::string> splitted_string;
-            if (c_like) {
-                KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, ":")) << "Parsing error in function: " << mFunctionBody << " ? defined, but not :" << std::endl;
-                splitted_string = StringUtilities::SplitStringByDelimiter(mFunctionBody, '?');
-                KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
-                condition = splitted_string[0];
-                splitted_string = StringUtilities::SplitStringByDelimiter(splitted_string[1], ':');
-                first_function = splitted_string[0];
-                second_function = splitted_string[1];
-            } else { // Python like ternary operator
-                KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
-                std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
-                KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
-                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
-                first_function = splitted_string[0];
-                aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
-                splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
-                condition = splitted_string[0];
-                second_function = splitted_string[1];
-            }
+            KRATOS_ERROR_IF_NOT(StringUtilities::ContainsPartialString(mFunctionBody, "else")) << "Parsing error in function: " << mFunctionBody << " if defined, but not else" << std::endl;
+            std::string aux_string = StringUtilities::ReplaceAllSubstrings(mFunctionBody, "if", "$");
+            KRATOS_ERROR_IF(splitted_string.size() > 2) << "Nested ternary functions not supported" << std::endl;
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            first_function = splitted_string[0];
+            aux_string = StringUtilities::ReplaceAllSubstrings(splitted_string[1], "else", "$");
+            splitted_string = StringUtilities::SplitStringByDelimiter(aux_string, '$');
+            condition = splitted_string[0];
+            second_function = splitted_string[1];
 
             // Parsing the functions
             mpTinyExpr[1] = te_compile(first_function.c_str(), vars, 7, &err);
