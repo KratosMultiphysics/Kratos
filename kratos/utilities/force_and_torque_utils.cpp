@@ -61,8 +61,8 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::SumForceAndTorque(
             array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
             array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
             
-            r_force = rNode.GetSolutionStepValue(rForceVariable);
-            r_moment = rNode.GetSolutionStepValue(rTorqueVariable);
+            r_force = rNode.FastGetSolutionStepValue(rForceVariable);
+            r_moment = rNode.FastGetSolutionStepValue(rTorqueVariable);
 
             return force_and_moment_nodal;
         }
@@ -100,7 +100,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
     // Check whether nodes have the torque variable and set the lambda accordingly.
     // Note: multiple node types within the model part are not supported.
     //       In that case, this check would have to performed for each node.
-    if (rModelPart.GetCommunicator().LocalMesh().Nodes().begin()->SolutionStepsDataHas(rTorqueVariable)) {
+    if (rModelPart.HasNodalSolutionStepVariable(rTorqueVariable)) {
         compute_force_and_moment = [&](const Node<3>& rNode) -> CompoundTuple
         {
             // {{fx, fy, fz},{mx, my, mz}}
@@ -108,8 +108,8 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
             array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
             array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
             
-            r_force = rNode.GetSolutionStepValue(rForceVariable);
-            r_moment = rNode.GetSolutionStepValue(rTorqueVariable);
+            r_force = rNode.FastGetSolutionStepValue(rForceVariable);
+            r_moment = rNode.FastGetSolutionStepValue(rTorqueVariable);
 
             r_moment += MathUtils<double>::CrossProduct<array_1d<double,3>>(
                 rNode-rReferencePoint,
@@ -127,7 +127,7 @@ std::array<array_1d<double,3>,2> ForceAndTorqueUtils::ComputeEquivalentForceAndT
             array_1d<double,3>& r_force = std::get<0>(force_and_moment_nodal);
             array_1d<double,3>& r_moment = std::get<1>(force_and_moment_nodal);
 
-            r_force = rNode.GetSolutionStepValue(rForceVariable);
+            r_force = rNode.FastGetSolutionStepValue(rForceVariable);
             r_moment = MathUtils<double>::CrossProduct<array_1d<double,3>>(
                 rNode-rReferencePoint,
                 r_force

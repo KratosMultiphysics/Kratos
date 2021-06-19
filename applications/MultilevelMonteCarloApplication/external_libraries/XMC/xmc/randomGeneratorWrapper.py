@@ -20,3 +20,41 @@ class RandomGeneratorWrapper:
 
     def realisation(self):
         return self._generator(*self.parameters)
+
+class EventDatabase(RandomGeneratorWrapper):
+    """
+    This class is derived from RandomGeneratorWrapper and generate events from a preset list,
+    that is passed as argument to the class.
+    """
+
+    def __init__(self, **keywordArgs) -> None:
+        """
+        Create an EventDatabase object.
+
+        Keyword arguments
+        ---------------
+
+        events: list.
+            Iterable containing events in desired order.
+        """
+
+        # Provide safe default values
+        keywordArgs["parameters"] = []
+        keywordArgs["generator"] = "xmc.tools.doNothing"
+        # Parent constructor
+        super().__init__(**keywordArgs)
+        # Event database (iterable)
+        self.events = keywordArgs.get("events")
+        # Internal counter to return events in order
+        # Observe that self._eventCounter is re-initialized for each batch of the asynchronous algorithm.
+        self._eventCounter = 0
+
+    def realisation(self) -> list:
+        # Take modulo to loop over event collection
+        position = self._eventCounter % len(self.events)
+        # Get event
+        event = self.events[position]
+        # Increment counter
+        self._eventCounter += 1
+        # Return event
+        return event

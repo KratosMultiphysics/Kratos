@@ -36,10 +36,10 @@ namespace Kratos {
                                                     double indentation) {
         KRATOS_TRY
 
-        double rotational_moment_coefficient = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coefficient = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
 
         DEM_KDEM::ComputeParticleRotationalMoments(element, neighbor, equiv_young, distance, calculation_area, LocalCoordSystem,
-                                                   ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
+                                                    ElasticLocalRotationalMoment, ViscoLocalRotationalMoment, equiv_poisson, indentation);
 
         DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coefficient);
         DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coefficient);
