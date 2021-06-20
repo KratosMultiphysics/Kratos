@@ -294,12 +294,16 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            IndexType counter = 0;
             data.resize(mrModelPart.NumberOfNodes());
 
-            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-                data[counter++] = rNode.FastGetSolutionStepValue(rVariable);
+            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+
+            IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
+                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+
+                data[Index] = inode->FastGetSolutionStepValue(rVariable);
             });
+
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -350,16 +354,19 @@ public:
             std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
-
             data.resize(mrModelPart.NumberOfNodes()*TSize);
 
-            IndexType counter = 0;
-            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-                const auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
+            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+
+            IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
+                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+
+                const auto& r_val = inode->FastGetSolutionStepValue(rVariable);
                 for(std::size_t dim = 0 ; dim < TSize ; dim++){
-                    data[counter++] = r_val[dim];
+                    data[(Index*TSize) + dim] = r_val[dim];
                 }
             });
+
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -433,11 +440,14 @@ public:
         case (DataLocation::NodeHistorical):{
             ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
 
-            IndexType counter = 0;
-            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-                auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
-                r_val = rData[counter++];
+            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
+                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+
+                auto& r_val = inode->FastGetSolutionStepValue(rVariable);
+                r_val = rData[Index];
             });
+
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -487,19 +497,20 @@ public:
             std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
-
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
-            IndexType counter = 0;
-            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-                auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
+            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
+                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+                auto& r_val = inode->FastGetSolutionStepValue(rVariable);
 
                 KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
 
                 for(std::size_t dim = 0 ; dim < size ; dim++){
-                    r_val[dim] = rData[counter++];
+                    r_val[dim] = rData[(Index*size) + dim];
                 }
             });
+
             break;
         }
         case (DataLocation::NodeNonHistorical):{
