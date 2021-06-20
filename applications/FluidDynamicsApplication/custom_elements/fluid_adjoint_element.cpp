@@ -96,6 +96,26 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetResponseFunctionInterpolationErrorAuxiliaryVector(
+    std::size_t NodeId,
+    std::vector<IndirectScalar<double>>& rVector,
+    std::size_t Step)
+{
+    auto& r_node = mpElement->GetGeometry()[NodeId];
+    rVector.resize(TDim + 1);
+
+    const auto& dofs_list = TAdjointElementData::GetDofVariablesList();
+
+    for (unsigned int i = 0; i < TDim; ++i) {
+        rVector[i] = MakeIndirectScalar(
+            r_node, (*dofs_list[i]).GetTimeDerivative().GetTimeDerivative().GetTimeDerivative().GetTimeDerivative(),
+            Step);
+    }
+
+    rVector[TDim] = IndirectScalar<double>{}; // pressure
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetFirstDerivativesVariables(
     std::vector<VariableData const*>& rVariables) const
 {
@@ -117,6 +137,14 @@ void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::
 {
     rVariables.resize(1);
     rVariables[0] = &AUX_ADJOINT_FLUID_VECTOR_1;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void FluidAdjointElement<TDim, TNumNodes, TAdjointElementData>::ThisExtensions::GetResponseFunctionInterpolationErrorAuxiliaryVariables(
+    std::vector<VariableData const*>& rVariables) const
+{
+    rVariables.resize(1);
+    rVariables[0] = &RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUX_ADJOINT_FLUID_VECTOR_1;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>

@@ -56,11 +56,18 @@ class FluidAdjointElement : public Element
             std::vector<IndirectScalar<double>>& rVector,
             std::size_t Step) override;
 
+        void GetResponseFunctionInterpolationErrorAuxiliaryVector(
+            std::size_t NodeId,
+            std::vector<IndirectScalar<double>>& rVector,
+            std::size_t Step) override;
+
         void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
 
         void GetSecondDerivativesVariables(std::vector<VariableData const*>& rVariables) const override;
 
         void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
+
+        void GetResponseFunctionInterpolationErrorAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const override;
     };
 
 public:
