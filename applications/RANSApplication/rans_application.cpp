@@ -198,6 +198,11 @@ void KratosRANSApplication::Register()
     // primal solution location storage variables
     KRATOS_REGISTER_VARIABLE(RANS_PRIMAL_SOLUTION_LOCATION_1)
 
+    // Response function interpolation error variables for transient cases
+    KRATOS_REGISTER_VARIABLE( RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR )
+    KRATOS_REGISTER_VARIABLE( RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE )
+    KRATOS_REGISTER_VARIABLE( RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY )
+
     // registering elements
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);

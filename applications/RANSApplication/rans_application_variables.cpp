@@ -93,4 +93,9 @@ namespace Kratos
 
     // primal solution location storage variables
     KRATOS_CREATE_VARIABLE(std::string, RANS_PRIMAL_SOLUTION_LOCATION_1);
+
+    // Response function interpolation error variables for transient cases
+    KRATOS_CREATE_VARIABLE(Vector, RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR);
+    KRATOS_CREATE_VARIABLE(Vector, RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE);
+    KRATOS_CREATE_VARIABLE(Vector, RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY);
 }
