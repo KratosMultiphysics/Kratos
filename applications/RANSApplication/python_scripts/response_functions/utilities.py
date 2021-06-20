@@ -3,6 +3,9 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
 
+from KratosMultiphysics.RANSApplication.formulations.utilities import AddFileLoggerOutput
+from KratosMultiphysics.RANSApplication.formulations.utilities import RemoveFileLoggerOutput
+
 from pathlib import Path
 from shutil import copy
 import math
@@ -15,10 +18,7 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name, log_file_name = "prim
             primal_parameters = Kratos.Parameters(file_input.read())
 
         # set the loggers
-        file_logger = Kratos.FileLoggerOutput(log_file_name)
-        default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
-        Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-        Kratos.Logger.AddOutput(file_logger)
+        default_severity, file_logger = AddFileLoggerOutput(log_file_name)
 
         # run the primal analysis
         primal_model = Kratos.Model()
@@ -32,9 +32,7 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name, log_file_name = "prim
         del primal_model
 
         # flush the primal output
-        Kratos.Logger.Flush()
-        Kratos.Logger.RemoveOutput(file_logger)
-        Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
+        RemoveFileLoggerOutput(default_severity, file_logger)
         Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(kratos_primal_parameters_file_name))
     else:
         # following is done to initialize default settings
@@ -58,18 +56,12 @@ def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name, skip
         adjoint_parameters = Kratos.Parameters(file_input.read())
 
     # set the lift loggers
-    file_logger = Kratos.FileLoggerOutput(log_file_name)
-    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
-    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-    Kratos.Logger.AddOutput(file_logger)
+    default_severity, file_logger = AddFileLoggerOutput(log_file_name)
 
     adjoint_simulation = AdjointRANSAnalysis(model, adjoint_parameters)
     adjoint_simulation.Run()
 
-    Kratos.Logger.Flush()
-
-    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
-    Kratos.Logger.RemoveOutput(file_logger)
+    RemoveFileLoggerOutput(default_severity, file_logger)
 
     return adjoint_simulation
 
