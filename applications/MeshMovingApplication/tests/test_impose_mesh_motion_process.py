@@ -85,6 +85,26 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
 
         self.CheckNodes(model_part)
 
+    def test_Parametric(self):
+        model, model_part = GenerateModel()
+
+        parameters = KratosMultiphysics.Parameters("""{
+            "model_part_name" : "Main",
+            "rotation_definition" : "rotation_axis",
+            "rotation_axis" : ["1.0-t", "t", 0.0],
+            "rotation_angle" : "-1.57079632679 * t",
+            "reference_point" : ["-t", "z", 0.0],
+            "translation_vector" : [1, 2, 3]
+        }""")
+
+        model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.0
+        MeshMovingApplication.ImposeMeshMotionProcess(
+            model,
+            parameters
+        ).ExecuteInitializeSolutionStep()
+
+        self.CheckNodes(model_part)
+
 
 if __name__ == "__main__":
     KratosUnittest.main()

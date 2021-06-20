@@ -50,7 +50,11 @@ public:
 
     /** Constructor
      *  @details The rotation can be defined by either "euler_angles"
-     *  or a "rotation_axis" and "rotation_angle" pair. Default parameters:
+     *  or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
+     *  defined parametrically (see @ref{GenericFunctionUtility}):
+     *  "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
+     * 
+     *  Default parameters:
      *  {
      *      "model_part_name"       : "",
      *      "interval"              : [0.0, "End"],
@@ -67,8 +71,13 @@ public:
 
     /** Constructor
      *  @details The rotation can be defined by either "euler_angles"
-     *  or a "rotation_axis" and "rotation_angle" pair. Default parameters:
+     *  or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
+     *  defined parametrically (see @ref{GenericFunctionUtility}):
+     *  "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
+     * 
+     *  Default parameters:
      *  {
+     *      "model_part_name"       : "",
      *      "interval"              : [0.0, "End"],
      *      "rotation_definition"   : "rotation_axis",
      *      "euler_angles"          : [0.0, 0.0, 0.0],
@@ -84,21 +93,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void LoadFromParameters(Parameters parameters);
-
-    void LoadFromAxisAndAngle(const array_1d<double,3>& rRotationAxis,
-                              double rotationAngle,
-                              const array_1d<double,3>& rReferencePoint,
-                              const array_1d<double,3>& rTranslationVector);
-
-    void LoadFromEulerAngles(const array_1d<double,3>& rEulerAngles,
-                             const array_1d<double,3>& rReferencePoint,
-                             const array_1d<double,3>& rTranslationVector);
-
-    void LoadFromQuaternion(const Quaternion<double>& rQuaternion,
-                            const array_1d<double,3>& rReferencePoint,
-                            const array_1d<double,3>& rTranslationVector);
 
     virtual void ExecuteInitializeSolutionStep() override;
 
@@ -120,11 +114,19 @@ private:
     ///@name Private operations
     ///@{
 
-    void Transform(array_1d<double,3>& rPoint) const
-    {
-        rPoint = prod(mRotationMatrix, rPoint - mReferencePoint);
-        rPoint += mReferencePoint + mTranslationVector;
-    }
+    void ParseAndSetConstantTransform(const std::string& rRotationDefinition,
+                                      const Parameters& rEulerAngles,
+                                      const Parameters& rRotationAxis,
+                                      const Parameters& rRotationAngle,
+                                      const Parameters& rReferencePoint,
+                                      const Parameters& rTranslationVector);
+
+    void ParseAndSetParametricTransform(const std::string& rRotationDefinition,
+                                        const Parameters& rEulerAngles,
+                                        const Parameters& rRotationAxis,
+                                        const Parameters& rRotationAngle,
+                                        const Parameters& rReferencePoint,
+                                        const Parameters& rTranslationVector);
 
     ///@}
     ///@name Member Variables
@@ -133,12 +135,8 @@ private:
     ModelPart& mrModelPart;
 
     IntervalUtility mIntervalUtility;
-    
-    Matrix mRotationMatrix;
 
-    array_1d<double,3> mReferencePoint;
-
-    array_1d<double,3> mTranslationVector;
+    std::function<array_1d<double,3>(const Node<3>&)> mTransformFunctor;
 
     ///@}
 };

@@ -14,6 +14,7 @@
 #include "impose_mesh_motion_process.h"
 
 // Project includes
+#include "custom_utilities/parametric_linear_transform.h"
 #include "includes/checks.h"
 #include "utilities/parallel_utilities.h"
 #include "includes/mesh_moving_variables.h"
@@ -37,162 +38,204 @@ ImposeMeshMotionProcess::ImposeMeshMotionProcess(ModelPart& rModelPart, Paramete
 {
     KRATOS_TRY;
 
-    // Check model part name
+    // Check model part name and validate parameters
     KRATOS_ERROR_IF(rModelPart.FullName() != parameters.GetValue("model_part_name").GetString())
     << "Expecting model part named '" << parameters.GetValue("model_part_name").GetString() << "' but got '" << rModelPart.FullName() << "' instead";
 
-    // Parse input and initialize
-    this->LoadFromParameters(parameters);
+    // Process default parameters
+    // 'rotation_angle' can either be numeric or an expression (string),
+    // but the Parameters validator can't handle both.
+    // -> default parameters must be tweaked to match the input type
+    Parameters default_parameters = this->GetDefaultParameters();
+    if (parameters.Has("rotation_angle") && parameters.GetValue("rotation_angle").IsString()) {
+        default_parameters.RemoveValue("rotation_angle");
+        default_parameters.AddValue("rotation_angle", Parameters("\"0\""));
+    }
+
+    parameters.ValidateAndAssignDefaults(default_parameters);
+
+    // Parse general parameters
+    mIntervalUtility = IntervalUtility(parameters);
+    std::string rotation_definition = parameters.GetValue("rotation_definition").GetString();
+
+    // Check whether all numeric parameters are constants
+    //  - if yes -> LinearTransform
+    //  - otherwise -> ParametricLinearTransform
+    bool require_parametric_transform = false;
+
+    const auto euler_angles_parameters = parameters.GetValue("euler_angles");
+    const auto rotation_axis_parameters = parameters.GetValue("rotation_axis");
+    const auto reference_point_parameters = parameters.GetValue("reference_point");
+    const auto rotation_angle_parameters = parameters.GetValue("rotation_angle");
+    const auto translation_vector_parameters = parameters.GetValue("translation_vector");
+
+    if (rotation_angle_parameters.IsString()) {
+        require_parametric_transform = true;
+    }
+    else {
+        for (std::size_t i=0; i<3; ++i)
+        {
+            if (euler_angles_parameters.GetArrayItem(i).IsString()
+                || rotation_axis_parameters.GetArrayItem(i).IsString()
+                || reference_point_parameters.GetArrayItem(i).IsString()
+                || translation_vector_parameters.GetArrayItem(i).IsString()) {
+                    require_parametric_transform = true;
+                    break;
+            } // if any parameter is a string
+        } // for i in range(3)
+    } // if rotation_angle is not a string
+
+    if (require_parametric_transform) {
+        this->ParseAndSetParametricTransform(
+            rotation_definition,
+            euler_angles_parameters,
+            rotation_axis_parameters,
+            rotation_angle_parameters,
+            reference_point_parameters,
+            translation_vector_parameters);
+    } // if transform is parametric
+    else {
+        this->ParseAndSetConstantTransform(
+            rotation_definition,
+            euler_angles_parameters,
+            rotation_axis_parameters,
+            rotation_angle_parameters,
+            reference_point_parameters,
+            translation_vector_parameters);
+    } // transform is constant
 
     KRATOS_CATCH("");
 }
 
 
-void ImposeMeshMotionProcess::LoadFromParameters(Parameters parameters)
+void ImposeMeshMotionProcess::ParseAndSetConstantTransform(const std::string& rRotationDefinition,
+                                                           const Parameters& rEulerAngles,
+                                                           const Parameters& rRotationAxis,
+                                                           const Parameters& rRotationAngle,
+                                                           const Parameters& rReferencePoint,
+                                                           const Parameters& rTranslationVector)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
-    Vector vector_parameter;
+    LinearTransform::Pointer p_transform;
 
-    // Parse interval
-    mIntervalUtility = IntervalUtility(parameters);
-
-    // Parse translation
-    vector_parameter = parameters.GetValue("interval").GetVector();
-    array_1d<double,3> translation_vector;
-    vector_parameter = parameters.GetValue("translation_vector").GetVector();
+    // Parse parameters - translation vector
+    Vector vector_parameter = rTranslationVector.GetVector();
     if (vector_parameter.size() != 3) {
         KRATOS_ERROR << "'translation_vector' must be of size 3, but got" << vector_parameter.size();
     }
-
+    array_1d<double,3> translation_vector;
     translation_vector[0] = vector_parameter[0];
     translation_vector[1] = vector_parameter[1];
     translation_vector[2] = vector_parameter[2];
 
-    // Parse reference point
-    array_1d<double,3> reference_point;
-    vector_parameter = parameters.GetValue("reference_point").GetVector();
+    vector_parameter = rReferencePoint.GetVector();
     if (vector_parameter.size() != 3) {
         KRATOS_ERROR << "'reference_point' must be of size 3, but got" << vector_parameter.size();
     }
-
+    array_1d<double,3> reference_point;
     reference_point[0] = vector_parameter[0];
     reference_point[1] = vector_parameter[1];
     reference_point[2] = vector_parameter[2];
 
-    // Parse rotation depending on how it is defined
-    std::string rotation_definition = parameters.GetValue("rotation_definition").GetString();
-
-    // Parse rotation from axis and angle of rotation
-    if (rotation_definition == "rotation_axis") {
-        array_1d<double,3> rotation_axis;
-        vector_parameter = parameters.GetValue("rotation_axis").GetVector();
+    if (rRotationDefinition == "rotation_axis") {
+        vector_parameter = rRotationAxis.GetVector();
         if (vector_parameter.size() != 3) {
             KRATOS_ERROR << "'rotation_axis' must be of size 3, but got" << vector_parameter.size();
         }
 
+        array_1d<double,3> rotation_axis;
         rotation_axis[0] = vector_parameter[0];
         rotation_axis[1] = vector_parameter[1];
         rotation_axis[2] = vector_parameter[2];
 
-        double rotation_angle = parameters.GetValue("rotation_angle").GetDouble();
+        const double rotation_angle = rRotationAngle.GetDouble();
 
-        this->LoadFromAxisAndAngle(
+        p_transform = std::make_shared<LinearTransform>(
             rotation_axis,
             rotation_angle,
             reference_point,
-            translation_vector
-        );
-    } // if rotation_definition == "rotation_axis"
+            translation_vector);
+    } // rotation_definition == "rotation_axis"
 
-    // Parse rotation from euler angles
-    else if (rotation_definition == "euler_angles") {
-        array_1d<double,3> euler_angles;
-        vector_parameter = parameters.GetValue("euler_angles").GetVector();
+    else if (rRotationDefinition == "euler_angles") {
+        vector_parameter = rEulerAngles.GetVector();
         if (vector_parameter.size() != 3) {
             KRATOS_ERROR << "'euler_angles' must be of size 3, but got" << vector_parameter.size();
         }
 
+        array_1d<double,3> euler_angles;
         euler_angles[0] = vector_parameter[0];
         euler_angles[1] = vector_parameter[1];
         euler_angles[2] = vector_parameter[2];
 
-        this->LoadFromEulerAngles(
+        p_transform = std::make_shared<LinearTransform>(
             euler_angles,
             reference_point,
-            translation_vector
-        );
-    } // if rotation_definition == "euler_angles"
+            translation_vector);
+    } // rotation_definition == "euler_angles"
 
-    // Rotation definition not implemented
     else {
-        KRATOS_ERROR << "Invalid parameter for 'rotation_definition': " << rotation_definition
-        << " (expecting 'rotation_axis' or 'euler_angles')";
-    } // rotation_definition else
+        KRATOS_ERROR << "Invalid 'rotation_definition': " << rRotationDefinition;
+    } // unsupported rotation_definition
+
+    // Set transform function
+    mTransformFunctor = [p_transform, this](const Node<3>& rNode)
+    {
+        KRATOS_TRY
+        return p_transform->Apply(rNode);
+        KRATOS_CATCH("");
+    };
 
     KRATOS_CATCH("");
 }
 
 
-void ImposeMeshMotionProcess::LoadFromAxisAndAngle(const array_1d<double,3>& rRotationAxis,
-                                                   double rotationAngle,
-                                                   const array_1d<double,3>& rReferencePoint,
-                                                   const array_1d<double,3>& rTranslationVector)
+void ImposeMeshMotionProcess::ParseAndSetParametricTransform(const std::string& rRotationDefinition,
+                                                             const Parameters& rEulerAngles,
+                                                             const Parameters& rRotationAxis,
+                                                             const Parameters& rRotationAngle,
+                                                             const Parameters& rReferencePoint,
+                                                             const Parameters& rTranslationVector)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    // Check arguments
-    if (std::abs(norm_2(rRotationAxis)) < 1e-15) {
-        KRATOS_ERROR << "Axis of rotation must not be a null vector!";
-    }
+    ParametricLinearTransform::Pointer p_transform;
 
-    auto quaternion = Quaternion<double>::FromAxisAngle(
-        rRotationAxis[0],
-        rRotationAxis[1],
-        rRotationAxis[2],
-        rotationAngle
-    );
+        if (rRotationDefinition == "rotation_axis") {
+            p_transform = std::make_shared<ParametricLinearTransform>(
+                rRotationAxis,
+                rRotationAngle,
+                rReferencePoint,
+                rTranslationVector);
+        } // rotation_definition == "rotation_axis"
 
-    this->LoadFromQuaternion(
-        quaternion,
-        rReferencePoint,
-        rTranslationVector
-    );
+        else if (rRotationDefinition == "euler_angles") {
+            p_transform = std::make_shared<ParametricLinearTransform>(
+                rEulerAngles,
+                rReferencePoint,
+                rTranslationVector);
+        } // rotation_definition == "euler_angles"
 
-    KRATOS_CATCH("");
-}
+        else {
+            KRATOS_ERROR << "Invalid 'rotation_definition': " << rRotationDefinition;
+        } // unsupported rotation_definition
 
+        mTransformFunctor = [p_transform, this](const Node<3>& rNode)
+        {
+            KRATOS_TRY
 
-void ImposeMeshMotionProcess::LoadFromEulerAngles(const array_1d<double,3>& rEulerAngles,
-                                                  const array_1d<double,3>& rReferencePoint,
-                                                  const array_1d<double,3>& rTranslationVector)
-{
-    KRATOS_TRY;
+            const double time = mrModelPart.GetProcessInfo().GetValue(TIME);
 
-    auto quaternion = Quaternion<double>::FromEulerAngles(rEulerAngles);
+            return p_transform->Apply(
+                rNode,
+                time,
+                rNode.X0(),
+                rNode.Y0(),
+                rNode.Z0());
 
-    this->LoadFromQuaternion(
-        quaternion,
-        rReferencePoint,
-        rTranslationVector
-    );
-
-    KRATOS_CATCH("");
-}
-
-
-void ImposeMeshMotionProcess::LoadFromQuaternion(const Quaternion<double>& rQuaternion,
-                                                 const array_1d<double,3>& rReferencePoint,
-                                                 const array_1d<double,3>& rTranslationVector)
-{
-    KRATOS_TRY;
-
-    mRotationMatrix.resize(3, 3);
-    mReferencePoint = rReferencePoint;
-    mTranslationVector = rTranslationVector;
-
-    rQuaternion.ToRotationMatrix(mRotationMatrix);
+            KRATOS_CATCH("");
+        };
 
     KRATOS_CATCH("");
 }
@@ -207,8 +250,7 @@ void ImposeMeshMotionProcess::ExecuteInitializeSolutionStep()
     if (mIntervalUtility.IsInInterval(time)) {
         block_for_each(mrModelPart.Nodes(),
             [this](Node<3>& rNode) {
-                array_1d<double,3> transformed_point = rNode;
-                this->Transform(transformed_point);
+                array_1d<double,3> transformed_point = mTransformFunctor(rNode);
                 rNode.GetSolutionStepValue(MESH_DISPLACEMENT) = transformed_point - rNode;
             }
         ); // block_for_each
