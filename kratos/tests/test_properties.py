@@ -55,5 +55,16 @@ class TestProperties(KratosUnittest.TestCase):
         self.assertEqual(properties.GetValue(KM.DENSITY), 12.0)
         self.assertEqual(properties_copy.Has(KM.DENSITY), False)
 
+    def test_has_table(self):
+        current_model = KM.Model()
+        model_part= current_model.CreateModelPart("Main")
+        properties = model_part.CreateNewProperties(1)
+        table = KM.PiecewiseLinearTable()
+        table.AddRow(9.0, 1.0)
+        table.AddRow(10.0, 1.0)
+        properties.SetTable(KM.TEMPERATURE, KM.YOUNG_MODULUS, table)
+        self.assertTrue(properties.HasTable(KM.TEMPERATURE, KM.YOUNG_MODULUS))
+        self.assertFalse(properties.HasTable(KM.TEMPERATURE, KM.PRESSURE))
+
 if __name__ == '__main__':
     KratosUnittest.main()
