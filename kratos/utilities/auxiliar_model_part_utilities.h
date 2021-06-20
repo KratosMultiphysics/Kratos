@@ -351,7 +351,7 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            unsigned int TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
             data.resize(mrModelPart.NumberOfNodes()*TSize);
@@ -370,7 +370,7 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+            unsigned int TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -380,7 +380,7 @@ public:
             break;
         }
         case (DataLocation::Element):{
-            std::size_t TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+            unsigned int TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -390,7 +390,7 @@ public:
             break;
         }
         case (DataLocation::Condition):{
-            std::size_t TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+            unsigned int TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -494,7 +494,7 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
@@ -514,7 +514,7 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+            unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
@@ -524,7 +524,7 @@ public:
             break;
         }
         case (DataLocation::Element):{
-            std::size_t size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+            unsigned int size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
@@ -534,7 +534,7 @@ public:
             break;
         }
         case (DataLocation::Condition):{
-            std::size_t size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+            unsigned int size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
