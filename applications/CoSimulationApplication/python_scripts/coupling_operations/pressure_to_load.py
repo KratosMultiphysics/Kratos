@@ -1,15 +1,15 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-from KratosMultiphysics.CoSimulationApplication import ConversionUtilities
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
+from KratosMultiphysics.CoSimulationApplication import ConversionUtilities
 
 def Create(*args):
     return PressureToLoad(*args)
 
 class PressureToLoad(CoSimulationCouplingOperation):
-    """This operation computes the Normals (NORMAL) on a given ModelPart
+    """This operation computes the Nodal Load using the Elemental Presure loads in a given ModelPart
     """
     def __init__(self, settings, solver_wrappers, process_info):
         super().__init__(settings, process_info)
@@ -17,10 +17,9 @@ class PressureToLoad(CoSimulationCouplingOperation):
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
-
     def Execute(self):
         model_part_interface = self.interface_data.GetModelPart()
-        ConversionUtilities.ConvertPressureToForces(model_part_interface)
+        CoSimulationCouplingOperation.ConversionUtilities.ConvertPressureToForces(model_part_interface)
 
     def PrintInfo(self):
         pass
