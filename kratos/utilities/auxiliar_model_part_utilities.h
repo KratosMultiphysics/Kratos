@@ -304,16 +304,19 @@ public:
         }
         case (DataLocation::NodeNonHistorical):{
             data.resize(mrModelPart.NumberOfNodes());
+
             GetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, data);
             break;
         }
         case (DataLocation::Element):{
             data.resize(mrModelPart.NumberOfElements());
+
             GetScalarDataFromContainer(mrModelPart.Elements(), rVariable, data);
             break;
         }
         case (DataLocation::Condition):{
             data.resize(mrModelPart.NumberOfConditions());
+
             GetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, data);
             break;
         }
@@ -344,13 +347,13 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            const std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+
+            TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
+
             data.resize(mrModelPart.NumberOfNodes()*TSize);
 
             IndexType counter = 0;
-
             block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
                 const auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
                 for(std::size_t dim = 0 ; dim < TSize ; dim++){
@@ -360,32 +363,39 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            const std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+
+            TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
+
             data.resize(mrModelPart.NumberOfNodes()*TSize);
+
             GetVectorDataFromContainer(mrModelPart.Nodes(), TSize, rVariable, data);
             break;
         }
         case (DataLocation::Element):{
-            const std::size_t TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+
+            TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
+
             data.resize(mrModelPart.NumberOfElements()*TSize);
+
             GetVectorDataFromContainer(mrModelPart.Elements(), TSize, rVariable, data);
             break;
         }
         case (DataLocation::Condition):{
-            const std::size_t TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+
+            TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
+
             data.resize(mrModelPart.NumberOfConditions()*TSize);
+
             GetVectorDataFromContainer(mrModelPart.Conditions(), TSize, rVariable, data);
             break;
         }
         case (DataLocation::ModelPart):{
-            const std::size_t TSize = mrModelPart[rVariable].size();
+            std::size_t TSize = mrModelPart[rVariable].size();
             data.resize(TSize);
+
             IndexType counter = 0;
             auto& r_val = mrModelPart[rVariable];
             for(std::size_t dim = 0 ; dim < TSize ; dim++){
@@ -396,6 +406,7 @@ public:
         case (DataLocation::ProcessInfo):{
             const std::size_t TSize = mrModelPart.GetProcessInfo()[rVariable].size();
             data.resize(TSize);
+
             IndexType counter = 0;
             auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
             for(std::size_t dim = 0 ; dim < TSize ; dim++){
@@ -421,8 +432,8 @@ public:
         {
         case (DataLocation::NodeHistorical):{
             ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
-            IndexType counter = 0;
 
+            IndexType counter = 0;
             block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
                 auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
                 r_val = rData[counter++];
@@ -431,16 +442,19 @@ public:
         }
         case (DataLocation::NodeNonHistorical):{
             ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
+
             SetScalarDataFromContainer(mrModelPart.Nodes(), rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
             ImportDataSizeCheck(mrModelPart.NumberOfElements(), rData.size());
+
             SetScalarDataFromContainer(mrModelPart.Elements(), rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
             ImportDataSizeCheck(mrModelPart.NumberOfConditions(), rData.size());
+
             SetScalarDataFromContainer(mrModelPart.Conditions(), rVariable, rData);
             break;
         }
@@ -470,14 +484,13 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            const std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
+
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             IndexType counter = 0;
-
             block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
                 auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
 
@@ -490,31 +503,38 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            const std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+
+            size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
+
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
+
             SetVectorDataFromContainer(mrModelPart.Nodes(), size, rVariable, rData);
             break;
         }
         case (DataLocation::Element):{
-            const std::size_t size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+
+            size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
+
             ImportDataSizeCheckVector(mrModelPart.NumberOfElements()*size , rData.size());
+
             SetVectorDataFromContainer(mrModelPart.Elements(), size, rVariable, rData);
             break;
         }
         case (DataLocation::Condition):{
-            const std::size_t size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
-            // add Max -synchronization for MPI
-            // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
+            std::size_t size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+
+            size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
+
             ImportDataSizeCheckVector(mrModelPart.NumberOfConditions()*size , rData.size());
+
             SetVectorDataFromContainer(mrModelPart.Conditions(), size, rVariable, rData);
             break;
         }
         case (DataLocation::ModelPart):{
             const std::size_t size = mrModelPart[rVariable].size();
+
             IndexType counter = 0;
             auto& r_val = mrModelPart[rVariable];
                 for(std::size_t dim = 0 ; dim < size ; dim++){
@@ -524,6 +544,7 @@ public:
             }
         case (DataLocation::ProcessInfo):{
             const std::size_t size = mrModelPart.GetProcessInfo()[rVariable].size();
+
             IndexType counter = 0;
             auto& r_val = mrModelPart.GetProcessInfo()[rVariable];
             for(std::size_t dim = 0 ; dim < size ; dim++){
@@ -651,15 +672,13 @@ private:
 
     // Only for SetScalarData()
     void ImportDataSizeCheck(std::size_t rContainerSize, std::size_t rSize){
-        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size!" << std::endl;
+        KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
 
     // Only for SetVectorData()
     void ImportDataSizeCheckVector(std::size_t rContainerSize, std::size_t rSize){
         KRATOS_ERROR_IF(rContainerSize != rSize) << "mismatch in size! Expected size: " << rContainerSize << std::endl;
     }
-
-
 
 
     ///@}
