@@ -296,11 +296,10 @@ public:
         case (DataLocation::NodeHistorical):{
             IndexType counter = 0;
             data.resize(mrModelPart.NumberOfNodes());
-            
-            // IndexPartition
-            for(const auto& r_node : mrModelPart.Nodes()){
-                data[counter++] = r_node.FastGetSolutionStepValue(rVariable);
-            }
+
+            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+                data[counter++] = rNode.FastGetSolutionStepValue(rVariable);
+            });
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -352,13 +351,12 @@ public:
 
             IndexType counter = 0;
 
-            // IndexPartition
-            for(const auto& r_node : mrModelPart.Nodes()){
-                const auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
+            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+                const auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
                 for(std::size_t dim = 0 ; dim < TSize ; dim++){
                     data[counter++] = r_val[dim];
                 }
-            }
+            });
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -424,12 +422,11 @@ public:
         case (DataLocation::NodeHistorical):{
             ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
             IndexType counter = 0;
-            
-            // IndexPartition
-            for(auto& r_node : mrModelPart.Nodes()){
-                auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
+
+            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+                auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
                 r_val = rData[counter++];
-            }
+            });
             break;
         }
         case (DataLocation::NodeNonHistorical):{
@@ -474,23 +471,22 @@ public:
         {
         case (DataLocation::NodeHistorical):{
             const std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
-            
+
             // add Max -synchronization for MPI
             // mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll();
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
             IndexType counter = 0;
-            
-            // IndexPartition
-            for(auto& r_node : mrModelPart.Nodes()){
-                auto& r_val = r_node.FastGetSolutionStepValue(rVariable);
+
+            block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+                auto& r_val = rNode.FastGetSolutionStepValue(rVariable);
 
                 KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
 
                 for(std::size_t dim = 0 ; dim < size ; dim++){
                     r_val[dim] = rData[counter++];
                 }
-            }
+            });
             break;
         }
         case (DataLocation::NodeNonHistorical):{
