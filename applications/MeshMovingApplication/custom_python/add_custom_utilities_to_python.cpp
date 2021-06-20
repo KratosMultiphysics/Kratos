@@ -26,6 +26,8 @@
 #include "custom_utilities/fixed_mesh_ale_utilities.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "custom_utilities/move_mesh_utilities.h"
+#include "custom_utilities/linear_transform.h"
+#include "custom_utilities/parametric_linear_transform.h"
 
 namespace Kratos {
 namespace Python {
@@ -52,6 +54,23 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProjectVirtualValues2D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D", &ExplicitFixedMeshALEUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement", &ExplicitFixedMeshALEUtilities::UndoMeshMovement);
+
+    py::class_<LinearTransform, LinearTransform::Pointer>(m, "LinearTransform")
+        .def(py::init<const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def(py::init<const array_1d<double,3>&, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def(py::init<const Quaternion<double>&, const array_1d<double,3>&, const array_1d<double,3>&>())
+        .def("SetRotation", static_cast<void (LinearTransform::*)(const array_1d<double,3>&, const double, const array_1d<double,3>&)>(&LinearTransform::SetRotation))
+        .def("SetRotation", static_cast<void (LinearTransform::*)(const array_1d<double,3>&, const array_1d<double,3>&)>(&LinearTransform::SetRotation))
+        .def("SetRotation", static_cast<void (LinearTransform::*)(const Quaternion<double>&, const array_1d<double,3>&)>(&LinearTransform::SetRotation))
+        .def("SetTranslation", &LinearTransform::SetTranslation)
+        .def("Apply", &LinearTransform::Apply)
+        ;
+
+    py::class_<ParametricLinearTransform, ParametricLinearTransform::Pointer>(m, "ParametricLinearTransform")
+        .def(py::init<const Parameters&, const Parameters&, const Parameters&, const Parameters&>())
+        .def(py::init<const Parameters&, const Parameters&, const Parameters&>())
+        .def("Apply", &ParametricLinearTransform::Apply)
+        ;
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
     void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;
