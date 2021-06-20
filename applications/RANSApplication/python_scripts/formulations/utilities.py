@@ -316,3 +316,25 @@ def GetTimeDerivativeVariable(variable):
         return KratosRANS.RANS_AUXILIARY_VARIABLE_2
     else:
         return None
+
+def GetTimeDerivativeVariablesRecursively( var):
+    time_derivative_var = GetTimeDerivativeVariable(var)
+    if (time_derivative_var is None):
+        return [var]
+    else:
+        v = [var]
+        v.extend(GetTimeDerivativeVariablesRecursively(time_derivative_var))
+        return v
+
+def AddFileLoggerOutput(log_file_name):
+    file_logger = Kratos.FileLoggerOutput(log_file_name)
+    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    Kratos.Logger.AddOutput(file_logger)
+
+    return default_severity, file_logger
+
+def RemoveFileLoggerOutput(default_severity, file_logger):
+    Kratos.Logger.Flush()
+    Kratos.Logger.RemoveOutput(file_logger)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
