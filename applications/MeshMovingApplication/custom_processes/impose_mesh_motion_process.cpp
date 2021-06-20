@@ -180,7 +180,7 @@ void ImposeMeshMotionProcess::ParseAndSetConstantTransform(const std::string& rR
     } // unsupported rotation_definition
 
     // Set transform function
-    mTransformFunctor = [p_transform, this](const Node<3>& rNode)
+    mTransformFunctor = [p_transform](const Node<3>& rNode)
     {
         KRATOS_TRY
         return p_transform->Apply(rNode);
