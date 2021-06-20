@@ -1,4 +1,3 @@
-from re import M
 import KratosMultiphysics
 from KratosMultiphysics import Parameters
 import KratosMultiphysics.MeshMovingApplication as MeshMoving
