@@ -82,7 +82,9 @@ public:
     ///@name Operations
     ///@{
 
-    static void ConvertPressureToForces();
+    static void ConvertPressureToForces(ModelPart& model_part_interface);
+
+    static void ConvertElementalDataToNodalData(ModelPart& model_part_interface);
 
 
     ///@}
