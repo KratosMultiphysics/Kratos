@@ -19,6 +19,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
 #include "custom_utilities/feti_dynamic_coupling_utilities.h"
+#include "custom_utilities/conversion_utilities.h"
 
 namespace Kratos{
 
@@ -54,6 +55,15 @@ namespace Python{
             .value("Origin", FetiSolverIndexType::Origin)
             .value("Destination", FetiSolverIndexType::Destination)
             ;
+
+        pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
+            .def(pybind11::init<>())
+            .def("ConvertPressureToForces",
+                &ConversionUtilities::ConvertPressureToForces)
+            .def("ConvertElementalDataToNodalData",
+                &ConversionUtilities::ConvertElementalDataToNodalData)
+            ;
+
     }
 
 }  // namespace Python.
