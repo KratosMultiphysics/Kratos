@@ -42,17 +42,20 @@ class TestVectorInterface(KratosUnittest.TestCase):
         for i in range(len(v)):
             v[i] = i
 
-        v1 = Vector(v[1:4]) # simple slice get
+        vec_slice = v[1:4]
+        v1 = Vector(vec_slice) # simple slice get
         self.assertEqual(len(v1),3)
         for i,value in enumerate(v1):
             self.assertEqual(value, i+1 )
 
-        v2 = Vector(v[2:]) # open slice get
+        vec_slice = v[2:]
+        v2 = Vector(vec_slice) # open slice get
         self.assertEqual(len(v2),3)
         for i,value in enumerate(v2):
             self.assertEqual(value, i+2 )
 
-        v3 = Vector(v[:3]) # open slice get
+        vec_slice = v[:3]
+        v3 = Vector(vec_slice) # open slice get
         self.assertEqual(len(v3),3)
         for i,value in enumerate(v3):
             self.assertEqual(value, i )
