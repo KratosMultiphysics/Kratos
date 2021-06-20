@@ -451,6 +451,7 @@ protected:
         double C5;
         double C6;
         double C7;
+        double DeltaTime;
     };
 
     AdjointResponseFunction::Pointer mpResponseFunction;
@@ -1364,6 +1365,7 @@ private:
     static BossakConstants CalculateBossakConstants(double Alpha, double DeltaTime)
     {
         BossakConstants bc;
+        bc.DeltaTime = DeltaTime;
         bc.Alpha = Alpha;
         bc.Beta = 0.25 * (1.0 - bc.Alpha) * (1.0 - bc.Alpha);
         bc.Gamma = 0.5 - bc.Alpha;
