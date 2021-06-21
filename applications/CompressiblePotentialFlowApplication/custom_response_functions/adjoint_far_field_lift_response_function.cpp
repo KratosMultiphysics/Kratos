@@ -79,10 +79,8 @@ namespace Kratos
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
 
-        typedef CombinedReduction<SumReduction<array_1d<double, 3>>,SumReduction<array_1d<double, 3>>> CustomReduction;
-        std::tie(force_coefficient_pres, force_coefficient_vel) =
-        block_for_each<CustomReduction>(far_field_sub_model_part.Conditions(), [&](Condition& rCondition) {
-            auto& r_geometry = rCondition.GetGeometry();
+        for (auto& r_condition : far_field_sub_model_part.Conditions()) {
+            auto& r_geometry = r_condition.GetGeometry();
             array_1d<double, 3> local_force_coefficient_pres;
             array_1d<double, 3> local_force_coefficient_vel;
 
@@ -90,20 +88,19 @@ namespace Kratos
             array_1d<double,3> aux_coordinates;
             r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
             const auto normal = r_geometry.Normal(aux_coordinates);
-            rCondition.SetValue(NORMAL, normal);
+            r_condition.SetValue(NORMAL, normal);
 
-            rCondition.Initialize(r_current_process_info);
-            rCondition.FinalizeNonLinearIteration(r_current_process_info);
-            double pressure_coefficient = rCondition.GetValue(PRESSURE_COEFFICIENT);
-            local_force_coefficient_pres = -normal*pressure_coefficient;
+            r_condition.Initialize(r_current_process_info);
+            r_condition.FinalizeNonLinearIteration(r_current_process_info);
+            double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
+            force_coefficient_pres += -normal*pressure_coefficient;
 
-            auto velocity = rCondition.GetValue(VELOCITY);
-            double density = rCondition.GetValue(DENSITY);
+            auto velocity = r_condition.GetValue(VELOCITY);
+            double density = r_condition.GetValue(DENSITY);
             double velocity_projection = inner_prod(normal,velocity);
             array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
-            local_force_coefficient_vel = -velocity_projection * disturbance * density;
-            return std::make_tuple(local_force_coefficient_pres, local_force_coefficient_vel);
-        });
+            force_coefficient_vel += -velocity_projection * disturbance * density;
+        }
 
         force_coefficient_pres = force_coefficient_pres / mReferenceChord;
         force_coefficient_vel = force_coefficient_vel/(mDynamicPressure*mReferenceChord);
