@@ -807,6 +807,8 @@ Vector& GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawIn
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         const Matrix C_plastic_tensor = prod(trans( mPlasticDeformationGradient), mPlasticDeformationGradient);
         ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, rValue);
+    } else if (rThisVariable == BACK_STRESS_VECTOR) {
+        rValue = mBackStressVector;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }
