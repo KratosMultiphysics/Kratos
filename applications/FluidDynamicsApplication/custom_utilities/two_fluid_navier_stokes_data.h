@@ -61,8 +61,6 @@ NodalScalarData NodalDensity;
 NodalScalarData NodalDynamicViscosity;
 
 double Density;
-double DynamicViscosity;
-double ArtificialViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;
@@ -129,7 +127,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-    this->FillFromNonHistoricalNodalData(NodalArtificialViscosity,ARTIFICIAL_DYNAMIC_VISCOSITY,r_geometry);
     
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
@@ -215,7 +212,9 @@ void CalculateAirMaterialResponse() {
     ComputeStrain();
 
     CalculateEffectiveViscosityAtGaussPoint();
-
+    const double mu = this->EffectiveViscosity;
+	const double c1 = 2.0*mu;
+	const double c2 = mu;
 	this->C.clear();
     BoundedMatrix<double, strain_size, strain_size> c_mat = this->C;
     Vector& stress = this->ShearStress;
@@ -338,13 +337,8 @@ void CalculateEffectiveViscosityAtGaussPoint()
         this->EffectiveViscosity = DynamicViscosity + 2.0*length_scale*strain_rate_norm;
     }
     else this->EffectiveViscosity = DynamicViscosity;
-    CalculateArtificialViscosityAtGaussPoint();
-    this->EffectiveViscosity=DynamicViscosity+this->ArtificialViscosity;
-
-
 }
 
-}
 void ComputeDarcyTerm()
 {
     array_1d<double, 3> convective_velocity(3, 0.0);
