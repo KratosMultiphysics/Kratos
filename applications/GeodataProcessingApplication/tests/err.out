@@ -1,0 +1,406 @@
+Invalid MIT-MAGIC-COOKIE-1 key |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.0."Dev"-5f1fb30df0-Release
+Compiled with threading and MPI support.
+Maximum number of threads: 6.
+MPI world size:         4.
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication...
+Importing    KratosMeshingApplication 
+Initializing KratosMeshingApplication...
+[DEBUG] Kratos Parallel
+[DEBUG][geo_mesher] import KratosMultiphysics.mpi
+[DEBUG] Kratos Parallel
+[DEBUG] Kratos Parallel
+[DEBUG] Kratos Parallel
+[DEBUG][geo_mesher] import KratosMultiphysics.mpi
+[DEBUG][geo_mesher] import KratosMultiphysics.mpi
+[DEBUG][geo_mesher] import KratosMultiphysics.mpi
+
+
+[DEBUG] TEST  038_mpi
+[DEBUG][start] 15:44:17
+
+
+[DEBUG] TEST  038_mpi
+[DEBUG][start] 15:44:17
+
+
+[DEBUG] TEST  038_mpi
+[DEBUG][start] 15:44:17
+
+
+[DEBUG] TEST  038_mpi
+[DEBUG][start] 15:44:17
+[WARNING] ModelPartCommunicatorUtilities: This function is deprecated, please use the one that accepts a DataCommunicator
+ModelPartIO:   [Reading Nodes    : 12280 nodes read]
+ModelPartIO:   [Reading Elements : 45491 elements read] [Type: Element3D4N]
+ModelPartIO:   [Reading Conditions : 18790 conditions read] [Type: WallCondition3D]
+ModelPartIO:   [Total Lines Read : 310402]
+[WARNING] ParallelFillCommunicator: All nodes have a PARTITION_INDEX index of 0! This could mean that PARTITION_INDEX was not assigned
+PARMMG
+PARMMG
+PARMMG
+PARMMG
+ParMmgProcess: We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, it is quite recommended to create more than one sub model part if you have more than one element or condition)
+//---------------------------------------------------//
+//---------------  BEFORE REMESHING   ---------------//
+//---------------------------------------------------//
+
+-MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 14
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    TIME : 0
+    DELTA_TIME : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 12280
+        Number of Properties  : 1
+        Number of Elements    : 45491
+        Number of Conditions  : 18790
+        Number of Constraints : 0
+
+    -BottomModelPart- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 8769
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 17365
+            Number of Constraints : 0
+    -LateralSector_1- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 42
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 56
+            Number of Constraints : 0
+    -LateralSector_10- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 35
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 42
+            Number of Constraints : 0
+    -LateralSector_11- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 40
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 51
+            Number of Constraints : 0
+    -LateralSector_12- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 35
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 44
+            Number of Constraints : 0
+    -LateralSector_2- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 34
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 41
+            Number of Constraints : 0
+    -LateralSector_3- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 39
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 51
+            Number of Constraints : 0
+    -LateralSector_4- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 36
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 46
+            Number of Constraints : 0
+    -LateralSector_5- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 34
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 42
+            Number of Constraints : 0
+    -LateralSector_6- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 40
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 52
+            Number of Constraints : 0
+    -LateralSector_7- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 45
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 60
+            Number of Constraints : 0
+    -LateralSector_8- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 35
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 45
+            Number of Constraints : 0
+    -LateralSector_9- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 35
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 45
+            Number of Constraints : 0
+    -TopModelPart- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 464
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 850
+            Number of Constraints : 0
+
+ParMmgProcess: Step data size: 14 Buffer size: 1
+ParMmgProcess: ////////* PMMG LIBRARY CALL *////////
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL : 1.3.0 (Nov 20, 2020)
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     git branch: master
+     git commit: 715a680f0796c43c8a5e704e0481095bd40daf6e
+     git date:   2020-11-26 11:41:57 +0100
+
+
+  -- PMMG: CHECK INPUT DATA
+  -- CHECK INPUT DATA COMPLETED.     0.038s
+
+  -- PHASE 1 : ANALYSIS
+
+  -- RESULTING EDGE LENGTHS  67165
+     AVERAGE LENGTH               2.3828
+     SMALLEST EDGE LENGTH         1.0000     6032   6049
+     LARGEST  EDGE LENGTH        13.3599     6590   8623 
+
+  -- PARALLEL MESH QUALITY  36840   181964
+     BEST   0.994240  AVRG.   0.529572  WRST.   0.029663 (PROC 3 - ELT 36693)
+     HISTOGRAMM:   99.72 % > 0.12
+                   56.95 % >  0.5
+       0.8 < Q <   1.0     14508     7.97 %
+       0.6 < Q <   0.8     49652    27.29 %
+       0.4 < Q <   0.6     72020    39.58 %
+       0.2 < Q <   0.4     40244    22.12 %
+       0.0 < Q <   0.2      5540     3.04 %
+   -- PHASE 1 COMPLETED.     0.227s
+
+  -- PHASE 2 : ANISOTROPIC MESHING
+double free or corruption (out)
+[nicola-ubuntu:28283] *** Process received signal ***
+[nicola-ubuntu:28283] Signal: Aborted (6)
+[nicola-ubuntu:28283] Signal code:  (6238048)
+double free or corruption (out)
+[nicola-ubuntu:28283] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7efc2410f210]
+[nicola-ubuntu:28282] *** Process received signal ***
+[nicola-ubuntu:28282] Signal: Aborted (6)
+[nicola-ubuntu:28282] Associated errno: Unknown error 32572 (32572)
+[nicola-ubuntu:28282] Signal code:  (127891952)
+[nicola-ubuntu:28283] [ 1] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0xcb)[0x7efc2410f18b]
+[nicola-ubuntu:28283] [ 2] /lib/x86_64-linux-gnu/libc.so.6(abort+0x12b)[0x7efc240ee859]
+[nicola-ubuntu:28282] [ 0] [nicola-ubuntu:28283] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7f3c33ce6210]
+[ 3] [nicola-ubuntu:28282] /lib/x86_64-linux-gnu/libc.so.6(+0x903ee)[0x7efc241593ee]
+[nicola-ubuntu:28283] [ 4] [ 1] /lib/x86_64-linux-gnu/libc.so.6(+0x9847c)[0x7efc2416147c]
+[nicola-ubuntu:28283] [ 5] /lib/x86_64-linux-gnu/libc.so.6(+0x9a120)[0x7efc24163120]
+/lib/x86_64-linux-gnu/libc.so.6(gsignal+0xcb)[0x7f3c33ce618b]
+[nicola-ubuntu:28282] [ 2] [nicola-ubuntu:28283] /lib/x86_64-linux-gnu/libc.so.6(abort+0x12b)[0x7f3c33cc5859]
+[nicola-ubuntu:28282] [ 3] [ 6] /lib/x86_64-linux-gnu/libc.so.6(+0x903ee)[0x7f3c33d303ee]
+/home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_eachGrp+0xb41)[0x7efc15719b21]
+[nicola-ubuntu:28283] [ 7] [nicola-ubuntu:28282] [ 4] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_grps+0x145)[0x7efc1571b635]
+[nicola-ubuntu:28283] /lib/x86_64-linux-gnu/libc.so.6(+0x9847c)[0x7f3c33d3847c]
+[nicola-ubuntu:28282] [ 5] [ 8] /lib/x86_64-linux-gnu/libc.so.6(+0x9a120)[0x7f3c33d3a120]
+[nicola-ubuntu:28282] [ 6] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_splitPart_grps+0x299)[0x7efc1571ba19]
+[nicola-ubuntu:28283] [ 9] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_eachGrp+0xb41)[0x7f3c25318b21]
+/home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib1+0xb7)[0x7efc1572e2b7]
+[nicola-ubuntu:28283] [10] [nicola-ubuntu:28282] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib_distributed+0x3d5)[0x7efc1572cbc5]
+[nicola-ubuntu:28283] [11] [ 7] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_grps+0x145)[0x7f3c2531a635]
+[nicola-ubuntu:28282] [ 8] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos15ParMmgUtilitiesILNS_11PMMGLibraryE1EE17PMMGLibCallMetricENS_10ParametersE+0xc57)[0x7efc15c48d97]
+/home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_splitPart_grps+0x299)[0x7f3c2531aa19]
+[nicola-ubuntu:28282] [ 9] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib1+0xb7)[0x7f3c2532d2b7]
+[nicola-ubuntu:28282] [10] [nicola-ubuntu:28283] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib_distributed+0x3d5)[0x7f3c2532bbc5]
+[nicola-ubuntu:28282] [11] [12] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos15ParMmgUtilitiesILNS_11PMMGLibraryE1EE17PMMGLibCallMetricENS_10ParametersE+0xc57)[0x7f3c25847d97]
+double free or corruption (out)
+/home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE16ExecuteRemeshingEv+0x258)[0x7efc15bd2898]
+[nicola-ubuntu:28283] [13] [nicola-ubuntu:28282] [nicola-ubuntu:28280] *** Process received signal ***
+[nicola-ubuntu:28280] Signal: Aborted (6)
+[nicola-ubuntu:28280] Associated errno: Unknown error 32573 (32573)
+[nicola-ubuntu:28280] Signal code:  (-918963568)
+[12] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE29ExecuteInitializeSolutionStepEv+0x58)[0x7efc15bd1238]
+[nicola-ubuntu:28283] [14] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE16ExecuteRemeshingEv+0x258)[0x7f3c257d1898]
+[nicola-ubuntu:28282] [13] [nicola-ubuntu:28280] [ 0] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE29ExecuteInitializeSolutionStepEv+0x58)[0x7f3c257d0238]
+/home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE7ExecuteEv+0x3a)[0x7efc15bba64a]
+[nicola-ubuntu:28283] [15] [nicola-ubuntu:28282] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7f3df5683210]
+[nicola-ubuntu:28280] [ 1] [14] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0xcb)[0x7f3df568318b]
+[nicola-ubuntu:28280] [ 2] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0xaa8d6a)[0x7efc22ddcd6a]
+[nicola-ubuntu:28283] [16] /lib/x86_64-linux-gnu/libc.so.6(abort+0x12b)[0x7f3df5662859]
+[nicola-ubuntu:28280] [ 3] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0x2241e4)[0x7efc225581e4]
+/lib/x86_64-linux-gnu/libc.so.6(+0x903ee)[0x7f3df56cd3ee]
+[nicola-ubuntu:28280] [ 4] [nicola-ubuntu:28283] /lib/x86_64-linux-gnu/libc.so.6(+0x9847c)[0x7f3df56d547c]
+[17] [nicola-ubuntu:28280] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:28283] [18] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE7ExecuteEv+0x3a)[0x7f3c257b964a]
+[nicola-ubuntu:28282] [15] [ 5] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:28283] [19] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0xaa8d6a)[0x7f3c329b3d6a]
+python3[0x50aa8b]
+[nicola-ubuntu:28283] [20] /lib/x86_64-linux-gnu/libc.so.6(+0x9a120)[0x7f3df56d7120]
+[nicola-ubuntu:28280] [ 6] [nicola-ubuntu:28282] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_eachGrp+0xb41)[0x7f3dec0d1b21]
+[nicola-ubuntu:28280] [ 7] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:28283] [21] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_grps+0x145)[0x7f3dec0d3635]
+[nicola-ubuntu:28280] [ 8] [16] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:28283] [22] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_splitPart_grps+0x299)[0x7f3dec0d3a19]
+[nicola-ubuntu:28280] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0x2241e4)[0x7f3c3212f1e4]
+[nicola-ubuntu:28282] [17] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:28283] [23] [ 9] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:28282] [18] python3[0x67d5a1]
+/home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib1+0xb7)[0x7f3dec0e62b7]
+[nicola-ubuntu:28280] [10] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib_distributed+0x3d5)[0x7f3dec0e4bc5]
+[nicola-ubuntu:28280] [11] [nicola-ubuntu:28283] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:28282] [19] [24] python3[0x50aa8b]
+python3[0x67d61f]
+[nicola-ubuntu:28283] [25] [nicola-ubuntu:28282] [20] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:28283] [26] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos15ParMmgUtilitiesILNS_11PMMGLibraryE1EE17PMMGLibCallMetricENS_10ParametersE+0xc57)[0x7f3dec7b2d97]
+python3(PyRun_SimpleFileExFlags+0x17e)[0x67da6e]
+[nicola-ubuntu:28283] [27] [nicola-ubuntu:28280] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:28282] [21] python3(Py_RunMain+0x212)[0x6b6132]
+[nicola-ubuntu:28283] [28] [12] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:28282] [22] python3(Py_BytesMain+0x2d)[0x6b64bd]
+[nicola-ubuntu:28283] [29] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:28282] [23] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0x7efc240f00b3]
+[nicola-ubuntu:28283] *** End of error message ***
+python3[0x67d5a1]
+[nicola-ubuntu:28282] [24] python3[0x67d61f]
+[nicola-ubuntu:28282] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE16ExecuteRemeshingEv+0x258)[0x7f3dec73c898]
+[nicola-ubuntu:28280] [13] [25] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:28282] [26] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE29ExecuteInitializeSolutionStepEv+0x58)[0x7f3dec73b238]
+[nicola-ubuntu:28280] [14] python3(PyRun_SimpleFileExFlags+0x17e)[0x67da6e]
+[nicola-ubuntu:28282] [27] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE7ExecuteEv+0x3a)[0x7f3dec72464a]
+python3(Py_RunMain+0x212)[0x6b6132]
+[nicola-ubuntu:28282] [28] [nicola-ubuntu:28280] python3(Py_BytesMain+0x2d)[0x6b64bd]
+[nicola-ubuntu:28282] [29] [15] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0x7f3c33cc70b3]
+[nicola-ubuntu:28282] *** End of error message ***
+/home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0xaa8d6a)[0x7f3df4350d6a]
+[nicola-ubuntu:28280] [16] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0x2241e4)[0x7f3df3acc1e4]
+[nicola-ubuntu:28280] [17] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:28280] [18] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:28280] [19] python3[0x50aa8b]
+[nicola-ubuntu:28280] [20] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:28280] [21] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:28280] [22] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:28280] [23] python3[0x67d5a1]
+[nicola-ubuntu:28280] [24] python3[0x67d61f]
+[nicola-ubuntu:28280] [25] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:28280] [26] python3(PyRun_SimpleFileExFlags+0x17e)[0x67da6e]
+[nicola-ubuntu:28280] [27] python3(Py_RunMain+0x212)[0x6b6132]
+[nicola-ubuntu:28280] [28] python3(Py_BytesMain+0x2d)[0x6b64bd]
+[nicola-ubuntu:28280] [29] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0x7f3df56640b3]
+[nicola-ubuntu:28280] *** End of error message ***
+double free or corruption (out)
+[nicola-ubuntu:28281] *** Process received signal ***
+[nicola-ubuntu:28281] Signal: Aborted (6)
+[nicola-ubuntu:28281] Signal code:  (6238048)
+[nicola-ubuntu:28281] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7fd3b7190210]
+[nicola-ubuntu:28281] [ 1] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0xcb)[0x7fd3b719018b]
+[nicola-ubuntu:28281] [ 2] /lib/x86_64-linux-gnu/libc.so.6(abort+0x12b)[0x7fd3b716f859]
+[nicola-ubuntu:28281] [ 3] /lib/x86_64-linux-gnu/libc.so.6(+0x903ee)[0x7fd3b71da3ee]
+[nicola-ubuntu:28281] [ 4] /lib/x86_64-linux-gnu/libc.so.6(+0x9847c)[0x7fd3b71e247c]
+[nicola-ubuntu:28281] [ 5] /lib/x86_64-linux-gnu/libc.so.6(+0x9a120)[0x7fd3b71e4120]
+[nicola-ubuntu:28281] [ 6] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_eachGrp+0xb41)[0x7fd3a87c9b21]
+[nicola-ubuntu:28281] [ 7] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_split_grps+0x145)[0x7fd3a87cb635]
+[nicola-ubuntu:28281] [ 8] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_splitPart_grps+0x299)[0x7fd3a87cba19]
+[nicola-ubuntu:28281] [ 9] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib1+0xb7)[0x7fd3a87de2b7]
+[nicola-ubuntu:28281] [10] /home/nicola/src/ParMmg/build/lib/libparmmg.so(PMMG_parmmglib_distributed+0x3d5)[0x7fd3a87dcbc5]
+[nicola-ubuntu:28281] [11] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos15ParMmgUtilitiesILNS_11PMMGLibraryE1EE17PMMGLibCallMetricENS_10ParametersE+0xc57)[0x7fd3a8eaad97]
+[nicola-ubuntu:28281] [12] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE16ExecuteRemeshingEv+0x258)[0x7fd3a8e34898]
+[nicola-ubuntu:28281] [13] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE29ExecuteInitializeSolutionStepEv+0x58)[0x7fd3a8e33238]
+[nicola-ubuntu:28281] [14] /home/nicola/Kratos/bin/Release/libs/libKratosMeshingCore.so(_ZN6Kratos13ParMmgProcessILNS_11PMMGLibraryE1EE7ExecuteEv+0x3a)[0x7fd3a8e1c64a]
+[nicola-ubuntu:28281] [15] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0xaa8d6a)[0x7fd3b5e5dd6a]
+[nicola-ubuntu:28281] [16] /home/nicola/Kratos/bin/Release/libs/Kratos.cpython-38-x86_64-linux-gnu.so(+0x2241e4)[0x7fd3b55d91e4]
+[nicola-ubuntu:28281] [17] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:28281] [18] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:28281] [19] python3[0x50aa8b]
+[nicola-ubuntu:28281] [20] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:28281] [21] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:28281] [22] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:28281] [23] python3[0x67d5a1]
+[nicola-ubuntu:28281] [24] python3[0x67d61f]
+[nicola-ubuntu:28281] [25] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:28281] [26] python3(PyRun_SimpleFileExFlags+0x17e)[0x67da6e]
+[nicola-ubuntu:28281] [27] python3(Py_RunMain+0x212)[0x6b6132]
+[nicola-ubuntu:28281] [28] python3(Py_BytesMain+0x2d)[0x6b64bd]
+[nicola-ubuntu:28281] [29] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xf3)[0x7fd3b71710b3]
+[nicola-ubuntu:28281] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 3 with PID 0 on node nicola-ubuntu exited on signal 6 (Aborted).
+--------------------------------------------------------------------------

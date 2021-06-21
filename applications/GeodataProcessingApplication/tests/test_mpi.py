@@ -84,10 +84,6 @@ num_nodes = main_model_part.NumberOfNodes()
 #     else:
 #         node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 3)
 
-# if rank == 0:
-#     for i_n, node in enumerate(main_model_part.Nodes):
-#         print(node.GetSolutionStepValue(Kratos.PARTITION_INDEX))
-
 
 communicator = main_model_part.GetCommunicator().GetDataCommunicator()
 
@@ -102,17 +98,14 @@ find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(main_model_part
 find_nodal_h.Execute()
 
 # We define a metric using the ComputeLevelSetSolMetricProcess
-min_size = 10.0
-max_size = 500.0
-max_dist = 1.0
-levelset_parameters = KratosMultiphysics.Parameters("""
+metric_parameters = KratosMultiphysics.Parameters("""
     {
-        "minimal_size"                         : """ + str(min_size) + """,
-        "maximal_size"                         : """ + str(max_size) + """,
+        "minimal_size"                         : 10,
+        "maximal_size"                         : 500,
         "sizing_parameters":
         {
             "reference_variable_name"          : "DISTANCE",
-            "boundary_layer_max_distance"      : """ + str(max_dist) + """,
+            "boundary_layer_max_distance"      : 1.0,
             "interpolation"                    : "linear"
         },
         "enforce_current"                      : true,
@@ -122,7 +115,7 @@ levelset_parameters = KratosMultiphysics.Parameters("""
 
 metric_process = KratosMesh.ComputeLevelSetSolMetricProcess3D(main_model_part,
                                                               KratosMultiphysics.DISTANCE_GRADIENT,
-                                                              levelset_parameters)
+                                                              metric_parameters)
 metric_process.Execute()
 
 
