@@ -197,7 +197,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         // Some values initialization
         IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ?
-            r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
+            r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 1000;
 
         double plastic_consistency_factor_increment = 0.0, aux_det = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
@@ -263,7 +263,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
 
-            if (threshold_indicator <= std::abs(1.0e-3 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
