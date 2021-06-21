@@ -60,7 +60,6 @@ namespace Kratos
         mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
         double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
         KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
-        auto wake_direction = mFreeStreamVelocity/free_stream_velocity_norm;
         double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
         auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
         mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
