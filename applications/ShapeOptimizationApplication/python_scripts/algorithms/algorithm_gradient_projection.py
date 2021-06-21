@@ -210,26 +210,18 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 s_inf_norm = s.norm_inf()
                 if s_inf_norm > eps :
                     s *= delta/s_inf_norm
-                else:
-                    s *= delta
             else:
                 KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
                 c_inf_norm = c.norm_inf()
                 s_inf_norm = s.norm_inf()
                 if c_inf_norm > eps:
                     c *= self.max_correction_share * self.step_size / c_inf_norm
-                else:
-                    c *= self.max_correction_share * self.step_size
                 if s_inf_norm > eps:
                     s *= (1.0 - self.max_correction_share) * self.step_size / s_inf_norm
-                else:
-                    s *= (1.0 - self.max_correction_share) * self.step_size
         else:
             s_inf_norm = s.norm_inf()
             if s_inf_norm > eps:
                 s *= self.step_size / s_inf_norm
-            else :
-                s *= self.step_size
 
         self.__SetSearchDirectionCorrectionAndCPUpdate(s,c)
 
