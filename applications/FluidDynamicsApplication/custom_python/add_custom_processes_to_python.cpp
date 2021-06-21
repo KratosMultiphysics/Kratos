@@ -41,7 +41,7 @@
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "spaces/ublas_space.h"
-#include "custom_processes/energy_splitelements_process.h"
+
 #include "linear_solvers/linear_solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
@@ -162,11 +162,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
     ;
-
-    py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
-    .def(py::init<ModelPart &, unsigned int>())
-    .def("WritingFile",&EnergyCheckProcess::WritingFile)
-    ;
+    
 }
 
 } // namespace Python.
