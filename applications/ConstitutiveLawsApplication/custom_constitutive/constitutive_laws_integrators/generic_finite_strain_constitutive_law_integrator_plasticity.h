@@ -237,12 +237,14 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                     plastic_consistency_factor_increment, Re, plastic_deformation_gradient_increment);
 
             // Compute Plastic strain from Fp
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
-                rPlasticDeformationGradient, plastic_strain);
+            rValues.SetDeterminantF(MathUtils<double>::Det(rPlasticDeformationGradient));
+            rValues.SetDeformationGradientF(rPlasticDeformationGradient);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
 
             // Compute Plastic strain increment from Fp increment
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
-                plastic_deformation_gradient_increment, delta_plastic_strain);
+            rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient_increment));
+            rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
 
             // Let's compute the updated stress with the new Fe
             rValues.SetDeterminantF(MathUtils<double>::Det(rTrialElasticDeformationGradient));
