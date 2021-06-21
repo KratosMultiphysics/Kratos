@@ -73,20 +73,20 @@ KratosMultiphysics.ModelPartIO(model_part_in).ReadModelPart(main_model_part)
 
 num_nodes = main_model_part.NumberOfNodes()
 
-# for node in main_model_part.Nodes:
-for i_n, node in enumerate(main_model_part.Nodes):
-    if i_n < round(num_nodes/size + 10**-9):
-        node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 0)
-    elif i_n < round(num_nodes/size * 2 + 10**-9):
-        node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 1)
-    elif i_n < round(num_nodes/size * 3 + 10**-9):
-        node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 2)
-    else:
-        node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 3)
+# # for node in main_model_part.Nodes:
+# for i_n, node in enumerate(main_model_part.Nodes):
+#     if i_n < round(num_nodes/size + 10**-9):
+#         node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 0)
+#     elif i_n < round(num_nodes/size * 2 + 10**-9):
+#         node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 1)
+#     elif i_n < round(num_nodes/size * 3 + 10**-9):
+#         node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 2)
+#     else:
+#         node.SetSolutionStepValue(Kratos.PARTITION_INDEX, 3)
 
-if rank == 0:
-    for i_n, node in enumerate(main_model_part.Nodes):
-        print(node.GetSolutionStepValue(Kratos.PARTITION_INDEX))
+# if rank == 0:
+#     for i_n, node in enumerate(main_model_part.Nodes):
+#         print(node.GetSolutionStepValue(Kratos.PARTITION_INDEX))
 
 
 communicator = main_model_part.GetCommunicator().GetDataCommunicator()
@@ -133,17 +133,8 @@ pmmg_parameters = KratosMultiphysics.Parameters("""
     """)
 pmmg_parameters["filename"].SetString(GetFilePath(pmmg_parameters["filename"].GetString()))
 
-# print(main_model_part)
-# input("vedi model part")
-
 KratosMPI.ParallelFillCommunicator(main_model_part).Execute()
 
 pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(main_model_part.GetRootModelPart(), pmmg_parameters)
 print("PARMMG")
 pmmg_process.Execute()
-
-# # GiD file
-# mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostAscii")
-# mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostBinary")
-# # MDPA file
-# mesher.WriteMdpaOutput("cfd_data/test_{}/mdpa_file/02_Mesh_cylinder_distance_field_1".format(num_test))
