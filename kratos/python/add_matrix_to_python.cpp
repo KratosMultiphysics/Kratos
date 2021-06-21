@@ -22,6 +22,7 @@
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
+#include "add_vector_to_python.h"
 
 namespace Kratos
 {
@@ -89,6 +90,33 @@ namespace Python
 
           return matrix;
         }));
+
+        matrix_binder.def(py::init([](const py::list& input){
+          std::size_t num_rows = input.size();
+          std::size_t num_cols = 0;
+
+          //To calculate the number of columns
+          for(std::size_t i = 0 ; i< input.size() ; i++)
+          {
+            auto v_row = Vector(py::cast<Vector>(input[i]));
+            if(num_cols < v_row.size())
+              num_cols = v_row.size();
+          }
+
+          DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
+          for(std::size_t i=0; i<num_rows; i++){
+            auto v_row = Vector(py::cast<Vector>(input[i]));
+            for(std::size_t j=0; j<num_cols; j++){
+              if(j < v_row.size())
+                matrix(i,j) = v_row[j];
+              else
+                matrix(i,j) = 0.0;
+            }
+          }
+          return matrix;
+        }));
+
+
       #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
         // This constructor is not supported by AMatrix
         //matrix_binder.def(py::init<const DenseMatrix<double>::size_type, const DenseMatrix<double>::size_type, const DenseMatrix<double>::value_type >());
