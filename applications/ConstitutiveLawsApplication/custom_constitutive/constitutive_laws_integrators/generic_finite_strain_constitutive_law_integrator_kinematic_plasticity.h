@@ -282,7 +282,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain, rBackStressVector);
 
-            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-3 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;

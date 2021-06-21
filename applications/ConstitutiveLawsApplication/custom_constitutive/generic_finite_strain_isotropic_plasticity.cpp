@@ -192,7 +192,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain);
 
-            if (plastic_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
+            if (plastic_indicator <= std::abs(1.0e-5 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
