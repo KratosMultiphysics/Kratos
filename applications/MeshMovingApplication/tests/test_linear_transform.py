@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication as MeshMoving
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import numpy
+import math
 
 class LinearTransformTest(UnitTest.TestCase):
 
@@ -20,7 +20,7 @@ class LinearTransformTest(UnitTest.TestCase):
 
     def test_AxisAngle(self):
         axis = [0.0, 1.0, 0.0]
-        angle = -numpy.pi / 2.0
+        angle = -math.pi / 2.0
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 
@@ -33,7 +33,7 @@ class LinearTransformTest(UnitTest.TestCase):
         self.CheckPoints([transform.Apply(point) for point in self.GeneratePoints()])
 
     def test_EulerAngles(self):
-        euler_angles = [-numpy.pi/2.0, -numpy.pi/2.0, numpy.pi/2.0]
+        euler_angles = [-math.pi/2.0, -math.pi/2.0, math.pi/2.0]
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 
@@ -47,9 +47,9 @@ class LinearTransformTest(UnitTest.TestCase):
     def test_Quaternion(self):
         quaternion = KratosMultiphysics.Quaternion()
         quaternion.X = 0.0
-        quaternion.Y = -numpy.sqrt(2.0) / 2.0
+        quaternion.Y = -math.sqrt(2.0) / 2.0
         quaternion.Z = 0.0
-        quaternion.W = numpy.sqrt(2.0) / 2.0
+        quaternion.W = math.sqrt(2.0) / 2.0
         reference_point = [-1.0, 0.0, 0.0]
         translation_vector = [1.0, 2.0, 3.0]
 

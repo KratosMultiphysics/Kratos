@@ -3,7 +3,7 @@ from KratosMultiphysics import Parameters
 import KratosMultiphysics.MeshMovingApplication as MeshMoving
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-import numpy
+import math
 
 class ParametricLinearTransformTest(UnitTest.TestCase):
 
@@ -42,7 +42,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
         points = self.GeneratePoints()
         transform = MeshMoving.ParametricLinearTransform(
             self.GetConstantAxis(),
-            Parameters(f""" "-(t+1.0) * {numpy.pi} / 2.0" """),
+            Parameters(f""" "-(t+1.0) * {math.pi} / 2.0" """),
             self.GetConstantReferencePoint(),
             self.GetConstantTranslationVector())
 
@@ -69,7 +69,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
     def test_ParametricEulerAngles(self):
         points = self.GeneratePoints()
         transform = MeshMoving.ParametricLinearTransform(
-            Parameters(f""" [{-numpy.pi/2.0}, {-numpy.pi/2.0}, "(1.0-t)*{numpy.pi/2.0}"] """),
+            Parameters(f""" [{-math.pi/2.0}, {-math.pi/2.0}, "(1.0-t)*{math.pi/2.0}"] """),
             self.GetConstantReferencePoint(),
             self.GetConstantTranslationVector())
 
@@ -113,7 +113,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     @staticmethod
     def GetConstantAngle():
-        return Parameters(f"{-numpy.pi/2.0}")
+        return Parameters(f"{-math.pi/2.0}")
 
     @staticmethod
     def GetConstantReferencePoint():
@@ -125,7 +125,7 @@ class ParametricLinearTransformTest(UnitTest.TestCase):
 
     @staticmethod
     def GetConstantEulerAngles():
-        return Parameters(f"[{-numpy.pi/2},{-numpy.pi/2},{numpy.pi/2}]")
+        return Parameters(f"[{-math.pi/2},{-math.pi/2},{math.pi/2}]")
 
 if __name__ == "__main__":
     UnitTest.main()
