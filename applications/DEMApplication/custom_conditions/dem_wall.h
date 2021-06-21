@@ -90,8 +90,6 @@ public:
 
     double GetYoung() const;
     double GetPoisson() const;
-    double GetTgOfStaticFrictionAngle() const;
-    double GetTgOfDynamicFrictionAngle() const;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     std::vector<array_1d <double, 3> > mRightHandSideVector;

@@ -70,7 +70,7 @@ RigidBodyPointLinkSegregatedVCondition::~RigidBodyPointLinkSegregatedVCondition(
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::GetDofList(DofsVectorType& rConditionDofList, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkSegregatedVCondition::GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 
@@ -97,7 +97,7 @@ void RigidBodyPointLinkSegregatedVCondition::GetDofList(DofsVectorType& rConditi
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyPointLinkSegregatedVCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 
@@ -206,11 +206,11 @@ void RigidBodyPointLinkSegregatedVCondition::GetSecondDerivativesVector( Vector&
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::Initialize()
+void RigidBodyPointLinkSegregatedVCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
-  RigidBodyPointLinkCondition::Initialize();
+  RigidBodyPointLinkCondition::Initialize(rCurrentProcessInfo);
 
   KRATOS_CATCH("")
 }
@@ -218,7 +218,7 @@ void RigidBodyPointLinkSegregatedVCondition::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyPointLinkSegregatedVCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void RigidBodyPointLinkSegregatedVCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -248,7 +248,7 @@ void RigidBodyPointLinkSegregatedVCondition::InitializeSolutionStep( ProcessInfo
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                                                    VectorType& rRightHandSideVector,
-                                                                   ProcessInfo& rCurrentProcessInfo )
+                                                                   const ProcessInfo& rCurrentProcessInfo )
 {
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
@@ -279,7 +279,7 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateLocalSystem( MatrixType& r
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                                                                                      VectorType& rRightHandSideVector,
-                                                                                     ProcessInfo& rCurrentProcessInfo)
+                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
@@ -308,7 +308,7 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesContribut
 //************************************************************************************
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateRightHandSide( VectorType& rRightHandSideVector,
-                                                                     ProcessInfo& rCurrentProcessInfo )
+                                                                     const ProcessInfo& rCurrentProcessInfo )
 {
 
   //process information
@@ -336,7 +336,7 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateRightHandSide( VectorType&
 //************************************************************************************
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                                                           ProcessInfo& rCurrentProcessInfo)
+                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
 
   //process information
@@ -364,7 +364,7 @@ void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesLHS(Matri
 //************************************************************************************
 
 void RigidBodyPointLinkSegregatedVCondition::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                                           ProcessInfo& rCurrentProcessInfo)
+                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
   //process information
   this->SetProcessInformation(rCurrentProcessInfo);
@@ -432,7 +432,7 @@ void RigidBodyPointLinkSegregatedVCondition::SetProcessInformation(const Process
 //***********************************************************************************
 //***********************************************************************************
 
-int RigidBodyPointLinkSegregatedVCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int RigidBodyPointLinkSegregatedVCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   return 0;
 }

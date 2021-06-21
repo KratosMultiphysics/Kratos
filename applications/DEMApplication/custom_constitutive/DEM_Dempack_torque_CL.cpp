@@ -65,9 +65,11 @@ namespace Kratos {
 
         //equiv_young or G in torsor (LocalRotationalMoment[2]) ///////// TODO
 
-        ElasticLocalRotationalMoment[0] = -rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
-        ElasticLocalRotationalMoment[1] = -rot_k * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
-        ElasticLocalRotationalMoment[2] = -rot_k * equiv_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
+        const double bonded_equivalent_young = (*mpProperties)[YOUNG_MODULUS];
+
+        ElasticLocalRotationalMoment[0] = -rot_k * bonded_equivalent_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
+        ElasticLocalRotationalMoment[1] = -rot_k * bonded_equivalent_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;
+        ElasticLocalRotationalMoment[2] = -rot_k * bonded_equivalent_young * Inertia_J * LocalDeltaRotatedAngle[2] / distance;
 
         ViscoLocalRotationalMoment[0] = -visc_param * LocalDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param * LocalDeltaAngularVelocity[1];

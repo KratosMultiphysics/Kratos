@@ -389,7 +389,8 @@ void SensitivityBuilder::Initialize()
 {
     KRATOS_TRY;
 
-    Clear();
+    ClearFlags();
+    ClearSensitivities();
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              mpSensitivityModelPart->Nodes());
     VariableUtils().SetNonHistoricalVariable(

@@ -31,6 +31,11 @@ namespace Kratos
 
 namespace Python
 {
+  typedef ModelPart::NodesContainerType NodesContainerType;
+
+  typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+  typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
@@ -59,20 +64,26 @@ namespace Python
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
         .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy)
-        .def("ComputeAccelerations", &ShallowWaterUtilities::ComputeAccelerations)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
         .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::NodesContainerType>)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ElementsContainerType>)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ConditionsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<NodesContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ElementsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ConditionsContainerType>)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
         .def("SetMinimumValue", &ShallowWaterUtilities::SetMinimumValue)
         .def("SetMeshZCoordinateToZero", &ShallowWaterUtilities::SetMeshZCoordinateToZero)
+        .def("SetMeshZ0CoordinateToZero", &ShallowWaterUtilities::SetMeshZ0CoordinateToZero)
         .def("SetMeshZCoordinate", &ShallowWaterUtilities::SetMeshZCoordinate)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2Norm<true>)
+        .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
+        .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
+        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ConditionsContainerType>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")

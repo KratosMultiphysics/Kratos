@@ -10,7 +10,7 @@
 //  Main authors:    Andreas Apostolatos
 //					 Tobias Teschemacher
 //					 Thomas Oberbichler
-//					
+//
 //
 //  Ported from the ANurbs library (https://github.com/oberbichler/ANurbs)
 //
@@ -48,7 +48,7 @@ private:
     ///@{
 
     static double DistanceToLine(
-        const typename GeometryType::CoordinatesArrayType& rPoint, 
+        const typename GeometryType::CoordinatesArrayType& rPoint,
         const typename GeometryType::CoordinatesArrayType& rLineA,
         const typename GeometryType::CoordinatesArrayType& rLineB
         )
@@ -69,17 +69,17 @@ public:
     {
     }
 
-    /** 
+    /**
     * @brief This method tessellates a curve and stores the tessellation in the class
     * @param rGeometry Reference to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
     * @param DomainInterval The curve interval which is to be tessellated
     * @param rKnotSpanIntervals Reference to the knot span intervals laying in the DomainInterval
-    * @param Tolerance Tolerance for the choral error
+    * @param Tolerance Tolerance for the chordal error
     * @see ComputeTessellation
     */
     void Tessellate(
-        const GeometryType& rGeometry, 
+        const GeometryType& rGeometry,
         const int PolynomialDegree,
         const NurbsInterval DomainInterval,
         const std::vector<NurbsInterval>& rKnotSpanIntervals,
@@ -93,7 +93,7 @@ public:
             Tolerance);
     }
 
-    /** 
+    /**
     * @brief This method returns the tessellation of a curve
     * @param pGeometry Pointer to the geometry
     * @param PolynomialDegree The polynomial degree of the curve
@@ -254,7 +254,7 @@ public:
         return points;
     }
 
-    /** 
+    /**
     * @brief This method returns the already computed tessellation of a curve
     * @return return std::vector<std::pair<double, Vector>> tessellation
     */
