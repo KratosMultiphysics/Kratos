@@ -173,7 +173,6 @@ private:
     ///@{
 
     double mReferenceChord;
-    double mCurrentLift;
     double mDynamicPressure;
     double mStepSize;
     std::string mFarFieldModelPartName;
