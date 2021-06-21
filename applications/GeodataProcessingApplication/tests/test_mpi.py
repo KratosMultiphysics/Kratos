@@ -37,27 +37,27 @@ num_test = "038_mpi"
 print("\n\n[DEBUG] TEST ", num_test)
 print("[DEBUG][start]", time.strftime("%H:%M:%S", time.localtime()))
 
-if rank == 0:
-    # we create a new folders for this test
-    if not os.path.exists("cfd_data/test_{}".format(num_test)):
-        os.mkdir("cfd_data/test_{}".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/gid_file".format(num_test)):
-        os.mkdir("cfd_data/test_{}/gid_file".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/gid_file/Binary".format(num_test)):
-        os.mkdir("cfd_data/test_{}/gid_file/Binary".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/gid_file/Ascii".format(num_test)):
-        os.mkdir("cfd_data/test_{}/gid_file/Ascii".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/stl_file".format(num_test)):
-        os.mkdir("cfd_data/test_{}/stl_file".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/analysis_file".format(num_test)):
-        os.mkdir("cfd_data/test_{}/analysis_file".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/mdpa_file".format(num_test)):
-        os.mkdir("cfd_data/test_{}/mdpa_file".format(num_test))
+# if rank == 0:
+#     # we create a new folders for this test
+#     if not os.path.exists("cfd_data/test_{}".format(num_test)):
+#         os.mkdir("cfd_data/test_{}".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/gid_file".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/gid_file".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/gid_file/Binary".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/gid_file/Binary".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/gid_file/Ascii".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/gid_file/Ascii".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/stl_file".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/stl_file".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/analysis_file".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/analysis_file".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/mdpa_file".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/mdpa_file".format(num_test))
 
-    if not os.path.exists("cfd_data/test_{}/AsterGDEM".format(num_test)):
-        os.mkdir("cfd_data/test_{}/AsterGDEM".format(num_test))
-    if not os.path.exists("cfd_data/test_{}/OSM".format(num_test)):
-        os.mkdir("cfd_data/test_{}/OSM".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/AsterGDEM".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/AsterGDEM".format(num_test))
+#     if not os.path.exists("cfd_data/test_{}/OSM".format(num_test)):
+#         os.mkdir("cfd_data/test_{}/OSM".format(num_test))
 
 importer = GeoImporter()
 
@@ -87,9 +87,6 @@ for i_n, node in enumerate(main_model_part.Nodes):
 if rank == 0:
     for i_n, node in enumerate(main_model_part.Nodes):
         print(node.GetSolutionStepValue(Kratos.PARTITION_INDEX))
-"""
-    DIVIDERE I NODI IN GRUPPI
-"""
 
 
 communicator = main_model_part.GetCommunicator().GetDataCommunicator()
@@ -145,8 +142,8 @@ pmmg_process = KratosMultiphysics.MeshingApplication.ParMmgProcess3D(main_model_
 print("PARMMG")
 pmmg_process.Execute()
 
-# GiD file
-mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostAscii")
-mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostBinary")
-# MDPA file
-mesher.WriteMdpaOutput("cfd_data/test_{}/mdpa_file/02_Mesh_cylinder_distance_field_1".format(num_test))
+# # GiD file
+# mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Ascii/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostAscii")
+# mesher.CreateGidControlOutput("cfd_data/test_{}/gid_file/Binary/02_Mesh_cylinder_distance_field_1".format(num_test), "GiD_PostBinary")
+# # MDPA file
+# mesher.WriteMdpaOutput("cfd_data/test_{}/mdpa_file/02_Mesh_cylinder_distance_field_1".format(num_test))
