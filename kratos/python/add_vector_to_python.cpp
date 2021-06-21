@@ -216,9 +216,8 @@ namespace Python
                                     tmp[i] = py::cast<double>(input[i]);
                                 return tmp;
                                 }));
-        vector_binder.def(py::init([](const VectorSlice& input){
-                                Vector tmp(input);
-                                return tmp;
+        vector_binder.def(py::init([](const VectorSlice& input) -> Vector {
+                                return input;
                                 }));
         py::implicitly_convertible<py::list, Vector>();
         py::implicitly_convertible<array_1d<double,3>, Vector>();
@@ -259,4 +258,3 @@ namespace Python
 }  // namespace Python.
 
 } // Namespace Kratos
-
