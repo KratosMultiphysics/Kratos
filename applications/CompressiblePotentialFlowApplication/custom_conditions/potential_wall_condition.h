@@ -275,9 +275,7 @@ private:
 
     GlobalPointer<Element> mpElement;
 
-    void CalculateNormal2D(array_1d<double, 3>& An) const;
-
-    void CalculateNormal3D(array_1d<double, 3>& An) const;
+    void CalculateNormal(array_1d<double, 3>& An) const;
 
     ///@}
     ///@name Serialization
