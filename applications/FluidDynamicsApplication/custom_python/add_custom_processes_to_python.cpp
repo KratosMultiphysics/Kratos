@@ -158,11 +158,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< Model&, Parameters >())
     ;
 
-    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess").def(py::init< ModelPart& >())
+    py::class_<CalulateLevelsetConsistentNodalGradientProcess, CalulateLevelsetConsistentNodalGradientProcess::Pointer, Process>(m,"CalulateLevelsetConsistentNodalGradientProcess")
+    .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
     ;
-    
 }
 
 } // namespace Python.
