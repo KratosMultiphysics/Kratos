@@ -56,14 +56,27 @@ namespace Kratos
     AdjointLiftFarFieldResponseFunction::~AdjointLiftFarFieldResponseFunction(){}
 
     void AdjointLiftFarFieldResponseFunction::InitializeSolutionStep() {
-        VariableUtils().SetNonHistoricalVariableToZero(NORMAL, mrModelPart.Elements());
+
+        KRATOS_TRY;
+
+
         mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
         double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
+
         KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
+
         double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
         auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
         mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
-        mCurrentLift = this->CalculateValue(mrModelPart);
+
+        auto& far_field_sub_model_part = mrModelPart.GetRootModelPart().GetSubModelPart(mFarFieldModelPartName);
+        const auto r_current_process_info = mrModelPart.GetProcessInfo();
+        block_for_each(far_field_sub_model_part.Conditions(), [&](Condition& rCondition)
+        {
+            rCondition.FinalizeNonLinearIteration(r_current_process_info);
+        });
+
+        KRATOS_CATCH("");
     }
 
     double AdjointLiftFarFieldResponseFunction::CalculateValue(ModelPart& rModelPart)
@@ -71,7 +84,6 @@ namespace Kratos
         KRATOS_TRY;
 
         auto& far_field_sub_model_part = rModelPart.GetRootModelPart().GetSubModelPart(mFarFieldModelPartName);
-        const auto r_current_process_info = rModelPart.GetProcessInfo();
 
         array_1d<double, 3> force_coefficient_pres;
         force_coefficient_pres.clear();
@@ -79,19 +91,11 @@ namespace Kratos
         force_coefficient_vel.clear();
 
         for (auto& r_condition : far_field_sub_model_part.Conditions()) {
-            auto& r_geometry = r_condition.GetGeometry();
             array_1d<double, 3> local_force_coefficient_pres;
             array_1d<double, 3> local_force_coefficient_vel;
 
-            // Computing normal
-            array_1d<double,3> aux_coordinates;
-            r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
-            const auto normal = r_geometry.Normal(aux_coordinates);
-            r_condition.SetValue(NORMAL, normal);
-
-            r_condition.Initialize(r_current_process_info);
-            r_condition.FinalizeNonLinearIteration(r_current_process_info);
             double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
+            const auto& normal = r_condition.GetValue(NORMAL);
             force_coefficient_pres += -normal*pressure_coefficient;
 
             auto velocity = r_condition.GetValue(VELOCITY);
