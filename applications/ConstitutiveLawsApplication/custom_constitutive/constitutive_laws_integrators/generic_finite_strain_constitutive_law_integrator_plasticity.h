@@ -199,7 +199,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ?
             r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
 
-        double plastic_consistency_factor_increment = 0.0;
+        double plastic_consistency_factor_increment = 0.0, aux_det = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
 
         Vector plastic_strain       = ZeroVector(VoigtSize);
@@ -217,6 +217,8 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
         const double current_F_det_backup = rValues.GetDeterminantF();
 
+        Matrix inv_old_Fp(Dimension,Dimension);
+
         // Backward Euler
         while (iteration <= max_iter) {
 
@@ -231,10 +233,12 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                 CalculateExponentialElasticDeformationGradient(rTrialElasticDeformationGradient,
                     rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
-            // Update Fp
+            // Update Fp and Fp_increment
             noalias(rPlasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateExponentialPlasticDeformationGradient(Fp_backup,rPlasticPotentialDerivative,
-                    plastic_consistency_factor_increment, Re, plastic_deformation_gradient_increment);
+                CalculatePlasticDeformationGradientFromElastic(current_F_backup,
+                    rTrialElasticDeformationGradient);
+            MathUtils<double>::InvertMatrix(Fp_backup, inv_old_Fp, aux_det);
+            noalias(plastic_deformation_gradient_increment) = prod(inv_old_Fp, rPlasticDeformationGradient);
 
             // Compute Plastic strain from Fp
             rValues.SetDeterminantF(MathUtils<double>::Det(rPlasticDeformationGradient));
@@ -259,7 +263,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain);
 
-            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-3 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;

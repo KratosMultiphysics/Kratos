@@ -202,7 +202,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
         IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ?
             r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
 
-        double plastic_consistency_factor_increment = 0.0;
+        double plastic_consistency_factor_increment = 0.0, aux_det = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
 
         Vector plastic_strain       = ZeroVector(VoigtSize);
@@ -220,6 +220,8 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
 
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
         const double current_F_det_backup = rValues.GetDeterminantF();
+
+        Matrix inv_old_Fp(Dimension,Dimension);
 
         // Compute the previous stress vector
         noalias(old_Fe) = ConstitutiveLawUtilities<VoigtSize>::CalculateElasticDeformationGradient(
@@ -244,18 +246,22 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
                 CalculateExponentialElasticDeformationGradient(rTrialElasticDeformationGradient,
                     rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
-            // Update Fp
+            // Update Fp and Fp_increment
             noalias(rPlasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateExponentialPlasticDeformationGradient(Fp_backup,rPlasticPotentialDerivative,
-                    plastic_consistency_factor_increment, Re, plastic_deformation_gradient_increment);
+                CalculatePlasticDeformationGradientFromElastic(current_F_backup,
+                    rTrialElasticDeformationGradient);
+            MathUtils<double>::InvertMatrix(Fp_backup, inv_old_Fp, aux_det);
+            noalias(plastic_deformation_gradient_increment) = prod(inv_old_Fp, rPlasticDeformationGradient);
 
             // Compute Plastic strain from Fp
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
-                rPlasticDeformationGradient, plastic_strain);
+            rValues.SetDeterminantF(MathUtils<double>::Det(rPlasticDeformationGradient));
+            rValues.SetDeformationGradientF(rPlasticDeformationGradient);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
 
             // Compute Plastic strain increment from Fp increment
-            ConstitutiveLawUtilities<VoigtSize>::CalculatePlasticStrainFromFp(
-                plastic_deformation_gradient_increment, delta_plastic_strain);
+            rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient_increment));
+            rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
+            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
 
             // Let's compute the updated stress with the new Fe
             rValues.SetDeterminantF(MathUtils<double>::Det(rTrialElasticDeformationGradient));
@@ -276,7 +282,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain, rBackStressVector);
 
-            if (threshold_indicator <= std::abs(1.0e-4 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(1.0e-3 * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
