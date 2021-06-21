@@ -93,24 +93,16 @@ namespace Python
 
         matrix_binder.def(py::init([](const py::list& input){
           std::size_t num_rows = input.size();
-          std::size_t num_cols = 0;
-
-          //To calculate the number of columns
-          for(std::size_t i = 0 ; i< input.size() ; i++)
-          {
-            auto v_row = Vector(py::cast<Vector>(input[i]));
-            if(num_cols < v_row.size())
-              num_cols = v_row.size();
-          }
+          KRATOS_ERROR_IF( num_rows == 0 ) << "Argument must be a Python's list of lists\n";
+          std::size_t num_cols = (Vector(py::cast<Vector>(input[0]))).size();
 
           DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
           for(std::size_t i=0; i<num_rows; i++){
             auto v_row = Vector(py::cast<Vector>(input[i]));
+            KRATOS_ERROR_IF( v_row.size() == 0 ) << "Empty Python-list of lists\n";
+            KRATOS_ERROR_IF( v_row.size() != num_cols ) << "Wrong size of a row\n";
             for(std::size_t j=0; j<num_cols; j++){
-              if(j < v_row.size())
                 matrix(i,j) = v_row[j];
-              else
-                matrix(i,j) = 0.0;
             }
           }
           return matrix;
