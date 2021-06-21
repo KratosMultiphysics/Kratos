@@ -299,7 +299,8 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
             rOutput[i_gauss] = rho_grad;
         }
     } else if (rVariable == TEMPERATURE_GRADIENT) {
-        const auto& temp_grad = CalculateMidPointTemperatureGradient();
+        const array_1d<double,3>& temp_grad = CalculateMidPointTemperatureGradient();
+
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = temp_grad;
         }
