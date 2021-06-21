@@ -289,10 +289,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
             }
         }
         rValues = values_backup;
-        if (iteration >= max_iter) {
-            KRATOS_WARNING("Backward Euler Plasticity", 20) <<
-                "Maximum number of iterations in plasticity loop reached..." << std::endl;
-        }
+        KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
     /**
