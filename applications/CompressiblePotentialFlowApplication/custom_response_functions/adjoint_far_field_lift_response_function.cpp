@@ -125,19 +125,14 @@ namespace Kratos
         rResponseGradient = ZeroVector(rResidualGradient.size1());
         auto& r_adjoint_geometry = rAdjointElement.GetGeometry();
 
-        bool is_cond = false;
-        std::size_t counter = 0;
+        std::size_t far_field_nodes = 0;
         for (std::size_t i_node=0; i_node<r_adjoint_geometry.size(); ++i_node){
             if (r_adjoint_geometry[i_node].GetValue(FAR_FIELD)){
-                counter++;
+                far_field_nodes++;
             }
         }
 
-        if (counter > r_adjoint_geometry.WorkingSpaceDimension()-1){
-            is_cond = true;
-        }
-
-        if (is_cond) {
+        if (far_field_nodes > (r_adjoint_geometry.WorkingSpaceDimension()-1)) {
             auto& r_this_element = mrModelPart.GetElement(rAdjointElement.Id());
             auto& r_geometry = r_this_element.GetGeometry();
             for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
