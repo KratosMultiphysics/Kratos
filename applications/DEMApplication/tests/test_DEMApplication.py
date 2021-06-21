@@ -26,6 +26,7 @@ import test_history_dependent_CLs
 import test_clusters
 import test_DEM_schemes
 import test_random_variable
+import test_DEM_search_tolerance
 
 def AssembleTestSuites():
 
@@ -75,6 +76,10 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
+    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
+    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
+    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
+    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
