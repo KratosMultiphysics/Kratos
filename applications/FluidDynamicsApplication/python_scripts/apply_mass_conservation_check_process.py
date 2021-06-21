@@ -36,9 +36,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
     def ExecuteInitialize(self):
-        pass
 
-    def ExecuteBeforeSolutionLoop(self):
         first_lines_string = self.mass_conservation_check_process.Initialize()
 
         # writing first line in file
@@ -49,6 +47,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
 
 
+    def ExecuteBeforeSolutionLoop(self):
         self.mass_conservation_check_process.ExecuteBeforeSolutionLoop()
 
 

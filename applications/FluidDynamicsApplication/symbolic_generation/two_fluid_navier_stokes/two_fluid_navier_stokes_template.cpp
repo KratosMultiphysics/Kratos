@@ -823,11 +823,11 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         if (rData.Distance[i] > 0.0){
             enr_neg_interp(i, i) = 1.0;
             positive_density = rData.NodalDensity[i];
-            positive_viscosity = rData.NodalEffectiveDynamicViscosity[i];
+            positive_viscosity = rData.NodalDynamicViscosity[i];
         } else{
             enr_pos_interp(i, i) = 1.0;
             negative_density = rData.NodalDensity[i];
-            negative_viscosity = rData.NodalEffectiveDynamicViscosity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
         }
     }
 
