@@ -121,7 +121,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(A[i,j], B[j,i])
 
     def test_list_of_list_construction(self):
-        A = KM.Matrix([[2, 2, 2, 2]])                       #List 1
+        A = KM.Matrix([[2, 2, 2, 2]])                           #List 1
         self.assertEqual(4, len(A))
         self.assertEqual(1, A.Size1())
         self.assertEqual(4, A.Size2())
@@ -132,18 +132,15 @@ class TestMatrixInterface(KratosUnittest.TestCase):
             for j in range(expected.Size2()):
                 self.assertEqual(A[i,j], 2)
 
-        l2 = [[1.2, 2, 3.6], [-4], []]       #List 2
+        l2 = [[0, 0.1, 0.2], [1, 1.1, 1.2], [2, 2.1, 2.2]]       #List 2
         B = KM.Matrix(l2)
         self.assertEqual(9, len(B))
         self.assertEqual(3, B.Size1())
         self.assertEqual(3, B.Size2())
         expected = KM.Matrix(3,3)
-        expected[0,0] = 1.2
-        expected[0,1] = 2
-        expected[0,2] = 3.6
-        expected[1,0] = -4
-        expected[1,1] = expected[1,2]  = 0
-        expected[2,0] = expected[2,1] = expected[2,2] = 0
+        for i in range(expected.Size1()):
+            for j in range(expected.Size2()):
+                expected[i,j] = i + (j*0.1)
 
         for i in range(expected.Size1()):
             for j in range(expected.Size2()):
