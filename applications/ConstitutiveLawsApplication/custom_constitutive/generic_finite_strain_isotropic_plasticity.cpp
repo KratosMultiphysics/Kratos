@@ -143,9 +143,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
             BoundedArrayType predictive_stress_vector;
             // We compute the elastic trial deformation gradient  Fe,trial
             Matrix trial_elastic_deformation_gradient = ConstitutiveLawUtilities<VoigtSize>::
-                CalculateTrialElasticDeformationGradient(r_deformation_gradient_backup,
-                                                            mPreviousDeformationGradient,
-                                                            plastic_deformation_gradient);
+                CalculateElasticDeformationGradient(r_deformation_gradient_backup,
+                    plastic_deformation_gradient);
 
             rValues.SetDeterminantF(MathUtils<double>::Det(trial_elastic_deformation_gradient));
             rValues.SetDeformationGradientF(trial_elastic_deformation_gradient);
@@ -473,9 +472,8 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     BoundedArrayType predictive_stress_vector;
     // We compute the elastic trial deformation gradient  Fe,trial
     Matrix trial_elastic_deformation_gradient = ConstitutiveLawUtilities<VoigtSize>::
-        CalculateTrialElasticDeformationGradient(r_deformation_gradient_backup,
-                                                    mPreviousDeformationGradient,
-                                                    plastic_deformation_gradient);
+        CalculateElasticDeformationGradient(r_deformation_gradient_backup,
+            plastic_deformation_gradient);
 
     rValues.SetDeterminantF(MathUtils<double>::Det(trial_elastic_deformation_gradient));
     rValues.SetDeformationGradientF(trial_elastic_deformation_gradient);
@@ -578,10 +576,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // We compute the predictive stress vector
     BoundedArrayType predictive_stress_vector;
     // We compute the elastic trial deformation gradient  Fe,trial
-    // Matrix trial_elastic_deformation_gradient = ConstitutiveLawUtilities<VoigtSize>::
-    //     CalculateTrialElasticDeformationGradient(r_deformation_gradient_backup,
-    //                                                 mPreviousDeformationGradient,
-    //                                                 plastic_deformation_gradient);
     Matrix trial_elastic_deformation_gradient = ConstitutiveLawUtilities<VoigtSize>::
         CalculateElasticDeformationGradient(r_deformation_gradient_backup, plastic_deformation_gradient);
 
