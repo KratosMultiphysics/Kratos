@@ -183,13 +183,13 @@ void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeSolutionStep(const
 template <class TPrimalCondition>
 void AdjointPotentialWallCondition<TPrimalCondition>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    auto normal = this-> GetValue(NORMAL);
-    mpPrimalCondition -> SetValue(NORMAL, normal);
-
     mpPrimalCondition -> FinalizeNonLinearIteration(rCurrentProcessInfo);
-    auto velocity = mpPrimalCondition -> GetValue(VELOCITY);
-    auto density = mpPrimalCondition -> GetValue(DENSITY);
-    auto pressure = mpPrimalCondition -> GetValue(PRESSURE_COEFFICIENT);
+
+    const auto& normal = mpPrimalCondition -> GetValue(NORMAL);
+    const auto& velocity = mpPrimalCondition -> GetValue(VELOCITY);
+    const double density = mpPrimalCondition -> GetValue(DENSITY);
+    const double pressure = mpPrimalCondition -> GetValue(PRESSURE_COEFFICIENT);
+    this->SetValue(NORMAL, normal);
     this->SetValue(VELOCITY, velocity);
     this->SetValue(DENSITY, density);
     this->SetValue(PRESSURE_COEFFICIENT, pressure);

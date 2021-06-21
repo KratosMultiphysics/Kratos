@@ -59,6 +59,7 @@ namespace Kratos
 
         KRATOS_TRY;
 
+        VariableUtils().SetNonHistoricalVariableToZero(NORMAL, mrModelPart.GetRootModelPart().Elements());
 
         mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
         double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
@@ -69,9 +70,8 @@ namespace Kratos
         auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
         mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
 
-        auto& far_field_sub_model_part = mrModelPart.GetRootModelPart().GetSubModelPart(mFarFieldModelPartName);
         const auto r_current_process_info = mrModelPart.GetProcessInfo();
-        block_for_each(far_field_sub_model_part.Conditions(), [&](Condition& rCondition)
+        block_for_each(mrModelPart.GetRootModelPart().Conditions(), [&](Condition& rCondition)
         {
             rCondition.FinalizeNonLinearIteration(r_current_process_info);
         });
@@ -90,7 +90,7 @@ namespace Kratos
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
 
-        for (auto& r_condition : far_field_sub_model_part.Conditions()) {
+        for (const auto& r_condition : far_field_sub_model_part.Conditions()) {
             array_1d<double, 3> local_force_coefficient_pres;
             array_1d<double, 3> local_force_coefficient_vel;
 
@@ -225,7 +225,7 @@ namespace Kratos
         force_coefficient_pres.clear();
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
-        const auto normal = rElement.GetValue(NORMAL);
+        const auto& normal = rElement.GetValue(NORMAL);
 
         std::vector<double> pressure_coefficient_vector;
         rElement.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, rProcessInfo);
