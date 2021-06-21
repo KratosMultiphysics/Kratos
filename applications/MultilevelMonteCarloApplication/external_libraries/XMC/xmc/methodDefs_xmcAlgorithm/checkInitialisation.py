@@ -61,6 +61,10 @@ def checkInitialisationSolverWrapper(solverWrapperDictionary):
     if obs > (numqoi):
         raise Exception ("solverWrapper: outputBatchSize exceeding maximum dimension. Set a value <= number of estimators, namely len(qoiEstimator).")
 
+    if solverWrapperDictionary["refinementStrategy"] != "reading_from_file":
+        if not "refinementParametersPath" in solverWrapperDictionary:
+            raise Exception("solverWrapperDictionary does not contain the key \"refinementParametersPath\". This key is required for running with a \"refinementStrategy\" different from \"reading_from_file\".")
+
 def checkMaxNumberIterationsCriterion(positionMaxNumberIterationsCriterion,tolerances):
     """
     Method checking maximum number of iterations is set and is the last entry of MonoCriteriaDictionary, which is required for consistency.
