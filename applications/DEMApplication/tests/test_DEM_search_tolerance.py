@@ -146,7 +146,7 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         project_parameters["NeighbourSearchFrequency"].SetInt(1)
 
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreadsWithParameters(DEM3D_SearchToleranceMain, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchToleranceMain, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
     def test_SearchB(self):
@@ -159,7 +159,7 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         project_parameters["NeighbourSearchFrequency"].SetInt(10)
 
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreadsWithParameters(DEM3D_SearchTolerance1, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchTolerance1, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
     def test_SearchC(self):
@@ -172,7 +172,7 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         project_parameters["NeighbourSearchFrequency"].SetInt(20)
 
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreadsWithParameters(DEM3D_SearchTolerance2, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchTolerance2, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
     def test_SearchD(self):
@@ -185,7 +185,7 @@ class TestSearchTolerance(KratosUnittest.TestCase):
         project_parameters["NeighbourSearchFrequency"].SetInt(20)
 
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreadsWithParameters(DEM3D_SearchTolerance3, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_SearchTolerance3, model, project_parameters, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

@@ -76,16 +76,16 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
-    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
-    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
-    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
-    smallSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
 
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nightly and you can use to validate
