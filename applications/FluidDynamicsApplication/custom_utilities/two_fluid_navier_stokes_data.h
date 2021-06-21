@@ -59,10 +59,6 @@ NodalScalarData Pressure;
 NodalScalarData Distance;
 NodalScalarData NodalDensity;
 NodalScalarData NodalDynamicViscosity;
-NodalScalarData NodalArtificialViscosity;
-
-//
-NodalScalarData NodalEffectiveDynamicViscosity;
 
 double Density;
 double DynamicViscosity;
@@ -77,7 +73,7 @@ double VolumeError;
 double bdf0;
 double bdf1;
 double bdf2;
-double EffectiveViscosity;
+
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
@@ -219,10 +215,6 @@ void CalculateAirMaterialResponse() {
     ComputeStrain();
 
     CalculateEffectiveViscosityAtGaussPoint();
-    CalculateArtificialViscosityAtGaussPoint();
-	const double mu = this->EffectiveViscosity;
-	const double c1 = 2.0*mu;
-	const double c2 = mu;
 
 	this->C.clear();
     BoundedMatrix<double, strain_size, strain_size> c_mat = this->C;
@@ -335,7 +327,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
         }
     }
     DynamicViscosity = dynamic_viscosity / navg;
-    NodalEffectiveDynamicViscosity=NodalDynamicViscosity+NodalArtificialViscosity;
+    
 
     if (SmagorinskyConstant > 0.0)
     {
@@ -352,56 +344,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
 
 }
 
-
-void CalculateArtificialViscosityAtGaussPoint()
-{
-    double dist = 0.0;
-    for (unsigned int i = 0; i < TNumNodes; i++)
-        dist += this->N[i] * Distance[i];
-
-    int navg = 0;
-    double artificial_viscosity = 0.0;
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        if (dist * Distance[i] > 0.0)
-        {
-            navg += 1;
-            artificial_viscosity += this->N[i]*NodalArtificialViscosity[i];
-        }
-    }
-    this->ArtificialViscosity = artificial_viscosity / navg;
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void ComputeDarcyTerm()
 {
     array_1d<double, 3> convective_velocity(3, 0.0);
@@ -414,10 +357,6 @@ void ComputeDarcyTerm()
     DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}
-
-
-
-
 
 };
 
