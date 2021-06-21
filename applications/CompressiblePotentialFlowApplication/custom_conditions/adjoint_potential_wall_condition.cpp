@@ -262,6 +262,7 @@ void AdjointPotentialWallCondition<TPrimalCondition>::load(Serializer& rSerializ
 }
 
 template class AdjointPotentialWallCondition<PotentialWallCondition<2,2>>;
+template class AdjointPotentialWallCondition<PotentialWallCondition<3,3>>;
 
 
 }  // namespace Kratos.

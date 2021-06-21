@@ -23,6 +23,7 @@
 #include "../custom_elements/discrete_element.h"
 #include "../custom_elements/spheric_particle.h"
 #include "../custom_utilities/discrete_particle_configure.h"
+#include "../custom_utilities/piecewise_linear_random_variable.h"
 #include "analytic_tools/analytic_watcher.h"
 
 
@@ -85,6 +86,7 @@ public:
                                                           Element::Pointer injector_element,
                                                           Properties::Pointer r_params,
                                                           ModelPart& r_sub_model_part_with_parameters,
+                                                          std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
                                                           const Element& r_reference_element,
                                                           PropertiesProxy* p_fast_properties,
                                                           bool has_sphericity,

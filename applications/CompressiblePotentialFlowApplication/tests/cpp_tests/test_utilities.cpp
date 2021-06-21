@@ -42,19 +42,31 @@ void AssignPotentialsToWakeElement(Element& rElement, const array_1d<double, Num
     }
 }
 
+template <>
+BoundedVector<double,3> GetDistanceValues<3>()
+{
+    BoundedVector<double,3> distances;
+    distances(0) = 1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    return distances;
+}
+
+template <>
+BoundedVector<double,4> GetDistanceValues<4>()
+{
+    BoundedVector<double,4> distances;
+    distances(0) = -1.0;
+    distances(1) = -1.0;
+    distances(2) = -1.0;
+    distances(3) = 1.0;
+    return distances;
+}
+
 template <int NumNodes>
 BoundedVector<double,NumNodes> AssignDistancesToElement()
 {
-    BoundedVector<double,NumNodes> distances;
-    for(unsigned int i = 0; i < NumNodes; i++){
-        if(i < 1){
-            distances(i) = 1.0;
-        }
-        else{
-            distances(i) = -1.0;
-        }
-    }
-    return distances;
+    return GetDistanceValues<NumNodes>();
 }
 
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){

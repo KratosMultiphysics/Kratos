@@ -102,6 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
     KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
 
+    // Check CalculateValue(INITIAL_STRAIN_VECTOR)
     Vector initial_strain_w(6);
     initial_strain_w(0) = 0.000000;
     initial_strain_w(1) = 0.000001;
@@ -115,9 +116,27 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     Vector initial_strain_r;  // Should be accordingly resized in the CL
     cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);
     KRATOS_CHECK_VECTOR_NEAR(initial_strain_r, initial_strain_w, 1e-8);
+
+    // Check CalculateValue(STRAIN)
+    strain_vector(0) = 0.0000;
+    strain_vector(1) = 0.0001;
+    strain_vector(2) = 0.0002;
+    strain_vector(3) = 0.0003;
+    strain_vector(4) = 0.0004;
+    strain_vector(5) = 0.0005;
+    Vector strain_ref = strain_vector - initial_strain_w;
+    Vector strain_r;
+    cl.CalculateValue(cl_parameters, STRAIN, strain_r);
+    KRATOS_CHECK_VECTOR_NEAR(strain_r, strain_ref, 1e-8);
+
+    //Check CalculateVector(STRESSES)
+    Vector stress_r;
+    cl.CalculateValue(cl_parameters, STRESSES, stress_r);
+    KRATOS_CHECK_VECTOR_NEAR(stress_r, stress_vector, 1e-8);
+
+    // reset values
     p_initial_state->SetInitialStrainVector(ZeroVector(6));
-    cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, initial_strain_r);
-    KRATOS_CHECK_VECTOR_NEAR(initial_strain_r, ZeroVector(6), 1e-8);
+
 
     //
     // Test: exponential hardening model, load in traction

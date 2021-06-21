@@ -39,23 +39,23 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
             vx = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)
 
             if self.FEMDEM_Solution.FEM_Solution.step == 3:
-                ref_dx = 7.539973808874607e-06
-                ref_vx = 0.010890248303354633
+                ref_dx = 7.540896647762989e-06
+                ref_vx = 0.010890898306959194
                 if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 3 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 5:
-                ref_dx = 7.605586153264591e-05
-                ref_vx = 0.056462044674854384
+                ref_dx = 7.605878168075335e-05
+                ref_vx = 0.05646316848663556
                 if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 5 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 8:
-                ref_dx = 0.00019661105040173912
-                ref_vx = 0.03017867725962859
+                ref_dx = 0.0001966156205996352
+                ref_vx = 0.030177930525463165
                 if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 8 is not correct')
             if self.FEMDEM_Solution.FEM_Solution.step == 11:
-                ref_dx = 0.0002679109591405014
-                ref_vx = 0.03903172716826907
+                ref_dx = 0.00026347829978052786
+                ref_vx = 0.028690638806861672
                 if abs((dx - ref_dx) / ref_dx) > tol or abs((vx - ref_vx) / ref_vx) > tol:
                     raise ValueError('The computed displ or velocity at step = 11 is not correct')
 
@@ -69,7 +69,7 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
         shutil.rmtree(self.FEMDEM_Solution.FEM_Solution.problem_name + "_Post_Files")
         shutil.rmtree(self.FEMDEM_Solution.FEM_Solution.problem_name + "_Results_and_Data")
         # shutil.rmtree("__pycache__")
-        os.remove("PlotFile.txt")
+        # os.remove("PlotFile.txt")
         os.remove(self.FEMDEM_Solution.FEM_Solution.problem_name + "_0.post.bin")
         os.remove(self.FEMDEM_Solution.FEM_Solution.problem_name + ".post.lst")
         os.remove("tests.post.lst")
@@ -77,7 +77,7 @@ class MainCouplingPfemFemDemAitkenForTestingSolution(MainCouplingPfemFemDemAitke
 
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
@@ -86,7 +86,7 @@ class TestAnalytics(KratosUnittest.TestCase):
 
         with open("fsi_tests/wall_2d/PFEMProjectParameters.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-        
+
         model = KratosMultiphysics.Model()
         MainCouplingPfemFemDemAitkenForTestingSolution(model, parameters, "fsi_tests/wall_2d/").Run()
 

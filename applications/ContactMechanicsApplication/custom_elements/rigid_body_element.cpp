@@ -103,7 +103,7 @@ RigidBodyElement::~RigidBodyElement()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     ElementalDofList.resize(0);
     const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
@@ -124,7 +124,7 @@ void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType dofs_size = this->GetDofsSize();
@@ -177,7 +177,7 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step) const
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step) const 
+void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -234,7 +234,7 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step) con
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::Initialize()
+void RigidBodyElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -248,7 +248,7 @@ void RigidBodyElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -259,7 +259,7 @@ void RigidBodyElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void RigidBodyElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
 
@@ -271,7 +271,7 @@ void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void RigidBodyElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
 
@@ -285,7 +285,7 @@ void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
 
@@ -353,7 +353,7 @@ void RigidBodyElement::CalculateRigidBodyProperties(RigidBodyProperties & rRigid
 //************************************************************************************
 
 void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo)
+					      const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -376,7 +376,7 @@ void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 //************************************************************************************
 
 void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -400,7 +400,7 @@ void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -422,7 +422,7 @@ void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 
 void RigidBodyElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -634,7 +634,7 @@ RigidBodyElement::ArrayType& RigidBodyElement::CalculateVolumeForce(ArrayType& r
 
 void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                                                                VectorType& rRightHandSideVector,
-                                                               ProcessInfo& rCurrentProcessInfo)
+                                                               const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -691,7 +691,7 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
 //************************************************************************************
 
 void RigidBodyElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -735,7 +735,7 @@ void RigidBodyElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMa
 //************************************************************************************
 
 void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                     ProcessInfo& rCurrentProcessInfo)
+                                                     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1220,7 +1220,7 @@ void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVecto
 //************************************************************************************
 
 void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                           ProcessInfo& rCurrentProcessInfo)
+                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1308,7 +1308,7 @@ void RigidBodyElement::CalculateRotationLinearPartTensor(ArrayType& rRotationVec
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessInfo)
 {
 
      KRATOS_TRY
@@ -1428,7 +1428,7 @@ RigidBodyElement::SizeType RigidBodyElement::GetDofsSize() const
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
