@@ -167,7 +167,8 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
 
         }""")
 
-        function = KM.GenericFunctionUtility("1.5*(0.5*(1-cos(0.5*pi*t))*2.0)*(4.0/0.1681)*y*(0.41-y) if t<2.0 1.5*(2.0)*(4.0/0.1681)*y*(0.41-y)", parameters)
+        with self.assertRaisesRegex(Exception, 'Parsing error in function: 1.5 if t<2.0 3.0 if defined, but not else'):
+            function = KM.GenericFunctionUtility("1.5 if t<2.0 3.0", parameters)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
