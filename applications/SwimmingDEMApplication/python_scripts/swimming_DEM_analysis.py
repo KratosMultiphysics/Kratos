@@ -61,11 +61,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def __exit__(self, exception_type, exception_value, traceback):
         pass
 
+    @classmethod
+    def GetMainPath(self):
+        return os.getcwd()
+
     def __init__(self, model, parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
         self.StartTimer()
         self.model = model
-        self.main_path = os.getcwd()
+        self.main_path = self.GetMainPath()
 
         self.SetProjectParameters(parameters)
 
@@ -103,9 +107,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         import KratosMultiphysics.SwimmingDEMApplication.swimming_dem_default_input_parameters as only_swimming_defaults
         import KratosMultiphysics.DEMApplication.dem_default_input_parameters as dem_defaults
 
+        self.swimming_dem_default_project_parameters = only_swimming_defaults.GetDefaultInputParameters()
+        self.dem_default_project_parameters = dem_defaults.GetDefaultInputParameters()
 
-        self.project_parameters.ValidateAndAssignDefaults(only_swimming_defaults.GetDefaultInputParameters())
-        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(dem_defaults.GetDefaultInputParameters())
+        self.project_parameters.ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters)
+        self.project_parameters["coupling"]["backward_coupling"].ValidateAndAssignDefaults(self.swimming_dem_default_project_parameters["coupling"]["backward_coupling"])
+        self.project_parameters["dem_parameters"].ValidateAndAssignDefaults(self.dem_default_project_parameters)
 
         # Second, set the default 'beta' parameters (candidates to be moved to the interface)
         self.SetBetaParameters()
@@ -553,7 +560,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             # Note that right now only inlets of a single type are possible.
             # This should be generalized.
             if self.project_parameters["type_of_inlet"].GetString() == 'VelocityImposed':
-                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
+                self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.project_parameters['dem_parameters']['dem_inlets_settings'], self.seed)
             elif self.project_parameters["type_of_inlet"].GetString() == 'ForceImposed':
                 self.DEM_inlet = DEM_Force_Based_Inlet(self.dem_inlet_model_part, self.project_parameters["inlet_force_vector"].GetVector(), self.seed)
 
@@ -601,7 +608,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         Say(final_message)
 
     def GetBackwardCouplingCounter(self):
-        return SDP.Counter(1, 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
+        return SDP.Counter(self.project_parameters["coupling"]["backward_coupling"]["backward_time_interval"].GetInt(), 1, self.project_parameters["coupling"]["coupling_level_type"].GetInt() > 1)
 
     def GetRecoveryCounter(self):
         there_is_something_to_recover = (

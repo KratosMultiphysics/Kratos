@@ -69,7 +69,7 @@ DensityFunctionPolynomial(const double range, const double shape_factor)
     m6 = fm6(mR);
     m4 = fm4(mR);
     m2 = fm2(mR);
-    m0 = mR;
+    m0 = fm0(mR);
 }
 
 virtual ~DensityFunctionPolynomial(){}
@@ -88,7 +88,7 @@ void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal
 
     for (unsigned int i = 0; i != distances.size(); ++i){
         double radius_2 = distances[i] * distances[i];
-        double weight = nodal_areas[i] * (m6 * std::exp(-(radius_2)/2) + m4*radius_2*radius_2 + m6*m2*radius_2 );
+        double weight = nodal_areas[i] * (m6 * radius_2 * radius_2 * radius_2 + m6*m2*radius_2 + m0);
         weights[i] = weight;
         sum_of_weights_inv += weight;
     }
@@ -144,7 +144,7 @@ double m0;
 
 double fm6(double r)
 {
-    return 15*(-2*std::pow(mR,2)*std::exp(std::pow(mR,2)) + 6*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(3*std::pow(mR,2)/2)*erf(std::sqrt(2)*mR/2) - 9*Globals::Pi*std::exp(2*std::pow(mR,2))*std::pow(erf(std::sqrt(2)*mR/2),2))/(4*std::pow(mR,5)*std::exp(std::pow(mR,2)/2) - 12*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR,4)*std::exp(std::pow(mR,2))*erf(std::sqrt(2)*mR/2) + 18*Globals::Pi*std::pow(mR,3)*std::exp(3*std::pow(mR,2)/2)*std::pow(erf(std::sqrt(2)*mR/2),2) + 28*std::pow(mR,3)*std::exp(std::pow(mR,2)/2) - 114*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR,2)*std::exp(std::pow(mR,2))*erf(std::sqrt(2)*mR/2) + 306*Globals::Pi*mR*std::exp(3*std::pow(mR,2)/2)*std::pow(erf(std::sqrt(2)*mR/2),2) - 135*std::sqrt(2)*std::pow(Globals::Pi,(3.0/2.0))*std::exp(2*std::pow(mR,2))*std::pow(erf(std::sqrt(2)*mR/2),3));
+    return 7/(16*std::pow(mR, 7));
 }
 
 double fm4(double r)
@@ -154,10 +154,13 @@ double fm4(double r)
 
 double fm2(double r)
 {
-    return (-std::pow(mR, 4)*std::exp(std::pow(mR, 2)/2) + 3*std::sqrt(2)*std::sqrt(Globals::Pi)*std::pow(mR, 3)*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2) - 9*Globals::Pi*std::pow(mR, 2)*std::exp(3*std::pow(mR, 2)/2)*std::pow(erf(std::sqrt(2)*mR/2), 2)/2 - 4*std::pow(mR, 2)*std::exp(std::pow(mR, 2)/2) + 12*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(std::pow(mR, 2))*erf(std::sqrt(2)*mR/2) - 18*Globals::Pi*std::exp(3*std::pow(mR, 2)/2)*std::pow(erf(std::sqrt(2)*mR/2), 2))/(std::pow(mR, 2)*(2*std::pow(mR, 2)*std::exp(std::pow(mR, 2)) - 6*std::sqrt(2)*std::sqrt(Globals::Pi)*mR*std::exp(3*std::pow(mR, 2)/2)*erf(std::sqrt(2)*mR/2) + 9*Globals::Pi*std::exp(2*std::pow(mR, 2))*std::pow(erf(std::sqrt(2)*mR/2), 2)));
+    return -3*std::pow(mR, 4);
 }
 
-
+double fm0(double r)
+{
+    return 7/(8*mR);
+}
 
 }; // class DensityFunctionPolynomial
 

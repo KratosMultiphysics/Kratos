@@ -43,7 +43,7 @@ namespace Kratos {
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
         const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coeff = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
 
         ElasticLocalRotationalMoment[0] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ElasticLocalRotationalMoment[1] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;

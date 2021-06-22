@@ -79,6 +79,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::CheckDefaultsAnd
     mReynoldsNumber = rParameters["benchmark_parameters"]["n_reynolds"].GetDouble();
     mDamKohlerNumber = rParameters["benchmark_parameters"]["n_dam"].GetDouble();
     mInitialConditions = rParameters["benchmark_parameters"]["use_initial_conditions"].GetBool();
+    mAlternativeFormulation = rParameters["benchmark_parameters"]["use_alternative_formulation"].GetBool();
 
     double &r_nu = mViscosity;
 
@@ -137,7 +138,8 @@ const Parameters TransientSpatialDependantPorositySolutionBodyForceProcess::GetD
                                                 "n_safety"    : 1.0,
                                                 "n_reynolds"  : 1000.0,
                                                 "n_dam"       : 0.0001,
-                                                "u_char"      : 100.0
+                                                "u_char"      : 100.0,
+                                                "use_alternative_formulation" : false
                 },
                 "compute_nodal_error"      : true,
                 "print_convergence_output" : false,
@@ -337,16 +339,30 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetInitialBodyFo
         const double press_grad1 = 200.0 * x1;
         const double press_grad2 = 0.0;
 
-        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+        if (mAlternativeFormulation){
 
-        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+            const double grad_alpha_sym_grad1 = (1.0/2.0) * (2 * r_alpha1 * du11 + r_alpha2 * (du21 + du12));
+            const double grad_alpha_sym_grad2 = (1.0/2.0) * (r_alpha1 * (du12 + du21) + 2 * r_alpha2 * du22);
+
+            const double grad_alpha_div1 = r_alpha1 * (du11 + du22);
+            const double grad_alpha_div2 = r_alpha2 * (du11 + du22);
+
+            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+
+            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+
+        }else{
+            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+
+            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+        }
 
         r_mass_source = r_dalphat + (r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22));
 
         it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
         it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
         it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
-        it_node->FastGetSolutionStepValue(FLUID_FRACTION, 1) = r_alpha;
+        it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
     }
 
 }
@@ -505,8 +521,8 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         const double convective1 = r_u1 * du11 + r_u2 * du12;
         const double convective2 = r_u1 * du21 + r_u2 * du22;
 
-        const double div_of_sym_grad1 = (1.0/2.0) * (2 * du111 + du212 + du122);
-        const double div_of_sym_grad2 = (1.0/2.0) * (du121 + du211 + 2 * du222);
+        const double div_of_sym_grad1 = (1.0/2.0) * (2.0 * du111 + du212 + du122);
+        const double div_of_sym_grad2 = (1.0/2.0) * (du121 + du211 + 2.0 * du222);
 
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
@@ -514,9 +530,22 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
         const double press_grad1 = 200.0 * x1;
         const double press_grad2 = 0.0;
 
-        r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1;
+        if (mAlternativeFormulation){
+            const double grad_alpha_sym_grad1 = (1.0/2.0) * (2 * r_alpha1 * du11 + r_alpha2 * (du21 + du12));
+            const double grad_alpha_sym_grad2 = (1.0/2.0) * (r_alpha1 * (du12 + du21) + 2 * r_alpha2 * du22);
 
-        r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2;
+            const double grad_alpha_div1 = r_alpha1 * (du11 + du22);
+            const double grad_alpha_div2 = r_alpha2 * (du11 + du22);
+
+            r_body_force1 = r_alpha * du1dt + r_alpha * convective1 + r_alpha / rho * press_grad1 - 2.0 * nu * (r_alpha * div_of_sym_grad1 + grad_alpha_sym_grad1) + (2.0/3.0) * nu * (r_alpha * grad_of_div1 + grad_alpha_div1) + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+
+            r_body_force2 = r_alpha * du2dt + r_alpha * convective2 + r_alpha / rho * press_grad2 - 2.0 * nu * (r_alpha * div_of_sym_grad2 + grad_alpha_sym_grad2) + (2.0/3.0) * nu * (r_alpha * grad_of_div2 + grad_alpha_div2) + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+
+        }else{
+            r_body_force1 = du1dt + convective1 + 1.0/rho * press_grad1 - 2.0 * nu * div_of_sym_grad1 + (2.0/3.0) * nu * grad_of_div1 + sigma(0,0) * r_u1 + sigma(1,0) * r_u1;
+
+            r_body_force2 = du2dt + convective2 + 1.0/rho * press_grad2 - 2.0 * nu * div_of_sym_grad2 + (2.0/3.0) * nu * grad_of_div2 + sigma(0,1) * r_u2 + sigma(1,1) * r_u2;
+        }
 
         r_mass_source = r_dalphat + r_u1 * r_alpha1 + r_u2 * r_alpha2 + r_alpha * (du11 + du22);
 
@@ -529,7 +558,7 @@ void TransientSpatialDependantPorositySolutionBodyForceProcess::SetBodyForceAndP
             }
         }
         else if(mInitialConditions == false && mrModelPart.GetProcessInfo()[STEP] == 1){
-            it_node->FastGetSolutionStepValue(FLUID_FRACTION, 1) = r_alpha;
+            it_node->FastGetSolutionStepValue(FLUID_FRACTION_OLD) = r_alpha;
         }
     }
 
