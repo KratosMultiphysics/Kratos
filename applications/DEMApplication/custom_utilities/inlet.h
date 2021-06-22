@@ -29,6 +29,7 @@
 #include "includes/condition.h"
 #include "../custom_elements/discrete_element.h"
 #include "../custom_utilities/AuxiliaryFunctions.h"
+#include "../custom_utilities/piecewise_linear_random_variable.h"
 #include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
@@ -48,6 +49,7 @@ namespace Kratos {
 
         /// Constructor:
         DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
+        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
@@ -116,6 +118,9 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
+        std::map<std::string, PiecewiseLinearRandomVariable> mInletsRandomVariables;
+        std::map<std::string, Parameters> mInletsRandomSettings;
+        Parameters mInletsSettings;
     };
 }// namespace Kratos.
 

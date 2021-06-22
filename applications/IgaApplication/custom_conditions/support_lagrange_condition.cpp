@@ -44,8 +44,17 @@ namespace Kratos
         const typename GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
 
         // Determinant of jacobian 
+        // Determine the integration: conservative -> initial; non-conservative -> current
         Vector determinant_jacobian_vector(integration_points.size());
-        r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);
+        const bool integrate_conservative = GetProperties().Has(INTEGRATE_CONSERVATIVE)
+            ? GetProperties()[INTEGRATE_CONSERVATIVE]
+            : false;
+        if (integrate_conservative) {
+            DeterminantOfJacobianInitial(r_geometry, determinant_jacobian_vector);
+        }
+        else {
+            r_geometry.DeterminantOfJacobian(determinant_jacobian_vector);
+        }
 
         // non zero node counter for Lagrange Multipliers.
         IndexType counter_n = 0;
@@ -128,6 +137,45 @@ namespace Kratos
             }
         }
         KRATOS_CATCH("")
+    }
+
+    void SupportLagrangeCondition::DeterminantOfJacobianInitial(
+        const GeometryType& rGeometry,
+        Vector& rDeterminantOfJacobian)
+    {
+        const IndexType nb_integration_points = rGeometry.IntegrationPointsNumber();
+        if (rDeterminantOfJacobian.size() != nb_integration_points) {
+            rDeterminantOfJacobian.resize(nb_integration_points, false);
+        }
+
+        const SizeType working_space_dimension = rGeometry.WorkingSpaceDimension();
+        const SizeType local_space_dimension = rGeometry.LocalSpaceDimension();
+        const SizeType nb_nodes = rGeometry.PointsNumber();
+
+        Matrix J = ZeroMatrix(working_space_dimension, local_space_dimension);
+        for (IndexType pnt = 0; pnt < nb_integration_points; pnt++)
+        {
+            const Matrix& r_DN_De = rGeometry.ShapeFunctionsLocalGradients()[pnt];
+            J.clear();
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                const array_1d<double, 3>& r_coordinates = rGeometry[i].GetInitialPosition();
+                for (IndexType k = 0; k < working_space_dimension; ++k) {
+                    const double value = r_coordinates[k];
+                    for (IndexType m = 0; m < local_space_dimension; ++m) {
+                        J(k, m) += value * r_DN_De(i, m);
+                    }
+                }
+            }
+
+            //Compute the tangent and  the normal to the boundary vector
+            array_1d<double, 3> local_tangent;
+            GetGeometry().GetGeometryPart(0).Calculate(LOCAL_TANGENT, local_tangent);
+
+            array_1d<double, 3> a_1 = column(J, 0);
+            array_1d<double, 3> a_2 = column(J, 1);
+
+            rDeterminantOfJacobian[pnt] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
+        }
     }
 
     void SupportLagrangeCondition::EquationIdVector(

@@ -17,7 +17,6 @@ __all__ = ["Factory"]
 import KratosMultiphysics
 from KratosMultiphysics.HDF5Application import core
 from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
-from KratosMultiphysics.HDF5Application.utils import IsDistributed
 from KratosMultiphysics.HDF5Application.utils import CreateOperationSettings
 
 
@@ -69,7 +68,7 @@ def Factory(settings, Model):
     |                                             |            | "list_of_variables": []         |
     +---------------------------------------------+------------+---------------------------------+
     """
-    core_settings = CreateCoreSettings(settings["Parameters"])
+    core_settings = CreateCoreSettings(settings["Parameters"], Model)
     return MultipleMeshTemporalOutputProcessFactory(core_settings, Model)
 
 
@@ -77,7 +76,7 @@ def MultipleMeshTemporalOutputProcessFactory(core_settings, Model):
     return core.Factory(core_settings, Model)
 
 
-def CreateCoreSettings(user_settings):
+def CreateCoreSettings(user_settings, model):
     """Return the core settings.
 
     The core setting "io_type" cannot be overwritten by the user. It is
@@ -131,7 +130,8 @@ def CreateCoreSettings(user_settings):
         core_settings[i]["model_part_name"] = user_settings["model_part_name"]
         for key in user_settings["file_settings"]:
             core_settings[i]["io_settings"][key] = user_settings["file_settings"][key]
-        if IsDistributed():
+        model_part_name = user_settings["model_part_name"]
+        if model[model_part_name].IsDistributed():
             model_part_output_type = "partitioned_model_part_output"
             core_settings[i]["io_settings"]["io_type"] = "parallel_hdf5_file_io"
         else:
