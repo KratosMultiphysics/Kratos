@@ -57,7 +57,6 @@ namespace Python{
             ;
 
         pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def(pybind11::init<>())
             .def("ConvertPressureToForces",
                 &ConversionUtilities::ConvertPressureToForces)
             .def("ConvertElementalDataToNodalData",

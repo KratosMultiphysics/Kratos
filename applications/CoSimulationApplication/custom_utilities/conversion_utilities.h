@@ -68,7 +68,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ConversionUtilities() = default;
+    ConversionUtilities() = delete;
 
     ///@}
     ///@name Operators
