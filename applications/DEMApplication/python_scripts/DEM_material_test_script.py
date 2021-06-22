@@ -193,7 +193,7 @@ class MaterialTest():
             if smp[BOTTOM]:
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
-    
+
     def ComputeMeasuringSurface(self):
         self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
 
