@@ -105,7 +105,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
     typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
 
     /// Definition of the tolerance for convergence
-    static constexpr double ConvergenceTolerance = 1.0e-4;
+    static constexpr double ConvergenceTolerance = 1.0e-7;
 
     /// Counted pointer of GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity);
@@ -250,18 +250,13 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
             noalias(rPlasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
                 CalculatePlasticDeformationGradientFromElastic(current_F_backup,
                     rTrialElasticDeformationGradient);
-            MathUtils<double>::InvertMatrix(Fp_backup, inv_old_Fp, aux_det);
-            noalias(plastic_deformation_gradient_increment) = prod(inv_old_Fp, rPlasticDeformationGradient);
 
             // Compute Plastic strain from Fp
             rValues.SetDeterminantF(MathUtils<double>::Det(rPlasticDeformationGradient));
             rValues.SetDeformationGradientF(rPlasticDeformationGradient);
             rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, plastic_strain);
 
-            // Compute Plastic strain increment from Fp increment
-            rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient_increment));
-            rValues.SetDeformationGradientF(plastic_deformation_gradient_increment);
-            rConstitutiveLaw.CalculateValue(rValues, rStrainVariable, delta_plastic_strain);
+            noalias(delta_plastic_strain) = plastic_consistency_factor_increment*rPlasticPotentialDerivative;
 
             // Let's compute the updated stress with the new Fe
             rValues.SetDeterminantF(MathUtils<double>::Det(rTrialElasticDeformationGradient));
@@ -282,14 +277,15 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
                 rPlasticPotentialDerivative, rPlasticDissipation, delta_plastic_strain,
                 rConstitutiveMatrix, rValues, CharacteristicLength, plastic_strain, rBackStressVector);
 
-            if (threshold_indicator <= std::abs(1.0e-6 * rThreshold)) { // Has converged
+            if (threshold_indicator <= std::abs(ConvergenceTolerance * rThreshold)) { // Has converged
                 break;
             } else {
                 ++iteration;
             }
         }
         rValues = values_backup;
-        KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
+        KRATOS_ERROR_IF(iteration >= max_iter) << "Maximum number of iterations in plasticity loop reached..."
+             << std::endl;
     }
 
     /**

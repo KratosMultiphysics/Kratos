@@ -194,7 +194,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain, back_stress_vector);
 
-            if (plastic_indicator <= std::abs(1.0e-5 * threshold)) { // Elastic case
+            if (plastic_indicator <= std::abs(1.0e-7 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -314,7 +314,8 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
             // Check
             KRATOS_ERROR_IF(r_det_deformation_gradient_backup < std::numeric_limits<double>::epsilon())
-                << "Deformation gradient determinant (detF) < 0.0 : " << r_det_deformation_gradient_backup << std::endl;
+                << "Deformation gradient determinant (detF) < 0.0 : " << r_det_deformation_gradient_backup
+                << std::endl;
 
             // We compute the plastic strain
             const double& det_f = rValues.GetDeterminantF();
@@ -348,7 +349,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain, back_stress_vector);
 
-            if (plastic_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
+            if (plastic_indicator <= std::abs(1.0e-7 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -534,7 +535,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         r_constitutive_matrix, rValues, characteristic_length,
         plastic_strain, back_stress_vector);
 
-    if (plastic_indicator > std::abs(1.0e-4 * threshold)) {
+    if (plastic_indicator > std::abs(1.0e-7 * threshold)) {
         TConstLawIntegratorType::IntegrateStressVector(
             *this, GREEN_LAGRANGE_STRAIN_VECTOR, PK2_STRESS_VECTOR,
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
@@ -647,7 +648,7 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         r_constitutive_matrix, rValues, characteristic_length,
         plastic_strain, back_stress_vector);
 
-    if (plastic_indicator > std::abs(1.0e-4 * threshold)) {
+    if (plastic_indicator > std::abs(1.0e-7 * threshold)) {
         TConstLawIntegratorType::IntegrateStressVector(
             *this, ALMANSI_STRAIN_VECTOR, KIRCHHOFF_STRESS_VECTOR,
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
