@@ -2,7 +2,6 @@ import os
 import KratosMultiphysics
 from KratosMultiphysics import Logger
 Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
-import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 import numpy as np
