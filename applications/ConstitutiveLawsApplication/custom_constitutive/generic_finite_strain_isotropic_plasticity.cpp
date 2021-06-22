@@ -192,7 +192,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain);
 
-            if (plastic_indicator <= std::abs(1.0e-5 * threshold)) { // Elastic case
+            if (plastic_indicator <= std::abs(1.0e-7 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -202,11 +202,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                     predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
                     plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                     plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-                    trial_elastic_deformation_gradient, r_constitutive_matrix, rValues, characteristic_length);
+                    trial_elastic_deformation_gradient, r_constitutive_matrix, rValues,
+                    characteristic_length);
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2); // this modifies the ConstitutiveMatrix
+                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
                 }
             }
         }
@@ -342,7 +343,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                 r_constitutive_matrix, rValues, characteristic_length,
                 plastic_strain);
 
-            if (plastic_indicator <= std::abs(1.0e-4 * threshold)) { // Elastic case
+            if (plastic_indicator <= std::abs(1.0e-7 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
             } else { // Plastic case
                 // While loop backward euler
@@ -353,11 +354,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
                     predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
                     plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
                     plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-                    trial_elastic_deformation_gradient, r_constitutive_matrix, rValues, characteristic_length);
+                    trial_elastic_deformation_gradient, r_constitutive_matrix, rValues,
+                    characteristic_length);
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff); // this modifies the ConstitutiveMatrix
+                    this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
                 }
             }
         }
@@ -521,13 +523,14 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         r_constitutive_matrix, rValues, characteristic_length,
         plastic_strain);
 
-    if (plastic_indicator > std::abs(1.0e-4 * threshold)) {
+    if (plastic_indicator > std::abs(1.0e-7 * threshold)) {
         TConstLawIntegratorType::IntegrateStressVector(
             *this, GREEN_LAGRANGE_STRAIN_VECTOR, PK2_STRESS_VECTOR,
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
             plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
             plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-            trial_elastic_deformation_gradient, r_constitutive_matrix, rValues, characteristic_length);
+            trial_elastic_deformation_gradient, r_constitutive_matrix, rValues,
+            characteristic_length);
 
         mPlasticDissipation = plastic_dissipation;
         noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
@@ -625,13 +628,14 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         r_constitutive_matrix, rValues, characteristic_length,
         plastic_strain);
 
-    if (plastic_indicator > std::abs(1.0e-4 * threshold)) {
+    if (plastic_indicator > std::abs(1.0e-7 * threshold)) {
         TConstLawIntegratorType::IntegrateStressVector(
             *this, ALMANSI_STRAIN_VECTOR, KIRCHHOFF_STRESS_VECTOR,
             predictive_stress_vector, r_strain_vector, uniaxial_stress, threshold,
             plastic_denominator, yield_surface_derivative, plastic_potential_derivative,
             plastic_dissipation, plastic_deformation_gradient, mPreviousDeformationGradient,
-            trial_elastic_deformation_gradient, r_constitutive_matrix, rValues, characteristic_length);
+            trial_elastic_deformation_gradient, r_constitutive_matrix, rValues,
+            characteristic_length);
 
         mPlasticDissipation = plastic_dissipation;
         noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
