@@ -167,7 +167,7 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
         }""")
 
         with self.assertRaisesRegex(Exception, 'Parsing error in function: 1.5 if t<2.0 3.0 if defined, but not else'):
-            function = KM.GenericFunctionUtility("1.5 if t<2.0 3.0", parameters)
+            KM.GenericFunctionUtility("1.5 if t<2.0 3.0", parameters)
 
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
