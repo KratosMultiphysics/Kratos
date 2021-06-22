@@ -90,7 +90,10 @@ void PotentialWallCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&
         rRightHandSideVector.resize(TNumNodes, false);
 
     array_1d<double, 3> An;
-    CalculateNormal(An);
+    if (TDim == 2)
+        CalculateNormal2D(An);
+    else
+        CalculateNormal3D(An);
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
@@ -186,9 +189,7 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(const P
     pElem->CalculateOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
     this->SetValue(DENSITY, density[0]);
 
-    array_1d<double, 3> normal;
-    CalculateNormal(normal);
-    this->SetValue(NORMAL, normal);
+    auto normal = this->GetValue(NORMAL);
     pElem->SetValue(NORMAL, normal);
 
     // Get local mach number
@@ -229,8 +230,8 @@ void PotentialWallCondition<TDim, TNumNodes>::PrintData(std::ostream& rOStream) 
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <>
-void PotentialWallCondition<2, 2>::CalculateNormal(array_1d<double, 3>& An) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal2D(array_1d<double, 3>& An) const
 {
     const Geometry<Node<3>>& pGeometry = this->GetGeometry();
 
@@ -239,8 +240,8 @@ void PotentialWallCondition<2, 2>::CalculateNormal(array_1d<double, 3>& An) cons
     An[2] = 0.00;
 }
 
-template <>
-void PotentialWallCondition<3, 3>::CalculateNormal(array_1d<double, 3>& An) const
+template <unsigned int TDim, unsigned int TNumNodes>
+void PotentialWallCondition<TDim, TNumNodes>::CalculateNormal3D(array_1d<double, 3>& An) const
 {
     const Geometry<Node<3>>& pGeometry = this->GetGeometry();
 
