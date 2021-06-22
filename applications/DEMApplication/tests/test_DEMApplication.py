@@ -17,6 +17,7 @@ import test_DEM_2D_restitution
 import test_DEM_3D_continuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
+import test_inlet
 import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
@@ -25,6 +26,7 @@ import test_history_dependent_CLs
 import test_clusters
 import test_DEM_schemes
 import test_random_variable
+import test_DEM_search_tolerance
 
 def AssembleTestSuites():
 
@@ -56,6 +58,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
+    smallSuite.addTest(test_inlet.TestDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
@@ -79,6 +82,10 @@ def AssembleTestSuites():
 
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nightly and you can use to validate
