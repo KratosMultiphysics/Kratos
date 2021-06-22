@@ -420,7 +420,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             dplastic_dissipation = 0.0;
 
         rPlasticDissipation += dplastic_dissipation;
-        if (rPlasticDissipation >= 1.0)
+        if (rPlasticDissipation >= 0.9999)
             rPlasticDissipation = 0.9999;
         else if (rPlasticDissipation < 0.0)
             rPlasticDissipation = 0.0;
