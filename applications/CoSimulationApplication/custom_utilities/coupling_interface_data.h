@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "containers/model.h"
+#include "utilities/auxiliar_model_part_utilities.h"
 
 
 namespace Kratos
@@ -106,9 +107,17 @@ public:
 
     std::size_t GetBufferSize() const;
 
-    std::string Name() const;
+    std::string GetName() const;
 
-    std::string SolverName() const;
+    std::string GetSolverName() const;
+
+    std::string GetModelPartName() const;
+
+    std::string GetVariableName() const;
+
+    bool UsesScalarVariable() const;
+
+    DataLocation GetDataLocation() const
 
     ///@}
     ///@name Input and output
@@ -177,6 +186,10 @@ private:
     ///@{
 
     ModelPart* mpModelpart;
+
+    std::string mVariableName;
+
+    DataLocation mDataLocation;
 
     ///@}
     ///@name Private Operators
