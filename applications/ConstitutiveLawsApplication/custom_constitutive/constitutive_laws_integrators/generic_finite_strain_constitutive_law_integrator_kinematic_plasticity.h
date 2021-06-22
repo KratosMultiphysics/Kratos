@@ -209,19 +209,12 @@ class GenericFiniteStrainConstitutiveLawIntegratorKinematicPlasticity
         Vector delta_plastic_strain = ZeroVector(VoigtSize);
         Vector aux_vector(VoigtSize), previous_stress_vector(VoigtSize);
 
-        Matrix plastic_deformation_gradient_increment(Dimension,Dimension);
         Matrix old_Fe(Dimension,Dimension);
         Matrix Re(Dimension,Dimension), Ue(Dimension,Dimension);
 
         const Matrix trial_Fe_backup = rTrialElasticDeformationGradient;
         const Matrix Fp_backup       = rPlasticDeformationGradient;
-
-        noalias(plastic_deformation_gradient_increment) = IdentityMatrix(Dimension);
-
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
-        const double current_F_det_backup = rValues.GetDeterminantF();
-
-        Matrix inv_old_Fp(Dimension,Dimension);
 
         // Compute the previous stress vector
         noalias(old_Fe) = ConstitutiveLawUtilities<VoigtSize>::CalculateElasticDeformationGradient(
