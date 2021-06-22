@@ -200,9 +200,9 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
+    const auto& fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
-    const auto& fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
@@ -250,7 +250,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_u[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
             }
-            rMomentumRHS[d] += density * ( rData.N[i] * (rData.BodyForce(i,d)) /*- fluid_fraction *  rData.N[i] * rAcc[d]*/ - fluid_fraction * AGradN[i]*rData.Velocity(i,d)) - fluid_fraction * rData.DN_DX(i,d)*rData.Pressure[i] - sigma_u[d];
+            rMomentumRHS[d] += density * ( rData.N[i] * (rData.BodyForce(i,d)) /*- fluid_fraction *  rData.N[i] * rAcc[d]*/
+                                - fluid_fraction * AGradN[i]*rData.Velocity(i,d)) - fluid_fraction * rData.DN_DX(i,d)*rData.Pressure[i] - sigma_u[d];
         }
     }
 }

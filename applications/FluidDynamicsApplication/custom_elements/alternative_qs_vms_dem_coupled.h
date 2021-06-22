@@ -263,6 +263,11 @@ protected:
         TElementData& rData,
         MatrixType &rMassMatrix);
 
+    void AddViscousTerm(
+        const TElementData& rData,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS) override;
+
     using QSVMS<TElementData>::CalculateTau;
     void CalculateTau(
         const TElementData& rData,
@@ -275,9 +280,9 @@ protected:
         MatrixType &rLocalLHS,
         VectorType &rLocalRHS) override;
 
-    void AddMassRHS(
-        VectorType& rRightHandSideVector,
-        TElementData& rData);
+    void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix) override;
 
     void MassProjTerm(
         const TElementData& rData,
