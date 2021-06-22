@@ -784,29 +784,6 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradient(
-    const MatrixType& rOldFp,
-    const BoundedVectorType& rPlasticPotentialDerivative,
-    const double PlasticConsistencyFactorIncrement,
-    const MatrixType& rRe,
-    MatrixType& rFpIncrement
-    )
-{
-    Matrix Fp(Dimension, Dimension);
-    const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
-        MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
-    BoundedMatrixType r_exponential_tensor;
-    ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(plastic_flow, r_exponential_tensor);
-
-    noalias(rFpIncrement) = prod(trans(rRe), r_exponential_tensor);
-    rFpIncrement = prod(rFpIncrement, rRe);
-    return prod(rFpIncrement, rOldFp);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
 Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
     const MatrixType& rTrialFe,
     const BoundedVectorType& rPlasticPotentialDerivative,
@@ -819,33 +796,11 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformat
     BoundedMatrixType r_exponential_tensor;
     ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(-plastic_flow, r_exponential_tensor);
 
-    Matrix aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
+    MatrixType aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
     noalias(aux_1) = prod(rTrialFe, trans(rRe));
     noalias(aux_2) = prod(r_exponential_tensor, rRe);
     return prod(aux_1, aux_2);
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateTrialElasticDeformationGradient(
-    const MatrixType& rCurrentF,
-    const MatrixType& rOldF,
-    const MatrixType& rOldFp
-    )
-{
-    Matrix inv_old_F(Dimension, Dimension), F_incr(Dimension, Dimension);
-    Matrix old_Fe(Dimension, Dimension), inv_old_Fp(Dimension, Dimension);
-    double aux_det = 0.0;
-    MathUtils<double>::InvertMatrix(rOldF,  inv_old_F,  aux_det);
-    MathUtils<double>::InvertMatrix(rOldFp, inv_old_Fp, aux_det);
-
-    noalias(old_Fe) = prod(rOldF,     inv_old_Fp);
-    noalias(F_incr) = prod(rCurrentF, inv_old_F);
-    return prod(F_incr, old_Fe);
-}
-
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -960,14 +915,16 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
     double norm_series_term = 1.0;
     int series_term = 2, max_terms = 200, factorial = 1;
 
-    noalias(rExponentialMatrix)         = IdentityMatrix(Dimension) + rMatrix;
-    BoundedMatrixType r_exponent_matrix = rMatrix;
+    noalias(rExponentialMatrix)       = IdentityMatrix(Dimension) + rMatrix;
+    BoundedMatrixType exponent_matrix = rMatrix;
+    BoundedMatrixType aux_matrix;
 
-    while (norm_series_term > 100*tolerance && series_term < max_terms) {
-        r_exponent_matrix = prod(r_exponent_matrix, rMatrix);
+    while (norm_series_term > 100.0*tolerance && series_term < max_terms) {
+        noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+        noalias(exponent_matrix) = aux_matrix;
         factorial = Factorial(series_term);
-        noalias(rExponentialMatrix) += r_exponent_matrix / factorial;
-        norm_series_term = std::abs(norm_frobenius(r_exponent_matrix) / factorial);
+        noalias(rExponentialMatrix) += exponent_matrix / factorial;
+        norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
         series_term++;
     }
 }
