@@ -262,26 +262,28 @@ The second component necessary is an [**IO**](python_scripts/base_classes/co_sim
 In principle three different options are possible for exchanging data with CoSimulation:
 
 - For very simple solvers IO can directly be done in python inside the SolverWrapper, which makes a separate IO superfluous (see e.g. a [python-only single degree of freedom solver](python_scripts/solver_wrappers/sdof))
-- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with the _CoSimulationApplication_. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly. Its modular and Kratos-independent design allows for easy integration into other codes.
+- Using the [_CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO). This which is the preferred way of exchanging data with the _CoSimulationApplication_. It is currently available for _C++_, _C_, and _Python_. The _CoSimIO_ is included as the [KratosCoSimIO](python_scripts/solver_wrappers/kratos_co_sim_io.py) and can be used directly. Its modular and Kratos-independent design as _detached interface_ allows for easy integration into other codes.
 - Using a custom solution based on capabilities that are offered by the solver that is to be coupled.
 
 The following picture shows the interaction of these components with the _CoSimulationApplication_ and the external solver:
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/cosim_coupling.png" style="width: 300px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/co_simulation/detached_interface.png" style="width: 300px;"/>
 </p>
 
 #### Interface of SolverWrapper
 
-The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers. It provides the following interface (adapted from [2]):
+The [**SolverWrapper**](python_scripts/base_classes/co_simulation_solver_wrapper.py) is the interface in the _CoSimulationApplication_ to all involved codes / solvers. It provides the following interface (adapted from [2]), which is also called in this order:
 
-- **Initialize**: This function is called once at the beginning of the simulation, it e.g .reads the input files and prepares the internal data structures
-- **AdvanceInTime**: Advancing in time and preparing the data structure for the next time step.
-- **InitializeSolutionStep**: Applying boundary conditions
-- **Predict**: Predicting the solution of this time step to accelerate the solution.
-- **SolveSolutionStep**: Solving the problem for this time step. This is the only function that can be called multiple times in an iterative (strongly coupled) solution procedure.
-- **FinalizeSolutionStep**: Updating internals after solving this time step.
-- **OutputSolutionStep**: Writing output at the end of a time step
+- **Initialize**: This function is called once at the beginning of the simulation, it e.g .reads the input files and prepares the internal data structures.\
+the solution loop into split into the following six functions:
+  - **AdvanceInTime**: Advancing in time and preparing the data structure for the next time step.
+  - **InitializeSolutionStep**: Applying boundary conditions
+  - **Predict**: Predicting the solution of this time step to accelerate the solution.\
+  iterate until convergence in a strongly coupled solution:
+    - **SolveSolutionStep**: Solving the problem for this time step. This is the only function that can be called multiple times in an iterative (strongly coupled) solution procedure.
+  - **FinalizeSolutionStep**: Updating internals after solving this time step.
+  - **OutputSolutionStep**: Writing output at the end of a time step
 - **Finalize**: Finalizing and cleaning up after the simulation
 
 Each of these functions can implement functionalities to communicate with the external solver, telling it what to do. However, this is often skipped if the data exchange is used for the synchronization of the solvers. This is often done in "classical" coupling tools. I.e. the code to couple internally duplicates the coupling sequence and synchronizes with the coupling tool through the data exchange.
@@ -302,6 +304,8 @@ while time < end_time:
 
     CoSimIO::ExportData(...) # send new data to the CoSimulationApplication
 ~~~
+
+An example for an FSI problem where the structural solver of Kratos is used as an external solver can be found [here](tests/structural_mechanics_analysis_with_co_sim_io.py). The _CoSimIO_ is used for communicating between the _CoSimulationApplication_ and the structural solver
 
 While this approach is commonly used, it has the significant drawback that the coupling sequence has to be duplicated, which not only has the potential for bugs and deadlocks but also severly limits the useability when it comes to trying different coupling algorithms. Then not only the input for the _CoSimulationApplication_ has to be changed but also the source code in the external solver!
 
@@ -329,13 +333,67 @@ CoSimIO::Register(SolveSolution)
 CoSimIO::Register(ExportData)
 # ...
 
-# After all teh functions are registered, the Run method is called
+# After all the functions are registered and the solver is fully initialized for CoSimulation, the Run method is called
 CoSimIO::Run() # this function runs the coupled simulation. It returns only after finishing
 ~~~
 
-The _SolverWrapper_ for this approach sends a small control signal in each of its functions to the external solver to tell it what to do. (The example for this is under construction).
+A [simple example of this can be found in the _CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO/blob/master/tests/integration_tutorials/cpp/run.cpp).
 
-A [simple example example can be found in the _CoSimIO_](https://github.com/KratosMultiphysics/CoSimIO/blob/master/tests/integration_tutorials/cpp/run.cpp).
+The _SolverWrapper_ for this approach sends a small control signal in each of its functions to the external solver to tell it what to do. This could be implemented as the following:
+
+~~~py
+class RemoteControlSolverWrapper(CoSimulationSolverWrapper):
+    # ...
+    # implement other methods as necessary
+    # ...
+
+    def InitializeSolutionStep(self):
+        data_config = {
+            "type"           : "control_signal",
+            "control_signal" : "InitializeSolutionStep"
+        }
+        self.ExportData(data_config)
+
+    def SolveSolutionStep(self):
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            # first tell the controlled solver to import data
+            data_config = {
+                "type"            : "control_signal",
+                "control_signal"  : "ImportData",
+                "data_identifier" : data_name
+            }
+            self.ExportData(data_config)
+
+            # then export the data from Kratos
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
+        # now the external solver solves
+        super().SolveSolutionStep()
+
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            # first tell the controlled solver to export data
+            data_config = {
+                "type"            : "control_signal",
+                "control_signal"  : "ExportData",
+                "data_identifier" : data_name
+            }
+            self.ExportData(data_config)
+
+            # then import the data to Kratos
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
+
+
+~~~
+
+A full example for this is currently under development.
 
 If it is possible for an external solver to implement this approach, it is recommended to use it as it is the most robust and flexible.
 
