@@ -189,9 +189,6 @@ void PotentialWallCondition<TDim, TNumNodes>::FinalizeNonLinearIteration(const P
     pElem->CalculateOnIntegrationPoints(DENSITY, density, rCurrentProcessInfo);
     this->SetValue(DENSITY, density[0]);
 
-    auto normal = this->GetValue(NORMAL);
-    pElem->SetValue(NORMAL, normal);
-
     // Get local mach number
     std::vector<double> local_mach_number;
     pElem->CalculateOnIntegrationPoints(MACH, local_mach_number, rCurrentProcessInfo);

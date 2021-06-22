@@ -93,9 +93,12 @@ namespace Kratos
         for (const auto& r_condition : far_field_sub_model_part.Conditions()) {
             array_1d<double, 3> local_force_coefficient_pres;
             array_1d<double, 3> local_force_coefficient_vel;
+            auto& r_geometry = r_condition.GetGeometry();
 
             double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
-            const auto& normal = r_condition.GetValue(NORMAL);
+            array_1d<double,3> aux_coordinates;
+            r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
+            const auto& normal = r_geometry.Normal(aux_coordinates);
             force_coefficient_pres += -normal*pressure_coefficient;
 
             auto velocity = r_condition.GetValue(VELOCITY);
@@ -135,9 +138,29 @@ namespace Kratos
         if (far_field_nodes > (r_adjoint_geometry.WorkingSpaceDimension()-1)) {
             auto& r_this_element = mrModelPart.GetElement(rAdjointElement.Id());
             auto& r_geometry = r_this_element.GetGeometry();
+            const auto& r_boundaries = r_adjoint_geometry.GenerateBoundariesEntities();
+            array_1d<double,3> normal = ZeroVector(3);
+            double total_area = 0.0;
+            for (auto& r_boundary : r_boundaries) {
+                bool is_far_field = true;
+                for (std::size_t i_node=0; i_node<r_boundary.size(); ++i_node){
+                    if (!r_boundary[i_node].GetValue(FAR_FIELD)){
+                        is_far_field = false;
+                    }
+                }
+                if (is_far_field) {
+                    array_1d<double,3> aux_coordinates;
+                    double edge_area = r_boundary.Area();
+                    r_boundary.PointLocalCoordinates(aux_coordinates, r_boundary.Center());
+                    normal += edge_area*r_boundary.Normal(aux_coordinates);
+                    total_area += edge_area;
+                }
+            }
+            normal /= total_area;
+
             for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
 
-                double lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
+                double lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += mStepSize;
@@ -146,7 +169,7 @@ namespace Kratos
                     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += mStepSize;
                 }
 
-                double perturbed_lift = this->ComputeLiftContribution(r_this_element, rProcessInfo);
+                double perturbed_lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= mStepSize;
@@ -217,7 +240,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    double AdjointLiftFarFieldResponseFunction::ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo)
+    double AdjointLiftFarFieldResponseFunction::ComputeLiftContribution(Element& rElement, const array_1d<double, 3> rNormal, const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;
 
@@ -225,12 +248,11 @@ namespace Kratos
         force_coefficient_pres.clear();
         array_1d<double, 3> force_coefficient_vel;
         force_coefficient_vel.clear();
-        const auto& normal = rElement.GetValue(NORMAL);
 
         std::vector<double> pressure_coefficient_vector;
         rElement.CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient_vector, rProcessInfo);
         double pressure_coefficient = pressure_coefficient_vector[0];
-        force_coefficient_pres = -normal*pressure_coefficient/ mReferenceChord;;
+        force_coefficient_pres = -rNormal*pressure_coefficient/ mReferenceChord;;
 
         std::vector<array_1d<double,3>> velocity_vector;
         rElement.CalculateOnIntegrationPoints(VELOCITY,velocity_vector, rProcessInfo);
@@ -238,7 +260,7 @@ namespace Kratos
         std::vector<double> density_vector;
         rElement.CalculateOnIntegrationPoints(DENSITY,density_vector, rProcessInfo);
         double density = density_vector[0];
-        double velocity_projection = inner_prod(normal,velocity);
+        double velocity_projection = inner_prod(rNormal,velocity);
         array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
         force_coefficient_vel = -velocity_projection * disturbance * density/(mDynamicPressure*mReferenceChord);
 
