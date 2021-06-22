@@ -54,7 +54,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ConversionUtilities
+class KRATOS_API(CO_SIMULATION_APPLICATION) ConversionUtilities
 {
 public:
     ///@name Type Definitions
