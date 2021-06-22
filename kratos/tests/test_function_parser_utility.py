@@ -159,7 +159,6 @@ class TestGenericFunctionUtility(KratosUnittest.TestCase):
                 for node in model_part.Nodes:
                     self.assertAlmostEqual(node.GetSolutionStepValue(KM.VISCOSITY), 1.5*(2.0)*(4.0/0.1681)*node.Y*(0.41-node.Y))
 
-    @KratosUnittest.expectedFailure
     def test_ApplyFunctionToNodesUtilityTimeEvolutionCTernaryFail(self):
         parameters = KM.Parameters ("""{
             "origin" : [0,0,0],
