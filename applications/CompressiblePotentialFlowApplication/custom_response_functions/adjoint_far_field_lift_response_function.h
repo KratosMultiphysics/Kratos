@@ -188,7 +188,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    double ComputeLiftContribution(Element& rElement, const ProcessInfo& rProcessInfo);
+    double ComputeLiftContribution(Element& rElement, const array_1d<double, 3> rNormal, const ProcessInfo& rProcessInfo);
 
     ///@}
     ///@name Private  Access
