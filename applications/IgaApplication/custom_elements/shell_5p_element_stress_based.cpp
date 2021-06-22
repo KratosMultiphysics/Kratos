@@ -39,6 +39,7 @@ namespace Kratos
         KRATOS_TRY
         const GeometryType& r_geometry = GetGeometry();
 
+        KRATOS_WATCH("test")
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         // Prepare memory
@@ -71,19 +72,22 @@ namespace Kratos
     void Shell5pStressBasedElement::InitializeMaterial()
     {
         KRATOS_TRY
-            const GeometryType& r_geometry = GetGeometry();
+
+        const GeometryType& r_geometry = GetGeometry();
         const Properties& r_properties = GetProperties();
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+
+        KRATOS_WATCH(r_number_of_integration_points)
 
         //Constitutive Law initialisation
         mConstitutiveLawVector.resize(r_number_of_integration_points);
 
         std::fill(mConstitutiveLawVector.begin(), mConstitutiveLawVector.end(), GetProperties()[CONSTITUTIVE_LAW]->Clone());
 
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
-
+        }
 
         KRATOS_CATCH("");
     }

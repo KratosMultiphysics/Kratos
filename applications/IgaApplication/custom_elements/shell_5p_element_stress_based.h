@@ -490,7 +490,7 @@ private:
         rSerializer.load("reference_ReferenceCartesianJacobian", reference_ReferenceCartesianJacobian);
         rSerializer.load("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.load("dA_vector", m_dA_vector);
-        rSerializer.save("cart_deriv", m_cart_deriv);
+        rSerializer.load("cart_deriv", m_cart_deriv);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
