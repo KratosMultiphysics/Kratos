@@ -4,14 +4,9 @@ import KratosMultiphysics.analysis_stage
 
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
-
 import KratosMultiphysics.PoromechanicsApplication as Poromechanics
 import KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis
-
 import KratosMultiphysics.DemStructuresCouplingApplication as DemStructuresCouplingApplication
-
-import sys
-
 
 class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage.AnalysisStage):
     def __init__(self, model, parameters):
@@ -44,7 +39,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
 
             #for self.dem_solution.time_dem in self._YieldDEMTime(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
-            while not self.dem_solution.SolutionIsSteady():
+            while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
                 self.dem_solution.InitializeSolutionStep()
                 self.dem_solution._GetSolver().Predict()
@@ -52,7 +47,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
                 self.dem_solution.FinalizeSolutionStep()
                 self.dem_solution.OutputSolutionStep()
 
-    def SolutionIsSteady(self):
+    def DEMSolutionIsSteady(self):
         tolerance = 1.0e-4
 
         if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, tolerance):
@@ -109,8 +104,6 @@ class DemPoroMechanicsCouplingSolver(PythonSolver):
 if __name__ == "__main__":
     with open("ProjectParameters.json", 'r') as parameter_file:
         project_parameters = Kratos.Parameters(parameter_file.read())
-    import os
-    print(os.getpid())
 
     model = Kratos.Model()
     PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(model, project_parameters).Run()

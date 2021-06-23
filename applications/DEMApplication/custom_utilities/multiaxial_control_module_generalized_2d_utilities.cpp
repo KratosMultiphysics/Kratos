@@ -239,7 +239,20 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
                     noalias(r_velocity) = ZeroVector(3);
                 }
             }
-        }
+        } else if (actuator_name == "RadialMultiDofs") {
+            // Iterate through all FEMBoundaries
+            for (unsigned int i = 0; i < SubModelPartList.size(); i++) {
+                ModelPart& rSubModelPart = *(SubModelPartList[i]);
+                // Iterate through nodes of Fem boundary
+                const int number_of_nodes = static_cast<int>(rSubModelPart.Nodes().size());
+                ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
+                #pragma omp parallel for
+                for(int j = 0; j<number_of_nodes; j++) {
+                    ModelPart::NodesContainerType::iterator it = it_begin + j;
+                    it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, 0.0);
+                }
+            }
+        }        
     }
 
     SetProvidedInitialVelocityToTheControlledBoundaries();
