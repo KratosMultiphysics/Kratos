@@ -180,6 +180,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, const int>())
+        .def(py::init<ModelPart&, Parameters&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")

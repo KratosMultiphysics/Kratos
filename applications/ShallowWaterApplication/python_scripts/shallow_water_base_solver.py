@@ -10,7 +10,7 @@ def CreateSolver(model, custom_settings):
     return ShallowWaterBaseSolver(model, custom_settings)
 
 class ShallowWaterBaseSolver(PythonSolver):
-    def __init__(self, model, settings):  # Constructor of the class
+    def __init__(self, model, settings):
         super().__init__(model, settings)
 
         ## Set the element and condition names for the replace settings
@@ -21,24 +21,50 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
-
-        if model_part_name == "":
-            raise Exception('Please specify a model_part name!')
-
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
             self.main_model_part = self.model.CreateModelPart(model_part_name)
 
-        domain_size = self.settings["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
+        self._SetProcessInfo()
+
+    @classmethod
+    def GetDefaultParameters(cls):
+        default_settings = KM.Parameters("""
+        {
+            "solver_type"              : "shallow_water_base_solver",
+            "model_part_name"          : "main_model_part",
+            "domain_size"              : 2,
+            "gravity"                  : 9.81,
+            "density"                  : 1000,
+            "model_import_settings"    : {
+                "input_type"               : "mdpa",
+                "input_filename"           : "unknown_name"
+            },
+            "echo_level"               : 0,
+            "convergence_criterion"    : "displacement",
+            "relative_tolerance"       : 1e-6,
+            "absolute_tolerance"       : 1e-9,
+            "maximum_iterations"       : 20,
+            "compute_reactions"        : false,
+            "reform_dofs_at_each_step" : false,
+            "move_mesh_flag"           : false,
+            "linear_solver_settings"   : {
+                "solver_type"              : "amgcl"
+            },
+            "time_stepping"            : {
+                "automatic_time_step"      : false,
+                "time_step"                : 0.01
+            }
+        }""")
+        default_settings.AddMissingParameters(super().GetDefaultParameters())
+        return default_settings
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(SW.HEIGHT)
         self.main_model_part.AddNodalSolutionStepVariable(KM.MOMENTUM)
         self.main_model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.FREE_SURFACE_ELEVATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KM.GRAVITY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.TOPOGRAPHY)
         self.main_model_part.AddNodalSolutionStepVariable(SW.MANNING)
@@ -53,18 +79,9 @@ class ShallowWaterBaseSolver(PythonSolver):
         self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])
 
     def PrepareModelPart(self):
-        # Definition of the variables
-        gravity = self.settings["gravity"].GetDouble()
-
-        # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
-        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, gravity)
-
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
-            ## Executes the check and prepare model process (Create computing_model_part)
-            self._CheckAndPrepare()
             ## Set buffer size
             self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
 
@@ -75,7 +92,6 @@ class ShallowWaterBaseSolver(PythonSolver):
         return self.main_model_part
 
     def Initialize(self):
-        self._GetSolutionStrategy().Check()
         self._GetSolutionStrategy().Initialize()
         KM.Logger.PrintInfo(self.__class__.__name__, "Initialization finished")
 
@@ -127,54 +143,20 @@ class ShallowWaterBaseSolver(PythonSolver):
         # The c++ utility manages all the time step settings
         return SW.EstimateTimeStepUtility(self.GetComputingModelPart(), self.settings["time_stepping"])
 
-    @classmethod
-    def GetDefaultParameters(cls):
-        default_settings = KM.Parameters("""
-        {
-            "solver_type"              : "shallow_water_base_solver",
-            "model_part_name"          : "main_model_part",
-            "domain_size"              : 2,
-            "gravity"                  : 9.81,
-            "model_import_settings"    : {
-                "input_type"               : "mdpa",
-                "input_filename"           : "unknown_name"
-            },
-            "echo_level"               : 0,
-            "convergence_criterion"    : "displacement",
-            "relative_tolerance"       : 1e-6,
-            "absolute_tolerance"       : 1e-9,
-            "maximum_iterations"       : 20,
-            "compute_reactions"        : false,
-            "reform_dofs_at_each_step" : false,
-            "move_mesh_flag"           : false,
-            "linear_solver_settings"   : {
-                "solver_type"              : "amgcl"
-            },
-            "time_stepping"            : {
-                "automatic_time_step"      : false,
-                "time_step"                : 0.01
-            }
-        }""")
-        default_settings.AddMissingParameters(super().GetDefaultParameters())
-        return default_settings
+    def _SetProcessInfo(self):
+        self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
+        self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
+        self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
-        elem_num_nodes = self.__get_element_num_nodes()
-        cond_num_nodes = self.__get_condition_num_nodes()
+        elem_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Elements)
+        cond_num_nodes = self.__get_geometry_num_nodes(self.GetComputingModelPart().Conditions)
         domain_size = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
 
-        ## Complete the element name
-        if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
-        else:
-            raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
-
-        ## Complete the condition name
-        if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
-        else:
-            raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
+        ## Get the full names
+        new_elem_name = self.__append_geometry_name(self.element_name, domain_size, elem_num_nodes)
+        new_cond_name = self.__append_geometry_name(self.condition_name, domain_size, cond_num_nodes)
 
         ## Set the element and condition names in the Json parameters
         self.settings.AddValue("element_replace_settings", KM.Parameters("""{}"""))
@@ -184,24 +166,20 @@ class ShallowWaterBaseSolver(PythonSolver):
         ## Call the replace elements and conditions process
         KM.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
-    def __get_element_num_nodes(self):
-        if self.main_model_part.NumberOfElements() != 0:
-            element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
+    def __get_geometry_num_nodes(self, container):
+        if len(container) != 0:
+            geometry_num_nodes = len(container.__iter__().__next__().GetNodes())
         else:
-            element_num_nodes = 0
-        element_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(element_num_nodes)
-        return element_num_nodes
+            geometry_num_nodes = 0
+        geometry_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(geometry_num_nodes)
+        return geometry_num_nodes
 
-    def __get_condition_num_nodes(self):
-        if self.main_model_part.NumberOfConditions() != 0:
-            condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
+    @staticmethod
+    def __append_geometry_name(base_name, domain_size, num_nodes):
+        if (base_name is not None):
+            return base_name + str(int(domain_size)) + "D" + str(int(num_nodes)) + "N"
         else:
-            condition_num_nodes = 2
-        condition_num_nodes = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(condition_num_nodes)
-        return condition_num_nodes
-
-    def _CheckAndPrepare(self):
-        pass
+            raise Exception("There is no element/condition name. Define the string variables in your derived solver.")
 
     def _GetLinearSolver(self):
         if not hasattr(self, '_linear_solver'):
