@@ -22,7 +22,6 @@
 #include "includes/ublas_complex_interface.h"
 #include "add_matrix_to_python.h"
 #include "containers/array_1d.h"
-#include "add_vector_to_python.h"
 
 namespace Kratos
 {
