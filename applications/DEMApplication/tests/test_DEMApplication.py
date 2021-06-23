@@ -26,6 +26,7 @@ import test_history_dependent_CLs
 import test_clusters
 import test_DEM_schemes
 import test_random_variable
+import test_DEM_search_tolerance
 
 def AssembleTestSuites():
 
@@ -81,6 +82,10 @@ def AssembleTestSuites():
 
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
     nightSuite.addTests(smallSuite)
 
     # For very long tests that should not be in nightly and you can use to validate
