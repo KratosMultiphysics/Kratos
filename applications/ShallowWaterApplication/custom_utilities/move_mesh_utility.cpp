@@ -118,9 +118,10 @@ bool MoveMeshUtility::MoveNode(
     ResultIteratorType& rResultBegin)
 {
     array_1d<double,3>& r_pos = rNode.Coordinates();
-    array_1d<double,3> vel = rNode.FastGetSolutionStepValue(VELOCITY);
-    array_1d<double,3> acc = rNode.FastGetSolutionStepValue(ACCELERATION);
+    const array_1d<double,3>& vel = rNode.FastGetSolutionStepValue(VELOCITY);
+    const array_1d<double,3>& acc = rNode.FastGetSolutionStepValue(ACCELERATION);
     r_pos += vel * Dt + 0.5 * acc * Dt * Dt;
+    rNode.FastGetSolutionStepValue(DISPLACEMENT) = r_pos;
     bool is_found = mEulerianSearchStructure.FindPointOnMesh(r_pos, rN, pElement, rResultBegin, mMaxResults);
     return is_found;
 }
@@ -150,10 +151,10 @@ void MoveMeshUtility::MapToEulerian(
     const bool IsFound)
 {
     if (IsFound) {
-    GeometryType r_geom = pElement->GetGeometry();
-    for (std::size_t v = 0; v != mScalarVariablesToEulerian.size(); ++v)
-    {
-        const Variable<double>& r_var = *(mScalarVariablesToEulerian[v]);
+        GeometryType r_geom = pElement->GetGeometry();
+        for (std::size_t v = 0; v != mScalarVariablesToEulerian.size(); ++v)
+        {
+            const Variable<double>& r_var = *(mScalarVariablesToEulerian[v]);
             InterpolateVariable(rNode, rN, r_geom, r_var);
         }
         for (std::size_t v = 0; v != mVectorVariablesToEulerian.size(); ++v)
@@ -166,13 +167,13 @@ void MoveMeshUtility::MapToEulerian(
         {
             const Variable<double>& r_var = *(mScalarVariablesToEulerian[v]);
             rNode.FastGetSolutionStepValue(r_var) = 0.0;
-    }
-    for (std::size_t v = 0; v != mVectorVariablesToEulerian.size(); ++v)
-    {
-        const Variable<array_1d<double,3>>& r_var = *(mVectorVariablesToEulerian[v]);
+        }
+        for (std::size_t v = 0; v != mVectorVariablesToEulerian.size(); ++v)
+        {
+            const Variable<array_1d<double,3>>& r_var = *(mVectorVariablesToEulerian[v]);
             rNode.FastGetSolutionStepValue(r_var) = ZeroVector(3);
+        }
     }
-}
 }
 
 template<class TDataType>
