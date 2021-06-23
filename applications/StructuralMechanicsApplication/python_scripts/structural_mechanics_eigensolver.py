@@ -35,9 +35,8 @@ class EigenSolver(MechanicalSolver):
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
             "eigensolver_settings" : {
-                "solver_type"           : "eigen_eigensystem",
+                "solver_type"           : "spectra_sym_g_eigs_shift",
                 "max_iteration"         : 1000,
-                "tolerance"             : 1e-6,
                 "number_of_eigenvalues" : 5,
                 "echo_level"            : 1
             },
