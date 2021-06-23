@@ -175,13 +175,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             ## Setting the nodal distance
             self.__SetDistanceFunction()
-
+        print("PrepareModelPart")
         # Call the base solver PrepareModelPart()
         super(NavierStokesTwoFluidsSolver, self).PrepareModelPart()
 
     def Initialize(self):
         computing_model_part = self.GetComputingModelPart()
-
         # Calculate boundary normals
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(
             computing_model_part,
@@ -209,8 +208,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize()
+        self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
         # Water volume initial condition 
+        print("before first calculus")
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+        print("after_second_calculus")
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
@@ -250,11 +252,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
-
+            print("LLEGAMOS")
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
             # Accumulative Water volume error ratio due to level Set .Adding source term 
-            self.water_volume_after_transport=self.fluid_auxiliary_utilities.CalculateFluidNegativeVolume()
+            self.water_volume_after_transport=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
             volume_error = (self.water_volume_after_transport -  self.initial_system_volume)/ self.initial_system_volume
             
             self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = volume_error

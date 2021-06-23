@@ -61,6 +61,7 @@ NodalScalarData NodalDensity;
 NodalScalarData NodalDynamicViscosity;
 
 double Density;
+double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
 double SmagorinskyConstant;

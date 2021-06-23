@@ -1,6 +1,5 @@
 from sympy import *
 from KratosMultiphysics import *
-from sympy_fe_utilities import *
 from KratosMultiphysics.sympy_fe_utilities import *
 
 ## Settings explanation
