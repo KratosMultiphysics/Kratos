@@ -996,7 +996,7 @@ void ComputePotentialJump(ModelPart& rWakeModelPart)
 
         auto& r_geometry = r_elem.GetGeometry();
         array_1d<double, NumNodes> distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(r_elem);
-        for (unsigned int i = 0; i < NumNodes; i++)
+        for (IndexType i = 0; i < NumNodes; i++)
         {
             double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
             double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
