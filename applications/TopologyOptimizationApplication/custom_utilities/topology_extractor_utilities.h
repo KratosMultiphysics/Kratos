@@ -270,13 +270,13 @@ public:
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
 		{	
-			std::cout<<"  Schleife 1" <<std::endl;
+			std::cout<<"  Loop 1" <<std::endl;
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
 			if(it->second == 1)
-			{	std::cout<<"  Schleife 2" <<std::endl;
+			{	std::cout<<"  Loop 2" <<std::endl;
 				// If skin face is a triangle store triangle in with its original orientation in new skin model part
 				if(it->first.size()==3)
-				{	std::cout<<"  Schleife 3" <<std::endl;
+				{	std::cout<<"  Loop 3 Tetrahedral" <<std::endl;
 					// Getting original order is important to properly reproduce skin face including its normal orientation
 					std::cout<<"  before constructing vector" <<std::endl;
 					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
@@ -305,11 +305,11 @@ public:
 				// If skin face is a quadrilateral then divide in two triangles and store them with their original orientation in new skin model part
 				if(it->first.size()==4)
 				{	
-					std::cout<<"  Schleife 4" <<std::endl;
+					std::cout<<"  Loop 3 Hexahedral" <<std::endl;
 					// Getting original order is important to properly reproduce skin including its normal orientation
-					std::cout<<"  Step hexahedral 1" <<std::endl;
+					std::cout<<"  Before constructing vector hexahedral" <<std::endl;
 					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-					std::cout<<"  Step hexahedral 2" <<std::endl;
+					std::cout<<"  After constructing vector hexahedral" <<std::endl;
 
 					std::cout<<"  before hexahedral pnode1" <<std::endl;
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
