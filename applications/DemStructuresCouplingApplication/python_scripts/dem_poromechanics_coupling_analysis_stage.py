@@ -69,7 +69,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
     def _CheckCoherentInputs(self):
         if self.parameters["poromechanics_parameters"]["solver_settings"]["nodal_smoothing"].GetBool() == False:
-            Kratos.Logger.PrintWarning("Coupling DEM with Poromechanics","Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"nodal_smoothing\"] must be true for a smooth field of effective stresses")
+            Kratos.Logger.PrintWarning("Coupling DEM with Poromechanics", "Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"nodal_smoothing\"] must be true for a smooth field of effective stresses")
             sys.exit("\nExecution was aborted.\n")
 
     def _YieldDEMTime(self, current_time, current_time_plus_increment, delta_time):
