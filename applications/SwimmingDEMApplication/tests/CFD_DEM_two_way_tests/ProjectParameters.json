@@ -198,7 +198,10 @@
         "CleanIndentationsOption"        : false,
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
-            "strategy"                          : "swimming_sphere_strategy"
+            "strategy"                          : "swimming_sphere_strategy",
+            "material_import_settings"           : {
+                "materials_filename" : "CFD_DEM_two_way_tests/MaterialsDEM.json"
+            }
         },
         "VirtualMassCoefficient"         : 1.0,
         "RollingFrictionOption"          : false,

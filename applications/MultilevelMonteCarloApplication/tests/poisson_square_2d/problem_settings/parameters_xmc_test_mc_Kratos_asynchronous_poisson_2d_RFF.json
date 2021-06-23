@@ -65,7 +65,6 @@
         "parameters": null,
         "printToFile": false,
         "projectParametersPath": ["poisson_square_2d/problem_settings/parameters_finer.json"],
-        "refinementParametersPath": "poisson_square_2d/problem_settings/parameters_refinement.json",
         "refinementStrategy": "reading_from_file",
         "outputBatchSize" : 1,
         "taskAllAtOnce": true
