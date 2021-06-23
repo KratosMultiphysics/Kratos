@@ -984,6 +984,36 @@ double CalculateArea(TContainerType& rContainer)
     return area;
 }
 
+template <int Dim, int NumNodes>
+void ComputePotentialJump(ModelPart& rWakeModelPart)
+{
+    const array_1d<double, 3>& vinfinity = rWakeModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
+    const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
+
+    for (auto& r_elem : rWakeModelPart.Elements()) {
+
+        KRATOS_ERROR_IF(!r_elem.GetValue(WAKE)) << "Element #" << r_elem.Id() << "is not a wake element! Potential jump cannot be computed";
+
+        auto& r_geometry = r_elem.GetGeometry();
+        array_1d<double, NumNodes> distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(r_elem);
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            double aux_potential = r_geometry[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+            double potential = r_geometry[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+            double potential_jump = aux_potential - potential;
+
+            if (distances[i] > 0)
+            {
+                r_geometry[i].SetValue(POTENTIAL_JUMP, -2.0 / vinfinity_norm * (potential_jump));
+            }
+            else
+            {
+                r_geometry[i].SetValue(POTENTIAL_JUMP, 2.0 / vinfinity_norm * (potential_jump));
+            }
+        }
+    }
+}
+
 
 template <int Dim, int NumNodes>
 void AddKuttaConditionPenaltyTerm(const Element& rElement,
@@ -1229,5 +1259,7 @@ template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix
 template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
+template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
 } // namespace PotentialFlow
 } // namespace Kratos
