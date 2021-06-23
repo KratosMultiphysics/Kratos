@@ -58,7 +58,7 @@ class NoNewtonianMonolithicPFEM22D : public MonolithicPFEM22D
 {
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION(NoNewtonianMonolithicPFEM22D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NoNewtonianMonolithicPFEM22D);
 
     typedef Properties PropertiesType;
     ///definition of the geometry type with given NodeType

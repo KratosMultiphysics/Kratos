@@ -188,7 +188,7 @@ ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMeth
   return mThisIntegrationMethod;
 }
 
-void ShellThinElement3D3N::Initialize()
+void ShellThinElement3D3N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -229,7 +229,7 @@ void ShellThinElement3D3N::Initialize()
     }
   }
 
-  mpCoordinateTransformation->Initialize();
+  mpCoordinateTransformation->Initialize(rCurrentProcessInfo);
 
   this->SetupOrientationAngles();
 
@@ -250,17 +250,17 @@ void ShellThinElement3D3N::ResetConstitutiveLaw()
   KRATOS_CATCH("")
       }
 
-void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
   if(rResult.size() != OPT_NUM_DOFS)
     rResult.resize(OPT_NUM_DOFS, false);
 
-  GeometryType & geom = this->GetGeometry();
+  const GeometryType & geom = this->GetGeometry();
 
   for(SizeType i = 0; i < geom.size(); i++)
   {
     int index = i * 6;
-    NodeType & iNode = geom[i];
+    const NodeType & iNode = geom[i];
 
     rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
     rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
@@ -272,16 +272,16 @@ void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, Proce
   }
 }
 
-void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
   ElementalDofList.resize(0);
   ElementalDofList.reserve(OPT_NUM_DOFS);
 
-  GeometryType & geom = this->GetGeometry();
+  const GeometryType & geom = this->GetGeometry();
 
   for (SizeType i = 0; i < geom.size(); i++)
   {
-    NodeType & iNode = geom[i];
+    const NodeType & iNode = geom[i];
 
     ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
     ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
@@ -293,11 +293,11 @@ void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessI
   }
 }
 
-int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
+int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
   KRATOS_TRY
 
-      GeometryType& geom = GetGeometry();
+      const GeometryType& geom = GetGeometry();
 
   // verify that the variables are correctly initialized
   if(DISPLACEMENT.Key() == 0)
@@ -441,7 +441,7 @@ void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step) 
   }
 }
 
-void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::InitializeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
   mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
 
@@ -451,7 +451,7 @@ void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProc
     mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo)
 {
   mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
 
@@ -461,7 +461,7 @@ void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProces
     mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
   const PropertiesType& props = GetProperties();
   const GeometryType & geom = GetGeometry();
@@ -473,7 +473,7 @@ void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInf
   mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
   const PropertiesType& props = GetProperties();
   const GeometryType& geom = GetGeometry();
@@ -485,7 +485,7 @@ void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
   mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   if((rMassMatrix.size1() != OPT_NUM_DOFS) || (rMassMatrix.size2() != OPT_NUM_DOFS))
     rMassMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
@@ -522,7 +522,7 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
   }
 }
 
-void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
+void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   if((rDampingMatrix.size1() != OPT_NUM_DOFS) || (rDampingMatrix.size2() != OPT_NUM_DOFS))
     rDampingMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
@@ -532,13 +532,13 @@ void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, Pr
 
 void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                 VectorType& rRightHandSideVector,
-                                                ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo)
 {
   CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
 }
 
 void ShellThinElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                  ProcessInfo& rCurrentProcessInfo)
+                                                  const ProcessInfo& rCurrentProcessInfo)
 {
   Matrix dummy;
   CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
@@ -550,7 +550,7 @@ void ShellThinElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVect
 //
 // =====================================================================================
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                                        std::vector<double>& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
@@ -563,27 +563,27 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
   OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
                                                        std::vector<Vector>& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                                        std::vector<Matrix>& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
   if(TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
                                                        std::vector<array_1d<double,3> >& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
   if(TryGetValueOnIntegrationPoints_MaterialOrientation(rVariable, rValues, rCurrentProcessInfo)) return;
 }
 
-void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
+void ShellThinElement3D3N::CalculateOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable,
                                                        std::vector<array_1d<double,6> >& rValues,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
@@ -1236,7 +1236,7 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
 
 void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
+                                        const ProcessInfo& rCurrentProcessInfo,
                                         const bool LHSrequired,
                                         const bool RHSrequired)
 {

@@ -596,7 +596,7 @@ namespace Kratos
 					//generating the dofs
 					for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
 					{
-						Node<3>::DofType& rDof = *iii;
+						Node<3>::DofType &rDof = **iii;
 						Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
 
 						(p_new_dof)->FreeDof();
@@ -805,7 +805,7 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 				{
 					int index = outnew.neighborlist[base+i];
 					if(index > 0)
-						neighb(i) = *((el_begin + index-1).base());
+						neighb(i) = GlobalPointer<Element>(&*(el_begin + index-1)); 
 					else
 						neighb(i) = Element::WeakPointer();
 				}

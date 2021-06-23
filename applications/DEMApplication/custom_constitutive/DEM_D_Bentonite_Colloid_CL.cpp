@@ -109,7 +109,7 @@ namespace Kratos {
         }*/
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                        sliding, element1, element2, indentation, previous_indentation);
+                                              LocalRelVel, sliding, element1, element2, indentation, previous_indentation);
 
     }
 
@@ -123,9 +123,7 @@ namespace Kratos {
 
 //        const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-//        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-//        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-//        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+//        const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 //        const double equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mKn);
 //        const double equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * mKt);
 
@@ -172,6 +170,7 @@ namespace Kratos {
                                                                           double LocalElasticContactForce[3],
                                                                           double ViscoDampingLocalContactForce[3],
                                                                           const double LocalDeltDisp[3],
+                                                                          const double LocalRelVel[3],
                                                                           bool& sliding,
                                                                           SphericParticle* const element,
                                                                           NeighbourClassType* const neighbour,
@@ -190,9 +189,12 @@ namespace Kratos {
                                                                     Condition* const wall) {
 
         const double my_mass    = element->GetMass();
-        const double gamma = element->GetProperties()[DAMPING_GAMMA];
-        const double normal_damping_coefficient     = 2.0 * gamma * sqrt(my_mass * mKn);
-        const double tangential_damping_coefficient = 2.0 * gamma * sqrt(my_mass * mKt);
+
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
+
+        const double normal_damping_coefficient     = 2.0 * damping_gamma * sqrt(my_mass * mKn);
+        const double tangential_damping_coefficient = 2.0 * damping_gamma * sqrt(my_mass * mKt);
 
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];

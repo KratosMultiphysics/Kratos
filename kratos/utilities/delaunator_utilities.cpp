@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/delaunator_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -91,11 +92,10 @@ void CreateTriangleMeshFromNodes(ModelPart& rModelPart)
     // Ensure node order
     auto& r_nodes_root_array = rModelPart.GetRootModelPart().Nodes();
     const auto it_node_root_begin = r_nodes_root_array.begin();
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(r_nodes_root_array.size()); ++i) {
-        auto it_node = it_node_root_begin + i;
-        it_node->SetId(i + 1);
-    }
+    IndexPartition<std::size_t>(r_nodes_root_array.size()).for_each(
+        [&it_node_root_begin](std::size_t i_node)
+        { (it_node_root_begin + i_node)->SetId(i_node + 1); }
+    );
 
     // Getting nodes array
     const auto& r_nodes_array = rModelPart.Nodes();
@@ -232,6 +232,77 @@ std::vector<std::size_t> ComputeTrianglesConnectivity(const std::vector<Point>& 
     CleanTriangulateIO(vorout_mid);
 
     return connectivities;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnectivity(
+    const std::vector<double>& rCoordinates,
+    const std::vector<std::array<double,2>>& rSegments,
+    const double AreaConstraint)
+{
+    // Creating the containers for the input and output
+    struct triangulateio in_mid, out_mid, vorout_mid;
+
+    InitializeTriangulateIO(in_mid);
+    InitializeTriangulateIO(out_mid);
+    InitializeTriangulateIO(vorout_mid);
+
+    // Initialize the boundary points coordinates list
+    // Note 1: that InitializeTriangulateIO allocates nothing for this by default
+    // Note 2: this will be deallocated within the ClearTriangulateIO call below
+    in_mid.numberofpoints = rCoordinates.size()/2;
+    in_mid.pointlist = (REAL *) malloc(in_mid.numberofpoints * 2 * sizeof(REAL));
+
+    for(std::size_t i = 0; i < rCoordinates.size(); ++i) {
+        in_mid.pointlist[i] = rCoordinates[i];
+    }
+
+    // Initilize the segment list (note that default zero markers are assumed)
+    in_mid.numberofsegments = rSegments.size();
+    in_mid.segmentlist = (int*) malloc(in_mid.numberofsegments * 2 * sizeof(int));
+    in_mid.segmentmarkerlist = (int*) malloc(in_mid.numberofsegments * sizeof(int));
+    for (std::size_t i = 0; i < rSegments.size(); ++i) {
+        const auto& r_segment = rSegments[i];
+        in_mid.segmentlist[2*i] = r_segment[0];
+        in_mid.segmentlist[2*i + 1] = r_segment[1];
+    }
+
+    // Check https://www.cs.cmu.edu/~quake/triangle.switch.html for a detailed Triangle switches description
+    // "Q" quiet (no terminal output except errors)
+    // "q" quality mesh generation with no angles smaller than 20 degrees
+    // "p" triangulates a Planar Straight Line Graph
+    // "z" numbers all items starting from zero (rather than one)
+    // "a" imposes a maximum triangle area constrain
+    std::string meshing_options = AreaConstraint > 0.0 ? "Qqpza" + std::to_string(AreaConstraint) : "Qqpz";
+    triangulate(&meshing_options[0], &in_mid, &out_mid, &vorout_mid);
+
+    // Save the obtained connectivities in an output std::vector
+    const auto& r_triangles_list = out_mid.trianglelist;
+    const std::size_t number_of_triangles = out_mid.numberoftriangles;
+    std::vector<std::size_t> connectivities(3 * number_of_triangles);
+    IndexPartition<std::size_t>(number_of_triangles).for_each([&](std::size_t iTriangle){
+        connectivities[3 * iTriangle] = r_triangles_list[3 * iTriangle];
+        connectivities[3 * iTriangle + 1] = r_triangles_list[3 * iTriangle + 1];
+        connectivities[3 * iTriangle + 2] = r_triangles_list[3 * iTriangle + 2];
+    });
+
+    // Save the obtained coordinates in an output std::vector
+    const auto& r_out_points_list = out_mid.pointlist;
+    const std::size_t number_of_output_points = out_mid.numberofpoints;
+    std::vector<double> output_coordinates(2 * number_of_output_points);
+    IndexPartition<std::size_t>(number_of_output_points).for_each([&](std::size_t iPoint){
+        output_coordinates[2 * iPoint] = r_out_points_list[2 * iPoint];
+        output_coordinates[2 * iPoint + 1] = r_out_points_list[2 * iPoint + 1];
+    });
+
+    // Clean the triangle database
+    CleanTriangulateIO(in_mid);
+    CleanTriangulateIO(out_mid);
+    CleanTriangulateIO(vorout_mid);
+
+    return std::make_pair(connectivities, output_coordinates);
 }
 
 } // namespace DelaunatorUtilities

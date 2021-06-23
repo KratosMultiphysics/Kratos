@@ -66,7 +66,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of LaplaceElement
-    KRATOS_CLASS_POINTER_DEFINITION(LaplaceElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LaplaceElement);
 
     ///@}
     ///@name Life Cycle

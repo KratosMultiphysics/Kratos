@@ -90,6 +90,37 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
   KRATOS_CATCH("");
 }
 
+void InitializeMeshPartWithElements(
+    ModelPart& rDestinationModelPart,
+    ModelPart& rOriginModelPart,
+    Properties::Pointer pProperties,
+    const std::string& rElementName)
+{
+    KRATOS_TRY
+
+    // initializing mesh nodes and variables
+    rDestinationModelPart.Nodes() = rOriginModelPart.Nodes();
+
+    auto& r_elements = rDestinationModelPart.Elements();
+
+    // clear all existing elements
+    r_elements.clear();
+
+    const Element& r_reference_element = KratosComponents<Element>::Get(rElementName);
+
+    KRATOS_ERROR_IF(rOriginModelPart.GetCommunicator().GlobalNumberOfElements() == 0)
+        << "No elements are found in " << rOriginModelPart.Name()
+        << " to initialize " << rDestinationModelPart.Name() << ".\n";
+
+    for (auto& r_origin_element : rOriginModelPart.Elements()) {
+        auto p_destination_element = r_reference_element.Create(
+            r_origin_element.Id(), r_origin_element.pGetGeometry(), pProperties);
+        r_elements.push_back(p_destination_element);
+    }
+
+    KRATOS_CATCH("");
+}
+
 void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double, 3> >& rVariable,
                                                  const Variable< array_1d<double, 3> >& rVariableToSuperImpose)
 {

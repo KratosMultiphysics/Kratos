@@ -96,41 +96,39 @@ namespace Kratos {
 
             ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pElements.size(), this->GetElementPartition());
-
             double velocity_X = 0.0, velocity_Y = 0.0, velocity_Z = 0.0;
-
             int number_of_elements = 0;
 
-            #pragma omp parallel for reduction(+: velocity_X, velocity_Y, velocity_Z, number_of_elements)
+            using MultipleReduction = CombinedReduction<
+                SumReduction<double>,
+                SumReduction<double>,
+                SumReduction<double>,
+                SumReduction<int>>;
 
-            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
+            std::tie(velocity_X,velocity_Y,velocity_Z,number_of_elements) = block_for_each<MultipleReduction>(pElements, [&](ModelPart::ElementType& rElement){
+                array_1d<double,3> coor = rElement.GetGeometry()[0].Coordinates();
+                double local_sum_x = 0.0;
+                double local_sum_y = 0.0;
+                double local_sum_z = 0.0;
+                int local_sum_elem = 0;
 
-                ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-                ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+                if (coor[0] >= low_point[0] && coor[0] <= high_point[0] &&
+                    coor[1] >= low_point[1] && coor[1] <= high_point[1] &&
+                    coor[2] >= low_point[2] && coor[2] <= high_point[2]) {
 
-                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
+                    local_sum_x += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
+                    local_sum_y += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
+                    local_sum_z += rElement.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
 
-                    array_1d<double,3> coor = (it)->GetGeometry()[0].Coordinates();
-
-                    if (coor[0] >= low_point[0] && coor[0] <= high_point[0] &&
-                        coor[1] >= low_point[1] && coor[1] <= high_point[1] &&
-                        coor[2] >= low_point[2] && coor[2] <= high_point[2]) {
-
-                        velocity_X += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_X);
-                        velocity_Y += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Y);
-                        velocity_Z += (it)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY_Z);
-
-                        number_of_elements++;
-                    }
-
-                } //elements for
+                    local_sum_elem++;
+                }
 
                 for (int i = 0; i < 3; ++i) {
                     KRATOS_ERROR_IF(high_point[i] < low_point[i]) << "Check the limits of the Velocity Trap Box. Maximum coordinates smaller than minimum coordinates." << std::endl;
                 }
 
-            } //parallel for
+                return std::make_tuple(local_sum_x, local_sum_y, local_sum_z, local_sum_elem); // note that these may have different types
+            });
 
             if (number_of_elements) {
                 velocity_X /= number_of_elements;
@@ -139,7 +137,6 @@ namespace Kratos {
             }
 
             array_1d<double,3> velocity;
-
             velocity[0] = velocity_X;
             velocity[1] = velocity_Y;
             velocity[2] = velocity_Z;
@@ -334,76 +331,52 @@ namespace Kratos {
 
         double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart, ModelPart& rContactModelPart, const ProcessInfo& r_process_info) {
 
-            double adimensional_value = 0.0;
-
             ElementsArrayType& pParticleElements = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
-
-            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pParticleElements.size(), this->GetElementPartition());
-
             array_1d<double,3> particle_forces;
-
             const array_1d<double,3>& gravity = r_process_info[GRAVITY];
 
-            double total_force = 0.0;
+            double total_force = block_for_each<MaxReduction<double>>(pParticleElements, [&](ModelPart::ElementType& rParticleElement) -> double {
+                Element::GeometryType& geom = rParticleElement.GetGeometry();
+                double local_force = 0.0;
+                const auto& n0 = geom[0];
+                if (n0.IsNot(DEMFlags::FIXED_VEL_X) &&
+                    n0.IsNot(DEMFlags::FIXED_VEL_Y) &&
+                    n0.IsNot(DEMFlags::FIXED_VEL_Z)){
 
-            //#pragma omp parallel for
-            #pragma omp parallel for reduction(+:total_force)
-            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
-                ElementsArrayType::iterator it_begin = pParticleElements.ptr_begin() + this->GetElementPartition()[k];
-                ElementsArrayType::iterator it_end   = pParticleElements.ptr_begin() + this->GetElementPartition()[k + 1];
+                    particle_forces  = n0.FastGetSolutionStepValue(TOTAL_FORCES);
+                    double mass = n0.FastGetSolutionStepValue(NODAL_MASS);
+                    particle_forces[0] += mass * gravity[0];
+                    particle_forces[1] += mass * gravity[1];
+                    particle_forces[2] += mass * gravity[2];
 
-                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it) {
-
-                    Element::GeometryType& geom = it->GetGeometry();
-
-                    if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z))
-                    {
-                        particle_forces  = geom[0].FastGetSolutionStepValue(TOTAL_FORCES);
-                        double mass = geom[0].FastGetSolutionStepValue(NODAL_MASS);
-
-
-                        particle_forces[0] += mass * gravity[0];
-                        particle_forces[1] += mass * gravity[1];
-                        particle_forces[2] += mass * gravity[2];
-
-                        double module = 0.0;
-                        GeometryFunctions::module(particle_forces, module);
-
-                        total_force += module;
-
-                    } //if
-
-                }//balls
-
-            }//paralel
-
-            ElementsArrayType& pContactElements        = rContactModelPart.GetCommunicator().LocalMesh().Elements();
-
-            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), pContactElements.size(), this->GetElementPartition());
-
-            array_1d<double,3> contact_forces;
-            double total_elastic_force = 0.0;
-
-            #pragma omp parallel for reduction(+:total_elastic_force)
-            for (int k = 0; k < ParallelUtilities::GetNumThreads(); k++) {
-                ElementsArrayType::iterator it_begin = pContactElements.ptr_begin() + this->GetElementPartition()[k];
-                ElementsArrayType::iterator it_end   = pContactElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-                for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-
-                    Element::GeometryType& geom = it->GetGeometry();
-
-                    if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) && geom[0].IsNot(DEMFlags::FIXED_VEL_Y) && geom[0].IsNot(DEMFlags::FIXED_VEL_Z) &&
-                        geom[1].IsNot(DEMFlags::FIXED_VEL_X) && geom[1].IsNot(DEMFlags::FIXED_VEL_Y) && geom[1].IsNot(DEMFlags::FIXED_VEL_Z)) {
-
-                        contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);
-                        double module = 0.0;
-                        GeometryFunctions::module(contact_forces, module);
-                        total_elastic_force += module;
-                    }
+                    double module = 0.0;
+                    GeometryFunctions::module(particle_forces, module);
+                    local_force += module;
                 }
-            }
+                return local_force;
+            }); // note that the value to be reduced should be returned, in this case local_force.
 
+
+            ElementsArrayType& pContactElements = rContactModelPart.GetCommunicator().LocalMesh().Elements();
+            array_1d<double,3> contact_forces;
+
+            double total_elastic_force = block_for_each<MaxReduction<double>>(pContactElements, [&](ModelPart::ElementType& rContactElement) -> double {
+                Element::GeometryType& geom = rContactElement.GetGeometry();
+                double local_force = 0.0;
+                if (geom[0].IsNot(DEMFlags::FIXED_VEL_X) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Y) &&
+                    geom[0].IsNot(DEMFlags::FIXED_VEL_Z)){
+
+                    contact_forces  = rContactElement.GetValue(LOCAL_CONTACT_FORCE);
+                    double module = 0.0;
+                    GeometryFunctions::module(contact_forces, module);
+                    local_force += module;
+                }
+                return local_force;
+            }); // note that the value to be reduced should be returned, in this case local_force.
+
+
+            double adimensional_value = 0.0;
             if (total_elastic_force != 0.0) {
                 adimensional_value =  total_force/total_elastic_force;
             }
@@ -414,13 +387,6 @@ namespace Kratos {
             return adimensional_value;
 
         }//QuasiStaticAdimensionalNumber
-
-
-        std::vector<unsigned int>& GetElementPartition() {return (mElementPartition);};
-
-    protected:
-
-        std::vector<unsigned int> mElementPartition;
 
     }; // Class PostUtilities
 

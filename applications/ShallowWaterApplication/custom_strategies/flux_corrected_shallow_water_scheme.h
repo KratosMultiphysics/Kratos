@@ -20,7 +20,6 @@
 // Project includes
 #include "shallow_water_residual_based_bdf_scheme.h"
 #include "processes/find_global_nodal_neighbours_process.h"
-#include "utilities/parallel_utilities.h"
 #include "includes/kratos_parameters.h"
 #include "custom_utilities/flux_limiter.h"
 
@@ -131,7 +130,7 @@ public:
     void Initialize(ModelPart& rModelPart) override
     {
         // Memory allocation
-        const IndexType num_threads = OpenMPUtils::GetNumThreads();
+        const IndexType num_threads = ParallelUtilities::GetNumThreads();
         mMl.resize(num_threads);
 
         // Initialization of non-historical variables
@@ -149,8 +148,7 @@ public:
         });
 
         // Initialization and execution of nodal neighbours search
-        const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-        FindGlobalNodalNeighboursProcess(r_data_communicator, rModelPart).Execute();
+        FindGlobalNodalNeighboursProcess(rModelPart).Execute();
 
         // Finalization of initialize
         SWBaseType::Initialize(rModelPart);

@@ -28,10 +28,7 @@ def main():
     parser.add_argument('-f', '--mpi_flags', default="")
     parser.add_argument('-p', '--num_processes_flag', default="-np")
 
-    try:
-        args = parser.parse_args()
-    except:
-        sys.exit(2)
+    args = parser.parse_args()
 
     # Set timeout of the different levels
     signalTime = None
@@ -39,8 +36,6 @@ def main():
         signalTime = 60
     elif args.level == 'nightly':
         signalTime = 900
-
-    level = "mpi_" + args.level
 
     # Create the commands
     commander = testing_utils.Commander()
@@ -57,7 +52,7 @@ def main():
             args.mpi_flags,
             args.num_processes_flag,
             args.processes,
-            level,
+            args.level,
             args.verbosity,
             args.command,
             signalTime
@@ -78,7 +73,7 @@ def main():
                 args.mpi_flags,
                 args.num_processes_flag,
                 args.processes,
-                level,
+                args.level,
                 args.verbosity,
                 args.command,
                 signalTime

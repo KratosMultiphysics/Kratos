@@ -80,7 +80,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
         GeneralVariables Variables;
 
         // Calculating shape function
-        Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+        MPMShapeFunctionPointValues(Variables.N);
 
         // Here MPC contribution of normal vector are added
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -138,7 +138,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     GeneralVariables Variables;
 
     // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, m_xg);
+    MPMShapeFunctionPointValues(Variables.N);
     Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
@@ -281,7 +281,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
 }
 
 void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
@@ -299,7 +299,7 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
 
 void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)

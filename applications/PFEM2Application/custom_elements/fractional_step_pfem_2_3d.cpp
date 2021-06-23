@@ -56,7 +56,7 @@ namespace Kratos
 	//************************************************************************************
 
 
-	void FractionalStepPFEM23D::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+	void FractionalStepPFEM23D::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
@@ -85,7 +85,7 @@ namespace Kratos
 
 	void FractionalStepPFEM23D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 													VectorType& rRightHandSideVector,
-													ProcessInfo& rCurrentProcessInfo)
+													const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
@@ -110,7 +110,7 @@ namespace Kratos
 	//************************************************************************************
 
 	void FractionalStepPFEM23D::EquationIdVector(EquationIdVectorType& rResult,
-												ProcessInfo& rCurrentProcessInfo)
+												const ProcessInfo& rCurrentProcessInfo) const
 	{
 		KRATOS_TRY;
 
@@ -136,7 +136,7 @@ namespace Kratos
 
 
 	void FractionalStepPFEM23D::GetDofList(DofsVectorType& rElementalDofList,
-										  ProcessInfo& rCurrentProcessInfo)
+										  const ProcessInfo& rCurrentProcessInfo) const
 	{
 		KRATOS_TRY;
 
@@ -166,7 +166,7 @@ namespace Kratos
 
 
 
-	void FractionalStepPFEM23D::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void FractionalStepPFEM23D::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -469,7 +469,7 @@ namespace Kratos
 	//************************************************************************************
 
 
-		void FractionalStepPFEM23D::CalculateViscousRHS(ProcessInfo& rCurrentProcessInfo)
+		void FractionalStepPFEM23D::CalculateViscousRHS(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -681,7 +681,7 @@ namespace Kratos
 	//***************************************************************************
 
 
-	void FractionalStepPFEM23D::CalculatePressureProjection(ProcessInfo& rCurrentProcessInfo)
+	void FractionalStepPFEM23D::CalculatePressureProjection(const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 		            const unsigned int TDim=3;
@@ -947,7 +947,7 @@ namespace Kratos
 	//************************************************************************************
 	// this subroutine calculates the nodal contributions for the explicit steps of the
 	// fractional step procedure
-	void FractionalStepPFEM23D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+	void FractionalStepPFEM23D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
 		///WARNING!!!! not calculating the pressure projection since i'm supposing it's being done before!
@@ -960,7 +960,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FractionalStepPFEM23D::PressureEquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+	void FractionalStepPFEM23D::PressureEquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(rResult.size() != number_of_nodes)
@@ -973,7 +973,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void FractionalStepPFEM23D::GetPressureDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+	void FractionalStepPFEM23D::GetPressureDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
 		if(ElementalDofList.size() != number_of_nodes)
@@ -1066,7 +1066,7 @@ bool FractionalStepPFEM23D::InvertMatrix(const T& input, T& inverse)
 
 
    //TO PRINT ELEMENTAL VARIABLES (ONLY ONE GAUSS POINT PER ELEMENT)
-    void FractionalStepPFEM23D::GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void FractionalStepPFEM23D::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo)
 	{
@@ -1111,7 +1111,7 @@ bool FractionalStepPFEM23D::InvertMatrix(const T& input, T& inverse)
 	}
 
 
-	  void FractionalStepPFEM23D::GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+	  void FractionalStepPFEM23D::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rValues,
             const ProcessInfo& rCurrentProcessInfo)
 	{

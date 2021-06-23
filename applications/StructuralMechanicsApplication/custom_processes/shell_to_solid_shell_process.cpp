@@ -19,6 +19,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -198,12 +199,12 @@ void ShellToSolidShellProcess<TNumNodes>::ExecuteExtrusion()
             auto& r_node = r_geometry[i];
 
             double& node_thickness = r_node.GetValue(THICKNESS);
-            #pragma omp atomic
-            node_thickness += thickness;
+
+            AtomicAdd(node_thickness, thickness);
 
             double& nodal_area = r_node.GetValue(NODAL_AREA);
-            #pragma omp atomic
-            nodal_area += 1.0;
+
+            AtomicAdd(nodal_area, 1.0);
         }
     }
 
@@ -620,11 +621,8 @@ inline void ShellToSolidShellProcess<TNumNodes>::ComputeNodesMeanNormalModelPart
             auto& this_node = this_geometry[i];
             aux_coords = this_geometry.PointLocalCoordinates(aux_coords, this_node.Coordinates());
             const array_1d<double, 3>& r_normal = this_geometry.UnitNormal(aux_coords);
-            auto& aux_normal = this_node.GetValue(NORMAL);
-            for (unsigned int index = 0; index < 3; ++index) {
-                #pragma omp atomic
-                aux_normal[index] += r_normal[index];
-            }
+            array_1d<double, 3>& aux_normal = this_node.GetValue(NORMAL);
+            AtomicAdd(aux_normal, r_normal);
         }
     }
 

@@ -436,22 +436,22 @@ public:
     ///@name PointerVector Operators
     ///@{
 
-     virtual TPointType& operator[](const SizeType& i)
+    TPointType& operator[](const SizeType& i)
     {
         return mPoints[i];
     }
 
-    virtual TPointType const& operator[](const SizeType& i) const
+    TPointType const& operator[](const SizeType& i) const
     {
         return mPoints[i];
     }
 
-    virtual PointPointerType& operator()(const SizeType& i)
+    PointPointerType& operator()(const SizeType& i)
     {
         return mPoints(i);
     }
 
-    virtual ConstPointPointerType& operator()(const SizeType& i) const
+    ConstPointPointerType& operator()(const SizeType& i) const
     {
         return mPoints(i);
     }
@@ -460,60 +460,60 @@ public:
     ///@name PointerVector Operations
     ///@{
 
-    virtual iterator                   begin()
+    iterator                   begin()
     {
         return iterator(mPoints.begin());
     }
-    virtual const_iterator             begin() const
+    const_iterator             begin() const
     {
         return const_iterator(mPoints.begin());
     }
-    virtual iterator                   end()
+    iterator                   end()
     {
         return iterator(mPoints.end());
     }
-    virtual const_iterator             end() const
+    const_iterator             end() const
     {
         return const_iterator(mPoints.end());
     }
-    virtual ptr_iterator               ptr_begin()
+    ptr_iterator               ptr_begin()
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_const_iterator         ptr_begin() const
+    ptr_const_iterator         ptr_begin() const
     {
         return mPoints.ptr_begin();
     }
-    virtual ptr_iterator               ptr_end()
+    ptr_iterator               ptr_end()
     {
         return mPoints.ptr_end();
     }
-    virtual ptr_const_iterator         ptr_end() const
+    ptr_const_iterator         ptr_end() const
     {
         return mPoints.ptr_end();
     }
-    virtual PointReferenceType        front()       /* nothrow */
+    PointReferenceType        front()       /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual ConstPointReferenceType  front() const /* nothrow */
+    ConstPointReferenceType  front() const /* nothrow */
     {
         assert(!empty());
         return mPoints.front();
     }
-    virtual PointReferenceType        back()        /* nothrow */
+    PointReferenceType        back()        /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
-    virtual ConstPointReferenceType  back() const  /* nothrow */
+    ConstPointReferenceType  back() const  /* nothrow */
     {
         assert(!empty());
         return mPoints.back();
     }
 
-    virtual SizeType size() const
+    SizeType size() const
     {
         return mPoints.size();
     }
@@ -533,32 +533,32 @@ public:
         KRATOS_ERROR << "Trying to access PointsNumberInDirection from geometry base class." << std::endl;
     }
 
-    virtual SizeType max_size() const
+    SizeType max_size() const
     {
         return mPoints.max_size();
     }
 
-    virtual void swap(GeometryType& rOther)
+    void swap(GeometryType& rOther)
     {
         mPoints.swap(rOther.mPoints);
     }
 
-    virtual void push_back(PointPointerType x)
+    void push_back(PointPointerType x)
     {
         mPoints.push_back(x);
     }
 
-    virtual void clear()
+    void clear()
     {
         mPoints.clear();
     }
 
-    virtual void reserve(int dim)
+    void reserve(int dim)
     {
         mPoints.reserve(dim);
     }
 
-    virtual int capacity()
+    int capacity()
     {
         return mPoints.capacity();
     }
@@ -568,13 +568,13 @@ public:
     /////@{
 
     ///** Gives a reference to underly normal container. */
-    virtual PointPointerContainerType& GetContainer()
+    PointPointerContainerType& GetContainer()
     {
         return mPoints.GetContainer();
     }
 
     /** Gives a constant reference to underly normal container. */
-    virtual const PointPointerContainerType& GetContainer() const
+    const PointPointerContainerType& GetContainer() const
     {
         return mPoints.GetContainer();
     }
@@ -635,10 +635,103 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /* Assigns a value to the geometry,
+     * according to a variable.
+     * Allows dynamic interfaces with each respective geometry.
+     */
+
+    /// Assign with bool
+    virtual void Assign(
+        const Variable<bool>& rVariable,
+        const bool Input) {}
+
+    /// Assign with int
+    virtual void Assign(
+        const Variable<int>& rVariable,
+        const int Input) {}
+
+    /// Assign with double
+    virtual void Assign(
+        const Variable<double>& rVariable,
+        const double Input) {}
+
+    /// Assign with array_1d<double, 2>
+    virtual void Assign(
+        const Variable<array_1d<double, 2>>& rVariable,
+        const array_1d<double, 2>& rInput) {}
+
+    /// Assign with array_1d<double, 3>
+    virtual void Assign(
+        const Variable<array_1d<double, 3>>& rVariable,
+        const array_1d<double, 3>& rInput) {}
+
+    /// Assign with array_1d<double, 6>
+    virtual void Assign(
+        const Variable<array_1d<double, 6>>& rVariable,
+        const array_1d<double, 6>& rInput) {}
+
+    /// Assign with Vector
+    virtual void Assign(
+        const Variable<Vector>& rVariable,
+        const Vector& rInput) {}
+
+    /// Assign with Matrix
+    virtual void Assign(
+        const Variable<Matrix>& rVariable,
+        const Matrix& rInput) {}
+
+    /* Calculate either provides, gets or calculates a certain value,
+     * according to a variable.
+     */
+
+    /// Calculate with bool
+    virtual void Calculate(
+        const Variable<bool>& rVariable,
+        bool& rOutput) const {}
+
+    /// Calculate with int
+    virtual void Calculate(
+        const Variable<int>& rVariable,
+        int& rOutput) const {}
+
+    /// Calculate with double
+    virtual void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput) const {}
+
+    /// Calculate with array_1d<double, 2>
+    virtual void Calculate(
+        const Variable<array_1d<double, 2>>& rVariable,
+        array_1d<double, 2>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 3>
+    virtual void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const {}
+
+    /// Calculate with array_1d<double, 6>
+    virtual void Calculate(
+        const Variable<array_1d<double, 6>>& rVariable,
+        array_1d<double, 6>& rOutput) const {}
+
+    /// Calculate with Vector
+    virtual void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const {}
+
+    /// Calculate with Matrix
+    virtual void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput) const {}
+
+    ///@}
     ///@name Inquiry
     ///@{
 
-    virtual bool empty() const
+    bool empty() const
     {
         return mPoints.empty();
     }
@@ -647,9 +740,120 @@ public:
     ///@name Operations
     ///@{
 
-    virtual Pointer Create( PointsArrayType const& ThisPoints ) const
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        PointsArrayType const& rThisPoints
+    ) const
     {
-        return Pointer( new Geometry( ThisPoints, mpGeometryData ) );
+        // Create geometry
+        auto p_geom = this->Create(0, rThisPoints);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+    ) const
+    {
+        return Pointer( new Geometry( NewGeometryId, rThisPoints, mpGeometryData));
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        PointsArrayType const& rThisPoints
+        ) const
+    {
+        auto p_geom = this->Create(0, rThisPoints);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const GeometryType& rGeometry
+    ) const
+    {
+        // Create geometry
+        auto p_geom = this->Create(0, rGeometry);
+
+        // Generate Id
+        IndexType id = reinterpret_cast<IndexType>(p_geom.get());
+
+        // Sets second bit to zero.
+        p_geom->SetIdSelfAssigned(id);
+
+        // Sets first bit to zero.
+        p_geom->SetIdNotGeneratedFromString(id);
+
+        // Sets Id
+        p_geom->SetIdWithoutCheck(id);
+
+        return p_geom;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    virtual Pointer Create(
+        const IndexType NewGeometryId,
+        const GeometryType& rGeometry
+    ) const
+    {
+        auto p_geometry = Pointer( new Geometry( NewGeometryId, rGeometry.Points(), mpGeometryData));
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param rNewGeometryName the name of the new geometry
+     * @param rGeometry Reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    Pointer Create(
+        const std::string& rNewGeometryName,
+        const GeometryType& rGeometry
+        ) const
+    {
+        auto p_geom = this->Create(0, rGeometry);
+        p_geom->SetId(rNewGeometryName);
+        return p_geom;
     }
 
     /** This methods will create a duplicate of all its points and
@@ -710,7 +914,7 @@ public:
     }
 
     /// Sets Id of this Geometry
-    void SetId(IndexType Id)
+    void SetId(const IndexType Id)
     {
         // The first bit of the Id is used to detect if Id
         // is int or hash of name. Second bit defines if Id
@@ -726,17 +930,17 @@ public:
     }
 
     /// Sets Id with the use of the name of this geometry
-    void SetId(std::string Name)
+    void SetId(const std::string& rName)
     {
-        mId = GenerateId(Name);
+        mId = GenerateId(rName);
     }
 
     /// Gets the corresponding hash-Id to a string name
-    static inline IndexType GenerateId(std::string Name)
+    static inline IndexType GenerateId(const std::string& rName)
     {
         // Create id hash from provided name.
         std::hash<std::string> string_hash_generator;
-        auto id = string_hash_generator(Name);
+        auto id = string_hash_generator(rName);
 
         // Sets first bit to one.
         SetIdGeneratedFromString(id);
@@ -1416,7 +1620,7 @@ public:
         IndexType IntegrationPointIndex,
         IntegrationMethod ThisMethod) const
     {
-        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex);
+        array_1d<double, 3> normal_vector = Normal(IntegrationPointIndex, ThisMethod);
         const double norm_normal = norm_2(normal_vector);
         if (norm_normal > std::numeric_limits<double>::epsilon())
             normal_vector /= norm_normal;
@@ -3368,6 +3572,15 @@ public:
         return rResult;
     }
 
+    virtual int Check() const
+    {
+        KRATOS_TRY
+
+        return 0;
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -3710,7 +3923,7 @@ private:
     ///@{
 
     /// Gets the corresponding self assigned id from pointer
-    IndexType GenerateSelfAssignedId()
+    IndexType GenerateSelfAssignedId() const
     {
         // Create id hash from provided name.
         IndexType id = reinterpret_cast<IndexType>(this);
@@ -3783,6 +3996,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /// Sets Id of this Geometry (avoids checks, can be used only as private)
+    void SetIdWithoutCheck(const IndexType Id)
+    {
+        mId = Id;
+    }
 
     static const GeometryData& GeometryDataInstance()
     {

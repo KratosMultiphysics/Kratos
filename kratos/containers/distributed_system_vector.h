@@ -61,6 +61,7 @@ class DistributedSystemVector
 public:
     ///@name Type Definitions
     ///@{
+    typedef TDataType value_type;
     typedef TIndexType IndexType;
     typedef int MpiIndexType;
 
@@ -74,7 +75,7 @@ public:
 
     DistributedSystemVector(const DistributedSparseGraph<IndexType>& rGraph)
             :
-            mrComm(rGraph.GetComm())
+            mpComm(&rGraph.GetComm())
     {
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rGraph.GetRowNumbering());
 
@@ -97,7 +98,7 @@ public:
     /// Copy constructor.
     explicit DistributedSystemVector(DistributedSystemVector const& rOther)
     :
-    mrComm(rOther.GetComm())
+    mpComm(&rOther.GetComm())
     {
         mpNumbering = Kratos::make_unique<DistributedNumbering<IndexType>>(rOther.GetNumbering());
         KRATOS_ERROR_IF(LocalSize() != rOther.LocalSize());
@@ -115,7 +116,7 @@ public:
     //WARNING: if a Distributed vector is constructed using this constructor, it cannot be used for assembly (non local entries are not precomputed)
     DistributedSystemVector(const DistributedNumbering<IndexType>& rNumbering)
             :
-            mrComm(rNumbering.GetComm())
+            mpComm(&rNumbering.GetComm())
     {
         mpNumbering = Kratos::make_unique< DistributedNumbering<IndexType> >( rNumbering );
         mLocalData.resize(rNumbering.LocalSize(),false);
@@ -128,7 +129,11 @@ public:
     ///@name Operators
     ///@{
     const DataCommunicator& GetComm() const{
-        return mrComm;
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const{
+        return mpComm;
     }
 
     const DistributedNumbering<IndexType>& GetNumbering() const
@@ -400,7 +405,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const DataCommunicator& mrComm;
+    const DataCommunicator* mpComm;
     typename DistributedNumbering<IndexType>::UniquePointer mpNumbering;
 
     DenseVector<TDataType> mLocalData; //contains the local data

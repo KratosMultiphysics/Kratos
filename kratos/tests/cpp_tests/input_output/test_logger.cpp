@@ -33,7 +33,7 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
-            KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
+            KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), 0);
 
             message << LoggerMessage::Severity::DETAIL
                 << LoggerMessage::Category::CRITICAL
@@ -195,7 +195,7 @@ namespace Kratos {
             std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: Test warning message - 0" : "";
 #else
             std::string expected_output = "";
-#endif  
+#endif
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
@@ -214,8 +214,8 @@ namespace Kratos {
             std::string expected_output = DataCommunicator::GetDefault().Rank() == 0 ? "[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: .[WARNING] TestWarning: ." : "";
 #else
             std::string expected_output = "";
-#endif            
-            
+#endif
+
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), expected_output.c_str());
         }
 

@@ -70,15 +70,21 @@ public:
     //constructor by local size - computes cpu bounds automatically
     DistributedNumbering(
         const DataCommunicator& rComm,
+        const IndexType LocalSize
+        )
+        : DistributedNumbering(&rComm,LocalSize)
+    {}
+
+    DistributedNumbering(
+        const DataCommunicator* pComm,
         const IndexType LocalSize)
         :
-        mrComm(rComm)
+        mpComm(pComm)
     {
-        mCpuBounds.resize(rComm.Size()+1);
+        mCpuBounds.resize(pComm->Size()+1);
 
         std::vector<IndexType> send_vect{LocalSize};
-        std::vector<IndexType> local_sizes = rComm.AllGather(send_vect);
-        
+        std::vector<IndexType> local_sizes = pComm->AllGather(send_vect);
         mCpuBounds[0] = 0;
         for(unsigned int i=1; i<mCpuBounds.size(); ++i)
             mCpuBounds[i] = mCpuBounds[i-1] + local_sizes[i-1];
@@ -90,12 +96,20 @@ public:
         const IndexType TotalSize,
         const MpiIndexType Nranks //note that we could obtain this by the rComm, but we need to distinguish this constructor from the previous
         )
-        :
-        mrComm(rComm)
-    {
-        KRATOS_ERROR_IF(rComm.Size() != Nranks) << "We expect Nranks to be the same as rComm.size()" << std::endl;
+        : DistributedNumbering(&rComm, TotalSize,Nranks)
+    {}
 
-        mCpuBounds.resize(rComm.Size()+1);
+    DistributedNumbering(
+        const DataCommunicator* pComm,
+        const IndexType TotalSize,
+        const MpiIndexType Nranks //note that we could obtain this by the rComm, but we need to distinguish this constructor from the previous
+        )
+        :
+        mpComm(pComm)
+    {
+        KRATOS_ERROR_IF(pComm->Size() != Nranks) << "We expect Nranks to be the same as pComm->size()" << std::endl;
+
+        mCpuBounds.resize(pComm->Size()+1);
 
         const IndexType local_size = TotalSize / Nranks;
         mCpuBounds[0] = 0;
@@ -103,20 +117,28 @@ public:
         for (int i=1; i<Nranks; i++) {
             mCpuBounds[i] = mCpuBounds[i-1] + local_size;
         }
-    }    
+    }
+
+    DistributedNumbering(
+        const DataCommunicator* pComm,
+        const std::vector<IndexType>& CpuBounds)
+        :
+        mpComm(pComm), mCpuBounds(CpuBounds)
+    {
+    }
 
     DistributedNumbering(
         const DataCommunicator& rComm,
         const std::vector<IndexType>& CpuBounds)
         :
-        mrComm(rComm), mCpuBounds(CpuBounds)
+        mpComm(&rComm), mCpuBounds(CpuBounds)
     {
     }
 
     ///Copy constructor
     DistributedNumbering(const DistributedNumbering& rOther)
         :
-        mrComm(rOther.GetComm()), mCpuBounds(rOther.GetCpuBounds())
+        mpComm(rOther.mpComm), mCpuBounds(rOther.GetCpuBounds())
     {
     }
 
@@ -128,7 +150,12 @@ public:
     ///@{
     const DataCommunicator& GetComm() const
     {
-        return mrComm;
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
     }
 
     inline IndexType LocalSize() const
@@ -181,10 +208,6 @@ public:
 
         IndexType owner_rank = (it-mCpuBounds.begin()-1);
 
-        KRATOS_DEBUG_ERROR_IF(owner_rank < 0) <<
-                                              "row RowIndex " << RowIndex <<
-                                              " is not owned by any processor " << std::endl;
-
         return owner_rank;
 
     }
@@ -215,13 +238,13 @@ public:
 protected:
 
 private:
-    const DataCommunicator& mrComm;
+    const DataCommunicator* mpComm;
     std::vector<IndexType> mCpuBounds;
 
     /// Assignment operator.
     DistributedNumbering& operator=(DistributedNumbering const& rOther)
     {
-        this->GetComm() = rOther.GetComm();
+        mpComm = rOther.mpComm;
         this->GetCpuBounds() = rOther.GetCpuBounds();
     }
 

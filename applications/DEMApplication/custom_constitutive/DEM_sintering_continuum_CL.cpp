@@ -33,7 +33,7 @@ namespace Kratos {
                                                         double& calculation_area) {}
 
         void DEM_sintering_continuum::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {}
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {}
 
 	void DEM_sintering_continuum::CalculateSinteringForces(const ProcessInfo& r_process_info,
 		const double OldLocalElasticContactForce[3],
@@ -65,18 +65,12 @@ namespace Kratos {
 		dihedral_angle = dihedral_angle * (Globals::Pi / 180); //// ZMIANY
 		//double final_neck_radius = minimal_radius * std::sin((dihedral_angle * (Globals::Pi / 180)) / 2);
 		double final_neck_radius = minimal_radius * std::sin(dihedral_angle / 2); //// ZMIANY
-		//KRATOS_WATCH(indentation);
-		//KRATOS_WATCH(actual_neck_radius);
-		//KRATOS_WATCH(final_neck_radius);
-
 
 		CalculateDampingCoeff(equiv_visco_damp_coeff_normal, kn, element1, element2);
 
 		sintering_displ_old = sintering_displ;
-		//KRATOS_WATCH(sintering_displ_old);
 		double elastic_contact_force;
 		double elastic_contact_force_old = - OldLocalElasticContactForce[2];
-		//KRATOS_WATCH(elastic_contact_force_old);
 
 		if (actual_neck_radius < final_neck_radius)
 		{
@@ -97,30 +91,19 @@ namespace Kratos {
 			double temperature = (temperature_element1 + temperature_element2) / 2;
 			double D_gb = pre_Dgb * std::exp(-enth_activ / (R_const * temperature));
 			double D_eff = (D_gb * gb_width * atomic_volume) / (k_const * temperature);
-			//KRATOS_WATCH(D_eff);
 			double visco_coeff = (Globals::Pi * actual_neck_radius*actual_neck_radius*actual_neck_radius*actual_neck_radius) / (8 * D_eff);
-			//KRATOS_WATCH(visco_coeff);
 			sinter_driv_force = Globals::Pi*surface_energy*(4 * minimal_radius*(1 - std::cos(dihedral_angle / 2)) + actual_neck_radius * std::sin(dihedral_angle / 2));
-			//KRATOS_WATCH(sinter_driv_force);
 			elastic_contact_force = elastic_contact_force_old *(1 / kn - delta_time * 0.5 / visco_coeff) + rel_vel * delta_time;
 			elastic_contact_force = elastic_contact_force / (1 / kn + delta_time * 0.5 / visco_coeff);
-			//KRATOS_WATCH(elastic_contact_force);
 			double sinter_vel = (elastic_contact_force + elastic_contact_force_old) / (2 * visco_coeff);
 			sintering_displ = sintering_displ_old + sinter_vel * delta_time;
-			//KRATOS_WATCH(sintering_displ);
 			damping_force = equiv_visco_damp_coeff_normal * (rel_vel - sinter_vel);
-			//KRATOS_WATCH(equiv_visco_damp_coeff_normal);
-			//KRATOS_WATCH(sinter_vel);
-			//KRATOS_WATCH(damping_force);
-			//KRATOS_WATCH(damping_force);
 		}
 		else //equilibrium state achieved
 		{
 			sinter_driv_force = 0;
 			damping_force = equiv_visco_damp_coeff_normal * rel_vel;
 			elastic_contact_force = kn * (indentation - sintering_displ) * 0.666666666666666;
-			//KRATOS_WATCH(kn);
-			//KRATOS_WATCH(elastic_contact_force);
 		}
 		//sintering_displ = - sintering_displ;
 		LocalElasticContactForce[2] = - elastic_contact_force;
@@ -180,10 +163,7 @@ namespace Kratos {
 
 		const double equiv_mass = 1.0 / (1.0 / my_mass + 1.0 / other_mass);
 
-		const double my_gamma = element1->GetProperties()[DAMPING_GAMMA];
-		const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-		const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
-		//equiv_gamma = 0.8;
+		const double& equiv_gamma = (*mpProperties)[DAMPING_GAMMA];
 
 		equiv_visco_damp_coeff_normal = 2.0 * equiv_gamma * sqrt(equiv_mass * kn);
 	}
@@ -219,8 +199,6 @@ namespace Kratos {
 
         SinteringSphericContinuumParticle* p_sintering_element1 = dynamic_cast<SinteringSphericContinuumParticle*>(element1);
         p_sintering_element1->mSinteringDisplacement = p_sintering_element1->mOldNeighbourSinteringDisplacement[i_neighbour_count];
-		//KRATOS_WATCH(p_sintering_element1->mSinteringDisplacement);
-		//KRATOS_WATCH(indentation);
 
         if (element1->Is(DEMFlags::IS_SINTERING) && element2->Is(DEMFlags::IS_SINTERING)) {
             CalculateForcesOfSintering(r_process_info, OldLocalElasticContactForce, LocalElasticContactForce, LocalRelVel[2], indentation,
@@ -240,8 +218,10 @@ namespace Kratos {
             CalculateTangentialForces(OldLocalElasticContactForce,
                                     LocalElasticContactForce,
                                     LocalElasticExtraContactForce,
+									ViscoDampingLocalContactForce,
                                     LocalCoordSystem,
                                     LocalDeltDisp,
+									LocalRelVel,
                                     kt_el,
                                     equiv_shear,
                                     contact_sigma,
@@ -270,19 +250,16 @@ namespace Kratos {
 
 		KRATOS_TRY
 
-			int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
+		int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
-		Properties& element1_props = element1->GetProperties();
-		Properties& element2_props = element2->GetProperties();
-		double mTensionLimit;
 		double minimal_radius;
 		double kn = 0;
 		indentation = - indentation;
 
 		InitializeContact(element1, element2, indentation, minimal_radius, kn, sintering_displ);
 
-		mTensionLimit = 0.5 * (element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
-		const double limit_force = mTensionLimit * calculation_area;
+		const double& tension_limit = (*mpProperties)[CONTACT_SIGMA_MIN];
+		const double limit_force = tension_limit * calculation_area;
 		if (indentation <= 0.0) { //COMPRESSION
 			LocalElasticContactForce[2] = - kn * (indentation - sintering_displ) * 0.666666666666666;
 		}

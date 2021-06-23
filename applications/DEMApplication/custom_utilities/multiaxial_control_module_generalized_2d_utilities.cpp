@@ -856,8 +856,8 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateAcceleration(const 
     }
 
     // TODO: possible CM enhancement
-        // Investigate more on how to limit acceleration
-    // Limit acceleration.
+    // Investigate more on how to limit acceleration
+    // Limit acceleration
     double norm_stiffness = 0.0;
     for(unsigned int i = 0; i < mStiffness.size1(); i++) {
         norm_stiffness += mStiffness(i,i)*mStiffness(i,i);

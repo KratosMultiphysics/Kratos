@@ -38,6 +38,11 @@ class EmptySolverForTesting(PythonSolver):
         self.model_part.AddNodalSolutionStepVariable(SW.BATHYMETRY)
         self.model_part.AddNodalSolutionStepVariable(SW.MANNING)
 
+    def AddDofs(self):
+        KM.VariableUtils().AddDof(KM.MOMENTUM_X, self.model_part)
+        KM.VariableUtils().AddDof(KM.MOMENTUM_Y, self.model_part)
+        KM.VariableUtils().AddDof(SW.HEIGHT, self.model_part)
+
     def GetMinimumBufferSize(self):
         return 2
 

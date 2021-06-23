@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 print(os.getpid())
@@ -24,6 +22,7 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase)
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
 
     def Initialize(self):
         super().Initialize()
@@ -127,7 +126,9 @@ class DEM2D_ControlModuleTestSolutionRadialMultiDofs(DEMAnalysisStage, KratosUni
         self.assertTrue(first_node_found)
         self.assertTrue(second_node_found)
 
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
+
 class TestDEM2DControlModule(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -137,19 +138,19 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     def test_DEM2DControlModuleRadial(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEMRadialCM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolutionRadial, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     def test_DEM2DControlModuleRadialMultiDofs(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEMRadialMultiDofsCM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolutionRadialMultiDofs, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     def tearDown(self):
         file_to_remove = os.path.join("DEM2D_control_module_tests_files", "TimesPartialRelease")

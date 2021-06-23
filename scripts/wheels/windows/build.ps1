@@ -15,7 +15,6 @@ function exec_build($python, $pythonPath) {
 
 function exec_build_cotire($python, $pythonPath) {
     cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) ON"
-    cmake --build "$($kratosRoot)/build/Release" --target all_unity -- /property:configuration=Release /p:Platform=x64
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 

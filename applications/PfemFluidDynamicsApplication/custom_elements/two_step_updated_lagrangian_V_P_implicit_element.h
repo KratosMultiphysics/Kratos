@@ -207,7 +207,7 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize() override{};
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
@@ -234,6 +234,19 @@ namespace Kratos
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitElement::CalculateRightHandSide not implemented", "");
       KRATOS_CATCH("");
     }
+
+
+  void CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
+                                   std::vector<bool> &rOutput,
+                                   const ProcessInfo &rCurrentProcessInfo) override;
+
+  void CalculateOnIntegrationPoints(const Variable<double> &rVariable,
+                                   std::vector<double> &rOutput,
+                                   const ProcessInfo &rCurrentProcessInfo) override;
+
+  void CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
+                                   std::vector<Vector> &rOutput,
+                                   const ProcessInfo &rCurrentProcessInfo) override;
 
     /* // The following methods have different implementations depending on TDim */
     /* /// Provides the global indices for each one of this element's local rows */
@@ -327,22 +340,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void GetValueOnIntegrationPoints(const Variable<bool> &rVariable,
-                                     std::vector<bool> &rOutput,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rOutput,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                     std::vector<Vector> &rOutput,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>> &rVariable,
-                                     std::vector<array_1d<double, 3>> &rOutput,
-                                     const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
