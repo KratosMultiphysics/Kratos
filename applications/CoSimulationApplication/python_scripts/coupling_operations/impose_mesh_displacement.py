@@ -60,6 +60,7 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
 
             if list(rotation) != [0,0,0]:
                 
+                # TODO: Some things can go out of the loop
                 #print()
                 rotation = np.array(rotation)
                 #print("Rotation vector: "+str(rotation))
