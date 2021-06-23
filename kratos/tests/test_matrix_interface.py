@@ -121,30 +121,31 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(A[i,j], B[j,i])
 
     def test_list_of_list_construction(self):
-        A = KM.Matrix([[2, 2, 2, 2]])                           #List 1
-        self.assertEqual(4, len(A))
-        self.assertEqual(1, A.Size1())
-        self.assertEqual(4, A.Size2())
-        expected = KM.Matrix(1,4)
-        expected.fill(2)
 
-        for i in range(expected.Size1()):
-            for j in range(expected.Size2()):
-                self.assertEqual(A[i,j], 2)
+        A = KM.Matrix([])                                   # Empty List 1
+        self.assertMatrixAlmostEqual(A, KM.Matrix(0,0))
 
-        l2 = [[0, 0.1, 0.2], [1, 1.1, 1.2], [2, 2.1, 2.2]]       #List 2
-        B = KM.Matrix(l2)
-        self.assertEqual(9, len(B))
-        self.assertEqual(3, B.Size1())
-        self.assertEqual(3, B.Size2())
-        expected = KM.Matrix(3,3)
-        for i in range(expected.Size1()):
-            for j in range(expected.Size2()):
-                expected[i,j] = i + (j*0.1)
+        B = KM.Matrix([[]])                                 # Empty List 2
+        self.assertMatrixAlmostEqual(B, KM.Matrix(0,0))
 
-        for i in range(expected.Size1()):
-            for j in range(expected.Size2()):
-                self.assertEqual(B[i,j], expected[i,j])
+        C = KM.Matrix([[2, 2, 2, 2]])                        #List 3
+        self.assertEqual(4, len(C))
+        self.assertEqual(1, C.Size1())
+        self.assertEqual(4, C.Size2())
+
+        for i in range(C.Size1()):
+            for j in range(C.Size2()):
+                self.assertEqual(C[i,j], 2)
+
+        l2 = [[0, 0.1, 0.2], [1, 1.1, 1.2], [2, 2.1, 2.2]]    #List 4
+        D = KM.Matrix(l2)
+        self.assertEqual(9, len(D))
+        self.assertEqual(3, D.Size1())
+        self.assertEqual(3, D.Size2())
+
+        for i in range(D.Size1()):
+            for j in range(D.Size2()):
+                self.assertEqual(D[i,j], i + (j*0.1))
 
 
 if __name__ == '__main__':
