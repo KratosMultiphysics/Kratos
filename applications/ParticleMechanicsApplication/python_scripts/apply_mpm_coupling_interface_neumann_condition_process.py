@@ -94,6 +94,10 @@ class ApplyMPMCouplingInterfaceNeumannConditionProcess(ApplyMPMParticleNeumannCo
                 displacement = [du,dw,dz]
 
                 self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,displacement)
+                
+                velocity = mpc.CalculateOnIntegrationPoints(KratosParticle.MPC_VELOCITY, self.model_part.ProcessInfo)[0]
+                
+                self.coupling_model_part.GetNode(coupling_id).SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,velocity)
 
     # Local functions
     def _prepare_coupling_model_part(self, coupling_model_part):
