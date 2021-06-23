@@ -211,6 +211,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7241685913941622, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7312296375421161, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008607693464186337, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(49).GetValue(CPFApp.POTENTIAL_JUMP), 0.3579390169527855, 0.0, 1e-9)
 
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication")
     def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
