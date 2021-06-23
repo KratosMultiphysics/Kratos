@@ -99,7 +99,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
-            # self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.48769319614651147, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.88900105659947, 0.0, 1e-9)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
