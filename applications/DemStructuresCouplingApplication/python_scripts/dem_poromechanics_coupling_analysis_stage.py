@@ -43,13 +43,26 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             time_final_DEM_substepping = self.poromechanics_solution.time
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
 
-            for self.dem_solution.time_dem in self._YieldDEMTime(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
+            #for self.dem_solution.time_dem in self._YieldDEMTime(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
+            while not self.dem_solution.SolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
                 self.dem_solution.InitializeSolutionStep()
                 self.dem_solution._GetSolver().Predict()
                 self.dem_solution._GetSolver().SolveSolutionStep()
                 self.dem_solution.FinalizeSolutionStep()
                 self.dem_solution.OutputSolutionStep()
+
+    def SolutionIsSteady(self):
+        tolerance = 1.0e-4
+
+        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, tolerance):
+            return False
+        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, tolerance):
+            return False
+        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, tolerance):
+            return False
+
+        return True
 
     def InitializeSolutionStep(self):
         self.poromechanics_solution.InitializeSolutionStep()
