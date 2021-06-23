@@ -21,11 +21,20 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
 
     def Execute(self):
+        process_info = self.interface_data.GetModelPart().ProcessInfo
+        time = process_info[KM.TIME]
+
+        if not KM.IntervalUtility(self.settings).IsInInterval(time):
+            if self.echo_level > 0:
+                cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Skipped, not in interval")
+            return
+
+        self.interface_data.SetData(self.interface_data.GetData())
         model_part_interface = self.interface_data.GetModelPart()
         ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface)
 
         if self.echo_level > 0:
-            cs_tools.cs_print_info("Elemental to Nodal Mapping Operation done")
+            cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Done")
 
     def PrintInfo(self):
         pass
@@ -38,7 +47,8 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"    : "UNSPECIFIED",
-            "data_name" : "UNSPECIFIED"
+            "data_name" : "UNSPECIFIED",
+            "interval"  : [0.0, 1e30]
         }""")
         this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
