@@ -63,6 +63,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CopyAdjointSolutionToNonHistorical", &RansAdjointUtilities::CopyAdjointSolutionToNonHistorical)
         .def("RescaleAdjointSolution", &RansAdjointUtilities::RescaleAdjointSolution)
         .def("RescaleShapeSensitivity", &RansAdjointUtilities::RescaleShapeSensitivity)
+        .def("CalculateTransientReponseFunctionInterpolationError", &RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError)
         ;
 }
 
