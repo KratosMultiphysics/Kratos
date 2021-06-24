@@ -101,8 +101,7 @@ class MechanicalSolver(PythonSolver):
             "buffer_size": 2,
             "analysis_type": "non_linear",
             "model_import_settings": {
-                "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_type": "mdpa"
             },
             "material_import_settings" :{
                 "materials_filename": ""
