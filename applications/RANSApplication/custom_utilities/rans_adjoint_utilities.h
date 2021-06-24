@@ -39,6 +39,8 @@ public:
 
     using GeometryType = Geometry<NodeType>;
 
+    using ElementType = ModelPart::ElementType;
+
     using ConditionType = ModelPart::ConditionType;
 
     using IndexType = std::size_t;
@@ -89,6 +91,12 @@ public:
     static void RescaleAdjointSolution(ModelPart& rModelPart);
 
     static void RescaleShapeSensitivity(ModelPart& rModelPart);
+
+    static void CalculateTransientReponseFunctionInterpolationError(
+        ModelPart& rModelPart,
+        const double Gamma,
+        const double DeltaTime,
+        const IndexType NumberOfTimeSteps);
 
     ///@}
     ///@name Classes
