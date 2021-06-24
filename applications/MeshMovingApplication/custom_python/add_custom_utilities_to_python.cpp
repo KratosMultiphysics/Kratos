@@ -87,6 +87,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
     m.def("MoveMesh", &MoveMeshUtilities::MoveMesh );
     m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const array_1d<double,3>&, const double, const array_1d<double,3>&, const array_1d<double,3>&)>(&MoveMeshUtilities::MoveModelPart));
     m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const Parameters&, const Parameters&, const Parameters&, const Parameters&)>(&MoveMeshUtilities::MoveModelPart));
+    m.def("MoveModelPart", static_cast<void(*)(ModelPart&, const LinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
     m.def("MoveModelPart", static_cast<void(*)(ModelPart&, ParametricLinearTransform&)>(&MoveMeshUtilities::MoveModelPart));
     m.def("SuperImposeMeshDisplacement", &MoveMeshUtilities::SuperImposeMeshDisplacement );
     m.def("SuperImposeMeshVelocity", &MoveMeshUtilities::SuperImposeMeshVelocity);

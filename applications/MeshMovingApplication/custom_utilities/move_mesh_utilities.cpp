@@ -72,11 +72,7 @@ void MoveModelPart(
         rReferencePoint,
         rTranslationVector);
 
-    block_for_each(
-        rModelPart.Nodes(),
-        [&transform](Node<3>& rNode){
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = transform.Apply(rNode) - rNode;
-        });
+    MoveModelPart(rModelPart, transform);
 
     KRATOS_CATCH("");
 }
@@ -97,6 +93,21 @@ void MoveModelPart(
         rTranslationVector);
 
     MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const LinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&rTransform](Node<3>& rNode){
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(rNode) - rNode;
+        });
 
     KRATOS_CATCH("");
 }

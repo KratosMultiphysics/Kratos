@@ -66,6 +66,11 @@ void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
     const Parameters& rReferencePoint,
     const Parameters& rTranslationVector);
 
+/// Impose mesh movement on all nodes of a model part
+void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
+    ModelPart& rModelPart,
+    const LinearTransform& rTransform);
+
 /// Impose parametric mesh movement on all nodes of a model part
 void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
     ModelPart& rModelPart,
