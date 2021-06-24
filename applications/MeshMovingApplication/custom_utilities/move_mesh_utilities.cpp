@@ -20,7 +20,6 @@
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
 #include "utilities/parallel_utilities.h"
-#include "parametric_linear_transform.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -91,18 +90,29 @@ void MoveModelPart(
 {
     KRATOS_TRY
 
-    const double time = rModelPart.GetProcessInfo().GetValue(TIME);
-
     ParametricLinearTransform transform(
         rRotationAxis,
         rRotationAngle,
         rReferencePoint,
         rTranslationVector);
 
+    MoveModelPart(rModelPart, transform);
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    ParametricLinearTransform& rTransform)
+{
+    KRATOS_TRY
+
+    const double time = rModelPart.GetProcessInfo().GetValue(TIME);
+
     block_for_each(
         rModelPart.Nodes(),
-        [&transform, time](Node<3>& rNode){
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = transform.Apply(
+        [&rTransform, time](Node<3>& rNode){
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
                 rNode,
                 time,
                 rNode.X0(),

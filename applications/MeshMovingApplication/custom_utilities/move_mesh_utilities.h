@@ -21,6 +21,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "parametric_linear_transform.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -64,6 +65,11 @@ void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
     const Parameters& rRotationAngle,
     const Parameters& rReferencePoint,
     const Parameters& rTranslationVector);
+
+/// Impose parametric mesh movement on all nodes of a model part
+void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
+    ModelPart& rModelPart,
+    ParametricLinearTransform& rTransform);
 
 KRATOS_API(MESH_MOVING_APPLICATION) ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
