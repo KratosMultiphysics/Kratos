@@ -1,6 +1,6 @@
 # Kratos Imports
 import KratosMultiphysics
-import KratosMultiphysics.MeshMovingApplication as MeshMovingApplication
+from  KratosMultiphysics.MeshMovingApplication.impose_mesh_motion_process import ImposeMeshMotionProcess
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -60,7 +60,7 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
             "translation_vector"  : [1, 2, 3]
         }""")
 
-        MeshMovingApplication.ImposeMeshMotionProcess(
+        ImposeMeshMotionProcess(
             model,
             parameters
         ).ExecuteInitializeSolutionStep()
@@ -78,7 +78,7 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
             "translation_vector"  : [1, 2, 3]
         }""")
 
-        MeshMovingApplication.ImposeMeshMotionProcess(
+        ImposeMeshMotionProcess(
             model,
             parameters
         ).ExecuteInitializeSolutionStep()
@@ -98,7 +98,7 @@ class TestImposeMeshMotionProcess(KratosUnittest.TestCase):
         }""")
 
         model_part.ProcessInfo[KratosMultiphysics.TIME] = 1.0
-        MeshMovingApplication.ImposeMeshMotionProcess(
+        ImposeMeshMotionProcess(
             model,
             parameters
         ).ExecuteInitializeSolutionStep()
