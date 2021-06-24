@@ -317,7 +317,7 @@ def GetTimeDerivativeVariable(variable):
     else:
         return None
 
-def GetTimeDerivativeVariablesRecursively( var):
+def GetTimeDerivativeVariablesRecursively(var):
     time_derivative_var = GetTimeDerivativeVariable(var)
     if (time_derivative_var is None):
         return [var]
