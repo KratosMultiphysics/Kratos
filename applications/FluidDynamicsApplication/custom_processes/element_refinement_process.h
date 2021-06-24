@@ -131,6 +131,7 @@ private:
     std::vector<const Variable<double>*> mNodalHistoricalVariablesList;
     std::vector<const Variable<double>*> mNodalNonHistoricalVariablesList;
     std::vector<const Flags*> mNodalFlagsList;
+    IndexType mHistoricalVariableInterpolationBufferSize;
 
     std::vector<ThreadLocalStorage> mThreadLocalStorage;
 

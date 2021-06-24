@@ -121,7 +121,8 @@ const Parameters ElementRefinementProcess::GetDefaultParameters() const
             "nodal_interpolation_settings": {
                 "historical_variables_list"    : ["ALL_VARIABLES_FROM_VARIABLES_LIST"],
                 "non_hitsorical_variables_list": [],
-                "flags_list"                   : []
+                "flags_list"                   : [],
+                "historical_buffer_size"       : 1
             }
         })");
 
@@ -154,6 +155,7 @@ ElementRefinementProcess::ElementRefinementProcess(
 
     const auto& nodal_interpolation_settings = rParameters["nodal_interpolation_settings"];
     auto historical_variables_names_list = nodal_interpolation_settings["historical_variables_list"].GetStringArray();
+    mHistoricalVariableInterpolationBufferSize = nodal_interpolation_settings["historical_buffer_size"].GetInt();
 
     if (historical_variables_names_list.size() == 1 && historical_variables_names_list[0] == "ALL_VARIABLES_FROM_VARIABLES_LIST") {
         historical_variables_names_list.clear();
@@ -183,6 +185,24 @@ ElementRefinementProcess::ElementRefinementProcess(
             << p_var->Name() << " not found in nodal historical variables list in "
             << r_model_part.Name() << ".\n";
     }
+
+    std::stringstream msg;
+    msg << "Interpolation Settings:";
+    msg << "\n        Historical variable interpolation buffer size: " << mHistoricalVariableInterpolationBufferSize;
+    msg << "\n        Historical variables:";
+    for (const auto p_var : mNodalHistoricalVariablesList){
+        msg << "\n            " << p_var->Name();
+    }
+    msg << "\n        NonHistorical variables:";
+    for (const auto p_var : mNodalNonHistoricalVariablesList){
+        msg << "\n            " << p_var->Name();
+    }
+    msg << "\n        Flags:";
+    for (const auto& r_flag_name : nodal_interpolation_settings["flags_list"].GetStringArray()){
+        msg << "\n            " << r_flag_name;
+    }
+
+    KRATOS_INFO(this->Info()) << msg.str() << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -571,6 +591,7 @@ void ElementRefinementProcess::ExecuteInitialize()
             << thread_local_model_part_name
             << " already exists in the model. Please remove it first.\n";
         auto& r_thread_local_model_part = mrModel.CreateModelPart(thread_local_model_part_name);
+        r_thread_local_model_part.SetBufferSize(r_model_part.GetBufferSize());
         r_thread_local_model_part.GetNodalSolutionStepVariablesList() = r_model_part.GetNodalSolutionStepVariablesList();
         r_thread_local_model_part.GetProcessInfo() = r_model_part.GetProcessInfo();
         mThreadLocalStorage[i].pRefinedModelPart = &r_thread_local_model_part;
@@ -671,8 +692,10 @@ void ElementRefinementProcess::InterpolateThreadLocalRefinedMeshFromCoarseElemen
 
     for (auto& r_node : rTLS.pRefinedModelPart->Nodes()) {
         r_node.Coordinates() = ZeroVector(3);
-        for (const auto p_variable : mNodalHistoricalVariablesList) {
-            r_node.FastGetSolutionStepValue(*p_variable) = 0.0;
+        for (IndexType b = 0; b < mHistoricalVariableInterpolationBufferSize; ++b) {
+            for (const auto p_variable : mNodalHistoricalVariablesList) {
+                r_node.FastGetSolutionStepValue(*p_variable, b) = 0.0;
+            }
         }
         for (const auto p_variable : mNodalNonHistoricalVariablesList) {
             r_node.SetValue(*p_variable, 0.0);
@@ -692,8 +715,10 @@ void ElementRefinementProcess::InterpolateThreadLocalRefinedMeshFromCoarseElemen
             r_refined_node.Coordinates() += r_coarse_node.Coordinates() * interpolation_value;
 
             // interpolate historical data
-            for (const auto p_variable : mNodalHistoricalVariablesList) {
-                r_refined_node.FastGetSolutionStepValue(*p_variable) += r_coarse_node.FastGetSolutionStepValue(*p_variable) * interpolation_value;
+            for (IndexType b = 0; b < mHistoricalVariableInterpolationBufferSize; ++b) {
+                for (const auto p_variable : mNodalHistoricalVariablesList) {
+                    r_refined_node.FastGetSolutionStepValue(*p_variable, b) += r_coarse_node.FastGetSolutionStepValue(*p_variable, b) * interpolation_value;
+                }
             }
 
             // interpolate non historical data
