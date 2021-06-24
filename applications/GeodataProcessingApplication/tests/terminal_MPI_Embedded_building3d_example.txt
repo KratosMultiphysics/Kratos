@@ -1,0 +1,940 @@
+Invalid MIT-MAGIC-COOKIE-1 key |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 9.0."Dev"-0166464127-Release
+Compiled with threading and MPI support.
+Maximum number of threads: 1.
+MPI world size:         4.
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication...
+Importing    KratosMetisApplication 
+    KRATOS  __  __      _   _
+           |  \/  | ___| |_(_)___
+           | |\/| |/ _ \ __| / __|
+           | |  | |  __/ |_| \__ \
+           |_|  |_|\___|\__|_|___/
+Initializing KratosMetisApplication...
+Importing    KratosTrilinosApplication 
+    KRATOS  _____     _ _ _
+           |_   _| __(_) (_)_ __   ___  ___
+             | || '__| | | | '_ \ / _ \/ __|
+             | || |  | | | | | | | (_) \__ \
+             |_||_|  |_|_|_|_| |_|\___/|___/
+Initializing KratosTrilinosApplication...
+Importing    KratosMeshingApplication 
+Initializing KratosMeshingApplication...
+ModelPartIO:   [Total Lines Read : 530722]
+::[DistributedImportModelPartUtility]::: Metis divide finished. 
+ModelPartIO:   [Reading Nodes    : 10479 nodes read]
+ModelPartIO:   [Reading Elements : 46689 elements read] [Type: Element3D4N]
+ModelPartIO:   [Reading Conditions : 6998 conditions read] [Type: WallCondition3D]
+ModelPartIO:   [Total Lines Read : 155440]
+::[DistributedImportModelPartUtility]::: MPI communicators constructed. 
+[WARNING] DataCommunicator: This function is deprecated, please retrieve the DataCommunicator through the ModelPart (or by name in special cases)
+ModelPartIO:   [Reading Nodes    : 4162023 nodes read]
+ModelPartIO:   [Reading Elements : 1387341 elements read] [Type: Element3D3N]
+ModelPartIO:   [Total Lines Read : 18035452]
+[WARNING] Trilinos: "CreateCommunicator" is deprecated, please use "CreateEpetraCommunicator" instead
+ResidualBasedLinearStrategy: Setup Dofs Time: 0.0571285
+ResidualBasedLinearStrategy: Setup System Time: 0.00115902
+ResidualBasedLinearStrategy: System Matrix Resize Time: 0.183404
+ResidualBasedLinearStrategy: System Construction Time: 0.241825
+TrilinosBlockBuilderAndSolver: Build time: 0.175844
+TrilinosBlockBuilderAndSolver: System solve time: 0.831942
+ResidualBasedLinearStrategy: System Construction Time: 7.208e-06
+TrilinosBlockBuilderAndSolver: Build time: 0.141307
+TrilinosBlockBuilderAndSolver: System solve time: 0.815139
+ParMmgProcess: We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, it is quite recommended to create more than one sub model part if you have more than one element or condition)
+//---------------------------------------------------//
+//---------------  BEFORE REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 10479
+        Number of Properties  : 2
+        Number of Elements    : 46689
+        Number of Conditions  : 6998
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 3423
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 6546
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 10479
+            Number of Properties  : 0
+            Number of Elements    : 46689
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 289
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 452
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 289
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 452
+                Number of Constraints : 0
+
+ParMmgProcess: Step data size: 34 Buffer size: 1
+ParMmgProcess: ////////* PMMG LIBRARY CALL *////////
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL : 1.3.0 (Nov 20, 2020)
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     git branch: master
+     git commit: 715a680f0796c43c8a5e704e0481095bd40daf6e
+     git date:   2020-11-26 11:41:57 +0100
+
+
+  -- PMMG: CHECK INPUT DATA
+  -- CHECK INPUT DATA COMPLETED.     0.000s
+
+  -- PHASE 1 : ANALYSIS
+
+  -- PARALLEL MESH QUALITY  38840   192183
+     BEST   0.999761  AVRG.   0.716209  WRST.   0.097960 (PROC 3 - ELT 47136)
+     HISTOGRAMM:  100.00 % > 0.12
+   -- PHASE 1 COMPLETED.     0.128s
+
+  -- PHASE 2 : ANISOTROPIC MESHING
+
+  ## Warning: PMMG_locatePoint_errorCheck (rank 1, grp 0): at least one exhaustive search for point 472 (tag 0), coords 5.858360e+02 -2.963553e+02 4.210620e+02
+
+  ## Warning: PMMG_locatePoint_errorCheck (rank 3, grp 0): at least one exhaustive search for point 5364 (tag 0), coords 5.220404e+02 1.760360e+02 5.764819e+01
+
+  ## Warning: PMMG_locatePoint_errorCheck (rank 0, grp 0): at least one exhaustive search for point 6066 (tag 0), coords 6.990196e+02 5.457296e+01 1.766880e+02
+
+  ## Warning: PMMG_locatePoint_errorCheck (rank 2, grp 0): at least one exhaustive search for point 5225 (tag 0), coords 3.050628e+02 -2.310641e+01 1.744403e+01
+
+### Warning: Cannot merge next subgroup on proc 2
+
+  -- PARALLEL MESH QUALITY  228327   1329082
+     BEST   0.999447  AVRG.   0.794150  WRST.   0.089023 (GROUP 0 - PROC 0 - ELT 5971)
+     HISTOGRAMM:  100.00 % > 0.12
+  -- PHASE 2 COMPLETED.     2m30s (150.704s)
+
+   -- PHASE 3 : MESH PACKED UP
+   -- PHASE 3 COMPLETED.     0.090s
+
+   PARMMGLIB_DISTRIBUTED: ELAPSED TIME  2m30s (150.923s)
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   END OF MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL 
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ParMmgUtilities: 	Nodes created: 59652
+ParMmgUtilities: Conditions created: 25322
+	Triangles: 25322	Quadrilaterals: 0
+Elements created: 318458
+	Tetrahedron: 318458	Prisms: 0
+//---------------------------------------------------//
+//---------------   AFTER REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 59652
+        Number of Properties  : 2
+        Number of Elements    : 318458
+        Number of Conditions  : 9449
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 444
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 775
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 4104
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 7889
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 59652
+            Number of Properties  : 0
+            Number of Elements    : 318458
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 486
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 785
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 486
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 785
+                Number of Constraints : 0
+
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+[WARNING] Trilinos: "CreateCommunicator" is deprecated, please use "CreateEpetraCommunicator" instead
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+ResidualBasedLinearStrategy: Setup Dofs Time: 0.331439
+ResidualBasedLinearStrategy: Setup System Time: 0.00821797
+ResidualBasedLinearStrategy: System Matrix Resize Time: 4.05945
+ResidualBasedLinearStrategy: System Construction Time: 4.39921
+TrilinosBlockBuilderAndSolver: Build time: 0.890911
+TrilinosBlockBuilderAndSolver: System solve time: 1.38339
+ResidualBasedLinearStrategy: System Construction Time: 7.788e-06
+TrilinosBlockBuilderAndSolver: Build time: 0.718096
+TrilinosBlockBuilderAndSolver: System solve time: 1.32467
+ParMmgProcess: We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, it is quite recommended to create more than one sub model part if you have more than one element or condition)
+//---------------------------------------------------//
+//---------------  BEFORE REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+    FLAG_VARIABLE : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 59652
+        Number of Properties  : 0
+        Number of Elements    : 318458
+        Number of Conditions  : 9449
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 444
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 775
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 4104
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 7889
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 59652
+            Number of Properties  : 0
+            Number of Elements    : 318458
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 486
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 785
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 486
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 785
+                Number of Constraints : 0
+
+ParMmgProcess: Step data size: 34 Buffer size: 1
+ParMmgProcess: ////////* PMMG LIBRARY CALL *////////
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL : 1.3.0 (Nov 20, 2020)
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     git branch: master
+     git commit: 715a680f0796c43c8a5e704e0481095bd40daf6e
+     git date:   2020-11-26 11:41:57 +0100
+
+
+  -- PMMG: CHECK INPUT DATA
+  -- CHECK INPUT DATA COMPLETED.     0.000s
+
+  -- PHASE 1 : ANALYSIS
+
+  -- PARALLEL MESH QUALITY  228327   1329082
+     BEST   0.999447  AVRG.   0.794150  WRST.   0.089023 (PROC 0 - ELT 5971)
+     HISTOGRAMM:  100.00 % > 0.12
+   -- PHASE 1 COMPLETED.     0.347s
+
+  -- PHASE 2 : ANISOTROPIC MESHING
+
+  -- PARALLEL MESH QUALITY  391432   2306715
+     BEST   0.999821  AVRG.   0.798991  WRST.   0.104673 (GROUP 17 - PROC 1 - ELT 7133)
+     HISTOGRAMM:  100.00 % > 0.12
+  -- PHASE 2 COMPLETED.     1m11s ( 71.652s)
+
+   -- PHASE 3 : MESH PACKED UP
+   -- PHASE 3 COMPLETED.     0.155s
+
+   PARMMGLIB_DISTRIBUTED: ELAPSED TIME  1m12s ( 72.154s)
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   END OF MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL 
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ParMmgUtilities: 	Nodes created: 100645
+ParMmgUtilities: Conditions created: 20886
+	Triangles: 20886	Quadrilaterals: 0
+Elements created: 572351
+	Tetrahedron: 572351	Prisms: 0
+//---------------------------------------------------//
+//---------------   AFTER REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+    FLAG_VARIABLE : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 100645
+        Number of Properties  : 0
+        Number of Elements    : 572351
+        Number of Conditions  : 100
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 66
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 100645
+            Number of Properties  : 0
+            Number of Elements    : 572351
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 0
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 0
+                Number of Constraints : 0
+
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+[WARNING] Trilinos: "CreateCommunicator" is deprecated, please use "CreateEpetraCommunicator" instead
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+ResidualBasedLinearStrategy: Setup Dofs Time: 0.572491
+ResidualBasedLinearStrategy: Setup System Time: 0.0132985
+ResidualBasedLinearStrategy: System Matrix Resize Time: 11.2271
+ResidualBasedLinearStrategy: System Construction Time: 11.8131
+TrilinosBlockBuilderAndSolver: Build time: 1.50173
+TrilinosBlockBuilderAndSolver: System solve time: 2.07993
+ResidualBasedLinearStrategy: System Construction Time: 8.253e-06
+TrilinosBlockBuilderAndSolver: Build time: 1.24961
+TrilinosBlockBuilderAndSolver: System solve time: 2.14892
+ParMmgProcess: We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, it is quite recommended to create more than one sub model part if you have more than one element or condition)
+//---------------------------------------------------//
+//---------------  BEFORE REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+    FLAG_VARIABLE : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 100645
+        Number of Properties  : 0
+        Number of Elements    : 572351
+        Number of Conditions  : 100
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 66
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 100645
+            Number of Properties  : 0
+            Number of Elements    : 572351
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 0
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 0
+                Number of Constraints : 0
+
+ParMmgProcess: Step data size: 34 Buffer size: 1
+ParMmgProcess: ////////* PMMG LIBRARY CALL *////////
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL : 1.3.0 (Nov 20, 2020)
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     git branch: master
+     git commit: 715a680f0796c43c8a5e704e0481095bd40daf6e
+     git date:   2020-11-26 11:41:57 +0100
+
+
+  -- PMMG: CHECK INPUT DATA
+  -- CHECK INPUT DATA COMPLETED.     0.005s
+
+  -- PHASE 1 : ANALYSIS
+
+  -- PARALLEL MESH QUALITY  391432   2306715
+     BEST   0.999821  AVRG.   0.798991  WRST.   0.104673 (PROC 1 - ELT 496450)
+     HISTOGRAMM:  100.00 % > 0.12
+   -- PHASE 1 COMPLETED.     0.594s
+
+  -- PHASE 2 : ANISOTROPIC MESHING
+
+  -- PARALLEL MESH QUALITY  413498   2436745
+     BEST   0.999821  AVRG.   0.804849  WRST.   0.076018 (GROUP 11 - PROC 0 - ELT 5590)
+     HISTOGRAMM:  100.00 % > 0.12
+  -- PHASE 2 COMPLETED.     1m3s ( 63.062s)
+
+   -- PHASE 3 : MESH PACKED UP
+   -- PHASE 3 COMPLETED.     0.167s
+
+   PARMMGLIB_DISTRIBUTED: ELAPSED TIME  1m3s ( 63.828s)
+
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+   END OF MODULE PARMMGLIB_DISTRIBUTED: IMB-LJLL 
+  &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ParMmgUtilities: 	Nodes created: 107107
+ParMmgUtilities: Conditions created: 23490
+	Triangles: 23490	Quadrilaterals: 0
+Elements created: 606734
+	Tetrahedron: 606734	Prisms: 0
+//---------------------------------------------------//
+//---------------   AFTER REMESHING   ---------------//
+//---------------------------------------------------//
+
+-FluidModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 5
+    Distributed; Communicator has 4 total processes
+    Current solution step index : 0
+    DOMAIN_SIZE : 3
+    FRACTIONAL_STEP : 2
+    IS_RESTARTED : 0
+    TIME : 0
+    PRINTED_STEP : 1
+    FLAG_VARIABLE : 1
+
+    Number of Geometries  : 0
+    Mesh 0 :
+        Number of Nodes       : 107107
+        Number of Properties  : 0
+        Number of Elements    : 606734
+        Number of Conditions  : 0
+        Number of Constraints : 0
+
+    -AutomaticInlet3D_Inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -NoSlip3D_No_Slip_BC- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Outlet3D_Outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Parts_Fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 107107
+            Number of Properties  : 0
+            Number of Elements    : 606734
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -Slip3D- model part
+        Number of tables : 0
+        Number of sub model parts : 1
+
+        Number of Geometries  : 0
+        Mesh 0 :
+            Number of Nodes       : 0
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 0
+            Number of Constraints : 0
+        -Slip3D_Free_Slip_BC- model part
+            Number of tables : 0
+            Number of sub model parts : 0
+
+            Number of Geometries  : 0
+            Mesh 0 :
+                Number of Nodes       : 0
+                Number of Properties  : 0
+                Number of Elements    : 0
+                Number of Conditions  : 0
+                Number of Constraints : 0
+
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+BuilderAndSolver: Clear Function called
+[WARNING] Provided 'element_name' is 'embedded_symbolic_navier_stokes_discontinuous'. This has been renamed to 'embedded_weakly_compressible_navier_stokes_discontinuous'. Use this instead.: 
+NavierStokesMPIEmbeddedMonolithicSolver: Construction of NavierStokesEmbeddedMonolithicSolver finished. 
+NavierStokesMPIEmbeddedMonolithicSolver: Construction of NavierStokesMPIEmbeddedMonolithicSolver finished. 
+NavierStokesMPIEmbeddedMonolithicSolver: Fluid solver variables added correctly. 
+NavierStokesMPIEmbeddedMonolithicSolver: Variables for the Trilinos monolithic embedded fluid solver added correctly. 
+NavierStokesMPIEmbeddedMonolithicSolver: MPI model reading finished. 
+Read materials: Started
+Read materials: Finished
+[WARNING] No 'SOUND_VELOCITY' value found in Properties 1. Setting default value 1000000000000.0: 
+[WARNING] No 'SOUND_VELOCITY' value found in Properties 1. Setting default value 1000000000000.0: 
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+NavierStokesMPIEmbeddedMonolithicSolver: Model reading finished. 
+Navier Stokes Embedded Solver: Distance function taken from the .mdpa input file. 
+::[DistributedImportModelPartUtility]::: MPI communicators constructed. 
+NavierStokesMPIEmbeddedMonolithicSolver: Fluid solver DOFs added correctly. 
+[WARNING] TrilinosNewtonRaphsonStrategy: Using deprecated constructor. Please use constructor without linear solver.NavierStokesMPIEmbeddedMonolithicSolver: Solver initialization finished. 
+Fluid Dynamics Analysis: Analysis -START-  
+Fluid Dynamics Analysis: STEP:  1 
+Fluid Dynamics Analysis: TIME:  0.05 
+Fluid Dynamics Analysis: STEP:  2 
+Fluid Dynamics Analysis: TIME:  0.1 
+ResidualBasedNewtonRaphsonStrategy: Setup Dofs Time: 2.33411
+ResidualBasedNewtonRaphsonStrategy: Setup System Time: 0.0659394
+ResidualBasedNewtonRaphsonStrategy: System Matrix Resize Time: 56.1298
+ResidualBasedNewtonRaphsonStrategy: System Construction Time: 58.5301
+[nicola-ubuntu:147691] *** Process received signal ***
+[nicola-ubuntu:147691] Signal: Segmentation fault (11)
+[nicola-ubuntu:147691] Signal code: Address not mapped (1)
+[nicola-ubuntu:147691] Failing at address: (nil)
+[nicola-ubuntu:147692] *** Process received signal ***
+[nicola-ubuntu:147692] Signal: Segmentation fault (11)
+[nicola-ubuntu:147692] Signal code: Address not mapped (1)
+[nicola-ubuntu:147692] Failing at address: (nil)
+[nicola-ubuntu:147691] [ 0] [nicola-ubuntu:147692] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7fa5c9f5e210]
+[nicola-ubuntu:147691] [ 1] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7f2a136d8210]
+[nicola-ubuntu:147692] [ 1] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZNK6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE22InitializeGeometryDataERNS_25EmbeddedDiscontinuousDataIS3_EE+0xf7)[0x7fa5bcd919f7]
+[nicola-ubuntu:147691] [ 2] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZNK6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE22InitializeGeometryDataERNS_25EmbeddedDiscontinuousDataIS3_EE+0xf7)[0x7f2a065129f7]
+[nicola-ubuntu:147692] [ 2] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZN6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE20CalculateLocalSystemERN5boost7numeric5ublas6matrixIdNS8_15basic_row_majorImlEENS8_15unbounded_arrayIdSaIdEEEEERNS8_6vectorIdSE_EERKNS_11ProcessInfoE+0x38c)[0x7fa5bcdc84ac]
+[nicola-ubuntu:147691] [ 3] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x355476)[0x7fa5b78e5476]
+[nicola-ubuntu:147691] [ 4] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x461e39)[0x7fa5b79f1e39]
+[nicola-ubuntu:147691] [ 5] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3cce97)[0x7fa5b795ce97]
+[nicola-ubuntu:147691] [ 6] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3bf522)[0x7fa5b794f522]
+[nicola-ubuntu:147691] [ 7] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4cfb62)[0x7fa5b7a5fb62]
+[nicola-ubuntu:147691] [ 8] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4b244a)[0x7fa5b7a4244a]
+[nicola-ubuntu:147691] [ 9] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x136c76)[0x7fa5b76c6c76]
+[nicola-ubuntu:147691] [10] [nicola-ubuntu:147693] *** Process received signal ***
+[nicola-ubuntu:147693] Signal: Segmentation fault (11)
+[nicola-ubuntu:147693] Signal code: Address not mapped (1)
+[nicola-ubuntu:147693] Failing at address: (nil)
+python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:147691] [11] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZN6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE20CalculateLocalSystemERN5boost7numeric5ublas6matrixIdNS8_15basic_row_majorImlEENS8_15unbounded_arrayIdSaIdEEEEERNS8_6vectorIdSE_EERKNS_11ProcessInfoE+0x38c)[0x7f2a065494ac]
+[nicola-ubuntu:147692] [ 3] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x355476)[0x7f2a051aa476]
+[nicola-ubuntu:147692] [ 4] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x461e39)[0x7f2a052b6e39]
+[nicola-ubuntu:147692] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:147691] [12] [ 5] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3cce97)[0x7f2a05221e97]
+[nicola-ubuntu:147692] [ 6] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3bf522)[0x7f2a05214522]
+[nicola-ubuntu:147692] [ 7] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4cfb62)[0x7f2a05324b62]
+[nicola-ubuntu:147692] [ 8] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4b244a)[0x7f2a0530744a]
+[nicola-ubuntu:147692] [ 9] python3[0x50aa8b]
+[nicola-ubuntu:147691] [13] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x136c76)[0x7f2a04f8bc76]
+[nicola-ubuntu:147692] [10] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:147692] [11] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:147692] [12] [nicola-ubuntu:147693] [ 0] [nicola-ubuntu:147691] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7f9f27c85210]
+[nicola-ubuntu:147693] [ 1] python3[0x50aa8b]
+[nicola-ubuntu:147692] [13] [14] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147692] [14] python3[0x50a23e]
+python3[0x50a23e]
+[nicola-ubuntu:147691] [15] [nicola-ubuntu:147692] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147691] [16] [15] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147691] [17] python3(_PyFunction_Vectorcall+0x393)[0x5f6033]
+[nicola-ubuntu:147691] [18] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147692] [16] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147691] [19] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147692] [17] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+python3(_PyFunction_Vectorcall+0x393)[0x5f6033]
+[nicola-ubuntu:147692] [18] [nicola-ubuntu:147691] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147692] [19] [20] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147692] [20] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+/home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZNK6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE22InitializeGeometryDataERNS_25EmbeddedDiscontinuousDataIS3_EE+0xf7)[0x7f9f1a9659f7]
+[nicola-ubuntu:147693] [ 2] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147691] [21] [nicola-ubuntu:147692] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147691] [22] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147691] [23] [21] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147692] [22] [nicola-ubuntu:147691] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147692] [23] [24] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147692] [24] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147691] [25] [nicola-ubuntu:147692] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147691] [26] [25] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:147691] [27] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZN6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE20CalculateLocalSystemERN5boost7numeric5ublas6matrixIdNS8_15basic_row_majorImlEENS8_15unbounded_arrayIdSaIdEEEEERNS8_6vectorIdSE_EERKNS_11ProcessInfoE+0x38c)[0x7f9f1a99c4ac]
+[nicola-ubuntu:147693] [ 3] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x355476)[0x7f9f195fd476]
+[nicola-ubuntu:147693] [ 4] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x461e39)[0x7f9f19709e39]
+[nicola-ubuntu:147693] [ 5] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3cce97)[0x7f9f19674e97]
+[nicola-ubuntu:147693] [ 6] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3bf522)[0x7f9f19667522]
+[nicola-ubuntu:147693] [ 7] python3[0x67d5a1]
+[nicola-ubuntu:147691] [28] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4cfb62)[0x7f9f19777b62]
+[nicola-ubuntu:147693] [ 8] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4b244a)[0x7f9f1975a44a]
+[nicola-ubuntu:147693] [ 9] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x136c76)[0x7f9f193dec76]
+[nicola-ubuntu:147693] [10] python3[0x67d61f]
+[nicola-ubuntu:147691] [29] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147692] [26] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:147693] [11] [nicola-ubuntu:147691] *** End of error message ***
+python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:147693] [12] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:147692] [27] python3[0x50aa8b]
+python3[0x67d5a1]
+[nicola-ubuntu:147692] [28] python3[0x67d61f]
+[nicola-ubuntu:147692] [29] [nicola-ubuntu:147693] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:147692] *** End of error message ***
+[13] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147693] [14] python3[0x50a23e]
+[nicola-ubuntu:147693] [15] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147693] [16] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147693] [17] python3(_PyFunction_Vectorcall+0x393)[0x5f6033]
+[nicola-ubuntu:147693] [18] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147693] [19] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147693] [20] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147693] [21] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147693] [22] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147693] [23] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147693] [24] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147693] [25] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147693] [26] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:147693] [27] python3[0x67d5a1]
+[nicola-ubuntu:147693] [28] python3[0x67d61f]
+[nicola-ubuntu:147693] [29] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:147693] *** End of error message ***
+[nicola-ubuntu:147694] *** Process received signal ***
+[nicola-ubuntu:147694] Signal: Segmentation fault (11)
+[nicola-ubuntu:147694] Signal code: Address not mapped (1)
+[nicola-ubuntu:147694] Failing at address: (nil)
+[nicola-ubuntu:147694] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x46210)[0x7f9ef6caf210]
+[nicola-ubuntu:147694] [ 1] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZNK6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE22InitializeGeometryDataERNS_25EmbeddedDiscontinuousDataIS3_EE+0xf7)[0x7f9ee9ae29f7]
+[nicola-ubuntu:147694] [ 2] /home/nicola/Kratos/bin/Release/libs/libKratosFluidDynamicsCore.so(_ZN6Kratos33EmbeddedFluidElementDiscontinuousINS_30WeaklyCompressibleNavierStokesINS_34WeaklyCompressibleNavierStokesDataILm3ELm4EEEEEE20CalculateLocalSystemERN5boost7numeric5ublas6matrixIdNS8_15basic_row_majorImlEENS8_15unbounded_arrayIdSaIdEEEEERNS8_6vectorIdSE_EERKNS_11ProcessInfoE+0x38c)[0x7f9ee9b194ac]
+[nicola-ubuntu:147694] [ 3] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x355476)[0x7f9ee877a476]
+[nicola-ubuntu:147694] [ 4] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x461e39)[0x7f9ee8886e39]
+[nicola-ubuntu:147694] [ 5] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3cce97)[0x7f9ee87f1e97]
+[nicola-ubuntu:147694] [ 6] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x3bf522)[0x7f9ee87e4522]
+[nicola-ubuntu:147694] [ 7] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4cfb62)[0x7f9ee88f4b62]
+[nicola-ubuntu:147694] [ 8] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x4b244a)[0x7f9ee88d744a]
+[nicola-ubuntu:147694] [ 9] /home/nicola/Kratos/bin/Release/libs/KratosTrilinosApplication.cpython-38-x86_64-linux-gnu.so(+0x136c76)[0x7f9ee855bc76]
+[nicola-ubuntu:147694] [10] python3(PyCFunction_Call+0x59)[0x5f2fb9]
+[nicola-ubuntu:147694] [11] python3(_PyObject_MakeTpCall+0x296)[0x5f3446]
+[nicola-ubuntu:147694] [12] python3[0x50aa8b]
+[nicola-ubuntu:147694] [13] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147694] [14] python3[0x50a23e]
+[nicola-ubuntu:147694] [15] python3(_PyEval_EvalFrameDefault+0x5757)[0x56ef97]
+[nicola-ubuntu:147694] [16] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147694] [17] python3(_PyFunction_Vectorcall+0x393)[0x5f6033]
+[nicola-ubuntu:147694] [18] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147694] [19] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147694] [20] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147694] [21] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147694] [22] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147694] [23] python3(_PyFunction_Vectorcall+0x1b6)[0x5f5e56]
+[nicola-ubuntu:147694] [24] python3(_PyEval_EvalFrameDefault+0x8f6)[0x56a136]
+[nicola-ubuntu:147694] [25] python3(_PyEval_EvalCodeWithName+0x26a)[0x56822a]
+[nicola-ubuntu:147694] [26] python3(PyEval_EvalCode+0x27)[0x68c1e7]
+[nicola-ubuntu:147694] [27] python3[0x67d5a1]
+[nicola-ubuntu:147694] [28] python3[0x67d61f]
+[nicola-ubuntu:147694] [29] python3(PyRun_FileExFlags+0x9b)[0x67d6db]
+[nicola-ubuntu:147694] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 1 with PID 0 on node nicola-ubuntu exited on signal 11 (Segmentation fault).
