@@ -206,24 +206,29 @@ public:
     	const auto elements_begin = rExtractedVolumeModelPart.ElementsBegin();
 
 		// Fill map that counts number of faces for given set of nodes
-		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+		for (int itElem = 0; itElem< num_elements; ++itElem) 
 		{
-			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+        	auto i_element = elements_begin + itElem;
+		/* for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+		{ */
+			///Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateFaces();
+			Element::GeometryType::GeometriesArrayType faces;
+			faces = i_element->GetGeometry().GenerateFaces();
 
-			for(IndexType face=0; face<faces.size(); face++)
-			{
-				// Create vector that stores all node is of current face
-				vector<IndexType> ids(faces[face].size());
+        	for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
+            // Create vector that stores all node is of current i_face
+            vector<IndexType> ids(faces[i_face].size());
 
-				// Store node ids
-				for(IndexType i=0; i<faces[face].size(); i++)
-					ids[i] = faces[face][i].Id();
+            // Store node ids
+            for (IndexType i = 0; i < faces[i_face].size(); i++)
+                ids[i] = faces[i_face][i].Id();
 
-				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-				std::sort(ids.begin(), ids.end());
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
 
-				// Fill the map
-				n_faces_map[ids] += 1;
+			// Fill the map
+			#pragma omp critical
+            n_faces_map[ids] += 1;
 			}
 		}
 
@@ -231,31 +236,31 @@ public:
 		// The given set of node ids may have a different node order
 		hashmap_vec ordered_skin_face_nodes_map;
 
-		// Fill map that gives original node order for set of nodes
-		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
-		{
-			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().GenerateFaces();
+	// Fill map that gives original node order for set of nodes
+    for (int i_e = 0; i_e < num_elements; ++i_e) {
+        auto i_element = elements_begin + i_e;
+        Element::GeometryType::GeometriesArrayType faces;
+  		faces = i_element->GetGeometry().GenerateFaces();
 
-			for(IndexType face=0; face<faces.size(); face++)
-			{
-				// Create vector that stores all node is of current face
-				vector<IndexType> ids(faces[face].size());
-				vector<IndexType> unsorted_ids(faces[face].size());
+        for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
+            // Create vector that stores all node is of current i_face
+            vector<IndexType> ids(faces[i_face].size());
+            vector<IndexType> unsorted_ids(faces[i_face].size());
 
-				// Store node ids
-				for(IndexType i=0; i<faces[face].size(); i++)
-				{
-					ids[i] = faces[face][i].Id();
-					unsorted_ids[i] = faces[face][i].Id();
-				}
+            // Store node ids
+            for (IndexType i = 0; i < faces[i_face].size(); i++) {
+                ids[i] = faces[i_face][i].Id();
+                unsorted_ids[i] = faces[i_face][i].Id();
+            }
 
-				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-				std::sort(ids.begin(), ids.end());
-
-				if(n_faces_map[ids] == 1)
-					ordered_skin_face_nodes_map[ids] = unsorted_ids;
-			}
-		}
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+            
+            if (n_faces_map[ids] == 1)
+                ordered_skin_face_nodes_map[ids] = unsorted_ids;
+            
+        }
+    }
 
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
 		IndexType face_id = 1;
