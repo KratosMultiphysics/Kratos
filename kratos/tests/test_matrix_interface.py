@@ -120,15 +120,16 @@ class TestMatrixInterface(KratosUnittest.TestCase):
             for j in range(A.Size2()):
                 self.assertEqual(A[i,j], B[j,i])
 
-    def test_list_of_list_construction(self):
-
-        A = KM.Matrix([])                                   # Empty List 1
+    def test_empty_list_construction(self):
+        A = KM.Matrix([])
         self.assertMatrixAlmostEqual(A, KM.Matrix(0,0))
 
-        B = KM.Matrix([[]])                                 # Empty List 2
+    def test_empty_list_of_list_construction(self):
+        B = KM.Matrix([[]])
         self.assertMatrixAlmostEqual(B, KM.Matrix(0,0))
 
-        C = KM.Matrix([[2, 2, 2, 2]])                        #List 3
+    def test_rectangular_list_of_list_construction(self):
+        C = KM.Matrix([[2, 2, 2, 2]])
         self.assertEqual(4, len(C))
         self.assertEqual(1, C.Size1())
         self.assertEqual(4, C.Size2())
@@ -137,7 +138,8 @@ class TestMatrixInterface(KratosUnittest.TestCase):
             for j in range(C.Size2()):
                 self.assertEqual(C[i,j], 2)
 
-        l2 = [[0, 0.1, 0.2], [1, 1.1, 1.2], [2, 2.1, 2.2]]    #List 4
+    def test_sqaure_list_of_list_construction(self):
+        l2 = [[0, 0.1, 0.2], [1, 1.1, 1.2], [2, 2.1, 2.2]]
         D = KM.Matrix(l2)
         self.assertEqual(9, len(D))
         self.assertEqual(3, D.Size1())
@@ -146,6 +148,10 @@ class TestMatrixInterface(KratosUnittest.TestCase):
         for i in range(D.Size1()):
             for j in range(D.Size2()):
                 self.assertEqual(D[i,j], i + (j*0.1))
+
+    def test_list_of_list_construction_error_hand(self):
+        with self.assertRaisesRegex(RuntimeError, r'Error: Wrong size of a row'):
+            E = KM.Matrix([[1, 2], [4, 5, 6]])
 
 
 if __name__ == '__main__':
