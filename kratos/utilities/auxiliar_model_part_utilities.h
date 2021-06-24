@@ -296,10 +296,10 @@ public:
         case (DataLocation::NodeHistorical):{
             data.resize(mrModelPart.NumberOfNodes());
 
-            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            auto inodebegin = mrModelPart.NodesBegin();
 
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
-                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+                auto inode = inodebegin + Index;
 
                 data[Index] = inode->FastGetSolutionStepValue(rVariable);
             });
@@ -351,15 +351,15 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            unsigned int TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
             data.resize(mrModelPart.NumberOfNodes()*TSize);
 
-            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            auto inodebegin = mrModelPart.NodesBegin();
 
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
-                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+                auto inode = inodebegin + Index;
 
                 const auto& r_val = inode->FastGetSolutionStepValue(rVariable);
                 for(std::size_t dim = 0 ; dim < TSize ; dim++){
@@ -370,7 +370,7 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            unsigned int TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+            std::size_t TSize = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -380,7 +380,7 @@ public:
             break;
         }
         case (DataLocation::Element):{
-            unsigned int TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+            std::size_t TSize = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -390,7 +390,7 @@ public:
             break;
         }
         case (DataLocation::Condition):{
-            unsigned int TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+            std::size_t TSize = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             TSize = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(TSize);
 
@@ -440,9 +440,9 @@ public:
         case (DataLocation::NodeHistorical):{
             ImportDataSizeCheck(mrModelPart.NumberOfNodes(), rData.size());
 
-            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
-                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+                auto inode = inodebegin + Index;
 
                 auto& r_val = inode->FastGetSolutionStepValue(rVariable);
                 r_val = rData[Index];
@@ -494,14 +494,14 @@ public:
         switch (DataLoc)
         {
         case (DataLocation::NodeHistorical):{
-            unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
+            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->FastGetSolutionStepValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
             ImportDataSizeCheckVector(mrModelPart.NumberOfNodes()*size , rData.size());
 
-            ModelPart::NodesContainerType::iterator inodebegin = mrModelPart.NodesBegin();
+            auto inodebegin = mrModelPart.NodesBegin();
             IndexPartition<IndexType>(mrModelPart.NumberOfNodes()).for_each([&](IndexType Index){
-                ModelPart::NodesContainerType::iterator inode = inodebegin + Index;
+                auto inode = inodebegin + Index;
                 auto& r_val = inode->FastGetSolutionStepValue(rVariable);
 
                 KRATOS_DEBUG_ERROR_IF(r_val.size() != size) << "mismatch in size!" << std::endl;
@@ -514,7 +514,7 @@ public:
             break;
         }
         case (DataLocation::NodeNonHistorical):{
-            unsigned int size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
+            std::size_t size = mrModelPart.NumberOfNodes() > 0 ? mrModelPart.NodesBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
@@ -524,7 +524,7 @@ public:
             break;
         }
         case (DataLocation::Element):{
-            unsigned int size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
+            std::size_t size = mrModelPart.NumberOfElements() > 0 ? mrModelPart.ElementsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
@@ -534,7 +534,7 @@ public:
             break;
         }
         case (DataLocation::Condition):{
-            unsigned int size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
+            std::size_t size = mrModelPart.NumberOfConditions() > 0 ? mrModelPart.ConditionsBegin()->GetValue(rVariable).size() : 0;
 
             size = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(size);
 
