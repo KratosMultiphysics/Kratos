@@ -64,8 +64,8 @@ namespace Kratos
         mWakeNormal = mrModelPart.GetProcessInfo()[WAKE_NORMAL];
         KRATOS_ERROR_IF(norm_2(mWakeNormal)<std::numeric_limits<double>::epsilon()) << "WAKE_NORMAL has not been set in the ProcessInfo!" << std::endl;
 
-        double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
-        auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
+        const double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
+        const auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
         mDynamicPressure = 0.5 * free_stream_velocity_2 * free_stream_density;
 
         const auto r_current_process_info = mrModelPart.GetProcessInfo();
@@ -93,23 +93,23 @@ namespace Kratos
             array_1d<double, 3> local_force_coefficient_vel;
             auto& r_geometry = r_condition.GetGeometry();
 
-            double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
-            array_1d<double,3> aux_coordinates;
+            const double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
+            const array_1d<double,3> aux_coordinates;
             r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
             const auto& normal = r_geometry.Normal(aux_coordinates);
             force_coefficient_pres += -normal*pressure_coefficient;
 
-            auto velocity = r_condition.GetValue(VELOCITY);
-            double density = r_condition.GetValue(DENSITY);
-            double velocity_projection = inner_prod(normal,velocity);
-            array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
+            const auto velocity = r_condition.GetValue(VELOCITY);
+            const double density = r_condition.GetValue(DENSITY);
+            const double velocity_projection = inner_prod(normal,velocity);
+            const array_1d<double,3> disturbance = velocity - mFreeStreamVelocity;
             force_coefficient_vel += -velocity_projection * disturbance * density;
         }
 
         force_coefficient_pres = force_coefficient_pres / mReferenceChord;
         force_coefficient_vel = force_coefficient_vel/(mDynamicPressure*mReferenceChord);
 
-        auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
+        const auto force_coefficient = force_coefficient_pres + force_coefficient_vel;
 
         return inner_prod(force_coefficient, mWakeNormal);
 
@@ -158,7 +158,7 @@ namespace Kratos
 
             for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node){
 
-                double lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
+                const double lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += mStepSize;
@@ -167,7 +167,7 @@ namespace Kratos
                     r_geometry[i_node].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += mStepSize;
                 }
 
-                double perturbed_lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
+                const double perturbed_lift = this->ComputeLiftContribution(r_this_element, normal, rProcessInfo);
 
                 if (rAdjointElement.GetValue(WAKE) && (r_geometry[i_node].GetValue(WAKE_DISTANCE) < 0.0)) {
                     r_geometry[i_node].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= mStepSize;
@@ -269,5 +269,4 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 } // namespace Kratos.
-
 
