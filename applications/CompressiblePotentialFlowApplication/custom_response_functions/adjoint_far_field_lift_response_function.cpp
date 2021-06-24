@@ -32,7 +32,6 @@ namespace Kratos
         {
             "reference_chord"             : 1.0,
             "far_field_model_part_name"   : "",
-            "wake_normal"                 : [0,1,0],
             "analyzer"                    : "kratos",
             "response_type"               : "adjoint_lift_far_field",
             "gradient_mode"               : "semi_analytic",
@@ -48,9 +47,7 @@ namespace Kratos
         KRATOS_ERROR_IF(mReferenceChord < std::numeric_limits<double>::epsilon())
             << "The reference chord should be larger than 0." << mReferenceChord << std::endl;
 
-        mWakeNormal = ResponseSettings["wake_normal"].GetVector();
         mStepSize = ResponseSettings["step_size"].GetDouble();
-
     }
 
     AdjointLiftFarFieldResponseFunction::~AdjointLiftFarFieldResponseFunction(){}
@@ -59,12 +56,13 @@ namespace Kratos
 
         KRATOS_TRY;
 
-        VariableUtils().SetNonHistoricalVariableToZero(NORMAL, mrModelPart.GetRootModelPart().Elements());
-
         mFreeStreamVelocity = mrModelPart.GetProcessInfo()[FREE_STREAM_VELOCITY];
         double free_stream_velocity_norm = norm_2(mFreeStreamVelocity);
 
         KRATOS_ERROR_IF(free_stream_velocity_norm<std::numeric_limits<double>::epsilon()) << "Free stream velocity is zero!" << std::endl;
+
+        mWakeNormal = mrModelPart.GetProcessInfo()[WAKE_NORMAL];
+        KRATOS_ERROR_IF(norm_2(mWakeNormal)<std::numeric_limits<double>::epsilon()) << "WAKE_NORMAL has not been set in the ProcessInfo!" << std::endl;
 
         double free_stream_velocity_2 = inner_prod(mFreeStreamVelocity, mFreeStreamVelocity);
         auto free_stream_density = mrModelPart.GetProcessInfo()[FREE_STREAM_DENSITY];
