@@ -20,6 +20,7 @@
 #include "containers/model.h"
 #include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
 #include "utilities/parallel_utilities.h"
+#include "parametric_linear_transform.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -51,6 +52,63 @@ void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     block_for_each(rNodes, [](Node<3>& rNode ){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
     });
+
+    KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const array_1d<double,3>& rRotationAxis,
+    const double rotationAngle,
+    const array_1d<double,3>& rReferencePoint,
+    const array_1d<double,3>& rTranslationVector)
+{
+    KRATOS_TRY
+
+    const LinearTransform transform(
+        rRotationAxis,
+        rotationAngle,
+        rReferencePoint,
+        rTranslationVector);
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&transform](Node<3>& rNode){
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = transform.Apply(rNode) - rNode;
+        });
+
+    KRATOS_CATCH("");
+}
+
+void MoveModelPart(
+    ModelPart& rModelPart,
+    const Parameters& rRotationAxis,
+    const Parameters& rRotationAngle,
+    const Parameters& rReferencePoint,
+    const Parameters& rTranslationVector)
+{
+    KRATOS_TRY
+
+    const double time = rModelPart.GetProcessInfo().GetValue(TIME);
+
+    ParametricLinearTransform transform(
+        rRotationAxis,
+        rRotationAngle,
+        rReferencePoint,
+        rTranslationVector);
+
+    block_for_each(
+        rModelPart.Nodes(),
+        [&transform, time](Node<3>& rNode){
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = transform.Apply(
+                rNode,
+                time,
+                rNode.X0(),
+                rNode.Y0(),
+                rNode.Z0()) - rNode;
+        });
 
     KRATOS_CATCH("");
 }
