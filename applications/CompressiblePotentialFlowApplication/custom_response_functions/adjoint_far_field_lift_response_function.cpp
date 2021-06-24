@@ -94,7 +94,7 @@ namespace Kratos
             auto& r_geometry = r_condition.GetGeometry();
 
             const double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
-            const array_1d<double,3> aux_coordinates;
+            array_1d<double,3> aux_coordinates;
             r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
             const auto& normal = r_geometry.Normal(aux_coordinates);
             force_coefficient_pres += -normal*pressure_coefficient;
