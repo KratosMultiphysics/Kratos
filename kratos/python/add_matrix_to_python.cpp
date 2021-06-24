@@ -92,13 +92,13 @@ namespace Python
 
         matrix_binder.def(py::init([](const py::list& input){
           std::size_t num_rows = input.size();
-          if( num_rows == 0 || ( (num_rows == 1) && (pybind11::len(input[0]) == 0) ) )
+          if( num_rows == 0 || ( (num_rows == 1) && (py::len(input[0]) == 0) ) )
             return DenseMatrix<double>(0,0);
           else{
-            std::size_t num_cols = pybind11::len(input[0]);
+            std::size_t num_cols = py::len(input[0]);
             DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
             for(std::size_t i = 0; i < num_rows; i++){
-              KRATOS_ERROR_IF( (pybind11::len(input[i])) != num_cols ) << "Wrong size of a row\n";
+              KRATOS_ERROR_IF( (py::len(input[i])) != num_cols ) << "Wrong size of a row\n";
               for(std::size_t j = 0; j < num_cols; j++){
                   matrix(i,j) = py::cast<double>((py::cast<py::list>(input[i]))[j]);
               }
