@@ -14,8 +14,7 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
     def __init__(self,
                  model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
-        """
-        Impose a rotation followed by translation on a ModelPart.
+        """Impose a rotation followed by translation on a ModelPart.
 
         The transformation is equivalent to:
         1) Translation to the reference frame (offset the origin)
