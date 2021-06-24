@@ -236,31 +236,31 @@ public:
 		// The given set of node ids may have a different node order
 		hashmap_vec ordered_skin_face_nodes_map;
 
-	// Fill map that gives original node order for set of nodes
-    for (int i_e = 0; i_e < num_elements; ++i_e) {
-        auto i_element = elements_begin + i_e;
-        Element::GeometryType::GeometriesArrayType faces;
-  		faces = i_element->GetGeometry().GenerateFaces();
+		// Fill map that gives original node order for set of nodes
+		for (int i_e = 0; i_e < num_elements; ++i_e) {
+			auto i_element = elements_begin + i_e;
+			Element::GeometryType::GeometriesArrayType faces;
+			faces = i_element->GetGeometry().GenerateFaces();
 
-        for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
-            // Create vector that stores all node is of current i_face
-            vector<IndexType> ids(faces[i_face].size());
-            vector<IndexType> unsorted_ids(faces[i_face].size());
+			for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
+				// Create vector that stores all node is of current i_face
+				vector<IndexType> ids(faces[i_face].size());
+				vector<IndexType> unsorted_ids(faces[i_face].size());
 
-            // Store node ids
-            for (IndexType i = 0; i < faces[i_face].size(); i++) {
-                ids[i] = faces[i_face][i].Id();
-                unsorted_ids[i] = faces[i_face][i].Id();
-            }
+				// Store node ids
+				for (IndexType i = 0; i < faces[i_face].size(); i++) {
+					ids[i] = faces[i_face][i].Id();
+					unsorted_ids[i] = faces[i_face][i].Id();
+				}
 
-            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-            std::sort(ids.begin(), ids.end());
-            
-            if (n_faces_map[ids] == 1)
-                ordered_skin_face_nodes_map[ids] = unsorted_ids;
-            
-        }
-    }
+				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+				std::sort(ids.begin(), ids.end());
+				
+				if (n_faces_map[ids] == 1)
+					ordered_skin_face_nodes_map[ids] = unsorted_ids;
+				
+			}
+		}
 
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
 		IndexType face_id = 1;
