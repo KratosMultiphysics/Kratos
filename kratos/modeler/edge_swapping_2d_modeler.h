@@ -28,6 +28,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/timer.h"
 #include "processes/find_elements_neighbours_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -183,13 +184,13 @@ public:
             const int number_of_nodes = rThisModelPart.NumberOfNodes();
             const int number_of_elements = rThisModelPart.NumberOfElements();
 
-            #pragma omp parallel for
-            for(int i = 0 ; i < number_of_nodes ; i++)
-                nodes_array[i]->SetId(i+1);
+            IndexPartition<std::size_t>(number_of_nodes).for_each([&nodes_array](std::size_t Index){
+                nodes_array[Index]->SetId(Index+1);
+            });
 
-            #pragma omp parallel for
-            for(int i = 0 ; i < number_of_elements ; i++)
-                elements_array[i]->SetId(i+1);
+            IndexPartition<std::size_t>(number_of_elements).for_each([&elements_array](std::size_t Index){
+                elements_array[Index]->SetId(Index+1);
+            });
 
             std::cout << "Edge swapping iteration #" << repeat; // << " : No. of bad quality elements = " << number_of_bad_quality_elements;
             SetSwappingData(rThisModelPart);
@@ -564,15 +565,13 @@ private:
         ModelPart::ElementsContainerType::ContainerType& elements_array = rThisModelPart.ElementsArray();
         const int number_of_elements = rThisModelPart.NumberOfElements();
 
-        #pragma omp parallel for
-        for(int i = 0 ; i < number_of_elements ; i++)
-        {
-            if(ElementQuality(*elements_array[i]) < threshold)
+        IndexPartition<std::size_t>(number_of_elements).for_each([&](std::size_t Index){
+            if(ElementQuality(*elements_array[Index]) < threshold)
             {
                 marked++;
-                mBadQuality[i] = true;
+                mBadQuality[Index] = true;
             }
-        }
+        });
 
 // To be parallelized.
 // 		  for(ModelPart::ElementIterator i_element = rThisModelPart.ElementsBegin() ; i_element != rThisModelPart.ElementsEnd() ; i_element++)
@@ -639,25 +638,21 @@ private:
         if(static_cast<int>(mSwappingData.size()) != number_of_elements)
             mSwappingData.resize(number_of_elements);
 
-        #pragma omp parallel for
-        for(int i = 0 ; i < number_of_elements ; i++)
-            mSwappingData[i].Reset();
+        IndexPartition<std::size_t>(number_of_elements).for_each([this](std::size_t Index){
+            mSwappingData[Index].Reset();
+        });
 
-        #pragma omp parallel for
-        for(int i = 0 ; i < number_of_elements ; i++)
-        {
-            Element::GeometryType& r_geometry = elements_array[i]->GetGeometry();
-            int id = elements_array[i]->Id();
-            FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[i], 0);
-            FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[i], 1);
-            FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[i], 2);
+        IndexPartition<std::size_t>(number_of_elements).for_each([&](std::size_t Index){
+            Element::GeometryType& r_geometry = elements_array[Index]->GetGeometry();
+            int id = elements_array[Index]->Id();
+            FindNeighbourElement(r_geometry[1].Id(), r_geometry[2].Id(), id, elements_array, mSwappingData[Index], 0);
+            FindNeighbourElement(r_geometry[2].Id(), r_geometry[0].Id(), id, elements_array, mSwappingData[Index], 1);
+            FindNeighbourElement(r_geometry[0].Id(), r_geometry[1].Id(), id, elements_array, mSwappingData[Index], 2);
             for(unsigned int j = 0; j < r_geometry.size(); j++)
             {
-                mSwappingData[i].IsInside[j] = IsInElementSphere(*(elements_array[i]), *(nodes_array[mSwappingData[i].OppositeNodes[j]-1]));
+                mSwappingData[Index].IsInside[j] = IsInElementSphere(*(elements_array[Index]), *(nodes_array[mSwappingData[Index].OppositeNodes[j]-1]));
             }
-        }
-
-
+        });
     }
 
 

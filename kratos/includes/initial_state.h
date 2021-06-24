@@ -63,7 +63,7 @@ class KRATOS_API(KRATOS_CORE) InitialState
         ///@{
 
         /// Default constructor.
-        InitialState()
+        InitialState() : mReferenceCounter(0)
         {}
 
         /// Only defining Dimension constructor.

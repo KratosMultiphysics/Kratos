@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Small tests
 from shallow_water_test_factory import TestShallowWaterElement
-from shallow_water_test_factory import TestLagrangianShallowWaterElement
+from shallow_water_test_factory import TestSemiLagrangianShallowWaterElement
 from shallow_water_test_factory import TestShallowWater2D3NElement
 from shallow_water_test_factory import TestMonotonicShallowWater2D3NElement
 from shallow_water_test_factory import TestSetTopographyProcess
@@ -52,7 +52,7 @@ def AssembleTestSuites():
     nightlySuite = suites['nightly']
     nightlySuite.addTests(smallSuite)
     nightlySuite.addTest(TestShallowWaterElement('test_execution'))
-    nightlySuite.addTest(TestLagrangianShallowWaterElement('test_execution'))
+    nightlySuite.addTest(TestSemiLagrangianShallowWaterElement('test_execution'))
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']

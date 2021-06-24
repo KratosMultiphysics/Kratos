@@ -31,8 +31,6 @@ namespace Kratos {
 
         DEMDiscontinuumConstitutiveLaw(const DEMDiscontinuumConstitutiveLaw &rReferenceDiscontinuumConstitutiveLaw);
 
-        virtual void Initialize(const ProcessInfo& r_process_info);
-
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
@@ -52,7 +50,7 @@ namespace Kratos {
                 double equiv_poisson,
                 double calculation_area,
                 SphericParticle* element1,
-                SphericParticle* element2);
+                SphericParticle* element2, double indentation);
 
 
         virtual void CalculateElasticEnergy(double& normal_elastic_energy,

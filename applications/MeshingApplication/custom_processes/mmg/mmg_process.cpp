@@ -187,6 +187,7 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     KRATOS_TRY;
 
     const bool safe_to_file = mThisParameters["save_external_files"].GetBool();
+    const bool optimization_mode = mThisParameters["advanced_parameters"]["mesh_optimization_only"].GetBool();
 
     /* We print the original model part */
     KRATOS_INFO_IF("", mEchoLevel > 0) <<
@@ -198,11 +199,15 @@ void MmgProcess<TMMGLibrary>::ExecuteInitializeSolutionStep()
     // We initialize the mesh and solution data
     InitializeMeshData();
 
+    mMmgUtilities.SetMeshOptimizationModeParameter(optimization_mode);
+
     // We retrieve the data form the Kratos model part to fill sol
     if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
     } else {
-        InitializeSolDataMetric();
+        if (!optimization_mode) {
+            InitializeSolDataMetric();
+        }
     }
 
     // We set the displacement vector
@@ -1241,6 +1246,7 @@ const Parameters MmgProcess<TMMGLibrary>::GetDefaultParameters() const
             "normal_regularization_mesh"          : false,
             "deactivate_detect_angle"             : false,
             "force_gradation_value"               : false,
+            "mesh_optimization_only"              : false,
             "gradation_value"                     : 1.3
         },
         "collapse_prisms_elements"             : false,

@@ -105,15 +105,27 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 set (KratosMultiphysics_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
-
-if(USE_COTIRE MATCHES ON)
-  include(cotire)
-  set(CMAKE_SKIP_RPATH ON)
-
-  if(${MSVC})
-    set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
-  endif(${MSVC})
-endif(USE_COTIRE MATCHES ON)
+# Unitary builds with version is lower than 3.16 deactivate
+IF(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        SET(CMAKE_UNITY_BUILD OFF)
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
+    IF(USE_COTIRE MATCHES ON)
+        # Legacy Unitary build
+        MESSAGE(STATUS "Using USE_COTIRE is deprecated and was replaced by CMAKE_UNITY_BUILD.")
+        SET(CMAKE_UNITY_BUILD ON)
+    ENDIF(USE_COTIRE MATCHES ON)
+    # Some checks
+    IF(CMAKE_UNITY_BUILD MATCHES ON)
+        IF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+            SET(KRATOS_UNITY_BUILD_BATCH_SIZE 32)
+        ENDIF(NOT DEFINED KRATOS_UNITY_BUILD_BATCH_SIZE)
+        IF(${MSVC})
+          SET(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY True)
+        ENDIF(${MSVC})
+    ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -489,8 +501,11 @@ message("\t Minor update of import mechanism for applications: https://github.co
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 
-#compiling the triangle library
+# Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )

@@ -102,7 +102,7 @@ TranslatoryRigidBodyElement::~TranslatoryRigidBodyElement()
 //************************************************************************************
 
 
-void TranslatoryRigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void TranslatoryRigidBodyElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
 
     ElementalDofList.resize(0);
@@ -123,7 +123,7 @@ void TranslatoryRigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,Pr
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void TranslatoryRigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
 
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -233,7 +233,7 @@ void TranslatoryRigidBodyElement::GetSecondDerivativesVector(Vector& rValues, in
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::Initialize()
+void TranslatoryRigidBodyElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -339,7 +339,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
 
     //rCurrentProcessInfo must give it:
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    
+
     double Newmark0 = 0;
     double Newmark1 = 0;
     double Newmark2 = 0;
@@ -351,7 +351,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
     MatrixType m11(dimension, dimension);
     noalias(m11) = IdentityMatrix(dimension);
     m11 *= (1.0-AlphaM) * Newmark1 * rVariables.RigidBody.Mass;
-    
+
     //Building the Local Tangent Inertia Matrix
     BeamMathUtilsType::AddMatrix(rLeftHandSideMatrix, m11, 0, 0);
 
@@ -379,7 +379,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
       rRightHandSideVector.resize(dofs_size, false);
 
     noalias(rRightHandSideVector) = ZeroVector( dofs_size );
-    
+
     ArrayType CurrentLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
     CurrentLinearAccelerationVector = MapToInitialLocalFrame(CurrentLinearAccelerationVector);
     ArrayType PreviousLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
@@ -409,7 +409,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHa
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY
@@ -442,7 +442,7 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodyElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessInfo)
 {
 
      KRATOS_TRY
@@ -484,7 +484,7 @@ TranslatoryRigidBodyElement::SizeType TranslatoryRigidBodyElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
-int TranslatoryRigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int TranslatoryRigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

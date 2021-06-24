@@ -130,9 +130,10 @@ public:
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
-                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes
-                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes)
+            << "Origin and destination model parts have different number of nodes."
+            << "\n\t- Number of origin nodes: " << n_orig_nodes
+            << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
@@ -140,6 +141,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
     }
 
     /**
@@ -183,6 +186,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
     }
 
     template< class TVarType >
@@ -1177,9 +1182,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        using ReductionType = typename std::conditional< std::is_scalar<TDataType>::value , SumReduction<double> , Array3Reduction >::type;
-
-        TDataType sum_value = block_for_each<ReductionType>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1387,33 +1390,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    // TODO use SumReduction once it supports array3 (- Philipp)
-    class Array3Reduction
-    {
-    public:
-        typedef array_1d<double,3> value_type;
-        typedef array_1d<double,3> return_type;
-
-        return_type mValue = ZeroVector(3);
-
-        /// access to reduced value
-        return_type GetValue() const
-        {
-            return mValue;
-        }
-
-        void LocalReduce(const value_type& value)
-        {
-            mValue += value;
-        }
-
-        void ThreadSafeReduce(const Array3Reduction& rOther)
-        {
-            AtomicAdd(mValue, rOther.mValue);
-        }
-    };
-
 
     ///@}
     ///@name Private Operators

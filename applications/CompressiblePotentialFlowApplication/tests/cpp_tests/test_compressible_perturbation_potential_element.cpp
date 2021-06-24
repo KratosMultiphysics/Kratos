@@ -37,7 +37,6 @@ void GenerateCompressiblePerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
     rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 0.8836;
 
     BoundedVector<double, 3> free_stream_velocity = ZeroVector(3);
     free_stream_velocity(0) = rModelPart.GetProcessInfo().GetValue(FREE_STREAM_MACH) * rModelPart.GetProcessInfo().GetValue(SOUND_VELOCITY);
@@ -122,8 +121,8 @@ void PrintTestWakeMatrixPretty(Matrix& rMatrix){
 
 void PrintTestElementInfo(ModelPart& rModelPart){
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*pElement, r_current_process_info);
+    Element::Pointer p_element = rModelPart.pGetElement(1);
+    array_1d<double, 2> perturbed_velocity = PotentialFlowUtilities::ComputePerturbedVelocity<2,3>(*p_element, r_current_process_info);
     const double local_velocity_squared = inner_prod(perturbed_velocity, perturbed_velocity);
     const double local_mach_squared = PotentialFlowUtilities::ComputeLocalMachNumberSquared<2, 3>(perturbed_velocity, r_current_process_info);
     const double max_velocity_squared = PotentialFlowUtilities::ComputeMaximumVelocitySquared<2, 3>(r_current_process_info);
@@ -144,16 +143,16 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHS, Compr
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     std::array<double, 3> potential{1.0, 20.0, 50.0};
-    AssignPotentialsToNormalCompressiblePerturbationElement(pElement, potential);
+    AssignPotentialsToNormalCompressiblePerturbationElement(p_element, potential);
 
     // Compute RHS
     Vector RHS = ZeroVector(3);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{131.4361747323354,-113.768439084114,-17.66773564822145};
 
@@ -165,16 +164,16 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementRHSClampin
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     std::array<double, 3> potential{1.0, 220.0, 250.0};
-    AssignPotentialsToNormalCompressiblePerturbationElement(pElement, potential);
+    AssignPotentialsToNormalCompressiblePerturbationElement(p_element, potential);
 
     // Compute RHS
     Vector RHS = ZeroVector(3);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{205.3219372530133,-190.7662916232804,-14.55564562973297};
 
@@ -189,16 +188,16 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHS, Compr
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     std::array<double, 3> potential{1.0, 20.0, 50.0};
-    AssignPotentialsToNormalCompressiblePerturbationElement(pElement, potential);
+    AssignPotentialsToNormalCompressiblePerturbationElement(p_element, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(3, 3);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 9> reference{ 0.3316096612183497,-0.3661980912374865,0.03458843001913683,
                                     -0.3661980912374865,0.9850616437217248,-0.6188635524842382,
@@ -216,16 +215,16 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHSClampin
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     std::array<double, 3> potential{1.0, 220.0, 250.0};
-    AssignPotentialsToNormalCompressiblePerturbationElement(pElement, potential);
+    AssignPotentialsToNormalCompressiblePerturbationElement(p_element, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(3, 3);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 9> reference{ 0.4851881876577658,-0.4851881876577658,0,
                                     -0.4851881876577658,0.9703763753155316,-0.4851881876577658,
@@ -239,14 +238,14 @@ KRATOS_TEST_CASE_IN_SUITE(CompressiblePerturbationPotentialFlowElementLHSClampin
 }
 
 void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta, unsigned int row, Matrix& rLHS_original, Vector& rRHS_original, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     // Compute pinged LHS and RHS
     Vector RHS_pinged = ZeroVector(number_of_nodes);
     Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
+    p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
 
     for(unsigned int k = 0; k < rLHS_original.size2(); k++){
         // Compute the finite difference estimate of the sensitivity
@@ -258,76 +257,76 @@ void ComputeElementalSensitivitiesMatrixRow(ModelPart& rModelPart, double delta,
 }
 
 void ComputeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 3> rPotential){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    AssignPotentialsToNormalCompressiblePerturbationElement(pElement, rPotential);
+    AssignPotentialsToNormalCompressiblePerturbationElement(p_element, rPotential);
 
     // Compute original RHS and LHS
     Vector RHS_original = ZeroVector(number_of_nodes);
     Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < number_of_nodes; i++){
         // Pinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
 
         ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
 
         // Unpinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
     }
 }
 
 void ComputeWakeElementalSensitivities(ModelPart& rModelPart, Matrix& rLHS_finite_diference, Matrix& rLHS_analytical, const std::array<double, 6> rPotential){
-    Element::Pointer pElement = rModelPart.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = rModelPart.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, rPotential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, rPotential);
 
     // Compute original RHS and LHS
     Vector RHS_original = ZeroVector(2*number_of_nodes);
     Matrix LHS_original = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
     const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < 2*number_of_nodes; i++){
         if(i < number_of_nodes){
             // Pinging
             if (distances(i) > 0.0)
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
             else
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
 
             ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
 
             // Unpinging
             if (distances(i) > 0.0)
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
             else
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
+                p_element->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
         }
         else{
             // Pinging
             if (distances(i-number_of_nodes) > 0.0)
-                pElement->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
+                p_element->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) += delta;
             else
-                pElement->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+                p_element->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
 
             ComputeElementalSensitivitiesMatrixRow(rModelPart, delta, i, LHS_original, RHS_original, rLHS_finite_diference, rLHS_analytical);
 
             // Unpinging
             if (distances(i-number_of_nodes) > 0.0)
-                pElement->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
+                p_element->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) -= delta;
             else
-                pElement->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+                p_element->GetGeometry()[i-number_of_nodes].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
         }
     }
 }
@@ -340,8 +339,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, C
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     std::array<double, 3> potential{1.0, 20.0, 50.0};
 
@@ -350,11 +349,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHS, C
 
     ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -362,8 +357,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSCla
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     std::array<double, 3> potential{1.2495, 94.1948, 182.149583};
 
@@ -372,11 +367,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSCla
 
     ComputeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, CompressiblePotentialApplicationFastSuite) {
@@ -384,21 +375,21 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHS, C
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     const std::array<double, 6> potential{1.0, 31.0, 150.0, 6.0, 75.0, 55.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{127.1146544469925,109.025,-85.1375,23.8875,-154.8303022595422,10.56213263248122};
 
@@ -410,21 +401,21 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementRHSCla
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     const std::array<double, 6> potential{1.0, 151.0, 190.0, 6.0, 165.0, 195.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{171.8439523046275,11.025,-5.5125,5.5125,-161.6550003638144,-14.55564562973297};
 
@@ -436,24 +427,24 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.0, 31.0, 150.0, 6.0, 75.0, 55.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{127.1146544469925,109.025,-16.14852237508765,23.8875,-154.8303022595422,7.921599474360912};
 
@@ -465,24 +456,24 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.0, 151.0, 190.0, 6.0, 165.0, 195.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{171.8439523046275,11.025,-4.730584829663217,5.5125,-161.6550003638144,-10.91673422229973};
 
@@ -494,21 +485,21 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHS, C
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     const std::array<double, 6> potential{1.0, 31.0, 150.0, 6.0, 75.0, 55.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
     std::array<double,36> reference{0.2730300317674839,-0.4101190902695764,0.1370890585020925,0,0,0,-0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,0,-0.6125,0.6125,-0,0.6125,-0.6125,-0.6125,0.6125,-0,0.6125,-0.6125,0,0,0,0,-0.1405503745970895,0.6402833143676492,-0.4997329397705597,0,0,0,-0.02643811017306578,-0.4997329397705597,0.5261710499436255};
@@ -525,21 +516,21 @@ KRATOS_TEST_CASE_IN_SUITE(WakeCompressiblePerturbationPotentialFlowElementLHSCla
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
     const std::array<double, 6> potential{1.0, 151.0, 190.0, 6.0, 165.0, 195.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
     std::array<double,36> reference{0.4851881876577658,-0.4851881876577658,0,0,0,0,-0.6125,1.225,-0.6125,0.6125,
@@ -557,24 +548,24 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.0, 31.0, 150.0, 6.0, 75.0, 55.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
     std::array<double,36> reference{0.2730300317674839,-0.4101190902695764,0.1370890585020925,0,0,0,-0.6125,1.225,
@@ -593,24 +584,24 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureCompressiblePerturbationPotentialFlowElem
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationCompressibleElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.0, 151.0, 190.0, 6.0, 165.0, 195.0};
-    AssignPotentialsToWakeCompressiblePerturbationElement(pElement, distances, potential);
+    AssignPotentialsToWakeCompressiblePerturbationElement(p_element, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
     std::array<double,36> reference{0.4851881876577658,-0.4851881876577658,0,0,0,0,-0.6125,1.225,-0.6125,0.6125,
@@ -629,8 +620,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     const std::array<double, 6> potential{1.0, 40.0, 35.0, 6.0, 26.0, 14.0};
 
@@ -639,11 +630,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
 
     ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -651,8 +638,8 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     const std::array<double, 6> potential{1.285837, 170.29384, 135.1583, 6.0, 196.345, 114.0};
 
@@ -661,11 +648,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeCompressiblePerturbationPotentialFlowElementLH
 
     ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlowElementLHS, CompressiblePotentialApplicationFastSuite) {
@@ -673,11 +656,11 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.285837, 30.29384, 35.1583, 6.0, 46.345, 64.0};
 
@@ -688,11 +671,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     PrintTestElementInfo(model_part);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlowElementLHSClamping, CompressiblePotentialApplicationFastSuite) {
@@ -700,11 +679,11 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateCompressiblePerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    pElement->Set(STRUCTURE);
-    pElement->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.285837, 170.29384, 135.1583, 6.0, 196.345, 114.0};
 
@@ -715,11 +694,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     PrintTestElementInfo(model_part);
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 } // namespace Testing
