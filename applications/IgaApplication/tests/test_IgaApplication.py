@@ -28,6 +28,7 @@ from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatc
 from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
 # Rotation Coupling tests
 from iga_test_factory import TwoPatchCantileverCouplingPenaltyTest as TwoPatchCantileverCouplingPenaltyTest
+from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as TwoPatchCantileverRefinedCouplingPenaltyTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -64,6 +65,7 @@ def AssembleTestSuites():
         TTestNurbsVolumeElements,
         # Rotation coupling tests
         TwoPatchCantileverCouplingPenaltyTest,
+        TwoPatchCantileverRefinedCouplingPenaltyTest,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest
