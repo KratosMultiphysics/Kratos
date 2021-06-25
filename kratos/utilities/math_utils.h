@@ -1910,12 +1910,13 @@ public:
         double norm_series_term = 1.0;
         int series_term = 2, max_terms = 200, factorial = 1;
         SizeType dimension = rMatrix.size1();
+        const double tolerance = ZeroTolerance;
 
         noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
         TMatrixType exponent_matrix = rMatrix;
         TMatrixType aux_matrix;
 
-        while (norm_series_term > 100.0*ZeroTolerance && series_term < max_terms) {
+        while (norm_series_term > 100.0*tolerance && series_term < max_terms) {
             noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
             noalias(exponent_matrix) = aux_matrix;
             factorial = Factorial(series_term);
