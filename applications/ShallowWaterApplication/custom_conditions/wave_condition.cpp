@@ -214,38 +214,42 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
     const double Weight)
 {
     const bool integrate_by_parts = false;
-    if (integrate_by_parts) {
-        const double h = rData.height;
-        const double g = rData.gravity;
-        const auto z = rData.topography;
-        const auto n = rData.normal;
+    const auto h = rData.height;
+    const auto g = rData.gravity;
+    const auto z = rData.topography;
+    const auto n = rData.normal;
 
-        for (IndexType i = 0; i < TNumNodes; ++i)
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        const IndexType i_block = 3 * i;
+        for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            const IndexType i_block = 3 * i;
-            for (IndexType j = 0; j < TNumNodes; ++j)
-            {
-                const IndexType j_block = 3 * j;
-                const double n_ij = rN[i] * rN[j];
+            const IndexType j_block = 3 * j;
 
-                /* First component
-                * A_1 = {{ 0   0   g },
-                *        { 0   0   0 },
-                *        { h   0   0 }}
-                */
-                rMatrix(i_block,     j_block + 2) += Weight * n_ij * g * n[0];
-                rMatrix(i_block + 2, j_block)     += Weight * n_ij * h * n[0];
-                rVector(i_block)                  -= Weight * n_ij * g * n[0] * z[j];
-
-                /* Second component
-                * A_2 = {{ 0   0   0 },
-                *        { 0   0   g },
-                *        { 0   h   0 }}
-                */
-                rMatrix(i_block + 1, j_block + 2) += Weight * n_ij * g * n[1];
-                rMatrix(i_block + 2, j_block + 1) += Weight * n_ij * h * n[1];
-                rVector(i_block + 1)              -= Weight * n_ij * g * n[1] * z[j];
+            double n_ij;
+            if (integrate_by_parts) {
+                n_ij = rN[i] * rN[j];
+            } else {
+                n_ij = 0.0;
             }
+
+            /* First component
+            * A_1 = {{ 0   0   g },
+            *        { 0   0   0 },
+            *        { h   0   0 }}
+            */
+            rMatrix(i_block,     j_block + 2) -= Weight * n_ij * g * n[0];
+            rMatrix(i_block + 2, j_block)     -= Weight * n_ij * h * n[0];
+            rVector(i_block)                  += Weight * n_ij * g * n[0] * z[j];
+
+            /* Second component
+            * A_2 = {{ 0   0   0 },
+            *        { 0   0   g },
+            *        { 0   h   0 }}
+            */
+            rMatrix(i_block + 1, j_block + 2) -= Weight * n_ij * g * n[1];
+            rMatrix(i_block + 2, j_block + 1) -= Weight * n_ij * h * n[1];
+            rVector(i_block + 1)              += Weight * n_ij * g * n[1] * z[j];
         }
     }
 }
@@ -280,17 +284,17 @@ void WaveCondition<TNumNodes>::AddMassTerms(
             const IndexType j_block = 3 * j;
             const double n_ij = rN[i] * rN[j];
 
-            /* First component
+            /* Stabilization x
              * l / sqrt(gh) * A1 * n1
              */
-            rMatrix(i_block,     j_block + 2) += Weight * n_ij * l * g * inv_c * n[0];
-            rMatrix(i_block + 2, j_block)     += Weight * n_ij * l * h * inv_c * n[0];
+            rMatrix(i_block,     j_block + 2) -= Weight * n_ij * l * g * inv_c * n[0];
+            rMatrix(i_block + 2, j_block)     -= Weight * n_ij * l * h * inv_c * n[0];
 
-            /* Second component
+            /* Stabilization y
              * l / sqrt(gh) * A2 * n2
              */
-            rMatrix(i_block + 1, j_block + 2) += Weight * n_ij * l * g * inv_c * n[1];
-            rMatrix(i_block + 2, j_block + 1) += Weight * n_ij * l * h * inv_c * n[1];
+            rMatrix(i_block + 1, j_block + 2) -= Weight * n_ij * l * g * inv_c * n[1];
+            rMatrix(i_block + 2, j_block + 1) -= Weight * n_ij * l * h * inv_c * n[1];
         }
     }
 }
