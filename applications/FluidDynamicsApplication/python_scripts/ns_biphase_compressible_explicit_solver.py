@@ -92,6 +92,9 @@ class NSBiphaseCompressibleExplicitSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.SOLID_CONCENTRATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.GAS_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosFluid.DYNAMIC_PRESSURE)
 
         KratosMultiphysics.Logger.PrintInfo("::[NSBiphaseCompressibleExplicitSolver]:: ","Explicit biphase compressible fluid solver variables added correctly")
 

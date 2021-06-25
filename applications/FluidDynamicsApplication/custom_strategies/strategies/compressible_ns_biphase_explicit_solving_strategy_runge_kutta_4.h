@@ -159,7 +159,7 @@ public:
     int Check() const override
     {
         int err_code = BaseType::Check();
-
+      
         // Check that the process info already contains the OSS activation variable
         const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
         KRATOS_ERROR_IF_NOT(r_process_info.Has(OSS_SWITCH)) << "OSS_SWITCH variable has not been set in the ProcessInfo container. Please set it in the strategy \'Initialize\'." << std::endl;
@@ -168,7 +168,7 @@ public:
         if (mShockCapturing) {
             mpShockCapturingProcess->Check();
         }
-
+      
         return err_code;
     }
 
@@ -211,6 +211,7 @@ public:
         // Base class assign settings call
         BaseType::AssignSettings(ThisParameters);
 
+      
         // Set the specific compressible NS settings
         mShockCapturing = ThisParameters["shock_capturing"].GetBool();
         mCalculateNonConservativeMagnitudes = ThisParameters["calculate_non_conservative_magnitudes"].GetBool();
@@ -218,6 +219,7 @@ public:
             KRATOS_WARNING("CompressibleNavierStokesExplicitSolvingStrategyRungeKutta4") << "\'shock_capturing\' requires \'calculate_non_conservative_magnitudes\' to be active. Activating it." << std::endl;
             mCalculateNonConservativeMagnitudes = true;
         }
+      
     }
 
     /**
@@ -237,6 +239,9 @@ public:
         block_for_each(r_model_part.Nodes(), [](Node<3>& rNode){
             rNode.SetValue(MACH, 0.0);
             rNode.SetValue(SOUND_VELOCITY, 0.0);
+            rNode.SetValue(DYNAMIC_PRESSURE, 0.0);
+            rNode.SetValue(SOLID_CONCENTRATION, 0.0);
+            rNode.SetValue(GAS_PRESSURE, 0.0);
         });
 
         // If required, initialize the OSS projection variables
@@ -261,7 +266,8 @@ public:
      * These will be the time derivatives employed in the first RK4 sub step of the next time step
      */
     void FinalizeSolutionStep() override
-    {
+    {   
+
         // Call the base RK4 finalize substep method
         BaseType::FinalizeSolutionStep();
 
@@ -284,6 +290,8 @@ public:
             mpShockCapturingProcess->ExecuteFinalizeSolutionStep();
         }
         */
+
+        
     }
 
     /// Turn back information as a string.
@@ -414,7 +422,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    bool mShockCapturing = true;
+    bool mShockCapturing = true;    // Attentio here!
     bool mApplySlipCondition = true;
     bool mCalculateNonConservativeMagnitudes = true;
 
@@ -498,20 +506,30 @@ private:
         // Loop the nodes to calculate the non-conservative magnitudes
         array_1d<double,3> aux_vel;
         block_for_each(r_model_part.Nodes(), aux_vel,[&] (Node<3> &rNode, array_1d<double,3>&rVelocity) {
+            
             const auto& r_mom = rNode.FastGetSolutionStepValue(MOMENTUM);
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
             const double& r_rho_solid = rNode.FastGetSolutionStepValue(DENSITY_SOLID);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
             
             rVelocity = r_mom / r_rho;
-            
-            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;   // Modify for biphase flow
-            const double sound_velocity = std::sqrt(gamma * R * temp);                                 // Modify for biphase flow
-            rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;                           
+
+            double c_mixed = c_v*(r_rho - r_rho_solid) + c_s*r_rho_solid;
+            double Cp_mixed = (c_v + R)*(r_rho - r_rho_solid) + c_s*r_rho_solid;
+            double sol_conc = r_rho_solid/rho_s;
+
+            const double temp = (r_tot_ener - 0.5 * inner_prod(rVelocity, rVelocity)) / c_mixed;   // Modify for biphase flow
+            const double pressure = (r_rho - r_rho_solid) * R * temp;
+            const double sound_velocity = std::sqrt(r_rho - r_rho_solid)*R*Cp_mixed*(2*r_tot_ener - r_rho*inner_prod(rVelocity, rVelocity))/(2*r_rho*c_mixed*c_mixed); 
+            rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;
+            rNode.FastGetSolutionStepValue(SOLID_CONCENTRATION) = sol_conc; 
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;
-            rNode.FastGetSolutionStepValue(PRESSURE) = r_rho * R * temp;                                // Modify for biphase flow
+            rNode.FastGetSolutionStepValue(PRESSURE) = pressure;
+            rNode.FastGetSolutionStepValue(GAS_PRESSURE) = pressure/(1 - sol_conc); 
             rNode.GetValue(SOUND_VELOCITY) = sound_velocity;
             rNode.GetValue(MACH) = norm_2(rVelocity) / sound_velocity;
+            rNode.GetValue(DYNAMIC_PRESSURE) = 0.5 * r_rho * inner_prod(rVelocity, rVelocity);
+        
         });
     }
 

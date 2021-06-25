@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla (adapted by Andrea Montanino)
 //
 
 // System includes
@@ -64,9 +64,9 @@ void ShockCapturing2d_new(const double mu,
 {
     const int SpaceDimension  = 2;
 	
-    double alpha  	  = 0.5;
-	double alpha_dc   = 1.0;
-	double alpha_de	  = 0.5;
+    double alpha  	  = 0.2;
+	double alpha_dc   = 0.0;
+	double alpha_de	  = 0.2;
 	const double tol  = 1e-32;
     const double tol2 = 1e-32;                               
 
@@ -305,7 +305,7 @@ void CompressibleNSBiphaseExplicit<2,3>::EquationIdVector(
     const unsigned int enr_pos = r_geometry[0].GetDofPosition(TOTAL_ENERGY);
     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
         rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_pos).EquationId();
-        rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY, den_sol_pos).EquationId();
+        rResult[local_index++] = r_geometry[i_node].GetDof(DENSITY_SOLID, den_sol_pos).EquationId();
         rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_X, mom_pos).EquationId();
         rResult[local_index++] = r_geometry[i_node].GetDof(MOMENTUM_Y, mom_pos + 1).EquationId();
         rResult[local_index++] = r_geometry[i_node].GetDof(TOTAL_ENERGY, enr_pos).EquationId();
@@ -584,6 +584,7 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
     ElementDataStruct &rData,
     const ProcessInfo &rCurrentProcessInfo)
 {
+
     // Getting data for the given geometry
     const auto& r_geometry = GetGeometry();
     GeometryUtils::CalculateGeometryData(r_geometry, rData.DN_DX, rData.N, rData.volume);
@@ -621,9 +622,9 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
             const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
             const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
             for (unsigned int k = 0; k < TDim; ++k) {
-                rData.U(i, k + 1) = r_momentum[k];
-                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
-                rData.ResProj(i, k + 1) = r_momentum_projection[k];
+                rData.U(i, k + 2) = r_momentum[k];
+                rData.dUdt(i, k + 2) = aux_theta * mom_inc[k];
+                rData.ResProj(i, k + 2) = r_momentum_projection[k];
                 rData.f_ext(i, k) = r_body_force[k];
             }
             // Density data
@@ -637,9 +638,9 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
             const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
             const double tot_ener_inc = r_tot_ener - r_tot_ener_old;
-            rData.U(i, TDim + 1) = r_tot_ener;
-            rData.dUdt(i, TDim + 1) = aux_theta * tot_ener_inc;
-            rData.ResProj(i, TDim + 1) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
+            rData.U(i, TDim + 2) = r_tot_ener;
+            rData.dUdt(i, TDim + 2) = aux_theta * tot_ener_inc;
+            rData.ResProj(i, TDim + 2) = r_node.GetValue(TOTAL_ENERGY_PROJECTION);
             // Source data
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
@@ -657,8 +658,8 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
             const array_1d<double,3> mom_inc = r_momentum - r_momentum_old;
             const auto& r_body_force = r_node.FastGetSolutionStepValue(BODY_FORCE);
             for (unsigned int k = 0; k < TDim; ++k) {
-                rData.U(i, k + 1) = r_momentum[k];
-                rData.dUdt(i, k + 1) = aux_theta * mom_inc[k];
+                rData.U(i, k + 2) = r_momentum[k];
+                rData.dUdt(i, k + 2) = aux_theta * mom_inc[k];
                 rData.f_ext(i, k) = r_body_force[k];
             }
             // Density data
@@ -666,11 +667,16 @@ void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::FillElementData(
             const double& r_rho_old = r_node.FastGetSolutionStepValue(DENSITY, 1);
             rData.U(i, 0) = r_rho;
             rData.dUdt(i, 0) = aux_theta * (r_rho - r_rho_old);
+            // Density solid data
+            const double& r_rho_sol = r_node.FastGetSolutionStepValue(DENSITY_SOLID);
+            const double& r_rho_sol_old = r_node.FastGetSolutionStepValue(DENSITY_SOLID, 1);
+            rData.U(i, 1) = r_rho_sol;
+            rData.dUdt(i, 1) = aux_theta * (r_rho_sol - r_rho_sol_old);
             // Total energy data
             const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
             const double& r_tot_ener_old = r_node.FastGetSolutionStepValue(TOTAL_ENERGY, 1);
-            rData.U(i, TDim + 1) = r_tot_ener;
-            rData.dUdt(i, TDim + 1) = aux_theta * (r_tot_ener - r_tot_ener_old);
+            rData.U(i, TDim + 2) = r_tot_ener;
+            rData.dUdt(i, TDim + 2) = aux_theta * (r_tot_ener - r_tot_ener_old);
             // Source data
             rData.r_ext(i) = r_node.FastGetSolutionStepValue(HEAT_SOURCE);
             rData.m_ext(i) = r_node.FastGetSolutionStepValue(MASS_SOURCE);
@@ -733,7 +739,7 @@ array_1d<double,3> CompressibleNSBiphaseExplicit<TDim, TNumNodes>::CalculateMidP
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
         const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
         const array_1d<double, 3> vel = r_mom / r_rho;
-        const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
+        const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(vel, vel)) / c_v;
         for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
         }
@@ -2490,9 +2496,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
     array_1d<double,nNodalVariables>     FDiff;
     array_1d<double,nNodalVariables>     F;
     
-	
-    
-    const double& ctau = 0.5;   // This coefficient multiplies the divergence of the velocity in the calculation of tau. 
+	const double& ctau = 0.5;   // This coefficient multiplies the divergence of the velocity in the calculation of tau. 
                                 // In 3d would be 0.66667
     
     const double& dt = data.time_step;
@@ -2523,20 +2527,21 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
     const double stab_c1 = 4.0;
     const double stab_c2 = 2.0;
 
-	switchStab[0] = 1.0;
+    switchStab[0] = 1.0;
 	switchStab[1] = 1.0;
 	switchStab[2] = 1.0;
 	switchStab[3] = 1.0;
 	switchStab[4] = 1.0;    
 
-    const array_1d<double,nodesElement>& N = data.N;					       
-    const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	
+    const unsigned int NGaussPoints = 1;
 
+    const array_1d<double,nodesElement>& N = data.N;	
+    const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	
+    
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,SpaceDimension> f_gauss = prod(trans(f_ext), N);      
     const double r_gauss = N(0)*r_ext(0) + N(1)*r_ext(1) + N(2)*r_ext(2);
     
-
 
     // Stabilization parameters
    for (i = 0; i < nScalarVariables; i++){
@@ -2557,8 +2562,6 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
         }
     }
-
-    for (i = 0; i < nNodalVariables*nScalarVariables; i++ )  NN(i) = 0.0;
 
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file
@@ -3133,20 +3136,20 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 		}
 
 	}
+    
+   
 	if (check == 0)	{
-		printf("%.3e %.3e %.3e %.3e %.3e \n", U_gauss(0), U_gauss(1), U_gauss(2), U_gauss(3), U_gauss(4));
 
-		for (s = 0; s < nNodalVariables; s++){
+        printf("%.3e %.3e %.3e %.3e %.3e \n\n", U_gauss(0), U_gauss(1), U_gauss(2), U_gauss(3), U_gauss(4));
 
-			FStab[s] = 0.0;
+		for (i = 0; i < nodesElement; i++){
+            for (j = 0; j < nScalarVariables; j++){
 
-			for (k = 0; k < nScalarVariables; k++){
-				FStab[s] += Lstar[s*nScalarVariables + k]*Residual[k]/invtauStab[k]*switchStab[k];
-
-				printf("%d %d %.3e %.3e %.3e\n", s, k, Lstar[s*nScalarVariables + k], Residual[k], invtauStab[k]);
-			}
+			    printf("%.3e ",UU(i,j));
+            }
+            printf("\n");
 		}
-
+        printf("\n");
 		printf("stab_c2 = %.3e - norm_u = %.3e - SpeedSound = %.3e - stab_c1 = %.3e - mu_mixture = %.3e - lambda_mixture = %.3e"
 			"Cp_mixture = %.3e \n", stab_c2, norm_u, SpeedSound, stab_c1, mu_mixture, lambda_mixture, Cp_mixture);
 
@@ -3168,7 +3171,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideBoundedVector =  F*data.volume / static_cast<double>(nodesElement);       // Da controllare, dovrebbe essere Gauss Points  
+    rRightHandSideBoundedVector =  F*data.volume/NGaussPoints;        // Da controllare, dovrebbe essere Gauss Points  
 
     KRATOS_CATCH("")
 }
@@ -3180,7 +3183,7 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 {
     KRATOS_TRY
 
-    
+    const unsigned int NGaussPoints = 1;
 
     // Struct to pass around the data
     ElementDataStruct data;
@@ -3279,7 +3282,13 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
     switchStab[5] = 1.0;    //OK
 
     // Get shape function values
-    const array_1d<double,nodesElement>& N = data.N;					       
+    array_1d<double,nodesElement> N;
+
+    N[0] = 0.25;
+    N[1] = 0.25;
+    N[2] = 0.25;
+    N[3] = 0.25;
+
     const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	
 
     // Auxiliary variables used in the calculation of the RHS
@@ -4176,7 +4185,7 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 	}
 
     // Here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/n_nodes
-    rRightHandSideBoundedVector = F*data.volume / static_cast<double>(nodesElement); // Da vedere il fatto dei GP
+    rRightHandSideBoundedVector = F*data.volume /NGaussPoints; // Da vedere il fatto dei GP
 
     KRATOS_CATCH("")
 }
@@ -4199,6 +4208,7 @@ void CompressibleNSBiphaseExplicit<2,3>::AddExplicitContribution(const ProcessIn
         const IndexType aux = i_node * block_size;
         #pragma omp atomic
             r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[aux];
+        #pragma omp atomic
             r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY_SOLID) += rhs[aux +1];
             auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
             for (IndexType d = 0; d < dim; ++d) {
@@ -4228,6 +4238,7 @@ void CompressibleNSBiphaseExplicit<3,4>::AddExplicitContribution(const ProcessIn
         const IndexType aux = i_node * block_size;
         #pragma omp atomic
             r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY) += rhs[aux];
+        #pragma omp atomic
             r_geometry[i_node].FastGetSolutionStepValue(REACTION_DENSITY_SOLID) += rhs[aux +1];
             auto& r_mom = r_geometry[i_node].FastGetSolutionStepValue(REACTION);
             for (IndexType d = 0; d < dim; ++d) {
@@ -4245,7 +4256,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateMassMatrix(
     const ProcessInfo &rCurrentProcessInfo)
 {
     constexpr IndexType n_nodes = 3;
-    constexpr IndexType block_size = 4;
+    constexpr IndexType block_size = 5;
 
     // Initialize and fill the mass matrix values
     const double one_six = 1.0 / 6.0;
@@ -4303,11 +4314,12 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateMassMatrix(
     rMassMatrix(10, 4) = one_twenty; rMassMatrix(10, 10) = one_ten; rMassMatrix(10, 16) = one_twenty; rMassMatrix(10,22) = one_twenty;
     rMassMatrix(11, 5) = one_twenty; rMassMatrix(11, 11) = one_ten; rMassMatrix(11, 17) = one_twenty; rMassMatrix(11,23) = one_twenty;
 
-    rMassMatrix(12, 0) = one_twenty; rMassMatrix(12, 6) = one_twenty; rMassMatrix(12, 12) =one_ten; rMassMatrix(6,18) = one_twenty;
-    rMassMatrix(13, 1) = one_twenty; rMassMatrix(13, 7) = one_twenty; rMassMatrix(13, 13) = one_ten; rMassMatrix(7,19) = one_twenty;
-    rMassMatrix(14, 2) = one_twenty; rMassMatrix(14, 8) = one_twenty; rMassMatrix(14, 14) = one_ten; rMassMatrix(9,21) = one_twenty;
-    rMassMatrix(16, 4) = one_twenty; rMassMatrix(16, 10) = one_twenty; rMassMatrix(16, 16) = one_ten; rMassMatrix(10,22) = one_twenty;
-    rMassMatrix(17, 5) = one_twenty; rMassMatrix(17, 11) = one_twenty; rMassMatrix(17, 17) = one_ten; rMassMatrix(11,23) = one_twenty;
+    rMassMatrix(12, 0) = one_twenty; rMassMatrix(12, 6) = one_twenty; rMassMatrix(12, 12) =one_ten; rMassMatrix(12,18) = one_twenty;
+    rMassMatrix(13, 1) = one_twenty; rMassMatrix(13, 7) = one_twenty; rMassMatrix(13, 13) = one_ten; rMassMatrix(13,19) = one_twenty;
+    rMassMatrix(14, 2) = one_twenty; rMassMatrix(14, 8) = one_twenty; rMassMatrix(14, 14) = one_ten; rMassMatrix(14,20) = one_twenty;
+    rMassMatrix(15, 3) = one_twenty; rMassMatrix(15, 9) = one_twenty; rMassMatrix(15, 15) = one_ten; rMassMatrix(15,21) = one_twenty;
+    rMassMatrix(16, 4) = one_twenty; rMassMatrix(16, 10) = one_twenty; rMassMatrix(16, 16) = one_ten; rMassMatrix(16,22) = one_twenty;
+    rMassMatrix(17, 5) = one_twenty; rMassMatrix(17, 11) = one_twenty; rMassMatrix(17, 17) = one_ten; rMassMatrix(17,23) = one_twenty;
 
     rMassMatrix(18, 0) = one_twenty; rMassMatrix(18, 6) = one_twenty; rMassMatrix(18, 12) =one_twenty; rMassMatrix(18,18) = one_ten;
     rMassMatrix(19, 1) = one_twenty; rMassMatrix(18, 7) = one_twenty; rMassMatrix(19, 13) = one_twenty; rMassMatrix(19,19) = one_ten;
@@ -4325,13 +4337,13 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void CompressibleNSBiphaseExplicit<TDim, TNumNodes>::CalculateLumpedMassVector(
     VectorType& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo) const
-{
+{   
     // Initialize the lumped mass vector
     constexpr IndexType size = TNumNodes * BlockSize;
     if (rLumpedMassVector.size() != BlockSize) {
         rLumpedMassVector.resize(size, false);
     }
-
+    
     // Fill the lumped mass vector
     const double nodal_mass = GetGeometry().DomainSize() / TNumNodes;
     std::fill(rLumpedMassVector.begin(),rLumpedMassVector.end(),nodal_mass);

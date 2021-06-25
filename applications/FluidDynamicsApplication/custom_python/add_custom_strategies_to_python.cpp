@@ -125,6 +125,14 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
 
     py::class_<
+        CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>,
+        typename CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>::Pointer,
+        ExplicitSolvingStrategyRungeKutta4<SparseSpaceType, LocalSpaceType>>(m, "CompressibleNSBiphaseExplicitSolvingStrategyRungeKutta4")
+    .def(py::init<ModelPart&, bool, int>())
+    .def(py::init<ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ExplicitBuilder<SparseSpaceType, LocalSpaceType>::Pointer, bool, int>());
+
+    py::class_<
         FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>,
         typename FractionalStepStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Pointer,
         BaseSolvingStrategyType>(m, "FractionalStepStrategy")

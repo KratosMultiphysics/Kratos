@@ -77,6 +77,7 @@
 #include "custom_elements/compressible_biphase_navier_stokes_explicit.h"
 #include "custom_elements/compressible_biphase_dg_navier_stokes_explicit.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
+#include "custom_elements/compressible_ns_biphase_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/vms_adjoint_element.h"
 
@@ -409,6 +410,8 @@ private:
     const CompressibleBiphaseNavierStokesExplicit<3> mCompressibleBiphaseNavierStokesExplicit3D;
     const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D;
     const CompressibleNavierStokesExplicit<3, 4> mCompressibleNavierStokesExplicit3D;
+    const CompressibleNSBiphaseExplicit<2, 3> mCompressibleNSBiphaseExplicit2D;
+    const CompressibleNSBiphaseExplicit<3, 4> mCompressibleNSBiphaseExplicit3D;
 
     const CompressibleBiphaseDGNavierStokesExplicit<2> mCompressibleBiphaseDGNavierStokesExplicit2D;
     const CompressibleBiphaseDGNavierStokesExplicit<3> mCompressibleBiphaseDGNavierStokesExplicit3D;
