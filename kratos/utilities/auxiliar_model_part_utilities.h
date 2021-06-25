@@ -587,7 +587,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    static inline void AuxiliarCopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopy)
+    static void AuxiliarCopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopy)
     {
       for (auto& r_sub_model_part : rModelPartToCopy.SubModelParts()) {
         auto& r_new_sub_model_part = rModelPart.CreateSubModelPart(r_sub_model_part.Name());
