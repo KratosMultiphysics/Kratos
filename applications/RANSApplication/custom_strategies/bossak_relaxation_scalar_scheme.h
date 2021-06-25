@@ -121,6 +121,24 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& A,
+        SystemVectorType& Dv,
+        SystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        // update the solving variables
+        BaseType::Predict(rModelPart, rDofSet, A, Dv, b);
+
+        // update the solving variables time derivatives
+        UpdateScalarRateVariables(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,

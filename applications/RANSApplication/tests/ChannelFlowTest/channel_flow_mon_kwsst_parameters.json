@@ -59,7 +59,7 @@
                 }
             },
             "k_omega_sst_solver_settings": {
-                "stabilization_method": "algebraic_flux_corrected",
+                "stabilization_method": "<STABILIZATION_METHOD>",
                 "turbulent_kinetic_energy_solver_settings": {
                     "relative_tolerance": 5e-16,
                     "absolute_tolerance": 1e-4,

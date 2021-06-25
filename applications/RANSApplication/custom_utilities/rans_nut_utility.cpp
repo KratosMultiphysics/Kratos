@@ -161,9 +161,9 @@ bool RansNutUtility::CheckConvergence() const
         KRATOS_INFO(this->Info()) << msg.str();
     }
 
-    if (relative_error < mRelativeTolerance or absolute_error < mAbsoluteTolerance) {
-        return true;
+    if (relative_error < mRelativeTolerance || absolute_error < mAbsoluteTolerance) {
         KRATOS_INFO_IF(this->Info(), mEchoLevel > 0) << " CONVERGENCE: *** CONVERGENCE ACHIEVED *** [ TURBULENT VISCOSITY ] \n";
+        return true;
     }
 
     return false;
