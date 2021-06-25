@@ -1,5 +1,4 @@
 # import Kratos
-from applications.MeshMovingApplication.python_scripts.impose_mesh_motion_process import ImposeMeshMotionProcess
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication
 import run_cpp_unit_tests
