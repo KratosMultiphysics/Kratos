@@ -39,6 +39,9 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
 
             #for self.dem_solution.time_dem in self._YieldDEMTime(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
+            #print("Now solving DEM...")
+            self.stationarity_checking_is_activated = False
+            self.dem_step_counter = 0
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
                 self.dem_solution.InitializeSolutionStep()
@@ -49,15 +52,27 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
     def DEMSolutionIsSteady(self):
         tolerance = 1.0e-4
+        if self.dem_step_counter == 100:
+            self.dem_step_counter = 0
 
-        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, tolerance):
-            return False
-        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, tolerance):
-            return False
-        if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, tolerance):
-            return False
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, tolerance):
+                self.stationarity_checking_is_activated = True
+                return False
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, tolerance):
+                self.stationarity_checking_is_activated = True
+                return False
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, tolerance):
+                self.stationarity_checking_is_activated = True
+                return False
 
-        return True
+            if self.stationarity_checking_is_activated:
+                #print("DEM solution is steady...")
+                return True
+            else:
+                return False
+        else:
+            self.dem_step_counter += 1
+            return False
 
     def InitializeSolutionStep(self):
         self.poromechanics_solution.InitializeSolutionStep()
