@@ -41,16 +41,15 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckKinematicValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
-                elif self.time > 0.30990 and self.time < 0.31:
-                    expected_value = -1.08106
+                elif self.time > 0.3099 and self.time < 0.31:
+                    expected_value = -1.0791000000000002
                     self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
 
             if node.Id == 2:
                 if self.time > 0.25 and self.time < 0.3:
                     expected_value = -10.0 * self.time
                     self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
-                if self.time > 0.30990 and self.time < 0.31:
-
+                if self.time > 0.3099 and self.time < 0.31:
                     expected_value = -0.0981
                     self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
 
@@ -70,12 +69,12 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 4:
-                if self.time > 0.2495 and self.time < 0.25:
-                    expected_value = 0.2192
+                if self.time > 0.2499 and self.time < 0.25:
+                    expected_value = 0.2209203058453185
                     self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 5:
-                if self.time > 0.2998 and self.time < 0.30:
+                if self.time > 0.2999 and self.time < 0.30:
                     expected_value = 3
                     self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
                     expected_value = 2.99804
@@ -94,7 +93,7 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
 
             if node.Id == 10:
-                if self.time > 0.2998 and self.time < 0.30:
+                if self.time > 0.2999 and self.time < 0.30:
                     expected_value = -0.464725
                     self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
                     expected_value = 1.04281
@@ -109,10 +108,10 @@ class KinematicConstraintsTestSolution(KratosMultiphysics.DEMApplication.DEM_ana
                     self.CheckKinematicValues(angular_velocity, 2, expected_value, tolerance)
 
             if node.Id == 20:
-                if self.time > 0.2998 and self.time < 0.30:
+                if self.time > 0.2999 and self.time < 0.30:
                     expected_value = 2.42451
                     self.CheckKinematicValues(velocity, 0, expected_value, tolerance)
-                    expected_value = -0.0543884
+                    expected_value = -0.05332439955825208
                     self.CheckKinematicValues(velocity, 1, expected_value, tolerance)
                     expected_value = 0.651258
                     self.CheckKinematicValues(velocity, 2, expected_value, tolerance)
