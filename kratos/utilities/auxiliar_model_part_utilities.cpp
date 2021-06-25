@@ -24,6 +24,14 @@
 
 namespace Kratos
 {
+void AuxiliarModelPartUtilities::CopySubModelPartStructure(const ModelPart& rModelPartToCopy)
+{
+    AuxiliarCopySubModelPartStructure(mrModelPart, rModelPartToCopy);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AuxiliarModelPartUtilities::RecursiveEnsureModelPartOwnsProperties(const bool RemovePreviousProperties)
 {
     // First we do in this model part
