@@ -870,5 +870,16 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(a(1,1), 1.0);
         }
 
+        /** Checks if it calculates the Factorial
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsFactorial, KratosCoreFastSuite)
+        {
+            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(0), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(1), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(2), 2);
+            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(6), 720);
+            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(8), 40320);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
