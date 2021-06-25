@@ -314,16 +314,36 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     const double Weight)
 {
     const auto v = rData.velocity;
+    const double g = rData.gravity;
     const double h = rData.height;
     const double s = rData.p_bottom_friction->CalculateLHS(h, v);
     const double lumping_factor = 1.0 / TNumNodes;
+    const double inv_c = std::sqrt(InverseHeight(rData) / g);
+    const double l = StabilizationParameter(rData);
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
         const IndexType i_block = 3 * i;
 
-        rMatrix(i_block,     i_block)     += lumping_factor * s * Weight;
-        rMatrix(i_block + 1, i_block + 1) += lumping_factor * s * Weight;
+        rMatrix(i_block,     i_block)     += lumping_factor * g * s * Weight;
+        rMatrix(i_block + 1, i_block + 1) += lumping_factor * g * s * Weight;
+
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            const IndexType j_block = 3 * j;
+
+            /* Stabilization x
+            * l / sqrt(gh) * A1 * Sf
+            */
+            const double g1_ij = -rN[j] * rDN_DX(i,0);
+            rMatrix(i_block + 2, j_block)     -= l * g1_ij * h * inv_c * g * s * Weight;
+
+            /* Stabilization y
+            * l / sqrt(gh) * A2 * Sf
+            */
+            const double g2_ij = -rN[j] * rDN_DX(i,1);
+            rMatrix(i_block + 2, j_block + 1) -= l * g2_ij * h * inv_c * g * s * Weight;
+        }
     }
 }
 
@@ -363,7 +383,7 @@ void WaveElement<3>::AddMassTerms(
             rMatrix(i_block,     j_block + 2) -= l * g1_ij * g * inv_c;
             rMatrix(i_block + 2, j_block)     -= l * g1_ij * h * inv_c;
 
-            /* Stabilization 2
+            /* Stabilization y
              * l / sqrt(gh) * A2 * N
              */
             const double g2_ij = -rN[j] * rDN_DX(i,1);
@@ -407,7 +427,7 @@ void WaveElement<TNumNodes>::AddMassTerms(
             rMatrix(i_block,     j_block + 2) -= Weight * l * g1_ij * g * inv_c;
             rMatrix(i_block + 2, j_block)     -= Weight * l * g1_ij * h * inv_c;
 
-            /* Stabilization 2
+            /* Stabilization y
              * l / sqrt(gh) * A2 * N
              */
             const double g2_ij = -rN[j] * rDN_DX(i,1);
