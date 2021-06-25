@@ -98,9 +98,10 @@ namespace Python
             std::size_t num_cols = py::len(input[0]);
             DenseMatrix<double>matrix = DenseMatrix<double>(num_rows, num_cols);
             for(std::size_t i = 0; i < num_rows; i++){
-              KRATOS_ERROR_IF( (py::len(input[i])) != num_cols ) << "Wrong size of a row\n";
+              const auto row = py::cast<py::list>(input[i]);
+              KRATOS_ERROR_IF( py::len(row) != num_cols ) << "Wrong size of a row " << i << "! Expected " << num_cols << ", got " << py::len(row) << std::endl;;
               for(std::size_t j = 0; j < num_cols; j++){
-                  matrix(i,j) = py::cast<double>((py::cast<py::list>(input[i]))[j]);
+                  matrix(i,j) = py::cast<double>(row[j]);
               }
             }
             return matrix;

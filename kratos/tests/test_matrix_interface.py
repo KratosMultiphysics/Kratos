@@ -150,7 +150,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
                 self.assertEqual(D[i,j], i + (j*0.1))
 
     def test_list_of_list_construction_error_hand(self):
-        with self.assertRaisesRegex(RuntimeError, r'Error: Wrong size of a row'):
+        with self.assertRaisesRegex(RuntimeError, r'Error: Wrong size of a row 1! Expected 2, got 3'):
             E = KM.Matrix([[1, 2], [4, 5, 6]])
 
 
