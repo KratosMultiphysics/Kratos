@@ -151,7 +151,7 @@ class TestMatrixInterface(KratosUnittest.TestCase):
 
     def test_list_of_list_construction_error_hand(self):
         with self.assertRaisesRegex(RuntimeError, r'Error: Wrong size of a row 1! Expected 2, got 3'):
-            E = KM.Matrix([[1, 2], [4, 5, 6]])
+            KM.Matrix([[1, 2], [4, 5, 6]])
 
 
 if __name__ == '__main__':
