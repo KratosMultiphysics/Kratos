@@ -235,6 +235,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const double g = rData.gravity;
     const double c = std::sqrt(g*h);
     const double l = StabilizationParameter(rData);
+    const auto topography = rData.topography;
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
@@ -261,6 +262,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
              */
             rMatrix(i_block,     j_block + 2) += Weight * g1_ij * g;
             rMatrix(i_block + 2, j_block)     += Weight * g1_ij * h;
+            rVector[i_block]                  -= Weight * g1_ij * g * topography[j];
 
             /* Second component
              * A_2 = {{ 0   0   0 },
@@ -269,6 +271,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
              */
             rMatrix(i_block + 1, j_block + 2) += Weight * g2_ij * g;
             rMatrix(i_block + 2, j_block + 1) += Weight * g2_ij * h;
+            rVector[i_block + 1]              -= Weight * g2_ij * g * topography[j];
 
             /* Stabilization x-x
              * l / sqrt(gh) * A1 * A1
@@ -276,6 +279,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
             rMatrix(i_block,     j_block)     -= Weight * l * c * d_ij;
             rMatrix(i_block + 2, j_block + 2) -= Weight * l * c * d_ij;
+            rVector[i_block + 2]              += Weight * l * c * d_ij * topography[j];
 
             /* Stabilization y-y
              * l / sqrt(gh) * A2 * A2
@@ -283,6 +287,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
             rMatrix(i_block + 1, j_block + 1) -= Weight * l * c * d_ij;
             rMatrix(i_block + 2, j_block + 2) -= Weight * l * c * d_ij;
+            rVector[i_block + 2]              += Weight * l * c * d_ij * topography[j];
 
             /* Stabilization x-y
              * l / sqrt(gh) * A1 * A2
@@ -295,60 +300,6 @@ void WaveElement<TNumNodes>::AddWaveTerms(
              */
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
             rMatrix(i_block + 1, j_block)     -= Weight * l * c * d_ij;
-        }
-    }
-}
-
-template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::AddTopographyTerms(
-    LocalMatrixType& rMatrix,
-    LocalVectorType& rVector,
-    const ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
-{
-    const bool integrate_by_parts = false;
-    const double h = rData.height;
-    const double g = rData.gravity;
-    const double l = StabilizationParameter(rData);
-    const double c = std::sqrt(g*h);
-    const auto topography = rData.topography;
-
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        const IndexType i_block = 3 * i;
-        for (IndexType j = 0; j < TNumNodes; ++j)
-        {
-            double g1_ij;
-            double g2_ij;
-            if (integrate_by_parts) {
-                g1_ij = -rDN_DX(i,0) * rN[j];
-                g2_ij = -rDN_DX(i,1) * rN[j];
-            } else {
-                g1_ij = rN[i] * rDN_DX(j,0);
-                g2_ij = rN[i] * rDN_DX(j,1);
-            }
-
-            /* First component */
-            rVector[i_block] -= Weight * g1_ij * g * topography[j];
-
-            /* Second component */
-            rVector[i_block + 1] -= Weight * g2_ij * g * topography[j];
-
-            /* Stabilization x-x
-             * l / sqrt(gh) * A1 * G1
-             */
-            rVector[i_block + 2] += Weight * l * c * rDN_DX(i,0) * rDN_DX(j,0) * topography[j];
-
-            /* Stabilization y-y
-             * l / sqrt(gh) * A2 * G2
-             */
-            rVector[i_block + 2] += Weight * l * c * rDN_DX(i,1) * rDN_DX(j,1) * topography[j];
-
-            /* Stabilization x-y, y-x
-             * A1*G2 = A2*G1 = 0
-             */
         }
     }
 }
@@ -505,7 +456,6 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     CalculateGaussPointData(data, N);
 
     AddWaveTerms(lhs, rhs, data, N, DN_DX);
-    AddTopographyTerms(lhs, rhs, data, N, DN_DX);
     AddFrictionTerms(lhs, rhs, data, N, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -547,7 +497,6 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
         CalculateGaussPointData(data, N);
 
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddTopographyTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
     }
 
