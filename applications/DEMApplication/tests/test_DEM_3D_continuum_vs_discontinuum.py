@@ -19,7 +19,7 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
 
-        self.tolerance = 2e-5
+        self.tolerance = 5e-5
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -76,6 +76,11 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 
 class TestDEM3DContinuumVsDiscontinuum(KratosUnittest.TestCase):
 
