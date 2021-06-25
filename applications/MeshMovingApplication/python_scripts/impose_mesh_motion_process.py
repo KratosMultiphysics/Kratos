@@ -12,19 +12,19 @@ def Factory(parameters, model):
 # Full docstring of ImposeMotionProcess (here until codacy multiline docstrings are fixed)
 #
 # Impose a rotation followed by translation on a ModelPart.
-# 
+#
 # The transformation is equivalent to:
 # 1) Translation to the reference frame (offset the origin)
 # 2) Specified rotation
 # 3) Reverse translation from the reference frame (undo origin offset)
 # 4) Specified translation
 # Note: angles in radians
-# 
+#
 # The rotation can be defined by either "euler_angles"
 # or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
 # defined parametrically (see GenericFunctionUtility):
 # "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
-# 
+#
 # Default parameters:
 # {
 #     "model_part_name"       : "",
