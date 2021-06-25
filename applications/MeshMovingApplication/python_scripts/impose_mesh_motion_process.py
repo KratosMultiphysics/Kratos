@@ -47,7 +47,14 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
         """Impose a rotation followed by translation on a ModelPart."""
         KratosMultiphysics.Process.__init__(self)
 
-        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        # 'rotation_angle' can either be a float or "End", but the validator can't handle both
+        # => convert 'rotation_angle' to the input type
+        default_parameters = self.GetDefaultParameters()
+        if parameters.Has("rotation_angle") and parameters["rotation_angle"].IsString():
+            default_parameters.RemoveValue("rotation_angle")
+            default_parameters.AddValue("rotation_angle", parameters["rotation_angle"])
+
+        parameters.ValidateAndAssignDefaults(default_parameters)
         self.model_part = model[parameters["model_part_name"].GetString()]
 
         # Parse interval (in lieu of a python interface for IntervalUtility)
@@ -61,17 +68,17 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
         # Determine whether a constant transform will suffice or a parametric one is needed
         requires_parametric_transform = False
 
-        euler_angle_parameters = parameters.GetValue("euler_angles")
-        rotation_axis_parameters = parameters.GetValue("rotation_axis")
-        rotation_angle_parameters = parameters.GetValue("rotation_angle")
-        reference_point_parameters = parameters.GetValue("reference_point")
-        translation_vector_parameters = parameters.GetValue("translation_vector")
+        euler_angle_parameters = parameters["euler_angles"]
+        rotation_axis_parameters = parameters["rotation_axis"]
+        rotation_angle_parameters = parameters["rotation_angle"]
+        reference_point_parameters = parameters["reference_point"]
+        translation_vector_parameters = parameters["translation_vector"]
 
         if rotation_angle_parameters.IsString():
             requires_parametric_transform = True
         else:
             for i in range(3):
-                if euler_angle_parameters.GetArrayItem(i).IsString() or rotation_axis_parameters.GetArrayItem(i).IsString() or reference_point_parameters.GetArrayItem(i).IsString() or translation_vector_parameters.GetArrayItem(i).IsString():
+                if euler_angle_parameters[i].IsString() or rotation_axis_parameters[i].IsString() or reference_point_parameters[i].IsString() or translation_vector_parameters[i].IsString():
                     requires_parametric_transform = True
                     break
 
