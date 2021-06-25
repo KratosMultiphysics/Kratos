@@ -1876,6 +1876,55 @@ public:
         return is_converged;
     }
 
+    /**
+     * @brief Calculates the Factorial of a number k, Factorial = k!
+     * @tparam Number The number of which the Factorial is computed
+     */
+    template<class TIntegerType>
+    static inline TIntegerType Factorial(
+        const TIntegerType Number
+        )
+    {
+        if (Number == 0) {
+            return 1;
+        }
+        TIntegerType k = Number;
+        for (unsigned int i = Number - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
+     * @brief Calculates the exponential of a matrix
+     * @brief see https://mathworld.wolfram.com/MatrixExponential.html
+     * @tparam rMatrix: the matrix A of which exp is calculated
+     * @tparam rExponentialMatrix: exp(A)
+     */
+    template<class TMatrixType>
+    static inline void CalculateExponentialOfMatrix(
+            const TMatrixType& rMatrix,
+            TMatrixType& rExponentialMatrix
+        )
+    {
+        double norm_series_term = 1.0;
+        int series_term = 2, max_terms = 200, factorial = 1;
+        SizeType dimension = rMatrix.size1();
+
+        noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
+        TMatrixType exponent_matrix = rMatrix;
+        TMatrixType aux_matrix;
+
+        while (norm_series_term > 100.0*ZeroTolerance && series_term < max_terms) {
+            noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+            noalias(exponent_matrix) = aux_matrix;
+            factorial = Factorial(series_term);
+            noalias(rExponentialMatrix) += exponent_matrix / factorial;
+            norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            series_term++;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
