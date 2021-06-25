@@ -24,9 +24,14 @@
 
 namespace Kratos
 {
-void AuxiliarModelPartUtilities::CopySubModelPartStructure(const ModelPart& rModelPartToCopy)
+void AuxiliarModelPartUtilities::CopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopy)
 {
-    AuxiliarCopySubModelPartStructure(mrModelPart, rModelPartToCopy);
+    for (auto& r_sub_model_part : rModelPartToCopy.SubModelParts()) {
+        auto& r_new_sub_model_part = rModelPart.CreateSubModelPart(r_sub_model_part.Name());
+        if (r_sub_model_part.NumberOfSubModelParts() > 0) {
+            CopySubModelPartStructure(r_new_sub_model_part, r_sub_model_part);
+        }
+    }
 }
 
 /***********************************************************************************/

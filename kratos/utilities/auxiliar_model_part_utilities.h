@@ -103,9 +103,10 @@ public:
 
     /**
      * @brief This method copies the structure of submodelparts
+     * @param rModelPart The model part where to copy
      * @param rModelPartToCopy The model part to copy
      */
-    void CopySubModelPartStructure(const ModelPart& rModelPartToCopy);
+    static void CopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopy);
 
     /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
@@ -642,16 +643,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    static void AuxiliarCopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopy)
-    {
-      for (auto& r_sub_model_part : rModelPartToCopy.SubModelParts()) {
-        auto& r_new_sub_model_part = rModelPart.CreateSubModelPart(r_sub_model_part.Name());
-        if (r_sub_model_part.NumberOfSubModelParts() > 0) {
-            AuxiliarCopySubModelPartStructure(r_new_sub_model_part, r_sub_model_part);
-        }
-      }
-    }
 
     template<typename TDataType, class TContainerType>
     void GetScalarDataFromContainer(TContainerType& rContainer, const Variable<TDataType>& rVariable, std::vector<TDataType>& data) const
