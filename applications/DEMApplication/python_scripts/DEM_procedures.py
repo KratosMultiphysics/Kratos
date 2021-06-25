@@ -1253,6 +1253,10 @@ class MaterialTest():
         if self.TestType != "None":
             self.script.GenerateGraphics()
 
+    def PrintCoordinationNumberGraph(self, time, solver):
+        if self.TestType != "None":
+            self.script.PrintCoordinationNumberGraph(time, solver)
+
 
 class MultifileList():
 
