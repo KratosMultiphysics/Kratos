@@ -9,38 +9,42 @@ def Factory(parameters, model):
     return ImposeMeshMotionProcess(model, parameters["Parameters"])
 
 
+# Full docstring of ImposeMotionProcess (here until codacy multiline docstrings are fixed)
+#
+# Impose a rotation followed by translation on a ModelPart.
+# 
+# The transformation is equivalent to:
+# 1) Translation to the reference frame (offset the origin)
+# 2) Specified rotation
+# 3) Reverse translation from the reference frame (undo origin offset)
+# 4) Specified translation
+# Note: angles in radians
+# 
+# The rotation can be defined by either "euler_angles"
+# or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
+# defined parametrically (see GenericFunctionUtility):
+# "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
+# 
+# Default parameters:
+# {
+#     "model_part_name"       : "",
+#     "interval"              : [0.0, "End"],
+#     "rotation_definition"   : "rotation_axis",
+#     "euler_angles"          : [0.0, 0.0, 0.0],
+#     "rotation_axis"         : [0.0, 0.0, 1.0],
+#     "reference_point"       : [0.0, 0.0, 0.0]
+#     "rotation_angle"        : 0,
+#     "translation_vector"    : [0.0, 0.0, 0.0],
+# }
+# Note: the euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
+
+
 class ImposeMeshMotionProcess(KratosMultiphysics.Process):
 
     def __init__(self,
                  model: KratosMultiphysics.Model,
                  parameters: KratosMultiphysics.Parameters):
-        """Impose a rotation followed by translation on a ModelPart.
-
-        The transformation is equivalent to:
-        1) Translation to the reference frame (offset the origin)
-        2) Specified rotation
-        3) Reverse translation from the reference frame (undo origin offset)
-        4) Specified translation
-        Note: angles in radians
-
-        The rotation can be defined by either "euler_angles"
-        or a "rotation_axis" and "rotation_angle" pair. The following parameters can be
-        defined parametrically (see GenericFunctionUtility):
-        "euler_angles", "rotation_axis", "reference_point", "rotation_angle", "translation_vector"
-
-        Default parameters:
-        {
-            "model_part_name"       : "",
-            "interval"              : [0.0, "End"],
-            "rotation_definition"   : "rotation_axis",
-            "euler_angles"          : [0.0, 0.0, 0.0],
-            "rotation_axis"         : [0.0, 0.0, 1.0],
-            "reference_point"       : [0.0, 0.0, 0.0]
-            "rotation_angle"        : 0,
-            "translation_vector"    : [0.0, 0.0, 0.0],
-        }
-        Note: the euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
-        """
+        """Impose a rotation followed by translation on a ModelPart."""
         KratosMultiphysics.Process.__init__(self)
 
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
