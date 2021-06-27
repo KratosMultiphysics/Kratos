@@ -3,6 +3,7 @@ from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis as potential_flow_analysis
+import KratosMultiphysics.MappingApplication
 
 # Import Kratos, XMC, PyCOMPSs API
 import KratosMultiphysics.MultilevelMonteCarloApplication
@@ -84,6 +85,10 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             primal_parameters["design_surface_sub_model_part_name"].SetString(self.design_surface_sub_model_part_name)
         else:
             primal_parameters.AddString("design_surface_sub_model_part_name", self.design_surface_sub_model_part_name)
+        if primal_parameters.Has("auxiliary_mdpa_path"):
+            primal_parameters["auxiliary_mdpa_path"].SetString(self.auxiliary_mdpa_path)
+        else:
+            primal_parameters.AddString("auxiliary_mdpa_path", self.auxiliary_mdpa_path)
         open(self.response_settings["primal_settings"].GetString(), 'w').write(primal_parameters.PrettyPrintJsonString())
 
         # Store current design
@@ -263,6 +268,9 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.mapping = False
         self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
         self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
+        self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
+        self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
+
         super(SimulationScenario,self).__init__(input_model,input_parameters)
 
     def Finalize(self):
@@ -272,14 +280,21 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         mach = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].GetDouble()
         self.primal_model_part = self._GetSolver().main_model_part
 
+        # Store mesh to solve with adjoint after remeshing
+        self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
+        self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
+        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path+"_"+str(self.sample[0]), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.primal_model_part)
+
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
         # Create the adjoint solver
         adjoint_parameters = _CheckParameters(adjoint_parameters)
         adjoint_model = KratosMultiphysics.Model()
+        print("Current nnodes", self.primal_model_part.NumberOfNodes())
 
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(aoa)
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.auxiliary_mdpa_path+"_"+str(self.sample[0]))
         self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
 
         self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
@@ -289,8 +304,11 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         self._SynchronizeAdjointFromPrimal()
 
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
+        nodal_velocity_process.Execute()
+
         self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
-        self.response_function.InitializeSolutionStep()
+
         # synchronize the modelparts
         self.adjoint_analysis.RunSolutionLoop()
         self.adjoint_analysis.Finalize()
@@ -299,8 +317,8 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         """
         Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
         """
-        mach = self.sample[1]
-        alpha =  self.sample[2]
+        mach = abs(self.sample[1])
+        alpha = self.sample[2]
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
         super(SimulationScenario,self).ModifyInitialProperties()
@@ -322,7 +340,11 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
                 pressure_coefficient.append(this_pressure)
 
         elif (self.mapping is True):
-            raise(Exception(("Mapping not contemplated yet for pressure coefficient!")))
+            for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+            # Fill the rest of the list to match SHAPE_SENSITIVITY data structure length
+            pressure_coefficient.extend([0.0]*self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).NumberOfNodes()*2)
         qoi_list.append(pressure_coefficient)
 
         shape_sensitivity = []
@@ -332,11 +354,34 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
                 shape_sensitivity.extend(this_shape)
 
         elif (self.mapping is True):
-            raise(Exception(("Mapping not contemplated yet for shape sensitivity")))
+            for node in self.mapping_reference_model.GetModelPart(self.main_model_part_name).GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+                this_shape = node.GetValue(KratosMultiphysics.SHAPE_SENSITIVITY)
+                shape_sensitivity.extend(this_shape)
         qoi_list.append(shape_sensitivity)
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
-        Logger.PrintInfo("StochasticAdjointResponse", "Total number of shape:",len(qoi_list[1]))
-        Logger.PrintInfo("StochasticAdjointResponse", "Total number of exampleshape:",qoi_list[1][0])
+        return qoi_list
+
+    def MappingAndEvaluateQuantityOfInterest(self):
+
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+        # map from current model part of interest to reference model part
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "echo_level" : 0
+            }""")
+        mapping_parameters.AddString("interface_submodel_part_origin", self.design_surface_sub_model_part_name)
+        mapping_parameters.AddString("interface_submodel_part_destination", self.design_surface_sub_model_part_name)
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.adjoint_analysis._GetSolver().main_model_part,self.mapping_reference_model.GetModelPart(self.main_model_part_name),mapping_parameters)
+        mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+            KratosMultiphysics.PRESSURE_COEFFICIENT,        \
+            KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        mapper.Map(KratosMultiphysics.SHAPE_SENSITIVITY, \
+            KratosMultiphysics.SHAPE_SENSITIVITY,
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+        # evaluate qoi
+        qoi_list = self.EvaluateQuantityOfInterest()
         return qoi_list
 
     def _SynchronizeAdjointFromPrimal(self):
