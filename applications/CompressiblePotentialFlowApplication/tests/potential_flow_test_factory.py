@@ -351,5 +351,17 @@ class PotentialFlowTests(UnitTest.TestCase):
         perimeter2 = CPFApp.PotentialFlowUtilities.CalculateArea(body_model_part.Conditions)
         self._check_results(perimeter1, perimeter2, 1e-9, 1e-9)
 
+class NightlyPotentialFlowTests(UnitTest.TestCase):
+
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+
+        work_folder = "stochastic_body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_mlmc_test")
+
 if __name__ == '__main__':
     UnitTest.main()
