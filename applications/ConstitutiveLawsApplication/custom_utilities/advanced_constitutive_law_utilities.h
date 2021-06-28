@@ -291,19 +291,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
-     * @brief The deformation gradient F, like any invertible second-order tensor, can be decomposed, using the polar decomposition theorem, into a product of two second-order tensors (Truesdell and Noll, 1965): an orthogonal tensor and a positive definite symmetric tensor, i.e F = R U
-     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Polar_decomposition_of_the_deformation_gradient_tensor
-     * @param rFDeformationGradient The deformation gradient
-     * @param rRMatrix The rotation component
-     * @param rUMatrix The pure displacement component
-     */
-    static void PolarDecomposition(
-        const MatrixType& rFDeformationGradient,
-        MatrixType& rRMatrix,
-        MatrixType& rUMatrix
-        );
-
-    /**
      * @brief This method computes the principal stresses vector
      * @details http://www.continuummechanics.org/principalstress.html
      * @param rPrincipalStressVector The vector of principal stresses

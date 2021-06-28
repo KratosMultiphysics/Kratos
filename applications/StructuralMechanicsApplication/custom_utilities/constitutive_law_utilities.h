@@ -147,30 +147,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         );
 
     /**
-     * @brief This method computes the principal stresses vector
-     * @details http://www.continuummechanics.org/principalstress.html
-     * @param rPrincipalStressVector The vector of principal stresses
-     * @param rStressVector The vector of stresses
-     * @todo Adapt for 2D dimension
-     */
-    static void CalculatePrincipalStresses(
-        array_1d<double, Dimension>& rPrincipalStressVector,
-        const BoundedVectorType& rStressVector
-        );
-
-    /**
-     * @brief This method computes the principal stresses vector
-     * @details Using Cardano formula and renormalizing (TODO)
-     * @param rPrincipalStressVector The vector of principal stresses
-     * @param rStressVector The vector of stresses
-     * @todo Adapt for 2D dimension
-     */
-    static void CalculatePrincipalStressesWithCardano(
-        array_1d<double, Dimension>& rPrincipalStressVector,
-        const BoundedVectorType& rStressVector
-        );
-
-    /**
      * @brief This method calculates the projection operator
      * and calculates the Projection Operator
      * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
@@ -182,23 +158,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     static void CalculateProjectionOperator(
         const Vector& rStrainVector,
         MatrixType& rProjectionOperator
-        );
-
-    /**
-     * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
-     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
-     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
-     * Materials" - M. Cervera and C. Tesei.
-     * @param rStressVector The Stress Vector
-     * @param rStressVectorTension The Stress Vector
-     * @param rStressVectorCompression The Stress Vector
-     * @param rMatrixTension The Stress Vector
-     * @param rMatrixCompression The Stress Vector
-     */
-    static void SpectralDecomposition(
-        const BoundedVectorType& rStressVector,
-        BoundedVectorType& rStressVectorTension,
-        BoundedVectorType& rStressVectorCompression
         );
 
     /**
