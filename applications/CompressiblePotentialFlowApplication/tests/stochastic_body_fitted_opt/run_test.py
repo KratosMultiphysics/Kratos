@@ -53,4 +53,6 @@ os.chdir(original_directory)
 for file_name in os.listdir(original_directory):
     if file_name.startswith("current_design"):
         kratos_utilities.DeleteFileIfExisting(os.path.join(original_directory, file_name))
+kratos_utilities.DeleteDirectoryIfExisting(output_directory)
+
 # =======================================================================================================
