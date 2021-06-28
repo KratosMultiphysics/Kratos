@@ -48,7 +48,7 @@ with open(optimization_log_filename, 'r') as csvfile:
 
     # Check against specifications
     TestCase().assertEqual(resulting_iteration, 2)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -19.1627, 3)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -20.8579, 3)
 
 os.chdir(original_directory)
 

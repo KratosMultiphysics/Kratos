@@ -64,7 +64,7 @@
     "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
-            "tolerance": [1.1e-03],
+            "tolerance": [99.0],
             "input": "error0"
         },
         "minNumberIterations": {
