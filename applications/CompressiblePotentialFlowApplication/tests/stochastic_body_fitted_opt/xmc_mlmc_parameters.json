@@ -1,6 +1,6 @@
 {
     "XMCAlgorithmInputDictionary": {
-        "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMC",
+        "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMLMC",
         "errorsForStoppingCriterion": [0],
         "estimatorsForHierarchy": [[0,[1,true,true]]],
         "predictorsForHierarchy": [],
@@ -25,13 +25,13 @@
             "xmc.momentEstimator.MultiMomentEstimator"
         ],
         "qoiEstimatorInputDictionary": [
-            {"indexSetDimension": 1,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper"},
+            {"indexSetDimension": 1,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "rawMomentErrorComputer": "xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"},
             {"variableDimension": 12,"order": 1},
             {"variableDimension": 12,"order": 1}],
         "sampler": "xmc.sampleGenerator.SampleGenerator"
     },
     "monteCarloSamplerInputDictionary": {
-        "assemblersForError": [[1,2]],
+        "assemblersForError": [[2]],
         "costPredictor": null,
         "estimatorsForAssembler": [ [[0,[1, true, false]]],[[0,[1, true, false]]],[[0,[1, true, true]]] ],
         "estimatorsForPredictor": [[ ]],
@@ -64,7 +64,7 @@
     "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
-            "tolerance": [99.0],
+            "tolerance": [100.0],
             "input": "error0"
         },
         "minNumberIterations": {

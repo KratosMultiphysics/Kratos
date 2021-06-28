@@ -114,14 +114,16 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # save lift coefficient
         qoi_counter = 0
         estimator_container = [] # here we append contribution for each index/level
+        error_container = [] # here we append contribution for each index/level
         for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
             self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
             estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central))))
+            error_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central, isErrorEstimationRequested=True)[1])))
         qoi_counter += 1
         # linearly sum estimators: this summation operation is valid for expected value and central moments
         # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
         self._value = sum(estimator_container)
-
+        statistical_error = math.sqrt(sum(error_container))
         # save pressure coefficient
         pressure_dict = {}
         member = 0
