@@ -10,7 +10,7 @@ import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
 from exaqute import get_value_from_remote
-import json, os
+import json, os, math
 
 def _GetModelPart(model, solver_settings):
     model_part_name = solver_settings["model_part_name"].GetString()
@@ -38,6 +38,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 "design_surface_sub_model_part_name": "",
                 "auxiliary_mdpa_path": "auxiliary_mdpa",
                 "primal_data_transfer_with_python": true,
+                "output_dict_results_file_name": "",
                 "output_pressure_file_path": ""
             }  """ )
         response_settings.ValidateAndAssignDefaults(default_parameters)
@@ -67,6 +68,12 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         self.auxiliary_mdpa_path = response_settings["auxiliary_mdpa_path"].GetString()
         self.risk_measure = response_settings["risk_measure"].GetString()
+
+        if response_settings.Has("output_dict_results_file_name"):
+            self.output_dict_results_file_name = response_settings["output_dict_results_file_name"].GetString()
+            self.results_dict = {}
+        else:
+            self.output_dict_results_file_name = ""
 
         if response_settings.Has("output_pressure_file_path"):
             self.output_pressure_file_path = response_settings["output_pressure_file_path"].GetString()
@@ -111,19 +118,32 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         elif self.risk_measure == "variance":
             order = 2 ; is_central = True
 
+        if not self.output_dict_results_file_name == "":
+            self.results_dict[self.step] = {}
+
         # save lift coefficient
         qoi_counter = 0
         estimator_container = [] # here we append contribution for each index/level
         error_container = [] # here we append contribution for each index/level
+        n_samples_container = []
         for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
             self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
             estimator_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central))))
             error_container.append(float(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter].value(order=order, isCentral=is_central, isErrorEstimationRequested=True)[1])))
+            n_samples_container.append(int(get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter]._sampleCounter)))
         qoi_counter += 1
         # linearly sum estimators: this summation operation is valid for expected value and central moments
         # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
         self._value = sum(estimator_container)
         statistical_error = math.sqrt(sum(error_container))
+
+        if not self.output_dict_results_file_name == "":
+            self.results_dict[self.step]["lift_coefficient"]={}
+            self.results_dict[self.step]["lift_coefficient"]["risk_measure"]=self.risk_measure
+            self.results_dict[self.step]["lift_coefficient"]["value"]=self._value
+            self.results_dict[self.step]["lift_coefficient"]["statistical_error"]=statistical_error
+            self.results_dict[self.step]["lift_coefficient"]["number_of_samples"]=n_samples_container
+
         # save pressure coefficient
         pressure_dict = {}
         member = 0
@@ -179,7 +199,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def Finalize(self):
-        pass
+        if not self.output_dict_results_file_name == "":
+            with open(self.output_dict_results_file_name, 'w') as fp:
+                json.dump(self.results_dict, fp,indent=4, sort_keys=True)
 
     def _GetLabel(self):
         type_labels = {
@@ -294,7 +316,6 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         # Create the adjoint solver
         adjoint_parameters = _CheckParameters(adjoint_parameters)
         adjoint_model = KratosMultiphysics.Model()
-        print("Current nnodes", self.primal_model_part.NumberOfNodes())
 
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(aoa)
