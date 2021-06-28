@@ -315,20 +315,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         );
 
     /**
-     * @brief This method calculates the projection operator
-     * and calculates the Projection Operator
-     * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
-     * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
-     * Materials" - M. Cervera and C. Tesei.
-     * @param rStrainVector The Strain Vector
-     * @param rProjectionOperator The projection operator
-     */
-    static void CalculateProjectionOperator(
-        const Vector& rStrainVector,
-        MatrixType& rProjectionOperator
-        );
-
-    /**
      * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
      * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
      * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
