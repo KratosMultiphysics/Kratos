@@ -20,6 +20,7 @@
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -134,10 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
     C(0,1) = -1.0e-1;
 
     // Compute Green-Lagrange
-    AdvancedConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
+    ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C, strain_vector);
 
     KRATOS_CHECK_LESS_EQUAL((0.05 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[1])/(strain_vector[1] + 1.0e-12), tolerance);
@@ -146,9 +144,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
 
     // Compute Alamansi (We use C, but it is supposed to be B, we are just using to compute and check)
     AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
 
     KRATOS_CHECK_LESS_EQUAL((0.0412844 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.00458716 - strain_vector[1])/strain_vector[1], tolerance);
@@ -174,12 +169,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
     F(0,1) = -1.0e-1;
 
     // Compute Green-Lagrange
-    AdvancedConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
-
-//     // Debug
-//     KRATOS_WATCH(R)
-//     KRATOS_WATCH(U)
-//     KRATOS_WATCH(prod(R, U))
+    ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
 
     // Reference solutions
     Matrix R_ref = ZeroMatrix(3, 3);
