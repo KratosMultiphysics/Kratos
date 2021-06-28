@@ -2450,19 +2450,10 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
     unsigned int i, j, k, l, m, s, t, tt, p, pp;
 
-    // Struct to pass around the data
-    ElementDataStruct data;
-    this->FillElementData(data, rCurrentProcessInfo);
-
     const unsigned int size3 = nScalarVariables * SpaceDimension * nScalarVariables;
     const unsigned int size4 = nScalarVariables * SpaceDimension * nScalarVariables * nScalarVariables;
     const unsigned int sizeK = SpaceDimension * SpaceDimension * nScalarVariables * SpaceDimension;
     const unsigned int sizeKT = nScalarVariables;
-
-    const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			
-    //const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
-    const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.dUdt;    // Useful for the stabilizing part.
-    BoundedMatrix<double,nodesElement,nScalarVariables> UUp = Up;
 
     array_1d<double, size3>     A;
     array_1d<double, size4>     dAdU;
@@ -2485,9 +2476,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 	array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
 	array_1d<double,SpaceDimension>                      a_el;
-    array_1d<double,nScalarVariables*nNodalVariables>    NN;
     array_1d<double,nScalarVariables*SpaceDimension>     gradU;
-    array_1d<double,(nScalarVariables*SpaceDimension)*nNodalVariables>   gradV;
     array_1d<double,nScalarVariables>                    invtauStab;
 	array_1d<double,nScalarVariables>                    switchStab;
 
@@ -2498,7 +2487,30 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
     
 	const double& ctau = 0.5;   // This coefficient multiplies the divergence of the velocity in the calculation of tau. 
                                 // In 3d would be 0.66667
-    
+
+    const double sw_conv = 1.0;
+    const double sw_diff = 1.0;
+    const double sw_stab = 1.0;
+
+
+    const double stab_c1 = 4.0;
+    const double stab_c2 = 2.0;
+
+    switchStab[0] = 1.0;
+	switchStab[1] = 1.0;
+	switchStab[2] = 1.0;
+	switchStab[3] = 1.0;
+	switchStab[4] = 1.0;    
+
+    // Struct to pass around the data
+    ElementDataStruct data;
+    this->FillElementData(data, rCurrentProcessInfo);
+
+    const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			
+    //const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
+    const BoundedMatrix<double,nodesElement,nScalarVariables>& Up = data.dUdt;    // Useful for the stabilizing part.
+    BoundedMatrix<double,nodesElement,nScalarVariables> UUp = Up;
+
     const double& dt = data.time_step;
 
 
@@ -2519,21 +2531,7 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
     const double ros = data.ros;
     const double Cs = data.c_s;
 
-	const double sw_conv = 1.0;
-    const double sw_diff = 1.0;
-    const double sw_stab = 1.0;
-
-
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-
-    switchStab[0] = 1.0;
-	switchStab[1] = 1.0;
-	switchStab[2] = 1.0;
-	switchStab[3] = 1.0;
-	switchStab[4] = 1.0;    
-
-    const unsigned int NGaussPoints = 1;
+	const unsigned int NGaussPoints = 1;
 
     const array_1d<double,nodesElement>& N = data.N;	
     const BoundedMatrix<double,nodesElement,SpaceDimension>& DN = data.DN_DX;	
@@ -2562,33 +2560,6 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
         }
     }
-
-    // This is convenient during the implementation but has to be removed 
-    // after some modification of the remainding part of the file
-   
-    // This is convenient during the implementation but has to be removed 
-    // after some modification of the remainding part of the file    
-    for ( i = 0; i < nScalarVariables * SpaceDimension * nNodalVariables; i++)  gradV[i] = 0.0;
-
-	for (i = 0; i < nodesElement; i++ ){
-        
-        gradV[0*nNodalVariables + nScalarVariables*i    ] = DN(i,0);
-        gradV[1*nNodalVariables + nScalarVariables*i    ] = DN(i,1);
-
-        gradV[2*nNodalVariables + nScalarVariables*i + 1] = DN(i,0);
-        gradV[3*nNodalVariables + nScalarVariables*i + 1] = DN(i,1);
-
-        gradV[4*nNodalVariables + nScalarVariables*i + 2] = DN(i,0);
-        gradV[5*nNodalVariables + nScalarVariables*i + 2] = DN(i,1);
-
-        gradV[6*nNodalVariables + nScalarVariables*i + 3] = DN(i,0);
-        gradV[7*nNodalVariables + nScalarVariables*i + 3] = DN(i,1);
-
-        gradV[8*nNodalVariables + nScalarVariables*i + 4] = DN(i,0);  // Verify these lines
-        gradV[9*nNodalVariables + nScalarVariables*i + 4] = DN(i,1);
-
-	}
-
 
     const double DTOT_el = U_gauss(0);
     const double DS_el = U_gauss(1);
@@ -2922,26 +2893,26 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 		}
     }
 
-    for (k = 0; k < nScalarVariables; k++){
-		for ( s = 0; s < nNodalVariables; s++){
-			
-			p = s*nScalarVariables + k;
-			
-			for (i = 0; i < nScalarVariables; i++){
-				
-				pp = i*nNodalVariables + s;
 
-				for (j = 0; j < SpaceDimension; j++){
+    for (i = 0; i < nScalarVariables; i++){
+        for (k = 0; k < nScalarVariables; k++){
 
-					t = conta_new(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
+            p = i*nScalarVariables + k;
 
-					Lstar[p] += (-A[t]*gradV[(SpaceDimension*i+j)*nNodalVariables + s]);
+            for (s = 0; s < nodesElement; s++){
+                
+                pp = s*nScalarVariables*nScalarVariables + p;
+
+                for (j = 0; j < SpaceDimension; j++){
+
+                    t = conta_new(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
                     
-	
-				}
-			}
-		}
-	}
+                    Lstar[pp] += (-DN(s,j)*A[t]);
+
+                }
+            }
+        }
+    }
 
     for (i = 0; i < nScalarVariables*nScalarVariables; i++) B[i] = 0.0;
 
@@ -3097,19 +3068,22 @@ void CompressibleNSBiphaseExplicit<2,3>::CalculateRightHandSideInternal(
 
 	}
 
+    for (i = 0; i < nScalarVariables; i++){
+        for (k = 0; k < nodesElement; k++){
 
-    // Build diffusive term: Diffusion force
+            s = k*nScalarVariables + i;
 
-	for (s = 0; s < nNodalVariables; s++){
+            FDiff[s] = 0.0;
 
-		FDiff[s] = 0.0;
+            for (j = 0; j < SpaceDimension; j++){
 
-		for (i = 0; i < nScalarVariables; i++){
-			for ( j = 0; j < SpaceDimension; j++){
-				FDiff[s] -= gradV[(SpaceDimension*i + j)*nNodalVariables + s]*G[i*SpaceDimension + j];
+                FDiff[s] -= DN(k,j)*G[i*SpaceDimension + j];
+
             }
+
         }
- 	}
+    }
+
 
     // Stabilizing residual part
 
@@ -3226,9 +3200,7 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 	array_1d<double,SpaceDimension*SpaceDimension>       tau;
     array_1d<double,SpaceDimension>                      q;
 	array_1d<double,SpaceDimension>                      a_el;
-    array_1d<double,nScalarVariables*nNodalVariables>    NN;
     array_1d<double,nScalarVariables*SpaceDimension>     gradU;
-    array_1d<double,(nScalarVariables*SpaceDimension)*nNodalVariables>   gradV;
     array_1d<double,nScalarVariables>                    invtauStab;
 	array_1d<double,nScalarVariables>                    switchStab;
 
@@ -3243,11 +3215,6 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
                                 // In 3d would be 0.66667   //OK
     
     const double& dt = data.time_step;
-
-    // In this implementation this function returns only nodal forces, rgardless of the time integration scheme used.
-    // const double& bdf0 = data.bdf0;
-    // const double& bdf1 = data.bdf1;
-    // const double& bdf2 = data.bdf2;
 
     const BoundedMatrix<double,nodesElement,nScalarVariables>& UU = data.U;			
     //const BoundedMatrix<double,nodesElement,nScalarVariables>& UUn = data.Un;
@@ -3332,36 +3299,6 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
    
     // This is convenient during the implementation but has to be removed 
     // after some modification of the remainding part of the file    
-    for ( i = 0; i < nScalarVariables * SpaceDimension * nNodalVariables; i++)  gradV[i] = 0.0;
-
-	for (i = 0; i < nodesElement; i++ ){
-        
-        gradV[ 0*nNodalVariables + nScalarVariables*i    ] = DN(i,0);
-        gradV[ 1*nNodalVariables + nScalarVariables*i    ] = DN(i,1);
-		gradV[ 2*nNodalVariables + nScalarVariables*i    ] = DN(i,2);
-
-        gradV[ 3*nNodalVariables + nScalarVariables*i + 1] = DN(i,0);
-        gradV[ 4*nNodalVariables + nScalarVariables*i + 1] = DN(i,1);
-		gradV[ 5*nNodalVariables + nScalarVariables*i + 1] = DN(i,2);
-
-        gradV[ 6*nNodalVariables + nScalarVariables*i + 2] = DN(i,0);
-        gradV[ 7*nNodalVariables + nScalarVariables*i + 2] = DN(i,1);
-		gradV[ 8*nNodalVariables + nScalarVariables*i + 2] = DN(i,2);
-
-        gradV[ 9*nNodalVariables + nScalarVariables*i + 3] = DN(i,0);
-        gradV[10*nNodalVariables + nScalarVariables*i + 3] = DN(i,1);
-		gradV[11*nNodalVariables + nScalarVariables*i + 3] = DN(i,2);
-
-        gradV[12*nNodalVariables + nScalarVariables*i + 4] = DN(i,0);  // Verify these lines
-        gradV[13*nNodalVariables + nScalarVariables*i + 4] = DN(i,1);
-		gradV[14*nNodalVariables + nScalarVariables*i + 4] = DN(i,2);
-
-        gradV[15*nNodalVariables + nScalarVariables*i + 5] = DN(i,0);  // Verify these lines  //OK //but still verify
-        gradV[16*nNodalVariables + nScalarVariables*i + 5] = DN(i,1);
-		gradV[17*nNodalVariables + nScalarVariables*i + 5] = DN(i,2);
-
-	}
-
 
     const double DTOT_el 	= U_gauss(0);
     const double DS_el 		= U_gauss(1);
@@ -3902,26 +3839,25 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 		}
     }
 
-    for (k = 0; k < nScalarVariables; k++){
-		for ( s = 0; s < nNodalVariables; s++){
-			
-			p = s*nScalarVariables + k;
-			
-			for (i = 0; i < nScalarVariables; i++){
-				
-				pp = i*nNodalVariables + s;
+    for (i = 0; i < nScalarVariables; i++){
+        for (k = 0; k < nScalarVariables; k++){
 
-				for (j = 0; j < SpaceDimension; j++){
+            p = i*nScalarVariables + k;
 
-					t = conta_new(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
+            for (s = 0; s < nodesElement; s++){
+                
+                pp = s*nScalarVariables*nScalarVariables + p;
 
-					Lstar[p] += (-A[t]*gradV[(SpaceDimension*i+j)*nNodalVariables + s]);
+                for (j = 0; j < SpaceDimension; j++){
+
+                    t = conta_new(i,j,k,0,nScalarVariables,SpaceDimension,nScalarVariables,1);
                     
-	
-				}
-			}
-		}
-	}
+                    Lstar[pp] += (-DN(s,j)*A[t]);
+
+                }
+            }
+        }
+    }
 
     for (i = 0; i < nScalarVariables*nScalarVariables; i++) B[i] = 0.0;
 
@@ -4115,16 +4051,22 @@ void CompressibleNSBiphaseExplicit<3,4>::CalculateRightHandSideInternal(
 
     // Build diffusive term: Diffusion force
 
-	for (s = 0; s < nNodalVariables; s++){
+	for (i = 0; i < nScalarVariables; i++){
+        for (k = 0; k < nodesElement; k++){
 
-		FDiff[s] = 0.0;
+            s = k*nScalarVariables + i;
 
-		for (i = 0; i < nScalarVariables; i++){
-			for ( j = 0; j < SpaceDimension; j++){
-				FDiff[s] -= gradV[(SpaceDimension*i + j)*nNodalVariables + s]*G[i*SpaceDimension + j];
+            FDiff[s] = 0.0;
+
+            for (j = 0; j < SpaceDimension; j++){
+
+                FDiff[s] -= DN(k,j)*G[i*SpaceDimension + j];
+
             }
+
         }
- 	}
+    }
+
 
     // Stabilizing residual part
 
