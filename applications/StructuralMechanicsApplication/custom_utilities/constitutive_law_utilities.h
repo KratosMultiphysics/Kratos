@@ -107,59 +107,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     ///@name Operations
     ///@{
 
-    /**
-     * @brief This method computes the second invariant of J
-     * @param rStressVector The stress vector on Voigt notation
-     * @param I1 The first invariant
-     * @param rDeviator The deviator of the stress
-     * @param rJ2 The second invariant of J
-     * @tparam TVector The themplate for the vector class
-     */
-    template<class TVector>
-    static void CalculateJ2Invariant(
-        const TVector& rStressVector,
-        const double I1,
-        BoundedVectorType& rDeviator,
-        double& rJ2
-        )
-    {
-        if (Dimension == 3) {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
-            for (IndexType i = 0; i < Dimension; ++i)
-                rDeviator[i] -= p_mean;
-            rJ2 = 0.0;
-            for (IndexType i = 0; i < Dimension; ++i)
-                rJ2 += 0.5 * std::pow(rDeviator[i], 2);
-            for (IndexType i = Dimension; i < 6; ++i)
-                rJ2 += std::pow(rDeviator[i], 2);
-        } else {
-            rDeviator = rStressVector;
-            const double p_mean = I1 / 3.0;
-            for (IndexType i = 0; i < Dimension; ++i)
-                rDeviator[i] -= p_mean;
-            rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
-        }
-    }
-
-    /**
-     * @brief This method computes the lode angle
-     * @param J2 The resultant J2 stress
-     * @param J3 The resultant J3 stress
-     * @param rLodeAngle The lode angle
-     */
-    static void CalculateLodeAngle(
-        const double J2,
-        const double J3,
-        double& rLodeAngle
-        );
-
-    /**
-     * @brief Calculates the maximal distance between corner node of a geometry and its center
-     * @param rGeometry The geometry to compute
-     * @return The characteristic length
-     */
-    static double CalculateCharacteristicLength(const GeometryType& rGeometry);
 
     /**
      * @brief Calculates the maximal distance between corner node of a geometry and its center (on reference configuration)
@@ -185,38 +132,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         VectorType& rStrainVector
         );
 
-    /**
-     * @brief Calculation of the Almansi strain vector
-     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
-     * @param rLeftCauchyTensor The left Cauchy tensor
-     * @param rStrainVector The Almansi strain vector
-     */
-    static void CalculateAlmansiStrain(
-        const MatrixType& rLeftCauchyTensor,
-        VectorType& rStrainVector
-        );
-
-    /**
-     * @brief Calculation of the Hencky strain vector (true strain, natural strain, logarithmic strain)
-     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
-     * @param rCauchyTensor The right Cauchy tensor
-     * @param rStrainVector The Hencky strain vector
-     */
-    static void CalculateHenckyStrain(
-        const MatrixType& rCauchyTensor,
-        VectorType& rStrainVector
-        );
-
-    /**
-     * @brief Calculation of the Biot strain vector
-     * @details See https://en.wikipedia.org/wiki/Finite_strain_theory#Seth%E2%80%93Hill_family_of_generalized_strain_tensors
-     * @param rCauchyTensor The right Cauchy tensor
-     * @param rStrainVector The Biot strain vector
-     */
-    static void CalculateBiotStrain(
-        const MatrixType& rCauchyTensor,
-        VectorType& rStrainVector
-        );
 
     /**
      * @brief The deformation gradient F, like any invertible second-order tensor, can be decomposed, using the polar decomposition theorem, into a product of two second-order tensors (Truesdell and Noll, 1965): an orthogonal tensor and a positive definite symmetric tensor, i.e F = R U

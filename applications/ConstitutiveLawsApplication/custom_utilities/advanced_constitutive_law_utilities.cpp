@@ -296,34 +296,6 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDe
     return equivalent_F;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
-    const MatrixType& rCauchyTensor,
-    Vector& rStrainVector
-    )
-{
-    // Doing resize in case is needed
-    if (rStrainVector.size() != VoigtSize)
-        rStrainVector.resize(VoigtSize, false);
-
-    // Identity matrix
-    MatrixType identity_matrix(Dimension, Dimension);
-    for (IndexType i = 0; i < Dimension; ++i) {
-        for (IndexType j = 0; j < Dimension; ++j) {
-            if (i == j) identity_matrix(i, j) = 1.0;
-            else identity_matrix(i, j) = 0.0;
-        }
-    }
-
-    // Calculate E matrix
-    const BoundedMatrixType E_matrix = 0.5 * (rCauchyTensor - identity_matrix);
-
-    // Green-Lagrangian Strain Calculation
-    rStrainVector = MathUtils<double>::StrainTensorToVector(E_matrix, TVoigtSize);
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
