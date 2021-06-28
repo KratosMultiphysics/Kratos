@@ -1907,7 +1907,6 @@ public:
             TMatrixType& rExponentialMatrix
         )
     {
-        double norm_series_term = 1.0;
         int series_term = 2, max_terms = 200, factorial = 1;
         SizeType dimension = rMatrix.size1();
 
@@ -1915,12 +1914,14 @@ public:
         TMatrixType exponent_matrix = rMatrix;
         TMatrixType aux_matrix;
 
-        while (norm_series_term > 100.0*ZeroTolerance && series_term < max_terms) {
+        while (series_term < max_terms) {
             noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
             noalias(exponent_matrix) = aux_matrix;
             factorial = Factorial(series_term);
             noalias(rExponentialMatrix) += exponent_matrix / factorial;
-            norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            if (norm_series_term < 1000.0*ZeroTolerance)
+                break;
             series_term++;
         }
     }
