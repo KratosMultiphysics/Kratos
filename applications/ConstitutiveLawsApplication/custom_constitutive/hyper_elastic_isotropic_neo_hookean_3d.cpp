@@ -19,6 +19,7 @@
 #include "includes/checks.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -564,7 +565,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateGreenLagrangianStrain(
 
     // 2.-Compute e = 0.5*(inv(C) - I)
     const Matrix C_tensor = prod(trans(F),F);
-    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
+    ConstitutiveLawUtilities<VoigtSize>::CalculateGreenLagrangianStrain(C_tensor, rStrainVector);
 }
 
 /***********************************************************************************/
