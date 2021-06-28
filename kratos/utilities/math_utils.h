@@ -1910,7 +1910,7 @@ public:
         double norm_series_term = 1.0;
         int series_term = 2, max_terms = 200, factorial = 1;
         SizeType dimension = rMatrix.size1();
-        const double tolerance = ZeroTolerance;
+        const double tolerance = MathUtils<double>::GetZeroTolerance();
 
         noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
         TMatrixType exponent_matrix = rMatrix;

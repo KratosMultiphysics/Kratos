@@ -881,7 +881,7 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(8), 40320);
         }
 
-        /** Checks if it calculates the Factorial
+        /** Checks if the exponential of a matrix is performed correctly
          */
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsExponentialOfMatrix, KratosCoreFastSuite)
         {
