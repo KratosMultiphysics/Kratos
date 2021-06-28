@@ -4,6 +4,8 @@ RUN yum install -y git wget zip
 
 RUN yum install -y libgfortran.x86_64 blas-devel lapack-devel
 
+RUN mkdir -p /data_swap_guest
+
 RUN mkdir -p /workspace/scripts; \
 	mkdir -p /workspace/kratos
 
