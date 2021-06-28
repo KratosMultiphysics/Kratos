@@ -23,7 +23,7 @@
             "xmc.momentEstimator.MultiMomentEstimator"
         ],
         "qoiEstimatorInputDictionary": [
-            {"indexSetDimension": 0,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper"},
+            {"indexSetDimension": 0,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper", "rawMomentErrorComputer": "xmc.methodDefs_momentEstimator.computeErrorEstimation.centralMomentErrorWrapper"},
             {"variableDimension": 4,"order": 1},
             {"variableDimension": 12,"order": 1}],
         "sampler": "xmc.sampleGenerator.SampleGenerator"
@@ -53,7 +53,7 @@
     "monoCriteriaInpuctDictionary" :{
         "statisticalError": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
-            "tolerance": [1.1e-03],
+            "tolerance": [100.0],
             "input": "error0"
         },
         "minNumberIterations": {
