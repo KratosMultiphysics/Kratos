@@ -874,11 +874,11 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsFactorial, KratosCoreFastSuite)
         {
-            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(0), 1);
-            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(1), 1);
-            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(2), 2);
-            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(6), 720);
-            KRATOS_CHECK_EQUAL(MathUtils<int>::Factorial(8), 40320);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(0), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(1), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(2), 2);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(6), 720);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(8), 40320);
         }
 
         /** Checks if the exponential of a matrix is performed correctly
