@@ -279,6 +279,8 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         aoa = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].GetDouble()
         mach = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].GetDouble()
         self.primal_model_part = self._GetSolver().main_model_part
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
+        nodal_velocity_process.Execute()
 
         # Store mesh to solve with adjoint after remeshing
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
@@ -302,16 +304,12 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.adjoint_analysis.Initialize()
         self.adjoint_model_part = self.adjoint_analysis._GetSolver().main_model_part
 
+        # synchronize the modelparts
         self._SynchronizeAdjointFromPrimal()
 
-        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
-        nodal_velocity_process.Execute()
-
-        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
-
-        # synchronize the modelparts
         self.adjoint_analysis.RunSolutionLoop()
         self.adjoint_analysis.Finalize()
+        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
 
     def ModifyInitialProperties(self):
         """
