@@ -62,7 +62,10 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
             ax.legend()
-            figure.savefig(self.output_name + "_" + variable + "." + self.output_format)
+            manager = plt.get_current_fig_manager()
+            manager.resize(*manager.window.maxsize())
+            figure.show()
+            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight')
 
             
 

@@ -52,15 +52,15 @@ class TestingTimeseriesProcess(NeuralNetworkProcess):
         predictions = []
         initial_length = len(input[:])
         for i in range(self.timesteps):
-            test = np.reshape(input[i],(1, input[i].shape[0],1))
-            predictions.append(model.predict(test))
+            test = np.reshape(input[i],(1, input[i].shape[0],input[i].shape[1]))
+            predictions.append(model.predict(test)[0])
             if i > initial_length - 2:
                 new_timestep = []
                 for j in reversed(range(self.lookback-1)):
-                     new_timestep.append(input[i-j][self.lookback-1][0])
-                new_timestep.append(predictions[-1][0][0].tolist())
+                     new_timestep.append(input[i-j][self.lookback-1])
+                new_timestep.append(predictions[-1].tolist())
                 new_timestep = np.array(new_timestep)
-                new_timestep = np.reshape(new_timestep, (1, new_timestep.shape[0],1))
+                new_timestep = np.reshape(new_timestep, (1, new_timestep.shape[0],new_timestep.shape[1]))
                 input = np.vstack([input,new_timestep])
                 if self.echo > 0:
                     print('Predicted: ' + str(predictions[i]))

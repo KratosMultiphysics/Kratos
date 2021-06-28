@@ -75,6 +75,24 @@ class CenteringProcess(PreprocessingProcess):
                 data_out = data_out - min
                 output_log.update({"centering" : min.tolist()})
 
+         # Centering for avoiding the 0 in soft_maxmin normalization
+        if self.center == "soft_minmax":
+            if self.objective == "input":
+                gap = (1.0 - data_in.max(axis = 0))/2.0
+                data_in = data_in + gap
+                input_log.update({"centering" : gap.tolist()})
+            if self.objective == "output":
+                gap = (1.0 - data_out.max(axis = 0))/2.0
+                data_out = data_out + gap
+                output_log.update({"centering" : gap.tolist()})
+            if self.objective == "all":
+                gap = (1.0 - data_in.max(axis = 0))/2.0
+                data_in = data_in + gap
+                input_log.update({"centering" : gap.tolist()})
+                gap = (1.0 - data_out.max(axis = 0))/2.0
+                data_out = data_out + gap
+                output_log.update({"centering" : gap.tolist()})
+
         # Centering from file log
         if self.center == "file":
             if self.objective == "input":

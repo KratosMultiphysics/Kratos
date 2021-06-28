@@ -303,7 +303,7 @@ class DataGeneratorProcess(KM.Process):
                 # Condition values
                 elif source == "condition":
                     for condition in self.model_part.GetConditions():
-                        output_value.append(condition.GetValue(variable,0))
+                        output_value.append(condition.GetValue(variable))
 
             if (self.write_output_file):
                 if self.output_format == "ascii":

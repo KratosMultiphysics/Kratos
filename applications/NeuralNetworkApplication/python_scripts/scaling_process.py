@@ -73,6 +73,24 @@ class ScalingProcess(PreprocessingProcess):
                 data_out = data_out/ range
                 output_log.update({"scaling" : range.tolist()})
 
+        # Scaling from the soft min-max
+        if self.scale == "soft_minmax":
+            if self.objective == "input":
+                range = 1.25*(data_in.max(axis = 0) - data_in.min(axis = 0))
+                data_in = data_in/ range
+                input_log.update({"scaling" : range.tolist()})
+            if self.objective == "output":
+                range = 1.25*(data_out.max(axis = 0) - data_out.min(axis = 0))
+                data_out = data_out/ range
+                output_log.update({"scaling" : range.tolist()})
+            if self.objective == "all":
+                range = 1.25*(data_in.max(axis = 0) - data_in.min(axis = 0))
+                data_in = data_in/ range
+                input_log.update({"scaling" : range.tolist()})
+                range = 1.25*(data_out.max(axis = 0) - data_out.min(axis = 0))
+                data_out = data_out/ range
+                output_log.update({"scaling" : range.tolist()})
+
         # Scaling from file log
         if self.scale == "file":
             if self.objective == "input":

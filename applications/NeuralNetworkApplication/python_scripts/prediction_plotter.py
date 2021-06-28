@@ -24,6 +24,7 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
             "input_file"          : "",
             "target_file"         : "",
             "input_variable"      : "",
+            "input_variable_id"   : 0,
             "variables"           : [],
             "axis"                : "plot",
             "output_name"         : "",
@@ -35,6 +36,7 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
         self.input_file = parameters["input_file"].GetString()
         self.target_file = parameters["target_file"].GetString()
         self.input_variable = parameters["input_variable"].GetString()
+        self.input_variable_id = parameters["input_variable_id"].GetInt()
         self.variables = parameters["variables"].GetStringArray()
         self.output_format = parameters["output_format"].GetString()
         self.output_name = parameters["output_name"].GetString()
@@ -51,15 +53,18 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
 
         for variable in self.variables:
             figure, ax = plt.subplots()
-            getattr(ax,self.axis)(input,target[:,self.variables.index(variable)],'.',label='Ground Truth')
+            getattr(ax,self.axis)(input[:,self.input_variable_id],target[:,self.variables.index(variable)],'.',label='Ground Truth')
             if isinstance(predictions[0],(list, tuple, np.ndarray)): 
                 getattr(ax,self.axis)(input,predictions[:,self.variables.index(variable)],'.',label='Prediction')
             else:
-                getattr(ax,self.axis)(input,predictions[:],'.',label='Prediction')
+                getattr(ax,self.axis)(input[:,self.input_variable_id],predictions[:],'.',label='Prediction')
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
             ax.legend()
-            figure.savefig(self.output_name + "_" + variable + "." + self.output_format)
+            manager = plt.get_current_fig_manager()
+            manager.resize(*manager.window.maxsize())
+            figure.show()
+            figure.savefig(self.output_name + "_" + variable + "." + self.output_format, bbox_inches='tight')
 
             
 
