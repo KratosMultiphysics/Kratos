@@ -1,6 +1,6 @@
  #!/bin/bash
  
-if [ -z "$1" ];
+if [ -z "$1" ]
 then
     echo staring build for branch master
     BRANCH=master
@@ -10,8 +10,8 @@ else
 fi
 
 ## Currently does nothing, as the build script calls to -j$(nproc) 
-if [ -z "$2" ];
- then
+if [ -z "$2" ]
+then
     echo using 4 cpus
     CPUS=4
 else
@@ -24,4 +24,4 @@ git clone --depth 1 --single-branch -b $BRANCH https://github.com/KratosMultiphy
 
 cd /workspace/kratos/Kratos/scripts/wheels/linux/
 chmod +x build.sh
-./build.sh $CPUS
+./build.sh
