@@ -108,45 +108,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     ///@{
 
     /**
-     * @brief This method computes the first invariant from a given stress vector
-     * @param rStressVector The stress vector on Voigt notation
-     * @param rI1 The first invariant
-     * @tparam TVector The themplate for the vector class
-     */
-    template<class TVector>
-    static void CalculateI1Invariant(
-        const TVector& rStressVector,
-        double& rI1
-        )
-    {
-        rI1 = rStressVector[0];
-        for (IndexType i = 1; i < Dimension; ++i)
-            rI1 += rStressVector[i];
-    }
-
-    /**
-     * @brief This method computes the second invariant from a given stress vector
-     * @param rStressVector The stress vector on Voigt notation
-     * @param rI2 The second invariant
-     * @todo Adapt for 2D dimension
-     */
-    static void CalculateI2Invariant(
-        const BoundedVectorType& rStressVector,
-        double& rI2
-        );
-
-    /**
-     * @brief This method computes the third invariant from a given stress vector
-     * @param rStressVector The stress vector on Voigt notation
-     * @param rI3 The third invariant
-     * @todo Adapt for 2D dimension
-     */
-    static void CalculateI3Invariant(
-        const BoundedVectorType& rStressVector,
-        double& rI3
-        );
-
-    /**
      * @brief This method computes the second invariant of J
      * @param rStressVector The stress vector on Voigt notation
      * @param I1 The first invariant
@@ -180,47 +141,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
             rJ2 = 0.5 * (std::pow(rDeviator[0], 2.0) + std::pow(rDeviator[1], 2.0) + std::pow(p_mean, 2.0)) + std::pow(rDeviator[2], 2.0);
         }
     }
-
-    /**
-     * @brief This method computes the third invariant of J
-     * @param rDeviator The deviator of the stress
-     * @param rJ3 The third invariant of J
-     */
-    static void CalculateJ3Invariant(
-        const BoundedVectorType& rDeviator,
-        double& rJ3
-        );
-
-    /**
-     * @brief This method computes the first vector
-     * @param rFirstVector The first vector
-     */
-    static void CalculateFirstVector(BoundedVectorType& rFirstVector);
-
-    /**
-     * @brief This method computes the second vector
-     * @param rDeviator The deviator of the stress
-     * @param J2 The resultant J2 stress
-     * @param rSecondVector The second vector
-     */
-    static void CalculateSecondVector(
-        const BoundedVectorType& rDeviator,
-        const double J2,
-        BoundedVectorType& rSecondVector
-        );
-
-    /**
-     * @brief This method computes the third vector
-     * @param rDeviator The deviator of the stress
-     * @param J2 The resultant J2 stress
-     * @param rThirdVector The third vector
-     * @todo Adapt for 2D dimension
-     */
-    static void CalculateThirdVector(
-        const BoundedVectorType& rDeviator,
-        const double J2,
-        BoundedVectorType& rThirdVector
-        );
 
     /**
      * @brief This method computes the lode angle
