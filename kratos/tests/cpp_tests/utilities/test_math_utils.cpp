@@ -889,7 +889,7 @@ namespace Kratos
             noalias(A) = IdentityMatrix(3);
             A(1, 1) = 2.0;
             A(2, 2) = 3.0;
-            MathUtils<Matrix>::CalculateExponentialOfMatrix(A, exp_A);
+            MathUtils<double>::CalculateExponentialOfMatrix(A, exp_A);
             KRATOS_CHECK_NEAR(exp_A(0, 0), std::exp(A(0, 0)), 1.0e-4);
             KRATOS_CHECK_NEAR(exp_A(1, 1), std::exp(A(1, 1)), 1.0e-4);
             KRATOS_CHECK_NEAR(exp_A(2, 2), std::exp(A(2, 2)), 1.0e-4);
