@@ -49,6 +49,8 @@ bool MPMDamageDPlusDMinusMasonry2DLaw::Has(
 {
 	if(rThisVariable == DAMAGE_TENSION)
 		return true;
+	if(rThisVariable == EQ_STRAIN_RATE)
+		return true;
 	if(rThisVariable == UNIAXIAL_STRESS_TENSION)
 		return true;
 	if(rThisVariable == UNIAXIAL_STRAIN_TENSION)

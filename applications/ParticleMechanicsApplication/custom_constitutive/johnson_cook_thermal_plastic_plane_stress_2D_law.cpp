@@ -524,12 +524,14 @@ namespace Kratos
 					  stress_converged = total_stress;
 					  stress_converged.resize(2, 2, true);
 					  mEquivalentStress = j2_stress_trial;
+					  plane_stress_converged = true;
+					  break;
 				  }
 				  else
 				  {
 					  if (plane_stress_iteration > plane_stress_iteration_limit)
 					  {
-							#pragma omp critical
+						#pragma omp critical
 						  {
 							  KRATOS_INFO("Johnson Cook Material Model") << " Plane stress iteration limit exceeded"
 								  << "\nstress_33_n_minus_1 = " << stress_33_n_minus_1
@@ -587,7 +589,8 @@ namespace Kratos
 			  const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
 				  mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
 
-			  mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
+			  if (plastic_damage_onset < 1e-12) mDamageInitiation = 1.0;
+			  else mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
 		  }
 		  else
 		  {

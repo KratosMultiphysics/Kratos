@@ -94,10 +94,14 @@ namespace Kratos
 			double main_plastic_strain = MaterialProperties[JC_D1] +
 				MaterialProperties[JC_D2] * std::exp(parameter_d3 * pressure_ratio);
 
+			if (main_plastic_strain < 1e-9) main_plastic_strain = 1e9;
+
 			double rate_factor = (1.0 + MaterialProperties[JC_D4] * std::log(PlasticStrainRate / MaterialProperties[REFERENCE_STRAIN_RATE]));
 			double temp_factor = (1.0 + MaterialProperties[JC_D5] * temp_norm);
 
 			double damage_onset_plastic_strain = main_plastic_strain * rate_factor * temp_factor;
+
+			if (damage_onset_plastic_strain < 1e-9) damage_onset_plastic_strain = 0.0;
 
 			if (damage_onset_plastic_strain/ MaterialProperties[JC_D1] > 1e6)
 			{
@@ -273,7 +277,7 @@ namespace Kratos
 			MPMStressPrincipalInvariantsUtility::CalculateMatrixDoubleContraction(stress_deviatoric_converged));
 
 		// Update damage
-		if (delta_plastic_strain < 1e-12)
+		if (delta_plastic_strain > 1e-9)
 		{
 			// Evolution
 			if (mDamageInitiation < 1.0)
@@ -281,7 +285,8 @@ namespace Kratos
 				const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
 					mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
 
-				mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
+				if (plastic_damage_onset < 1e-9) mDamageInitiation = 1.0;
+				else mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
 			}
 			else
 			{
@@ -514,7 +519,8 @@ namespace Kratos
 				const double plastic_damage_onset = CalculateDamageOnsetPlasticStrain(stress_hydrostatic_new,
 					mEquivalentStress, mPlasticStrainRateOld, mTemperatureOld, MaterialProperties);
 
-				mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
+				if (plastic_damage_onset < 1e-12) mDamageInitiation = 1.0;
+				else mDamageInitiation += (delta_plastic_strain / plastic_damage_onset);
 			}
 			else
 			{
