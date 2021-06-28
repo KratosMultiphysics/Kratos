@@ -72,7 +72,6 @@ namespace Kratos {
                 //mArrayOfDeltaDisplacements.push_back(vector_of_zeros);
                 ContinuumInitialNeighborsElements.push_back(neighbour_iterator);
                 continuum_ini_size++;
-
             } else {
                 DiscontinuumInitialNeighborsIds.push_back(neighbour_iterator->Id());
                 DiscontinuumInitialNeighborsDeltas.push_back(initial_delta);

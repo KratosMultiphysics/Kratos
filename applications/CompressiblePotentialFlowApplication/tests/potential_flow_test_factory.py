@@ -18,6 +18,15 @@ try:
 except:
     numpy_stl_is_available = False
 
+try:
+    import KratosMultiphysics.MultilevelMonteCarloApplication
+    import xmc
+    import exaqute
+    import numpy as np
+    is_xmc_available = True
+except:
+    is_xmc_available = False
+
 class WorkFolderScope:
     # TODO use KratosUnittest.WorkFolderScope
     def __init__(self, work_folder):
@@ -41,6 +50,7 @@ class PotentialFlowTests(UnitTest.TestCase):
         file_name = "naca0012_small_sensitivities"
         settings_file_name_primal = file_name + "_primal_parameters.json"
         settings_file_name_adjoint = file_name + "_adjoint_parameters.json"
+        settings_file_name_adjoint_farfield = file_name + "_adjoint_far_field_parameters.json"
         settings_file_name_adjoint_analytical = file_name + "_adjoint_analytical_parameters.json"
         work_folder = "naca0012_small_adjoint_test"
 
@@ -51,7 +61,9 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.3230253050805644, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.32651526722535246, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.0036897206842046205, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.3230253050805686, 0.0, 1e-9)
             self._runTest(settings_file_name_adjoint)
+            self._runTest(settings_file_name_adjoint_farfield)
             self._runTest(settings_file_name_adjoint_analytical)
 
             for file_name in os.listdir(os.getcwd()):
@@ -70,6 +82,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.48769319614651147, 0.0, 1e-9)
             self._check_perimeter_computation()
 
             for file_name in os.listdir():
@@ -88,6 +101,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.88900105659947, 0.0, 1e-9)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
@@ -103,6 +117,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.48769319614651147, 0.0, 1e-9)
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
@@ -120,6 +135,7 @@ class PotentialFlowTests(UnitTest.TestCase):
     def test_EmbeddedCircle(self):
         settings_file_name = "embedded_circle_parameters.json"
         settings_adjoint_file_name = "embedded_circle_adjoint_parameters.json"
+        settings_adjoint_farfield_file_name = "embedded_circle_adjoint_farfield_parameters.json"
         settings_penalty_file_name = "embedded_circle_penalty_parameters.json"
         settings_comp_penalty_file_name = "embedded_compressible_circle_penalty_parameters.json"
         work_folder = "embedded_test"
@@ -130,6 +146,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], -0.8267434236568107, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], -1.1267771704301741, 0.0, 1e-9)
             self._runTest(settings_adjoint_file_name)
+            self._runTest(settings_adjoint_farfield_file_name)
             self._runTest(settings_penalty_file_name)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.28201444027332967, 0.0, 1e-6)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.38373989115443974, 0.0, 1e-6)
@@ -198,10 +215,21 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7258065125219674, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7341491672597356, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD],0.008730661509157661, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(49).GetValue(CPFApp.POTENTIAL_JUMP), 0.35919110345927313, 0.0, 1e-9)
 
-    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication")
     def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
         work_folder = "body_fitted_opt"
+
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
+
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+
+        work_folder = "stochastic_body_fitted_opt"
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             __import__(work_folder+".run_test")

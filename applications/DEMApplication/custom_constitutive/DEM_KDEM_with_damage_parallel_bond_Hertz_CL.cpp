@@ -20,13 +20,19 @@ namespace Kratos {
         this->Check(pProp);
     }
 
+    void DEM_KDEM_with_damage_parallel_bond_Hertz::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_with_damage_parallel_bond_Hertz to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
+        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+
+        TransferParametersToProperties(parameters, pProp);
+
+        this->Check(pProp);
+    }
+
     void DEM_KDEM_with_damage_parallel_bond_Hertz::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
-
-        const double& unbonded_equivalent_young = (*mpProperties)[YOUNG_MODULUS];
-        const double unbonded_equivalent_shear = unbonded_equivalent_young / (2.0 * (1 + equiv_poisson));
 
         // Unbonded elastic constants
         const double my_radius       = element1->GetRadius();
@@ -34,6 +40,19 @@ namespace Kratos {
         const double radius_sum      = my_radius + other_radius;
         const double radius_sum_inv  = 1.0 / radius_sum;
         const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+
         double sqrt_equiv_radius_and_indentation;
         if (indentation > 0.0) {
             sqrt_equiv_radius_and_indentation = sqrt(equiv_radius * indentation);
@@ -41,14 +60,13 @@ namespace Kratos {
             sqrt_equiv_radius_and_indentation = 0.0;
         }
 
-        mUnbondedNormalElasticConstant = 2.0 * unbonded_equivalent_young * sqrt_equiv_radius_and_indentation;
-        mUnbondedTangentialElasticConstant = 4.0 * unbonded_equivalent_shear * mUnbondedNormalElasticConstant / unbonded_equivalent_young;
+        //Normal and Tangent elastic constants
+        mUnbondedNormalElasticConstant = 2.0 * equiv_young * sqrt_equiv_radius_and_indentation;
+        mUnbondedTangentialElasticConstant = 4.0 * equiv_shear * mUnbondedNormalElasticConstant / equiv_young;
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
-
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
-
         const double& equiv_gamma   = (*mpProperties)[DAMPING_GAMMA];
 
         mUnbondedEquivViscoDampCoeffNormal     = 2.0 * equiv_gamma * sqrt(equiv_mass * mUnbondedNormalElasticConstant);

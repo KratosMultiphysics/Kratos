@@ -226,3 +226,4 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
 
         CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level-1)
+        CPFApp.PotentialFlowUtilities.ComputePotentialJump3D(self.wake_sub_model_part)

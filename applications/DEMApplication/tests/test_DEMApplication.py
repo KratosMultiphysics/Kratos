@@ -15,8 +15,10 @@ import test_DEM_2D_contact
 import test_DEM_3D_restitution
 import test_DEM_2D_restitution
 import test_DEM_3D_continuum
+import test_DEM_3D_continuum_vs_discontinuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
+import test_inlet
 import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
@@ -25,6 +27,7 @@ import test_history_dependent_CLs
 import test_clusters
 import test_DEM_schemes
 import test_random_variable
+import test_DEM_search_tolerance
 
 def AssembleTestSuites():
 
@@ -43,7 +46,6 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_1"))
     #smallSuite.addTest(test_guis.TestGUIs("test_GUIs_2"))
-    smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
     smallSuite.addTest(test_particle_creator_destructor.TestParticleCreatorDestructor("test_CreateSphericParticle1"))
     smallSuite.addTest(test_wall_creator_destructor.TestWallCreatorDestructor("test_CreateWallTriangle"))
     smallSuite.addTest(test_analytics.TestAnalytics("test_Analytics_1"))
@@ -52,16 +54,18 @@ def AssembleTestSuites():
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
-    smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
+    smallSuite.addTest(test_inlet.TestDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
+
     smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
@@ -79,18 +83,21 @@ def AssembleTestSuites():
 
     nightSuite.addTest(test_restart.TestRestartOneBall("test_execution"))
     nightSuite.addTest(test_restart.TestRestartTwoBalls("test_execution"))
-    nightSuite.addTests(smallSuite)
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchA"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
+    nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
+    nightSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
+    nightSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+    nightSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(
-        smallSuite
-        #KratosUnittest.TestLoader().loadTestsFromTestCases([])
-    )
-
+    allSuite.addTests(smallSuite)
+    allSuite.addTests(nightSuite)
 
     return suites
 
