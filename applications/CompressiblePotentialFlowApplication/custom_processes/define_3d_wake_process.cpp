@@ -73,6 +73,7 @@ void Define3DWakeProcess::ExecuteInitialize()
         r_nodes.SetValue(UPPER_SURFACE, false);
         r_nodes.SetValue(LOWER_SURFACE, false);
         r_nodes.SetValue(TRAILING_EDGE, false);
+        r_nodes.SetValue(WAKE_DISTANCE, 0.0);
     });
     auto& r_elements = root_model_part.Elements();
     VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
