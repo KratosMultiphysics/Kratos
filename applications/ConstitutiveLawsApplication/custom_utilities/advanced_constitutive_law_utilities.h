@@ -12,8 +12,8 @@
 //
 //
 
-#if !defined(KRATOS_CONSTITUTIVE_LAW_UTILITIES)
-#define KRATOS_CONSTITUTIVE_LAW_UTILITIES
+#if !defined(KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES)
+#define KRATOS_ADVANCED_CONSTITUTIVE_LAW_UTILITIES
 
 // System includes
 
@@ -49,7 +49,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class ConstitutiveLawUtilities
+ * @class AdvancedConstitutiveLawUtilities
  * @ingroup StructuralMechanicsApplication
  * @brief This class includes several utilities necessaries for the computation of the constitutive law
  * @details The methods are static, so it can be called without constructing the class
@@ -58,7 +58,7 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template <SizeType TVoigtSize = 6>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 {
   public:
     ///@name Type definitions
@@ -514,26 +514,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixVoigtType &rNewOperator
     );
 
-    /**
-     * @brief This method the uniaxial equivalent stress for Von Mises
-     * @param rStressVector The stress vector S = C:E
-     * @return The VM equivalent stress
-     * @tparam TVector The themplate for the vector class
-     */
-    template<class TVector>
-    static double CalculateVonMisesEquivalentStress(const TVector& rStressVector)
-    {
-        double I1, J2;
-        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
-
-        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rStressVector, I1);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
-
-        return std::sqrt(3.0 * J2);
-    }
-
 private:
 
-}; // class ConstitutiveLawUtilities
+}; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
 #endif /* KRATOS_CONSTITUTIVE_LAW_UTILITIES defined */

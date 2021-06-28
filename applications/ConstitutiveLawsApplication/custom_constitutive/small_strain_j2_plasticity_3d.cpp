@@ -21,7 +21,7 @@
 // Project includes
 #include "small_strain_j2_plasticity_3d.h"
 #include "constitutive_laws_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -388,7 +388,7 @@ Vector& SmallStrainJ2Plasticity3D::CalculateValue(
             << ", got " << r_F.size1() << "x" << r_F.size2() << std::endl;
 
         const Matrix C_tensor = prod(trans(r_F),r_F);
-        ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, rValue);
+        AdvancedConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, rValue);
     }
 
     return(rValue);

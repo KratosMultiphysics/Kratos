@@ -25,7 +25,7 @@ namespace Kratos
 {
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateI2Invariant(
+void AdvancedConstitutiveLawUtilities<6>::CalculateI2Invariant(
     const BoundedVectorType& rStressVector,
     double& rI2
     )
@@ -38,7 +38,7 @@ void ConstitutiveLawUtilities<6>::CalculateI2Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
+void AdvancedConstitutiveLawUtilities<3>::CalculateI2Invariant(
     const BoundedVectorType& rStressVector,
     double& rI2
     )
@@ -50,7 +50,7 @@ void ConstitutiveLawUtilities<3>::CalculateI2Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateI3Invariant(
+void AdvancedConstitutiveLawUtilities<6>::CalculateI3Invariant(
     const BoundedVectorType& rStressVector,
     double& rI3
     )
@@ -64,7 +64,7 @@ void ConstitutiveLawUtilities<6>::CalculateI3Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
+void AdvancedConstitutiveLawUtilities<3>::CalculateI3Invariant(
     const BoundedVectorType& rStressVector,
     double& rI3
     )
@@ -76,7 +76,7 @@ void ConstitutiveLawUtilities<3>::CalculateI3Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateJ3Invariant(
+void AdvancedConstitutiveLawUtilities<6>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
     double& rJ3
     )
@@ -90,7 +90,7 @@ void ConstitutiveLawUtilities<6>::CalculateJ3Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
+void AdvancedConstitutiveLawUtilities<3>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
     double& rJ3
     )
@@ -102,7 +102,7 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+void AdvancedConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector[0] = 1.0;
     rFirstVector[1] = 1.0;
@@ -116,7 +116,7 @@ void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirst
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+void AdvancedConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector[0] = 1.0;
     rFirstVector[1] = 1.0;
@@ -127,7 +127,7 @@ void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirst
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateSecondVector(
+void AdvancedConstitutiveLawUtilities<6>::CalculateSecondVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rSecondVector
@@ -152,7 +152,7 @@ void ConstitutiveLawUtilities<6>::CalculateSecondVector(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateSecondVector(
+void AdvancedConstitutiveLawUtilities<3>::CalculateSecondVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rSecondVector
@@ -169,7 +169,7 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateThirdVector(
+void AdvancedConstitutiveLawUtilities<6>::CalculateThirdVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rThirdVector
@@ -189,7 +189,7 @@ void ConstitutiveLawUtilities<6>::CalculateThirdVector(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateThirdVector(
+void AdvancedConstitutiveLawUtilities<3>::CalculateThirdVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rThirdVector
@@ -207,7 +207,7 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     const double J2,
     const double J3,
     double& rLodeAngle
@@ -229,7 +229,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const GeometryType& rGeometry)
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const GeometryType& rGeometry)
 {
     double radius = 0.0;
     const Point& r_center = rGeometry.Center();
@@ -247,7 +247,7 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry)
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(const GeometryType& rGeometry)
 {
     double radius = 0.0;
 
@@ -271,7 +271,7 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLengthOnRefe
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
 {
     // We update the deformation gradient
     Matrix equivalent_F(Dimension, Dimension);
@@ -301,7 +301,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDe
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
     const MatrixType& rLeftCauchyTensor,
     Vector& rStrainVector
     )
@@ -335,7 +335,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateAlmansiStrain(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
     const MatrixType& rCauchyTensor,
     Vector& rStrainVector
     )
@@ -367,7 +367,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateHenckyStrain(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
     const MatrixType& rCauchyTensor,
     Vector& rStrainVector
     )
@@ -388,7 +388,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateBiotStrain(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
+void AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
     array_1d<double, Dimension>& rPrincipalStressVector,
     const BoundedVectorType& rStressVector
     )
@@ -434,7 +434,7 @@ void ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+void AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
     array_1d<double, Dimension>& rPrincipalStressVector,
     const BoundedVectorType& rStressVector
     )
@@ -452,7 +452,7 @@ void ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano(
     array_1d<double, Dimension>& rPrincipalStressVector,
     const BoundedVectorType& rStressVector
     )
@@ -496,7 +496,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePrincipalStressesWithCardano
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
     const BoundedVectorType& rStressVector,
     BoundedVectorType& rStressVectorTension,
     BoundedVectorType& rStressVectorCompression
@@ -536,7 +536,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGradientIncrement(
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement
     )
@@ -550,7 +550,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateLinearPlasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformationGradient(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformationGradient(
     const MatrixType& rF,
     const MatrixType& rFp
     )
@@ -565,7 +565,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticDeformationGradient
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticDeformationGradientFromElastic(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticDeformationGradientFromElastic(
     const MatrixType& rF,
     const MatrixType& rFe
     )
@@ -580,7 +580,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticDeformationGradient
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
     const MatrixType& rFp,
     Vector& rPlasticStrainVector
     )
@@ -604,7 +604,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculatePlasticStrainFromFp(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformationGradient(
     const MatrixType& rTrialFe,
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
@@ -614,7 +614,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformat
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
         MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
     BoundedMatrixType r_exponential_tensor;
-    ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(-plastic_flow, r_exponential_tensor);
+    AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(-plastic_flow, r_exponential_tensor);
 
     MatrixType aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
     noalias(aux_1) = prod(rTrialFe, trans(rRe));
@@ -626,7 +626,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElasticDeformat
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDeformationGradient(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDeformationGradient(
     const MatrixType& rElasticTrial,
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
@@ -660,7 +660,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformationGradientIncrement(
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
     const MatrixType& rRe
@@ -698,7 +698,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialPlasticDeformat
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGradientIncrement(
+Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGradientIncrement(
     const BoundedVectorType& rPlasticPotentialDerivative,
     const double PlasticConsistencyFactorIncrement,
     const MatrixType& rRe
@@ -727,7 +727,7 @@ Matrix ConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDeformationGr
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
         const BoundedMatrixType& rMatrix,
         BoundedMatrixType& rExponentialMatrix
     )
@@ -753,7 +753,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
     BoundedMatrix<double, 3, 3>& rRotationOperator
 )
@@ -774,7 +774,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
     BoundedMatrix<double, 3, 3>& rRotationOperator
 )
@@ -795,19 +795,19 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
     BoundedMatrix<double, 3, 3>& rRotationOperator
 )
 {
-    ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
+    AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle1, // phi
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
@@ -839,7 +839,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+void AdvancedConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )
@@ -903,7 +903,7 @@ void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 
 template<>
-void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
+void AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )
@@ -927,7 +927,7 @@ void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ConstitutiveLawUtilities<3>;
-template class ConstitutiveLawUtilities<6>;
+template class AdvancedConstitutiveLawUtilities<3>;
+template class AdvancedConstitutiveLawUtilities<6>;
 
 } // namespace Kratos

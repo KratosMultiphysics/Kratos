@@ -23,6 +23,7 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
@@ -222,12 +223,12 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
             ConstitutiveLawUtilities<VoigtSize>::PolarDecomposition(rTrialElasticDeformationGradient, Re, Ue);
 
             // Update Fe
-            noalias(rTrialElasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
+            noalias(rTrialElasticDeformationGradient) = AdvancedConstitutiveLawUtilities<VoigtSize>::
                 CalculateExponentialElasticDeformationGradient(rTrialElasticDeformationGradient,
                     rPlasticPotentialDerivative, plastic_consistency_factor_increment, Re);
 
             // Update Fp and Fp_increment
-            noalias(rPlasticDeformationGradient) = ConstitutiveLawUtilities<VoigtSize>::
+            noalias(rPlasticDeformationGradient) = AdvancedConstitutiveLawUtilities<VoigtSize>::
                 CalculatePlasticDeformationGradientFromElastic(current_F_backup,
                     rTrialElasticDeformationGradient);
 
@@ -300,7 +301,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
 
         YieldSurfaceType::CalculateEquivalentStress(rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateDerivativeYieldSurface(rPredictiveStressVector, deviator, J2, rYieldSurfaceDerivative, rValues);
         CalculateDerivativePlasticPotential(rPredictiveStressVector, deviator, J2, rDerivativePlasticPotential, rValues);
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor, compression_indicator_factor);
