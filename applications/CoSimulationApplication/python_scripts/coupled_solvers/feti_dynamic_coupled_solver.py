@@ -145,7 +145,7 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
 
         # Check timestep ratio is valid and add to settings
         timestep_ratio = self._CalculateAndCheckTimestepRatio()
-        self.settings.AddInt('timestep_ratio',int(timestep_ratio))
+        self.settings.AddInt('timestep_ratio',int(round(timestep_ratio,0)))
 
         # get mapper parameters
         self.mapper_parameters = self.data_transfer_operators_dict["mapper"].settings["mapper_settings"]
@@ -240,8 +240,8 @@ class FetiDynamicCoupledSolver(CoSimulationCoupledSolver):
         for solver_index in range(self.settings["coupling_sequence"].size()):
             ordered_solver_name = self.settings["coupling_sequence"][solver_index]["name"].GetString()
             timesteps[solver_index] = self._solver_delta_times[ordered_solver_name]
-        timestep_ratio = timesteps[0] / timesteps[1]
-        if timestep_ratio < 0.99 or int(timestep_ratio) % timestep_ratio > 1E-12:
+        timestep_ratio = round(timesteps[0] / timesteps[1],0)
+        if timestep_ratio < 0.99 or round(timestep_ratio,9) != round(timestep_ratio,0):
             raise Exception("The timestep ratio between origin and destination domains is invalid. It must be a positive integer greater than 1.")
         return timestep_ratio
 
