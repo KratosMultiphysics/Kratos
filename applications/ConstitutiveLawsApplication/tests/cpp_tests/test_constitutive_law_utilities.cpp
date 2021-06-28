@@ -53,27 +53,17 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStruc
     AdvancedConstitutiveLawUtilities<6>::CalculateI2Invariant(stress_vector, I2);
     AdvancedConstitutiveLawUtilities<6>::CalculateI3Invariant(stress_vector, I3);
 
-//     // DEBUG
-//     std::cout << "I1: " << I1 << "\tI2: " << I2 << "\tI3: " << I3 << std::endl;
-
     KRATOS_CHECK_LESS_EQUAL((   -2.27e+07 - I1)/I1, tolerance);
     KRATOS_CHECK_LESS_EQUAL((-1.70812e+14 - I2)/I2, tolerance);
     KRATOS_CHECK_LESS_EQUAL(( 2.64752e+21 - I3)/I3, tolerance);
 
     AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stress_vector, stress_vector);
 
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
-
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
 
     AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
-
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
-
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
@@ -98,9 +88,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
     // Compute Hencky
     AdvancedConstitutiveLawUtilities<6>::CalculateHenckyStrain(C, strain_vector);
 
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
-
     KRATOS_CHECK_LESS_EQUAL((0.0454445 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.0023557 - strain_vector[1])/strain_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
@@ -108,9 +95,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
 
     // Compute Biot
     AdvancedConstitutiveLawUtilities<6>::CalculateBiotStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
 
     KRATOS_CHECK_LESS_EQUAL((0.0476699 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.00119458 - strain_vector[1])/strain_vector[1], tolerance);
