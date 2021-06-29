@@ -1856,7 +1856,8 @@ public:
         const TMatrixType1 &rA,
         TMatrixType2 &rMatrixSquareRoot,
         const TDataType Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20)
+        const SizeType MaxIterations = 20
+        )
     {
         // Do an eigenvalue decomposition of the input matrix
         TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
@@ -1901,15 +1902,15 @@ public:
      */
     template<class TMatrixType>
     static inline void CalculateExponentialOfMatrix(
-            const TMatrixType& rMatrix,
-            TMatrixType& rExponentialMatrix,
-            const double Tolerance = 1000.0*ZeroTolerance,
-            const SizeType MaxTerms = 200
+        const TMatrixType& rMatrix,
+        TMatrixType& rExponentialMatrix,
+        const double Tolerance = 1000.0*ZeroTolerance,
+        const SizeType MaxTerms = 200
         )
     {
         SizeType series_term = 2;
-        SizeType factorial   = 1;
-        SizeType dimension   = rMatrix.size1();
+        SizeType factorial = 1;
+        const SizeType dimension = rMatrix.size1();
 
         noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
         TMatrixType exponent_matrix = rMatrix;
