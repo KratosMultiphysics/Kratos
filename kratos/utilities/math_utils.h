@@ -1881,15 +1881,13 @@ public:
      * @tparam Number The number of which the Factorial is computed
      */
     template<class TIntegerType>
-    static inline TIntegerType Factorial(
-        const TIntegerType Number
-        )
+    static inline TIntegerType Factorial(const TIntegerType Number)
     {
         if (Number == 0) {
             return 1;
         }
         TIntegerType k = Number;
-        for (unsigned int i = Number - 1; i > 0; --i){
+        for (TIntegerType i = Number - 1; i > 0; --i){
             k *= i;
         }
         return k;
