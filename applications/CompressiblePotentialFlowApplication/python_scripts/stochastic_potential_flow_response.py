@@ -125,8 +125,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
         # save lift coefficient
         qoi_counter = 0
-        estimator_container = [] # here we append contribution for each index/level
-        error_container = [] # here we append contribution for each index/level
+        estimator_container = [] # here we append the estimator for each index/level
+        error_container = [] # here we append the variance of the estimator for each index/level
         n_samples_container = []
         for index in range (len(self.xmc_analysis.monteCarloSampler.indices)):
             self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter] = get_value_from_remote(self.xmc_analysis.monteCarloSampler.indices[index].qoiEstimator[qoi_counter])
@@ -137,6 +137,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # linearly sum estimators: this summation operation is valid for expected value and central moments
         # we refer to equation 4 of Krumscheid, S., Nobile, F., & Pisaroni, M. (2020). Quantifying uncertain system outputs via the multilevel Monte Carlo method — Part I: Central moment estimation. Journal of Computational Physics. https://doi.org/10.1016/j.jcp.2020.109466
         self._value = sum(estimator_container)
+        # compute statistical error as in section 2.2 of
+        # Pisaroni, M., Nobile, F., & Leyland, P. (2017). A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics. Computer Methods in Applied Mechanics and Engineering, 326, 20–50. https://doi.org/10.1016/j.cma.2017.07.030
         statistical_error = math.sqrt(sum(error_container))
 
         if not self.output_dict_results_file_name == "":
@@ -298,7 +300,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
         self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
 
-        super(SimulationScenario,self).__init__(input_model,input_parameters)
+        super().__init__(input_model,input_parameters)
 
     def Finalize(self):
 
@@ -345,7 +347,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         alpha = self.sample[2]
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
-        super(SimulationScenario,self).ModifyInitialProperties()
+        super().ModifyInitialProperties()
 
 
     def EvaluateQuantityOfInterest(self):
