@@ -1907,8 +1907,9 @@ public:
             const SizeType MaxTerms = 200
         )
     {
-        int series_term = 2, factorial = 1;
-        SizeType dimension = rMatrix.size1();
+        SizeType series_term = 2;
+        SizeType factorial   = 1;
+        SizeType dimension   = rMatrix.size1();
 
         noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
         TMatrixType exponent_matrix = rMatrix;
