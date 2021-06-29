@@ -614,7 +614,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElastic
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
         MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
     BoundedMatrixType r_exponential_tensor;
-    MathUtils<double>::CalculateExponentialOfMatrix<BoundedMatrixType>(-plastic_flow, r_exponential_tensor);
+    MathUtils<double>::CalculateExponentialOfMatrix<BoundedMatrixType>(-plastic_flow, r_exponential_tensor, 1.0e-8, 2000);
 
     MatrixType aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
     noalias(aux_1) = prod(rTrialFe, trans(rRe));

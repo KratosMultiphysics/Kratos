@@ -313,7 +313,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
             // We compute the plastic strain
             const double& det_f = rValues.GetDeterminantF();
-            const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
             rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
             rValues.SetDeformationGradientF(plastic_deformation_gradient);
             this->CalculateValue(rValues, ALMANSI_STRAIN_VECTOR, plastic_strain);
@@ -442,19 +441,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // Auxiliar values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
-
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // We check the current step and NL iteration
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLength(rValues.GetElementGeometry());
 
@@ -493,7 +485,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
     // We compute the plastic strain
     const double& det_f = rValues.GetDeterminantF();
-    const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
     rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
     rValues.SetDeformationGradientF(plastic_deformation_gradient);
     this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
@@ -534,7 +525,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         mPlasticDissipation = plastic_dissipation;
         noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
-        noalias(mPreviousDeformationGradient) = deformation_gradient;
+        noalias(mPreviousDeformationGradient) = r_deformation_gradient_backup;
         mThreshold = threshold;
     }
 }
@@ -548,19 +539,12 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // Auxiliar values
-    const Flags& r_constitutive_law_options = rValues.GetOptions();
-
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // We check the current step and NL iteration
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLength(rValues.GetElementGeometry());
 
@@ -598,7 +582,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
     // We compute the plastic strain
     const double& det_f = rValues.GetDeterminantF();
-    const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
     rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
     rValues.SetDeformationGradientF(plastic_deformation_gradient);
     this->CalculateValue(rValues, ALMANSI_STRAIN_VECTOR, plastic_strain);
@@ -639,7 +622,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
         mPlasticDissipation = plastic_dissipation;
         noalias(mPlasticDeformationGradient) = plastic_deformation_gradient;
-        noalias(mPreviousDeformationGradient) = deformation_gradient;
+        noalias(mPreviousDeformationGradient) = r_deformation_gradient_backup;
         mThreshold = threshold;
     }
 }
