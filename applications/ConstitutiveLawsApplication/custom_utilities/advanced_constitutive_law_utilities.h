@@ -332,15 +332,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         );
 
     /**
-     * @brief This computes exponential of a matrix
-     * @param rMatrix The input matrix
-     * @param rExponentialMatrix The exponential of the matrix
-     */
-    static void CalculateExponentialOfMatrix(
-        const BoundedMatrixType& rMatrix,
-        BoundedMatrixType& rExponentialMatrix);
-
-    /**
      * @brief This computes the elastic def gradient tensor
      * Fe = F*(Fp)^-1
      * @param rF The total def gradient tensor
@@ -350,19 +341,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const MatrixType& rF,
         const MatrixType& rFp
         );
-    /**
-     * @brief This computes factorial of a number
-     */
-    static int Factorial(const unsigned int n) {
-        if (n == 0) {
-            return 1;
-        }
-        unsigned int k = n;
-        for (unsigned int i = n - 1; i > 0; --i){
-            k *= i;
-        }
-        return k;
-    }
 
     /**
      * @brief This computes the linear plastic deformation gradient increment

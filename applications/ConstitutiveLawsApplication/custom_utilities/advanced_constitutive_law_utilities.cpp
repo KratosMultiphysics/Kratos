@@ -614,7 +614,7 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialElastic
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement *
         MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
     BoundedMatrixType r_exponential_tensor;
-    AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(-plastic_flow, r_exponential_tensor);
+    MathUtils<double>::CalculateExponentialOfMatrix<BoundedMatrixType>(-plastic_flow, r_exponential_tensor);
 
     MatrixType aux_1(Dimension, Dimension), aux_2(Dimension, Dimension);
     noalias(aux_1) = prod(rTrialFe, trans(rRe));
@@ -723,31 +723,6 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
     return plastic_deformation_gradient_increment;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
-void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateExponentialOfMatrix(
-        const BoundedMatrixType& rMatrix,
-        BoundedMatrixType& rExponentialMatrix
-    )
-{
-    double norm_series_term = 1.0;
-    int series_term = 2, max_terms = 200, factorial = 1;
-
-    noalias(rExponentialMatrix)       = IdentityMatrix(Dimension) + rMatrix;
-    BoundedMatrixType exponent_matrix = rMatrix;
-    BoundedMatrixType aux_matrix;
-
-    while (norm_series_term > 100.0*tolerance && series_term < max_terms) {
-        noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
-        noalias(exponent_matrix) = aux_matrix;
-        factorial = Factorial(series_term);
-        noalias(rExponentialMatrix) += exponent_matrix / factorial;
-        norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
-        series_term++;
-    }
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
