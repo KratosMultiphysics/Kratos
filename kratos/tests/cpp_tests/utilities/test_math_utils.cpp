@@ -885,14 +885,19 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsExponentialOfMatrix, KratosCoreFastSuite)
         {
-            Matrix A(3, 3), exp_A(3, 3);
-            noalias(A) = IdentityMatrix(3);
+            BoundedMatrix<double, 3, 3> A(3, 3), exp_A(3, 3);
+            noalias(A)     = IdentityMatrix(3);
+            noalias(exp_A) = IdentityMatrix(3);
             A(1, 1) = 2.0;
             A(2, 2) = 3.0;
-            MathUtils<double>::CalculateExponentialOfMatrix(A, exp_A);
-            KRATOS_CHECK_NEAR(exp_A(0, 0), std::exp(A(0, 0)), 1.0e-4);
-            KRATOS_CHECK_NEAR(exp_A(1, 1), std::exp(A(1, 1)), 1.0e-4);
-            KRATOS_CHECK_NEAR(exp_A(2, 2), std::exp(A(2, 2)), 1.0e-4);
+
+            MathUtils<double>::CalculateExponentialOfMatrix(A, exp_A, 1e-8, 2000);
+
+            // We compute the exp of each term
+            A(0, 0) = std::exp(A(0, 0));
+            A(1, 1) = std::exp(A(1, 1));
+            A(2, 2) = std::exp(A(2, 2));
+            KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
         }
 
     } // namespace Testing
