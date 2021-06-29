@@ -10,7 +10,7 @@ import KratosMultiphysics.MultilevelMonteCarloApplication
 import xmc
 import xmc.methodDefs_momentEstimator.computeCentralMoments as mdccm
 from exaqute import get_value_from_remote
-import json, os, math
+import json, os, math, time
 
 def _GetModelPart(model, solver_settings):
     model_part_name = solver_settings["model_part_name"].GetString()
@@ -111,7 +111,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.current_model_part)
 
+        initial_time = time.time()
         self._RunXMC()
+        elapsed_time = time.time() - initial_time
 
         if self.risk_measure == "expected_value":
             order = 1 ; is_central = False
@@ -138,11 +140,12 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         statistical_error = math.sqrt(sum(error_container))
 
         if not self.output_dict_results_file_name == "":
+            self.results_dict[self.step]["run_time"]=elapsed_time
+            self.results_dict[self.step]["number_of_samples"]=n_samples_container
             self.results_dict[self.step]["lift_coefficient"]={}
             self.results_dict[self.step]["lift_coefficient"]["risk_measure"]=self.risk_measure
             self.results_dict[self.step]["lift_coefficient"]["value"]=self._value
             self.results_dict[self.step]["lift_coefficient"]["statistical_error"]=statistical_error
-            self.results_dict[self.step]["lift_coefficient"]["number_of_samples"]=n_samples_container
 
         # save pressure coefficient
         pressure_dict = {}
