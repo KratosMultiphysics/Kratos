@@ -3,6 +3,7 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication import potential_fl
 
 try:
     import KratosMultiphysics.MultilevelMonteCarloApplication
+    import KratosMultiphysics.MappingApplication
     import xmc
     import exaqute
     import numpy as np
@@ -20,7 +21,10 @@ def CreateResponseFunction(response_id, response_settings, model):
         if is_xmc_available:
             return stochastic_potential_flow_response.AdjointResponseFunction(response_id, response_settings, model)
         else:
-            raise ImportError("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+            err_msg = "XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md"
+            err_msg += " for installation details. Please make sure that the CompressiblePotentialFlowApplication, MultilevelMonteCarloApplication"
+            err_msg += " and the MappingApplication are compiled."
+            raise ImportError(err_msg)
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
                         ".\nAvailable types are: 'adjoint_lift_potential_jump'." )
