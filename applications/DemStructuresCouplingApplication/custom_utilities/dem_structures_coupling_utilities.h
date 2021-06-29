@@ -107,7 +107,7 @@ void SmoothLoadTrasferredToFem(ModelPart& r_model_part, const double portion_of_
     }
 }
 
-void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+double ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string sand_prod_filename = "sand_production_graph.txt";
     static std::ofstream ofs_sand_prod_file;
@@ -142,6 +142,8 @@ void ComputeSandProduction(ModelPart& dem_model_part, ModelPart& outer_walls_mod
     static std::ofstream sand_prod_file("sand_production_graph.txt", std::ios_base::out | std::ios_base::app);
     sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     sand_prod_file.flush();
+
+    return cumulative_sand_mass_in_grams;
 }
 
 void MarkBrokenSpheres(ModelPart& dem_model_part) {
@@ -168,7 +170,7 @@ void MarkBrokenSpheres(ModelPart& dem_model_part) {
     }
 }
 
-void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
+double ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
 
     const std::string sand_prod_filename = "sand_production_graph_with_chunks_non_recursive.txt";
     static std::ofstream ofs_sand_prod_file;
@@ -247,6 +249,8 @@ void ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(ModelPa
     }
     printing_counter++;
     ofs_granulometry_distr_file.flush();
+
+    return cumulative_sand_mass_in_grams;
 }
 
 void ComputeSandProductionWithDepthFirstSearch(ModelPart& dem_model_part, ModelPart& outer_walls_model_part, const double time) {
