@@ -74,7 +74,7 @@
         },
         "maxNumberIterations": {
             "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
-            "tolerance": [10],
+            "tolerance": [0],
             "input": "algorithmCost"
         }
     },
