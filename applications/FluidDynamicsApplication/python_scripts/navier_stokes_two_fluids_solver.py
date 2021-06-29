@@ -318,20 +318,24 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            tilting_angle = TimeStep*DT/0.1*math.pi
-            if tilting_angle > (1.0/6.0)*math.pi:
-                tilting_angle = (1.0/6.0)*math.pi
+            tilting_angle = TimeStep*DT/0.01*(10.0/180.0)*math.pi
+            if tilting_angle > (10.0/180.0)*math.pi:
+                tilting_angle = (10.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
-            gravity = 9.81
+
+            gravity = TimeStep*DT/0.01*9.81
+            if gravity > 9.81:
+                gravity = 9.81
+
             for node in self.main_model_part.Nodes:
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, gravity*sinAlpha)
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 500 == 0):
+            if (TimeStep % 200 == 0):
                 print("Redistancing")
                 print(time.time())
 
@@ -340,13 +344,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
                 layers = int(2000/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateDistances( #CalculateInterfacePreservingDistances(
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosCFD.AREA_VARIABLE_AUX,
                     layers,
-                    1.0e0, #),
-                    (self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                    1.0e0),
+                    #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
                 # print(time.time())
 
