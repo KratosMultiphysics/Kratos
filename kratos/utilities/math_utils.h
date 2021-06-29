@@ -1902,23 +1902,25 @@ public:
     template<class TMatrixType>
     static inline void CalculateExponentialOfMatrix(
             const TMatrixType& rMatrix,
-            TMatrixType& rExponentialMatrix
+            TMatrixType& rExponentialMatrix,
+            const double Tolerance = 1000.0*ZeroTolerance,
+            const SizeType MaxTerms = 200
         )
     {
-        int series_term = 2, max_terms = 200, factorial = 1;
+        int series_term = 2, factorial = 1;
         SizeType dimension = rMatrix.size1();
 
         noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
         TMatrixType exponent_matrix = rMatrix;
         TMatrixType aux_matrix;
 
-        while (series_term < max_terms) {
+        while (series_term < MaxTerms) {
             noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
             noalias(exponent_matrix) = aux_matrix;
             factorial = Factorial(series_term);
             noalias(rExponentialMatrix) += exponent_matrix / factorial;
             const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
-            if (norm_series_term < 1000.0*ZeroTolerance)
+            if (norm_series_term < Tolerance)
                 break;
             series_term++;
         }
