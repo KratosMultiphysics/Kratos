@@ -17,3 +17,4 @@ class PfemFluidDynamicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
     def _CreateAnalysisStage(self):
         return PfemFluidDynamicsAnalysis(self.model, self.project_parameters)
+        
