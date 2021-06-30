@@ -4,7 +4,7 @@ from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kratos_base_wrapper
 
-# Importing FluidDynamics
+# Importing PfemFluidDynamics
 if not CheckIfApplicationsAvailable("PfemFluidDynamicsApplication"):
     raise ImportError("The PfemFluidDynamicsApplication is not available!")
 from KratosMultiphysics.PfemFluidDynamicsApplication.pfem_fluid_dynamics_analysis import PfemFluidDynamicsAnalysis
