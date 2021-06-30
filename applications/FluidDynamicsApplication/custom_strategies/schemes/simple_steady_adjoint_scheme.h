@@ -348,9 +348,11 @@ private:
                 rTLS.ErrorValuesList[rTLS.ErrorIds.find(p.first)->second] += 1.0 / std::abs(p.second);
             }
 
+            const double coeff = acceptable_element_error / (rTLS.pRefinedModelPart->NumberOfNodes() * rElement.GetGeometry().size());
+
             for (auto& r_node : rElement.GetGeometry()) {
                 r_node.SetLock();
-                r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR) += rTLS.ErrorValuesList * (acceptable_element_error / rElement.GetGeometry().size());
+                r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR) += rTLS.ErrorValuesList * coeff;
                 r_node.UnSetLock();
             }
 
