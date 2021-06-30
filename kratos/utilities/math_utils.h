@@ -1856,7 +1856,8 @@ public:
         const TMatrixType1 &rA,
         TMatrixType2 &rMatrixSquareRoot,
         const TDataType Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20)
+        const SizeType MaxIterations = 20
+        )
     {
         // Do an eigenvalue decomposition of the input matrix
         TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
@@ -1874,6 +1875,57 @@ public:
         BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
+    }
+
+    /**
+     * @brief Calculates the Factorial of a number k, Factorial = k!
+     * @tparam Number The number of which the Factorial is computed
+     */
+    template<class TIntegerType>
+    static inline TIntegerType Factorial(const TIntegerType Number)
+    {
+        if (Number == 0) {
+            return 1;
+        }
+        TIntegerType k = Number;
+        for (TIntegerType i = Number - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
+     * @brief Calculates the exponential of a matrix
+     * @brief see https://mathworld.wolfram.com/MatrixExponential.html
+     * @tparam rMatrix: the matrix A of which exp is calculated
+     * @tparam rExponentialMatrix: exp(A)
+     */
+    template<class TMatrixType>
+    static inline void CalculateExponentialOfMatrix(
+        const TMatrixType& rMatrix,
+        TMatrixType& rExponentialMatrix,
+        const double Tolerance = 1000.0*ZeroTolerance,
+        const SizeType MaxTerms = 200
+        )
+    {
+        SizeType series_term = 2;
+        SizeType factorial = 1;
+        const SizeType dimension = rMatrix.size1();
+
+        noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
+        TMatrixType exponent_matrix = rMatrix;
+        TMatrixType aux_matrix;
+
+        while (series_term < MaxTerms) {
+            noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+            noalias(exponent_matrix) = aux_matrix;
+            factorial = Factorial(series_term);
+            noalias(rExponentialMatrix) += exponent_matrix / factorial;
+            const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            if (norm_series_term < Tolerance)
+                break;
+            series_term++;
+        }
     }
 
     ///@}
