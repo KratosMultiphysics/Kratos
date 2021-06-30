@@ -9,6 +9,14 @@ from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariablesRecursively
+
+try:
+    from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as InputFactory
+    from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process import Factory as OutputFactory
+except ImportError:
+    InputFactory = None
+    OutputFactory = None
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -114,6 +122,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             "adjoint_solution_controller_settings": {
                 "solution_control_method"  : "none"
             },
+            "echo_level": 0,
             "compute_response_function_interpolation_error" : false,
             "response_function_interpolation_error_settings": {}
         }""")
@@ -175,6 +184,21 @@ class AdjointRANSSolver(CoupledRANSSolver):
         else:
             self.adjoint_solution_controller = AdjointSolutionController(self.main_model_part, adjoint_solution_controller_settings)
 
+        self.adjoint_list_of_time_steps = None
+        self.compute_transient_response_function_interpolation_error = False
+        if (self.adjoint_settings["compute_response_function_interpolation_error"].GetBool()):
+            time_scheme_settings = self.settings["time_scheme_settings"]
+            time_scheme_type = time_scheme_settings["scheme_type"].GetString()
+            if (time_scheme_type == "bossak"):
+                self.adjoint_list_of_time_steps = []
+                self.compute_transient_response_function_interpolation_error = True
+                if (InputFactory is None):
+                    raise Exception("Error importing single_mesh_temporal_input_process from HDF5Application which is required for response function interpolation error computation with bossak time integration scheme.")
+                if (OutputFactory is None):
+                    raise Exception("Error importing single_mesh_temporal_output_process from HDF5Application which is required for response function interpolation error computation with bossak time integration scheme.")
+            elif (time_scheme_type != "steady"):
+                raise Exception("Unsupported time scheme type provided for response function interpolation error computation [ time_scheme_type = {:s} ]. Supported time scheme types are: bossak.".format(time_scheme_type))
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of AdjointRANSSolver finished.")
 
     def AddVariables(self):
@@ -201,6 +225,9 @@ class AdjointRANSSolver(CoupledRANSSolver):
         # add sensitivity variables
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(Kratos.NORMAL_SENSITIVITY)
+
+        if (self.compute_transient_response_function_interpolation_error):
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUX_ADJOINT_FLUID_VECTOR_1)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Adjoint fluid solver variables added correctly.")
 
@@ -238,6 +265,15 @@ class AdjointRANSSolver(CoupledRANSSolver):
             self.communicator = KratosTrilinos.CreateCommunicator()
         else:
             self.communicator = None
+
+        # check whether periodic conditions are present, if so replace them with dummy LineCondition2D2N
+        for condition in self.main_model_part.Conditions:
+            if (condition.Is(Kratos.PERIODIC)):
+                id = condition.Id
+                node_ids = [node.Id for node in condition.GetGeometry()]
+                properties = condition.Properties
+                self.main_model_part.RemoveCondition(condition)
+                self.main_model_part.CreateNewCondition("LineCondition2D2N", id, node_ids, properties)
 
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
         CalculateNormalsOnConditions(self.main_model_part)
@@ -281,6 +317,150 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         if (not self.is_steady):
             self.adjoint_solution_controller.FinalizeSolutionStep()
+
+        if (self.compute_transient_response_function_interpolation_error):
+            # save response function interpolation data
+            if (not hasattr(self, "response_function_interpolation_data_output_process")):
+                # hdf5 file settings
+                hdf5_settings = Kratos.Parameters("""{
+                    "Parameters": {
+                        "model_part_name": "",
+                        "file_settings": {
+                            "file_name": "response_function_interpolation_data/<model_part_name>-<time>.h5",
+                            "time_format": "0.6f",
+                            "max_files_to_keep": "unlimited",
+                            "file_access_mode": "truncate",
+                            "echo_level": 0
+                        },
+                        "output_time_settings": {
+                            "step_frequency": 1,
+                            "time_frequency": 1.0
+                        },
+                        "element_data_value_settings" : {
+                            "list_of_variables": [
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM"
+                            ]
+                        }
+                    }
+                }""")
+                hdf5_settings["Parameters"]["model_part_name"].SetString(self.GetComputingModelPart().FullName())
+                hdf5_settings["Parameters"]["output_time_settings"]["time_frequency"].SetDouble(self._ComputeDeltaTime())
+                self.response_function_interpolation_data_output_process = OutputFactory(hdf5_settings, self.GetComputingModelPart().GetModel())
+                self.response_function_interpolation_data_output_process.ExecuteInitialize()
+
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Created HDF5 temporal output process for response function interpolation error computation.")
+
+            self.adjoint_list_of_time_steps.append(self.GetComputingModelPart().ProcessInfo[Kratos.TIME])
+            self.response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()
+
+    def Finalize(self):
+        super().Finalize()
+
+        if (self.compute_transient_response_function_interpolation_error):
+            model_part = self.GetComputingModelPart()
+
+            # initialize variables for response function interpolation error calculation
+            solving_variables_list = self.formulation.GetSolvingVariables()
+            number_of_dofs_per_node = len(solving_variables_list)
+            zero_vector = Kratos.Vector(number_of_dofs_per_node, 0.0)
+
+            variable_utils = Kratos.VariableUtils()
+            variable_utils.SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, zero_vector, model_part.Nodes)
+            variable_utils.SetNonHistoricalVariable(KratosRANS.RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR, zero_vector, model_part.Elements)
+            variable_utils.SetNonHistoricalVariable(KratosRANS.RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE, zero_vector, model_part.Elements)
+
+            hdf5_settings = Kratos.Parameters("""
+            {
+                "Parameters": {
+                    "model_part_name": "",
+                    "file_settings": {
+                        "file_name": "response_function_interpolation_data/<model_part_name>-<time>.h5",
+                        "time_format": "0.6f",
+                        "echo_level": 1
+                    },
+                    "element_data_value_settings" : {
+                        "list_of_variables": [
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM"
+                        ]
+                    }
+                }
+            }""")
+            hdf5_settings["Parameters"]["model_part_name"].SetString(self.GetComputingModelPart().FullName())
+            response_function_interpolation_data_input_process = InputFactory(hdf5_settings, self.GetComputingModelPart().GetModel())
+            response_function_interpolation_data_input_process.ExecuteInitialize()
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Created HDF5 temporal input process for response function interpolation error computation.")
+
+            # calculate constants
+            delta_time = self._ComputeDeltaTime()
+            gamma = Kratos.TimeDiscretization.Bossak(model_part.ProcessInfo[Kratos.BOSSAK_ALPHA]).GetGamma()
+
+
+            hdf5_output_settings = Kratos.Parameters("""
+            {
+                "Parameters": {
+                    "model_part_name": "",
+                    "file_settings": {
+                        "file_name": "response_function_interpolation_data/forward_<model_part_name>-<time>.h5",
+                        "time_format": "0.6f",
+                        "file_access_mode": "truncate",
+                        "echo_level": 1
+                    },
+                    "output_time_settings": {
+                        "step_frequency": 1,
+                        "time_frequency": 1.0
+                    },
+                    "nodal_data_value_settings": {
+                        "list_of_variables": [
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR"
+                        ]
+                    },
+                    "element_data_value_settings" : {
+                        "list_of_variables": [
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
+                            "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR",
+                            "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE"
+                        ]
+                    }
+                }
+            }""")
+            hdf5_output_settings["Parameters"]["model_part_name"].SetString(self.GetComputingModelPart().FullName())
+            hdf5_output_settings["Parameters"]["output_time_settings"]["time_frequency"].SetDouble(self._ComputeDeltaTime())
+            response_function_interpolation_data_output_process = OutputFactory(hdf5_output_settings, self.GetComputingModelPart().GetModel())
+            response_function_interpolation_data_output_process.ExecuteInitialize()
+
+            # calculate interpolation errors in forward time
+            model_part.ProcessInfo[Kratos.TIME] = 0.0
+            response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()
+
+            self.adjoint_list_of_time_steps = sorted(self.adjoint_list_of_time_steps)
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Running forward interpolation error calculation with {:f} relaxation.".format(self.interpolation_error_relaxation))
+            for current_time_step in self.adjoint_list_of_time_steps:
+                model_part.ProcessInfo[Kratos.TIME] = current_time_step
+
+                # read RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1 and RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2
+                response_function_interpolation_data_input_process.ExecuteInitializeSolutionStep()
+
+                # compute interpolation error in forward time
+                KratosRANS.RansAdjointUtilities.CalculateTransientReponseFunctionInterpolationError(
+                    model_part,
+                    gamma,
+                    delta_time,
+                    self.element_refinement_process.GetThreadLocalModelPart().NumberOfNodes(),
+                    len(self.adjoint_list_of_time_steps),
+                    self.interpolation_error_relaxation)
+
+                response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()
+
+
+                if (self.echo_level > 0):
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response function interpolation error at {:f}s".format(current_time_step))
 
     def Check(self):
         self._GetSolutionStrategy().Check()
@@ -449,9 +629,14 @@ class AdjointRANSSolver(CoupledRANSSolver):
         else:
             block_size = domain_size + 3
 
-        element_refinement_process = None
+        self.element_refinement_process = None
         if (self.adjoint_settings["compute_response_function_interpolation_error"].GetBool()):
             refinement_parameters = self.adjoint_settings["response_function_interpolation_error_settings"]
+            if (refinement_parameters.Has("relaxation_factor")):
+                self.interpolation_error_relaxation = refinement_parameters["relaxation_factor"].GetDouble()
+                refinement_parameters.RemoveValue("relaxation_factor")
+            else:
+                self.interpolation_error_relaxation = 1.0
             self._CheckAndAddValue(refinement_parameters, "model_part_name", self.GetComputingModelPart().FullName())
             self._CheckAndAddValue(refinement_parameters, "refined_element_name", self.new_elem_name)
             self._CheckAndAddValue(refinement_parameters, "refined_condition_name", self.new_cond_name)
@@ -460,11 +645,26 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 refinement_parameters.AddEmptyValue("nodal_interpolation_settings")
 
             nodal_interpolation_settings = refinement_parameters["nodal_interpolation_settings"]
-            self._CheckAndAddValueToList(nodal_interpolation_settings, "historical_variables_list", ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
+            list_of_variable_names = []
+            # add primal variables
+            for variable in self.formulation.GetSolvingVariables():
+                list_of_variable_names.extend([var.Name() for var in GetTimeDerivativeVariablesRecursively(variable)])
+            # add primal auxiliary variables
+            list_of_variable_names.extend([
+                "NORMAL"
+            ])
+            # add adjoint variables
+            list_of_variable_names.extend([
+                "ADJOINT_FLUID_VECTOR_1",
+                "ADJOINT_FLUID_SCALAR_1",
+                "RANS_SCALAR_1_ADJOINT_1",
+                "RANS_SCALAR_2_ADJOINT_1"
+            ])
+            self._CheckAndAddValueToList(nodal_interpolation_settings, "historical_variables_list", list_of_variable_names)
             self._CheckAndAddValueToList(nodal_interpolation_settings, "non_hitsorical_variables_list", ["RELAXED_ACCELERATION"])
             self._CheckAndAddValueToList(nodal_interpolation_settings, "flags_list", ["SLIP", "INLET", "OUTLET"])
 
-            element_refinement_process = KratosCFD.ElementRefinementProcess(self.model, refinement_parameters)
+            self.element_refinement_process = KratosCFD.ElementRefinementProcess(self.model, refinement_parameters)
 
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if scheme_type == "bossak":
@@ -474,13 +674,14 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 response_function,
                 domain_size,
                 block_size,
-                element_refinement_process)
+                self.element_refinement_process,
+                self.adjoint_settings["echo_level"].GetInt())
         elif scheme_type == "steady":
             scheme = GetKratosObjectPrototype("SimpleSteadyAdjointScheme")(
                 response_function,
                 domain_size,
                 block_size,
-                element_refinement_process)
+                self.element_refinement_process)
         else:
             raise Exception("Invalid scheme_type: " + scheme_type)
 
