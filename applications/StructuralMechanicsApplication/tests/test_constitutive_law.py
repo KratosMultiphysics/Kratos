@@ -1030,20 +1030,20 @@ class SmallStrainIsotropicDamagePlaneStrain2D():
         self.dim = 2
         self.young_modulus = 3000
         self.poisson_ratio = 0.3
-        self.yield_stress = 2.0
-        self.infinity_yield_stress = 3.0
-        self.isotropic_hardening_modulus = 0.3
 
     def create_properties(self, model_part):
         properties = model_part.Properties[0]
         properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.young_modulus)
         properties.SetValue(KratosMultiphysics.POISSON_RATIO, self.poisson_ratio)
-        properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
-        properties.SetValue(ConstitutiveLawsApplication.INFINITY_YIELD_STRESS, self.infinity_yield_stress)
+        properties.SetValue(ConstitutiveLawsApplication.HARDENING_CURVE, 1)
+        stress_limits = KratosMultiphysics.Vector(2)
+        stress_limits[0] = 2.0
+        stress_limits[1] = 3.0
+        properties.SetValue(ConstitutiveLawsApplication.STRESS_LIMITS, stress_limits)
         hardening_modulus = KratosMultiphysics.Vector(2)
         hardening_modulus[0] = 0.3
         hardening_modulus[1] = 0.
-        properties.SetValue(ConstitutiveLawsApplication.HARDENING_MODULI_VECTOR, hardening_modulus)
+        properties.SetValue(ConstitutiveLawsApplication.HARDENING_PARAMETERS, hardening_modulus)
         return properties
 
     @staticmethod

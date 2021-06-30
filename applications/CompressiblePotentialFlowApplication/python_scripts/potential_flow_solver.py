@@ -82,7 +82,8 @@ class PotentialFlowFormulation(object):
     def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_incompressible",
-            "stabilization_factor": 0.0
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
 
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
@@ -90,15 +91,21 @@ class PotentialFlowFormulation(object):
         self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
         self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_compressible"
+            "element_type": "embedded_compressible",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "PotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
@@ -254,3 +261,7 @@ class PotentialFlowSolver(FluidSolver):
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
+
+    def _SetPhysicalProperties(self):
+        # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py
+        return True

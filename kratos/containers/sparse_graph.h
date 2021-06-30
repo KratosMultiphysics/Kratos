@@ -27,6 +27,7 @@
 #include "utilities/parallel_utilities.h"
 #include "includes/ublas_interface.h"
 #include "includes/serializer.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -79,11 +80,21 @@ public:
 
     SparseGraph(IndexType N)
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial"); //that's the only option
     }
 
     /// Default constructor.
     SparseGraph()
     {
+        mpComm = &ParallelEnvironment::GetDataCommunicator("Serial"); //thats the only option
+    }
+
+    SparseGraph(DataCommunicator& rComm)
+    {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial CsrMatrix with a distributed communicator" << std::endl;
+
+        mpComm = &rComm;
     }
 
     /// Destructor.
@@ -92,6 +103,7 @@ public:
     /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
     :
+        mpComm(rOther.mpComm),
         mGraph(rOther.mGraph)
     {
     }
@@ -104,6 +116,15 @@ public:
     ///@}
     ///@name Operators
     ///@{
+    const DataCommunicator& GetComm() const
+    {
+        return *mpComm;
+    }
+
+    const DataCommunicator* pGetComm() const
+    {
+        return mpComm;
+    }
 
     IndexType Size() const
     {
@@ -445,6 +466,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    DataCommunicator* mpComm;
     GraphType mGraph;
 
 

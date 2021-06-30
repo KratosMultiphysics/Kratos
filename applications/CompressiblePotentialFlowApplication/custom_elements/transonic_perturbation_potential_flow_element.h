@@ -169,8 +169,6 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -254,8 +252,22 @@ private:
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                           const ProcessInfo& rCurrentProcessInfo);
 
+    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateLeftHandSideWakeConditions(
+                                            const ElementalData<TNumNodes, TDim>& rData,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                           const ProcessInfo& rCurrentProcessInfo);
+
+    BoundedVector<double, TNumNodes> CalculateRightHandSideWakeConditions(
+                                            const ElementalData<TNumNodes, TDim>& rData,
+                                            const ProcessInfo& rCurrentProcessInfo,
+                                            const array_1d<double, TDim>& rDiff_velocity);
+
+    void CalculateLeftHandSideContribution(BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, TDim>& rVelocity,
+                                         const ElementalData<TNumNodes, TDim>& rData);
 
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
@@ -268,20 +280,27 @@ private:
                                           Matrix& lhs,
                                           const ElementalData<TNumNodes, TDim>& data) const;
 
-    void AssignLeftHandSideSubdividedElement(Matrix& rLeftHandSideMatrix,
-                                             Matrix& lhs_positive,
-                                             Matrix& lhs_negative,
-                                             const BoundedMatrix<double, TNumNodes, TNumNodes>& lhs_total,
-                                             const ElementalData<TNumNodes, TDim>& data) const;
+    void AssignLeftHandSideSubdividedElement(
+        Matrix& rLeftHandSideMatrix,
+        Matrix& lhs_positive,
+        Matrix& lhs_negative,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
+        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+        const ElementalData<TNumNodes, TDim>& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                       const BoundedMatrix<double, TNumNodes, TNumNodes>& lhs_total,
-                                       const ElementalData<TNumNodes, TDim>& data) const;
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+                                    const ElementalData<TNumNodes, TDim>& rData) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& lhs_total,
-                                    const ElementalData<TNumNodes, TDim>& data,
-                                    unsigned int& row) const;
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+                                    const ElementalData<TNumNodes, TDim>& rData,
+                                    unsigned int row) const;
 
     void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
                                     const BoundedVector<double, TNumNodes>& rUpper_rhs,
@@ -300,8 +319,6 @@ private:
     BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
 
     array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
 
