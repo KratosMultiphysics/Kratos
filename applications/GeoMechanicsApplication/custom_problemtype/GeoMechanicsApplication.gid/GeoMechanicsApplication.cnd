@@ -4126,8 +4126,6 @@ HELP: Units in m
 QUESTION: Fixed#CB#(true,false)
 VALUE: false
 HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_Pressure,Constant,HIDE,Imposed_Pressure_Second_Point,Constant,HIDE,Imposed_Pressure_Third_Point,Constant)
-DEPENDENCIES: (true,RESTORE,Imposed_Pressure,#CURRENT#)
 
 QUESTION: Imposed_Pressure#CB#(Constant,Table_Interpolation)
 VALUE: Constant

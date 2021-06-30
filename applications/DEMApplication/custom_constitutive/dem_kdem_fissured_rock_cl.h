@@ -10,6 +10,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Fissured_Rock_CL : public DEM_KDEM_Rankine {
+
+        typedef DEM_KDEM_Rankine BaseClassType;
+
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Fissured_Rock_CL);

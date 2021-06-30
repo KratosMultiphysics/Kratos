@@ -99,16 +99,19 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                 } else {
                     set PutStrings 0
                 }
-
-                puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
                 
                 if {[lindex [lindex $Groups $i] 3] eq "Hydrostatic"} {
+                    puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
                     puts $MyFileVar "            \"reference_coordinate\": [lindex [lindex $Groups $i] 6],"
                     puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
+                    puts $MyFileVar "            \"pressure_tension_cut_off\":      [lindex [lindex $Groups $i] 8],"
+                    puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
                 } elseif {[lindex [lindex $Groups $i] 3] eq "Uniform"} {
-                      puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 4],"
-                    puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],"
+                    puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 4],"
+                    puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
                 } elseif {[lindex [lindex $Groups $i] 3] eq "Phreatic_Line"} {
+                    puts $MyFileVar "            \"gravity_direction\":    $PutStrings,"
+
                     if {[lindex [lindex $Groups $i] 9] eq "Y"} {
                         set PutStrings 1
                     } elseif {[lindex [lindex $Groups $i] 9] eq "Z"} {
@@ -120,14 +123,16 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
                     puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12],[lindex [lindex $Groups $i] 13]\],"
                     puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16],[lindex [lindex $Groups $i] 17]\],"
                     puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1]\],"
+                    puts $MyFileVar "            \"pressure_tension_cut_off\":      [lindex [lindex $Groups $i] 8],"
+                    puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
                 } elseif {[lindex [lindex $Groups $i] 3] eq "Phreatic_Surface"} {
                     puts $MyFileVar "            \"first_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 11],[lindex [lindex $Groups $i] 12],[lindex [lindex $Groups $i] 13]\],"
                     puts $MyFileVar "            \"second_reference_coordinate\":    \[[lindex [lindex $Groups $i] 15],[lindex [lindex $Groups $i] 16],[lindex [lindex $Groups $i] 17]\],"
                     puts $MyFileVar "            \"third_reference_coordinate\" :    \[[lindex [lindex $Groups $i] 19],[lindex [lindex $Groups $i] 20],[lindex [lindex $Groups $i] 21]\],"
                     puts $MyFileVar "            \"table\":                \[[dict get $TableDict [lindex [lindex $Groups $i] 1] Table0],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table1],[dict get $TableDict [lindex [lindex $Groups $i] 1] Table2]\],"
+                    puts $MyFileVar "            \"pressure_tension_cut_off\":      [lindex [lindex $Groups $i] 8],"
+                    puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
                 }
-                puts $MyFileVar "            \"pressure_tension_cut_off\":      [lindex [lindex $Groups $i] 8],"
-                puts $MyFileVar "            \"specific_weight\":      [lindex [lindex $Groups $i] 7]"
 
                 puts $MyFileVar "        \}"
                 if {$MyGroupNum < $NumGroups} {

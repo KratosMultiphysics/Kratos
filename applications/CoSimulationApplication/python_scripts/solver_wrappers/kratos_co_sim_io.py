@@ -78,6 +78,14 @@ class KratosCoSimIO(CoSimulationIO):
 
             CoSimIO.ExportData(info, interface_data.GetModelPart(), interface_data.variable, GetDataLocation(interface_data.location))
 
+        elif data_type == "control_signal":
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", "run_control")
+            info.SetString("control_signal", data_config["control_signal"])
+
+            CoSimIO.ExportInfo(info)
+
         elif data_type == "repeat_time_step":
             info = CoSimIO.Info()
             info.SetString("connection_name", self.connection_name)

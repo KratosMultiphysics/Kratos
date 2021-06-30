@@ -57,17 +57,30 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     KratosApplication("GeoMechanicsApplication"),
 
     // transient one-phase flow elements:
-    mTransientOnePhaseFlowElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
-    mTransientOnePhaseFlowElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
-    mTransientOnePhaseFlowElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
-    mTransientOnePhaseFlowElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mTransientPwElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mTransientPwElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
 
-    mTransientOnePhaseFlowElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
-    mTransientOnePhaseFlowElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
-    mTransientOnePhaseFlowElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
-    mTransientOnePhaseFlowElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
-    mTransientOnePhaseFlowElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
-    mTransientOnePhaseFlowElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+    mTransientPwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mTransientPwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mTransientPwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mTransientPwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mTransientPwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mTransientPwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
+
+    // Steady-State one-phase flow elements:
+    mSteadyStatePwElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <NodeType >( Element::GeometryType::PointsArrayType(3)))),
+    mSteadyStatePwElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mSteadyStatePwElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
+    mSteadyStatePwElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mSteadyStatePwElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+    mSteadyStatePwElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral2D9 <NodeType >( Element::GeometryType::PointsArrayType(9)))),
+    mSteadyStatePwElement3D10N( 0, Element::GeometryType::Pointer( new Tetrahedra3D10 <NodeType >( Element::GeometryType::PointsArrayType(10)))),
+    mSteadyStatePwElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <NodeType >( Element::GeometryType::PointsArrayType(20)))),
+    mSteadyStatePwElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <NodeType >( Element::GeometryType::PointsArrayType(27)))),
 
 
     // small strain elements
@@ -219,17 +232,30 @@ void KratosGeoMechanicsApplication::Register() {
 
     //Register Elements
     // transient one-phase flow elements:
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D3N", mTransientOnePhaseFlowElement2D3N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D4N", mTransientOnePhaseFlowElement2D4N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D4N", mTransientOnePhaseFlowElement3D4N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D8N", mTransientOnePhaseFlowElement3D8N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D3N", mTransientPwElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D4N", mTransientPwElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D4N", mTransientPwElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D8N", mTransientPwElement3D8N )
 
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D6N", mTransientOnePhaseFlowElement2D6N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D8N", mTransientOnePhaseFlowElement2D8N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement2D9N", mTransientOnePhaseFlowElement2D9N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D10N", mTransientOnePhaseFlowElement3D10N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D20N", mTransientOnePhaseFlowElement3D20N )
-    KRATOS_REGISTER_ELEMENT( "TransientOnePhaseFlowElement3D27N", mTransientOnePhaseFlowElement3D27N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D6N", mTransientPwElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D8N", mTransientPwElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement2D9N", mTransientPwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D10N", mTransientPwElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D20N", mTransientPwElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwElement3D27N", mTransientPwElement3D27N )
+
+    // Steady-State one-phase flow elements:
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D3N", mSteadyStatePwElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D4N", mSteadyStatePwElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D4N", mSteadyStatePwElement3D4N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D8N", mSteadyStatePwElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D6N", mSteadyStatePwElement2D6N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D8N", mSteadyStatePwElement2D8N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement2D9N", mSteadyStatePwElement2D9N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D10N", mSteadyStatePwElement3D10N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D20N", mSteadyStatePwElement3D20N )
+    KRATOS_REGISTER_ELEMENT( "SteadyStatePwElement3D27N", mSteadyStatePwElement3D27N )
 
     // Small strain elements
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainElement2D3N", mUPwSmallStrainElement2D3N )
