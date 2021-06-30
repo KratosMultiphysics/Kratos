@@ -15,6 +15,7 @@ import test_DEM_2D_contact
 import test_DEM_3D_restitution
 import test_DEM_2D_restitution
 import test_DEM_3D_continuum
+import test_DEM_3D_continuum_vs_discontinuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
 import test_inlet
@@ -65,6 +66,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_1"))
     smallSuite.addTest(test_DEM_2D_restitution.TestDEM2DRestitution("test_DEM2D_restitution_2"))
     smallSuite.addTest(test_DEM_3D_continuum.TestDEM3DContinuum("test_DEM3D_continuum"))
+    smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_2D_control_module.TestDEM2DControlModule("test_DEM2D_control_module"))
     smallSuite.addTest(test_post_process.TestPostProcess("test_gid_printing_many_results"))
     smallSuite.addTest(test_friction_decay.TestFrictionDecay("test_Friction_Decay"))
