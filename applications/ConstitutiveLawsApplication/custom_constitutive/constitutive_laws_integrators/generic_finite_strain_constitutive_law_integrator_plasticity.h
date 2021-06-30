@@ -212,7 +212,6 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         const Matrix Fp_backup       = rPlasticDeformationGradient;
 
         const Matrix current_F_backup = rValues.GetDeformationGradientF();
-        const double current_F_det_backup = rValues.GetDeterminantF();
 
         // Backward Euler
         while (iteration <= max_iter) {
