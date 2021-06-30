@@ -150,12 +150,28 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
         self.model = model
         self.model_part_name = response_settings["model_part_name"].GetString()
         self.step_size = response_settings["step_size"].GetDouble() if response_settings.Has("step_size") else 1e-6
+        self.compute_using_conditions = response_settings["compute_using_conditions"].GetBool() if response_settings.Has("compute_using_conditions") else True
 
     def Initialize(self):
         self.main_model_part = self.model[self.model_part_name]
+        if self.compute_using_conditions:
+            if self.main_model_part.NumberOfConditions() == 0:
+                err_msg = "Computing the perimeter with the conditions, but the model part "
+                err_msg += "has no conditions. Please set \"compute_using_conditions\" to false to "
+                err_msg += "use the elements. "
+                raise(Exception(err_msg))
+        else:
+            if self.main_model_part.NumberOfElements() == 0:
+                err_msg = "Computing the perimeter with the elements, but the model part "
+                err_msg += "has no elements. Please set \"compute_using_conditions\" to true to "
+                err_msg += "use the conditions. "
+                raise(Exception(err_msg))
 
     def _ComputePerimeter(self,  model_part):
-        return KSO.GeometryUtilities(model_part).CalculateLength(model_part.Conditions)
+        if self.compute_using_conditions:
+            return KSO.GeometryUtilities(model_part).CalculateLength(model_part.Conditions)
+        else:
+            return KSO.GeometryUtilities(model_part).CalculateLength(model_part.Elements)
 
     def CalculateValue(self):
         pass
