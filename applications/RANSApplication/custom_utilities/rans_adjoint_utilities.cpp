@@ -367,7 +367,9 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
     ModelPart& rModelPart,
     const double Gamma,
     const double DeltaTime,
-    const IndexType NumberOfTimeSteps)
+    const IndexType NumberOfRefinedNodes,
+    const IndexType NumberOfTimeSteps,
+    const double RelaxationFactor)
 {
     KRATOS_TRY
 
@@ -425,7 +427,8 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
 
     const double coeff_1 = std::abs((Gamma - 1.0) / Gamma);
     const double coeff_2 = std::abs(1.0 / (Gamma * DeltaTime));
-    const double coeff_3 = 1.0 / (NumberOfTimeSteps * number_of_elements);
+    const double coeff_3 = 1.0 / (NumberOfTimeSteps * number_of_elements * NumberOfRefinedNodes);
+    const double coeff_4 = 1.0 / r_front_element.GetGeometry().size();
 
     const ZeroVector zero(number_of_dofs_per_node);
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode) {
@@ -482,29 +485,38 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
             rTLS.resize(number_of_dofs_per_node, false);
         }
 
+        const auto& r_response_function_interpolation_auxiliary_1_extremum = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM);
+        const auto& r_response_function_interpolation_auxiliary_2_extremum = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM);
+
         for (IndexType i = 0; i < number_of_dofs_per_node; ++i) {
             // calculate current allowed elemental response function interpolation error
+            //**************************************************************************************
             rTLS[i] = std::max(
                 coeff_3 * r_auxiliary_values_1[i] -
                     (coeff_1 * r_response_function_dofs_interpolation_error_rate[i] +
                      coeff_2 * r_response_function_dofs_interpolation_error[i]) *
-                        r_auxiliary_values_2[i],
+                        r_auxiliary_values_2[i] * RelaxationFactor,
+                0.0);
+
+            // update elemental allowed response function interpolation error
+            r_response_function_dofs_interpolation_error[i] = std::max(
+                coeff_3 * r_response_function_interpolation_auxiliary_1_extremum -
+                    (coeff_1 * r_response_function_dofs_interpolation_error_rate[i] +
+                     coeff_2 * r_response_function_dofs_interpolation_error[i]) *
+                        r_response_function_interpolation_auxiliary_2_extremum,
                 0.0);
 
             // update elemental allowed response function interpolation error rate
             r_response_function_dofs_interpolation_error_rate[i] =
-                coeff_2 * (rTLS[i] + r_response_function_dofs_interpolation_error[i]) +
-                coeff_1 * (r_response_function_dofs_interpolation_error_rate[i]);
-
-            // update elemental allowed response function interpolation error
-            r_response_function_dofs_interpolation_error[i] = rTLS[i];
+                coeff_2 * r_response_function_dofs_interpolation_error[i] +
+                coeff_1 * r_response_function_dofs_interpolation_error_rate[i];
+            //**************************************************************************************
         }
 
         // distribute elemental response function interpolation error to nodes
         for (auto& r_node : rElement.GetGeometry()) {
             r_node.SetLock();
-            r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY) +=
-                rTLS * (1.0 / rElement.GetGeometry().size());
+            r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY) += rTLS * coeff_4;
             r_node.UnSetLock();
         }
     });

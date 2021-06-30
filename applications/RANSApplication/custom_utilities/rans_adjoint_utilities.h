@@ -96,7 +96,9 @@ public:
         ModelPart& rModelPart,
         const double Gamma,
         const double DeltaTime,
-        const IndexType NumberOfTimeSteps);
+        const IndexType NumberOfRefinedNodes,
+        const IndexType NumberOfTimeSteps,
+        const double RelaxationFactor);
 
     ///@}
     ///@name Classes
