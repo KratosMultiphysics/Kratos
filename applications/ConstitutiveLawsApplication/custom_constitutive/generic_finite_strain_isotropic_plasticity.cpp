@@ -162,7 +162,6 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
             // We compute the plastic strain
             const double& det_f = rValues.GetDeterminantF();
-            const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
             rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
             rValues.SetDeformationGradientF(plastic_deformation_gradient);
             this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);

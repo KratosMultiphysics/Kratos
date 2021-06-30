@@ -164,7 +164,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
             // We compute the plastic strain
             const double& det_f = rValues.GetDeterminantF();
-            const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
             rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
             rValues.SetDeformationGradientF(plastic_deformation_gradient);
             this->CalculateValue(rValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
@@ -319,7 +318,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 
             // We compute the plastic strain
             const double& det_f = rValues.GetDeterminantF();
-            const Matrix& deformation_gradient = rValues.GetDeformationGradientF();
             rValues.SetDeterminantF(MathUtils<double>::Det(plastic_deformation_gradient));
             rValues.SetDeformationGradientF(plastic_deformation_gradient);
             this->CalculateValue(rValues, ALMANSI_STRAIN_VECTOR, plastic_strain);
@@ -457,12 +455,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // We check the current step and NL iteration
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 &&
-        r_current_process_info[STEP] == 1) ? true : false;
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLength(rValues.GetElementGeometry());
 
@@ -570,12 +562,6 @@ void GenericFiniteStrainKinematicPlasticity<TElasticBehaviourLaw, TConstLawInteg
     // We get the constitutive tensor
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
-    // We check the current step and NL iteration
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 &&
-        r_current_process_info[STEP] == 1) ? true : false;
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLength(rValues.GetElementGeometry());
 
