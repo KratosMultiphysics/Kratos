@@ -176,6 +176,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("InterpolateThreadLocalRefinedMeshFromCoarseElement", &ElementRefinementProcess::InterpolateThreadLocalRefinedMeshFromCoarseElement)
     .def("SetEntityIds", &ElementRefinementProcess::SetEntityIds)
     .def("SetConditionParentIds", &ElementRefinementProcess::SetConditionParentIds)
+    .def("GetThreadLocalModelPart", &ElementRefinementProcess::GetThreadLocalModelPart, py::return_value_policy::reference_internal)
     ;
 }
 
