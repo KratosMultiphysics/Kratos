@@ -200,7 +200,7 @@ class GenericFiniteStrainConstitutiveLawIntegratorPlasticity
         IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ?
             r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 1000;
 
-        double plastic_consistency_factor_increment = 0.0, aux_det = 0.0;
+        double plastic_consistency_factor_increment = 0.0;
         double threshold_indicator = rUniaxialStress - rThreshold;
 
         Vector plastic_strain        = ZeroVector(VoigtSize);
