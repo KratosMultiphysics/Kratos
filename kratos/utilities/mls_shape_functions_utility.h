@@ -75,6 +75,46 @@ public:
         array_1d<double,TDim+1>& rBasis);
 
     /**
+     * @brief Evaluates the linear polynomial basis
+     * This method evaluates the 2D linear polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D linear polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 3>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis
+     * This method evaluates the 3D linear polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D linear polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 4>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis
+     * This method evaluates the 2D quadratic polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D linear polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 6>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis
+     * This method evaluates the 3D quadratic polynommial basis in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D quadratic polynomial basis values
+     */
+    static void EvaluatePolynomialBasis(
+        const array_1d<double,3>& rX,
+        array_1d<double, 10>& rBasis);
+
+    /**
      * @brief Calculates the MLS shape function values
      * This method calculates the shape function values in one point using as
      * support the given cloud of points.
@@ -84,7 +124,7 @@ public:
      * @param h Kernel radius
      * @param rN Shape functions container
      */
-    template<std::size_t TDim>
+    template<std::size_t TDim, std::size_t TOrder>
     static void CalculateShapeFunctions(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
@@ -102,7 +142,7 @@ public:
      * @param rN Shape functions container
      * @param rDNDX Shape functions gradients container
      */
-    template<std::size_t TDim>
+    template<std::size_t TDim, std::size_t TOrder>
     static void CalculateShapeFunctionsAndGradients(
         const Matrix& rPoints,
         const array_1d<double,3>& rX,
