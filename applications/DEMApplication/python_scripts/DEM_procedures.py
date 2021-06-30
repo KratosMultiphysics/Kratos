@@ -427,6 +427,7 @@ class Procedures():
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
+        self.solver.AddAdditionalVariables(rigid_face_model_part, DEM_parameters)
 
     @classmethod
     def AddCommonVariables(self, model_part, DEM_parameters):

@@ -14,12 +14,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         # SIMULATION FLAGS
 
-    def AddAdditionalVariables(self, spheres_model_part, DEM_parameters):
+    def AddAdditionalVariables(self, model_part, DEM_parameters):
 
-        BaseExplicitStrategy.AddAdditionalVariables(self, spheres_model_part, DEM_parameters)
+        BaseExplicitStrategy.AddAdditionalVariables(self, model_part, DEM_parameters)
 
-        spheres_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
-        spheres_model_part.AddNodalSolutionStepVariable(HEATFLUX)
+        model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+        model_part.AddNodalSolutionStepVariable(HEATFLUX)
 
 
 
