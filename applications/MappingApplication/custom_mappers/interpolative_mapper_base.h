@@ -214,7 +214,7 @@ public:
 
     int AreMeshesConforming() const override
     {
-        KRATOS_WARNING("Mapper") << "AreMeshesConforming is deprecated and will be removed soon" << std::endl;
+        KRATOS_WARNING_ONCE("Mapper") << "AreMeshesConforming is deprecated and will be removed in the future" << std::endl;
         return mpIntefaceCommunicator->AreMeshesConforming();
     }
 
