@@ -474,20 +474,7 @@ class CoupledRANSSolver(PythonSolver):
             from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
             primal_model = Kratos.Model()
             primal_simulation = RANSAnalysis(primal_model, primal_parameters)
-            primal_simulation.Initialize()
-
-            # copy initialization data to primal solver
-            KratosRANS.RansVariableDataTransferProcess(
-                self.main_model_part.GetModel(),
-                primal_model,
-                self.main_model_part.FullName(),
-                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
-                ["execute"],
-                total_variables_list,
-                self.echo_level).Execute()
-
-            primal_simulation.RunSolutionLoop()
-            primal_simulation.Finalize()
+            primal_simulation.Run()
             RemoveFileLoggerOutput(default_severity, file_logger)
 
             # open adjoint problem
