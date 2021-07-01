@@ -229,7 +229,8 @@ namespace Kratos
 
     void AddViscousTerm(MatrixType &rDampingMatrix,
                         const ShapeFunctionDerivativesType &rShapeDeriv,
-                        const double Weight);
+                        const double Weight,
+                        const double theta_velocity);
 
     void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
                                const ShapeFunctionsType &rN,

@@ -156,8 +156,16 @@ namespace Kratos
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
-    // const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];  //!!!!!!!!!!!!!!!!!!!
-    const double eta = 0.0;
+    const unsigned int schemeOrder = 1;
+    double theta_velocity = 1;
+    double gamma_pressure = 0.0;
+    if (schemeOrder == 2)
+    {
+      theta_velocity = 0.5;
+      gamma_pressure = 1.0;
+    }
+
+    // const double gamma_pressure = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR];  //!!!!!!!!!!!!!!!!!!!
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -174,10 +182,6 @@ namespace Kratos
       this->EvaluateInPoint(Density, DENSITY, N);
       this->EvaluateInPoint(BodyForce, VOLUME_ACCELERATION, N);
 
-      // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-      double OldPressure = 0.0;
-      this->EvaluateInPoint(OldPressure, PRESSURE, N, 0);
-
       this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
 
       // Add integration point contribution to the local mass matrix
@@ -185,14 +189,21 @@ namespace Kratos
       //AddMomentumMassTerm(MassMatrix, N, MassCoeff);
       ComputeLumpedMassMatrix(MassMatrix, MassCoeff);
 
-      double etaOldPressure = OldPressure * eta;
+      // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
+      double OldPressure = 0.0;
+      this->EvaluateInPoint(OldPressure, PRESSURE, N, 1);
+      double oldPressureContribution = OldPressure * gamma_pressure;
+      // array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+      // this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+      // double oldPressureGradientContribution = OldPressureGradient * gamma_pressure;
+
       // Add RHS contributions to the local system equation
-      AddMomentumRHSTerms(rRightHandSideVector, Density, BodyForce, etaOldPressure, N, rDN_DX, GaussWeight);
+      AddMomentumRHSTerms(rRightHandSideVector, Density, BodyForce, oldPressureContribution, N, rDN_DX, GaussWeight);
       //AddExternalForces(rRightHandSideVector, Density, N, GaussWeight);
 
       // Add viscous term
       const double ViscousCoeff = Viscosity * GaussWeight;
-      this->AddViscousTerm(rLeftHandSideMatrix, rDN_DX, ViscousCoeff);
+      this->AddViscousTerm(rLeftHandSideMatrix, rDN_DX, ViscousCoeff, theta_velocity);
     }
 
     // Add residual of previous iteration to RHS
@@ -230,6 +241,7 @@ namespace Kratos
     // noalias(rRightHandSideVector) -= prod(MassMatrix, TimeTerm);
   }
 
+  // this is a part of the last iteration of the fractional step
   template <unsigned int TDim>
   void ThreeStepUpdatedLagrangianElement<TDim>::Calculate(const Variable<array_1d<double, 3>> &rVariable,
                                                           array_1d<double, 3> &rOutput,
@@ -268,8 +280,14 @@ namespace Kratos
         // Calculate contribution to the gradient term (RHS)
         // double DeltaPressure;
         // this->EvaluateInPoint(DeltaPressure, PRESSURE_OLD_IT, N);
+
+        const unsigned int schemeOrder = 1;
         double elementalPressure = 0;
         this->EvaluateInPoint(elementalPressure, PRESSURE, N);
+        if (schemeOrder == 2)
+        {
+          this->EvaluateDifferenceInPoint(elementalPressure, PRESSURE, N);
+        }
 
         SizeType RowIndex = 0;
 
@@ -398,7 +416,8 @@ namespace Kratos
   template <>
   void ThreeStepUpdatedLagrangianElement<2>::AddViscousTerm(MatrixType &rDampingMatrix,
                                                             const ShapeFunctionDerivativesType &rShapeDeriv,
-                                                            const double Weight)
+                                                            const double Weight,
+                                                            const double theta)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -412,12 +431,12 @@ namespace Kratos
       for (SizeType i = 0; i < NumNodes; ++i)
       {
         // First Row
-        rDampingMatrix(FirstRow, FirstCol) += Weight * (FourThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 0) + rShapeDeriv(i, 1) * rShapeDeriv(j, 1));
-        rDampingMatrix(FirstRow, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 0));
+        rDampingMatrix(FirstRow, FirstCol) += Weight * (FourThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 0) + rShapeDeriv(i, 1) * rShapeDeriv(j, 1)) * theta;
+        rDampingMatrix(FirstRow, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 0)) * theta;
 
         // Second Row
-        rDampingMatrix(FirstRow + 1, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 1));
-        rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * (FourThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 1) + rShapeDeriv(i, 0) * rShapeDeriv(j, 0));
+        rDampingMatrix(FirstRow + 1, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 1)) * theta;
+        rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * (FourThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 1) + rShapeDeriv(i, 0) * rShapeDeriv(j, 0)) * theta;
 
         // Update Counter
         FirstRow += 2;
@@ -430,7 +449,8 @@ namespace Kratos
   template <>
   void ThreeStepUpdatedLagrangianElement<3>::AddViscousTerm(MatrixType &rDampingMatrix,
                                                             const ShapeFunctionDerivativesType &rShapeDeriv,
-                                                            const double Weight)
+                                                            const double Weight,
+                                                            const double theta)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -447,19 +467,19 @@ namespace Kratos
         const double Diag = rShapeDeriv(i, 0) * rShapeDeriv(j, 0) + rShapeDeriv(i, 1) * rShapeDeriv(j, 1) + rShapeDeriv(i, 2) * rShapeDeriv(j, 2);
 
         // First Row
-        rDampingMatrix(FirstRow, FirstCol) += Weight * (OneThird * rShapeDeriv(i, 0) * rShapeDeriv(j, 0) + Diag);
-        rDampingMatrix(FirstRow, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 0));
-        rDampingMatrix(FirstRow, FirstCol + 2) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 2) + rShapeDeriv(i, 2) * rShapeDeriv(j, 0));
+        rDampingMatrix(FirstRow, FirstCol) += Weight * (OneThird * rShapeDeriv(i, 0) * rShapeDeriv(j, 0) + Diag) * theta;
+        rDampingMatrix(FirstRow, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 0)) * theta;
+        rDampingMatrix(FirstRow, FirstCol + 2) += Weight * (nTwoThirds * rShapeDeriv(i, 0) * rShapeDeriv(j, 2) + rShapeDeriv(i, 2) * rShapeDeriv(j, 0)) * theta;
 
         // Second Row
-        rDampingMatrix(FirstRow + 1, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 1));
-        rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * (OneThird * rShapeDeriv(i, 1) * rShapeDeriv(j, 1) + Diag);
-        rDampingMatrix(FirstRow + 1, FirstCol + 2) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 2) + rShapeDeriv(i, 2) * rShapeDeriv(j, 1));
+        rDampingMatrix(FirstRow + 1, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 1)) * theta;
+        rDampingMatrix(FirstRow + 1, FirstCol + 1) += Weight * (OneThird * rShapeDeriv(i, 1) * rShapeDeriv(j, 1) + Diag) * theta;
+        rDampingMatrix(FirstRow + 1, FirstCol + 2) += Weight * (nTwoThirds * rShapeDeriv(i, 1) * rShapeDeriv(j, 2) + rShapeDeriv(i, 2) * rShapeDeriv(j, 1)) * theta;
 
         // Third Row
-        rDampingMatrix(FirstRow + 2, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 2) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 2));
-        rDampingMatrix(FirstRow + 2, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 2) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 2));
-        rDampingMatrix(FirstRow + 2, FirstCol + 2) += Weight * (OneThird * rShapeDeriv(i, 2) * rShapeDeriv(j, 2) + Diag);
+        rDampingMatrix(FirstRow + 2, FirstCol) += Weight * (nTwoThirds * rShapeDeriv(i, 2) * rShapeDeriv(j, 0) + rShapeDeriv(i, 0) * rShapeDeriv(j, 2)) * theta;
+        rDampingMatrix(FirstRow + 2, FirstCol + 1) += Weight * (nTwoThirds * rShapeDeriv(i, 2) * rShapeDeriv(j, 1) + rShapeDeriv(i, 1) * rShapeDeriv(j, 2)) * theta;
+        rDampingMatrix(FirstRow + 2, FirstCol + 2) += Weight * (OneThird * rShapeDeriv(i, 2) * rShapeDeriv(j, 2) + Diag) * theta;
 
         // Update Counter
         FirstRow += 3;
@@ -598,7 +618,7 @@ namespace Kratos
     // double TauOne = 0;
     // double TauTwo = 0;
 
-    //const double eta = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //const double gamma_pressure = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -616,11 +636,15 @@ namespace Kratos
 
       // array_1d<double, 3> MomentumProjection = ZeroVector(3);
       // this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
-
       // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-      array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
 
+      const unsigned int schemeOrder = 1;
+      array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+      if (schemeOrder == 2)
+      {
+        this->EvaluateGradientDifferenceInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+      }
 
       // Stabilization parameters
       // array_1d<double, 3> ConvVel = ZeroVector(3);

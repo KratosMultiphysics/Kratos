@@ -228,8 +228,8 @@ namespace Kratos
     virtual void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
 
     virtual void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
- 
-    virtual void Calculate(const Variable<array_1d<double, 3>> &rVariable,array_1d<double, 3> &rOutput,const ProcessInfo &rCurrentProcessInfo) override {};
+
+    virtual void Calculate(const Variable<array_1d<double, 3>> &rVariable, array_1d<double, 3> &rOutput, const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Calculate the element's local contribution to the system for the current step.
     virtual void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
@@ -620,6 +620,22 @@ namespace Kratos
       }
     }
 
+    template <class TVariableType>
+    void EvaluateDifferenceInPoint(TVariableType &rResult,
+                                   const Kratos::Variable<TVariableType> &Var,
+                                   const ShapeFunctionsType &rShapeFunc)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      const SizeType NumNodes = rGeom.PointsNumber();
+
+      rResult = rShapeFunc[0] * (rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1));
+
+      for (SizeType i = 1; i < NumNodes; i++)
+      {
+        rResult += rShapeFunc[i] * (rGeom[i].FastGetSolutionStepValue(Var, 0) - rGeom[i].FastGetSolutionStepValue(Var, 1));
+      }
+    }
+
     void EvaluateGradientInPoint(array_1d<double, TDim> &rResult,
                                  const Kratos::Variable<double> &Var,
                                  const ShapeFunctionDerivativesType &rDN_DX)
@@ -634,6 +650,45 @@ namespace Kratos
       for (SizeType i = 1; i < NumNodes; i++)
       {
         const double &var = rGeom[i].FastGetSolutionStepValue(Var);
+        for (SizeType d = 0; d < TDim; ++d)
+          rResult[d] += rDN_DX(i, d) * var;
+      }
+    }
+
+    void EvaluateGradientInPoint(array_1d<double, TDim> &rResult,
+                                 const Kratos::Variable<double> &Var,
+                                 const ShapeFunctionDerivativesType &rDN_DX,
+                                 const IndexType Step)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      const SizeType NumNodes = rGeom.PointsNumber();
+
+      const double &var = rGeom[0].FastGetSolutionStepValue(Var, Step);
+      for (SizeType d = 0; d < TDim; ++d)
+        rResult[d] = rDN_DX(0, d) * var;
+
+      for (SizeType i = 1; i < NumNodes; i++)
+      {
+        const double &var = rGeom[i].FastGetSolutionStepValue(Var, Step);
+        for (SizeType d = 0; d < TDim; ++d)
+          rResult[d] += rDN_DX(i, d) * var;
+      }
+    }
+
+    void EvaluateGradientDifferenceInPoint(array_1d<double, TDim> &rResult,
+                                           const Kratos::Variable<double> &Var,
+                                           const ShapeFunctionDerivativesType &rDN_DX)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      const SizeType NumNodes = rGeom.PointsNumber();
+
+      const double &var = rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
+      for (SizeType d = 0; d < TDim; ++d)
+        rResult[d] = rDN_DX(0, d) * var;
+
+      for (SizeType i = 1; i < NumNodes; i++)
+      {
+        const double &var = rGeom[i].FastGetSolutionStepValue(Var, 0) - rGeom[i].FastGetSolutionStepValue(Var, 1);
         for (SizeType d = 0; d < TDim; ++d)
           rResult[d] += rDN_DX(i, d) * var;
       }
