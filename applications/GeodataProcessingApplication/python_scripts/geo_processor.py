@@ -91,6 +91,9 @@ class GeoProcessor:
         gid_parameters["result_file_configuration"]["gidpost_flags"].AddEmptyValue("GiDPostMode")
         gid_parameters["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].SetString(gid_post_mode)      # the options are: GiD_PostAscii / GiD_PostBinary
         
+        if self.ModelPart.HasNodalSolutionStepVariable(Kratos.PARTITION_INDEX):
+            gid_parameters["result_file_configuration"]["nodal_results"].Append("PARTITION_INDEX")
+
         gid_output = GiDOutputProcess(self.ModelPart, output_name, gid_parameters)
         gid_output.ExecuteInitialize()
         gid_output.ExecuteBeforeSolutionLoop()
