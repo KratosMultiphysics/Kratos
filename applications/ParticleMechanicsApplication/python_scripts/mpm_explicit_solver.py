@@ -30,7 +30,7 @@ class MPMExplicitSolver(MPMSolver):
             "is_pqmpm"      : false,
             "is_make_normal_mp_if_pqmpm_fails" : false,
             "pqmpm_subpoint_min_volume_fraction" : 0.0,
-            "pqmpm_is_make_normal_mp_on_bc" : true,
+            "pqmpm_is_make_normal_mp_on_bc" : false,
             "is_explicit_contact_release" : false,
             "explicit_contact_release_modelpart" : "UNSPECIFIED"
         }""")
