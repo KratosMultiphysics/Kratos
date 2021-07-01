@@ -1,0 +1,85 @@
+{
+    "XMCAlgorithmInputDictionary": {
+        "checkInitialisation": "xmc.methodDefs_xmcAlgorithm.checkInitialisation.checkInitialisationMC",
+        "errorsForStoppingCriterion": [0],
+        "estimatorsForHierarchy": [[0,[1,true,true]]],
+        "predictorsForHierarchy": [],
+        "tolerancesForHierarchy": [0],
+        "positionMaxNumberIterationsCriterion": 2
+    },
+    "hierarchyOptimiserInputDictionary": {
+        "defaultHierarchy": [[[],5]],
+        "indexSpace": [1,1],
+        "optimalIndexSet": "xmc.methodDefs_hierarchyOptimiser.optimalIndexSet.zeroDimensionSamplesOnly",
+        "optimalSampleNumbers": "xmc.methodDefs_hierarchyOptimiser.optimalSampleNumbers.singleIndexConstantSampleNumber",
+        "toleranceSplittingBounds": [0.5,0.5]
+    },
+    "monteCarloIndexInputDictionary": {
+        "costEstimator": "xmc.momentEstimator.MomentEstimator",
+        "costEstimatorInputDictionary": {"indexSetDimension": 0, "order": 1},
+        "qoiEstimator": [
+            "xmc.momentEstimator.MomentEstimator",
+            "xmc.momentEstimator.MultiMomentEstimator",
+            "xmc.momentEstimator.MultiMomentEstimator"
+        ],
+        "qoiEstimatorInputDictionary": [
+            {"indexSetDimension": 0,"order": 1,"centralMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper","rawMomentComputer":"xmc.methodDefs_momentEstimator.computeCentralMoments.centralMomentWrapper"},
+            {"variableDimension": 4,"order": 1},
+            {"variableDimension": 12,"order": 1}],
+        "sampler": "xmc.sampleGenerator.SampleGenerator"
+    },
+    "monteCarloSamplerInputDictionary": {
+        "assemblersForError": [[1]],
+        "estimatorsForAssembler": [[[0,[1,true,false]]],[[0,[1,true,true]]]],
+        "indexConstructor": "xmc.monteCarloIndex.MonteCarloIndex",
+        "initialNumberBatches": 1
+    },
+    "randomGeneratorInputDictionary": {
+        "generator": "xmc.methodDefs_randomGeneratorWrapper.generator.returnUniformAndTwoNormal",
+        "parameters": [0,4294967295,0.3,0.003,-0.035,0.00035]
+    },
+    "samplerInputDictionary": {
+        "randomGenerator": "xmc.randomGeneratorWrapper.RandomGeneratorWrapper",
+        "solverWrapper": "xmc.classDefs_solverWrapper.KratosSolverWrapper.KratosSolverWrapper"
+    },
+    "solverWrapperInputDictionary": {
+        "analysisStage": "KratosMultiphysics.CompressiblePotentialFlowApplication.stochastic_potential_flow_response.SimulationScenario",
+        "asynchronous": true,
+        "fakeRandomVariable": [0,0.3,0.0],
+        "projectParametersPath": ["primal_parameters.json"],
+        "refinementStrategy": "reading_from_file",
+        "sizeMultiXMomentEstimator": 12
+    },
+    "monoCriteriaInpuctDictionary" :{
+        "statisticalError": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo",
+            "tolerance": [1.1e-03],
+            "input": "error0"
+        },
+        "minNumberIterations": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
+            "tolerance": 0.0,
+            "input": "algorithmCost"
+        },
+        "maxNumberIterations": {
+            "criteria": "xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo",
+            "tolerance": 10.0,
+            "input": "algorithmCost"
+        }
+    },
+    "multiCriterionInputDictionary": {
+        "interpreter": "xmc.methodDefs_multiCriterion.interpreter.interpretAsConvergenceAndIterationBounds"
+    },
+    "errorEstimatorInputDictionary": {
+        "error": "xmc.methodDefs_errorEstimator.errorEstimation.errorEstimationStatError",
+        "parameters": [0.95]
+    },
+    "estimationAssemblerInputDictionary": {
+        "expectationAssembler": {
+            "assembleEstimation": "xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue"
+        },
+        "varianceAssembler": {
+            "assembleEstimation": "xmc.methodDefs_estimationAssembler.assembleEstimation.assembleStatisticalError"
+        }
+    }
+}

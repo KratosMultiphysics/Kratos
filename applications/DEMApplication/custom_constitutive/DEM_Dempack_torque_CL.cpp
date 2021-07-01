@@ -4,7 +4,6 @@
 
 // External includes
 
-
 // Project includes
 #include "DEM_Dempack_torque_CL.h"
 //#include "custom_elements/spheric_particle.h"
@@ -21,9 +20,6 @@ namespace Kratos {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_Dempack_torque to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
-
-
-
 
     void DEM_Dempack_torque::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
