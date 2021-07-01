@@ -106,7 +106,8 @@ void MoveModelPart(
     block_for_each(
         rModelPart.Nodes(),
         [&rTransform](Node<3>& rNode){
-            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(rNode) - rNode;
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
+            noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
         });
 
     KRATOS_CATCH("");
@@ -123,12 +124,13 @@ void MoveModelPart(
     block_for_each(
         rModelPart.Nodes(),
         [&rTransform, time](Node<3>& rNode){
+            const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
             noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
-                rNode,
+                initial_position,
                 time,
                 rNode.X0(),
                 rNode.Y0(),
-                rNode.Z0()) - rNode;
+                rNode.Z0()) - initial_position;
         });
 
     KRATOS_CATCH("");

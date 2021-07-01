@@ -11,12 +11,12 @@ def GenerateModel():
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
 
+    # Generate nodes
     domain = KratosMultiphysics.Quadrilateral2D4(
         KratosMultiphysics.Node(1, 0.0, 0.0, 0.0),
         KratosMultiphysics.Node(2, 0.0, 2.0, 0.0),
         KratosMultiphysics.Node(3, 2.0, 2.0, 0.0),
-        KratosMultiphysics.Node(4, 2.0, 0.0, 0.0)
-    )
+        KratosMultiphysics.Node(4, 2.0, 0.0, 0.0))
 
     parameters = KratosMultiphysics.Parameters("""{
         "element_name" : "Element2D3N",
@@ -29,6 +29,13 @@ def GenerateModel():
         model_part,
         parameters
     ).Execute()
+
+    # Reset current node positions
+    # (mesh motion should use the initial coordinates)
+    for node in model_part.Nodes:
+        node.X = 0.0
+        node.Y = 0.0
+        node.Z = 0.0
 
     return model, model_part
 
