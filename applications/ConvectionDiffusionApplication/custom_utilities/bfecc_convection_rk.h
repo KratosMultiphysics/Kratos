@@ -66,12 +66,7 @@ public:
         const double substeps)
     {
         KRATOS_TRY
-        double dt_factor = 1.0;
-        if (mPartialDt){
-            dt_factor = rModelPart.GetProcessInfo()[DELTA_TIME_FACTOR];
-        }
-        KRATOS_ERROR_IF(dt_factor < 1.0e-2) << "ERROR: DELTA_TIME_FACTOR should be larger than zero." <<std::endl;
-        const double dt = dt_factor*rModelPart.GetProcessInfo()[DELTA_TIME];
+        const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         //do movement
         Vector N(TDim + 1);
@@ -85,12 +80,9 @@ public:
         std::vector< Vector > Ns( rModelPart.Nodes().size());
         std::vector< bool > found( rModelPart.Nodes().size());
 
-        // Allocate non-historical variables and update old velocity as per dt_factor
+        // Allocate non-historical variables
         block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
             rNode.SetValue(rVar, 0.0);
-            auto &r_old_velocity = rNode.FastGetSolutionStepValue(conv_var, 1);
-            rNode.SetValue(conv_var, r_old_velocity);
-            noalias(r_old_velocity) = dt_factor*r_old_velocity + (1.0 - dt_factor)*rNode.FastGetSolutionStepValue(conv_var);
         });
 
         mLimiter.resize(nparticles);
