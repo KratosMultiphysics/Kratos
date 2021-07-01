@@ -383,17 +383,27 @@ namespace MPMParticleGeneratorUtility
 
 
                             ProcessInfo process_info = ProcessInfo();
+                            if (is_interface)
+                            {
+                                p_condition->Set(INTERFACE);
+                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
+                                
+                            }
 
                             // Setting particle condition's initial condition
                             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
                             p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                             // Mark as boundary condition
                             p_condition->Set(BOUNDARY, true);
                             
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            last_condition_id +=1;
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
