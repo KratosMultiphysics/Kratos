@@ -395,7 +395,7 @@ class RigidBodySolver(object):
         for index, value in enumerate(values):
             # Increase the index so it fits with the angular terms (if necessary)
             if identifier in self.angular_variables:
-                value += self.linear_size
+                index += self.linear_size
             # Save input variables in their corresponding spots
             if self.available_dofs[index] in self.active_dofs:
                 if identifier in ["DISPLACEMENT", "ROTATION", "DISPLACEMENTS_ALL"]:
