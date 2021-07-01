@@ -1567,6 +1567,7 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
         || rVariable == UNIAXIAL_STRAIN_COMPRESSION
         || rVariable == UNIAXIAL_DAMAGED_STRESS_TENSION
         || rVariable == UNIAXIAL_STRAIN_TENSION
+        || rVariable == PRESSURE
         ) {
         if (mConstitutiveLawVector->Has(rVariable))
             rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);

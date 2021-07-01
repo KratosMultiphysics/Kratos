@@ -77,6 +77,7 @@
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hencky_borja_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/fluid_plane_strain_2D.hpp"
 
 //---flow rules
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
@@ -304,6 +305,7 @@ private:
     const HenckyBorjaCamClayPlasticAxisym2DLaw              mHenckyBorjaCamClayPlasticAxisym2DLaw;
     // CL: d+/d- damage
     const MPMDamageDPlusDMinusMasonry2DLaw                  mMPMDamageDPlusDMinusMasonry2DLaw;
+    const FluidPlaneStrain2DLaw                             mFluidPlaneStrain2DLaw;
 
     // Flow Rules
     const MCPlasticFlowRule                         mMCPlasticFlowRule;
