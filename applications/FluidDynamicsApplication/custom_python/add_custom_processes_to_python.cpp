@@ -25,7 +25,7 @@
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-
+#include "custom_processes/energy_splitelements_process.h"
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
 #include "custom_processes/Boundary_Windkessel_model.h"
 #include "custom_processes/stokes_initialization_process.h"
@@ -162,6 +162,12 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
+    ;
+
+
+    py::class_<EnergyCheckProcess, EnergyCheckProcess::Pointer, Process>(m, "EnergyCheckProcess")
+    .def(py::init<ModelPart &, unsigned int>())
+    .def("WritingFile",&EnergyCheckProcess::WritingFile)
     ;
 }
 

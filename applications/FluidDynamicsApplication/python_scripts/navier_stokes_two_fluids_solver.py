@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-
+import os
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
@@ -219,7 +219,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._GetLevelSetConvectionProcess()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
+        
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
@@ -255,11 +255,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("LLEGAMOS")
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
+
             # Accumulative Water volume error ratio due to level Set .Adding source term 
             self.water_volume_after_transport=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            print(self.water_volume_after_transport)
+            print(self.initial_system_volume)
             volume_error = (self.water_volume_after_transport -  self.initial_system_volume)/ self.initial_system_volume
+            self.volume_error_to_check_before_adding_source_term= self.water_volume_after_transport - self.initial_system_volume
+            print(volume_error)
             
             self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = volume_error
+            print(self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR])
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
@@ -291,7 +297,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().FinalizeSolutionStep()
 
             # Limit the obtained acceleration for the next step
-            self._GetAccelerationLimitationUtility().Execute()
+            # self._GetAccelerationLimitationUtility().Execute()
+
+            #Calculate water volume after adding source term 
+            added_source_term= abs(self.water_volume_after_transport -  self.initial_system_volume)
+            volume_after= KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            new_error=abs(volume_after-self.initial_system_volume)
+            filename = 'error_mass_source_conservation.txt'
+            if os.path.exists(filename):
+                append_write = 'a' # append if already exists
+            else:
+                append_write = 'w' # make a new file if not
+            Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            highscore = open(filename,append_write)
+            highscore.write(str(Time)+' '+str(new_error) +' '+str(added_source_term) +' '+'\n')
+            highscore.close()
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
@@ -337,6 +357,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return materials_imported
 
     def _SetNodalProperties(self):
+        print("change")
         # Get fluid 1 and 2 properties
         properties_1 = self.main_model_part.Properties[1]
         properties_2 = self.main_model_part.Properties[2]

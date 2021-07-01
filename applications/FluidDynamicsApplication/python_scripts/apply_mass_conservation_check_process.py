@@ -33,17 +33,18 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction finished.")
+        print("__init__")
 
 
     def ExecuteInitialize(self):
 
         first_lines_string = self.mass_conservation_check_process.Initialize()
-
+        print("aqui")
         # writing first line in file
         if ( self._write_to_log and self._is_printing_rank ):
             with open(self._my_log_file, "w") as logFile:
                 logFile.write( first_lines_string )
-
+    
         KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
 
 

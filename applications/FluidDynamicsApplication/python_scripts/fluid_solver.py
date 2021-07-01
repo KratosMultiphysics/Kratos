@@ -302,7 +302,7 @@ class FluidSolver(PythonSolver):
                 domain_size + 1)
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
-                time_order = 2
+                time_order = 1
                 self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
                 err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
