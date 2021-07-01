@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
@@ -295,12 +296,12 @@ Vector& HyperElasticIsotropicKirchhoff3D::CalculateValue(
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
         } else if (rThisVariable == BIOT_STRAIN_VECTOR) {
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            ConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
         }
 
         rValue = rParameterValues.GetStrainVector();
@@ -556,7 +557,7 @@ void HyperElasticIsotropicKirchhoff3D::CalculateAlmansiStrain(
 
     // 2.-COmpute e = 0.5*(1-inv(B))
     const Matrix B_tensor = prod(F,trans(F));
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos
