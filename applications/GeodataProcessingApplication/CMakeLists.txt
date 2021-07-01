@@ -58,3 +58,6 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # # Add to the KratosMultiphisics Python module
 # install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/GeodataProcessingApplication.py" DESTINATION "KratosMultiphysics/GeodataProcessingApplication" RENAME "__init__.py")
+
+# Add to the KratosMultiphisics Python module
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/GeodataProcessingApplication.py KratosMultiphysics/GeodataProcessingApplication/__init__.py )
