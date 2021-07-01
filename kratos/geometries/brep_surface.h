@@ -25,6 +25,8 @@
 #include "geometries/brep_curve_on_surface.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
+// trimming integration
+#include "utilities/geometry_utilities/brep_trimming_utilities.h"
 
 namespace Kratos
 {
@@ -377,6 +379,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpNurbsSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -384,10 +396,26 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        mpNurbsSurface->CreateIntegrationPoints(
-            rIntegrationPoints);
+        if (!mIsTrimmed) {
+            mpNurbsSurface->CreateIntegrationPoints(
+                rIntegrationPoints, rIntegrationInfo);
+        }
+        else
+        {
+            std::vector<double> spans_u;
+            std::vector<double> spans_v;
+            mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+            mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+
+            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
+                rIntegrationPoints,
+                mOuterLoopArray, mInnerLoopArray,
+                spans_u, spans_v,
+                rIntegrationInfo);
+        }
     }
 
     ///@}
@@ -407,32 +435,11 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
-
-        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
-            rResultGeometries(i)->SetGeometryParent(this);
-        }
-    }
-
-    /* @brief calls function of undelying nurbs surface,
-     *        which itself is not implented and thus is calling the
-     *        geometry base class and updates the parent to itself.
-     *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param NumberOfShapeFunctionDerivatives the number of evaluated
-     *        derivatives of shape functions at the quadrature point geometries.
-     *
-     * @see quadrature_point_geometry.h
-     */
-    void CreateQuadraturePointGeometries(
-        GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
-    {
-        mpNurbsSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
