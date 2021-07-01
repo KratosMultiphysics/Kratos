@@ -186,10 +186,11 @@ public:
     }
 
     /// @brief Stress recovery
-    void Calculate(
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
-        double& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
