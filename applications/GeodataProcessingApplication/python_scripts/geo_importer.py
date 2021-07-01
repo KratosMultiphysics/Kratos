@@ -1,5 +1,7 @@
 import KratosMultiphysics
-from geo_processor import GeoProcessor
+import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
+
+from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoProcessor
 
 class GeoImporter( GeoProcessor ):
 
@@ -470,6 +472,7 @@ class GeoImporter( GeoProcessor ):
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.ModelPart.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         self.ModelPart.Nodes.clear()
         self.ModelPart.Elements.clear()

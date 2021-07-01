@@ -2,7 +2,8 @@ import KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as KratosMesh
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 
-from geo_processor import GeoProcessor
+from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoProcessor
+
 import os
 
 class GeoBuilding( GeoProcessor ):

@@ -1,15 +1,17 @@
 import KratosMultiphysics
 import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
 import KratosMultiphysics.MeshingApplication as KratosMesh
+
 if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi as KratosMPI
     print("[DEBUG][geo_mesher] import KratosMultiphysics.mpi")
 
-from geo_processor import GeoProcessor
-import triangle
-import numpy as np
+from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoProcessor
+
 import math
 from meshpy.tet import MeshInfo, build
+import numpy as np
+import triangle
 
 class GeoMesher( GeoProcessor ):
 
@@ -378,7 +380,7 @@ class GeoMesher( GeoProcessor ):
                     "hmin_over_hmax_anisotropic_ratio"      : 1.0,
                     "boundary_layer_max_distance"           : """ + str(max_dist) + """,
                     "interpolation"                         : "linear"
-        }
+                }
             }
             """)
         # level_set_param = KratosMultiphysics.Parameters("""

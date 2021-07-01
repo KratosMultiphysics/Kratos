@@ -1,5 +1,7 @@
 import KratosMultiphysics
-from geo_processor import GeoProcessor
+import KratosMultiphysics.GeodataProcessingApplication as KratosGeo
+
+from KratosMultiphysics.GeodataProcessingApplication.geo_processor import GeoProcessor
 
 import os
 import math
