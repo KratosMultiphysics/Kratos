@@ -23,7 +23,7 @@
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
 #include "constitutive_laws_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -282,7 +282,7 @@ class GenericConstitutiveLawIntegratorDamage
         array_1d<double, VoigtSize> deviator = ZeroVector(6);
         double J2;
         const double I1 = rStressVector[0] + rStressVector[1] + rStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rStressVector, I1, deviator, J2);
         YieldSurfaceType::CalculateYieldSurfaceDerivative(rStressVector, deviator, J2, rFlux, rValues);
     }
 
