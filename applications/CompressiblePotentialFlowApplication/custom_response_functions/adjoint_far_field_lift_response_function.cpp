@@ -70,6 +70,7 @@ namespace Kratos
         const auto r_current_process_info = mrModelPart.GetProcessInfo();
         block_for_each(mrModelPart.GetRootModelPart().Conditions(), [&](Condition& rCondition)
         {
+            rCondition.Initialize(r_current_process_info);
             rCondition.FinalizeNonLinearIteration(r_current_process_info);
         });
 
