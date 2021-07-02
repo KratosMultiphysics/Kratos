@@ -428,21 +428,6 @@ public:
         return *this;
     }
 
-    /// Move assignment operator.
-    Geometry& operator=(
-        const Geometry<TPointType>&& rOther)
-    {
-        mpGeometryData = std::move(rOther.mpGeometryData);
-        mPoints = std::move(rOther.mPoints);
-        mData = std::move(rOther.mData);
-        return *this;
-    }
-
-     operator PointsArrayType&()
-    {
-        return mPoints;
-    }
-
     ///@}
     ///@name PointerVector Operators
     ///@{
