@@ -453,7 +453,6 @@ class AdjointRANSSolver(CoupledRANSSolver):
                     gamma,
                     delta_time,
                     self.element_refinement_process.GetThreadLocalModelPart().NumberOfNodes(),
-                    len(self.adjoint_list_of_time_steps),
                     self.interpolation_error_relaxation)
 
                 response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()

@@ -97,7 +97,6 @@ public:
         const double Gamma,
         const double DeltaTime,
         const IndexType NumberOfRefinedNodes,
-        const IndexType NumberOfTimeSteps,
         const double RelaxationFactor);
 
     ///@}

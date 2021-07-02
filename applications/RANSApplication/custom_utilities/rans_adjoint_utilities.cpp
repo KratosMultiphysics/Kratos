@@ -368,7 +368,6 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
     const double Gamma,
     const double DeltaTime,
     const IndexType NumberOfRefinedNodes,
-    const IndexType NumberOfTimeSteps,
     const double RelaxationFactor)
 {
     KRATOS_TRY
@@ -427,7 +426,7 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
 
     const double coeff_1 = std::abs((Gamma - 1.0) / Gamma);
     const double coeff_2 = std::abs(1.0 / (Gamma * DeltaTime));
-    const double coeff_3 = 1.0 / (NumberOfTimeSteps * number_of_elements * NumberOfRefinedNodes);
+    const double coeff_3 = 1.0 / (number_of_elements * NumberOfRefinedNodes);
     const double coeff_4 = 1.0 / r_front_element.GetGeometry().size();
 
     const ZeroVector zero(number_of_dofs_per_node);
