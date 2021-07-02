@@ -678,8 +678,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
 
-    if ( rVariable == CAUCHY_STRESS_VECTOR )
-    {
+    if ( rVariable == CAUCHY_STRESS_VECTOR ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables, rCurrentProcessInfo);
@@ -706,9 +705,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
             rOutput[PointNumber] = Variables.StressVector;
         }
-    }
-    else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
-    {
+    } else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -724,9 +721,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
             rOutput[PointNumber] = Variables.StrainVector;
         }
-    }
-    else if ( rVariable == FLUID_FLUX_VECTOR )
-    {
+    } else if ( rVariable == FLUID_FLUX_VECTOR ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -768,9 +763,35 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
             rOutput[PointNumber] = FluidFlux;
         }
-    }
-    else
-    {
+    } else if ( rVariable == WATER_PRESSURE_GRADIENT ) {
+        //Definition of variables
+        ElementalVariables Variables;
+        this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
+
+        //Loop over integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematics (Np, gradNpT, |J|, B, strains)
+            this->CalculateKinematics(Variables,PointNumber);
+
+            //Compute FluidFlux vector q [m/s]
+            const SizeType Dim = rGeom.WorkingSpaceDimension();
+
+            Vector GradPressure(Dim);
+            noalias(GradPressure) = prod(trans(Variables.GradNpT),Variables.PressureVector);
+
+            Vector GradPressureVector = ZeroVector(3);
+            GradPressureVector[0] = GradPressure[0];
+            GradPressureVector[1] = GradPressure[1];
+            if(Dim>2)
+                GradPressureVector[2] = GradPressure[2];
+
+            if ( rOutput[PointNumber].size() != 3 )
+                rOutput[PointNumber].resize( 3, false );
+
+            rOutput[PointNumber] = GradPressureVector;
+        }
+    } else {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
     }

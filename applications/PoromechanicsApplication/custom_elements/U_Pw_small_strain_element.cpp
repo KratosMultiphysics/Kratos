@@ -631,8 +631,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
-    if(rVariable == FLUID_FLUX_VECTOR)
-    {
+    if(rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -670,6 +669,30 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             noalias(FluidFlux) = -DynamicViscosityInverse*prod(PermeabilityMatrix,GradPressureTerm);
 
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
+        }
+    } else if(rVariable == WATER_PRESSURE_GRADIENT) {
+
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Defining necessary variables
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
+        array_1d<double,TDim> GradPressure;
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+
+            noalias(GradPressure) = prod(trans(GradNpT),PressureVector);
+
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],GradPressure);
         }
     }
 
