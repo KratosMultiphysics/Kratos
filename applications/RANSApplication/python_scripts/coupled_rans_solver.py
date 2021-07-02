@@ -148,7 +148,7 @@ class CoupledRANSSolver(PythonSolver):
                     "maximal_size"           : 0.5,
                     "minimal_size"           : 1e-3,
                     "hessian_strategy_parameters":{
-                        "metric_variable": ["VELOCITY_X", "VELOCITY_Y", "PRESSURE"],
+                        "metric_variable": ["TIME_AVERAGED_VELOCITY_X", "TIME_AVERAGED_VELOCITY_Y", "TIME_AVERAGED_PRESSURE"],
                         "non_historical_metric_variable": [false, false, false],
                         "interpolation_error": 1e-5,
                         "use_response_function_interpolation_error": true,
@@ -478,6 +478,19 @@ class CoupledRANSSolver(PythonSolver):
                 file_output.write(primal_parameters.PrettyPrintJsonString())
             primal_simulation.Run()
             RemoveFileLoggerOutput(default_severity, file_logger)
+
+            # copy time averaged quantities from the primal_simulation
+            time_averaged_variable_data = [
+                ("TIME_AVERAGED_{:s}".format(var.Name()), False, "TIME_AVERAGED_{:s}".format(var.Name()), False) for var in self.formulation.GetSolvingVariables()
+            ]
+            KratosRANS.RansVariableDataTransferProcess(
+                primal_model,
+                self.main_model_part.GetModel(),
+                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
+                self.main_model_part.FullName(),
+                ["execute"],
+                time_averaged_variable_data,
+                self.echo_level).Execute()
 
             # open adjoint problem
             with open(adaptive_mesh_refinement_based_on_response_function_settings["adjoint_problem_project_parameters_file_name"].GetString(),'r') as parameter_file:
