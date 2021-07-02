@@ -326,7 +326,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                     "Parameters": {
                         "model_part_name": "",
                         "file_settings": {
-                            "file_name": "response_function_interpolation_data/<model_part_name>-<time>.h5",
+                            "file_name": "response_function_interpolation_data/adjoint_<model_part_name>-<time>.h5",
                             "time_format": "0.6f",
                             "max_files_to_keep": "unlimited",
                             "file_access_mode": "truncate",
@@ -377,7 +377,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 "Parameters": {
                     "model_part_name": "",
                     "file_settings": {
-                        "file_name": "response_function_interpolation_data/<model_part_name>-<time>.h5",
+                        "file_name": "response_function_interpolation_data/adjoint_<model_part_name>-<time>.h5",
                         "time_format": "0.6f",
                         "echo_level": 1
                     },

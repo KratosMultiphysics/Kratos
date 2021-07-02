@@ -591,6 +591,7 @@ private:
             // TLS data containers
             Matrix LHS;
             Matrix SecondDerivatives;
+            Matrix RotatedSecondDerivatives;
             Vector Values;
             Vector AuxiliaryValues1;
             Vector AuxiliaryValues2;
@@ -632,7 +633,7 @@ private:
 
             for (auto& r_refined_element : rTLS.pRefinedModelPart->Elements()) {
                 CalculateAndAssembleLocalEntityContributions(
-                    r_refined_element, rTLS.EquationIds, rTLS.LHS, rTLS.SecondDerivatives,
+                    r_refined_element, rTLS.EquationIds, rTLS.LHS, rTLS.SecondDerivatives, rTLS.RotatedSecondDerivatives,
                     rTLS.Values, rTLS.AuxiliaryValues1, rTLS.AuxiliaryValues2,
                     rTLS.AssemblyData, r_refined_nodal_data_map, r_process_info);
             }
@@ -640,7 +641,7 @@ private:
             for (auto& r_refined_condition : rTLS.pRefinedModelPart->Conditions()) {
                 if (r_refined_condition.Is(ACTIVE)) {
                     CalculateAndAssembleLocalEntityContributions(
-                        r_refined_condition, rTLS.EquationIds, rTLS.LHS, rTLS.SecondDerivatives,
+                        r_refined_condition, rTLS.EquationIds, rTLS.LHS, rTLS.SecondDerivatives, rTLS.RotatedSecondDerivatives,
                         rTLS.Values, rTLS.AuxiliaryValues1, rTLS.AuxiliaryValues2,
                         rTLS.AssemblyData, r_refined_nodal_data_map, r_process_info);
                 }
@@ -649,7 +650,7 @@ private:
             UpdateResponseFunctionInterpolationErrorTimeStepValues(
                 *rTLS.pRefinedModelPart, rTLS.Values,
                 rTLS.AuxiliaryValues1, rTLS.AuxiliaryValues2, rTLS.AuxiliaryValues3,
-                rTLS.SecondDerivatives, rTLS.LHS, r_refined_nodal_data_map);
+                rTLS.SecondDerivatives, rTLS.RotatedSecondDerivatives, rTLS.LHS, r_refined_nodal_data_map);
 
             // now add \mu^{n,h}_{mp} contributions from refined grid to b^{n,h}_{mp}
             for (auto& r_refined_element : rTLS.pRefinedModelPart->Elements()) {
@@ -696,6 +697,7 @@ private:
         EquationIdVectorType& rEquationIdsVector,
         Matrix& rLHS,
         Matrix& rSecondDerivatives,
+        Matrix& rRotatedSecondDerivatives,
         Vector& rValues,
         Vector& rAuxiliaryValues1,
         Vector& rAuxiliaryValues2,
@@ -720,7 +722,11 @@ private:
 
         rRefinedEntity.CalculateSecondDerivativesLHS(rSecondDerivatives, rProcessInfo);
         rSecondDerivatives *= (1.0 - mBossak.Alpha);
-        noalias(rAuxiliaryValues2) = prod(rSecondDerivatives, rValues);
+
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+            rRotatedSecondDerivatives, rSecondDerivatives, rRefinedEntity.GetGeometry());
+
+        noalias(rAuxiliaryValues2) = prod(rRotatedSecondDerivatives, rValues);
 
         this->AddAuxiliaryVariableContributionsForAdaptiveMeshRefinementFromPreviousTimeStep(
             rAuxiliaryValues1, rAuxiliaryValues2, rRefinedNodalMap, rRefinedEntity);
@@ -777,6 +783,7 @@ private:
         Vector& rSecondDerivsResponseGradient,
         Vector& rSecondDerivsResponseGradientOld,
         Matrix& rSecondDerivsLHS,
+        Matrix& rRotatedSecondDerivsLHS,
         Matrix& rAuxiliaryMatrix,
         std::unordered_map<IndexType, RefinedNodeAdjointDataStorage>& rRefinedNodalMap)
     {
@@ -800,7 +807,7 @@ private:
         for (auto& r_refined_element : rThreadLocalModelPart.Elements()) {
             UpdateResponseFunctionInterpolationErrorTimeStepValuesFromEntity(
                 r_process_info, rValues, rAuxiliaryVector, rSecondDerivsResponseGradient,
-                rSecondDerivsResponseGradientOld, rSecondDerivsLHS,
+                rSecondDerivsResponseGradientOld, rSecondDerivsLHS, rRotatedSecondDerivsLHS,
                 rAuxiliaryMatrix, rRefinedNodalMap, r_refined_element);
         }
 
@@ -808,7 +815,7 @@ private:
             if (r_refined_condition.Is(ACTIVE)) {
                 UpdateResponseFunctionInterpolationErrorTimeStepValuesFromEntity(
                     r_process_info, rValues, rAuxiliaryVector, rSecondDerivsResponseGradient,
-                    rSecondDerivsResponseGradientOld, rSecondDerivsLHS,
+                    rSecondDerivsResponseGradientOld, rSecondDerivsLHS, rRotatedSecondDerivsLHS,
                     rAuxiliaryMatrix, rRefinedNodalMap, r_refined_condition);
             }
         }
@@ -824,6 +831,7 @@ private:
         Vector& rSecondDerivsResponseGradient,
         Vector& rSecondDerivsResponseGradientOld,
         Matrix& rSecondDerivsLHS,
+        Matrix& rRotatedSecondDerivsLHS,
         Matrix& rAuxiliaryMatrix,
         std::unordered_map<IndexType, RefinedNodeAdjointDataStorage>& rRefinedNodalMap,
         EntityType& rRefinedEntity)
@@ -839,6 +847,9 @@ private:
         // calculate \frac{\partial R^n}{\partial \dot{w}^n}
         rRefinedEntity.CalculateSecondDerivativesLHS(rSecondDerivsLHS, rProcessInfo);
 
+        mAdjointSlipUtilities.CalculateRotatedSlipConditionAppliedNonSlipVariableDerivatives(
+            rRotatedSecondDerivsLHS, rSecondDerivsLHS, rRefinedEntity.GetGeometry());
+
         if (rAuxiliaryMatrix.size1() != rSecondDerivsLHS.size1() || rAuxiliaryMatrix.size2() != rSecondDerivsLHS.size2()) {
             rAuxiliaryMatrix.resize(rSecondDerivsLHS.size1(), rSecondDerivsLHS.size2(), false);
         }
@@ -852,6 +863,7 @@ private:
         this->mpResponseFunction->CalculateSecondDerivativesGradient(rRefinedEntity, rAuxiliaryMatrix, rSecondDerivsResponseGradientOld, rProcessInfo);
 
         // calculate \lambda^n \frac{\partial R^n}{\partial \dot{w}^{n-1}}
+        noalias(rAuxiliaryMatrix) = rRotatedSecondDerivsLHS * mBossak.Alpha;
         noalias(rAuxiliaryVector) = prod(rAuxiliaryMatrix, rValues);
 
         IndexType local_index{0};
