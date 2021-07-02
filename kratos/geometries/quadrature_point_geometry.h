@@ -229,16 +229,6 @@ public:
     {
     }
 
-    /// Move constructor with different dimension TOtherDimension.
-    template<int TOtherDimension>
-    QuadraturePointGeometry(
-        QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
-        : BaseType(std::move(rOther))
-        , mGeometryData(std::move(rOther.mGeometryData))
-        , mpGeometryParent(std::move(rOther.mpGeometryParent))
-    {
-    }
-
     ///@}
     ///@name Operators
     ///@{
