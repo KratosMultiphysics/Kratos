@@ -140,6 +140,8 @@ protected:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void SaveGPGradPressure(Matrix& rGradPressureContainer, const array_1d<double,TDim>& GradPressure, const unsigned int& GPoint);
+
     void SaveGPStress(Matrix& rStressContainer, const Vector& StressVector, const unsigned int& VoigtSize, const unsigned int& GPoint);
 
     void ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize);
