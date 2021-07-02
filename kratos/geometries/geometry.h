@@ -428,6 +428,11 @@ public:
         return *this;
     }
 
+     operator PointsArrayType&()
+    {
+        return mPoints;
+    }
+
     ///@}
     ///@name PointerVector Operators
     ///@{
