@@ -17,8 +17,6 @@
   * [Common Flags](#common-flags)
   * [Compilation Performance](#compilation-performance)
   * [MPI-Parallelism](#parallelism)
-  * [External Libraries](#external-libraries)
-    * [Trilinos](#trilinos)
 
 ## Cloning Kratos
 
@@ -464,36 +462,3 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 `-DKRATOS_COLORED_OUTPUT=ON/OFF`
 
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
-
-### External libraries
-#### Trilinos
-From Ubuntu 18.04 onwards, the following command installs the necessary files:
-
-```Shell
-sudo apt-get install trilinos-all-dev
-```
-
-`-DTRILINOS_ROOT=String`
-
-Root directory for Trilinos library.
-
-`-DTRILINOS_INCLUDE_DIR=String`
-
-Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
-
-`-DTRILINOS_LIBRARY_DIR=String`
-
-Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
-
-`-DTRILINOS_LIBRARY_PREFIX=String`
-Indicates the prefix of the trilinos libraries in case they have:
-```
-libepetra.so          -> No prefix
-libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
-```
-If trilinos was installed using the package manager usually the following lines have to be used:
-```
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
--DTRILINOS_LIBRARY_PREFIX="trilinos_" \
-```

@@ -16,11 +16,12 @@ file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
 ## ConstitutiveLaws testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    # file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## ConstitutiveLaws python interface sources

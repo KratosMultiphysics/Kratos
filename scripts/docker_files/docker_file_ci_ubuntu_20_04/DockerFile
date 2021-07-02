@@ -24,6 +24,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         git \
         intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
         intel-oneapi-mkl-devel \
+        valgrind \
         libboost-dev \
         libhdf5-dev \
         libhdf5-openmpi-dev \

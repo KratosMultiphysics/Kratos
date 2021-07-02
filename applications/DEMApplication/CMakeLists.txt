@@ -59,9 +59,9 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_soft_torque_with_noise_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_CL.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_bilinear_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Rankine_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CamClay_CL.cpp
@@ -98,6 +98,13 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/stationarity_checker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/automatic_dt_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/multiaxial_control_module_generalized_2d_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_kinematic_constraints_to_walls_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_to_walls_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
+
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
@@ -109,10 +116,6 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/AuxiliaryUtilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_face_watcher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/analytic_tools/analytic_particle_watcher.cpp
-
-    # processes
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_to_walls_process.cpp
 )
 
 add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})

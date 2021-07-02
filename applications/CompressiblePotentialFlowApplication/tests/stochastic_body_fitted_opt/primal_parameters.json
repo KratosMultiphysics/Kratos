@@ -1,0 +1,82 @@
+{
+    "_json_output_process": [
+        {
+            "Parameters": {
+                "model_part_name": "MainModelPart.Body2D_Body",
+                "output_file_name": "airfoil_change_results.json",
+                "output_variables": [
+                    "SHAPE_CHANGE_X",
+                    "SHAPE_CHANGE_Y",
+                    "SHAPE_CHANGE_Z"
+                ],
+                "time_frequency": 0.0
+            },
+            "help": "",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "JsonOutputProcess",
+            "python_module": "json_output_process"
+        }
+    ],
+    "adjoint_parameters_path": "adjoint_parameters.json",
+    "design_surface_sub_model_part_name": "Body2D_Body",
+    "problem_data": {
+        "echo_level": 0,
+        "end_time": 1,
+        "parallel_type": "OpenMP",
+        "problem_name": "naca0012",
+        "start_time": 0.0
+    },
+    "processes": {
+        "boundary_conditions_process_list": [
+            {
+                "Parameters": {
+                    "angle_of_attack": 0.0,
+                    "free_stream_density": 1.225,
+                    "inlet_potential": 1.0,
+                    "mach_infinity": 0.2,
+                    "model_part_name": "MainModelPart.PotentialWallCondition2D_Far_field_Auto1"
+                },
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "FarFieldProcess",
+                "python_module": "apply_far_field_process"
+            },
+            {
+                "Parameters": {
+                    "compute_wake_at_each_step": true,
+                    "echo_level": 0,
+                    "epsilon": 1e-09,
+                    "model_part_name": "MainModelPart.Body2D_Body"
+                },
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "DefineWakeProcess",
+                "python_module": "define_wake_process_2d"
+            }
+        ],
+        "initial_conditions_process_list": [],
+        "list_other_processes": []
+    },
+    "solver_settings": {
+        "domain_size": 2,
+        "echo_level": 0,
+        "formulation": {
+            "element_type": "compressible"
+        },
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "maximum_iterations": 10,
+        "model_import_settings": {
+            "input_filename": "current_design",
+            "input_type": "use_input_model_part"
+        },
+        "model_part_name": "MainModelPart",
+        "no_skin_parts": [],
+        "reform_dofs_at_each_step": true,
+        "skin_parts": [
+            "PotentialWallCondition2D_Far_field_Auto1",
+            "Body2D_Body"
+        ],
+        "solver_type": "potential_flow",
+        "volume_model_part_name": "Parts_Parts_Auto1"
+    }
+}

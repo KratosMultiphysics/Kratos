@@ -60,6 +60,7 @@ void AddMPIUtilitiesToPython(pybind11::module& m)
 
     py::class_<ParallelFillCommunicator, ParallelFillCommunicator::Pointer, FillCommunicator>(m,"ParallelFillCommunicator")
     .def(py::init<ModelPart& >() )
+    .def(py::init<ModelPart&, const DataCommunicator& >() )
     ;
 
     m.def_submodule("DataCommunicatorFactory")

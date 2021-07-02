@@ -72,8 +72,6 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = -1;
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -148,17 +146,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -169,17 +157,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -198,35 +176,6 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepSurface( ThisPoints ) );
-    }
-
-    ///@}
-    ///@name Point Access
-    ///@{
-
-    PointType& operator[](const SizeType& i) override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    PointType const& operator[](const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    typename PointType::Pointer& operator()(const SizeType& i) override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    const typename PointType::Pointer& operator()(const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    SizeType size() const override
-    {
-        return mpNurbsSurface->size();
     }
 
     ///@}
@@ -250,13 +199,13 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
-    * @param Index: trim_index or SURFACE_INDEX.
+    *        Surface of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -289,7 +238,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return true;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -311,6 +260,21 @@ public:
         }
 
         return false;
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            mpNurbsSurface->Calculate(rVariable, rOutput);
+        }
     }
 
     ///@}
@@ -345,6 +309,12 @@ public:
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
 
     /**
     * @brief Calls projection of its nurbs surface.

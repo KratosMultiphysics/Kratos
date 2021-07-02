@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -19,8 +21,8 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/constitutive_law_utilities.h"
-#include "structural_mechanics_application_variables.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -163,7 +165,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         array_1d<double, VoigtSize>& rGflux,
         double& rPlasticDissipation,
         array_1d<double, VoigtSize>& rPlasticStrainIncrement,
-        const Matrix& rConstitutiveMatrix,
+        Matrix& rConstitutiveMatrix,
         Vector& rPlasticStrain,
         ConstitutiveLaw::Parameters& rValues,
         const double CharacteristicLength
@@ -173,10 +175,12 @@ class GenericConstitutiveLawIntegratorPlasticity
         const Properties& r_material_properties = rValues.GetMaterialProperties();
 
         bool is_converged = false;
-        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS) ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
+        IndexType iteration = 0, max_iter = r_material_properties.Has(MAX_NUMBER_NL_CL_ITERATIONS)
+            ? r_material_properties.GetValue(MAX_NUMBER_NL_CL_ITERATIONS) : 100;
         array_1d<double, VoigtSize> delta_sigma;
         double plastic_consistency_factor_increment;
         double F = rUniaxialStress - rThreshold;
+        Matrix tangent_tensor = ZeroMatrix(6,6);
 
         // Backward Euler
         while (is_converged == false && iteration <= max_iter) {
@@ -191,6 +195,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             F = CalculatePlasticParameters(rPredictiveStressVector, rStrainVector, rUniaxialStress, rThreshold,
                                         rPlasticDenominator, rFflux, rGflux, rPlasticDissipation, rPlasticStrainIncrement,
                                         rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain);
+            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rFflux, rGflux, rPlasticDenominator);
 
             if (F <= std::abs(1.0e-4 * rThreshold)) { // Has converged
                 is_converged = true;
@@ -198,6 +203,7 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
+        rConstitutiveMatrix = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
 
     }
@@ -240,7 +246,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
@@ -252,6 +258,26 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         return rUniaxialStress - rThreshold;
     }
+
+    /**
+     * @brief This method calculates the analytical tangent tensor
+     * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
+     * @param rDeviator The deviatoric part of the stress vector
+     * @param J2 The second invariant of the deviatoric part of the stress vector
+     * @param rFFluxVector The derivative of the yield surface
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateTangentMatrix(
+        Matrix& rTangent,
+        const Matrix& rElasticMatrix,
+        const array_1d<double, VoigtSize>& rFFluxVector,
+        const array_1d<double, VoigtSize>& rGFluxVector,
+        const double Denominator
+        )
+    {
+        rTangent = rElasticMatrix - outer_prod(Vector(prod(rElasticMatrix, rGFluxVector)), Vector(prod(rElasticMatrix, rFFluxVector))) * Denominator;
+    }
+
 
     /**
      * @brief This method calculates the derivative of the yield surface
@@ -312,7 +338,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         // We proceed as usual
         array_1d<double, Dimension> principal_stresses = ZeroVector(Dimension);
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
         double aux_sa;
@@ -394,7 +420,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             dplastic_dissipation = 0.0;
 
         rPlasticDissipation += dplastic_dissipation;
-        if (rPlasticDissipation >= 1.0)
+        if (rPlasticDissipation >= 0.9999)
             rPlasticDissipation = 0.9999;
         else if (rPlasticDissipation < 0.0)
             rPlasticDissipation = 0.0;
@@ -553,18 +579,9 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         double initial_threshold;
         GetInitialUniaxialThreshold(rValues, initial_threshold);
-
-        if ( characteristic_fracture_energy_compression >= minimum_characteristic_fracture_energy_exponential_softening){ // Exponential softening
-        //     KRATOS_WATCH("ahora")
-            rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
-            rSlope = - initial_threshold;
-        } else { //Linear softening which is the one that requires minimum fracture energy
-            KRATOS_WATCH("here")
-            CalculateEquivalentStressThresholdHardeningCurveLinearSoftening(
-                PlasticDissipation, TensileIndicatorFactor,
-                CompressionIndicatorFactor, rEquivalentStressThreshold, rSlope,
-                rValues);
-        }
+        KRATOS_ERROR_IF(characteristic_fracture_energy_compression < minimum_characteristic_fracture_energy_exponential_softening) << "The Fracture Energy is to low: " << characteristic_fracture_energy_compression << std::endl;
+        rEquivalentStressThreshold = initial_threshold * (1.0 - PlasticDissipation);
+        rSlope = - initial_threshold;
     }
 
     /**

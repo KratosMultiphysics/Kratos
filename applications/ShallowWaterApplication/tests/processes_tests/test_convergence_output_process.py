@@ -9,7 +9,6 @@ try:
 except ImportError:
     h5py_available = False
 
-@KratosUnittest.skipIfApplicationsNotAvailable("StatisticsApplication")
 class TestConvergenceOutputProcess(KratosUnittest.TestCase):
 
     def tearDown(self):

@@ -1,0 +1,66 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "solver_settings"                  : {
+        "solver_type"     : "adjoint_potential_flow",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "reform_dofs_at_each_step"  : true,
+        "model_import_settings"  : {
+            "input_type"     : "mdpa",
+                "input_filename" : "../naca0012_small_mdpa/naca0012_small"
+        },
+        "echo_level"             : 0,
+        "formulation" :
+        {
+            "element_type": "compressible"
+        },
+        "compute_reactions"			   : false,
+        "linear_solver_settings"  : {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
+        "response_function_settings" : {
+            "response_type"     : "adjoint_lift_jump_coordinates",
+            "use_kratos"        : true,
+            "gradient_mode"     : "semi_analytic",
+            "step_size"         : 1e-9
+        },
+        "sensitivity_settings" : {
+            "nodal_solution_step_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe" : false,
+            "build_mode": "static"
+        }
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.2,
+                "free_stream_density": 1.225,
+                "inlet_potential"         : 1.0,
+                "initialize_flow_field": false
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "epsilon"         : 1e-9,
+                "echo_level"      : 0
+            }
+        }]
+    }
+}

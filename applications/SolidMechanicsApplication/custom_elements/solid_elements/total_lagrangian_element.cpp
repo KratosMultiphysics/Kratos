@@ -143,11 +143,11 @@ TotalLagrangianElement::~TotalLagrangianElement()
 //************************************************************************************
 
 
-void TotalLagrangianElement::Initialize()
+void TotalLagrangianElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    LargeDisplacementElement::Initialize();
+    LargeDisplacementElement::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -404,7 +404,7 @@ double& TotalLagrangianElement::CalculateVolumeChange( double& rVolumeChange, El
 //************************************************************************************
 //************************************************************************************
 
-int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -430,7 +430,7 @@ int TotalLagrangianElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for(SizeType i=0; i<this->GetGeometry().size(); ++i)
       {
 	// Nodal data
-	Node<3> &rNode = this->GetGeometry()[i];
+	const Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 

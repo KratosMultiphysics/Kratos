@@ -12,24 +12,21 @@
 
 **XMC** is **free** under BSD-4 license.
 
-## Main Features
+## Main features
 The algorithms **XMC** can run include:
 - Monte Carlo,
 - Multilevel Monte Carlo,
 - Continuation Multilevel Monte Carlo,
 - Asynchronous Monte Carlo and Multilevel Monte Carlo.
 
-## Documentation and Usage
-Documentation can be found in the form of Docstrings in the code and [here](http://exaqute.eu/wp-content/uploads/sites/10/2019/10/M12_ExaQUte_deliverable_5.2_Release_of_ExaQUte-MLMC_Python_engine.pdf).
+## Documentation and usage
+Documentation is still a work in progress. 
+It can be found in the form of docstrings in the code and as HTML pages in `doc/html`. 
+In particular, see `doc/html/start.html` for help in installing and configuring XMC.
+If you do not wish to download these files manually, you may follow [this link](https://glcdn.githack.com/RiccardoRossi/exaqute-xmc/-/raw/be43a6c4ea8144a35bbbcf6b75201af1922dc604/doc/html/index.html) instead.
+That link may be updated more slowly; the files in `doc/html` are the reference.
+
 Some examples and validation benchmarks can be found [here](https://gitlab.com/RiccardoRossi/exaqute-xmc/-/tree/development/examples/).
-
-## Dependencies
-- NumPy;
-- SciPy.
-
-Optional dependencies for parallel computation:
-- [COMPSs](https://github.com/bsc-wdc/compss) 2.8 (including its Python interface PyCOMPSs) or [HyperLoom](https://github.com/It4innovations/HyperLoom);
-- MPI.
 
 ## External collaborations
 **XMC** is integrated with [Kratos Multiphysics](https://github.com/KratosMultiphysics/Kratos) as solver software.

@@ -46,6 +46,7 @@ add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
+add_app ${KRATOS_APP_DIR}/RomApplication;
 
 # Clean
 clear
@@ -68,4 +69,4 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DINCLUDE_MMG=ON                                    \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install    -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

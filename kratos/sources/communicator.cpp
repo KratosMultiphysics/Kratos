@@ -389,6 +389,11 @@ bool Communicator::SynchronizeVariable(Variable<Matrix> const& rThisVariable)
     return true;
 }
 
+bool Communicator::SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable)
+{
+    return true;
+}
+
 bool Communicator::SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable)
 {
     return true;
@@ -430,6 +435,11 @@ bool Communicator::SynchronizeNonHistoricalVariable(Variable<Vector> const& rThi
 }
 
 bool Communicator::SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable)
+{
+    return true;
+}
+
+bool Communicator::SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable)
 {
     return true;
 }
