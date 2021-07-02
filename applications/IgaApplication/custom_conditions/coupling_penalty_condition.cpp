@@ -343,10 +343,18 @@ namespace Kratos
             }
         }
 
-        // compute the actual base vectors of master
+        // compute the actual base vectors of master or slave
         array_1d<double, 3> g1, g2, g3;
         Matrix J;
-        GetGeometry().GetGeometryPart(0).Jacobian(J, IntegrationPointIndex);
+
+        if (master)
+        {
+            GetGeometry().GetGeometryPart(0).Jacobian(J, IntegrationPointIndex);
+        }
+        else 
+        {
+            GetGeometry().GetGeometryPart(1).Jacobian(J, IntegrationPointIndex);
+        }
 
         g1 = column(J, 0);
         g2 = column(J, 1);

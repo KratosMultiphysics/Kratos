@@ -118,9 +118,9 @@ public:
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
 
-        ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateSecondVector(rDeviator, J2, second_vector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateThirdVector(rDeviator, J2, third_vector);
 
         const double c1 = 0.0;
         const double c2 = std::sqrt(3.0);

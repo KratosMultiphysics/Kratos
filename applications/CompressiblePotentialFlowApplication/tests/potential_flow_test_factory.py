@@ -19,11 +19,11 @@ except:
     numpy_stl_is_available = False
 
 try:
-    # import KratosMultiphysics.MultilevelMonteCarloApplication
-    # import xmc
-    # import exaqute
-    # import numpy as np
-    is_xmc_available = False
+    import KratosMultiphysics.MultilevelMonteCarloApplication
+    import xmc
+    import exaqute
+    import numpy as np
+    is_xmc_available = True
 except:
     is_xmc_available = False
 
@@ -61,6 +61,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.3230253050805644, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.32651526722535246, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.0036897206842046205, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.3230253050805686, 0.0, 1e-9)
             self._runTest(settings_file_name_adjoint)
             self._runTest(settings_file_name_adjoint_farfield)
             self._runTest(settings_file_name_adjoint_analytical)
@@ -81,6 +82,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.48769319614651147, 0.0, 1e-9)
             self._check_perimeter_computation()
 
             for file_name in os.listdir():
@@ -99,6 +101,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.3804473187215503, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.8890010565994741, 0.0, 1e-8)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.9085576033568474, 0.0, 1e-8)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.88900105659947, 0.0, 1e-9)
 
         kratos_utilities.DeleteTimeFiles(work_folder)
 
@@ -114,6 +117,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.MOMENT_COEFFICIENT], -0.1631792300021498, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.4876931961465126, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.4953997676243705, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(13).GetValue(CPFApp.POTENTIAL_JUMP), 0.48769319614651147, 0.0, 1e-9)
 
             for file_name in os.listdir():
                 if file_name.endswith(".time"):
@@ -211,6 +215,7 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7241685913941622, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7312296375421161, 0.0, 1e-9)
             self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD], 0.008607693464186337, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(49).GetValue(CPFApp.POTENTIAL_JUMP), 0.3579390169527855, 0.0, 1e-9)
 
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication")
     def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
@@ -219,15 +224,15 @@ class PotentialFlowTests(UnitTest.TestCase):
         with UnitTest.WorkFolderScope(work_folder, __file__):
             __import__(work_folder+".run_test")
 
-    # @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication")
-    # def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
-    #     if not is_xmc_available:
-    #         self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
+    @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication")
+    def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
+        if not is_xmc_available:
+            self.skipTest("XMC and its dependencies could not be imported. Please check applications/MultilevelMonteCarloApplication/README.md for installation details")
 
-    #     work_folder = "stochastic_body_fitted_opt"
+        work_folder = "stochastic_body_fitted_opt"
 
-    #     with UnitTest.WorkFolderScope(work_folder, __file__):
-    #         __import__(work_folder+".run_test")
+        with UnitTest.WorkFolderScope(work_folder, __file__):
+            __import__(work_folder+".run_test")
 
     def _validateWakeProcess(self,reference_element_id_list, variable_name):
         variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
