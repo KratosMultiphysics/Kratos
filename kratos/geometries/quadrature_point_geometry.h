@@ -255,15 +255,15 @@ public:
         return *this;
     }
 
-    /// Move assignment operator.
+    /// Assignment operator with other Dimension.
     template<int TOtherDimension>
     QuadraturePointGeometry& operator=(
         const QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
     {
-        BaseType::operator=(std::move(rOther));
+        BaseType::operator=(rOther);
 
-        mGeometryData = std::move(rOther.mGeometryData);
-        mpGeometryParent = std::move(rOther.mpGeometryParent);
+        mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
