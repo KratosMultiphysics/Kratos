@@ -283,7 +283,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().FinalizeSolutionStep()
 
             # Limit the obtained acceleration for the next step
-            self._GetAccelerationLimitationUtility().Execute()
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] > 3:
+                self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
