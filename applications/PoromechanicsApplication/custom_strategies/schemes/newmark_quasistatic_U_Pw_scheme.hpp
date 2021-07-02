@@ -18,6 +18,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -124,8 +125,8 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        r_model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -143,8 +144,8 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        r_model_part.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
+        r_model_part.GetProcessInfo().SetValue(DT_PRESSURE_COEFFICIENT,1.0/(mTheta*mDeltaTime));
 
         const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
@@ -461,7 +462,7 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 
