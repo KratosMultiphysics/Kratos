@@ -58,8 +58,6 @@ public:
     typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = std::numeric_limits<IndexType>::max();
-
     ///@}
     ///@name Life Cycle
     ///@{
@@ -121,8 +119,8 @@ public:
 
     /**
     * @brief This function returns the pointer of the background geometry
-    *        of this point. Accesseable via BACKGROUND_GEOMETRY_INDEX.
-    * @param Index: only possible with BACKGROUND_GEOMETRY_INDEX.
+    *        of this point. Accesseable via GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: only possible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     GeometryPointer pGetGeometryPart(IndexType Index) override
@@ -134,13 +132,13 @@ public:
 
     /**
     * @brief This function returns the pointer of the background geometry
-    *        of this point. Accesseable via BACKGROUND_GEOMETRY_INDEX.
-    * @param Index: only possible with BACKGROUND_GEOMETRY_INDEX.
+    *        of this point. Accesseable via GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: only possible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(IndexType Index) const override
     {
-        if (Index == BACKGROUND_GEOMETRY_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpBackgroundGeometry;
 
         KRATOS_ERROR << "Index " << Index << " not existing as geometry part in PointOnGeometry #"
@@ -152,7 +150,7 @@ public:
      */
     bool HasGeometryPart(IndexType Index) const override
     {
-        return (Index == BACKGROUND_GEOMETRY_INDEX);
+        return (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX);
     }
 
     ///@}
@@ -185,7 +183,7 @@ public:
         KRATOS_ERROR << "Trying to access the GlobalCoordinates via PointOnGeometry. "
             << "However, this is not possible. Try to access the global coordinates of"
             << " any local coordinates via accessing the background geometry through: "
-            << "pGetGeometryPart(BACKGROUND_GEOMETRY_INDEX)." << std::endl;
+            << "pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)." << std::endl;
 
         return rResult;
     }
