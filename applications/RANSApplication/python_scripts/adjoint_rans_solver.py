@@ -649,10 +649,12 @@ class AdjointRANSSolver(CoupledRANSSolver):
             # add primal variables
             for variable in self.formulation.GetSolvingVariables():
                 list_of_variable_names.extend([var.Name() for var in GetTimeDerivativeVariablesRecursively(variable)])
+
             # add primal auxiliary variables
-            list_of_variable_names.extend([
-                "NORMAL"
-            ])
+            self._CheckAndAddVariableIfExisting(list_of_variable_names, Kratos.NORMAL)
+            self._CheckAndAddVariableIfExisting(list_of_variable_names, Kratos.DISTANCE)
+            self._CheckAndAddVariableIfExisting(list_of_variable_names, Kratos.BODY_FORCE)
+
             # add adjoint variables
             list_of_variable_names.extend([
                 "ADJOINT_FLUID_VECTOR_1",
@@ -710,3 +712,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         else:
             parameters.AddEmptyValue(check_string)
             parameters[check_string].SetStringArray(required_values)
+
+    def _CheckAndAddVariableIfExisting(self, list_of_variable_names, variable):
+        if (self.GetComputingModelPart().HasNodalSolutionStepVariable(variable)):
+            list_of_variable_names.append(variable.Name())
