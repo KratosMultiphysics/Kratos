@@ -474,7 +474,7 @@ class CoupledRANSSolver(PythonSolver):
             from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
             primal_model = Kratos.Model()
             primal_simulation = RANSAnalysis(primal_model, primal_parameters)
-            with open(str(log_path / "primal_error_analysis_evaluation_step_{:d}.json".format(current_step), "w")) as file_output:
+            with open(str(log_path / "primal_error_analysis_evaluation_step_{:d}.json".format(current_step)), "w") as file_output:
                 file_output.write(primal_parameters.PrettyPrintJsonString())
             primal_simulation.Run()
             RemoveFileLoggerOutput(default_severity, file_logger)
@@ -506,7 +506,7 @@ class CoupledRANSSolver(PythonSolver):
             from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
             adjoint_model = Kratos.Model()
             adjoint_simulation = AdjointRANSAnalysis(adjoint_model, adjoint_parameters)
-            with open(str(log_path / "adjoint_error_analysis_evaluation_step_{:d}.json".format(current_step), "w")) as file_output:
+            with open(str(log_path / "adjoint_error_analysis_evaluation_step_{:d}.json".format(current_step)), "w") as file_output:
                 file_output.write(adjoint_parameters.PrettyPrintJsonString())
             adjoint_simulation.Run()
             RemoveFileLoggerOutput(default_severity, file_logger)
