@@ -343,7 +343,8 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMHertzCompleteTestContact('test_execution'))
 
     # Penalty frictionless tests
-    validationSuite.addTest(TExplicitPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TExplicitPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Exact integration tests
     validationSuite.addTest(TTestDoubleCurvatureIntegration('test_double_curvature_integration_triangle'))
@@ -359,8 +360,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TTestMortarMapperCore('test_mortar_mapping_quad'))
 
     # Some large displacement tests
-    validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
-    validationSuite.addTest(TMeshTyingValidationTest('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TLargeDisplacementPatchTestHexa('test_execution'))
+        validationSuite.addTest(TMeshTyingValidationTest('test_execution'))
 
     # ALM frictionless tests
     validationSuite.addTest(TALMTaylorPatchDynamicTestContact('test_execution'))
@@ -368,8 +370,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMMeshMovingNotMatchingTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningTestContact('test_execution'))
     #validationSuite.addTest(TALMIroningDieTestContact('test_execution'))
-    validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
-    validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TALMLargeDisplacementPatchTestTetra('test_execution'))
+        validationSuite.addTest(TALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TALMMultiLayerContactTest('test_execution'))
     validationSuite.addTest(TALMSelfContactContactTest('test_execution'))
 
@@ -377,8 +380,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TComponentsALMTaylorPatchDynamicTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMMeshMovingMatchingTestContact('test_execution'))
     validationSuite.addTest(TComponentsALMMeshMovingNotMatchingTestContact('test_execution'))
-    validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
-    validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestTetra('test_execution'))
+        validationSuite.addTest(TComponentsALMLargeDisplacementPatchTestHexa('test_execution'))
     validationSuite.addTest(TComponentsALMMultiLayerContactTest('test_execution'))
     validationSuite.addTest(TComponentsALMSelfContactContactTest('test_execution'))
 
@@ -387,8 +391,9 @@ def AssembleTestSuites():
     validationSuite.addTest(TALMTaylorPatchFrictionalTestContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingMatchingTestFrictionalPureSlipContact('test_execution'))
     validationSuite.addTest(TALMMeshMovingNotMatchingTestFrictionalPureSlipContact('test_execution'))
-    validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
-    validationSuite.addTest(TALMBlockTestFrictionalContact('test_execution'))
+    if has_CL_application:
+        validationSuite.addTest(TALMHertzTestFrictionalContact('test_execution'))
+        validationSuite.addTest(TALMBlockTestFrictionalContact('test_execution'))
 
     # MPC contact test
     validationSuite.addTest(TBeamAxilContactTest('test_execution'))
