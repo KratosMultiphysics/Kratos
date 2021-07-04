@@ -1,6 +1,12 @@
-# import Kratos
+# Import Kratos
 import KratosMultiphysics
+
+# Import CPP tests
 import run_cpp_unit_tests
+
+# Import kratos_utilities
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+has_CL_application = kratos_utilities.CheckIfApplicationsAvailable("ConstitutiveLawsApplication")
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -208,11 +214,13 @@ def AssembleTestSuites():
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TALMHyperSimpleSlopePatchTestContact('test_execution'))
-    smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Penalty frictionless tests
     smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact('test_execution'))
-    smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Components ALM frictionless tests
     smallSuite.addTest(TComponentsALMHyperSimpleTrianglePatchTestContact('test_execution'))
@@ -220,7 +228,8 @@ def AssembleTestSuites():
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimplePatchTestWithEliminationWithConstraintContact('test_execution'))
     smallSuite.addTest(TComponentsALMHyperSimpleSlopePatchTestContact('test_execution'))
-    smallSuite.addTest(TComponentsALMThreeDSimplestPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TComponentsALMThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # ALM frictional tests
     smallSuite.addTest(TALMHyperSimplePatchFrictionalTestContact('test_execution'))
@@ -240,8 +249,9 @@ def AssembleTestSuites():
     # MPC contact test
     smallSuite.addTest(TTwoDSimplestPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TTwoDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
-    smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
-    smallSuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
+    if has_CL_application:
+        smallSuite.addTest(TThreeDSimplestPatchMatchingTestContact('test_execution'))
+        smallSuite.addTest(TThreeDSimplestWithFrictionPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchMatchingTestContact('test_execution'))
     smallSuite.addTest(TThreeDPatchNotMatchingTestContact('test_execution'))
@@ -272,9 +282,10 @@ def AssembleTestSuites():
     nightlySuite.addTest(TALMSimpleSlopePatchTestContact('test_execution'))
     nightlySuite.addTest(TALMSimplePatchNotMatchingATestContact('test_execution'))
     nightlySuite.addTest(TALMSimplePatchNotMatchingBTestContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
-    nightlySuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
+    if has_CL_application:
+        nightlySuite.addTest(TALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
+        nightlySuite.addTest(TALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
+        nightlySuite.addTest(TALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     nightlySuite.addTest(TALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     nightlySuite.addTest(TALMThreeDPatchComplexGeomTestContact('test_execution'))
     nightlySuite.addTest(TALMTThreeDPatchMatchingTestContact('test_execution'))
@@ -290,9 +301,10 @@ def AssembleTestSuites():
     nightlySuite.addTest(TComponentsALMSimpleSlopePatchTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMSimplePatchNotMatchingATestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMSimplePatchNotMatchingBTestContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
-    nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
+    if has_CL_application:
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestTriQuadContact('test_execution'))
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchTestQuadTriContact('test_execution'))
+        nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingAdaptativeTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMThreeDSimplestPatchMatchingSlopeTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMThreeDPatchComplexGeomTestContact('test_execution'))
     nightlySuite.addTest(TComponentsALMTThreeDPatchMatchingTestContact('test_execution'))
