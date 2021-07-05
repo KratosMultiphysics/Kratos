@@ -4,11 +4,11 @@
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #include "create_and_destroy.h"
-#include "../custom_elements/spheric_continuum_particle.h"
-#include "../custom_elements/analytic_spheric_particle.h"
-#include "../custom_elements/cluster3D.h"
-#include "../custom_utilities/GeometryFunctions.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/cluster3D.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 
 namespace Kratos {
 
@@ -34,10 +34,7 @@ namespace Kratos {
         mpAnalyticWatcher = p_watcher;
     }
 
-    //Particle_Creator_Destructor() {};
-
     /// Destructor.
-
     ParticleCreatorDestructor::~ParticleCreatorDestructor() {
         mDoSearchNeighbourElements = true; // true by default. It should be set to false by the strategy (friend class) if appropriate
     }

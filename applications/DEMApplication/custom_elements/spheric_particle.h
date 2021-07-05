@@ -12,13 +12,13 @@
 // Project includes
 #include "includes/define.h"
 #include "discrete_element.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "../custom_conditions/RigidFace.h"
-#include "../custom_conditions/dem_wall.h"
-#include "../custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_conditions/RigidFace.h"
+#include "custom_conditions/dem_wall.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "includes/kratos_export_api.h"
-#include "../custom_utilities/properties_proxies.h"
+#include "custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
 namespace Kratos
