@@ -67,6 +67,9 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+        virtual double SetMaxDistributionRadius(ModelPart& mp);
+        virtual double SetDistributionMeanRadius(ModelPart& mp);
+
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
         virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);

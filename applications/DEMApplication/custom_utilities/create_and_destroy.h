@@ -59,6 +59,7 @@ public:
     int FindMaxConditionIdInModelPart(ModelPart& r_modelpart);
     void RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id);
     void DestroyMarkedParticles(ModelPart& r_model_part);
+    virtual double SelectRadius(bool initial, ModelPart& r_sub_model_part_with_parameters);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,

@@ -297,21 +297,9 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                        int r_Elem_Id,
-                                                                        Node < 3 > ::Pointer reference_node,
-                                                                        Element::Pointer injector_element,
-                                                                        Properties::Pointer r_params,
-                                                                        ModelPart& r_sub_model_part_with_parameters,
-                                                                        std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
-                                                                        const Element& r_reference_element,
-                                                                        PropertiesProxy* p_fast_properties,
-                                                                        bool has_sphericity,
-                                                                        bool has_rotation,
-                                                                        bool initial,
-                                                                        ElementsContainerType& array_of_injector_elements) {
+    double ParticleCreatorDestructor::SelectRadius(bool initial, ModelPart& r_sub_model_part_with_parameters){
+
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
         const double& max_radius = r_sub_model_part_with_parameters[MAXIMUM_RADIUS];
@@ -328,6 +316,29 @@ namespace Kratos {
             else if (distribution_type == "piecewise_linear") radius = r_random_variables_map[r_sub_model_part_with_parameters.Name()].Sample();
             else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
         }
+
+        return radius;
+        KRATOS_CATCH("")
+    }
+
+
+    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                                        int r_Elem_Id,
+                                                                        Node < 3 > ::Pointer reference_node,
+                                                                        Element::Pointer injector_element,
+                                                                        Properties::Pointer r_params,
+                                                                        ModelPart& r_sub_model_part_with_parameters,
+                                                                        std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
+                                                                        const Element& r_reference_element,
+                                                                        PropertiesProxy* p_fast_properties,
+                                                                        bool has_sphericity,
+                                                                        bool has_rotation,
+                                                                        bool initial,
+                                                                        ElementsContainerType& array_of_injector_elements) {
+        KRATOS_TRY
+        Node<3>::Pointer pnew_node;
+
+        double radius = SelectRadius(initial, r_sub_model_part_with_parameters);
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
