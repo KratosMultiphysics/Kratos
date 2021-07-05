@@ -28,7 +28,7 @@ GiDMultiFileFlag = "Single"
 current_model = km.Model()
 optimized_model_part = current_model.CreateModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(km.NORMAL)
-restart_file_name = "Small_Cantilever_Restart_File_5"
+restart_file_name = "/home/philipp/opt/kratos/applications/TopologyOptimizationApplication/examples/04_Example_tiny/Small_Cantilever_Restart_File_5"
 model_part_io = km.ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 
@@ -38,26 +38,38 @@ extracted_volume_model_part = current_model.CreateModelPart("extracted_volume_mo
 TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extracted_volume_model_part)
 
 # Write extracted volume
-gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_part", 
-                                    km.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
+gid_io = GiDOutputProcess(extracted_volume_model_part, "output", 
+                                    km.Parameters('''{
+                                                "result_file_configuration": {
+                                                    "gidpost_flags": {
+                                                        "GiDPostMode": "GiD_PostBinary",
+                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                        "WriteConditionsFlag": "WriteElementsOnly",
+                                                        "MultiFileFlag": "SingleFile"
+                                                    },
+                                                    "file_label": "time",
+                                                    "output_control_type": "step",
+                                                    "output_interval": 1.0,
+                                                    "flush_after_output": false,
+                                                    "body_output": true,
+                                                    "node_output": false,
+                                                    "skin_output": false,
+                                                    "plane_output": [],
+                                                    "nodal_results": [],
+                                                    "nodal_nonhistorical_results": [],
+                                                    "nodal_flags_results": [],
+                                                    "elemental_conditional_flags_results": [],
+                                                    "gauss_point_results": [],
+                                                    "additional_list_files": []
                                                 },
-                                                "nodal_results"       : ["X_PHYS"]
-                                            }
-                                        }
-                                        """)
+                                                "point_data_configuration": []
+                                            }''')
                                     )
-#gid_io.initialize_results(extracted_volume_model_part)
-#gid_io.write_results(1, extracted_volume_model_part, nodal_results, gauss_points_results)
-#gid_io.finalize_results()
+#gid_io.__initialize_results(extracted_volume_model_part)
+#gid_io.__write_nodal_results(extracted_volume_model_part)
+#gid_io.__finalize_results()
 gid_io.ExecuteInitialize()
-#gid_io.ExecuteBeforeSolutionLoop()
+gid_io.ExecuteBeforeSolutionLoop()
 #gid_io.ExecuteInitializeSolutionStep()
 gid_io.PrintOutput()
 #gid_io.ExecuteFinalizeSolutionStep()
@@ -65,7 +77,7 @@ gid_io.ExecuteFinalize()
 
 # Extract surface
 extracted_surface_model_part = current_model.CreateModelPart("extracted_surface_model_part")
-TopologyExtractorUtilities().ExtractSurfaceMesh(extracted_volume_model_part, extracted_surface_model_part)
+TopologyExtractorUtilities().ExtractSurfaceMesh(optimized_model_part, extracted_surface_model_part)
 
 # Write extracted surface
 #gid_io_2 = GiDOutputProcess(extracted_volume_model_part,"extracted_surface_model_part",
