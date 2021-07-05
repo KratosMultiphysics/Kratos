@@ -721,7 +721,27 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
             rOutput[PointNumber] = Variables.StrainVector;
         }
-    } else if ( rVariable == FLUID_FLUX_VECTOR ) {
+    } else {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const GeometryType& rGeom = GetGeometry();
+    const unsigned int& integration_points_number = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rOutput.size() != integration_points_number )
+        rOutput.resize( integration_points_number );
+
+    if ( rVariable == FLUID_FLUX_VECTOR ) {
         //Definition of variables
         ElementalVariables Variables;
         this->InitializeElementalVariables(Variables,rCurrentProcessInfo);
@@ -752,14 +772,11 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             Vector AuxFluidFlux = ZeroVector(Dim);
             AuxFluidFlux = - 1.0/Variables.DynamicViscosity * prod(Variables.IntrinsicPermeability, GradPressureTerm );
 
-            Vector FluidFlux = ZeroVector(3);
+            array_1d<double,3> FluidFlux = ZeroVector(3);
             FluidFlux[0] = AuxFluidFlux[0];
             FluidFlux[1] = AuxFluidFlux[1];
             if(Dim>2)
                 FluidFlux[2] = AuxFluidFlux[2];
-
-            if ( rOutput[PointNumber].size() != 3 )
-                rOutput[PointNumber].resize( 3, false );
 
             rOutput[PointNumber] = FluidFlux;
         }
@@ -780,20 +797,14 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
             Vector GradPressure(Dim);
             noalias(GradPressure) = prod(trans(Variables.GradNpT),Variables.PressureVector);
 
-            Vector GradPressureVector = ZeroVector(3);
+            array_1d<double,3> GradPressureVector = ZeroVector(3);
             GradPressureVector[0] = GradPressure[0];
             GradPressureVector[1] = GradPressure[1];
             if(Dim>2)
                 GradPressureVector[2] = GradPressure[2];
 
-            if ( rOutput[PointNumber].size() != 3 )
-                rOutput[PointNumber].resize( 3, false );
-
             rOutput[PointNumber] = GradPressureVector;
         }
-    } else {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
     }
 
     KRATOS_CATCH( "" )
