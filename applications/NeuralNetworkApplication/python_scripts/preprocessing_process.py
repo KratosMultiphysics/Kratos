@@ -43,5 +43,9 @@ class PreprocessingProcess(NeuralNetworkProcess):
             
 
     def Preprocess(self, data_in, data_out):
-
+        """Preprocessing of the data."""
+        return [data_in, data_out]
+    
+    def Invert(self, data_in, data_out):
+        """Inverts de transformation."""
         return [data_in, data_out]

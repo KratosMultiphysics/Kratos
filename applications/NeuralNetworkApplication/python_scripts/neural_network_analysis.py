@@ -138,6 +138,10 @@ class NeuralNetworkAnalysis(AnalysisStage):
         """
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
+        for process in self._GetListOfProcesses():
+            process.TransformPredictions(self._GetListOfProcesses())
+        for process in self._GetListOfProcesses():
+            process.Plot()
 
     def RunTrainingLoop(self):
         if self.problem_type == "train":

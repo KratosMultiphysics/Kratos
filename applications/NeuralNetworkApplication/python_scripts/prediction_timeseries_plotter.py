@@ -40,7 +40,7 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
         self.axis = parameters["axis"].GetString()
         self.training_timesteps = parameters["training_timesteps"].GetInt()
 
-    def ExecuteFinalize(self):
+    def Plot(self):
 
         target = ImportDataFromFile(self.target_file, "OutputData")
         if self.predictions_file.endswith('.npy'):

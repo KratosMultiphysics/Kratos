@@ -23,6 +23,10 @@ class MaskingProcess(PreprocessingProcess):
         if not self.load_from_log:
             self.variable_ids = settings["variable_ids"].GetVector()
         self.objective = settings["objective"].GetString()
+        try:
+            self.log_denominator = settings["log_denominator"].GetString()
+        except RuntimeError:
+            self.log_denominator = "masking"
 
     def Preprocess(self, data_in, data_out):
 
@@ -33,15 +37,15 @@ class MaskingProcess(PreprocessingProcess):
                 # Mask from log
                 if self.load_from_log:
                     input_log = ImportDictionaryFromText(self.input_log_name)
-                    if "masking" in input_log:
-                        masking_ids = input_log["masking"]
+                    if self.log_denominator in input_log:
+                        masking_ids = input_log[self.log_denominator]
                     else:
                         raise Exception("No masking parameters in the input log file.")
                 # Mask from JSON
                 else:
                     masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
                     input_log = ImportDictionaryFromText(self.input_log_name)
-                    input_log.update({'masking': masking_ids})
+                    input_log.update({self.log_denominator: masking_ids})
                     UpdateDictionaryJson(self.input_log_name, input_log)
             except AttributeError:
                 print("Input not logged")
@@ -55,15 +59,15 @@ class MaskingProcess(PreprocessingProcess):
                 # Mask from log
                 if self.load_from_log:
                     output_log = ImportDictionaryFromText(self.output_log_name)
-                    if "masking" in output_log:
-                        masking_ids = output_log["masking"]
+                    if self.log_denominator in output_log:
+                        masking_ids = output_log[self.log_denominator]
                     else:
                         raise Exception("No masking parameters in the output log file.")
                 # Mask from JSON
                 else:
                     masking_ids = list(map(round, KratosVectorToList(self.variable_ids)))
                     output_log = ImportDictionaryFromText(self.output_log_name)
-                    output_log.update({'masking': masking_ids})
+                    output_log.update({self.log_denominator: masking_ids})
                     UpdateDictionaryJson(self.output_log_name, output_log)
             except AttributeError:
                 print("Output not logged")

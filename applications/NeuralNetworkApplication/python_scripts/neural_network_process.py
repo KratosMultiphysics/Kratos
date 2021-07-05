@@ -39,6 +39,14 @@ class NeuralNetworkProcess(KM.Process):
         """ Process to preprocess the data. """
         pass
 
+    def Invert(self, data_in, data_out):
+        """ Process to invert the transformations of the data. """
+        pass
+
+    def TransformPredictions(self, processes):
+        """ Process to transform the predictions."""
+        pass
+
     def Initialize(self):
         """ Process to initialize a network. """
         pass
@@ -61,4 +69,8 @@ class NeuralNetworkProcess(KM.Process):
 
     def CompileMetric(self):
         """ Process for compiling a metric. """
+        pass
+
+    def Plot(self):
+        """ Process for plotting."""
         pass

@@ -17,11 +17,16 @@ class NormalizationProcess(PreprocessingProcess):
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the container of the different model parts.
         settings -- Kratos parameters containing process settings.
         """
 
         self.objective = settings["objective"].GetString()
+        try:
+            self.log_denominator = settings["log_denominator"].GetString()
+        except RuntimeError:
+            self.log_denominator = "normalization"
+        
+        # Centering
         if settings.Has("center"):
             self.center = settings["center"].GetString()
         else:
@@ -41,7 +46,11 @@ class NormalizationProcess(PreprocessingProcess):
             centering_parameters.RemoveValue("output_log_name")
         centering_parameters.AddEmptyValue("load_from_log")
         centering_parameters["load_from_log"].SetBool(self.load_from_log)
+        centering_parameters.AddEmptyValue("log_denominator")
+        centering_parameters["log_denominator"].SetString(self.log_denominator + 'center')
         self.center_process = CenteringProcess(centering_parameters)
+
+        # Scaling
         if settings.Has("scale"):
             self.scale = settings["scale"].GetString()
         else:
@@ -61,6 +70,8 @@ class NormalizationProcess(PreprocessingProcess):
             scaling_parameters.RemoveValue("output_log_name")
         scaling_parameters.AddEmptyValue("load_from_log")
         scaling_parameters["load_from_log"].SetBool(self.load_from_log)
+        scaling_parameters.AddEmptyValue("log_denominator")
+        scaling_parameters["log_denominator"].SetString(self.log_denominator + 'scaling')
         self.scale_process = ScalingProcess(scaling_parameters)
         
     def Preprocess(self, data_in, data_out):
@@ -69,3 +80,11 @@ class NormalizationProcess(PreprocessingProcess):
         [data_in , data_out] = self.scale_process.Preprocess(data_in, data_out)
 
         return [data_in, data_out]
+    
+    def Invert(self, data_in, data_out):
+        
+        [data_in , data_out] = self.scale_process.Invert(data_in, data_out)
+        [data_in , data_out] = self.center_process.Invert(data_in, data_out)
+
+        return [data_in, data_out]
+

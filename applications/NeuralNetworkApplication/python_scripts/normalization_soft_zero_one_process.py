@@ -22,6 +22,10 @@ class NormalizationZeroOneProcess(PreprocessingProcess):
         """
 
         self.objective = settings["objective"].GetString()
+        try:
+            self.log_denominator = settings["log_denominator"].GetString()
+        except RuntimeError:
+            self.log_denominator = "normalization_soft_zero_one"
 
         # Set the centering
         if settings.Has("center"):
@@ -43,6 +47,8 @@ class NormalizationZeroOneProcess(PreprocessingProcess):
             centering_parameters.RemoveValue("output_log_name")
         centering_parameters.AddEmptyValue("load_from_log")
         centering_parameters["load_from_log"].SetBool(self.load_from_log)
+        centering_parameters.AddEmptyValue("log_denominator")
+        centering_parameters["log_denominator"].SetString(self.log_denominator + 'center')
         self.center_process = CenteringProcess(centering_parameters)
 
         # Set the scaling
@@ -65,11 +71,14 @@ class NormalizationZeroOneProcess(PreprocessingProcess):
             scaling_parameters.RemoveValue("output_log_name")
         scaling_parameters.AddEmptyValue("load_from_log")
         scaling_parameters["load_from_log"].SetBool(self.load_from_log)
+        scaling_parameters.AddEmptyValue("log_denominator")
+        scaling_parameters["log_denominator"].SetString(self.log_denominator + 'scaling')
         self.scale_process = ScalingProcess(scaling_parameters)
         
         # Recenter for avoiding the 0
         self.center = 'soft_minmax'
         centering_parameters["center"].SetString(self.center)
+        centering_parameters["log_denominator"].SetString(self.log_denominator + 'recenter')
         self.center_correction_process = CenteringProcess(centering_parameters)
 
     def Preprocess(self, data_in, data_out):
@@ -77,5 +86,13 @@ class NormalizationZeroOneProcess(PreprocessingProcess):
         [data_in , data_out] = self.center_process.Preprocess(data_in, data_out)
         [data_in , data_out] = self.scale_process.Preprocess(data_in, data_out)
         [data_in , data_out] = self.center_correction_process.Preprocess(data_in, data_out)
+
+        return [data_in, data_out]
+    
+    def Invert(self, data_in, data_out):
+        
+        [data_in , data_out] = self.center_correction_process.Invert(data_in, data_out)
+        [data_in , data_out] = self.scale_process.Invert(data_in, data_out)
+        [data_in , data_out] = self.center_process.Invert(data_in, data_out)
 
         return [data_in, data_out]

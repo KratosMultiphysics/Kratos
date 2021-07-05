@@ -9,14 +9,14 @@ def ImportDataFromFile(external_file,category):
     if external_file.endswith('.h5'):
         data = ImportH5(external_file, category)
     # Data loading for dat
-    elif external_file.endswith('.dat'):
+    elif external_file.endswith('.dat') or external_file.endswith('.csv'):
         data = ImportAscii(external_file)
     # Data loading for npy
     elif external_file.endswith('.npy'):
         data = ImportNpy(external_file)
     # Exception for non-supported formats
     else:
-        raise Exception(category + " data format not supported. Supported formats are .dat and .h5")
+        raise Exception(category + " data format not supported. Supported formats are .dat, .npy and .h5")
     return data
 
 def ImportH5(external_file,category):

@@ -29,8 +29,7 @@ class DivideDatasetProcess(PreprocessingProcess):
             print("The division proportion must be a value between 0.0 and 1.0.")
 
     def Preprocess(self, data_in, data_out):
-        """ This method records the lookback of timeseries and saves them. 
-            Normally applied before LSTM and RNN layers. """
+        """ This method divides the dataset in two parts """
 
         # new_data_in, new_data_out = [], []
 

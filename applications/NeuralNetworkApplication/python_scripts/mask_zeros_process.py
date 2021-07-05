@@ -21,6 +21,10 @@ class MaskZerosProcess(PreprocessingProcess):
         """
 
         self.objective = settings["objective"].GetString()
+        try:
+            self.log_denominator = settings["log_denominator"].GetString()
+        except RuntimeError:
+            self.log_denominator = "masking_zeros"
         
     def Preprocess(self, data_in, data_out):
 
@@ -67,6 +71,8 @@ class MaskZerosProcess(PreprocessingProcess):
             mask_parameters["load_from_log"].SetBool(self.load_from_log)
             mask_parameters.AddEmptyValue("variable_ids")
             mask_parameters["variable_ids"].SetVector(masking_variables)
+            mask_parameters.AddEmptyValue("log_denominator")
+            mask_parameters["log_denominator"].SetString(self.log_denominator)
 
             # Mask the dataset
             self.mask_process = MaskingProcess(mask_parameters)

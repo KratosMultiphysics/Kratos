@@ -42,7 +42,7 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
         self.output_name = parameters["output_name"].GetString()
         self.axis = parameters["axis"].GetString()
 
-    def ExecuteFinalize(self):
+    def Plot(self):
 
         input = ImportDataFromFile(self.input_file, "InputData")
         target = ImportDataFromFile(self.target_file, "OutputData")

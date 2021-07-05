@@ -28,6 +28,10 @@ class CenteringProcess(PreprocessingProcess):
         else:
             self.center = "mean"
         self.objective = settings["objective"].GetString()
+        try:
+            self.log_denominator = settings["log_denominator"].GetString()
+        except AttributeError:
+            self.log_denominator = "centering"
        
 
     def Preprocess(self, data_in, data_out):
@@ -44,64 +48,64 @@ class CenteringProcess(PreprocessingProcess):
             if self.objective == "input":
                 mean_in = np.mean(data_in, axis = 0)
                 data_in = data_in - mean_in
-                input_log.update({"centering" : mean_in.tolist()})
+                input_log.update({self.log_denominator : mean_in.tolist()})
             if self.objective == "output":
                 mean_out = np.mean(data_out, axis = 0)
                 data_out = data_out - mean_out
-                output_log.update({"centering" : mean_out.tolist()})
+                output_log.update({self.log_denominator : mean_out.tolist()})
             if self.objective == "all":
                 mean_in = np.mean(data_in, axis = 0)
                 data_in = data_in - mean_in
-                input_log.update({"centering" : mean_in.tolist()})
+                input_log.update({self.log_denominator : mean_in.tolist()})
                 mean_out = np.mean(data_out, axis = 0)
                 data_out = data_out - mean_out
-                output_log.update({"centering" : mean_out.tolist()})
+                output_log.update({self.log_denominator : mean_out.tolist()})
 
         # Centering from the minimum
         if self.center == "min":
             if self.objective == "input":
                 min = data_in.min(axis = 0)
                 data_in = data_in - min
-                input_log.update({"centering" : min.tolist()})
+                input_log.update({self.log_denominator : min.tolist()})
             if self.objective == "output":
                 min = data_out.min(axis = 0)
                 data_out = data_out - min
-                output_log.update({"centering" : min.tolist()})
+                output_log.update({self.log_denominator : min.tolist()})
             if self.objective == "all":
                 min = data_in.min(axis = 0)
                 data_in = data_in - min
-                input_log.update({"centering" : min.tolist()})
+                input_log.update({self.log_denominator : min.tolist()})
                 min = data_out.min(axis = 0)
                 data_out = data_out - min
-                output_log.update({"centering" : min.tolist()})
+                output_log.update({self.log_denominator : min.tolist()})
 
          # Centering for avoiding the 0 in soft_maxmin normalization
         if self.center == "soft_minmax":
             if self.objective == "input":
                 gap = (1.0 - data_in.max(axis = 0))/2.0
                 data_in = data_in + gap
-                input_log.update({"centering" : gap.tolist()})
+                input_log.update({self.log_denominator : gap.tolist()})
             if self.objective == "output":
                 gap = (1.0 - data_out.max(axis = 0))/2.0
                 data_out = data_out + gap
-                output_log.update({"centering" : gap.tolist()})
+                output_log.update({self.log_denominator : gap.tolist()})
             if self.objective == "all":
                 gap = (1.0 - data_in.max(axis = 0))/2.0
                 data_in = data_in + gap
-                input_log.update({"centering" : gap.tolist()})
+                input_log.update({self.log_denominator : gap.tolist()})
                 gap = (1.0 - data_out.max(axis = 0))/2.0
                 data_out = data_out + gap
-                output_log.update({"centering" : gap.tolist()})
+                output_log.update({self.log_denominator: gap.tolist()})
 
         # Centering from file log
         if self.center == "file":
             if self.objective == "input":
-                data_in = data_in - input_log.get("centering")
+                data_in = data_in - input_log.get(self.log_denominator)
             if self.objective == "output":
-                data_out = data_out - output_log.get("centering")
+                data_out = data_out - output_log.get(self.log_denominator)
             if self.objective == "all":
-                data_in = data_in - input_log.get("centering")
-                data_out = data_out - output_log.get("centering")
+                data_in = data_in - input_log.get(self.log_denominator)
+                data_out = data_out - output_log.get(self.log_denominator)
 
         # Updating the file log
         if not self.load_from_log:
@@ -112,3 +116,18 @@ class CenteringProcess(PreprocessingProcess):
                 pass
 
         return [data_in, data_out]
+
+    def Invert(self,data_in,data_out):
+        
+        input_log = ImportDictionaryFromText(self.input_log_name)
+        output_log = ImportDictionaryFromText(self.output_log_name)
+
+        if self.objective == "input":
+            data_in = data_in + input_log.get(self.log_denominator)
+        if self.objective == "output":
+            data_out = data_out + output_log.get(self.log_denominator)
+        if self.objective == "all":
+            data_in = data_in + input_log.get(self.log_denominator)
+            data_out = data_out + output_log.get(self.log_denominator)
+
+        return[data_in,data_out]
