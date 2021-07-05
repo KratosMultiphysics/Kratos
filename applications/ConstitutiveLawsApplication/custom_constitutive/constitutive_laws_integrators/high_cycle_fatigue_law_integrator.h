@@ -127,7 +127,7 @@ public:
     static double CalculateTensionCompressionFactor(const Vector& rStressVector)
     {
         array_1d<double,3> principal_stresses;
-        ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
+        AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
 
 
         double abs_component = 0.0, average_component = 0.0, sum_abs = 0.0, sum_average = 0.0;
