@@ -782,10 +782,11 @@ namespace Kratos
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
-        if (it_node->Is(FREE_SURFACE))
-        {
-          it_node->Free(PRESSURE);
-        }
+        it_node->Free(PRESSURE);
+        // if (it_node->Is(FREE_SURFACE))
+        // {
+        //   it_node->Free(PRESSURE);
+        // }
       }
     }
 

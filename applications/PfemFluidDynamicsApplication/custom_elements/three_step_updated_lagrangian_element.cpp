@@ -46,8 +46,8 @@ namespace Kratos
     }
     case 5:
     {
-      this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-      //CalculatePSPGLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      //this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      CalculatePSPGLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       //CalculateFICLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       break;
     }
@@ -213,21 +213,29 @@ namespace Kratos
 
     // Add dynamic term
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-    // // second order
-    // VectorType AccelerationValues = ZeroVector(LocalSize);
-    // this->GetAccelerationValues(AccelerationValues, 0);
-    // noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
-    // this->GetVelocityValues(VelocityValues, 1);
-    // noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
-    // noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
-    // noalias(rLeftHandSideMatrix) += MassMatrix * 2 / TimeStep;
-    // second order
-    VectorType AccelerationValues = ZeroVector(LocalSize);
-    noalias(AccelerationValues) += -VelocityValues / TimeStep;
-    this->GetVelocityValues(VelocityValues, 1);
-    noalias(AccelerationValues) += VelocityValues / TimeStep; //these are negative accelerations
-    noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
-    noalias(rLeftHandSideMatrix) += MassMatrix / TimeStep;
+    const unsigned int accelerationOrder = 1;
+
+    if (accelerationOrder == 2)
+    {
+      // second order
+      VectorType AccelerationValues = ZeroVector(LocalSize);
+      this->GetAccelerationValues(AccelerationValues, 0);
+      noalias(AccelerationValues) += -2.0 * VelocityValues / TimeStep;
+      this->GetVelocityValues(VelocityValues, 1);
+      noalias(AccelerationValues) += 2.0 * VelocityValues / TimeStep; //these are negative accelerations
+      noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
+      noalias(rLeftHandSideMatrix) += MassMatrix * 2 / TimeStep;
+    }
+    else if (accelerationOrder == 1)
+    {
+      // // first order
+      VectorType AccelerationValues = ZeroVector(LocalSize);
+      noalias(AccelerationValues) += -VelocityValues / TimeStep;
+      this->GetVelocityValues(VelocityValues, 1);
+      noalias(AccelerationValues) += VelocityValues / TimeStep; //these are negative accelerations
+      noalias(rRightHandSideVector) += prod(MassMatrix, AccelerationValues);
+      noalias(rLeftHandSideMatrix) += MassMatrix / TimeStep;
+    }
 
     // // using BDF coefficients
     // const Vector &rBDFCoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
@@ -724,7 +732,6 @@ namespace Kratos
     this->InitializeElementalVariables(rElementalVariables);
 
     double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;
     double Density = 0;
     double totalVolume = 0;
     bool computeElement = false;
@@ -743,9 +750,6 @@ namespace Kratos
 
       this->EvaluateInPoint(DeviatoricCoeff, DYNAMIC_VISCOSITY, N);
       this->EvaluateInPoint(Density, DENSITY, N);
-      this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
-
-      VolumetricCoeff *= TimeStep;
 
       double Tau = 0;
       this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
@@ -756,14 +760,22 @@ namespace Kratos
         double StabilizedWeight = Tau * GaussWeight;
         this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
 
+        const unsigned int schemeOrder = 1;
         array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+        if (schemeOrder == 2)
+        {
+          this->EvaluateGradientDifferenceInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+        }
+
+        double DivU = 0;
+        this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
 
         for (SizeType i = 0; i < NumNodes; ++i)
         {
           // RHS contribution
           // Velocity divergence
-          rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+          rRightHandSideVector[i] += - GaussWeight * N[i] * DivU;
 
           this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
 
@@ -772,34 +784,14 @@ namespace Kratos
           array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
           for (SizeType d = 0; d < TDim; ++d)
           {
-            laplacianRHSi += StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
+            laplacianRHSi += -StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
 
             bodyForceStabilizedRHSi += StabilizedWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
           }
-          rRightHandSideVector[i] += -laplacianRHSi - bodyForceStabilizedRHSi;
+          rRightHandSideVector[i] += laplacianRHSi + bodyForceStabilizedRHSi;
         }
       }
     }
-    VectorType PressureValues = ZeroVector(NumNodes);
-    VectorType PressureValuesForRHS = ZeroVector(NumNodes);
-    this->GetPressureValues(PressureValuesForRHS, 0);
-
-    // VectorType AccelerationValues = ZeroVector(NumNodes);
-    // this->GetAccelerationValues(AccelerationValues, 0);
-
-    // noalias(rRightHandSideVector) += prod(DynamicStabilizationMatrix, AccelerationValues);
-
-    //the LHS matrix up to now just contains the laplacian term and the bound term
-    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
-
-    this->GetPressureValues(PressureValues, 1);
-    noalias(PressureValuesForRHS) += -PressureValues;
-    MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-    double lumpedBulkCoeff = totalVolume / VolumetricCoeff;
-
-    this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-    noalias(rLeftHandSideMatrix) += BulkMatrix;
-    noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
   }
 
   template <unsigned int TDim>
@@ -1391,7 +1383,7 @@ namespace Kratos
     {
       RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
     }
-    rRightHandSideVector[i] += Weight * Tau * Density * RHSi;
+    rRightHandSideVector[i] += -Weight * Tau * Density * RHSi;
   }
 
   template <>
@@ -1415,7 +1407,7 @@ namespace Kratos
       double termX = rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0);
       double termY = rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
       double termZ = rDN_DX(i, 2) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Z, 0);
-      RHSi += Tau * Density * (termX + termY + termZ);
+      RHSi += -Tau * Density * (termX + termY + termZ);
     }
     rRightHandSideVector[i] += Weight * RHSi;
   }
