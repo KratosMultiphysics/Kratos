@@ -297,7 +297,9 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    double ParticleCreatorDestructor::SelectRadius(bool initial, ModelPart& r_sub_model_part_with_parameters){
+    double ParticleCreatorDestructor::SelectRadius(bool initial,
+                                                ModelPart& r_sub_model_part_with_parameters,
+                                                std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map){
 
         KRATOS_TRY
 
@@ -338,7 +340,7 @@ namespace Kratos {
         KRATOS_TRY
         Node<3>::Pointer pnew_node;
 
-        double radius = SelectRadius(initial, r_sub_model_part_with_parameters);
+        double radius = SelectRadius(initial, r_sub_model_part_with_parameters, r_random_variables_map);
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
