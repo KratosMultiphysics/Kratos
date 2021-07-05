@@ -54,6 +54,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
         .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
+        .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ConditionsContainerType>)
+        .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ElementsContainerType>)
         ;
 
     m.def_submodule("RansCalculationUtilities")

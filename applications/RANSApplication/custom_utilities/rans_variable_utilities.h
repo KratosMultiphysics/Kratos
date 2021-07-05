@@ -105,6 +105,12 @@ void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(
 void KRATOS_API(RANS_APPLICATION)
     SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements);
 
+template<class TContainerType>
+void KRATOS_API(RANS_APPLICATION)
+    InitializeContainerEntities(
+        TContainerType& rEntities,
+        const ProcessInfo& rProcessInfo);
+
 ///@}
 } // namespace RansVariableUtilities
 

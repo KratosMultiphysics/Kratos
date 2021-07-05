@@ -330,6 +330,17 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
     KRATOS_CATCH("");
 }
 
+template<class TContainerType>
+void KRATOS_API(RANS_APPLICATION)
+    InitializeContainerEntities(
+        TContainerType& rEntities,
+        const ProcessInfo& rProcessInfo)
+{
+    block_for_each(rEntities, [&](typename TContainerType::value_type& rEntity){
+        rEntity.Initialize(rProcessInfo);
+    });
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);
@@ -343,6 +354,12 @@ template KRATOS_API(RANS_APPLICATION) std::tuple<double, double> CalculateTransi
 template KRATOS_API(RANS_APPLICATION)
     std::tuple<double, double> CalculateTransientVariableConvergence<array_1d<double, 3>>(
         const ModelPart&, const Variable<array_1d<double, 3>>&);
+
+template KRATOS_API(RANS_APPLICATION)
+    void InitializeContainerEntities<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType&, const ProcessInfo&);
+
+template KRATOS_API(RANS_APPLICATION)
+    void InitializeContainerEntities<ModelPart::ElementsContainerType>(ModelPart::ElementsContainerType&, const ProcessInfo&);
 
 } // namespace RansVariableUtilities
 
