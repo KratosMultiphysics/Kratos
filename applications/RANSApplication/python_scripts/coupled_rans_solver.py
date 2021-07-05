@@ -284,10 +284,43 @@ class CoupledRANSSolver(PythonSolver):
             remeshing_process.ExecuteFinalizeSolutionStep()
             remeshing_process.ExecuteFinalize()
 
+            # re-do tetrahedral mesh orientation check
+            tmoc = Kratos.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags = tmoc.COMPUTE_NODAL_NORMALS | tmoc.COMPUTE_CONDITION_NORMALS
+            if self.settings["assign_neighbour_elements_to_conditions"].GetBool():
+                flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            else:
+                flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            tmoc(self.GetComputingModelPart(), throw_errors, flags).Execute()
+
+            # re-create formulation model parts with new mesh
+            CoupledRANSSolver._ExecuteRecursively(
+                self.formulation,
+                self._RecreateFormulationModelParts,
+                [self.GetComputingModelPart()])
+
+            self.AddDofs()
+
+            # initialize constitutive laws
+            RansVariableUtilities.SetElementConstitutiveLaws(self.main_model_part.Elements)
+
+            # re-initialize all elements and conditions
+            CoupledRANSSolver._ExecuteRecursively(self.formulation,
+                self._ReInitializeFormulationModelParts)
+
+            # re-set all the dofs
+            CoupledRANSSolver._ExecuteRecursively(self.formulation,
+                lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(True) if x.GetStrategy() is not None else None)
+
             self.perform_automatic_mesh_refinement = False
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 
         self.formulation.InitializeSolutionStep()
+
+        # re-set all the dofs
+        CoupledRANSSolver._ExecuteRecursively(self.formulation,
+            lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(False) if x.GetStrategy() is not None else None)
 
     def Predict(self):
         self.formulation.Predict()
@@ -314,6 +347,9 @@ class CoupledRANSSolver(PythonSolver):
                 if (self.automatic_mesh_refinement_step % adaptive_mesh_refinement_settings["step_interval"].GetInt() == 0):
                     self._ExecuteAdaptiveMeshRefinementBasedOnResponseFunction(current_time)
                 self.automatic_mesh_refinement_step += 1
+
+    def Finalize(self):
+        self.formulation.Finalize()
 
     def Check(self):
         self.formulation.Check()
@@ -524,5 +560,37 @@ class CoupledRANSSolver(PythonSolver):
             self.perform_automatic_mesh_refinement = True
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response based interpolation errors for adaptive mesh refinement.")
 
-    def Finalize(self):
-        self.formulation.Finalize()
+    def _RecreateFormulationModelParts(self, formulation, original_model_part):
+        if (formulation.GetModelPart() is not None):
+            domain_size = original_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
+            element_name = formulation.GetElementNames()[0]
+            condition_name = formulation.GetConditionNames()[0]
+
+            connectivity_preserve_modeler = Kratos.ConnectivityPreserveModeler()
+
+            element_suffix = str(domain_size) + "D" + str(domain_size + 1) + "N"
+            element_name = element_name + element_suffix
+
+            if (condition_name != ""):
+                condition_suffix = str(domain_size) + "D" + str(domain_size) + "N"
+                condition_name = condition_name + condition_suffix
+                connectivity_preserve_modeler.GenerateModelPart(
+                    original_model_part, formulation.GetModelPart(), element_name, condition_name)
+            else:
+                connectivity_preserve_modeler.GenerateModelPart(
+                    original_model_part, formulation.GetModelPart(), element_name)
+
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Re-created refined {:s}".format(formulation.GetModelPart().FullName()))
+
+    def _ReInitializeFormulationModelParts(self, formulation):
+        model_part = formulation.GetModelPart()
+        if (model_part is not None):
+            RansVariableUtilities.InitializeContainerEntities(model_part.Elements, model_part.ProcessInfo)
+            RansVariableUtilities.InitializeContainerEntities(model_part.Conditions, model_part.ProcessInfo)
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Re-initialized entities of refined {:s}".format(model_part.FullName()))
+
+    @staticmethod
+    def _ExecuteRecursively(formulation, method, args=[]):
+        method(formulation, *args)
+        for child_formulation in formulation.GetRansFormulationsList():
+            CoupledRANSSolver._ExecuteRecursively(child_formulation, method, args)
