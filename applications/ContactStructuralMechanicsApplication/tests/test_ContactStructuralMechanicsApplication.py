@@ -40,8 +40,8 @@ from SmallTests import ALMHyperSimpleSlopePatchTestContact                      
 from SmallTests import ALMThreeDSimplestPatchMatchingTestContact                   as TALMThreeDSimplestPatchMatchingTestContact
 
 # Penalty frictionless tests
-from SmallTests import PenaltyFrictionlessHyperSimplePatchFrictionalTestContact as TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact
-from SmallTests import PenaltyThreeDSimplestPatchMatchingTestContact            as TPenaltyThreeDSimplestPatchMatchingTestContact
+from SmallTests import PenaltyFrictionlessHyperSimplePatchTestContact as TPenaltyFrictionlessHyperSimplePatchTestContact
+from SmallTests import PenaltyThreeDSimplestPatchMatchingTestContact  as TPenaltyThreeDSimplestPatchMatchingTestContact
 
 # Components ALM frictionless tests
 from SmallTests import ComponentsALMHyperSimpleTrianglePatchTestContact                      as TComponentsALMHyperSimpleTrianglePatchTestContact
@@ -218,7 +218,7 @@ def AssembleTestSuites():
         smallSuite.addTest(TALMThreeDSimplestPatchMatchingTestContact('test_execution'))
 
     # Penalty frictionless tests
-    smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact('test_execution'))
+    smallSuite.addTest(TPenaltyFrictionlessHyperSimplePatchTestContact('test_execution'))
     if has_CL_application:
         smallSuite.addTest(TPenaltyThreeDSimplestPatchMatchingTestContact('test_execution'))
 
@@ -442,7 +442,7 @@ def AssembleTestSuites():
             #TALMThreeDPatchComplexGeomTestContact,
             #TALMTThreeDPatchMatchingTestContact,
             #TALMThreeDPatchNotMatchingTestContact,
-            #TPenaltyFrictionlessHyperSimplePatchFrictionalTestContact,
+            #TPenaltyFrictionlessHyperSimplePatchTestContact,
             #TPenaltyThreeDSimplestPatchMatchingTestContact,
             #TComponentsALMHyperSimpleTrianglePatchTestContact,
             #TComponentsALMHyperSimplePatchTestContact,
