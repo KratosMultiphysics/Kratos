@@ -250,6 +250,7 @@ namespace Kratos
         if (it == 0)
         {
           mpMomentumStrategy->InitializeSolutionStep();
+          this->FixPressure();
         }
         else
         {
@@ -264,7 +265,6 @@ namespace Kratos
         if (it == 0)
         {
           mpPressureStrategy->InitializeSolutionStep();
-          this->FixPressure();
         }
         continuityConverged = this->SolveContinuityIteration();
 

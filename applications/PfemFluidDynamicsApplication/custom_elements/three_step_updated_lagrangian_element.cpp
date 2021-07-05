@@ -157,7 +157,7 @@ namespace Kratos
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
     const unsigned int schemeOrder = 1;
-    double theta_velocity = 1;
+    double theta_velocity = 1.0;
     double gamma_pressure = 0.0;
     if (schemeOrder == 2)
     {
@@ -291,10 +291,13 @@ namespace Kratos
 
         const unsigned int schemeOrder = 1;
         double elementalPressure = 0;
-        this->EvaluateInPoint(elementalPressure, PRESSURE, N);
         if (schemeOrder == 2)
         {
           this->EvaluateDifferenceInPoint(elementalPressure, PRESSURE, N);
+        }
+        else
+        {
+          this->EvaluateInPoint(elementalPressure, PRESSURE, N);
         }
 
         SizeType RowIndex = 0;
@@ -648,10 +651,13 @@ namespace Kratos
 
       const unsigned int schemeOrder = 1;
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
-      this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
       if (schemeOrder == 2)
       {
         this->EvaluateGradientDifferenceInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+      }
+      else
+      {
+        this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
       }
 
       // Stabilization parameters
@@ -676,7 +682,7 @@ namespace Kratos
           double Lij = 0.0;
           for (SizeType d = 0; d < TDim; ++d)
             Lij += rDN_DX(i, d) * rDN_DX(j, d);
-          // Lij *= (LaplacianCoeff + TauOne);
+
           Lij *= LaplacianCoeff;
           rLeftHandSideMatrix(i, j) += GaussWeight * Lij;
         }
@@ -725,16 +731,12 @@ namespace Kratos
     const unsigned int NumGauss = GaussWeights.size();
 
     double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-    double theta = 1.0;
     double ElemSize = this->ElementSize();
-
-    ElementalVariables rElementalVariables;
-    this->InitializeElementalVariables(rElementalVariables);
 
     double DeviatoricCoeff = 0;
     double Density = 0;
     double totalVolume = 0;
-    bool computeElement = false;
+    // bool computeElement = false;
 
     MatrixType DynamicStabilizationMatrix = ZeroMatrix(NumNodes, NumNodes);
 
@@ -745,8 +747,6 @@ namespace Kratos
       totalVolume += GaussWeight;
       const ShapeFunctionsType &N = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-      computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
-      computeElement = true;
 
       this->EvaluateInPoint(DeviatoricCoeff, DYNAMIC_VISCOSITY, N);
       this->EvaluateInPoint(Density, DENSITY, N);
@@ -754,42 +754,51 @@ namespace Kratos
       double Tau = 0;
       this->CalculateTauPSPG(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
 
-      if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
+      double StabilizedWeight = Tau * GaussWeight;
+      // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
+
+      const unsigned int schemeOrder = 1;
+      array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+      if (schemeOrder == 2)
       {
-
-        double StabilizedWeight = Tau * GaussWeight;
-        this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
-
-        const unsigned int schemeOrder = 1;
-        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
+        this->EvaluateGradientDifferenceInPoint(OldPressureGradient, PRESSURE, rDN_DX);
+      }
+      else
+      {
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
-        if (schemeOrder == 2)
+      }
+
+      double DivU = 0;
+      this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
+
+      for (SizeType i = 0; i < NumNodes; ++i)
+      {
+        // LHS contribution
+        for (SizeType j = 0; j < NumNodes; ++j)
         {
-          this->EvaluateGradientDifferenceInPoint(OldPressureGradient, PRESSURE, rDN_DX);
-        }
-
-        double DivU = 0;
-        this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
-
-        for (SizeType i = 0; i < NumNodes; ++i)
-        {
-          // RHS contribution
-          // Velocity divergence
-          rRightHandSideVector[i] += - GaussWeight * N[i] * DivU;
-
-          this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
-
-          double laplacianRHSi = 0;
-          double bodyForceStabilizedRHSi = 0;
-          array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+          double Lij = 0.0;
           for (SizeType d = 0; d < TDim; ++d)
-          {
-            laplacianRHSi += -StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
+            Lij += rDN_DX(i, d) * rDN_DX(j, d);
 
-            bodyForceStabilizedRHSi += StabilizedWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
-          }
-          rRightHandSideVector[i] += laplacianRHSi + bodyForceStabilizedRHSi;
+          Lij *= StabilizedWeight;
+          rLeftHandSideMatrix(i, j) += Lij;
         }
+
+        // RHS contribution
+        rRightHandSideVector[i] += -GaussWeight * N[i] * DivU;
+
+        this->AddPspgDynamicPartStabilization(rRightHandSideVector, Tau, Density, GaussWeight, TimeStep, rDN_DX, N, i);
+
+        double laplacianRHSi = 0;
+        double bodyForceStabilizedRHSi = 0;
+        array_1d<double, 3> &VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        for (SizeType d = 0; d < TDim; ++d)
+        {
+          laplacianRHSi += -StabilizedWeight * rDN_DX(i, d) * OldPressureGradient[d];
+
+          bodyForceStabilizedRHSi += StabilizedWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
+        }
+        rRightHandSideVector[i] += laplacianRHSi + bodyForceStabilizedRHSi;
       }
     }
   }
@@ -1381,7 +1390,9 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType j = 0; j < NumNodes; ++j)
     {
-      RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      //RHSi += rDN_DX(i, 0) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_X, 0) + rDN_DX(i, 1) * rN[j] * this->GetGeometry()[j].FastGetSolutionStepValue(ACCELERATION_Y, 0);
+      RHSi += rDN_DX(i, 0) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_X, 1)) / TimeStep;
+      RHSi += rDN_DX(i, 1) * rN[j] * (this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 0) - this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY_Y, 1)) / TimeStep;
     }
     rRightHandSideVector[i] += -Weight * Tau * Density * RHSi;
   }
