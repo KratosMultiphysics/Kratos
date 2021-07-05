@@ -870,5 +870,35 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(a(1,1), 1.0);
         }
 
+        /** Checks if it calculates the Factorial
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsFactorial, KratosCoreFastSuite)
+        {
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(0), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(1), 1);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(2), 2);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(6), 720);
+            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(8), 40320);
+        }
+
+        /** Checks if the exponential of a matrix is performed correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsExponentialOfMatrix, KratosCoreFastSuite)
+        {
+            BoundedMatrix<double, 3, 3> A(3, 3), exp_A(3, 3);
+            noalias(A)     = IdentityMatrix(3);
+            noalias(exp_A) = IdentityMatrix(3);
+            A(1, 1) = 2.0;
+            A(2, 2) = 3.0;
+
+            MathUtils<double>::CalculateExponentialOfMatrix(A, exp_A, 1e-8, 2000);
+
+            // We compute the exp of each term
+            A(0, 0) = std::exp(A(0, 0));
+            A(1, 1) = std::exp(A(1, 1));
+            A(2, 2) = std::exp(A(2, 2));
+            KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
