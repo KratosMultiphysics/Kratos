@@ -145,6 +145,7 @@ virtual void GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& r_
 virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
 virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 virtual void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
@@ -270,8 +271,6 @@ virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
                                                 const ProcessInfo& r_process_info) ;
-
-virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
