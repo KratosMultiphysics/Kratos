@@ -24,8 +24,9 @@ def CreateControllerWithFileIO(settings, model):
     if len(settings['list_of_operations']) == 0:
         settings['list_of_operations'].Append(KratosMultiphysics.Parameters())
     model_part = model[settings['model_part_name']]
+    data_comm = model_part.GetCommunicator().GetDataCommunicator()
     return controllers.Create(
-        model_part, file_io.Create(settings['io_settings']),
+        model_part, file_io.Create(settings['io_settings'], data_comm),
         settings['controller_settings'])
 
 

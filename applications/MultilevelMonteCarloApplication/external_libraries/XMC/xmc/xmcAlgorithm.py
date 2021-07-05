@@ -1,9 +1,11 @@
 import pickle
 import pathlib as pl
 
+from typing import List
+
 # XMC imports
 from xmc.tools import dynamicImport, splitOneListIntoTwo
-from xmc.methodDefs_xmcAlgorithm import checkInitialisation, updateTolerance
+from xmc.methodDefs_xmcAlgorithm import checkInitialisation
 
 # Import ExaQUte API
 from exaqute import get_value_from_remote
@@ -47,7 +49,6 @@ class XMCAlgorithm:
         self.errorsForStoppingCriterion = keywordArgs.get("errorForStoppingCriterion", None)
         self.predictorsForHierarchy = keywordArgs.get("predictorsForHierarchy", None)
         self.estimatorsForHierarchy = keywordArgs.get("estimatorsForHierarchy", None)
-        self.tolerancesForHierarchy = keywordArgs.get("tolerancesForHierarchy", None)
         self.errorParametersForHierarchy = keywordArgs.get("errorParametersForHierarchy", None)
         self.costPredictorForHierarchy = keywordArgs.get("costPredictorForHierarchy", None)
         self.costEstimatorForHierarchy = keywordArgs.get("costEstimatorForHierarchy", None)
@@ -61,8 +62,9 @@ class XMCAlgorithm:
             keywordArgs.get("checkInitialisation", "xmc.tools.doNothing")
         )
 
-    def updateTolerance(self, criteriaToUpdate=None):
-        self.stoppingCriterion.updateTolerance(criteriaToUpdate)
+    def updateTolerance(self):
+        self.hierarchyOptimiser.updateTolerance()
+        self.stoppingCriterion.updateTolerance()
 
     def indexEstimation(self, coordinate, valueMethodArgs):
         return self.monteCarloSampler.indexEstimation(coordinate, valueMethodArgs)
@@ -78,8 +80,15 @@ class XMCAlgorithm:
     def costPredictor(self):
         return self.monteCarloSampler.costPredictor
 
-    def tolerances(self, *args):
-        return self.stoppingCriterion.tolerances(*args)
+    def tolerances(self, splittingParameter: float = None) -> List[float]:
+        tol = self.hierarchyOptimiser.tolerance
+        if tol is None:
+            return tol
+
+        if splittingParameter:
+            return [tol * splittingParameter, tol * (1 - splittingParameter)]
+        else:
+            return [tol]
 
     def hierarchy(self):
         """
@@ -111,9 +120,11 @@ class XMCAlgorithm:
 
         # Random variables of interest
         # Indexwise estimations
-        input_dict["estimations"] = [
-            self.indexEstimation(c[0], c[1]) for c in self.estimatorsForHierarchy
-        ]
+        if self.estimatorsForHierarchy:
+            input_dict["estimations"] = [
+                get_value_from_remote(self.indexEstimation(c[0], c[1]))
+                for c in self.estimatorsForHierarchy
+            ]
         # Predictors
         if self.predictorsForHierarchy:
             input_dict["models"] = []
@@ -122,7 +133,8 @@ class XMCAlgorithm:
                 input_dict["models"].append(self.predictor(coord)._valueForParameters)
                 # TODO This should get self.predictor(coord).oldParameters
                 # and default to self.predictor(coord).parameters if they are None
-                input_dict["parametersForModel"].append(self.predictor(coord).parameters)
+                params = get_value_from_remote(self.predictor(coord).parameters)
+                input_dict["parametersForModel"].append(params)
 
         # Sample cost
         # Indexwise estimation
@@ -136,7 +148,9 @@ class XMCAlgorithm:
             input_dict["costModel"] = self.costPredictor()._valueForParameters
             # TODO This should get self.costPredictor().oldParameters
             # and default to self.costPredictor().parameters if they are None
-            input_dict["costParameters"] = self.costPredictor().parameters
+            input_dict["costParameters"] = get_value_from_remote(
+                self.costPredictor().parameters
+            )
 
         # Error parameters
         # TODO - Triple dereference below!! Add method to get errorEstimator parameters
@@ -150,7 +164,6 @@ class XMCAlgorithm:
         # Miscellaneous parameters
         input_dict["newSampleNumber"] = 25  # TODO configurable, not hard-coded
         input_dict["oldHierarchy"] = self.hierarchy()
-        input_dict["tolerances"] = self.tolerances(self.tolerancesForHierarchy)
         input_dict["defaultHierarchy"] = self.hierarchyOptimiser.defaultHierarchy
 
         # Synchronisation
@@ -241,12 +254,10 @@ class XMCAlgorithm:
             )
             dErrors = " ".join(["{err:.3e}".format(err=float(error)) for error in errors])
             dHierarchy = " ".join([str(i[1]) for i in self.hierarchy()])
-            dTol = " ".join(
-                [
-                    "{t:.3e}".format(t=tol)
-                    for tol in self.tolerances(self.tolerancesForHierarchy)
-                ]
-            )
+            dTol = "None"
+            tols = self.tolerances(splittingParameter)
+            if tols:
+                dTol = " ".join(["{t:.3e}".format(t=tol) for tol in tols])
             print(
                 f"Iteration — {self.iterationCounter}",
                 f"Tolerances — {dTol}",
@@ -339,11 +350,15 @@ class XMCAlgorithm:
                 break
         # screen iteration informations
         errors = get_value_from_remote(self.errorEstimation(self.errorsForStoppingCriterion))
+        dTol = "None"
+        tols = self.tolerances()
+        if tols:
+            dTol = " ".join(["{t:.3e}".format(t=tol) for tol in tols])
         print(
             "Iteration ",
             self.iterationCounter,
             "\tTolerance - ",
-            ["%.3e" % tol for tol in self.tolerances(self.tolerancesForHierarchy)],
+            dTol,
             "\tError - ",
             ["%.3e" % err for err in errors],
             "\tHierarchy - ",

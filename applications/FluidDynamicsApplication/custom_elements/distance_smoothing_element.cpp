@@ -285,12 +285,11 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
         }
     }
 
-    // Implementing the boundary condition on distance gradient: can be implemented
-    // by a custom condition for a more general case
+    // Implementing the boundary condition on distance gradient
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+        if(this == neighbour_elems(i_ne).get()){
             auto outer_face = Line3D2< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID2D[i_ne]),
                                     geometry.pGetPoint(mNode1ID2D[i_ne]));
@@ -311,8 +310,8 @@ void DistanceSmoothingElement<2>::CalculateLocalSystem(
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
                 Kratos::Vector face_shape_func;
-                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType global_coords;
+                GeometryType::CoordinatesArrayType loc_coords;
                 VectorType solid_normal = ZeroVector(num_dim);
 
                 // Get the original geometry shape function and gradients values over the intersection
@@ -437,7 +436,7 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
     const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
 
     for (unsigned int i_ne = 0; i_ne < num_faces; i_ne++){
-        if (neighbour_elems[ i_ne ].Id() == this->Id() ){
+        if(this == neighbour_elems(i_ne).get()){
             auto outer_face = Triangle3D3< GeometryType::PointType >(
                                     geometry.pGetPoint(mNode0ID3D[i_ne]),
                                     geometry.pGetPoint(mNode1ID3D[i_ne]),
@@ -459,8 +458,8 @@ void DistanceSmoothingElement<3>::CalculateLocalSystem(
                 outer_face.DeterminantOfJacobian(face_jacobians, IntegrationMethod);
 
                 Kratos::Vector face_shape_func;
-                GeometryType::CoordinatesArrayType global_coords = ZeroVector(num_dim);
-                GeometryType::CoordinatesArrayType loc_coords = ZeroVector(num_dim);
+                GeometryType::CoordinatesArrayType global_coords;
+                GeometryType::CoordinatesArrayType loc_coords;
                 VectorType solid_normal = ZeroVector(num_dim);
 
                 // Get the original geometry shape function and gradients values over the intersection

@@ -383,8 +383,7 @@ class Procedures():
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
-            KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected translational integration scheme not defined. Please select a different scheme')
         return translational_scheme
 
     def SetRotationalScheme(self):
@@ -402,8 +401,7 @@ class Procedures():
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected rotational integration scheme not defined. Please select a different scheme')
         return rotational_scheme
 
     def AddAllVariablesInAllModelParts(self, solver, translational_scheme, rotational_scheme, all_model_parts, DEM_parameters):
@@ -842,15 +840,10 @@ class Procedures():
             return
         if actual_type is not expected_type:
             KratosPrintWarning(
-                "**************************************************************************")
-            KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
-            KratosPrintWarning(
-                "**************************************************************************")
-            sys.exit()
+            raise Exception("The type expected was " + a + " but " + b + " was read.")
 
     @classmethod
     def Flush(self, a):
@@ -1259,6 +1252,10 @@ class MaterialTest():
     def GenerateGraphics(self):
         if self.TestType != "None":
             self.script.GenerateGraphics()
+
+    def PrintCoordinationNumberGraph(self, time, solver):
+        if self.TestType != "None":
+            self.script.PrintCoordinationNumberGraph(time, solver)
 
 
 class MultifileList():

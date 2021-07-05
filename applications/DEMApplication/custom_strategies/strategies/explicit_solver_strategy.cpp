@@ -346,6 +346,7 @@ namespace Kratos {
                 double poisson = (*props_it)[POISSON_RATIO];
 
                 for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = mpInlet_model_part->SubModelPartsBegin(); sub_model_part != mpInlet_model_part->SubModelPartsEnd(); ++sub_model_part) {
+                    KRATOS_ERROR_IF(!(*sub_model_part).Has(PROPERTIES_ID))<<"PROPERTIES_ID is not set for SubModelPart "<<(*sub_model_part).Name()<<" . Make sure the Materials file contains material assignation for this SubModelPart"<<std::endl;
                     int smp_prop_id = (*sub_model_part)[PROPERTIES_ID];
                     if (smp_prop_id == inlet_prop_id) {
                         double radius = (*sub_model_part)[RADIUS];
@@ -828,8 +829,8 @@ namespace Kratos {
                 int Element_Id_1 = mpParticleCreatorDestructor->FindMaxElementIdInModelPart(fem_model_part);
 
                 Properties::Pointer properties;
-                if (submp.Has(PROPERTIES_ID)) properties = fem_model_part.GetMesh().pGetProperties(submp[PROPERTIES_ID]);
-                else properties = fem_model_part.GetMesh().pGetProperties(fem_model_part.GetMesh(0).PropertiesBegin()->GetId()); // JIG: Backward compatibility, it should be removed in the future
+                KRATOS_ERROR_IF(!submp.Has(PROPERTIES_ID))<<"PROPERTIES_ID is not set for SubModelPart "<<submp.Name()<<" . Make sure the Materials file contains material assignation for this SubModelPart"<<std::endl;
+                properties = GetModelPart().GetMesh().pGetProperties(submp[PROPERTIES_ID]);
 
                 std::string ElementNameString = "RigidBodyElement3D";
 
@@ -1348,9 +1349,11 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
+        
         KRATOS_TRY
+        
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
+        IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         });
 
@@ -1695,7 +1698,7 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            std::vector< double > Distance_Array; 
+            std::vector< double > Distance_Array;
             std::vector< array_1d<double, 3> > Normal_Array;
             std::vector< array_1d<double, 4> > Weight_Array;
             std::vector< int > Id_Array;

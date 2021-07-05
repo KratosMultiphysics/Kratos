@@ -48,9 +48,10 @@ namespace Kratos {
         mBeamConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
-            DEMBeamConstitutiveLaw::Pointer NewBeamConstitutiveLaw = GetProperties()[DEM_BEAM_CONSTITUTIVE_LAW_POINTER]-> Clone();
-            mBeamConstitutiveLawArray[i] = NewBeamConstitutiveLaw;
-            mBeamConstitutiveLawArray[i]->Initialize(this);
+            Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());            
+            mBeamConstitutiveLawArray[i] = (*properties_of_this_contact)[DEM_BEAM_CONSTITUTIVE_LAW_POINTER]-> Clone();
+            SphericContinuumParticle* p_cont_neighbour_particle = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            mBeamConstitutiveLawArray[i]->Initialize(this, p_cont_neighbour_particle, properties_of_this_contact);
         }
     }
 
@@ -68,6 +69,7 @@ namespace Kratos {
         SphericContinuumParticle::Initialize(r_process_info);
 
         double distance = GetProperties()[BEAM_PARTICLES_DISTANCE];
+        auto& n0 = GetGeometry()[0];
 
         if (distance)
         {
@@ -75,44 +77,44 @@ namespace Kratos {
 
             if (IsSkin()) distance *= 0.5;
 
-            GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = distance * contact_area;
+            n0.FastGetSolutionStepValue(REPRESENTATIVE_VOLUME) = distance * contact_area;
             SetMass(GetDensity() * distance * contact_area);
 
             if (this->Is(DEMFlags::HAS_ROTATION)) {
                 const double a = std::sqrt(12.0 * GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Y] - 1.0);
                 const double b = std::sqrt(12.0 * GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_Z] - 1.0);
 
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_X] * GetDensity() * distance * contact_area;
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.083333333 * (a * a + distance * distance) * GetDensity() * distance * contact_area;
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.083333333 * (b * b + distance * distance) * GetDensity() * distance * contact_area;
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetProperties()[BEAM_INERTIA_ROT_UNIT_LENGHT_X] * GetDensity() * distance * contact_area;
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = 0.083333333 * (a * a + distance * distance) * GetDensity() * distance * contact_area;
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = 0.083333333 * (b * b + distance * distance) * GetDensity() * distance * contact_area;
             }
         }
         else
         {
             if (this->Is(DEMFlags::HAS_ROTATION)) {
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-                GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[0] = n0.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[1] = n0.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA)[2] = n0.FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
             }
         }
 
-        array_1d<double, 3> base_principal_moments_of_inertia = GetGeometry()[0].FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
+        array_1d<double, 3> base_principal_moments_of_inertia = n0.FastGetSolutionStepValue(PRINCIPAL_MOMENTS_OF_INERTIA);
 
-        Quaternion<double>& Orientation = GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION);
+        Quaternion<double>& Orientation = n0.FastGetSolutionStepValue(ORIENTATION);
         Orientation.normalize();
 
-        array_1d<double, 3> angular_velocity = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+        array_1d<double, 3> angular_velocity = n0.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         array_1d<double, 3> angular_momentum;
         double LocalTensor[3][3];
         double GlobalTensor[3][3];
         GeometryFunctions::ConstructLocalTensor(base_principal_moments_of_inertia, LocalTensor);
         GeometryFunctions::QuaternionTensorLocal2Global(Orientation, LocalTensor, GlobalTensor);
         GeometryFunctions::ProductMatrix3X3Vector3X1(GlobalTensor, angular_velocity, angular_momentum);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
+        noalias(n0.FastGetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
 
         array_1d<double, 3> local_angular_velocity;
         GeometryFunctions::QuaternionVectorGlobal2Local(Orientation, angular_velocity, local_angular_velocity);
-        noalias(this->GetGeometry()[0].FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
+        noalias(n0.FastGetSolutionStepValue(LOCAL_ANGULAR_VELOCITY)) = local_angular_velocity;
 
         KRATOS_CATCH("")
     }
@@ -310,6 +312,7 @@ namespace Kratos {
 
             } else if (indentation > 0.0) {
                 const double previous_indentation = indentation + LocalDeltDisp[2];
+                mDiscontinuumConstitutiveLaw = pGetDiscontinuumConstitutiveLawWithNeighbour(data_buffer.mpOtherParticle);
                 mDiscontinuumConstitutiveLaw->CalculateForces(r_process_info,
                                                               OldLocalElasticContactForce,
                                                               LocalElasticContactForce,
@@ -365,7 +368,6 @@ namespace Kratos {
                                data_buffer.mLocalCoordSystem[2],
                                data_buffer.mpOtherParticle,
                                indentation,
-                               false,
                                i);
 
                 if (i < (int)mContinuumInitialNeighborsSize) {
