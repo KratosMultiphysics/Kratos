@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
-#define KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED
+#ifndef KRATOS_ADD_MODELER_TO_PYTHON_H_INCLUDED
+#define KRATOS_ADD_MODELER_TO_PYTHON_H_INCLUDED
 
 
 // System includes
@@ -30,10 +30,10 @@ namespace Kratos
 namespace Python
 {
 
-    void AddCustomProcessesToPython(pybind11::module& m);
+    void  AddCustomModelersToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_PROCESSES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_MODELER_TO_PYTHON_H_INCLUDED  defined
