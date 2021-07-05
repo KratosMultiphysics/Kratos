@@ -1490,4 +1490,62 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
     void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {}
 
+    void ParticleCreatorDestructor::DestroyMarkedParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+
+        ModelPart::MeshType& rMesh=r_model_part.GetCommunicator().LocalMesh();
+
+        ElementsArrayType& rElements = rMesh.Elements();
+        ModelPart::NodesContainerType& rNodes = rMesh.Nodes();
+
+        if (rElements.size() != rNodes.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
+        }
+
+        int good_elems_counter = 0;
+
+        for (int k = 0; k < (int)rElements.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodeType& node = (*element_pointer_it)->GetGeometry()[0];
+
+            if (node.IsNot(MARKER) && (*element_pointer_it)->IsNot(MARKER)) {
+            if (k != good_elems_counter) {
+                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
+                }
+                good_elems_counter++;
+            }
+            else {
+                (*element_pointer_it).reset();
+                node.Set(MARKER, true);
+            }
+        }
+        int good_nodes_counter = 0;
+
+        for (int k = 0; k < (int)rNodes.size(); k++) {
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->IsNot(MARKER)) {
+            if (k != good_nodes_counter) {
+                    *(rNodes.ptr_begin() + good_nodes_counter) = std::move(*node_pointer_it);
+                }
+                good_nodes_counter++;
+            }
+
+            else (*node_pointer_it).reset();
+        }
+
+        if (good_elems_counter != good_nodes_counter) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!", 0);
+        }
+
+        if ((int)rElements.size() != good_elems_counter) {
+            rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        }
+
+        if ((int)rNodes.size() != good_nodes_counter) {
+            rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());
+        }
+        KRATOS_CATCH("")
+    }
+
 } //Namespace Kratos

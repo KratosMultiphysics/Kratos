@@ -175,6 +175,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle4)
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
+        .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
