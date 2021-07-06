@@ -1,4 +1,4 @@
-//    |  /           |
+﻿//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -407,6 +407,61 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
+
+    ///@}
+    ///@name Implicit
+    ///@{
+
+    void Shell3pElement::CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+        // Rayleigh Damping Matrix: alpha*M + beta*K
+
+        // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+        double alpha = 0.0;
+        if (GetProperties().Has(RAYLEIGH_ALPHA))
+            alpha = GetProperties()[RAYLEIGH_ALPHA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA))
+            alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+        double beta = 0.0;
+        if (GetProperties().Has(RAYLEIGH_BETA))
+            beta = GetProperties()[RAYLEIGH_BETA];
+        else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
+            beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+        // 2.-Calculate StiffnessMatrix and MassMatrix:
+        if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
+            // no damping specified, only setting the matrix to zero
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType mat_size = number_of_nodes * 3;
+            if (rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size) {
+                rDampingMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+            // damping only required with the mass matrix
+            CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= alpha;
+        } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
+            // damping only required with the stiffness matrix
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+        } else {
+            // damping with both mass matrix and stiffness matrix required
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+
+            Matrix mass_matrix;
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha  * mass_matrix;
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void Shell3pElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,

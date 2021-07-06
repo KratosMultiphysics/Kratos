@@ -260,6 +260,16 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @param rDampingMatrix The elemental damping matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
