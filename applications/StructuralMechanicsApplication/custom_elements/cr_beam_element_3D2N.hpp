@@ -161,9 +161,9 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void ConstCalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) const;
+    virtual void ConstCalculateRightHandSide(
+                 VectorType& rRightHandSideVector,
+                  const ProcessInfo& rCurrentProcessInfo) const;
 
     void ConstCalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,

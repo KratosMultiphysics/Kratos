@@ -74,7 +74,6 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
     static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
 
     ///@}
@@ -222,14 +221,14 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
     *        Possible indices are:
-    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
-            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
         if (Index == CURVE_ON_SURFACE_INDEX)
             return mpCurveOnSurface;
@@ -240,13 +239,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is either
-    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX or CURVE_ON_SURFACE_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX or CURVE_ON_SURFACE_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
+        return (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX || Index == CURVE_ON_SURFACE_INDEX);
     }
 
     ///@}

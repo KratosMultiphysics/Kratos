@@ -24,21 +24,21 @@ class DEM2D_ContactTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_s
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        tolerance = 1.001
+        tolerance = 1e-3
         for node in self.rigid_face_model_part.Nodes:
             dem_pressure = node.GetSolutionStepValue(DEM.DEM_PRESSURE)
             contact_force = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
             if node.Id == 13:
                 if self.time > 0.3:
-                    expected_value = 45126
+                    expected_value = 45072.56712114167
                     self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
-                    expected_value = -23141
+                    expected_value = -23114.136984276265
                     self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
             if node.Id == 22:
                 if self.time > 0.3:
-                    expected_value = 26712
+                    expected_value = 26774.109523872536
                     self.assertAlmostEqual(dem_pressure, expected_value, delta=tolerance)
-                    expected_value = -13698
+                    expected_value = -13730.31257668813
                     self.assertAlmostEqual(contact_force, expected_value, delta=tolerance)
 
     def Finalize(self):

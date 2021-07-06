@@ -61,6 +61,8 @@ class UPwSolver(PythonSolver):
             "compute_reactions": false,
             "move_mesh_flag": false,
             "nodal_smoothing": false,
+            "gp_to_nodal_variable_list": [],
+            "gp_to_nodal_variable_extrapolate_non_historical": false,
             "periodic_interface_conditions": false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
@@ -138,7 +140,15 @@ class UPwSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_DAMAGE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_EFFECTIVE_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_WATER_PRESSURE_GRADIENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.INITIAL_STRESS_TENSOR)
+
+        # Add variables from gp to nodal variable list
+        if self.settings["gp_to_nodal_variable_extrapolate_non_historical"].GetBool()==False:
+            for i in range(self.settings["gp_to_nodal_variable_list"].size()):
+                variable_name = self.settings["gp_to_nodal_variable_list"][i].GetString()
+                variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+                self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Variables added correctly.")
 
@@ -227,6 +237,9 @@ class UPwSolver(PythonSolver):
         # Check if everything is assigned correctly
         self.Check()
 
+        # Check and construct gp_to_nodal_variable process
+        self._CheckAndConstructGPtoNodalVariableExtrapolationProcess()
+
         KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Solver initialization finished.")
 
     def GetComputingModelPart(self):
@@ -265,6 +278,14 @@ class UPwSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.solver.FinalizeSolutionStep()
+
+        if self.gp_to_nodal_variable:
+            self.integration_values_extrapolation_to_nodes_process.ExecuteBeforeSolutionLoop()
+            self.integration_values_extrapolation_to_nodes_process.ExecuteFinalizeSolutionStep()
+
+    def Finalize(self):
+        if self.gp_to_nodal_variable:
+            self.integration_values_extrapolation_to_nodes_process.ExecuteFinalize()
 
     def Solve(self):
         message = "".join([
@@ -515,3 +536,27 @@ class UPwSolver(PythonSolver):
     def _UpdateLoads(self):
 
         self.solver.UpdateLoads()
+
+    def _CheckAndConstructGPtoNodalVariableExtrapolationProcess(self):
+        if self.settings["gp_to_nodal_variable_list"].size() > 0:
+            self.gp_to_nodal_variable = True
+            # Create extrapolation process
+            extrapolation_parameters = KratosMultiphysics.Parameters("""
+            {
+                "model_part_name"            : "",
+                "echo_level"                 : 0,
+                "average_variable"           : "NODAL_AREA",
+                "area_average"               : true,
+                "list_of_variables"          : [],
+                "extrapolate_non_historical" : false
+            }
+            """)
+            for i in range(self.settings["gp_to_nodal_variable_list"].size()):
+                var_name = self.settings["gp_to_nodal_variable_list"][i].GetString()
+                extrapolation_parameters["list_of_variables"].Append(var_name)
+            extrapolation_parameters["model_part_name"].SetString(self.settings["model_part_name"].GetString())
+            extrapolation_parameters["extrapolate_non_historical"].SetBool(self.settings["gp_to_nodal_variable_extrapolate_non_historical"].GetBool())
+            self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.IntegrationValuesExtrapolationToNodesProcess(self.main_model_part, extrapolation_parameters)
+        else:
+            self.gp_to_nodal_variable = False
+            self.integration_values_extrapolation_to_nodes_process = KratosMultiphysics.Process()

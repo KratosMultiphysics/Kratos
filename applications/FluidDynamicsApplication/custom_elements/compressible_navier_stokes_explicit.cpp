@@ -294,17 +294,17 @@ void CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateOnIntegrationPo
     }
 
     if (rVariable == DENSITY_GRADIENT) {
-        const auto& rho_grad = CalculateMidPointDensityGradient();
+        const array_1d<double,3> rho_grad = CalculateMidPointDensityGradient();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rho_grad;
         }
     } else if (rVariable == TEMPERATURE_GRADIENT) {
-        const auto& rho_grad = CalculateMidPointTemperatureGradient();
+        const array_1d<double,3> temp_grad = CalculateMidPointTemperatureGradient();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
-            rOutput[i_gauss] = rho_grad;
+            rOutput[i_gauss] = temp_grad;
         }
     } else if (rVariable == VELOCITY_ROTATIONAL) {
-        const auto rot_v = CalculateMidPointVelocityRotational();
+        const array_1d<double,3> rot_v = CalculateMidPointVelocityRotational();
         for (unsigned int i_gauss = 0; i_gauss < r_integration_points.size(); ++i_gauss) {
             rOutput[i_gauss] = rot_v;
         }
@@ -463,7 +463,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
         const double& r_rho = r_node.FastGetSolutionStepValue(DENSITY);
         const double& r_tot_ener = r_node.FastGetSolutionStepValue(TOTAL_ENERGY);
         const array_1d<double, 3> vel = r_mom / r_rho;
-        const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(vel, vel)) / c_v;
+        const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(vel, vel)) / c_v;
         for (unsigned int d1 = 0; d1 < TDim; ++d1) {
             midpoint_grad_temp[d1] += node_dNdX(d1) * temp;
         }

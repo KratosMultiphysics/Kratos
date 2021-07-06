@@ -37,9 +37,17 @@ namespace Kratos
         mLagrangianSWE2D3N(0, Element::GeometryType::Pointer( new Triangle2D3<Node<3>> ( Element::GeometryType::PointsArrayType (3) ) ) ),
         mLagrangianSWE2D4N(0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType (4) ) ) ),
 
+        mWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+        mWaveElement2D6N(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
+        mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+        mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
+        mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
+
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
-        mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) )
+        mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
+
+        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
     {}
 
     void KratosShallowWaterApplication::Register()
@@ -113,9 +121,19 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D3N", mLagrangianSWE2D3N)
         KRATOS_REGISTER_ELEMENT("LagrangianSWE2D4N", mLagrangianSWE2D4N)
 
+        KRATOS_REGISTER_ELEMENT("WaveElement2D3N", mWaveElement2D3N)
+        KRATOS_REGISTER_ELEMENT("WaveElement2D6N", mWaveElement2D6N)
+        KRATOS_REGISTER_ELEMENT("WaveElement2D4N", mWaveElement2D4N)
+        KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
+        KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
+
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
+        KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
+
+        // Register modelers
+        KRATOS_REGISTER_MODELER("MeshMovingModeler", mMeshMovingModeler)
     }
 
 }  // namespace Kratos.
