@@ -410,11 +410,21 @@ public:
             mpNurbsSurface->SpansLocalSpace(spans_u, 0);
             mpNurbsSurface->SpansLocalSpace(spans_v, 1);
 
-            BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
-                rIntegrationPoints,
-                mOuterLoopArray, mInnerLoopArray,
-                spans_u, spans_v,
-                rIntegrationInfo);
+            if (!rIntegrationInfo.Is(IntegrationFlags::USE_REVERTED_TRIM)) {
+                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
+                    rIntegrationPoints,
+                    mOuterLoopArray, mInnerLoopArray,
+                    spans_u, spans_v,
+                    rIntegrationInfo);
+            }
+            else {
+                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPointsReverseLoop<BrepCurveOnSurfaceLoopArrayType, PointType>(
+                    rIntegrationPoints,
+                    mOuterLoopArray, mInnerLoopArray,
+                    spans_u, spans_v,
+                    rIntegrationInfo);
+            }
+
         }
     }
 

@@ -133,6 +133,13 @@ namespace Kratos
         {
             GeometriesArrayType geometries;
             IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
+
+            if (rParameters.Has("specification")) {
+                if (rParameters["specification"].GetString() == "reverted_loop") {
+                    integration_info.Set(IntegrationInfo::USE_REVERTED_TRIM);
+                }
+            }
+
             rGeometryList[i].CreateQuadraturePointGeometries(
                 geometries, shape_function_derivatives_order, integration_info);
 

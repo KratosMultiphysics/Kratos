@@ -36,6 +36,7 @@ public:
 
     /// Local Flags
     KRATOS_DEFINE_LOCAL_FLAG(DO_NOT_CREATE_TESSELLATION_ON_SLAVE);
+    KRATOS_DEFINE_LOCAL_FLAG(USE_REVERTED_TRIM);
 
     ///@}
     ///@name Life Cycle

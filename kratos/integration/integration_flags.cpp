@@ -18,4 +18,5 @@
 namespace Kratos
 {
     KRATOS_CREATE_LOCAL_FLAG(IntegrationFlags, DO_NOT_CREATE_TESSELLATION_ON_SLAVE, 0);
+    KRATOS_CREATE_LOCAL_FLAG(IntegrationFlags, USE_REVERTED_TRIM, 1);
 }  // namespace Kratos.
