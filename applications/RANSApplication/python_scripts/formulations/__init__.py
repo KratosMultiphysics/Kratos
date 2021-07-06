@@ -2,6 +2,9 @@ __all__ = ["Factory"]
 
 import KratosMultiphysics as Kratos
 
+# stabilization validation formulations
+from KratosMultiphysics.RANSApplication.formulations.stabilization_validation.circular_convection_rans_formulation import CircularConvectionRansFormulation
+
 # flow solver formulations
 from KratosMultiphysics.RANSApplication.formulations.incompressible_potential_flow import IncompressiblePotentialFlowRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.monolithic_vms.monolithic_velocity_pressure_rans_formulation import MonolithicVelocityPressureRansFormulation
@@ -40,7 +43,10 @@ def Factory(model_part, settings):
         # adding only the turbulence models, flow should be given as a solved quantity for following formulations
         ["k_epsilon", KEpsilonRansFormulation],
         ["k_omega", KOmegaRansFormulation],
-        ["k_omega_sst", KOmegaSSTRansFormulation]
+        ["k_omega_sst", KOmegaSSTRansFormulation],
+
+        # adding stabilization validation formulations
+        ["circular_convection", CircularConvectionRansFormulation]
     ]
 
     formulation_names_list = [

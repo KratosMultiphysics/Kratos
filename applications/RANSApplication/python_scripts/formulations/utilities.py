@@ -314,6 +314,10 @@ def GetTimeDerivativeVariable(variable):
         return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2
     elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2):
         return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL):
+        return KratosRANS.VELOCITY_POTENTIAL_RATE
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
     else:
         return None
 
