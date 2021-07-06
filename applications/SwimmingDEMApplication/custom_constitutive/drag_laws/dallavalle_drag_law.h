@@ -37,7 +37,7 @@ namespace Kratos {
 
         double CalculateEquivalentDiameter(SphericParticle* p_particle);
 
-        double GetParticleMassFraction(SphericParticle* p_particle);
+        double GetParticleMassFraction(SphericParticle* p_particle, double particle_density, double particle_radius);
 
         double CalculateWeightingSum(SphericParticle* p_particle);
 

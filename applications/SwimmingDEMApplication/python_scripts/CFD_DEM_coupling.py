@@ -30,7 +30,7 @@ class ProjectionModule:
         self.flow_field = flow_field
 
         if self.backward_coupling_parameters.Has("averaging_time_interval"):
-            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetInt()
+            self.averaging_time_interval = self.backward_coupling_parameters["averaging_time_interval"].GetDouble()
 
          # Create projector_parameters
         self.projector_parameters = Parameters("{}")
