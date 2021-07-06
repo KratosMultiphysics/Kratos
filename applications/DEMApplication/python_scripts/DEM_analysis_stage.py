@@ -84,7 +84,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
-        self.aux = AuxiliaryUtilities()
 
         # Set the print function TO_DO: do this better...
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
