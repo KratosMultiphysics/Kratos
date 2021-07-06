@@ -25,6 +25,10 @@ namespace Kratos
 {
 KratosRANSApplication::KratosRANSApplication()
     : KratosApplication("RANSApplication"),
+      // stabilization validation elements
+      mRansCircularConvectionAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansCircularConvectionCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansCircularConvectionRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -124,6 +128,7 @@ void KratosRANSApplication::Register()
 
     // incompressible potential flow specific variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
+    KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL_RATE )
     KRATOS_REGISTER_VARIABLE( PRESSURE_POTENTIAL )
     KRATOS_REGISTER_VARIABLE( RANS_IS_INLET )
     KRATOS_REGISTER_VARIABLE( RANS_IS_OUTLET )
@@ -210,6 +215,11 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
 
     // registering elements
+    // registering stabilization validation elements
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionAFC2D3N", mRansCircularConvectionAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionCWD2D3N", mRansCircularConvectionCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFC2D3N", mRansCircularConvectionRFC2D);
+
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity3D4N", mIncompressiblePotentialFlowVelocity3D);
