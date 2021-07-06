@@ -754,9 +754,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@}
       ///@name Protected  Access
       ///@{
-            bool mDomainPeriodicity;
-            array_1d<double, 3> mDomainMin;
-            array_1d<double, 3> mDomainMax;
 
       ///@}
       ///@name Protected Inquiry

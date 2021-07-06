@@ -9,6 +9,7 @@
 //
 //  Main authors:    Ignasi de Pouplana
 //                   Guillermo Casas
+//                   Joaquin Gonzalez-Usua
 //
 
 // External includes
@@ -23,6 +24,8 @@
 #include "custom_processes/transient_spatial_dependant_porosity_solution_body_force_process.h"
 #include "custom_processes/spatial_dependant_porosity_solution_and_body_force_process.h"
 #include "custom_processes/spatial_dependant_sinusoidal_porosity_solution_transient_body_force_process.h"
+#include "custom_processes/spatial_dependant_sinusoidal_porosity_solution_and_body_force_process.h"
+#include "custom_processes/spatial_dependant_hyperbolic_tangential_porosity_solution_and_body_force_process.h"
 #include "custom_processes/spatial_dependant_porosity_solution_transient_body_force_process.h"
 
 namespace Kratos
@@ -59,6 +62,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess, SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess::Pointer, Process>
     (m, "SpatialDependantSinusoidalPorositySolutionTransientBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess, SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess")
+    .def(py::init< ModelPart&>())
+    .def(py::init< ModelPart&, Parameters& >())
+    ;
+
+    py::class_<SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess, SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Pointer, Process>
+    (m, "SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess")
     .def(py::init< ModelPart&>())
     .def(py::init< ModelPart&, Parameters& >())
     ;
