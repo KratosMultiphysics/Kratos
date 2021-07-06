@@ -107,47 +107,48 @@ public:
 
         if (mpElementRefinementProcess) {
             mpElementRefinementProcess->ExecuteInitialize();
-        }
 
-        // now set NUMBER_OF_NEIGHBOUR_ELEMENTS for the refined model parts
-        IndexPartition<int>(num_threads).for_each([&](const int) {
-            auto& r_thread_local_refined_model_part = mpElementRefinementProcess->GetThreadLocalModelPart();
+            // now set NUMBER_OF_NEIGHBOUR_ELEMENTS for the refined model parts
+            IndexPartition<int>(num_threads).for_each([&](const int) {
+                auto& r_thread_local_refined_model_part = mpElementRefinementProcess->GetThreadLocalModelPart();
 
-            // initialize everything to zero
-            for (auto& r_node : r_thread_local_refined_model_part.Nodes()) {
-                r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0);
-            }
-
-            for (auto& r_element : r_thread_local_refined_model_part.Elements()) {
-                for (auto& r_node : r_element.GetGeometry()) {
-                    r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
+                // initialize everything to zero
+                for (auto& r_node : r_thread_local_refined_model_part.Nodes()) {
+                    r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0);
                 }
-            }
-        });
 
-        // now create data holders for each coarse element nodal previous time step values
-        for (const auto& r_element : rModelPart.Elements()) {
-            mRefinedNodalData[r_element.Id()];
+                for (auto& r_element : r_thread_local_refined_model_part.Elements()) {
+                    for (auto& r_node : r_element.GetGeometry()) {
+                        r_node.GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) += 1;
+                    }
+                }
+            });
+
+            // now create data holders for each coarse element nodal previous time step values
+            for (const auto& r_element : rModelPart.Elements()) {
+                mRefinedNodalData[r_element.Id()];
+            }
+
+            const IndexType number_of_dofs_per_node = GetNumberOfDofsPerNode(rModelPart);
+            const Vector zero_vector_values(number_of_dofs_per_node, 0.0);
+            block_for_each(rModelPart.Elements(), [&](Element& rElement){
+                auto& r_thread_local_refined_model_part = mpElementRefinementProcess->GetThreadLocalModelPart();
+                auto& r_nodal_data_map = mRefinedNodalData.find(rElement.Id())->second;
+
+                for (auto& r_node : r_thread_local_refined_model_part.Nodes()) {
+                    auto& r_nodal_data = r_nodal_data_map[r_node.Id()];
+                    r_nodal_data.Mu = zero_vector_values;
+                    r_nodal_data.D = zero_vector_values;
+                    r_nodal_data.E = zero_vector_values;
+                }
+
+                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1, zero_vector_values);
+                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2, zero_vector_values);
+                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM, 0.0);
+                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM, 0.0);
+            });
+
         }
-
-        const IndexType number_of_dofs_per_node = GetNumberOfDofsPerNode(rModelPart);
-        const Vector zero_vector_values(number_of_dofs_per_node, 0.0);
-        block_for_each(rModelPart.Elements(), [&](Element& rElement){
-            auto& r_thread_local_refined_model_part = mpElementRefinementProcess->GetThreadLocalModelPart();
-            auto& r_nodal_data_map = mRefinedNodalData.find(rElement.Id())->second;
-
-            for (auto& r_node : r_thread_local_refined_model_part.Nodes()) {
-                auto& r_nodal_data = r_nodal_data_map[r_node.Id()];
-                r_nodal_data.Mu = zero_vector_values;
-                r_nodal_data.D = zero_vector_values;
-                r_nodal_data.E = zero_vector_values;
-            }
-
-            rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1, zero_vector_values);
-            rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2, zero_vector_values);
-            rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM, 0.0);
-            rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM, 0.0);
-        });
 
         KRATOS_CATCH("");
     }

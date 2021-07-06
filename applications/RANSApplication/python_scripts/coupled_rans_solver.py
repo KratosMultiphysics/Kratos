@@ -318,9 +318,10 @@ class CoupledRANSSolver(PythonSolver):
 
         self.formulation.InitializeSolutionStep()
 
-        # re-set all the dofs
-        CoupledRANSSolver._ExecuteRecursively(self.formulation,
-            lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(False) if x.GetStrategy() is not None else None)
+        if (self.perform_automatic_mesh_refinement):
+            # re-set all the dofs
+            CoupledRANSSolver._ExecuteRecursively(self.formulation,
+                lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(False) if x.GetStrategy() is not None else None)
 
     def Predict(self):
         self.formulation.Predict()
