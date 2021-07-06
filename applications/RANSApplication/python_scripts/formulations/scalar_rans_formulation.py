@@ -13,6 +13,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetBoundaryFlags
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariablesRecursively
 
 class ScalarRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -69,7 +70,9 @@ class ScalarRansFormulation(RansFormulation):
                                 "Created formulation model part.")
 
     def AddVariables(self):
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(self.GetSolvingVariable())
+        list_of_variables = GetTimeDerivativeVariablesRecursively(self.GetSolvingVariable())
+        for var in list_of_variables:
+            self.GetBaseModelPart().AddNodalSolutionStepVariable(var)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
@@ -196,6 +199,12 @@ class ScalarRansFormulation(RansFormulation):
 
     def GetSolvingVariables(self):
         return [self.GetSolvingVariable()]
+
+    def GetMinimumBufferSize(self):
+        if (self.is_steady_simulation):
+            return 1
+        else:
+            return 2
 
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):
