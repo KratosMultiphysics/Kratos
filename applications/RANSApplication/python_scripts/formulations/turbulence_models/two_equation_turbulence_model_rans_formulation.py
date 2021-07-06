@@ -116,5 +116,3 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
         # otherwise, this can be moved to FinalizeSolvingStep method
         self.nu_t_convergence_utility.UpdateTurbulentViscosity()
 
-    def GetSolvingVariables(self):
-        return [self.formulation_1.GetSolvingVariable(), self.formulation_2.GetSolvingVariable()]

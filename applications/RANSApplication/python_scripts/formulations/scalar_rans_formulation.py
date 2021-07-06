@@ -194,6 +194,9 @@ class ScalarRansFormulation(RansFormulation):
     def GetConditionNames(self):
         return [self.condition_name]
 
+    def GetSolvingVariables(self):
+        return [self.GetSolvingVariable()]
+
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):
             return GetKratosObjectPrototype("AlgebraicFluxCorrectedSteadyScalarScheme")(relaxation_factor, GetBoundaryFlags(self.GetParameters()["boundary_flags"]), KratosCFD.PATCH_INDEX)
