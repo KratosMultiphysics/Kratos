@@ -1,4 +1,4 @@
-﻿//    |  /           |
+//    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
@@ -405,6 +405,51 @@ namespace Kratos
             }
         }
         KRATOS_CATCH("");
+    }
+
+
+    void Shell3pElement::CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    )
+    {
+        KRATOS_TRY;
+
+        const auto& r_geometry = GetGeometry();
+
+        // definition of problem size
+        const SizeType number_of_nodes = r_geometry.size();
+        const SizeType mat_size = number_of_nodes * 3;
+
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        // Shape function values for all integration points
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+
+            double integration_weight = r_integration_points[point_number].Weight();
+
+            double thickness = this->GetProperties().GetValue(THICKNESS);
+            double density = this->GetProperties().GetValue(DENSITY);
+            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+
+            if (rMassMatrix.size1() != mat_size)
+                rMassMatrix.resize(mat_size, mat_size, false);
+
+            rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+            for (unsigned int r = 0; r<number_of_nodes; r++)
+            {
+                for (unsigned int s = 0; s<number_of_nodes; s++)
+                {
+                    rMassMatrix(3 * s, 3 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+                    rMassMatrix(3 * s + 1, 3 * r + 1) = rMassMatrix(3 * s, 3 * r);
+                    rMassMatrix(3 * s + 2, 3 * r + 2) = rMassMatrix(3 * s, 3 * r);
+                }
+            }
+        }
+        KRATOS_CATCH("")
     }
 
     ///@}

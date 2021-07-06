@@ -250,6 +250,16 @@ public:
             rCurrentProcessInfo, true, true);
     }
 
+    /**
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @param rMassMatrix The elemental mass matrix
+    * @param rCurrentProcessInfo The current process info instance
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
