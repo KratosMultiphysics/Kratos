@@ -39,7 +39,7 @@ namespace Kratos
         KRATOS_TRY
         const GeometryType& r_geometry = GetGeometry();
 
-        KRATOS_WATCH("test")
+        mNumThicknessIntegrationPoints = 2;
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
         // Prepare memory
@@ -78,15 +78,21 @@ namespace Kratos
 
         const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
 
-        KRATOS_WATCH(r_number_of_integration_points)
-
         //Constitutive Law initialisation
-        mConstitutiveLawVector.resize(r_number_of_integration_points);
+        mConstitutiveLawVectorOfVector.resize(r_number_of_integration_points);
 
-        std::fill(mConstitutiveLawVector.begin(), mConstitutiveLawVector.end(), GetProperties()[CONSTITUTIVE_LAW]->Clone());
+        //std::fill(mConstitutiveLawVector.begin(), mConstitutiveLawVector.end(), GetProperties()[CONSTITUTIVE_LAW]->Clone());
 
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
+        for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number) {
+            mConstitutiveLawVectorOfVector[point_number].resize(mNumThicknessIntegrationPoints);
+
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumThicknessIntegrationPoints; ++thickness_point_number) {
+
+                mConstitutiveLawVectorOfVector[point_number][thickness_point_number]
+                    = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVectorOfVector[point_number][thickness_point_number]
+                    ->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
+            }
         }
 
         KRATOS_CATCH("");
@@ -112,41 +118,46 @@ namespace Kratos
         Matrix BOperator(8, number_of_nodes * 5);
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumThicknessIntegrationPoints; ++thickness_point_number) {
+                KinematicVariables kinematic_variables;
+                VariationVariables variation_variables;
+                std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
 
-            KinematicVariables kinematic_variables;
-            VariationVariables variation_variables;
-            std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
+                // Create constitutive law parameters:
+                ConstitutiveLaw::Parameters constitutive_law_parameters(
+                    GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
-            // Create constitutive law parameters:
-            ConstitutiveLaw::Parameters constitutive_law_parameters(
-                GetGeometry(), GetProperties(), rCurrentProcessInfo);
+                kinematic_variables.F = IdentityMatrix(3, 3);
 
-            ConstitutiveVariables constitutive_variables;
-            CalculateConstitutiveVariables(
-                point_number,
-                kinematic_variables,
-                constitutive_variables,
-                constitutive_law_parameters,
-                ConstitutiveLaw::StressMeasure_PK2);
+                ConstitutiveVariables constitutive_variables;
+                CalculateConstitutiveVariables(
+                    point_number,
+                    thickness_point_number,
+                    kinematic_variables,
+                    constitutive_variables,
+                    constitutive_law_parameters,
+                    ConstitutiveLaw::StressMeasure_PK2);
 
-            BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);
+                BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);
 
-            double integration_weight = r_integration_points[point_number].Weight() * m_dA_vector[point_number];
+                double integration_weight = r_integration_points[point_number].Weight() * m_dA_vector[point_number];
 
-            // LEFT HAND SIDE MATRIX
-            if (CalculateStiffnessMatrixFlag == true)
-            {
-                const Matrix Kg =
-                    CalculateGeometricStiffness(
-                        point_number,
-                        kinematic_variables,
-                        variation_variables,
-                        constitutive_variables);
-                noalias(rLeftHandSideMatrix) += integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator) + Kg);
+                // LEFT HAND SIDE MATRIX
+                if (CalculateStiffnessMatrixFlag == true)
+                {
+                    const Matrix Kg =
+                        CalculateGeometricStiffness(
+                            point_number,
+                            thickness_point_number,
+                            kinematic_variables,
+                            variation_variables,
+                            constitutive_variables);
+                    noalias(rLeftHandSideMatrix) += integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator) + Kg);
+                }
+                // RIGHT HAND SIDE VECTOR
+                if (CalculateResidualVectorFlag == true)
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
             }
-            // RIGHT HAND SIDE VECTOR
-            if (CalculateResidualVectorFlag == true)
-                noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
         }
 
         KRATOS_CATCH("");
@@ -283,20 +294,31 @@ namespace Kratos
     }
 
     Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::CalculateConstitutiveVariables(
-        const IndexType iP,
+        const IndexType IntegrationPointIndex,
+        const IndexType ThicknessIntegrationPointIndex,
         const KinematicVariables& rActualKinematic,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
     {
-        rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        array_1d<double, 6> SVoigt;
-        BoundedMatrix <double, 6, 6> CVoigt;
+        Matrix CVoigt = ZeroMatrix(6, 6);
         //TODO: Fill SVoigt and CVoigt from somewhere, also take care of the S33=0 condition, maybe later
+
+        Vector SVoigt = ZeroVector(6);
+        Vector Strain = ZeroVector(6);
+
+        // Constitive Matrices DMembrane and DCurvature
+        rValues.SetDeformationGradientF(rActualKinematic.F); //this is the input parameter
+        rValues.SetStrainVector(Strain); //this is an ouput parameter
+        rValues.SetStressVector(SVoigt); //this is an ouput parameter
+        rValues.SetConstitutiveMatrix(CVoigt); //this is an ouput parameter
+
+        mConstitutiveLawVectorOfVector[IntegrationPointIndex][ThicknessIntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         SVoigt = prod(trans(rActualKinematic.Tcont), SVoigt);
         CVoigt = prod(prod<BoundedMatrix <double, 6, 6>>(trans(rActualKinematic.Tcont), CVoigt) , rActualKinematic.Tcont);
@@ -350,6 +372,7 @@ namespace Kratos
 
     Matrix Shell5pStressBasedElement::CalculateGeometricStiffness(
         const IndexType iP,  //Integration Point
+        const IndexType ThicknessIntegrationPointIndex,  //Thickness Integration Point
         const KinematicVariables& rActKin,
         const VariationVariables& ractVar,
         const ConstitutiveVariables& rConstitutive) const
@@ -758,6 +781,12 @@ namespace Kratos
         BoundedMatrix<double, 3, 3> invA;
         MathUtils<double>::InvertMatrix3(A, invA, detA);
         return invA;
+    }
+
+    const std::array<double, 2>& Shell5pStressBasedElement::GetThicknessIntegrationPoint(IndexType ThicknessIntegrationPointIndex)
+    {
+        return IntegrationPointUtilities::s_gauss_legendre[mNumThicknessIntegrationPoints][ThicknessIntegrationPointIndex];
+
     }
 
 } // Namespace Kratos

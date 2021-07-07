@@ -10,6 +10,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "utilities/math_utils.h"
+#include "integration/integration_point_utilities.h"
 
 // Application includes
 #include "iga_application_variables.h"
@@ -57,7 +58,7 @@ protected:
         //Jacobians
         BoundedMatrix<double, 3, 3> j;
         BoundedMatrix<double, 3, 3> J;
-        BoundedMatrix<double, 3, 3> F;
+        Matrix F;
 
         //Transformationg matrices
         BoundedMatrix<double, 6, 6> T;
@@ -398,10 +399,12 @@ private:
     std::vector<Matrix> m_cart_deriv;
 
     /// The vector containing the constitutive laws for all integration points.
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+    std::vector<std::vector<ConstitutiveLaw::Pointer>> mConstitutiveLawVectorOfVector;
 
     //The St. Venant Kirchhoff 5P Material Tangent
     BoundedMatrix<double, 8, 8> mC;
+
+    IndexType mNumThicknessIntegrationPoints;
 
     ///@}
     ///@name Operations
@@ -432,7 +435,8 @@ private:
         const VariationVariables& rVariations) const ;
 
     Matrix CalculateGeometricStiffness(
-        const IndexType IntegrationPointIndex,
+        const IndexType iP,
+        const IndexType ThicknessIntegrationPointIndex,  //Thickness Integration Point
         const KinematicVariables& rActKin,
         const VariationVariables& ractVar,
         const ConstitutiveVariables& rThisConstitutiveVariables) const;
@@ -451,19 +455,18 @@ private:
     */
     ConstitutiveVariables CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
+        const IndexType ThicknessIntegrationPointIndex,
         const KinematicVariables& rActualMetric,
         ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
 
-
-
-
-
     /// Helper
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
+
+    const std::array<double, 2>& GetThicknessIntegrationPoint(IndexType ThicknessIntegrationPointIndex);
 
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
@@ -481,7 +484,7 @@ private:
         rSerializer.save("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
-        rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.save("constitutive_law_vector", mConstitutiveLawVectorOfVector);
     }
 
     void load(Serializer& rSerializer) final
@@ -491,7 +494,7 @@ private:
         rSerializer.load("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.load("cart_deriv", m_cart_deriv);
-        rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
+        rSerializer.load("constitutive_law_vector", mConstitutiveLawVectorOfVector);
     }
 
     ///@}
