@@ -77,6 +77,9 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
+    smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
+    smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+    smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -87,9 +90,7 @@ def AssembleTestSuites():
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
-    nightSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
-    nightSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
-    nightSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
+
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
