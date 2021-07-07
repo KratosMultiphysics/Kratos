@@ -51,10 +51,10 @@ public:
      *  @param rReferencePoint a point on the axis of rotation (array of size 3)
      *  @param rTranslationVector translation vector (array of size 3)
      */
-    ParametricLinearTransform(const Parameters& rAxis,
-                              const Parameters& rAngle,
-                              const Parameters& rReferencePoint,
-                              const Parameters& rTranslationVector);
+    ParametricLinearTransform(const Parameters axis,
+                              const Parameters angle,
+                              const Parameters referencePoint,
+                              const Parameters translationVector);
 
     /** Construct via euler angles
      *  @param rEulerAngles euler angles (radians, array of size 3)
@@ -62,9 +62,9 @@ public:
      *  @param rTranslationVector translation vector (array of size 3)
      *  @note The euler angles follow the convention specified by @ref{Quaternion} (Z, -X', Z")
      */
-    ParametricLinearTransform(const Parameters& rEulerAngles,
-                              const Parameters& rReferencePoint,
-                              const Parameters& rTranslationVector);
+    ParametricLinearTransform(const Parameters eulerAngles,
+                              const Parameters referencePoint,
+                              const Parameters translationVector);
 
     ParametricLinearTransform(const ParametricLinearTransform& rOther) = default;
 
@@ -99,14 +99,14 @@ private:
     ///@{
 
     // Necessary to parse constants
-    static std::string ExtractFunctionBody(const Parameters& rParameters);
+    static std::string ExtractFunctionBody(const Parameters parameters);
 
     /// Class for storing and evaluating an array of @ref{GenericFunctionUtility}
     template <std::size_t ArraySize>
     class VectorFunction : public std::array<FunctionType::Pointer,ArraySize>
     {
     public:
-        VectorFunction(const Parameters& rFunctions)
+        VectorFunction(const Parameters rFunctions)
         {
             KRATOS_TRY
 

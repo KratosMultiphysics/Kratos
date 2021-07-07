@@ -17,18 +17,18 @@ namespace Kratos
 {
 
 
-ParametricLinearTransform::ParametricLinearTransform(const Parameters& rAxis,
-                                                     const Parameters& rAngle,
-                                                     const Parameters& rReferencePoint,
-                                                     const Parameters& rTranslationVector)
+ParametricLinearTransform::ParametricLinearTransform(const Parameters axis,
+                                                     const Parameters angle,
+                                                     const Parameters referencePoint,
+                                                     const Parameters translationVector)
     : LinearTransform(),
-      mReferencePointFunction(rReferencePoint),
-      mTranslationVectorFunction(rTranslationVector)
+      mReferencePointFunction(referencePoint),
+      mTranslationVectorFunction(translationVector)
 {
     KRATOS_TRY
 
-    VectorFunction<3> axis_function(rAxis);
-    FunctionType angle_function(ExtractFunctionBody(rAngle));
+    VectorFunction<3> axis_function(axis);
+    FunctionType angle_function(ExtractFunctionBody(angle));
 
     mQuaternionFunction = [axis_function, angle_function](const double x,
                                                           const double y,
@@ -56,16 +56,16 @@ ParametricLinearTransform::ParametricLinearTransform(const Parameters& rAxis,
 }
 
 
-ParametricLinearTransform::ParametricLinearTransform(const Parameters& rEulerAngles,
-                                                     const Parameters& rReferencePoint,
-                                                     const Parameters& rTranslationVector)
+ParametricLinearTransform::ParametricLinearTransform(const Parameters eulerAngles,
+                                                     const Parameters referencePoint,
+                                                     const Parameters translationVector)
     : LinearTransform(),
-      mReferencePointFunction(rReferencePoint),
-      mTranslationVectorFunction(rTranslationVector)
+      mReferencePointFunction(referencePoint),
+      mTranslationVectorFunction(translationVector)
 {
     KRATOS_TRY
 
-    VectorFunction<3> angle_function(rEulerAngles);
+    VectorFunction<3> angle_function(eulerAngles);
 
     mQuaternionFunction = [angle_function](const double x,
                                            const double y,
@@ -156,20 +156,20 @@ array_1d<double,3> ParametricLinearTransform::Apply(const array_1d<double,3>& rP
 }
 
 
-std::string ParametricLinearTransform::ExtractFunctionBody(const Parameters& rParameters)
+std::string ParametricLinearTransform::ExtractFunctionBody(const Parameters parameters)
 {
     KRATOS_TRY
 
     std::string body;
 
-    if (rParameters.IsString()) {
-        body = rParameters.GetString();
+    if (parameters.IsString()) {
+        body = parameters.GetString();
     }
-    else if (rParameters.IsNumber()) {
-        body = std::to_string(rParameters.GetDouble());
+    else if (parameters.IsNumber()) {
+        body = std::to_string(parameters.GetDouble());
     }
     else {
-        KRATOS_ERROR << "Cannot extract function body from Parameters: " << rParameters;
+        KRATOS_ERROR << "Cannot extract function body from Parameters: " << parameters;
     }
 
     return body;
