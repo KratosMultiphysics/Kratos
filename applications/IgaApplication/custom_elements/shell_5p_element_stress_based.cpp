@@ -140,7 +140,8 @@ namespace Kratos
 
                 BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);
 
-                double integration_weight = r_integration_points[point_number].Weight() * m_dA_vector[point_number];
+                double integration_weight = r_integration_points[point_number].Weight()
+                    * GetThicknessIntegrationPoint(thickness_point_number)[1] * m_dA_vector[point_number];
 
                 // LEFT HAND SIDE MATRIX
                 if (CalculateStiffnessMatrixFlag == true)
