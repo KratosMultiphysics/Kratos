@@ -391,6 +391,10 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
         nodal_value_process.Execute()
+
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.PRESSURE_COEFFICIENT, self.mapping_reference_model.GetModelPart(self.main_model_part_name).Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.SHAPE_SENSITIVITY, self.mapping_reference_model.GetModelPart(self.main_model_part_name).Nodes)
+
         # map from current model part of interest to reference model part
         mapping_parameters = KratosMultiphysics.Parameters("""{
             "mapper_type": "nearest_element",
