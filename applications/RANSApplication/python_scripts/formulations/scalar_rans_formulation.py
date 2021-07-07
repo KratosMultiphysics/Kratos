@@ -3,6 +3,7 @@ from abc import abstractmethod
 # import kratos
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
+import KratosMultiphysics.RANSApplication as KratosRANS
 
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
@@ -164,6 +165,23 @@ class ScalarRansFormulation(RansFormulation):
         else:
             raise Exception(
                 "\"scheme_type\" is missing in time scheme settings")
+
+    def SetConstants(self, settings):
+        defaults = Kratos.Parameters('''{
+            "stabilization_constants":{
+                "upwind_operator_coefficient"       : 1.2,
+                "positivity_preserving_coefficient" : 1.2
+            }
+        }''')
+
+        settings.RecursivelyValidateAndAssignDefaults(defaults)
+
+        process_info = self.GetBaseModelPart().ProcessInfo
+
+        # stabilization parameters
+        constants = settings["stabilization_constants"]
+        process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, constants["upwind_operator_coefficient"].GetDouble())
+        process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, constants["positivity_preserving_coefficient"].GetDouble())
 
     def GetMaxCouplingIterations(self):
         return 0
