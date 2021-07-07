@@ -423,7 +423,7 @@ private:
     void InitializeMaterial();
 
     std::pair< Shell5pStressBasedElement::KinematicVariables, Shell5pStressBasedElement::VariationVariables>
-        CalculateKinematics(const IndexType IntegrationPointIndex) const;
+        CalculateKinematics(const IndexType IntegrationPointIndex, const IndexType ThicknessIntegrationPointIndex) const;
 
     // Computes the cartesian derivatives from curvilinear ones
     Matrix CalculateCartesianDerivatives(
@@ -466,7 +466,7 @@ private:
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
 
-    const std::array<double, 2>& GetThicknessIntegrationPoint(IndexType ThicknessIntegrationPointIndex);
+    const std::array<double, 2>& GetThicknessIntegrationPoint(const IndexType ThicknessIntegrationPointIndex) const;
 
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);

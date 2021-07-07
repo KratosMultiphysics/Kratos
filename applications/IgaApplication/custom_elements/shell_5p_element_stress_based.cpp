@@ -58,12 +58,15 @@ namespace Kratos
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
-            m_cart_deriv[point_number] = CalculateCartesianDerivatives(point_number);
+            for (IndexType thickness_point_number = 0; thickness_point_number < mNumThicknessIntegrationPoints; ++thickness_point_number) {
 
-            std::tie(kinematic_variables, std::ignore) = CalculateKinematics(point_number);
+                m_cart_deriv[point_number] = CalculateCartesianDerivatives(point_number);
 
-            reference_ReferenceJacobianInverse[point_number] = invert3(kinematic_variables.j);
-            reference_ReferenceCartesianJacobian[point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
+                std::tie(kinematic_variables, std::ignore) = CalculateKinematics(point_number, thickness_point_number);
+
+                reference_ReferenceJacobianInverse[point_number] = invert3(kinematic_variables.j);
+                reference_ReferenceCartesianJacobian[point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
+            }
         }
         InitializeMaterial();
         KRATOS_CATCH("")
@@ -121,7 +124,7 @@ namespace Kratos
             for (IndexType thickness_point_number = 0; thickness_point_number < mNumThicknessIntegrationPoints; ++thickness_point_number) {
                 KinematicVariables kinematic_variables;
                 VariationVariables variation_variables;
-                std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number);
+                std::tie(kinematic_variables, variation_variables) = CalculateKinematics(point_number, thickness_point_number);
 
                 // Create constitutive law parameters:
                 ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -169,7 +172,7 @@ namespace Kratos
     ///@{
 
     std::pair< Shell5pStressBasedElement::KinematicVariables, Shell5pStressBasedElement::VariationVariables> Shell5pStressBasedElement::CalculateKinematics(
-        const IndexType IntegrationPointIndex
+        const IndexType IntegrationPointIndex, const IndexType ThicknessIntegrationPointIndex
     ) const
     {
         KinematicVariables rKin;
@@ -236,7 +239,7 @@ namespace Kratos
         rKin.curvature[2] = inner_prod(rKin.a1, rKin.dtd2) + inner_prod(rKin.a2, rKin.dtd1);
 
 
-        rKin.zeta = 2; //TODO: get thickness coordiante of integration point;
+        rKin.zeta = GetThicknessIntegrationPoint(ThicknessIntegrationPointIndex)[0]; //TODO: get thickness coordiante of integration point;
         rKin.g1 = rKin.a1 + rKin.zeta * rKin.dtd1;
         rKin.g2 = rKin.a2 + rKin.zeta * rKin.dtd2;
         //rKin.G1 = rKin.A1 + rKin.zeta * rKin.t0d1;
@@ -784,7 +787,7 @@ namespace Kratos
         return invA;
     }
 
-    const std::array<double, 2>& Shell5pStressBasedElement::GetThicknessIntegrationPoint(IndexType ThicknessIntegrationPointIndex)
+    const std::array<double, 2>& Shell5pStressBasedElement::GetThicknessIntegrationPoint(const IndexType ThicknessIntegrationPointIndex) const
     {
         return IntegrationPointUtilities::s_gauss_legendre[mNumThicknessIntegrationPoints][ThicknessIntegrationPointIndex];
 
