@@ -95,6 +95,9 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
     def test_PerfectPlasticitySmallStrainIsotropicPlasticity3DVonMisesVonMises(self):
         self._base_test("SmallStrainIsotropicPlasticity3DVonMisesVonMises")
 
+    def test_PerfectPlasticityHyperElasticIsotropicKirchhoffPlasticity3DVonMisesVonMises(self):
+        self._base_test("HyperElasticIsotropicKirchhoffPlasticity3DVonMisesVonMises")
+
 def _apply_BCs(mp,A,B,b,time, w):
     for node in mp.Nodes:
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
