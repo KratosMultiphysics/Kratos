@@ -66,12 +66,6 @@ public:
                               const Parameters referencePoint,
                               const Parameters translationVector);
 
-    ParametricLinearTransform(const ParametricLinearTransform& rOther) = default;
-
-    ParametricLinearTransform(ParametricLinearTransform&& rOther) = default;
-
-    ParametricLinearTransform& operator=(const ParametricLinearTransform& rOther) = default;
-
     ///@}
     ///@name Operations
     ///@{
