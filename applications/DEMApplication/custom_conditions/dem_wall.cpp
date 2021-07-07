@@ -4,7 +4,7 @@
 
 // Project includes
 #include "custom_conditions/dem_wall.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos

@@ -14,16 +14,16 @@
 
 // Project includes
 #include "includes/define.h"
-#include "../DEM_application_variables.h"
+#include "DEM_application_variables.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "utilities/timer.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/quaternion.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/spheric_particle.h"
-#include "../custom_utilities/discrete_particle_configure.h"
-#include "../custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/spheric_particle.h"
+#include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
 #include "analytic_tools/analytic_watcher.h"
 
 
@@ -58,6 +58,10 @@ public:
     int FindMaxElementIdInModelPart(ModelPart& r_modelpart);
     int FindMaxConditionIdInModelPart(ModelPart& r_modelpart);
     void RenumberElementIdsFromGivenValue(ModelPart& r_modelpart, const int initial_id);
+    void DestroyMarkedParticles(ModelPart& r_model_part);
+    virtual double SelectRadius(bool initial,
+                                ModelPart& r_sub_model_part_with_parameters,
+                                std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map);
 
     void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                            Node < 3 > ::Pointer& pnew_node,

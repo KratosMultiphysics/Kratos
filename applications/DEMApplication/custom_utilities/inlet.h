@@ -11,10 +11,6 @@
 #include <iostream>
 #include <random>
 
-// External includes
-
-// Project includes
-
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -27,10 +23,10 @@
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../custom_utilities/piecewise_linear_random_variable.h"
-#include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
@@ -71,6 +67,9 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+        virtual double SetMaxDistributionRadius(ModelPart& mp);
+        virtual double SetDistributionMeanRadius(ModelPart& mp);
+
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
         virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
