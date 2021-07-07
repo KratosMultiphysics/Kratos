@@ -57,13 +57,8 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
         parameters.ValidateAndAssignDefaults(default_parameters)
         self.model_part = model[parameters["model_part_name"].GetString()]
 
-        # Parse interval (in lieu of a python interface for IntervalUtility)
-        if parameters["interval"][1].IsString():
-            if parameters["interval"][1].GetString() == "End":
-                parameters["interval"][1].SetDouble(1e30)
-            else:
-                raise ValueError("interval end is expected to be either a float or 'End'")
-        self.interval = parameters["interval"].GetVector()
+        # Parse interval
+        self.interval_utility = KratosMultiphysics.IntervalUtility(parameters)
 
         # Determine whether a constant transform will suffice or a parametric one is needed
         requires_parametric_transform = False
@@ -121,7 +116,10 @@ class ImposeMeshMotionProcess(KratosMultiphysics.Process):
 
 
     def ExecuteInitializeSolutionStep(self):
-        MeshMovingApplication.MoveModelPart(self.model_part, self.transform)
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval_utility.IsInInterval(time):
+            MeshMovingApplication.MoveModelPart(self.model_part, self.transform)
 
 
     @staticmethod
