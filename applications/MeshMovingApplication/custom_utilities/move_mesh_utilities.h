@@ -61,10 +61,10 @@ void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
  */
 void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(
     ModelPart& rModelPart,
-    const Parameters& rRotationAxis,
-    const Parameters& rRotationAngle,
-    const Parameters& rReferencePoint,
-    const Parameters& rTranslationVector);
+    const Parameters rotationAxis,
+    const Parameters rotationAngle,
+    const Parameters referencePoint,
+    const Parameters translationVector);
 
 /// Impose mesh movement on all nodes of a model part
 void KRATOS_API(MESH_MOVING_APPLICATION) MoveModelPart(

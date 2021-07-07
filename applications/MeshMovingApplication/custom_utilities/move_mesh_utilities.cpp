@@ -79,18 +79,18 @@ void MoveModelPart(
 
 void MoveModelPart(
     ModelPart& rModelPart,
-    const Parameters& rRotationAxis,
-    const Parameters& rRotationAngle,
-    const Parameters& rReferencePoint,
-    const Parameters& rTranslationVector)
+    const Parameters rotationAxis,
+    const Parameters rotationAngle,
+    const Parameters referencePoint,
+    const Parameters translationVector)
 {
     KRATOS_TRY
 
     ParametricLinearTransform transform(
-        rRotationAxis,
-        rRotationAngle,
-        rReferencePoint,
-        rTranslationVector);
+        rotationAxis,
+        rotationAngle,
+        referencePoint,
+        translationVector);
 
     MoveModelPart(rModelPart, transform);
 
