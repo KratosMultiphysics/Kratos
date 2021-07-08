@@ -25,6 +25,9 @@
 
 namespace Kratos
 {
+    // stabilization validation specific variables
+    KRATOS_DEFINE_APPLICATION_VARIABLE( RANS_APPLICATION, double, REACTION_COEFFICIENT )
+
     // incompressible potential flow specific variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( RANS_APPLICATION, double, VELOCITY_POTENTIAL )
     KRATOS_DEFINE_APPLICATION_VARIABLE( RANS_APPLICATION, double, VELOCITY_POTENTIAL_RATE )

@@ -44,6 +44,9 @@ PYBIND11_MODULE(KratosRANSApplication,m)
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
 
+    // stabilization validation specific variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REACTION_COEFFICIENT )
+
     // incompressible potential flow specific variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_POTENTIAL )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VELOCITY_POTENTIAL_RATE )

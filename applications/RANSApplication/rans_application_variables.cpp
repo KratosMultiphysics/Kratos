@@ -13,6 +13,9 @@
 
 namespace Kratos
 {
+    // stabilization validation specific variables
+    KRATOS_CREATE_VARIABLE( double, REACTION_COEFFICIENT )
+
     // common auxiliary variables
     KRATOS_CREATE_VARIABLE( double, RANS_AUXILIARY_VARIABLE_1 )
     KRATOS_CREATE_VARIABLE( double, RANS_AUXILIARY_VARIABLE_2 )

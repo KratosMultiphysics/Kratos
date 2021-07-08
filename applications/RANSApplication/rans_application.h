@@ -24,6 +24,7 @@
 
 // stabilization validaton elements
 #include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/body_force_governed_cdr_element_data.h"
 
 // incompressible potential flow elements
 #include "custom_elements/incompressible_potential_flow_velocity_element.h"
@@ -174,6 +175,10 @@ private:
     const ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionAFC2D;
     const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionCWD2D;
     const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionRFC2D;
+
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRRFC2D;
 
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;

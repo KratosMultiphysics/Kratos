@@ -22,6 +22,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/body_force_governed_cdr_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/k_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data.h"
 #include "custom_elements/data_containers/k_omega/k_element_data.h"
@@ -339,6 +340,7 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 
 // template instantiations
 template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::CircularConvectionElementData>;
+template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData>;
 
 template class ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::KElementData<2>>;
 template class ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::EpsilonElementData<2>>;

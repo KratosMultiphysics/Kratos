@@ -29,6 +29,9 @@ KratosRANSApplication::KratosRANSApplication()
       mRansCircularConvectionAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansCircularConvectionCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansCircularConvectionRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansBodyForceGovernedCDRRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -126,6 +129,9 @@ void KratosRANSApplication::Register()
 {
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
 
+    // stabilization validation specific variables
+    KRATOS_REGISTER_VARIABLE( REACTION_COEFFICIENT )
+
     // incompressible potential flow specific variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL )
     KRATOS_REGISTER_VARIABLE( VELOCITY_POTENTIAL_RATE )
@@ -219,6 +225,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionAFC2D3N", mRansCircularConvectionAFC2D);
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionCWD2D3N", mRansCircularConvectionCWD2D);
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFC2D3N", mRansCircularConvectionRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRAFC2D3N", mRansBodyForceGovernedCDRAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRCWD2D3N", mRansBodyForceGovernedCDRCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRRFC2D3N", mRansBodyForceGovernedCDRRFC2D);
 
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);

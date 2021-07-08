@@ -3,6 +3,7 @@ __all__ = ["Factory"]
 import KratosMultiphysics as Kratos
 
 # stabilization validation formulations
+from KratosMultiphysics.RANSApplication.formulations.stabilization_validation.body_force_governed_cdr_rans_formulation import BodyForceGovernedCDRRansFormulation
 from KratosMultiphysics.RANSApplication.formulations.stabilization_validation.circular_convection_rans_formulation import CircularConvectionRansFormulation
 
 # flow solver formulations
@@ -46,7 +47,8 @@ def Factory(model_part, settings):
         ["k_omega_sst", KOmegaSSTRansFormulation],
 
         # adding stabilization validation formulations
-        ["circular_convection", CircularConvectionRansFormulation]
+        ["circular_convection", CircularConvectionRansFormulation],
+        ["body_force_governed_cdr", BodyForceGovernedCDRRansFormulation]
     ]
 
     formulation_names_list = [
