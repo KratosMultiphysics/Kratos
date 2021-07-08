@@ -67,7 +67,14 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // TODO
+    this->CalculateMaterialResponseKirchhoff(rValues);
+
+    Vector& stress_vector                = rValues.GetStressVector();
+    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+    const double determinant_f           = rValues.GetDeterminantF();
+
+    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+        ConstitutiveLaw::StressMeasure_Kirchhoff, ConstitutiveLaw::StressMeasure_PK2);
 }
 
 /***********************************************************************************/
@@ -123,7 +130,7 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    //TODO
+    FinalizeMaterialResponseKirchhoff(rValues);
 }
 
 /***********************************************************************************/
