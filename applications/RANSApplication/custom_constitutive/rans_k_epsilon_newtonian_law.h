@@ -111,6 +111,13 @@ public:
         double& rValue) override;
 
 
+    void CalculateDerivative(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput) override;
+
+
     ///@}
     ///@name Access
     ///@{
