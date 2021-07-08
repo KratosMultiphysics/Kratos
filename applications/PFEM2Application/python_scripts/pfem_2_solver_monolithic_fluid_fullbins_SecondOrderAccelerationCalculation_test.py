@@ -292,19 +292,16 @@ class PFEM2Solver:
         #        self.matrix_container = MatrixContainer2D()
         #else:
         #        self.matrix_container = MatrixContainer3D()
-        #maximum_number_of_particles= 10*2*self.domain_size
-        maximum_number_of_particles= 8*self.domain_size
+        maximum_number_of_particles= 10*1*self.domain_size
+        #maximum_number_of_particles= 8*self.domain_size
 
         #self.ExplicitStrategy=PFEM2_Explicit_Strategy(self.model_part,self.domain_size, MoveMeshFlag)
         self.VariableUtils = VariableUtils()
 
-        if self.domain_size==2:
-             self.moveparticles = MoveParticleUtilityFullBinsPFEM22D(self.model_part,maximum_number_of_particles)
-             locator = BinBasedFastPointLocator2D(self.model_part)
-             locator.UpdateSearchDatabase()
-             self.moveparticles.MountBin(locator)
-        else:
-             self.moveparticles = MoveParticleUtilityFullBinsPFEM23D(self.model_part,maximum_number_of_particles)
+        #if self.domain_size==2:
+        #     self.moveparticles = MoveParticleUtilityFullBinsPFEM22D(self.model_part,maximum_number_of_particles)
+        #else:
+        #     self.moveparticles = MoveParticleUtilityFullBinsPFEM23D(self.model_part,maximum_number_of_particles)
         #raw_input()
         print("self.domain_size = ", self.domain_size)
         #if self.domain_size==2:
@@ -312,7 +309,7 @@ class PFEM2Solver:
         #else:
         #     self.calculatewatervolume = CalculateWaterFraction3D(self.model_part)
 
-        
+        #self.moveparticles.MountBin()
         self.water_volume=0.0  #we initialize it at zero
         self.water_initial_volume=0.0 #we initialize it at zero
         self.mass_correction_factor=0.0
@@ -365,39 +362,154 @@ class PFEM2Solver:
     def Solve(self):
 
         print("Simulation Time=",self.time)
-        print("PARTICLEMODULE-START")
-        #in order to define a reasonable number of substeps we calculate a mean courant in each element
-        (self.moveparticles).CalculateVelOverElemSize()
-        print("Particles will be moved with SubStepping")
-        #streamline integration:
-        discriminate_streamlines=True
-        (self.moveparticles).MoveParticles(discriminate_streamlines)
-        print("Particles have been moved with SubStepping")
-        #Reseeding using streamlines in inverse way in case there are too few particles. Not very accurate since particles follow streamlines, no matter if it's water or air.
-        #(for 1 fluid should be accurate though
-        pre_minimum_number_of_particles=3
-        (self.moveparticles).PreReseed(pre_minimum_number_of_particles)
-        print("Info will be projected onto the mesh with FirstOrder")
-        #transfering data from the particles to the mesh:
-        (self.moveparticles).TransferLagrangianToEulerian()
-        print("Info has been projected onto the mesh with FirstOrder")
-        (self.VariableUtils).CopyVectorVar(PROJECTED_VELOCITY,VELOCITY,self.model_part.Nodes)
-        (self.VariableUtils).CopyScalarVar(PROJECTED_DISTANCE,DISTANCE,self.model_part.Nodes)
-        full_reset=True;
-        (self.moveparticles).ResetBoundaryConditions(full_reset)
-        (self.moveparticles).CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
-        print("PARTICLEMODULE-END")
+        print("first BFECC START")
+        self.ReduceTimeStep()
+        #mount the search structure
+        locator = BinBasedFastPointLocator2D(self.model_part)
+        locator.UpdateSearchDatabase()
+        #construct the utility to move the points
+        bfecc_utility = BFECCConvectionRK42D(locator)
+        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
 
-        print("STOKES SOLVE-START")
-        #instead of velocity_n, we use this: write the velocity before the solution to the projected velocity
-        (self.monolithic_solver).Solve() #implicit resolution of the system.
-        #delta_velocity= Velocity(final) - ProjectedVelocity(from the particles), so we add to the particles the correction done in the mesh.
-        (self.moveparticles).CalculateDeltaVelocity()
-        (self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity();
-        print("STOKES SOLVE-END")
         
-        post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);
+        print("FIRST")
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_X,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
+        print("SECOND")
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_Y,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
+        
+
+        bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
+        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_FIRST,self.model_part.Nodes)
+        
+
+        for node in (self.model_part.Nodes):
+         if node.X>15.49999999:
+          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
+           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
+
+        full_reset=True;
+        bfecc_utility.ResetBoundaryConditions(self.model_part,full_reset)
+        bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
+        print("first BFECC END")
+
+
+        
+        print("Stokes Solve START")
+        self.IncreaseTimeStep()
+        (self.monolithic_solver).Solve() #implicit resolution of the system.
+        for node in (self.model_part.Nodes):
+         if node.X>15.49999999:
+          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
+           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
+        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY,self.model_part.Nodes)
+        bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
+        print("Stokes Solve END")
+
+
+
+        print("second BFECC START")
+        self.ReduceTimeStep()
+        #mount the search structure
+        locator = BinBasedFastPointLocator2D(self.model_part)
+        locator.UpdateSearchDatabase()
+        #construct the utility to move the points
+        bfecc_utility = BFECCConvectionRK42D(locator)
+        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
+        
+
+        
+        print("THIRD")
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_X,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
+        print("FOURTH")
+        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
+            self.model_part,
+            SCALARPROJECTEDVEL_Y,
+            KratosMultiphysics.DISTANCE_GRADIENT,
+            KratosMultiphysics.NODAL_AREA).Execute()
+
+        levelset_convection_settings = KratosMultiphysics.Parameters("""{
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_convection_variable_name" : "VELOCITY",
+            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+            "max_CFL" : 1.0,
+            "max_substeps" : 0,
+            "levelset_splitting" : false,
+            "eulerian_error_compensation" : true,
+            "cross_wind_stabilization_factor" : 0.7
+        }""")
+        KratosMultiphysics.LevelSetConvectionProcess2D(
+            self.model_part,
+            self.monolithic_linear_solver,
+            levelset_convection_settings).Execute()
+
+        bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
+        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_SECOND,self.model_part.Nodes)
+
+        for node in (self.model_part.Nodes):
+         if node.X>15.49999999:
+          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
+           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
+
+        full_reset=True;
+        bfecc_utility.ResetBoundaryConditions(self.model_part,full_reset)
+        print("second BFECC END")
 
 
          #self.nodaltasks = self.nodaltasks + t11-t9
@@ -418,15 +530,15 @@ class PFEM2Solver:
          #   print( "current time in simulation: ", self.model_part.ProcessInfo.GetValue(TIME) , "s" )
 
 
-    def RotateParticlesAndDomainVelocities(self,angles):
-        (self.moveparticles).RotateParticlesAndDomainVelocities(angles)
+    #def RotateParticlesAndDomainVelocities(self,angles):
+    #    (self.moveparticles).RotateParticlesAndDomainVelocities(angles)
     #######################################################################
-    def CalculatePressureProjection(self):
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).InitializeSolutionStep();
-        (self.ExplicitStrategy).AssembleLoop();
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
-        (self.ExplicitStrategy).FinalizeSolutionStep();
+    #def CalculatePressureProjection(self):
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
+        #(self.ExplicitStrategy).InitializeSolutionStep();
+        #(self.ExplicitStrategy).AssembleLoop();
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 10)
+        #(self.ExplicitStrategy).FinalizeSolutionStep();
 
 
     def SetEchoLevel(self,level):
@@ -434,6 +546,19 @@ class PFEM2Solver:
 
     def PrintInfo(self,print_times):
         self.print_times=print_times
+
+    def WriteRestartFile(self,FileName):
+        restart_file = open(FileName + ".mdpa",'w')
+        import KratosMultiphysics.PFEM2Application.new_restart_utilities as new_restart_utilities
+        #import new_restart_utilities
+        new_restart_utilities.PrintProperties(restart_file)
+        new_restart_utilities.PrintNodes(self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintElements("MonolithicPFEM22DDenizNitsche",self.model_part.Elements,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(PRESSURE,"PRESSURE",self.model_part.Nodes,restart_file)
+        restart_file.close()
 
 
     def CopyTimeStep(self,timestep):

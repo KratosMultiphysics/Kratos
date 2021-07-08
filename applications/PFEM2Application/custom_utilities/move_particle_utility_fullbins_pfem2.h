@@ -363,7 +363,9 @@ public:
         #else
         int number_of_threads = 1;
         #endif
+
         OpenMPUtils::CreatePartition(number_of_threads, mr_model_part.Elements().size(), element_partition);
+
 
         if (muse_mesh_velocity_to_convect == false)
         {
@@ -374,12 +376,12 @@ public:
                 {
                     ModelPart::ElementsContainerType::iterator ielem = ielembegin + ii;
                     Geometry<Node<3>> &geom = ielem->GetGeometry();
-
                     array_1d<double, 3> vector_mean_velocity = ZeroVector(3);
 
                     for (unsigned int i = 0; i != (TDim + 1); i++)
                         vector_mean_velocity += geom[i].FastGetSolutionStepValue(VELOCITY);
                     vector_mean_velocity *= nodal_weight;
+
 
                     const double mean_velocity = sqrt(pow(vector_mean_velocity[0], 2) + pow(vector_mean_velocity[1], 2) + pow(vector_mean_velocity[2], 2));
                     ielem->SetValue(VELOCITY_OVER_ELEM_SIZE, mean_velocity / (ielem->GetValue(MEAN_SIZE)));
@@ -407,6 +409,7 @@ public:
                 }
             }
         }
+
         KRATOS_CATCH("")
     }
 
@@ -804,30 +807,30 @@ public:
         }
 
         bool nonzero_mesh_velocity = false;
+        muse_mesh_velocity_to_convect = false;
         //seeing if we have to use the mesh_velocity or not
-        for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-             inode != mr_model_part.NodesEnd(); inode++)
-        {
-            const array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
-            for (unsigned int i = 0; i != 3; i++)
-            {
-                if (fabs(velocity[i]) > 1.0e-9)
-                    nonzero_mesh_velocity = true;
-            }
-            if (nonzero_mesh_velocity == true)
-                break;
-        }
+        // for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin(); inode != mr_model_part.NodesEnd(); inode++)
+        // {
+        //     const array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(MESH_VELOCITY);
+        //     for (unsigned int i = 0; i != 3; i++)
+        //     {
+        //         if (fabs(velocity[i]) > 1.0e-9)
+        //             nonzero_mesh_velocity = true;
+        //     }
+        //     if (nonzero_mesh_velocity == true)
+        //         break;
+        // }
 
         //for now, I don't consider the mesh velocity, therefore I put here a throw error
-        if (nonzero_mesh_velocity == true)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "there is mesh velocity", "");
-            muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
-        }
-        else
-        {
-            muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
-        }
+        // if (nonzero_mesh_velocity == true)
+        // {
+        //     KRATOS_THROW_ERROR(std::logic_error, "there is mesh velocity", "");
+        //     muse_mesh_velocity_to_convect = true; // if there is mesh velocity, then we have to take it into account when moving the particles
+        // }
+        // else
+        // {
+        //     muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
+        // }
         std::cout << "Convecting Particles" << std::endl;
         //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
@@ -1246,7 +1249,7 @@ public:
         const double threshold = 0.0 / (double(TDim) + 1.0);
         // auto t1 = std::chrono::high_resolution_clock::now();
         Vector N(TDim + 1);
-        const int max_results = 1000;
+        const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
         KRATOS_INFO("MoveParticleUtilityFullBinsPfem2") << "Projecting info to the mesh - first-order" << std::endl;
@@ -1286,9 +1289,10 @@ public:
                 bool &erase_flag = pparticle.GetEraseFlag();
                 if (erase_flag == false)
                 {
-                    array_1d<double, 3> &position = pparticle.Coordinates();
+                    const array_1d<double, 3> &position = pparticle.Coordinates();
                     Element::Pointer pelement;
                     typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                    // bool is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
                     bool is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
                     if (is_found == true)
                     {
@@ -2537,6 +2541,7 @@ public:
                 }
             }
         }
+
         KRATOS_CATCH("")
     }
 
@@ -2705,7 +2710,7 @@ public:
         KRATOS_TRY
 
         ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-        const int max_results = 1000;
+        const int max_results = 10000;
 
         //tools for the paralelization
         unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -3719,7 +3724,7 @@ private:
         //bool flying_water_particle=true; //if a water particle does not find a water element in its whole path, then we add the gravity*dt
         double only_integral = 0.0;
 
-        Geometry<Node<3>> &geom = pelement->GetGeometry(); //the element we're in
+        const Geometry<Node<3>> &geom = pelement->GetGeometry(); //the element we're in
 
         vel_without_other_phase_nodes = ZeroVector(3);
         sum_Ns_without_other_phase_nodes = 0.0;
@@ -3774,10 +3779,11 @@ private:
 
         for (unsigned int i = 0; i < (nsubsteps - 1); i++) // this is for the substeps n+1. in the first one we already knew the position of the particle.
         {
-            is_found = FindNodeOnMesh(position, N, pelement, result_begin, max_results); //good, now we know where this point is:
+            // is_found = FindNodeOnMesh(position, N, pelement, result_begin, max_results); //good, now we know where this point is:
+            is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
             if (is_found == true)
             {
-                Geometry<Node<3>> &geom = pelement->GetGeometry(); //the element we're in
+                const Geometry<Node<3>> &geom = pelement->GetGeometry(); //the element we're in
                 sum_Ns_without_other_phase_nodes = 0.0;
 
                 if (particle_distance < 0.0 && discriminate_streamlines == true)
@@ -3832,7 +3838,8 @@ private:
         }
         else
         {
-            is_found = FindNodeOnMesh(position, N, pelement, result_begin, max_results);
+            // is_found = FindNodeOnMesh(position, N, pelement, result_begin, max_results);
+            is_found = mpSearchStructure->FindPointOnMesh(position, N, pelement, result_begin, max_results);
             if (is_found == false)
                 pparticle.GetEraseFlag() = true;
         }

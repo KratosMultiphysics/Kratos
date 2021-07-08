@@ -569,6 +569,217 @@ public:
                 KRATOS_CATCH("")
         }
 
+        void CalculateAccelerationOnTheMeshSecondOrder(ModelPart& rModelPart)
+        {
+         KRATOS_TRY
+         const unsigned int NumNodes = TDim+1;
+         const Vector &BDFVector = rModelPart.GetProcessInfo()[BDF_COEFFICIENTS];
+         const double bdf0 = BDFVector[0];
+         const double bdf1 = BDFVector[1];
+         const double bdf2 = BDFVector[2];
+         const double rho = rModelPart.GetProcessInfo()[DENSITY];
+         
+         ModelPart::ElementsContainerType::iterator ielementsbegin = rModelPart.ElementsBegin();
+         ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
+         vector<unsigned int> element_partition;
+         vector<unsigned int> node_partition;
+         #ifdef _OPENMP
+         int number_of_threads = omp_get_max_threads();
+         #else
+         int number_of_threads = 1;
+         #endif
+         OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Elements().size(), element_partition);
+         OpenMPUtils::CreatePartition(number_of_threads, rModelPart.Nodes().size(), node_partition);
+         #pragma omp parallel for
+         for (int kkk = 0; kkk < number_of_threads; kkk++)
+         {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->FastGetSolutionStepValue(ACCELERATION) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(DELTA_ACCELERATION) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE) = 0.0;
+                
+            }
+         }
+
+        //2-Loop on Elements and Calculate Mc and Ml and -> LUMPED_MASS_VALUE
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+         for (unsigned int ii = element_partition[kkk]; ii < element_partition[kkk + 1]; ii++)
+         {
+           ModelPart::ElementsContainerType::iterator ielement = ielementsbegin + ii;
+           Geometry<Node<3>> &geom = ielement->GetGeometry();
+           Vector DetJ;
+           Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX;
+           geom.ShapeFunctionsIntegrationPointsGradients(DN_DX,DetJ,GeometryData::GI_GAUSS_2);
+           Matrix NContainer = geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+           const auto& IntegrationPoints = geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //    bounded_matrix<double, NumNodes, TDim > DN_DX;
+        //    array_1d<double, NumNodes > N;
+           double Volume;
+           boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
+           boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Ml = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
+           array_1d<double, TDim *(TDim + 1)> v = ZeroVector(TDim * (TDim + 1));   //v vector
+           array_1d<double, TDim *(TDim + 1)> v_n = ZeroVector(TDim * (TDim + 1)); //v_n vector
+           array_1d<double, TDim *(TDim + 1)> arhs0 = ZeroVector(TDim * (TDim + 1)); //arhs0 vector bdf0*v+bdf1*vn+bdf2*vnn
+           double vg_x = 0.0;
+           double dvg_xdx = 0.0;
+           double dvg_xdy = 0.0;
+           double vg_y = 0.0;
+           double dvg_ydx = 0.0;
+           double dvg_ydy = 0.0;
+
+           for (unsigned int g = 0; g < IntegrationPoints.size(); g++)
+           {
+             array_1d<double, NumNodes > N = row(NContainer,g);
+             for (int j = 0; j != (TDim + 1); j++) //going through the 3/4 nodes of the element
+             {
+              geom[j].SetLock();
+              for (int k = 0; k != (TDim + 1); k++) //x,y,(z)
+              {
+               geom[j].FastGetSolutionStepValue(LUMPED_MASS_VALUE) += DetJ[g] * IntegrationPoints[g].Weight() * N[j] * N[k];
+              }
+              geom[j].UnSetLock();
+             }   
+           }
+         }
+        }
+        //3-Start the Iteration
+        bool continue_iteration = true;
+        double eps_acceleration = 0.0;
+        int whileloopcounter = 0;
+        while (continue_iteration)
+        {
+         whileloopcounter++;   
+         #pragma omp parallel for
+         for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+         for (unsigned int ii = element_partition[kkk]; ii < element_partition[kkk + 1]; ii++)
+         {
+          ModelPart::ElementsContainerType::iterator ielement = ielementsbegin + ii;
+          Geometry<Node<3>> &geom = ielement->GetGeometry();
+          Vector DetJ;
+          Geometry<Node<3>>::ShapeFunctionsGradientsType DN_DX;
+          geom.ShapeFunctionsIntegrationPointsGradients(DN_DX,DetJ,GeometryData::GI_GAUSS_2);
+          Matrix NContainer = geom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+          const auto& IntegrationPoints = geom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        //    bounded_matrix<double, NumNodes, TDim > DN_DX;
+        //    array_1d<double, NumNodes > N;
+           double Volume;
+           
+           array_1d<double, TDim *(TDim + 1)> R = ZeroVector(TDim * (TDim + 1));   //R vector
+           
+
+
+           for (unsigned int g = 0; g < IntegrationPoints.size(); g++)
+           {
+            array_1d<double, NumNodes > N = row(NContainer,g);
+            boost::numeric::ublas::bounded_matrix<double, (TDim), (TDim * (TDim + 1))> dummyN = ZeroMatrix((TDim), TDim * (TDim + 1));
+            boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
+            boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Ml = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
+            array_1d<double, TDim *(TDim + 1)> v = ZeroVector(TDim * (TDim + 1));   //v vector
+            array_1d<double, TDim *(TDim + 1)> a = ZeroVector(TDim * (TDim + 1));   //a vector
+            array_1d<double, TDim *(TDim + 1)> v_n = ZeroVector(TDim * (TDim + 1)); //v_n vector
+            array_1d<double, TDim > temp_acc = ZeroVector(TDim ); //temp_acc on gauss point
+            array_1d<double, TDim > spatial_acc = ZeroVector(TDim ); //spatial_acc on gauss point 
+            double vg_x = 0.0;
+            double vg_y = 0.0;
+            double vng_x = 0.0;
+            double vng_y = 0.0;
+            double dvg_xdx = 0.0;
+            double dvg_xdy = 0.0;
+            double dvg_ydx = 0.0;
+            double dvg_ydy = 0.0;  
+             for (unsigned int i = 0; i < (TDim + 1); i++)
+             {
+              v[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X));
+              v[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
+              a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X));
+              a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y));
+              v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
+              v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));   
+              vg_x+=  N[i] * v(TDim * i); 
+              vg_y+=  N[i] * v(TDim * i+1); 
+              vng_x+=  N[i] * v_n(TDim * i); 
+              vng_y+=  N[i] * v_n(TDim * i+1); 
+              dvg_xdx+=DN_DX[g](i,0) * v[TDim * i];
+              dvg_ydx+=DN_DX[g](i,0) * v[TDim * i+1];
+              dvg_xdy+=DN_DX[g](i,1) * v[TDim * i];
+              dvg_ydy+=DN_DX[g](i,1) * v[TDim * i+1];
+              dummyN(0, i * TDim) = N[i];
+              dummyN(1, i * TDim + 1) = N[i];
+             }
+
+              temp_acc[0] = bdf0 * vg_x + bdf1 * vg_x;
+              temp_acc[1] = bdf0 * vg_y + bdf1 * vg_y;
+              spatial_acc[0]= vg_x * dvg_xdx + vg_y * dvg_xdy;
+              spatial_acc[1]= vg_x * dvg_ydx + vg_y * dvg_ydy;
+            //   temp_acc[0]= 0.0;
+            //   temp_acc[1]= 0.0;
+
+              Mc+= DetJ[g] * IntegrationPoints[g].Weight() * prod(trans(dummyN),dummyN);
+              R += DetJ[g] * IntegrationPoints[g].Weight() * rho * prod(trans(dummyN),temp_acc);
+              R += DetJ[g] * IntegrationPoints[g].Weight() * rho * prod(trans(dummyN),spatial_acc);
+              R -= prod(Mc,a);
+              
+           }    
+           
+
+           for (unsigned int i = 0; i < (TDim + 1); i++)
+             {
+              geom[i].SetLock();   
+              geom[i].FastGetSolutionStepValue(DELTA_ACCELERATION_X) += R[i*TDim] / geom[i].FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+              geom[i].FastGetSolutionStepValue(DELTA_ACCELERATION_Y) += R[i*TDim+1] / geom[i].FastGetSolutionStepValue(LUMPED_MASS_VALUE);
+              geom[i].FastGetSolutionStepValue(DELTA_ACCELERATION_Z) += 0.0;
+              geom[i].UnSetLock();
+             }
+         }
+        }
+
+        //now we update the acceleration field and check if it converged
+        double sumdeltaaccelerationnorm = 0.0;
+        double sumaccelerationnorm = 0.0;
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+         for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+
+                        inode->FastGetSolutionStepValue(ACCELERATION_X) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X);
+                        inode->FastGetSolutionStepValue(ACCELERATION_Y) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y);
+                        inode->FastGetSolutionStepValue(ACCELERATION_Z) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z);
+
+                        double deltaaccelerationnorm = sqrt(inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X) 
+                        + inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y) 
+                        + inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z));
+                        double accelerationnorm = sqrt(inode->FastGetSolutionStepValue(ACCELERATION_X) * inode->FastGetSolutionStepValue(ACCELERATION_X) 
+                        + inode->FastGetSolutionStepValue(ACCELERATION_Y) * inode->FastGetSolutionStepValue(ACCELERATION_Y) 
+                        + inode->FastGetSolutionStepValue(ACCELERATION_Z) * inode->FastGetSolutionStepValue(ACCELERATION_Z));
+
+                        inode->FastGetSolutionStepValue(DELTA_ACCELERATION) = ZeroVector(3);
+
+                        #pragma omp critical
+                        {
+                            sumdeltaaccelerationnorm += deltaaccelerationnorm;
+                            sumaccelerationnorm += accelerationnorm;
+                        }
+                    
+            }
+        }
+            eps_acceleration = sumdeltaaccelerationnorm / sumaccelerationnorm;
+            if (eps_acceleration < 0.00000001)
+                continue_iteration = false;
+        
+        KRATOS_WATCH(whileloopcounter);
+        KRATOS_WATCH(eps_acceleration); 
+        }
+
+         KRATOS_CATCH("")
+        }
+
         void CopyVectorVarToPreviousTimeStep(const Variable<array_1d<double, 3>> &OriginVariable,
                                          ModelPart::NodesContainerType &rNodes)
         {
