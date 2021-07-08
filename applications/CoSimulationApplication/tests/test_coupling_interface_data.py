@@ -253,36 +253,6 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
         with self.assertRaisesRegex(Exception, 'The ModelPart named : "something" was not found either as root-ModelPart or as a flat name. The total input string was "something'):
             CouplingInterfaceData(settings, self.model)
 
-    def test_GetHistoricalVariableDict(self):
-        settings = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE"
-        }""")
-
-        coupling_data = CouplingInterfaceData(settings, self.model)
-
-        exp_dict = {"mp_4_test" : KM.PRESSURE}
-
-        dict_res = coupling_data.GetHistoricalVariableDict()
-
-        self.assertEqual(len(exp_dict), len(dict_res))
-        self.assertEqual(exp_dict["mp_4_test"].Name(), dict_res["mp_4_test"].Name())
-
-        # this should not give anything since there are no historical variables in this case
-        settings_2 = KM.Parameters("""{
-            "model_part_name" : "mp_4_test",
-            "variable_name"   : "PRESSURE",
-            "location"        : "element"
-        }""")
-
-        coupling_data_2 = CouplingInterfaceData(settings_2, self.model)
-
-        exp_dict_2 = {}
-
-        dict_res_2 = coupling_data_2.GetHistoricalVariableDict()
-
-        self.assertEqual(len(exp_dict_2), len(dict_res_2))
-
     def test_GetSetNodalHistoricalData(self):
         settings_scal = KM.Parameters("""{
             "model_part_name" : "mp_4_test",
