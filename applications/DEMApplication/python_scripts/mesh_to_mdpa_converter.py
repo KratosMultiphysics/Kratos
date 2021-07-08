@@ -18,8 +18,12 @@ bottom = 0.0
 radius = 0.0
 internal_tol_factor = 2.0
 external_tol_factor = 1.0
+mean_particle_radius = 2e-3
+# Ring dimensions
+internal_radius = 0.1
+external_radius = 0.15
 
-# Test type
+# Test type: Triaxial or BTS
 if Test_type == 1:
     top = 0.002771549
     bottom = 0.0
@@ -28,11 +32,6 @@ elif Test_type == 2:
     top = 0.0008956682
     bottom = 0.0
     radius = 0.001222598
-else:
-    mean_particle_radius = 2e-3
-    # Cylinder dimensions
-    internal_radius = 0.1
-    external_radius = 0.15
 
 node_section_started = False
 node_section_finished = False

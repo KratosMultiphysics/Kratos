@@ -17,6 +17,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
+        self.minimum_number_of_DEM_steps_before_checking_steadiness = 100
+        self.stationarity_measuring_tolerance = 1.0e-4
 
     def Initialize(self):
         self.poromechanics_solution.Initialize()
@@ -26,7 +28,9 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.pore_pressure_communicator_utility.Initialize()
 
     def RunSolutionLoop(self):
+        
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
+            print("Solving FEM...")
             self.poromechanics_solution.time = self.poromechanics_solution._GetSolver().AdvanceInTime(self.poromechanics_solution.time)
             self.poromechanics_solution.InitializeSolutionStep()
             self.poromechanics_solution._GetSolver().Predict()
@@ -41,10 +45,9 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             time_final_DEM_substepping = self.poromechanics_solution.time
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
 
-            #for self.dem_solution.time_dem in self._YieldDEMTime(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
-            #print("Now solving DEM...")
-            self.stationarity_checking_is_activated = False
-            self.dem_step_counter = 0
+            print("Now solving DEM...")
+            self.DEM_steps_counter = 0
+            
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
                 self.dem_solution.InitializeSolutionStep()
@@ -54,27 +57,20 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
                 self.dem_solution.OutputSolutionStep()
 
     def DEMSolutionIsSteady(self):
-        tolerance = 1.0e-4
-        if self.dem_step_counter == 100:
-            self.dem_step_counter = 0
+        
+        if self.DEM_steps_counter >= self.minimum_number_of_DEM_steps_before_checking_steadiness:
 
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, tolerance):
-                self.stationarity_checking_is_activated = True
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
                 return False
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, tolerance):
-                self.stationarity_checking_is_activated = True
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
                 return False
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, tolerance):
-                self.stationarity_checking_is_activated = True
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
                 return False
 
-            if self.stationarity_checking_is_activated:
-                #print("DEM solution is steady...")
-                return True
-            else:
-                return False
+            print("DEM solution is steady...")
+            return True
         else:
-            self.dem_step_counter += 1
+            self.DEM_steps_counter += 1
             return False
 
     def InitializeSolutionStep(self):
