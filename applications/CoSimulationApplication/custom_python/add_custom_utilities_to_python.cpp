@@ -44,7 +44,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         })
         .def_property_readonly("solver_name", [](CouplingInterfaceData& self){
             KRATOS_WARNING("CouplingInterfaceData") << "Using \"solver_name\" is deprecated, please use \"SolverName()\" instead!" << std::endl;
-            return self.Name();
+            return self.SolverName();
         })
         ;
 

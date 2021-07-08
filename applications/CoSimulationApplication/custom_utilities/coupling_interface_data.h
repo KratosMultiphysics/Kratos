@@ -79,31 +79,31 @@ public:
 
     void SetData();
 
-    ModelPart& GetModelPart();
+    ModelPart& GetModelPart() {return *mpModelpart;}
 
-    ModelPart& GetModelPart() const;
+    ModelPart& GetModelPart() const {return *mpModelpart;}
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    bool IsDistributed() const;
+    bool IsDistributed() const {return mpModelpart->IsDistributed();}
 
     std::size_t Size() const;
 
-    std::size_t GetBufferSize() const;
+    std::size_t BufferSize() const {return mpModelpart->GetBufferSize();}
 
-    std::string GetName() const;
+    std::string Name() const {return mName;}
 
-    std::string GetSolverName() const;
+    std::string SolverName() const {return mSolverName;}
 
-    std::string GetModelPartName() const;
+    std::string ModelPartName() const {return mModelPartName;}
 
-    std::string GetVariableName() const;
+    std::string VariableName() const {return mVariableName;}
 
-    bool UsesScalarVariable() const;
+    bool UsesScalarVariable() const {return mUsesScalarVariable;}
 
-    DataLocation GetDataLocation() const
+    DataLocation GetDataLocation() const {return mDataLocation;}
 
     ///@}
     ///@name Input and output
@@ -121,24 +121,26 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ModelPart* mpModelpart;
 
+    std::string mName;
+
+    std::string mModelPartName;
+
+    std::string mSolverName;
+
     std::string mVariableName;
 
     DataLocation mDataLocation;
 
+    bool mUsesScalarVariable;
+
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
 
