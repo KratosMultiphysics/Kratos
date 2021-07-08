@@ -546,7 +546,10 @@ void TrussElement::CalculateMassMatrix(
     }
 }
 
-void TrussElement::CalculateLumpedMassVector(Vector& rMassVector)
+void TrussElement::CalculateLumpedMassVector(
+    Vector& rMassVector,
+    const ProcessInfo& rCurrentProcessInfo
+    ) override
 {
     const auto& r_geometry = GetGeometry();
     const IndexType nb_nodes = r_geometry.size();
