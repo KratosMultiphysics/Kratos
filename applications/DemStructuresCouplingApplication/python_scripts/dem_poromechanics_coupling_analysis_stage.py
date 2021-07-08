@@ -15,6 +15,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.dem_solution = DEM.DEM_analysis_stage.DEMAnalysisStage(model, parameters["dem_parameters"])
         super().__init__(model, parameters)
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
+        self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
 
     def Initialize(self):
@@ -22,6 +23,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.dem_solution.Initialize()
         super().Initialize()
         self.effective_stresses_communicator.Initialize()
+        self.pore_pressure_communicator_utility.Initialize()
 
     def RunSolutionLoop(self):
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
@@ -34,6 +36,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
             self.effective_stresses_communicator.CopyWallCurrentEffectiveStressesToOldEffectiveStresses()
             self.effective_stresses_communicator.CommunicateCurrentRadialEffectiveStressesToDemWalls()
+            self.pore_pressure_communicator_utility.ComputeForceOnParticlesDueToPorePressureGradient()
 
             time_final_DEM_substepping = self.poromechanics_solution.time
             self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)

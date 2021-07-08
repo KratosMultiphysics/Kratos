@@ -17,6 +17,7 @@
 #include "custom_utilities/sand_production_utilities.hpp"
 #include "custom_utilities/multiaxial_control_module_fem_dem_generalized_2d_utilities.hpp"
 #include "custom_utilities/effective_stresses_communicator_utility.hpp"
+#include "custom_utilities/pore_pressure_communicator_utility.hpp"
 
 namespace Kratos {
 
@@ -49,6 +50,12 @@ namespace Kratos {
                 .def("Initialize", &EffectiveStressesCommunicatorUtility::Initialize)
                 .def("CopyWallCurrentEffectiveStressesToOldEffectiveStresses", &EffectiveStressesCommunicatorUtility::CopyWallCurrentEffectiveStressesToOldEffectiveStresses)
                 .def("CommunicateCurrentRadialEffectiveStressesToDemWalls", &EffectiveStressesCommunicatorUtility::CommunicateCurrentRadialEffectiveStressesToDemWalls)
+            ;
+
+            class_<PorePressureCommunicatorUtility> (m, "PorePressureCommunicatorUtility")
+                .def(init<ModelPart&,ModelPart&>())
+                .def("Initialize", &PorePressureCommunicatorUtility::Initialize)
+                .def("ComputeForceOnParticlesDueToPorePressureGradient", &PorePressureCommunicatorUtility::ComputeForceOnParticlesDueToPorePressureGradient)
             ;
 
             class_<InterpolateStructuralSolutionForDEM> (m, "InterpolateStructuralSolutionForDEM")
