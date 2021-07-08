@@ -165,7 +165,7 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "location"        : "dummy"
         }""")
 
-        exp_error = '"dummy" is not allowed as "location", only the following options are possible:\nnode_historical, node_non_historical, element, condition, model_part'
+        exp_error = '"dummy" is not allowed as "location", only the following options are possible:'
 
         with self.assertRaisesRegex(Exception, exp_error):
             CouplingInterfaceData(settings, self.model)
