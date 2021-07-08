@@ -24,15 +24,25 @@ class AverageValuePredictor(CoSimulationPredictor):
             raise Exception("Wrong value for beta. Admissible interval [0.0, 1.0]")
 
     def Predict(self):
-        current_data  = self.interface_data.GetData(0)
-        previous_data = self.interface_data.GetData(1)
+        if not self.historical_data_accessor.TimeBufferIsInitialized():
+            if self.echo_level > 0:
+                cs_tools.cs_print_info(self._ClassName(), "Skipped prediction because time buffer is not yet filled")
+            return
+
+        current_data  = self.historical_data_accessor.GetData(0)
+        previous_data = self.historical_data_accessor.GetData(1)
 
         self.predicted_data = 2*current_data - previous_data
 
         self._UpdateData(self.predicted_data)
 
     def FinalizeSolutionStep(self):
-        current_data  = self.interface_data.GetData(0)
+        if not self.historical_data_accessor.TimeBufferIsInitialized():
+            if self.echo_level > 0:
+                cs_tools.cs_print_info(self._ClassName(), "Skipped prediction because time buffer is not yet filled")
+            return
+
+        current_data  = self.historical_data_accessor.GetData(0)
 
         self.predicted_data = self.beta * current_data + (1-self.beta) * self.predicted_data
 

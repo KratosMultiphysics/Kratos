@@ -4,11 +4,11 @@
 //README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
 
 #include "create_and_destroy.h"
-#include "../custom_elements/spheric_continuum_particle.h"
-#include "../custom_elements/analytic_spheric_particle.h"
-#include "../custom_elements/cluster3D.h"
-#include "../custom_utilities/GeometryFunctions.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_elements/spheric_continuum_particle.h"
+#include "custom_elements/analytic_spheric_particle.h"
+#include "custom_elements/cluster3D.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 
 namespace Kratos {
 
@@ -34,10 +34,7 @@ namespace Kratos {
         mpAnalyticWatcher = p_watcher;
     }
 
-    //Particle_Creator_Destructor() {};
-
     /// Destructor.
-
     ParticleCreatorDestructor::~ParticleCreatorDestructor() {
         mDoSearchNeighbourElements = true; // true by default. It should be set to false by the strategy (friend class) if appropriate
     }
@@ -300,21 +297,11 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                        int r_Elem_Id,
-                                                                        Node < 3 > ::Pointer reference_node,
-                                                                        Element::Pointer injector_element,
-                                                                        Properties::Pointer r_params,
-                                                                        ModelPart& r_sub_model_part_with_parameters,
-                                                                        std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
-                                                                        const Element& r_reference_element,
-                                                                        PropertiesProxy* p_fast_properties,
-                                                                        bool has_sphericity,
-                                                                        bool has_rotation,
-                                                                        bool initial,
-                                                                        ElementsContainerType& array_of_injector_elements) {
+    double ParticleCreatorDestructor::SelectRadius(bool initial,
+                                                ModelPart& r_sub_model_part_with_parameters,
+                                                std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map){
+
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         double radius = r_sub_model_part_with_parameters[RADIUS];
         const double& max_radius = r_sub_model_part_with_parameters[MAXIMUM_RADIUS];
@@ -331,6 +318,29 @@ namespace Kratos {
             else if (distribution_type == "piecewise_linear") radius = r_random_variables_map[r_sub_model_part_with_parameters.Name()].Sample();
             else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters.Name() << std::endl;
         }
+
+        return radius;
+        KRATOS_CATCH("")
+    }
+
+
+    SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
+                                                                        int r_Elem_Id,
+                                                                        Node < 3 > ::Pointer reference_node,
+                                                                        Element::Pointer injector_element,
+                                                                        Properties::Pointer r_params,
+                                                                        ModelPart& r_sub_model_part_with_parameters,
+                                                                        std::map<std::string, PiecewiseLinearRandomVariable>& r_random_variables_map,
+                                                                        const Element& r_reference_element,
+                                                                        PropertiesProxy* p_fast_properties,
+                                                                        bool has_sphericity,
+                                                                        bool has_rotation,
+                                                                        bool initial,
+                                                                        ElementsContainerType& array_of_injector_elements) {
+        KRATOS_TRY
+        Node<3>::Pointer pnew_node;
+
+        double radius = SelectRadius(initial, r_sub_model_part_with_parameters, r_random_variables_map);
 
         NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, radius, *r_params, r_sub_model_part_with_parameters, has_sphericity, has_rotation, initial);
 
@@ -1492,5 +1502,63 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
     }
 
     void ParticleCreatorDestructor::ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable) {}
+
+    void ParticleCreatorDestructor::DestroyMarkedParticles(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+
+        ModelPart::MeshType& rMesh=r_model_part.GetCommunicator().LocalMesh();
+
+        ElementsArrayType& rElements = rMesh.Elements();
+        ModelPart::NodesContainerType& rNodes = rMesh.Nodes();
+
+        if (rElements.size() != rNodes.size()) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of elements and the number of nodes are not the same in the ModelPart!", 0);
+        }
+
+        int good_elems_counter = 0;
+
+        for (int k = 0; k < (int)rElements.size(); k++) {
+            Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
+            ModelPart::NodeType& node = (*element_pointer_it)->GetGeometry()[0];
+
+            if (node.IsNot(MARKER) && (*element_pointer_it)->IsNot(MARKER)) {
+            if (k != good_elems_counter) {
+                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
+                }
+                good_elems_counter++;
+            }
+            else {
+                (*element_pointer_it).reset();
+                node.Set(MARKER, true);
+            }
+        }
+        int good_nodes_counter = 0;
+
+        for (int k = 0; k < (int)rNodes.size(); k++) {
+            ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
+            if ((*node_pointer_it)->IsNot(MARKER)) {
+            if (k != good_nodes_counter) {
+                    *(rNodes.ptr_begin() + good_nodes_counter) = std::move(*node_pointer_it);
+                }
+                good_nodes_counter++;
+            }
+
+            else (*node_pointer_it).reset();
+        }
+
+        if (good_elems_counter != good_nodes_counter) {
+            KRATOS_THROW_ERROR(std::runtime_error, "While removing elements and nodes, the number of removed elements and the number of removed nodes were not the same!", 0);
+        }
+
+        if ((int)rElements.size() != good_elems_counter) {
+            rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        }
+
+        if ((int)rNodes.size() != good_nodes_counter) {
+            rNodes.erase(rNodes.ptr_begin() + good_nodes_counter, rNodes.ptr_end());
+        }
+        KRATOS_CATCH("")
+    }
 
 } //Namespace Kratos
