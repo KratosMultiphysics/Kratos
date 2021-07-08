@@ -6,7 +6,7 @@
 			],
 			"non_historical_metric_variable": true,
 			"estimate_interpolation_error": false,
-			"interpolation_error": 1000.0,
+			"interpolation_error": 1.0,
 			"coefficient_interpolation_error": 1.5
 		},
 		"minimal_size": 0.2,
