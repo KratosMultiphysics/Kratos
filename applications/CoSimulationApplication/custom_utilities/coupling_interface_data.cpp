@@ -29,7 +29,17 @@ CouplingInterfaceData::CouplingInterfaceData(
     const std::string& rSolverName)
     : mName(rName), mSolverName(rSolverName)
 {
+    // checking name of CouplingInterfaceData
+    KRATOS_ERROR_IF(rName == "") << "No \"name\" was specified!" << std::endl;
+    const char disallowed_chars[] = {'.', ',', ':', ';', '>', '<', '/', '\'', '|', '*', '!', '"', ' '};
+    for (const auto ch : disallowed_chars) {
+        KRATOS_ERROR_IF_NOT(rName.find(ch) == std::string::npos) << "Name contains a character that is not allowed: \"" << std::string(1,ch) << "\"!" << std::endl;
+    }
+
+    // checking name of ModelPart
     mModelPartName = Settings["model_part_name"].GetString();
+    KRATOS_ERROR_IF(mModelPartName == "") << "No \"model_part_name\" was specified!" << std::endl;
+
     mpModelpart = &rModel.GetModelPart(mModelPartName);
 }
 

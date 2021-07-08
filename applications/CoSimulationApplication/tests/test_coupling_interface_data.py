@@ -110,13 +110,13 @@ class TestCouplingInterfaceData(KratosUnittest.TestCase):
             "variable_name"   : "PRESSURE"
         }""")
 
-        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+        with self.assertRaisesRegex(Exception, 'No "name" was specified!'):
             CouplingInterfaceData(settings, self.model, "")
 
-        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+        with self.assertRaisesRegex(Exception, 'Name contains a character that is not allowed: "."'):
             CouplingInterfaceData(settings, self.model, "aaa.bbbb")
 
-        with self.assertRaisesRegex(Exception, 'The name cannot be empty, contain whitespaces or "."!'):
+        with self.assertRaisesRegex(Exception, 'Name contains a character that is not allowed: " "'):
             CouplingInterfaceData(settings, self.model, "aaa bbb")
 
     def test_var_does_not_exist(self):
