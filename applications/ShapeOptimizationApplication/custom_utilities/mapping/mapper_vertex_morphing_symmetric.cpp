@@ -22,9 +22,10 @@
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
 #include "spaces/ublas_space.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 #include "symmetry_base.h"
 #include "symmetry_plane.h"
 #include "symmetry_revolution.h"
@@ -206,51 +207,58 @@ void MapperVertexMorphingSymmetric::ComputeMappingMatrix()
     const double filter_radius = mMapperSettings["filter_radius"].GetDouble();
     const unsigned int max_number_of_neighbors = mMapperSettings["max_nodes_in_filter_radius"].GetInt();
 
-    // variable size, fixed capacity vecs
-    std::vector<bool> transform;
-    NodeVectorType total_neighbor_nodes;
-    std::vector<double> total_list_of_weights;
-    std::vector<double> list_of_weights;
-    transform.reserve(max_number_of_neighbors);
-    total_neighbor_nodes.reserve( max_number_of_neighbors );
-    total_list_of_weights.reserve( max_number_of_neighbors );
-    list_of_weights.reserve( max_number_of_neighbors );
+    struct tls_vecs {
+        // variable size, fixed capacity vecs
+        std::vector<bool> transform;
+        NodeVectorType total_neighbor_nodes;
+        std::vector<double> total_list_of_weights;
+        std::vector<double> list_of_weights;
 
-    // fixed size vec
-    NodeVectorType neighbor_nodes( max_number_of_neighbors );
-    for (int i = 0; i < int(mrDestinationModelPart.NumberOfNodes()); ++i)
-    {
-        const auto& node_i = *(mrDestinationModelPart.NodesBegin() + i);
-        transform.clear();
-        total_neighbor_nodes.clear();
-        total_list_of_weights.clear();
+        // fixed size vec
+        NodeVectorType neighbor_nodes;
 
-        auto search_nodes = mpSymmetry->GetDestinationSearchNodes(node_i.GetValue(MAPPING_ID));
+        // constructor
+        explicit tls_vecs(const unsigned int MaxNumberOfNeighbors) {
+            transform.reserve(MaxNumberOfNeighbors);
+            total_neighbor_nodes.reserve( MaxNumberOfNeighbors );
+            total_list_of_weights.reserve( MaxNumberOfNeighbors );
+            list_of_weights.reserve( MaxNumberOfNeighbors );
+            neighbor_nodes.resize( MaxNumberOfNeighbors );
+        }
+    };
+
+    block_for_each(mrDestinationModelPart.Nodes(), tls_vecs(max_number_of_neighbors), [&](const NodeType& rNode_i, tls_vecs& rTLS){
+        rTLS.transform.clear();
+        rTLS.total_neighbor_nodes.clear();
+        rTLS.total_list_of_weights.clear();
+
+        auto search_nodes = mpSymmetry->GetDestinationSearchNodes(rNode_i.GetValue(MAPPING_ID));
         unsigned int total_number_of_neighbors = 0;
         double total_sum_of_weights = 0;
         for (auto& pair_i : search_nodes) {
             const NodeType search_node(0, pair_i.first);
             const unsigned int number_of_neighbors = mpSearchTree->SearchInRadius(search_node,
                                                                             filter_radius,
-                                                                            neighbor_nodes.begin(),
+                                                                            rTLS.neighbor_nodes.begin(),
                                                                             max_number_of_neighbors );
 
             total_number_of_neighbors += number_of_neighbors;
-            transform.resize(total_number_of_neighbors, pair_i.second);
+            rTLS.transform.resize(total_number_of_neighbors, pair_i.second);
 
-            list_of_weights.clear();
-            list_of_weights.resize( number_of_neighbors, 0.0 );
-            ComputeWeightForAllNeighbors( search_node, neighbor_nodes, number_of_neighbors, list_of_weights, total_sum_of_weights );
+            rTLS.list_of_weights.clear();
+            rTLS.list_of_weights.resize( number_of_neighbors, 0.0 );
+            ComputeWeightForAllNeighbors( search_node, rTLS.neighbor_nodes, number_of_neighbors, rTLS.list_of_weights, total_sum_of_weights );
 
-            total_list_of_weights.insert(total_list_of_weights.end(), list_of_weights.begin(), list_of_weights.begin()+number_of_neighbors);
-            total_neighbor_nodes.insert(total_neighbor_nodes.end(), neighbor_nodes.begin(), neighbor_nodes.begin()+number_of_neighbors);
+            rTLS.total_list_of_weights.insert(rTLS.total_list_of_weights.end(), rTLS.list_of_weights.begin(), rTLS.list_of_weights.begin()+number_of_neighbors);
+            rTLS.total_neighbor_nodes.insert(rTLS.total_neighbor_nodes.end(), rTLS.neighbor_nodes.begin(), rTLS.neighbor_nodes.begin()+number_of_neighbors);
         }
 
         if(total_number_of_neighbors >= max_number_of_neighbors)
-            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << node_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
+            KRATOS_WARNING("ShapeOpt::MapperVertexMorphingSymmetric") << "For node " << rNode_i.Id() << " and specified filter radius, maximum number of neighbor nodes (=" << max_number_of_neighbors << " nodes) reached!" << std::endl;
 
-        FillMappingMatrixWithWeights( node_i, total_neighbor_nodes, total_number_of_neighbors, total_list_of_weights, transform, total_sum_of_weights );
-    }
+        // each thread assembles to one row only (and only once) thats why no explicit synchronisation is needed in FillMappingMatrixWithWeights
+        FillMappingMatrixWithWeights( rNode_i, rTLS.total_neighbor_nodes, total_number_of_neighbors, rTLS.total_list_of_weights, rTLS.transform, total_sum_of_weights );
+    });
 }
 
 void MapperVertexMorphingSymmetric::AllocateMatrix() {
@@ -316,7 +324,7 @@ void MapperVertexMorphingSymmetric::ComputeWeightForAllNeighbors(
     for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
     {
         const NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-        const double weight = mpFilterFunction->compute_weight( destination_node.Coordinates(), neighbor_node.Coordinates() );
+        const double weight = mpFilterFunction->ComputeWeight( destination_node.Coordinates(), neighbor_node.Coordinates() );
 
         list_of_weights[neighbor_itr] = weight;
         sum_of_weights += weight;

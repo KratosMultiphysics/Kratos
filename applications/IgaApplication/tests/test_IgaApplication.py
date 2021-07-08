@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
 import run_cpp_unit_tests
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -21,11 +22,17 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell Hierarchic
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# Weak support tests
+from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
+from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
+from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
 
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
+
+has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -52,8 +59,21 @@ def AssembleTestSuites():
         # 5p Shell Director
         #ScordelisRoofShell5pTest,
         TTestModelers,
-        TTestNurbsVolumeElements
+        TTestNurbsVolumeElements,
+        # Weak support tests
+        SinglePatchRefinedSupportPenaltyTest,
+        SinglePatchRefinedSupportLagrangeTest
         ]))
+
+    if has_linear_solvers_application:
+        from KratosMultiphysics import LinearSolversApplication
+        if LinearSolversApplication.HasFEAST():
+            smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
+                # Weak support Nitsche test
+                SinglePatchRefinedSupportNitscheTest
+                ]))
+        else:
+            print("FEAST not available in LinearSolversApplication")
 
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)

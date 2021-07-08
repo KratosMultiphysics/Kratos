@@ -81,6 +81,8 @@ public:
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
 
     typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
@@ -117,6 +119,31 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy()
+    {
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit ResidualBasedNewtonRaphsonContactStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart),
+          mpMyProcesses(nullptr),
+          mpPostProcesses(nullptr)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Auxiliar assign
+        mConvergenceCriteriaEchoLevel = BaseType::mpConvergenceCriteria->GetEchoLevel();
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param pNewConvergenceCriteria The convergence criteria employed
@@ -138,7 +165,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
         )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -177,7 +204,7 @@ public:
         ProcessesListType pMyProcesses = nullptr,
         ProcessesListType pPostProcesses = nullptr
     )
-        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        : BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
         mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
@@ -238,8 +265,26 @@ public:
     ~ResidualBasedNewtonRaphsonContactStrategy() override
     = default;
 
-    //******************** OPERATIONS ACCESSIBLE FROM THE INPUT: ************************//
-    //***********************************************************************************//
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename StrategyBaseType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
 
     /**
      * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -469,6 +514,36 @@ public:
         KRATOS_CATCH("");
     }
 
+    /**
+     * @brief This method returns the defaulr parameters in order to avoid code duplication
+     * @return Returns the default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                                : "newton_raphson_contact_strategy",
+            "adaptative_strategy"                 : false,
+            "split_factor"                        : 10.0,
+            "max_number_splits"                   : 3,
+            "inner_loop_iterations"               : 5
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "newton_raphson_contact_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -508,11 +583,26 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+
+        // Copy the parameters
+        mThisParameters = ThisParameters;
+    }
+
     /**
      * @brief Solves the current step.
      * @details This function returns true if a solution has been found, false otherwise.
      */
-
     bool BaseSolveSolutionStep()
     {
         KRATOS_TRY;
@@ -816,7 +906,6 @@ protected:
      * @param b The RHS vector
      * @param MoveMesh The flag that tells if the mesh should be moved
      */
-
     void UpdateDatabase(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -925,24 +1014,6 @@ protected:
     }
 
     /**
-     * @brief This method returns the defaulr parameters in order to avoid code duplication
-     * @return Returns the default parameters
-     */
-
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "adaptative_strategy"              : false,
-            "split_factor"                     : 10.0,
-            "max_number_splits"                : 3,
-            "inner_loop_iterations"            : 5
-        })" );
-
-        return default_parameters;
-    }
-
-    /**
      * @brief This method prints information after solving the problem
      */
 
@@ -1002,10 +1073,6 @@ protected:
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
     ///@}
     ///@name Protected  Access

@@ -88,7 +88,7 @@ class CoSimulationSolverWrapper:
         io_settings = self.settings["io_settings"]
 
         if not io_settings.Has("echo_level"):
-            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+            io_settings.AddEmptyValue("echo_level").SetInt(io_echo_level)
 
         self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 

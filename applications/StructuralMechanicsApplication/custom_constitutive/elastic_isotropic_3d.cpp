@@ -224,6 +224,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
         noalias(rValue) = rParameterValues.GetStrainVector();
 
         // Previous flags restored
@@ -246,6 +249,9 @@ Vector& ElasticIsotropic3D::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
         ElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
         noalias(rValue) = rParameterValues.GetStressVector();
 
         // Previous flags restored
@@ -254,7 +260,10 @@ Vector& ElasticIsotropic3D::CalculateValue(
 
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
-            noalias(rValue) = GetInitialState().GetInitialStrainVector();
+	    if (rValue.size() != GetStrainSize()) {
+	        rValue.resize(GetStrainSize());
+	    }
+	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
             noalias(rValue) = ZeroVector(0);
         }

@@ -165,83 +165,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void TrussEmbeddedEdgeElement::CalculateInitialStiffnessMatrix(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    )
-    {
-        KRATOS_TRY
-
-        const auto& r_geometry = GetGeometry();
-
-        // definition of problem size
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
-
-        const auto& r_integration_points = r_geometry.IntegrationPoints();
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-
-        // Prepare memory
-        if (mReferenceBaseVector.size() != r_number_of_integration_points)
-            mReferenceBaseVector.resize(r_number_of_integration_points);
-        
-        //get properties
-        array_1d<double, 3> tangents;
-        GetGeometry().Calculate(LOCAL_TANGENT, tangents);
-        const double E = GetProperties()[YOUNG_MODULUS];
-        const double A = GetProperties()[CROSS_AREA];
-        const double prestress = GetProperties()[PRESTRESS_CAUCHY];
-
-        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
-        {   
-            // get integration data
-            const double& integration_weight = r_integration_points[point_number].Weight();
-            const Matrix& r_DN_De   = r_geometry.ShapeFunctionLocalGradient(point_number);
-
-            mReferenceBaseVector[point_number] = GetActualBaseVector(r_DN_De, ConfigurationType::Reference);
-            const double reference_a = norm_2(mReferenceBaseVector[point_number]);    
-
-            // normal forcereference_aa
-            const double s11_membrane = prestress * A;
-
-            for (IndexType r = 0; r < mat_size; r++)
-            {
-                // local node number kr and dof direction dirr
-                IndexType kr = r / 3;
-                IndexType dirr = r % 3;
-
-                const double epsilon_var_r = mReferenceBaseVector[point_number][dirr] *
-                    (r_DN_De(kr, 0) * tangents[0] 
-                    + r_DN_De(kr, 1) * tangents[1]) / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
-
-                for (IndexType s = 0; s < mat_size; s++)
-                {
-                    // local node number ks and dof direction dirs
-                    IndexType ks = s / 3;
-                    IndexType dirs = s % 3;
-
-                    const double epsilon_var_s =
-                        mReferenceBaseVector[point_number][dirs] *
-                        (r_DN_De(ks, 0) * tangents[0]
-                        + r_DN_De(ks, 1) * tangents[1])
-                        / inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
-
-                    rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r * epsilon_var_s * reference_a * integration_weight;
-
-                    if (dirr == dirs) {
-                        const double epsilon_var_rs =
-                        (r_DN_De(kr, 0) * tangents[0] + r_DN_De(kr, 1) * tangents[1]) *
-                        (r_DN_De(ks, 0) * tangents[0] + r_DN_De(ks, 1) * tangents[1]) /inner_prod(mReferenceBaseVector[point_number],mReferenceBaseVector[point_number]);
-                    
-                        rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs * reference_a * integration_weight; 
-                    }
-                }
-            }
-        }
-        KRATOS_CATCH("");
-    }
-
     ///@}
     ///@name Implicit
     ///@{
@@ -252,17 +175,7 @@ namespace Kratos
     )
     {
         KRATOS_TRY;
-
-        const auto& r_geometry = GetGeometry();
-
-        // definition of problem size
-        const SizeType number_of_nodes = r_geometry.size();
-        const SizeType mat_size = number_of_nodes * 3;
-
-        if (rDampingMatrix.size1() != mat_size)
-            rDampingMatrix.resize(mat_size, mat_size, false);
-
-        noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        // Rayleigh Damping Matrix: alpha*M + beta*K
 
         // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
         double alpha = 0.0;
@@ -277,38 +190,31 @@ namespace Kratos
         else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA))
             beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 
-        // Rayleigh Damping Matrix: alpha*M + beta*K
+        // 2.-Calculate StiffnessMatrix and MassMatrix:
+        if (std::abs(alpha) < 1E-12 && std::abs(beta) < 1E-12) {
+            // no damping specified, only setting the matrix to zero
+            const SizeType number_of_nodes = GetGeometry().size();
+            const SizeType mat_size = number_of_nodes * 3;
+            if (rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size) {
+                rDampingMatrix.resize(mat_size, mat_size, false);
+            }
+            noalias(rDampingMatrix) = ZeroMatrix(mat_size, mat_size);
+        } else if (std::abs(alpha) > 1E-12 && std::abs(beta) < 1E-12) {
+            // damping only required with the mass matrix
+            CalculateMassMatrix(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= alpha;
+        } else if (std::abs(alpha) < 1E-12 && std::abs(beta) > 1E-12) {
+            // damping only required with the stiffness matrix
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
+        } else {
+            // damping with both mass matrix and stiffness matrix required
+            CalculateLeftHandSide(rDampingMatrix, rCurrentProcessInfo); // pass damping matrix to avoid creating a temporary
+            rDampingMatrix *= beta;
 
-        // 2.-Calculate StiffnessMatrix:
-        if (beta > 0.0)
-        {
-            //MatrixType StiffnessMatrix = Matrix();
-            Element::MatrixType StiffnessMatrix;
-
-            if (StiffnessMatrix.size1() != mat_size)
-                StiffnessMatrix.resize(mat_size, mat_size);
-            noalias(StiffnessMatrix) = ZeroMatrix(mat_size, mat_size);
-
-            // // //VectorType ResidualVector = Vector();
-            // Element::VectorType ResidualVector;
-
-            // if (ResidualVector.size() != mat_size)
-            //     ResidualVector.resize(mat_size);
-            // noalias(ResidualVector) = ZeroVector(mat_size);
-
-            //this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-            this->CalculateInitialStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
-
-
-            noalias(rDampingMatrix) += beta * StiffnessMatrix;
-        }
-
-        // 3.-Calculate MassMatrix:
-        if (alpha > 0.0)
-        {
-            MatrixType MassMatrix = Matrix();
-            this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-            noalias(rDampingMatrix) += alpha * MassMatrix;
+            Matrix mass_matrix;
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            noalias(rDampingMatrix) += alpha  * mass_matrix;
         }
 
         KRATOS_CATCH("")

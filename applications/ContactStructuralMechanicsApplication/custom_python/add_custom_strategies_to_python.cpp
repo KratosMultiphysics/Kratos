@@ -124,6 +124,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< ResidualBasedNewtonRaphsonContactStrategyType,
         typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
         BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
+        .def(py::init < ModelPart&, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType, ProcessesListType>())
@@ -143,6 +144,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< LineSearchContactStrategyType,
         typename LineSearchContactStrategyType::Pointer,
         BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
+        .def(py::init < ModelPart&, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
@@ -153,6 +155,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Residual Based Newton Raphson MPC Contact Strategy
     py::class_< ResidualBasedNewtonRaphsonMPCContactStrategyType, typename ResidualBasedNewtonRaphsonMPCContactStrategyType::Pointer, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonMPCContactStrategy")
+        .def(py::init < ModelPart&, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
@@ -174,6 +177,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
         ConvergenceCriteriaType >
         (m, "MortarAndConvergenceCriteria")
+        .def(py::init<Parameters>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool>())
         .def(py::init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer, bool, ConditionNumberUtilityPointerType>())
@@ -184,6 +188,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "MeshTyingMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
@@ -191,6 +196,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "ALMFrictionlessMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -201,6 +207,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "PenaltyFrictionlessMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -211,6 +218,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ConvergenceCriteriaType >
         (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
         .def(py::init<bool, bool, bool>())
@@ -330,11 +338,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Error mesh Convergence Criterion
     py::class_< ContactErrorMeshCriteriaType, typename ContactErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ContactErrorMeshCriteria")
         .def(py::init<Parameters>())
+        .def(py::init<Parameters>())
         ;
 
     // Contact convergence criteria
     py::class_< MPCContactCriteriaType, typename MPCContactCriteriaType::Pointer, ConvergenceCriteriaType > (m, "MPCContactCriteria")
         .def(py::init< >())
+        .def(py::init<Parameters>())
         ;
 
     //********************************************************************
@@ -343,15 +353,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Contact block builder and solver
     py::class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 
     // Contact elimination builder and solver
     py::class_< ContactResidualBasedEliminationBuilderAndSolverType, ContactResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolver")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 
     // Contact elimination builder and sokver with constraints
     py::class_< ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType, ContactResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedEliminationBuilderAndSolverWithConstraints")
-    .def(py::init< LinearSolverType::Pointer > ());
+    .def(py::init< LinearSolverType::Pointer > ())
+    .def(py::init< LinearSolverType::Pointer, Parameters > ())
+    ;
 }
 
 }  // namespace Python.

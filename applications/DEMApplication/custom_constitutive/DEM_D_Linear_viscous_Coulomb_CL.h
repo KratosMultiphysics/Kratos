@@ -72,6 +72,9 @@ namespace Kratos {
                                                    Condition* const wall,
                                                    const double indentation) override;
 
+        Properties& GetPropertiesOfThisContact(SphericParticle* const element, SphericParticle* const neighbour);
+        Properties& GetPropertiesOfThisContact(SphericParticle* const element, Condition* const neighbour);
+
         template <class NeighbourClassType>
         void CalculateTangentialForceWithNeighbour(const double normal_contact_force,
                                                    const double OldLocalElasticContactForce[3],
@@ -92,21 +95,10 @@ namespace Kratos {
 
             modulus_of_elastic_shear_force = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-            const double my_tg_of_static_friction_angle        = GetTgOfStaticFrictionAngleOfElement(element);
-            const double neighbour_tg_of_static_friction_angle = neighbour->GetProperties()[STATIC_FRICTION];
-            const double equiv_tg_of_static_fri_ang            = 0.5 * (my_tg_of_static_friction_angle + neighbour_tg_of_static_friction_angle);
-
-            const double my_tg_of_dynamic_friction_angle        = GetTgOfDynamicFrictionAngleOfElement(element);
-            const double neighbour_tg_of_dynamic_friction_angle = neighbour->GetProperties()[DYNAMIC_FRICTION];
-            const double equiv_tg_of_dynamic_fri_ang            = 0.5 * (my_tg_of_dynamic_friction_angle + neighbour_tg_of_dynamic_friction_angle);
-
-            const double my_friction_decay_coefficient          = GetFrictionDecayCoefficient(element);
-            const double neighbour_friction_decay_coefficient   = neighbour->GetProperties()[FRICTION_DECAY];
-            double equiv_friction_decay_coefficient             = 0.5 * (my_friction_decay_coefficient + neighbour_friction_decay_coefficient);
-
-            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< GetElementId(element)<<std::endl;
-            }
+            Properties& properties_of_this_contact = GetPropertiesOfThisContact(element, neighbour);
+            const double equiv_tg_of_static_fri_ang = properties_of_this_contact[STATIC_FRICTION];
+            const double equiv_tg_of_dynamic_fri_ang = properties_of_this_contact[DYNAMIC_FRICTION];
+            const double equiv_friction_decay_coefficient = properties_of_this_contact[FRICTION_DECAY];
 
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
@@ -195,9 +187,7 @@ namespace Kratos {
                                                      double LocalDeltDisp[3]);
 
     protected:
-        double GetTgOfStaticFrictionAngleOfElement(SphericParticle* element);
-        double GetTgOfDynamicFrictionAngleOfElement(SphericParticle* element);
-        double GetFrictionDecayCoefficient(SphericParticle* element);
+
         std::size_t GetElementId(SphericParticle* element);
 
     private:

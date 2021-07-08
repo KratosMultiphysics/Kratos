@@ -297,12 +297,14 @@ namespace Kratos
             //                  -1->All nodes in this dimension
             Vector local_coordinates = rParameters["local_parameters"].GetVector();
 
+            auto p_background_geometry = geom.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+
             if (rGeometryType == "GeometryCurveNodes") {
                 KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()
                     << " needs to have a dimension of 1 for type GeometryCurveNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = geom.size();
+                SizeType number_of_cps = p_background_geometry->size();
 
                 IndexType t_start = 0;
                 IndexType t_end = number_of_cps;
@@ -313,7 +315,7 @@ namespace Kratos
                 }
 
                 for (IndexType i = t_start; i < t_end; ++i) {
-                    rModelPart.AddNode(geom.pGetPoint(i));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(i));
                 }
             }
             else if (rGeometryType == "GeometryCurveVariationNodes") {
@@ -321,17 +323,17 @@ namespace Kratos
                     << " needs to have a dimension of 1 for type GeometryCurveVariationNodes. Dimension: " << geom.Dimension()
                     << ". Geometry" << geom << std::endl;
 
-                SizeType number_of_cps = geom.size();
+                SizeType number_of_cps = p_background_geometry->size();
 
                 KRATOS_ERROR_IF(number_of_cps < 3)
                     << "GetPointsAt: Not enough control points to get second row of nodes."
                     << std::endl;
 
                 if (local_coordinates[0] == 0) {
-                    rModelPart.AddNode(geom.pGetPoint(1));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(1));
                 }
                 else if (local_coordinates[0] == 1) {
-                    rModelPart.AddNode(geom.pGetPoint(number_of_cps - 1));
+                    rModelPart.AddNode(p_background_geometry->pGetPoint(number_of_cps - 1));
                 }
                 else {
                     KRATOS_ERROR << "GetPointsAt: GeometrySurfaceVariationNodes and local coordinates: " << local_coordinates[0]
@@ -383,7 +385,7 @@ namespace Kratos
 
                 for (IndexType i = u_start; i < u_end; ++i) {
                     for (IndexType j = v_start; j < v_end; ++j) {
-                        rModelPart.AddNode(geom(i + j * number_of_cps_u));
+                        rModelPart.AddNode(p_background_geometry->pGetPoint(i + j * number_of_cps_u));
                     }
                 }
             }
