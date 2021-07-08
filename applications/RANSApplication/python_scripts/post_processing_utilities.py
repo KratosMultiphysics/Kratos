@@ -256,7 +256,7 @@ def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinme
 
         perpendicular_reaction = normal * _Array3DInnerProduct(reaction, normal)
         tangential_reaction = (reaction - perpendicular_reaction)
-        tangential_reaction = sqrt(_Array3DInnerProduct(tangential_reaction, tangential_reaction))
-
-        u_tau = sqrt(tangential_reaction / density)
+        shear_stress = sqrt(_Array3DInnerProduct(tangential_reaction, tangential_reaction))
+        shear_stress /= condition.GetGeometry().DomainSize()
+        u_tau = sqrt(shear_stress / density)
         condition.SetValue(output_variable, u_tau * y / kinmeatic_viscosity)
