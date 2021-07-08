@@ -29,6 +29,8 @@ CouplingInterfaceData::CouplingInterfaceData(
     const std::string& rSolverName)
     : mName(rName), mSolverName(rSolverName)
 {
+    Settings.ValidateAndAssignDefaults(CouplingInterfaceData::GetDefaultParameters());
+
     // checking name of CouplingInterfaceData
     KRATOS_ERROR_IF(rName == "") << "No \"name\" was specified!" << std::endl;
     const char disallowed_chars[] = {'.', ',', ':', ';', '>', '<', '/', '\'', '|', '*', '!', '"', ' '};
@@ -41,6 +43,28 @@ CouplingInterfaceData::CouplingInterfaceData(
     KRATOS_ERROR_IF(mModelPartName == "") << "No \"model_part_name\" was specified!" << std::endl;
 
     mpModelpart = &rModel.GetModelPart(mModelPartName);
+
+
+    // getting data location
+    const std::string location = Settings["location"].GetString();
+    const std::unordered_map<std::string, DataLocation> name_data_location_map {
+        {"node_historical", DataLocation::NodeHistorical},
+        {"node_non_historical", DataLocation::NodeNonHistorical},
+        {"element", DataLocation::Element},
+        {"condition", DataLocation::Condition},
+        {"model_part", DataLocation::ModelPart},
+    };
+
+    auto location_iter = name_data_location_map.find(location);
+    if (location_iter == name_data_location_map.end()) {
+        std::vector<std::string> admissible_locations;
+        admissible_locations.reserve(name_data_location_map.size());
+        for (const auto& r_loc : name_data_location_map) {
+            admissible_locations.push_back(r_loc.first);
+        }
+        KRATOS_ERROR << "\"" << location << "\" is not allowed as \"location\", only the following options are possible:\n" << admissible_locations << std::endl;
+    }
+    mDataLocation = location_iter->second;
 }
 
 
