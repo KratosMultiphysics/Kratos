@@ -58,7 +58,9 @@ void UpdateElementsInSubModelPart(
     ModelPart& rRootModelPart,
     std::unordered_set<std::size_t>& rSetOfElementsIds)
 {
-    rRootModelPart.Elements().Sort();
+    if(!rRootModelPart.Elements().IsSorted) {
+        rRootModelPart.Elements().Sort();
+    }
     IndexPartition<std::size_t>(rModelPart.Elements().size()).for_each([&](std::size_t Index){
         auto it_elem = rModelPart.ElementsBegin() + Index;
         if (rSetOfElementsIds.find(it_elem->Id()) != rSetOfElementsIds.end()) {
@@ -84,7 +86,9 @@ void UpdateConditionsInSubModelPart(
     ModelPart& rRootModelPart,
     std::unordered_set<std::size_t>& rSetOfConditions)
 {
-    rRootModelPart.Conditions().Sort();
+    if(!rRootModelPart.Conditions().IsSorted) {
+        rRootModelPart.Conditions().Sort();
+    }
     IndexPartition<std::size_t>(rModelPart.Conditions().size()).for_each([&](std::size_t Index){
         auto it_cond = rModelPart.ConditionsBegin() + Index;
         if (rSetOfConditions.find(it_cond->Id()) != rSetOfConditions.end()) {
