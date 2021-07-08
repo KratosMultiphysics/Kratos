@@ -21,7 +21,8 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_strain.h"
 
 namespace Kratos
 {
@@ -50,17 +51,15 @@ namespace Kratos
 /**
  * @class GenericFiniteStrainIsotropicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for plasticity in large deformation
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity, as well as hyper elastic law to compute the prediction
- * This implementation is based on the multiplicative elastoplasticity kinematics (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 603).
- * The main hypothesis underlying the finite strain elastoplasticity constitutive framework described here is the multiplicative decomposition of the deformation gradient, F , into elastic and plastic contributions; that is, it is assumed that the deformation gradient can be decomposed as the product F = Fe x Fp, where F and F are named, respectively, the elastic and plastic deformation gradients.
+ * @brief This class is the base class which define all the constitutive laws for plasticity in strain framework
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * This implementation is based on the Eulerian logarithmic strain measure (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 596).
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
- * @author Vicente Mataix Ferrandiz
+ * @author Alejandro Cornejo & Vicente Mataix Ferrandiz
  */
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericFiniteStrainIsotropicPlasticity
-    : public TElasticBehaviourLaw
+    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
 {
 public:
     ///@name Type Definitions
@@ -73,7 +72,7 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef TElasticBehaviourLaw BaseType;
+    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
@@ -106,7 +105,7 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>>(*this);
     }
 
     /**
