@@ -233,14 +233,14 @@ protected:
                 if( it != new_nodes_map.end() )
                     (*pgeom)(i) = it->second;
             }
-            //create prism
-            std::vector<std::size_t> prism_ids;
+            //create prism(3D) or quadrilateral(2D) as provided in the parameters
+            std::vector<std::size_t> interface_condition_ids;
             for(std::size_t k=0; k<interface_faces[i].size(); ++k)
-                prism_ids.push_back(interface_faces[i][k].Id());
+                interface_condition_ids.push_back(interface_faces[i][k].Id());
             for(std::size_t k=0; k<interface_faces[i].size(); ++k)
-                prism_ids.push_back(new_nodes_map[interface_faces[i][k].Id()]->Id());
+                interface_condition_ids.push_back(new_nodes_map[interface_faces[i][k].Id()]->Id());
 
-            rModelPart.CreateNewCondition(mConditionName, max_cond_id++, prism_ids, pInterfaceProp ); //TODO: understand if the property 1 is what we want
+            rModelPart.CreateNewCondition(mConditionName, max_cond_id++, interface_condition_ids, pInterfaceProp ); //TODO: understand if the property 1 is what we want
         }
     }
 
