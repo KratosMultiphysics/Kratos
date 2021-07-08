@@ -72,12 +72,11 @@ namespace Kratos {
                         const auto& geom = shared_p_element->GetGeometry();
                         array_1d<double, 3> interpolated_gradient_of_pore_pressure = ZeroVector(3);
                         for(size_t j=0; j<geom.size(); j++){
-                            //noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(GRADIENT_OF_PORE_PRESSURE);
-                            noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(VELOCITY);
+                            noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(WATER_PRESSURE_GRADIENT);
                         }
                         SphericParticle* particle = dynamic_cast<SphericParticle*>(&*elem_it);
                         const double particle_volume = particle->CalculateVolume();
-                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = interpolated_gradient_of_pore_pressure * particle_volume;
+                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * interpolated_gradient_of_pore_pressure * particle_volume;
                     }
                 }
             }

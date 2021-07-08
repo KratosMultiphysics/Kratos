@@ -94,9 +94,9 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         return DemPoroMechanicsCouplingSolver(self.poromechanics_solution._GetSolver(), self.dem_solution._GetSolver(), self.parameters)
 
     def _CheckCoherentInputs(self):
-        if self.parameters["poromechanics_parameters"]["solver_settings"]["nodal_smoothing"].GetBool() == False:
-            Kratos.Logger.PrintWarning("Coupling DEM with Poromechanics", "Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"nodal_smoothing\"] must be true for a smooth field of effective stresses")
-            sys.exit("\nExecution was aborted.\n")
+        variables_exported_from_gauss_points_to_nodes = self.parameters["poromechanics_parameters"]["solver_settings"]["gp_to_nodal_variable_list"].GetStringArray()
+        if not "WATER_PRESSURE_GRADIENT" in variables_exported_from_gauss_points_to_nodes or not "EFFECTIVE_STRESS_TENSOR" in variables_exported_from_gauss_points_to_nodes:
+            raise Exception("Coupling DEM with Poromechanics Error: [\"poromechanics_parameters\"][\"solver_settings\"][\"gp_to_nodal_variable_list\"] must contain \"WATER_PRESSURE_GRADIENT\" and \"EFFECTIVE_STRESS_TENSOR\"\n")
 
     def _YieldDEMTime(self, current_time, current_time_plus_increment, delta_time):
         current_time += delta_time
