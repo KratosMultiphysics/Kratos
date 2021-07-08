@@ -313,21 +313,27 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin InitializeSolutionStep")
 
         if self._TimeBufferIsInitialized():
+            (self.accelerationLimitationUtility).Execute()
+
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-            tilting_angle = TimeStep*DT/0.01*(10.0/180.0)*math.pi
-            if tilting_angle > (10.0/180.0)*math.pi:
-                tilting_angle = (10.0/180.0)*math.pi
+
+            gravity = TimeStep*DT/0.1*9.81
+            if gravity > 9.81:
+                gravity = 9.81
+
+            tilting_angle = 0.0
+
+            if gravity == 9.81:
+                tilting_angle = (TimeStep*DT - 0.1)/1.0*(90.0/180.0)*math.pi
+                if tilting_angle > (90.0/180.0)*math.pi:
+                    tilting_angle = (90.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
-
-            gravity = TimeStep*DT/0.01*9.81
-            if gravity > 9.81:
-                gravity = 9.81
 
             for node in self.main_model_part.Nodes:
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, gravity*sinAlpha)
@@ -335,7 +341,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 200 == 0):
+            if (TimeStep % 500 == 0):
                 print("Redistancing")
                 print(time.time())
 
@@ -699,7 +705,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()
-            (self.accelerationLimitationUtility).Execute()
+            #if (TimeStep > 3):
+            #    KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver, TIMESTEP= ", TimeStep)
+            #(self.accelerationLimitationUtility).Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
