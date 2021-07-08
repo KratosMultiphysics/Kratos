@@ -28,25 +28,9 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup CoSimulationApplication
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -74,16 +58,18 @@ public:
         const std::string& rSolverName="default_solver");
 
     ///@}
-    ///@name Operators
-    ///@{
 
+    /// Assignment operator.
+    CouplingInterfaceData& operator=(CouplingInterfaceData const& rOther) = delete;
+
+    /// Copy constructor.
+    CouplingInterfaceData(CouplingInterfaceData const& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
     static Parameters GetDefaultParameters();
-
 
     ///@}
     ///@name Access
@@ -133,48 +119,6 @@ public:
     void PrintData(std::ostream& rOStream) const;
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
     ///@name Static Member Variables
@@ -192,34 +136,9 @@ private:
     DataLocation mDataLocation;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
     ///@name Private Operations
     ///@{
 
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    CouplingInterfaceData& operator=(CouplingInterfaceData const& rOther);
-
-    /// Copy constructor.
-    CouplingInterfaceData(CouplingInterfaceData const& rOther);
 
     ///@}
 
@@ -234,11 +153,6 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                CouplingInterfaceData& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
