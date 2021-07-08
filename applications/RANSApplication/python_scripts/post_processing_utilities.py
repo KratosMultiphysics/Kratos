@@ -243,6 +243,9 @@ def CreateLineOutput(model_part, line_output_parameters):
     line_output_process.ExecuteFinalizeSolutionStep()
 
 def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinmeatic_viscosity):
+    if (KratosRANS is None):
+        raise Exception("Please compile and install the RANS application first.")
+
     output_variable = _GetListOfVariables([output_variable])[0]
     for condition in model_part.Conditions:
         normal = condition.GetValue(Kratos.NORMAL)
