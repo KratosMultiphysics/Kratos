@@ -301,6 +301,15 @@ protected:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method computes the tangent tensor
+     * @param rValues The constitutive law parameters and flags
+     * @param rStressMeasure The stress measure of the law
+     */
+    void CalculateTangentTensor(
+        ConstitutiveLaw::Parameters &rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
+        );
 
     ///@}
     ///@name Private  Access

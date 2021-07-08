@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "constitutive_laws_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
 #include "custom_constitutive/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_plasticity.h"
@@ -86,7 +87,113 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // TODO
+    // Auxiliar values
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    // We get the strain vector
+    Vector r_strain_vector         = rValues.GetStrainVector();
+    const Vector& r_strain_back_up = rValues.GetStrainVector();
+
+    // We get the Deformation gradient F
+    const Matrix& rF = rValues.GetDeformationGradientF();
+    const Matrix& r_B = prod(rF, trans(rF));
+    // const Matrix& r_C = prod(trans(rF), rF);
+
+    // we compute the Eulerian logarithmic strain
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
+
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+
+    // We check the current step and NL iteration
+    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
+    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 && r_current_process_info[STEP] == 1) ? true : false;
+
+    if (first_computation) { // First computation always pure elastic for elemements not providing the strain
+        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+            Vector& r_stress_vector = rValues.GetStressVector();
+            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
+                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
+            } else {
+                noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
+                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
+            }
+        }
+    } else { // We check for plasticity
+        // Integrate Stress plasticity
+        Vector& r_integrated_stress_vector = rValues.GetStressVector();
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+
+        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
+        // We compute the stress or the constitutive matrix
+        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
+            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+
+            // We get some variables
+            double threshold = this->GetThreshold();
+            double plastic_dissipation = this->GetPlasticDissipation();
+            Vector plastic_strain = this->GetPlasticStrain();
+
+            BoundedArrayType predictive_stress_vector;
+            if (r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW)) {
+                noalias(predictive_stress_vector) = rValues.GetStressVector();
+            } else {
+                // S0 = Elastic stress with strain (E-Ep) + S0
+                Vector aux_stress = ZeroVector(VoigtSize);
+                noalias(aux_stress) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+                this->template AddInitialStressVectorContribution<Vector>(aux_stress);
+                noalias(predictive_stress_vector) = aux_stress;
+            }
+
+            // Initialize Plastic Parameters
+            double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+            BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+            BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+
+            // Elastic Matrix
+            BaseType::CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+            // Compute the plastic parameters
+            const double F = TConstLawIntegratorType::CalculatePlasticParameters(
+                predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                threshold, plastic_denominator, f_flux, g_flux,
+                plastic_dissipation, plastic_strain_increment,
+                r_constitutive_matrix, rValues, characteristic_length,
+                plastic_strain);
+
+            if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
+                noalias(r_integrated_stress_vector) = predictive_stress_vector;
+            } else { // Plastic case
+                // While loop backward euler
+                /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+                TConstLawIntegratorType::IntegrateStressVector(
+                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                    threshold, plastic_denominator, f_flux, g_flux,
+                    plastic_dissipation, plastic_strain_increment,
+                    r_constitutive_matrix, plastic_strain, rValues,
+                    characteristic_length);
+                noalias(r_integrated_stress_vector) = predictive_stress_vector;
+
+                if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+                    // noalias(r_strain_vector) = r_strain_back_up;
+                    // this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
+                    // KRATOS_WATCH(r_constitutive_matrix)
+                    // KRATOS_ERROR << "";
+                    // BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                } else {
+                    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+                }
+            }
+        }
+    }
+    noalias(r_strain_vector) = r_strain_back_up;
 }
 
 /***********************************************************************************/
@@ -142,7 +249,77 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         ConstitutiveLaw::Parameters& rValues
         )
 {
-    // TODO
+    // Auxiliar values
+    const Flags& r_constitutive_law_options = rValues.GetOptions();
+
+    // We get the strain vector
+    Vector& r_strain_vector       = rValues.GetStrainVector();
+    const Vector& r_strain_back_up = rValues.GetStrainVector();
+
+    // We get the Deformation gradient F
+    const Matrix& rF = rValues.GetDeformationGradientF();
+    const Matrix& r_B = prod(rF, trans(rF));
+
+    // we compute the Eulerian logarithmic strain
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    // We get the constitutive tensor
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+
+    // Integrate Stress plasticity
+    Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+
+    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
+
+    // We get some variables
+    double threshold = this->GetThreshold();
+    double plastic_dissipation = this->GetPlasticDissipation();
+    Vector plastic_strain = this->GetPlasticStrain();
+
+    BoundedArrayType predictive_stress_vector;
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW)) {
+        noalias(predictive_stress_vector) = rValues.GetStressVector();
+    } else {
+        // S0 = Elastic stress with strain (E-Ep) + S0
+        Vector aux_stress = ZeroVector(VoigtSize);
+        noalias(aux_stress) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+        this->template AddInitialStressVectorContribution<Vector>(aux_stress);
+        noalias(predictive_stress_vector) = aux_stress;
+    }
+
+    // Initialize Plastic Parameters
+    double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+    BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+    BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+    BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+
+    // Elastic Matrix
+    BaseType::CalculateElasticMatrix(r_constitutive_matrix, rValues);
+
+    // Compute the plastic parameters
+    const double F = TConstLawIntegratorType::CalculatePlasticParameters(
+        predictive_stress_vector, r_strain_vector, uniaxial_stress,
+        threshold, plastic_denominator, f_flux, g_flux,
+        plastic_dissipation, plastic_strain_increment,
+        r_constitutive_matrix, rValues, characteristic_length,
+        plastic_strain);
+
+    if (F > std::abs(1.0e-4 * threshold)) {
+        // While loop backward euler
+        /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+        TConstLawIntegratorType::IntegrateStressVector(
+            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            threshold, plastic_denominator, f_flux, g_flux,
+            plastic_dissipation, plastic_strain_increment,
+            r_constitutive_matrix, plastic_strain, rValues,
+            characteristic_length);
+        this->GetPlasticDissipation() = plastic_dissipation;
+        noalias(this->GetPlasticStrain()) = plastic_strain;
+        this->GetThreshold() = threshold;
+    }
 }
 
 /***********************************************************************************/
@@ -157,6 +334,18 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     FinalizeMaterialResponseKirchhoff(rValues);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TConstLawIntegratorType>
+void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
+    CalculateTangentTensor(
+        ConstitutiveLaw::Parameters& rValues,
+        const ConstitutiveLaw::StressMeasure& rStressMeasure
+        )
+{
+    TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rValues, this, rStressMeasure);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -169,60 +358,32 @@ double& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         double& rValue
         )
 {
-    // if (rThisVariable == UNIAXIAL_STRESS) {
-    //     // Get Values to compute the constitutive law:
-    //     Flags& r_flags = rParameterValues.GetOptions();
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
 
-    //     // Previous flags saved
-    //     const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-    //     const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
-    //     // Calculate the stress vector
-    //     CalculateMaterialResponseCauchy(rParameterValues);
-    //     const Vector& r_stress_vector = rParameterValues.GetStressVector();
-    //     const Vector& r_strain_vector = rParameterValues.GetStrainVector();
+        // Calculate the stress vector
+        CalculateMaterialResponseCauchy(rParameterValues);
+        const Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const Vector& r_strain_vector = rParameterValues.GetStrainVector();
 
-    //     BoundedArrayType aux_stress_vector = r_stress_vector;
-    //     TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(aux_stress_vector,
-    //         r_strain_vector, rValue, rParameterValues);
+        BoundedArrayType aux_stress_vector = r_stress_vector;
+        TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(aux_stress_vector,
+            r_strain_vector, rValue, rParameterValues);
 
-    //     // Previous flags restored
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-    //     r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
-    // } else if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
-    //     // Calculate the stress vector
-    //     Vector stress_vector;
-    //     this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
-
-    //     // The plastic deformation gradient
-    //     const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-
-    //     // We backup the deformation gradient
-    //     const double& deformation_gradient_determinant_backup = rParameterValues.GetDeterminantF();
-    //     const Matrix& r_deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
-
-    //     rParameterValues.SetDeterminantF(MathUtils<double>::Det(r_plastic_deformation_gradient));
-    //     rParameterValues.SetDeformationGradientF(r_plastic_deformation_gradient);
-    //     Vector plastic_strain;
-    //     this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
-
-    //     // Compute the equivalent plastic strain
-    //     double uniaxial_stress;
-    //     this->CalculateValue(rParameterValues, UNIAXIAL_STRESS, uniaxial_stress);
-    //     TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector,
-    //         uniaxial_stress, plastic_strain, 0.0, rParameterValues, rValue);
-
-    //     // We revert the deformation gradient
-    //     rParameterValues.SetDeterminantF(deformation_gradient_determinant_backup);
-    //     rParameterValues.SetDeformationGradientF(r_deformation_gradient_backup);
-
-    //     return rValue;
-    // } else {
-    //     return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    // }
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    } else {
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
     return rValue;
 }
 
@@ -237,7 +398,85 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         Vector& rValue
         )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == STRAIN ||
+        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == HENCKY_STRAIN_VECTOR ||
+        rThisVariable == BIOT_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, false );
+
+        // We compute the strain
+        if (rThisVariable == STRAIN) {
+            // HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+        } else if (rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+            // HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponsePK2(rParameterValues);
+        } else if (rThisVariable == ALMANSI_STRAIN_VECTOR) {
+            // HyperElasticIsotropicKirchhoff3D::CalculateMaterialResponseKirchhoff(rParameterValues);
+        } else if (rThisVariable == HENCKY_STRAIN_VECTOR) {
+            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
+            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
+            Vector& r_strain_vector = rParameterValues.GetStrainVector();
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
+        } else if (rThisVariable == BIOT_STRAIN_VECTOR) {
+            const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
+            const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
+            Vector& r_strain_vector = rParameterValues.GetStrainVector();
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
+        }
+
+        rValue = rParameterValues.GetStrainVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    } else if (rThisVariable == STRESSES ||
+        rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == PK2_STRESS_VECTOR) {
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain = r_flags.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN );
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // We compute the stress
+        if (rThisVariable == STRESSES) {
+            this->CalculateMaterialResponse(rParameterValues, this->GetStressMeasure());
+        } if (rThisVariable == KIRCHHOFF_STRESS_VECTOR) {
+            this->CalculateMaterialResponseKirchhoff(rParameterValues);
+        } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+            this->CalculateMaterialResponseCauchy(rParameterValues);
+        } if (rThisVariable == PK2_STRESS_VECTOR) {
+            this->CalculateMaterialResponsePK2(rParameterValues);
+        }
+        rValue = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, flag_strain );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+    }
+
+    return( rValue );
 }
 
 /***********************************************************************************/
@@ -251,39 +490,13 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         Matrix& rValue
     )
 {
-    // if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
-    //     const Matrix C_plastic_tensor = prod(trans( mPlasticDeformationGradient), mPlasticDeformationGradient);
-    //     Vector plastic_strain(VoigtSize);
-    //     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_plastic_tensor, plastic_strain);
-    //     rValue = MathUtils<double>::StrainVectorToTensor(plastic_strain);
-    // } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-    //     // The plastic deformation gradient
-    //     const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
-
-    //     // We backup the deformation gradient
-    //     const Matrix& r_deformation_gradient_backup = rParameterValues.GetDeformationGradientF();
-
-    //     // We compute the elastic deformation gradient  Fe = plastic_indicator * inv(Fp)
-    //     Matrix inverse_F_p ( Dimension, Dimension );
-    //     double aux_det_Fp = 0;
-    //     MathUtils<double>::InvertMatrix( r_plastic_deformation_gradient, inverse_F_p, aux_det_Fp);
-    //     const Matrix elastic_deformation_gradient = prod(r_deformation_gradient_backup, inverse_F_p);
-
-    //     rParameterValues.SetDeformationGradientF(elastic_deformation_gradient);
-    //     Vector elastic_stress;
-    //     this->CalculateValue(rParameterValues, CAUCHY_STRESS_VECTOR, elastic_stress);
-
-    //     rValue = MathUtils<double>::StressVectorToTensor(elastic_stress);
-
-    //     // We revert the deformation gradient
-    //     rParameterValues.SetDeformationGradientF(r_deformation_gradient_backup);
-
-    //     return rValue;
-    // } else if (this->Has(rThisVariable)) {
-    //     return this->GetValue(rThisVariable, rValue);
-    // } else {
-    //     return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    // }
+    if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
+        rValue = MathUtils<double>::StrainVectorToTensor(this->GetPlasticStrain());
+    } else if (this->Has(rThisVariable)) {
+        return this->GetValue(rThisVariable, rValue);
+    } else {
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
     return rValue;
 }
 

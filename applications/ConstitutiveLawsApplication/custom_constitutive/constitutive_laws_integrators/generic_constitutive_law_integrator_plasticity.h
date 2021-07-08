@@ -203,6 +203,13 @@ class GenericConstitutiveLawIntegratorPlasticity
                 iteration++;
             }
         }
+        // if (iteration > max_iter) {
+        //     KRATOS_WATCH(plastic_consistency_factor_increment)
+        //     KRATOS_WATCH(rUniaxialStress)
+        //     KRATOS_WATCH(rPlasticStrainIncrement)
+        //     KRATOS_WATCH(rThreshold)
+        //     KRATOS_WATCH(F)
+        // }
         rConstitutiveMatrix = tangent_tensor;
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
 
