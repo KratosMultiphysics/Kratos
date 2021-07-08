@@ -31,7 +31,7 @@ namespace Kratos
             KRATOS_CATCH("")
 	}
 
-        void SinteringSphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info) {
+        void SinteringSphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {
             KRATOS_TRY
 			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
             const double temperature = GetTemperature();
@@ -42,7 +42,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(ProcessInfo& r_process_info) {
+	void SinteringSphericContinuumParticle::UpdateContinuumNeighboursVector(const ProcessInfo& r_process_info) {
             KRATOS_TRY
             if(mNeighbourElements.size() == mContinuumInitialNeighborsSize) return;
 
@@ -131,9 +131,10 @@ namespace Kratos
             mContinuumConstitutiveLawArray.resize(mContinuumInitialNeighborsSize);
 
             for (unsigned int i = initial_number_of_cont_neighbours; i < mContinuumInitialNeighborsSize; i++) {
-                DEMContinuumConstitutiveLaw::Pointer NewContinuumConstitutiveLaw = GetProperties()[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
-                mContinuumConstitutiveLawArray[i] = NewContinuumConstitutiveLaw;
-                mContinuumConstitutiveLawArray[i]->Initialize(this);
+                Properties::Pointer properties_of_this_contact = GetProperties().pGetSubProperties(mNeighbourElements[i]->GetProperties().Id());            
+                mContinuumConstitutiveLawArray[i] = (*properties_of_this_contact)[DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER]-> Clone();
+                SphericContinuumParticle* p_cont_neighbour_particle = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+                mContinuumConstitutiveLawArray[i]->Initialize(this, p_cont_neighbour_particle, properties_of_this_contact);
 
                 mBondElements.push_back(NULL);
                 //std::string ElementName;
@@ -149,14 +150,14 @@ namespace Kratos
                 mIniNeighbourIds[i]   = discont_ini_ids[i-mContinuumInitialNeighborsSize];
                 mIniNeighbourDelta[i] = discont_ini_deltas[i-mContinuumInitialNeighborsSize];
 		if(discont_ini_neighbour_elems.size() != mInitialNeighborsSize - mContinuumInitialNeighborsSize) {
-		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
+            KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
 		}
             }
 
             for (unsigned int i = mInitialNeighborsSize; i < mNeighbourElements.size(); i++) {
                 mNeighbourElements[i] = discont_neighbour_elems[i-mInitialNeighborsSize];
 		if(discont_neighbour_elems.size() != mNeighbourElements.size() - mInitialNeighborsSize) {
-		  KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
+            KRATOS_WATCH("ERROR 1 IN SINTERING PARTICLE WHEN CONVERTING DISCONTINUUM INTO CONTINUUM")
 		}
             }
 
@@ -164,7 +165,7 @@ namespace Kratos
 	};
 
 
-	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(ProcessInfo& r_process_info)
+	void SinteringSphericContinuumParticle::SetInitialSinteringSphereContacts(const ProcessInfo& r_process_info)
 	{
 		std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
 		std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -225,7 +226,7 @@ namespace Kratos
 	CreateContinuumConstitutiveLaws(); //// Reorder????
 	}//SetInitialSinteringSphereContacts
 
-	void SinteringSphericContinuumParticle::InitializeForceComputation(ProcessInfo& r_process_info)
+	void SinteringSphericContinuumParticle::InitializeForceComputation(const ProcessInfo& r_process_info)
 	{
                 if (this->Is(DEMFlags::IS_SINTERING))
                 {

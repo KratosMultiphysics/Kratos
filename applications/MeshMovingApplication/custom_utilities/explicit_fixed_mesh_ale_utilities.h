@@ -61,7 +61,7 @@ namespace Kratos
    * the origin mesh historical values (velocity and pressure) are computed as
    * an interpolation in the virtual model part.
    */
-  class ExplicitFixedMeshALEUtilities : public FixedMeshALEUtilities
+  class KRATOS_API(MESH_MOVING_APPLICATION) ExplicitFixedMeshALEUtilities : public FixedMeshALEUtilities
   {
   public:
 

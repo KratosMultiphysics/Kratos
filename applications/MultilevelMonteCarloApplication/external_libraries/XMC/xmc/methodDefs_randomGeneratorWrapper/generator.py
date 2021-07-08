@@ -90,3 +90,11 @@ def returnIntegerUniform(*args):
     Return one integer uniformly distributed random variable
     """
     return [int(np.random.uniform(args[0],args[1]))]
+
+def returnIntegerUniformAndNormalAndUniform(*args):
+    """
+    Return one integer uniformly distributed random variable,
+    one normal random variable and
+    one uniformly distributed random variable.
+    """
+    return [int(np.random.uniform(args[0],args[1])),np.random.normal(args[2], args[3], 1),np.random.uniform(args[4], args[5], 1)]

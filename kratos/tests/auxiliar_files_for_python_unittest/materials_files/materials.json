@@ -37,7 +37,6 @@
                 "YOUNG_MODULUS": 100.0,
                 "POISSON_RATIO": 0.1,
                 "YIELD_STRESS": 800.0,
-                "HTC" : 0.3,
                 "TIME_STEPS" : 159,
                 "CAUCHY_STRESS_VECTOR" : [1.5,0.3,-2.58],
                 "LOCAL_INERTIA_TENSOR" : [[1.27,-22.5],[2.01,0.257]],

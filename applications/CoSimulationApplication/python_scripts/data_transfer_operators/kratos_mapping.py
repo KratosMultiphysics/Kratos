@@ -10,6 +10,9 @@ from KratosMultiphysics.MappingApplication import python_mapper_factory
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
+# other imports
+from time import time
+
 def Create(settings):
     return KratosMappingDataTransferOperator(settings)
 
@@ -64,7 +67,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), info_msg)
 
+            mapper_creation_start_time = time()
             self.__mappers[identifier_tuple] = mapper_create_fct(model_part_origin, model_part_destination, self.settings["mapper_settings"].Clone()) # Clone is necessary because the settings are validated and defaults assigned, which could influence the creation of other mappers
+
+            if self.echo_level > 2:
+                cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
     def _Check(self, from_solver_data, to_solver_data):

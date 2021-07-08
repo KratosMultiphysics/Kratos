@@ -316,7 +316,7 @@ public:
 
       ModelPart* pMainModelPart = &rModelPart;
       if( rModelPart.IsSubModelPart() )
-	pMainModelPart = rModelPart.GetParentModelPart();
+	pMainModelPart = &rModelPart.GetParentModelPart();
 
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
 	{

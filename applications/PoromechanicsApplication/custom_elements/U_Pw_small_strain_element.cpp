@@ -34,7 +34,7 @@ Element::Pointer UPwSmallStrainElement<TDim,TNumNodes>::Create(IndexType NewId, 
 //----------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo )
+int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
@@ -100,7 +100,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::Check( const ProcessInfo& rCurrentPro
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -152,7 +152,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     this->InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -160,7 +160,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeNonLinearIteration(ProcessIn
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -201,6 +201,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     {
         Matrix StressContainer(NumGPoints,VoigtSize);
 
+        Matrix GradPressureContainer(NumGPoints,TDim);
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++) {
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        }
+        array_1d<double,TDim> GradPressure;
+
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
@@ -212,12 +219,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
 
             noalias(Np) = row(NContainer,GPoint);
 
+            noalias(GradPressure) = prod(trans(GradNpT),PressureVector);
+            this->SaveGPGradPressure(GradPressureContainer,GradPressure,GPoint);
+
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
-
             this->SaveGPStress(StressContainer,StressVector,VoigtSize,GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer,VoigtSize);
+        this->ExtrapolateGPValues(GradPressureContainer,StressContainer,VoigtSize);
     }
     else
     {
@@ -238,6 +247,27 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     }
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPGradPressure(Matrix& rGradPressureContainer, const array_1d<double,TDim>& GradPressure, const unsigned int& GPoint)
+{
+    for(unsigned int i = 0; i < TDim; i++)
+    {
+        rGradPressureContainer(GPoint,i) = GradPressure[i];
+    }
+
+    /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
+     *
+     *                   |GradPX-0 GradPY-0|
+     * rGradPContainer = |GradPX-1 GradPY-1|
+     *                   |GradPX-2 GradPY-2|
+     *                   |GradPX-3 GradPY-3|
+     *
+     * GradPY-2 = GradPY at GP 2
+    */
 }
 
 //----------------------------------------------------------------------------------------
@@ -264,7 +294,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContaine
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
@@ -280,6 +310,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
+    array_1d<array_1d<double,2>,3> NodalGradPressure; //List with 2D GradP at each node
     array_1d<Vector,3> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,3> NodalStressTensor;
 
@@ -291,6 +322,18 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,3,2> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
+    /* INFO:
+        *
+        *                        |GradPX-0 GradPY-0|
+        * AuxNodalGradPressure = |GradPX-1 GradPY-1|
+        *                        |GradPX-2 GradPY-2|
+        *
+        * GradPY-2 = GradPY at node 2
+    */
 
     BoundedMatrix<double,3,3> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -309,11 +352,17 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int i = 0; i < 3; i++) //TNumNodes
     {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+        for(unsigned int j = 0; j < 2; j++) //TDim
+        {
+            r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
+        }
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -325,7 +374,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
@@ -341,6 +390,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
+    array_1d<array_1d<double,2>,4> NodalGradPressure; //List with 2D GradP at each node
     array_1d<Vector,4> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,4> NodalStressTensor;
 
@@ -352,6 +402,9 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,2> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
 
     BoundedMatrix<double,4,3> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -371,11 +424,17 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     for(unsigned int i = 0; i < 4; i++) //TNumNodes
     {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        array_1d<double,3>& r_nodal_grad_pressure = rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
+        for(unsigned int j = 0; j < 2; j++) //TDim
+        {
+            r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
+        }
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -387,7 +446,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
@@ -403,6 +462,7 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
+    array_1d<array_1d<double,3>,4> NodalGradPressure; //List with 3D GradP at each node
     array_1d<Vector,4> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,4> NodalStressTensor;
 
@@ -418,16 +478,21 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
     BoundedMatrix<double,4,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
+    BoundedMatrix<double,4,3> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
     array_1d<double,4> NodalDamage;
     noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
 
     for(unsigned int i = 0; i < 4; i++) //TNumNodes
     {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -439,7 +504,7 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
 //----------------------------------------------------------------------------------------
 
 template< >
-void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
+void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressureContainer, const Matrix& StressContainer, const unsigned int& VoigtSize)
 {
     KRATOS_TRY
 
@@ -455,6 +520,7 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
+    array_1d<array_1d<double,3>,8> NodalGradPressure; //List with 3D GradP at each node
     array_1d<Vector,8> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,8> NodalStressTensor;
 
@@ -470,16 +536,21 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
     BoundedMatrix<double,8,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
+    BoundedMatrix<double,8,3> AuxNodalGradPressure;
+    noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
+
     array_1d<double,8> NodalDamage; //List with stresses at each node
     noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
 
     for(unsigned int i = 0; i < 8; i++) //TNumNodes
     {
+        noalias(NodalGradPressure[i]) = row(AuxNodalGradPressure,i)*Area;
         noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
-        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT)) += NodalGradPressure[i];
+        noalias(rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR)) += NodalStressTensor[i];
         rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
@@ -560,8 +631,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
-    if(rVariable == FLUID_FLUX_VECTOR)
-    {
+    if(rVariable == FLUID_FLUX_VECTOR) {
         const PropertiesType& Prop = this->GetProperties();
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -600,6 +670,30 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 
             PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
+    } else if(rVariable == WATER_PRESSURE_GRADIENT) {
+
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
+
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,mThisIntegrationMethod);
+
+        //Defining necessary variables
+        array_1d<double,TNumNodes> PressureVector;
+        for(unsigned int i=0; i<TNumNodes; i++)
+            PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+        BoundedMatrix<double,TNumNodes, TDim> GradNpT;
+        array_1d<double,TDim> GradPressure;
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            noalias(GradNpT) = DN_DXContainer[GPoint];
+
+            noalias(GradPressure) = prod(trans(GradNpT),PressureVector);
+
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],GradPressure);
+        }
     }
 
     KRATOS_CATCH( "" )
@@ -613,7 +707,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 {
     KRATOS_TRY
 
-    if(rVariable == CAUCHY_STRESS_TENSOR)
+    if(rVariable == EFFECTIVE_STRESS_TENSOR)
     {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
@@ -707,9 +801,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         {
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         }
-        const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
-        const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
-        const double BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+        const double BiotCoefficient = Prop[BIOT_COEFFICIENT];
 
         //Create constitutive law parameters:
         Vector StrainVector(VoigtSize);
@@ -981,11 +1073,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     //Properties variables
     const double& BulkModulusSolid = Prop[BULK_MODULUS_SOLID];
     const double& Porosity = Prop[POROSITY];
-    const double BulkModulus = Prop[YOUNG_MODULUS]/(3.0*(1.0-2.0*Prop[POISSON_RATIO]));
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
+    rVariables.BiotCoefficient = Prop[BIOT_COEFFICIENT];
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
     PoroElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix,Prop);
 

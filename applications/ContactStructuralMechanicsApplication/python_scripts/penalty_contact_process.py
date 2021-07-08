@@ -57,7 +57,8 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             "slip_threshold"                : 2.0e-2,
             "zero_tolerance_factor"         : 1.0,
             "integration_order"             : 2,
-            "consider_tessellation"          : false,
+            "consider_tessellation"         : false,
+            "normal_check_proportion"       : 0.1,
             "clear_inactive_for_post"       : true,
             "slip_step_reset_frequency"     : 1,
             "search_parameters"             : {

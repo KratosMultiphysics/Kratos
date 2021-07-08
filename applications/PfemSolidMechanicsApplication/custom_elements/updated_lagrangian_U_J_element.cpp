@@ -205,7 +205,7 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetValuesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetValuesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -237,7 +237,7 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetFirstDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -265,7 +265,7 @@ namespace Kratos
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void UpdatedLagrangianUJElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -296,7 +296,7 @@ namespace Kratos
    // **************************************************************************
    // **************************************************************************
 
-   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize()
+   UpdatedLagrangianUJElement::SizeType UpdatedLagrangianUJElement::GetDofsSize() const
    {
       KRATOS_TRY
 

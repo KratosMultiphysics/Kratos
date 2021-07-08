@@ -15,17 +15,6 @@
 
 namespace Kratos
 {
-
-int HistoryLinearElastic3DLaw::Check(const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const ProcessInfo& rCurrentProcessInfo)
-{
-    int ierr = BaseType::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
-    if(ierr != 0) return ierr;
-
-    KRATOS_CHECK_VARIABLE_KEY(INITIAL_STRESS_TENSOR);
-
-    return ierr;
-}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void HistoryLinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)

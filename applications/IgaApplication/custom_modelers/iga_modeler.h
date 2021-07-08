@@ -23,7 +23,6 @@
 #include "includes/properties.h"
 #include "includes/define.h"
 
-
 namespace Kratos
 {
 
@@ -170,6 +169,17 @@ private:
         std::string& rConditionName,
         SizeType& rIdCounter,
         PropertiesPointerType pProperties) const;
+
+    ///@}
+    ///@name Get Points at Boundaries
+    ///@{
+
+    /// Searches points at boundaries of nurbs geometries.
+    void GetPointsAt(
+        GeometriesArrayType& rGeometryList,
+        const std::string& rGeometryType,
+        const Parameters rParameters,
+        ModelPart& rModelPart) const;
 
     ///@}
     ///@name Utility

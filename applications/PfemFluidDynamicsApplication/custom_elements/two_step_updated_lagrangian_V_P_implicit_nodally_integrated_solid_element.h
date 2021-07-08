@@ -177,15 +177,13 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Initializes the element and all geometric information required for the problem.
-    void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
-
-    /* void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo) override {}; */
+    void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               ProcessInfo &rCurrentProcessInfo) override
+                               const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement::CalculateLeftHandSide not implemented", "");
@@ -193,7 +191,7 @@ namespace Kratos
     }
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                                ProcessInfo &rCurrentProcessInfo) override
+                                const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
       KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement::CalculateRightHandSide not implemented", "");
@@ -202,7 +200,7 @@ namespace Kratos
 
     void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                          VectorType &rRightHandSideVector,
-                                         ProcessInfo &rCurrentProcessInfo) override;
+                                         const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables,
                                           double TimeStep,
@@ -227,7 +225,7 @@ namespace Kratos
        * @param rCurrentProcessInfo the current process info instance
        */
 
-    void UpdateCauchyStress(unsigned int g,ProcessInfo& rCurrentProcessInfo) override; 
+    void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override;
 
     void InitializeElementalVariables(ElementalVariables &rElementalVariables) override;
 
@@ -250,7 +248,7 @@ namespace Kratos
        * @param rCurrentProcessInfo The ProcessInfo of the ModelPart that contains this element.
        * @return 0 if no errors were found.
        */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Inquiry
@@ -302,12 +300,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    /* void ComputeMaterialParameters (double& Density, */
-    /* 				      double& DeviatoricCoeff, */
-    /* 				      double& VolumetricCoeff, */
-    /* 				      ProcessInfo &rCurrentProcessInfo, */
-    /* 				      ElementalVariables& rElementalVariables) override; */
 
     /// Add integration point contribution to the mass matrix.
     /**

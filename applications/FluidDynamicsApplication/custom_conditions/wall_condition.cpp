@@ -11,7 +11,7 @@ namespace Kratos
  */
 template <>
 void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                          const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     int step = r_process_info[FRACTIONAL_STEP];
@@ -57,7 +57,7 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                            const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     int step = r_process_info[FRACTIONAL_STEP];
@@ -104,7 +104,7 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
  */
 template <>
 void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+                                              const ProcessInfo& rCurrentProcessInfo) const 
 {
  	const ProcessInfo& r_process_info = rCurrentProcessInfo;
 	int step = r_process_info[FRACTIONAL_STEP];
@@ -151,7 +151,7 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                    ProcessInfo& rCurrentProcessInfo)
+                                    const ProcessInfo& rCurrentProcessInfo) const 
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
 	int step = r_process_info[FRACTIONAL_STEP];

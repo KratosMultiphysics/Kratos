@@ -2,39 +2,30 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosShallowWaterApplication ****")
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## define application core sources (pure C++ parts)
-set( KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
+file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shallow_water_application_variables.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/swe.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/nothing_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/post_process_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shallow_water_utilities.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/bfecc_convection_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/replicate_model_part_utility.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/id_renumbering_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_perturbation_function_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_sinusoidal_function_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/rough_porous_layer_wetting_model.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/negative_height_wetting_model.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_velocity_process.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/move_shallow_particles_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_modelers/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_friction_laws/*.cpp
 )
 
 ## define python interface sources
-set(KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shallow_water_python_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+file( GLOB_RECURSE KRATOS_SHALLOW_WATER_APPLICATION_PYTHON_INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp
 )
 
 ## define shallow water test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file( GLOB_RECURSE KRATOS_SHALLOW_WATER_TESTING
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################
@@ -48,6 +39,12 @@ pybind11_add_module( KratosShallowWaterApplication MODULE THIN_LTO ${KRATOS_SHAL
 target_link_libraries( KratosShallowWaterApplication PRIVATE KratosShallowWaterCore)
 set_target_properties( KratosShallowWaterApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosShallowWaterCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosShallowWaterApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .pyd)
@@ -57,12 +54,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosShallowWaterApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosShallowWaterCore)
-    cotire(KratosShallowWaterApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/ShallowWaterApplication.py KratosMultiphysics/ShallowWaterApplication/__init__.py )

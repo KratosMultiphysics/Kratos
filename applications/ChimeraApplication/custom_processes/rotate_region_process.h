@@ -72,7 +72,7 @@ public:
   void PrintInfo(std::ostream &rOStream) const override;
 
   /// Print object's data.
-  void PrintData();
+  void PrintData(std::ostream& rOStream) const override;
 
 protected:
   ///@name Protected static Member Variables

@@ -50,7 +50,7 @@ GeometryData::IntegrationMethod TwoStepUpdatedLagrangianElement<TDim>::GetIntegr
 
 template <unsigned int TDim>
 void TwoStepUpdatedLagrangianElement<TDim>::EquationIdVector(EquationIdVectorType &rResult,
-                                                             ProcessInfo &rCurrentProcessInfo)
+                                                             const ProcessInfo &rCurrentProcessInfo) const 
 {
   KRATOS_TRY;
 
@@ -82,7 +82,7 @@ void TwoStepUpdatedLagrangianElement<TDim>::EquationIdVector(EquationIdVectorTyp
 
 template <unsigned int TDim>
 void TwoStepUpdatedLagrangianElement<TDim>::GetDofList(DofsVectorType &rElementalDofList,
-                                                       ProcessInfo &rCurrentProcessInfo)
+                                                       const ProcessInfo &rCurrentProcessInfo) const 
 {
   KRATOS_TRY;
 
@@ -114,9 +114,9 @@ void TwoStepUpdatedLagrangianElement<TDim>::GetDofList(DofsVectorType &rElementa
 
 template <>
 void TwoStepUpdatedLagrangianElement<2>::VelocityEquationIdVector(EquationIdVectorType &rResult,
-                                                                  ProcessInfo &rCurrentProcessInfo)
+                                                                  const ProcessInfo &rCurrentProcessInfo) const 
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = NumNodes * 2;
 
@@ -136,9 +136,9 @@ void TwoStepUpdatedLagrangianElement<2>::VelocityEquationIdVector(EquationIdVect
 
 template <>
 void TwoStepUpdatedLagrangianElement<3>::VelocityEquationIdVector(EquationIdVectorType &rResult,
-                                                                  ProcessInfo &rCurrentProcessInfo)
+                                                                  const ProcessInfo &rCurrentProcessInfo) const 
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = 3 * NumNodes;
 
@@ -159,9 +159,9 @@ void TwoStepUpdatedLagrangianElement<3>::VelocityEquationIdVector(EquationIdVect
 
 template <unsigned int TDim>
 void TwoStepUpdatedLagrangianElement<TDim>::PressureEquationIdVector(EquationIdVectorType &rResult,
-                                                                     ProcessInfo &rCurrentProcessInfo)
+                                                                     const ProcessInfo &rCurrentProcessInfo) const
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
 
   if (rResult.size() != NumNodes)
@@ -175,9 +175,9 @@ void TwoStepUpdatedLagrangianElement<TDim>::PressureEquationIdVector(EquationIdV
 
 template <>
 void TwoStepUpdatedLagrangianElement<2>::GetVelocityDofList(DofsVectorType &rElementalDofList,
-                                                            ProcessInfo &rCurrentProcessInfo)
+                                                            const ProcessInfo &rCurrentProcessInfo) const 
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = 2 * NumNodes;
 
@@ -195,9 +195,9 @@ void TwoStepUpdatedLagrangianElement<2>::GetVelocityDofList(DofsVectorType &rEle
 
 template <>
 void TwoStepUpdatedLagrangianElement<3>::GetVelocityDofList(DofsVectorType &rElementalDofList,
-                                                            ProcessInfo &rCurrentProcessInfo)
+                                                            const ProcessInfo &rCurrentProcessInfo) const 
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
   const SizeType LocalSize = 3 * NumNodes;
 
@@ -216,9 +216,9 @@ void TwoStepUpdatedLagrangianElement<3>::GetVelocityDofList(DofsVectorType &rEle
 
 template <unsigned int TDim>
 void TwoStepUpdatedLagrangianElement<TDim>::GetPressureDofList(DofsVectorType &rElementalDofList,
-                                                               ProcessInfo &rCurrentProcessInfo)
+                                                               const ProcessInfo &rCurrentProcessInfo) const 
 {
-  GeometryType &rGeom = this->GetGeometry();
+  const GeometryType &rGeom = this->GetGeometry();
   const SizeType NumNodes = rGeom.PointsNumber();
 
   if (rElementalDofList.size() != NumNodes)

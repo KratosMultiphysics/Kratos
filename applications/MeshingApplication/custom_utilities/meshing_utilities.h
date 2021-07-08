@@ -54,14 +54,6 @@ namespace MeshingUtilities
     /// The index type definition
     typedef std::size_t IndexType;
 
-    /// The arrays of elements and nodes
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::NodesContainerType NodesArrayType;
-
-    /// Definition of the iterators
-    typedef NodesArrayType::iterator NodeItType;
-    typedef ElementsArrayType::iterator ElementItType;
-
     /**
      * @brief This computes the element size depending of a whole model part and it assigns to the ELEMENT_H variable
      * @param ModelPart The model part where compute the  and block them
@@ -80,9 +72,9 @@ namespace MeshingUtilities
 
     /**
      * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
-     * @param itElement The element iterator
+     * @param rElement The element reference
      */
-    void KRATOS_API(MESHING_APPLICATION) ComputeElementSize(ElementItType itElement);
+    void KRATOS_API(MESHING_APPLICATION) ComputeElementSize(Element& rElement);
 
 }; // namespace MeshingUtilities
 }  // namespace Kratos

@@ -246,13 +246,13 @@ namespace Kratos
 	noalias(StrainMatrix) = rVariables.Strain.Matrix;
 	rVariables.Strain.Eigen.Vectors.clear();
 
-	MathUtils<double>::EigenSystem<3> ( StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
+        MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
 	for (unsigned int i = 0; i < 3; i++)
 	    rVariables.Strain.Eigen.Values[i] = std::sqrt(rVariables.Strain.Matrix(i,i));
 
-	rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, rVariables.Strain.Eigen.Vectors);
-	rVariables.Strain.Matrix = prod( trans(rVariables.Strain.Eigen.Vectors), rVariables.Strain.Matrix);
+        rVariables.Strain.Matrix = prod(rVariables.Strain.Matrix, trans(rVariables.Strain.Eigen.Vectors));
+        rVariables.Strain.Matrix = prod(rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
 	rValues.State.Set(ConstitutiveModelData::STRAIN_COMPUTED);
 
@@ -272,13 +272,13 @@ namespace Kratos
       rVariables.Strain.Matrix.clear();
       rVariables.Strain.Eigen.Vectors.clear();
 
-      MathUtils<double>::EigenSystem<3> ( rValues.StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
+        MathUtils<double>::GaussSeidelEigenSystem<MatrixType, MatrixType>(rValues.StrainMatrix, rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
       for (unsigned int i = 0; i < 3; i++)
 	  rVariables.Strain.Eigen.Values[i] = std::sqrt(rVariables.Strain.Matrix(i,i));
 
-      rVariables.Strain.Matrix = prod( rVariables.Strain.Matrix, rVariables.Strain.Eigen.Vectors);
-      rVariables.Strain.Matrix = prod( trans(rVariables.Strain.Eigen.Vectors), rVariables.Strain.Matrix);
+        rVariables.Strain.Matrix = prod(rVariables.Strain.Matrix, trans(rVariables.Strain.Eigen.Vectors));
+        rVariables.Strain.Matrix = prod(rVariables.Strain.Eigen.Vectors, rVariables.Strain.Matrix);
 
       noalias(rVariables.Strain.Matrix) = rValues.StrainMatrix;
 
