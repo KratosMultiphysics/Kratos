@@ -19,6 +19,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         solver_name = self.settings["solver"].GetString()
         data_name = self.settings["data_name"].GetString()
         self.interface_data = solver_wrappers[solver_name].GetInterfaceData(data_name)
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.FORCE, self.interface_data.GetModelPart().Elements)
 
     def Execute(self):
         process_info = self.interface_data.GetModelPart().ProcessInfo
@@ -29,7 +30,6 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
                 cs_tools.cs_print_info("Elemental_data_to_Nodal_data", "Skipped, not in interval")
             return
 
-        self.interface_data.SetData(self.interface_data.GetData())
         model_part_interface = self.interface_data.GetModelPart()
         ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface)
 
