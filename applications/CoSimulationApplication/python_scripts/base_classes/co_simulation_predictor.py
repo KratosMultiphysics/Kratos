@@ -81,7 +81,7 @@ class HistoricalDataAccessor:
     def CloneTimeStep(self):
         self.step += 1
         if self.additional_buffer_size > 0:
-            self.aux_data.appendleft(self.interface_data())
+            self.aux_data.appendleft(self.interface_data.GetData())
 
     def GetData(self, buffer_index):
         if self.interface_data.GetBufferSize() > buffer_index:
