@@ -144,18 +144,6 @@ public:
         return mData[I];
     }
 
-    TDataType inner_prod(const SystemVector<TDataType,TIndexType>& rOtherVector) const
-    {
-        KRATOS_ERROR_IF(size() != rOtherVector.size() ) << "size mismatch in inner_prod " << std::endl;
-
-        TDataType sum = IndexPartition<TIndexType>(size()).template for_each<SumReduction<TDataType>>
-            ([&](TIndexType i) -> TDataType {
-             return (*this)[i] * rOtherVector[i];
-            }
-        );
-        return sum;
-    }
-
     void Add(const double factor,
              const SystemVector& rOtherVector
             )
