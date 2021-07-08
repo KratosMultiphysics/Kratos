@@ -6,12 +6,12 @@
 			],
 			"non_historical_metric_variable": true,
 			"estimate_interpolation_error": false,
-			"interpolation_error": 0.01,
+			"interpolation_error": 1000.0,
 			"coefficient_interpolation_error": 1.5
 		},
 		"minimal_size": 0.2,
 		"enforce_current": false,
-		"anisotropy_remeshing": true,
+		"anisotropy_remeshing": false,
 		"enforce_anisotropy_relative_variable": false
 	},
 	"remeshing": {
