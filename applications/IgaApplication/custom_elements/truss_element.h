@@ -216,7 +216,8 @@ public:
 
     /// Calculates lumped mass vector
     void CalculateLumpedMassVector(
-        VectorType& rMassVector);
+        VectorType &rLumpedMassVector,
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     /// Get Displacemnts
     void GetValuesVector(
