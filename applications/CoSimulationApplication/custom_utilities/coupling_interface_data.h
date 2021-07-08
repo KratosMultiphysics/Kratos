@@ -91,7 +91,7 @@ public:
 
     std::size_t Size() const;
 
-    std::size_t BufferSize() const {return mpModelpart->GetBufferSize();}
+    std::size_t GetBufferSize() const;
 
     std::string Name() const {return mName;}
 

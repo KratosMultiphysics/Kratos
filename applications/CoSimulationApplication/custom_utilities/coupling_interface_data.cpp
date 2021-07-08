@@ -54,6 +54,16 @@ Parameters CouplingInterfaceData::GetDefaultParameters()
     })");
 }
 
+
+std::size_t CouplingInterfaceData::GetBufferSize() const
+{
+    if (mDataLocation == DataLocation::NodeHistorical) {
+        return mpModelpart->GetBufferSize();
+    } else {
+        return 1;
+    }
+}
+
 std::size_t CouplingInterfaceData::Size() const
 {
     return 1;
