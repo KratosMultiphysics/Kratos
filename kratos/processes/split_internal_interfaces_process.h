@@ -124,7 +124,7 @@ public:
         }
 
         for(std::size_t id=min_id; id<max_id; id++) {
-            std::cout << "processing property Id "  << id << std::endl;
+            std::cout << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
             SplitBoundary(id, mrModelPart);
         }
     }
@@ -179,8 +179,7 @@ protected:
         //construct list of faces on the interface
         std::vector< Geometry<Node<3> > > interface_faces;
         std::vector<
-        std::pair<
-        Geometry<Node<3>>::Pointer, Geometry<Node<3>>::Pointer > > neighbouring_elements;
+        std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
 
         for(auto& rElem : mrModelPart.Elements()) {
             const auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
@@ -201,10 +200,11 @@ protected:
             for(auto& rNode : geom)
                 ids_on_interface.insert(rNode.Id());
         }
+
         //create duplicated nodes list
         std::size_t max_node_id = 0;
-        if(mrModelPart.GetRootModelPart().Nodes().size() != 0) {
-            max_node_id = (mrModelPart.GetRootModelPart().Nodes().end()-1)->Id() + 1;
+        for(auto& rNode : mrModelPart.Nodes()) {
+            if(rNode.Id() > max_node_id) max_node_id = rNode.Id();
         }
 
         std::map<std::size_t, Node<3>::Pointer> new_nodes_map;
@@ -215,14 +215,13 @@ protected:
             for (auto it_dof = origin_dofs.begin(); it_dof != origin_dofs.end(); it_dof++) {
                 pNode->pAddDof(**it_dof);
             }
-
             new_nodes_map[id] = pNode;
         }
 
         //now change the nodes to make the split and generate the new conditions
         std::size_t max_cond_id = 0;
-        if(mrModelPart.GetRootModelPart().Conditions().size() != 0) {
-            max_cond_id = (mrModelPart.GetRootModelPart().Conditions().end()-1)->Id() + 1;
+        for(auto& rCond : mrModelPart.Conditions()) {
+            if(rCond.Id() > max_cond_id) max_cond_id = rCond.Id();
         }
 
         Properties::Pointer pInterfaceProp = mrModelPart.pGetProperties(1); //TODO: understand if the property 1 is what we want
