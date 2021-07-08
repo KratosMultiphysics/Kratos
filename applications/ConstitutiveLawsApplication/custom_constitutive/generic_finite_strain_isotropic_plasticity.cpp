@@ -252,66 +252,47 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
     const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 && r_current_process_info[STEP] == 1) ? true : false;
 
-    if (first_computation) { // First computation always pure elastic for elemements not providing the strain
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
-        if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-            Vector& r_stress_vector = rValues.GetStressVector();
-            if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            } else {
-                noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
-                this->template AddInitialStressVectorContribution<Vector>(r_stress_vector);
-            }
-        }
-    } else { // We check for plasticity
-        Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
-        this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-        // We compute the stress or the constitutive matrix
-        if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) ||
-            r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+    Vector& r_integrated_stress_vector = rValues.GetStressVector();
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+    this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-            // We get some variables
-            double& threshold = this->GetThreshold();
-            double& plastic_dissipation = this->GetPlasticDissipation();
-            Vector& plastic_strain = this->GetPlasticStrain();
+    // We compute the stress or the constitutive matrix
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS) ||
+        r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
 
-            BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-            BoundedArrayType predictive_stress_vector;
-            noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
+        // We get some variables
+        double& threshold = this->GetThreshold();
+        double& plastic_dissipation = this->GetPlasticDissipation();
+        Vector& plastic_strain = this->GetPlasticStrain();
 
-            // Initialize Plastic Parameters
-            double uniaxial_stress = 0.0, plastic_denominator = 0.0;
-            BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
-            BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
-            BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+        BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
+        BoundedArrayType predictive_stress_vector;
+        noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 
-            // Compute the plastic parameters
-            const double F = TConstLawIntegratorType::CalculatePlasticParameters(
+        // Initialize Plastic Parameters
+        double uniaxial_stress = 0.0, plastic_denominator = 0.0;
+        BoundedArrayType f_flux = ZeroVector(VoigtSize); // DF/DS
+        BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
+        BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
+
+        // Compute the plastic parameters
+        const double F = TConstLawIntegratorType::CalculatePlasticParameters(
+            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+            threshold, plastic_denominator, f_flux, g_flux,
+            plastic_dissipation, plastic_strain_increment,
+            r_constitutive_matrix, rValues, characteristic_length,
+            plastic_strain);
+
+        if (F > std::abs(1.0e-4 * threshold)) { // Plastic case
+            // While loop backward euler
+            /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
+            TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
                 plastic_dissipation, plastic_strain_increment,
-                r_constitutive_matrix, rValues, characteristic_length,
-                plastic_strain);
-
-            if (F > std::abs(1.0e-4 * threshold)) { // Plastic case
-                // While loop backward euler
-                /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
-                TConstLawIntegratorType::IntegrateStressVector(
-                    predictive_stress_vector, r_strain_vector, uniaxial_stress,
-                    threshold, plastic_denominator, f_flux, g_flux,
-                    plastic_dissipation, plastic_strain_increment,
-                    r_constitutive_matrix, plastic_strain, rValues,
-                    characteristic_length);
-
-                // noalias(this->GetPlasticStrain()) = plastic_strain;
-                // this->GetPlasticDissipation() = plastic_dissipation;
-                // this->GetThreshold() = threshold;
-            }
+                r_constitutive_matrix, plastic_strain, rValues,
+                characteristic_length);
         }
     }
     noalias(r_strain_vector) = r_strain_back_up;
