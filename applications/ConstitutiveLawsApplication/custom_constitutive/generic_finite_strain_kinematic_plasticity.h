@@ -9,8 +9,9 @@
 //                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//  Collaborator:    Alejandro Cornejo
-//                   Lucia Barbu
+//                   Alejandro Cornejo
+//
+//
 //
 
 #if !defined(KRATOS_GENERIC_FINITE_STRAIN_KINEMATIC_PLASTICITY_3D_H_INCLUDED)

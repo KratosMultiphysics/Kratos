@@ -122,7 +122,7 @@ class SimoJuYieldSurface
 
         // It compares with fc / sqrt(E)
         array_1d<double, Dimension> principal_stress_vector;
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
 
         const bool has_symmetric_yield_stress = r_material_properties.Has(YIELD_STRESS);
         const double yield_compression = has_symmetric_yield_stress ? r_material_properties[YIELD_STRESS] : r_material_properties[YIELD_STRESS_COMPRESSION];

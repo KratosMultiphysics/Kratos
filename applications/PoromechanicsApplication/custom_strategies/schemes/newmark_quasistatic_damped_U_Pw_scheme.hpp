@@ -38,7 +38,7 @@ public:
         : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mDampingMatrix.resize(NumThreads);
         mVelocityVector.resize(NumThreads);
     }

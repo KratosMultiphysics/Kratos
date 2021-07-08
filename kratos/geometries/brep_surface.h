@@ -60,6 +60,7 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -71,8 +72,6 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
 
     ///@}
     ///@name Life Cycle
@@ -201,13 +200,13 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
-    * @param Index: trim_index or SURFACE_INDEX.
+    *        Surface of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -228,6 +227,12 @@ public:
             }
         }
 
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return mEmbeddedEdgesArray[i];
+        }
+
         KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
             << this->Id() << std::endl;
     }
@@ -240,7 +245,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return true;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -261,7 +266,19 @@ public:
             }
         }
 
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return true;
+        }
+
         return false;
+    }
+
+    /// @brief Used to add the embedded edges to the brep surface.
+    void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
+    {
+        mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
     ///@}
@@ -513,6 +530,8 @@ private:
 
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+
+    BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
