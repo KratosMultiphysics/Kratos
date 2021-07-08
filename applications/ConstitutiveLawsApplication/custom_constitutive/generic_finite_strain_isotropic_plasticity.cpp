@@ -10,7 +10,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
-//  Collaborator:    Lucia Barbu
+//
 //
 
 // System includes
@@ -46,7 +46,7 @@
 
 namespace Kratos
 {
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateMaterialResponsePK1(
         ConstitutiveLaw::Parameters& rValues
@@ -65,7 +65,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateMaterialResponsePK2(
         ConstitutiveLaw::Parameters& rValues
@@ -216,7 +216,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateMaterialResponseKirchhoff(
         ConstitutiveLaw::Parameters& rValues
@@ -367,7 +367,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateMaterialResponseCauchy(
         ConstitutiveLaw::Parameters& rValues
@@ -387,7 +387,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateTangentTensor(
         ConstitutiveLaw::Parameters& rValues,
@@ -401,7 +401,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     InitializeMaterial(
         const Properties& rMaterialProperties,
@@ -422,7 +422,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     FinalizeMaterialResponsePK1(
         ConstitutiveLaw::Parameters& rValues
@@ -434,7 +434,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     FinalizeMaterialResponsePK2(
         ConstitutiveLaw::Parameters& rValues
@@ -532,7 +532,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     FinalizeMaterialResponseKirchhoff(
         ConstitutiveLaw::Parameters& rValues
@@ -629,7 +629,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     FinalizeMaterialResponseCauchy(
         ConstitutiveLaw::Parameters& rValues
@@ -641,7 +641,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     Has(const Variable<double>& rThisVariable)
 {
@@ -657,7 +657,7 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     Has(const Variable<Vector>& rThisVariable)
 {
@@ -673,7 +673,7 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     Has(const Variable<Matrix>& rThisVariable)
 {
@@ -683,7 +683,7 @@ bool GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     SetValue(
         const Variable<double>& rThisVariable,
@@ -701,7 +701,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::SetValue(
     const Variable<Vector>& rThisVariable,
     const Vector& rValue,
@@ -714,7 +714,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     SetValue(
         const Variable<Matrix>& rThisVariable,
@@ -732,7 +732,7 @@ void GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawInteg
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     GetValue(
         const Variable<double>& rThisVariable,
@@ -750,7 +750,7 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     GetValue(
         const Variable<Vector>& rThisVariable,
@@ -769,7 +769,7 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     GetValue(
         const Variable<Matrix>& rThisVariable,
@@ -787,7 +787,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
@@ -855,7 +855,7 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
@@ -869,7 +869,7 @@ Vector& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     CalculateValue(
         ConstitutiveLaw::Parameters& rParameterValues,
@@ -916,7 +916,7 @@ Matrix& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 int GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>::
     Check(
         const Properties& rMaterialProperties,

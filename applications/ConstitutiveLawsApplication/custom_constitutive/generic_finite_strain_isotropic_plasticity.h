@@ -10,7 +10,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
-//  Collaborator:    Lucia Barbu
+//
 //
 
 #if !defined(KRATOS_GENERIC_FINITE_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
@@ -21,8 +21,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_3d.h"
-#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 
 namespace Kratos
 {
@@ -59,7 +58,7 @@ namespace Kratos
  */
 template<class TConstLawIntegratorType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericFiniteStrainIsotropicPlasticity
-    : public std::conditional<TConstLawIntegratorType::VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type
+    : public GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>
 {
 public:
     ///@name Type Definitions
@@ -72,7 +71,7 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
+    typedef typename GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType> BaseType;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
@@ -112,11 +111,7 @@ public:
     * Copy constructor.
     */
     GenericFiniteStrainIsotropicPlasticity(const GenericFiniteStrainIsotropicPlasticity &rOther)
-        : BaseType(rOther),
-          mPlasticDissipation(rOther.mPlasticDissipation),
-          mThreshold(rOther.mThreshold),
-          mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
-          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient)
+        : BaseType(rOther)
     {
     }
 
@@ -376,16 +371,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    double& GetThreshold() { return mThreshold; }
-    double& GetPlasticDissipation() { return mPlasticDissipation; }
-    Matrix& GetPlasticDeformationGradient() { return mPlasticDeformationGradient; }
-    Matrix& GetPreviousDeformationGradient() { return mPreviousDeformationGradient; }
-
-    void SetThreshold(const double Threshold) { mThreshold = Threshold; }
-    void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
-    void SetPreviousDeformationGradient(const Matrix& rmPreviousDeformationGradient) { mPreviousDeformationGradient = rmPreviousDeformationGradient; }
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -411,12 +396,6 @@ protected:
     ///@name Member Variables
     ///@{
 
-    // Converged values
-    double mPlasticDissipation = 0.0;
-    double mThreshold = 0.0;
-    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
-    Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -425,15 +404,6 @@ protected:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief This method computes the tangent tensor
-     * @param rValues The constitutive law parameters and flags
-     * @param rStressMeasure The stress measure of the law
-     */
-    void CalculateTangentTensor(
-        ConstitutiveLaw::Parameters &rValues,
-        const ConstitutiveLaw::StressMeasure& rStressMeasure = ConstitutiveLaw::StressMeasure_Cauchy
-        );
 
     ///@}
     ///@name Private  Access
@@ -447,27 +417,6 @@ protected:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("PlasticDissipation", mPlasticDissipation);
-        rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.save("PreviousDeformationGradient", mPreviousDeformationGradient);
-    }
-
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("PlasticDissipation", mPlasticDissipation);
-        rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.load("PreviousDeformationGradient", mPreviousDeformationGradient);
-    }
 
     ///@}
 
