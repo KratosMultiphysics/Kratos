@@ -155,19 +155,6 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * @brief This is to be called at the very beginning of the calculation
-     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void InitializeMaterial(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -189,96 +176,6 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<double> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix> &rThisVariable) override;
-
-    /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<double> &rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Vector> &rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Matrix> &rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& GetValue(
-        const Variable<double> &rThisVariable,
-        double& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& GetValue(
-        const Variable<Vector> &rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix> &rThisVariable,
-        Matrix& rValue
-        ) override;
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
