@@ -19,6 +19,7 @@
 #include "includes/node.h"
 #include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
@@ -48,31 +49,21 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPrincipalStresses, KratosStruc
     stress_vector[5] = 6.45e6;
 
     double I1, I2, I3;
-    ConstitutiveLawUtilities<6>::CalculateI1Invariant(stress_vector, I1);
-    ConstitutiveLawUtilities<6>::CalculateI2Invariant(stress_vector, I2);
-    ConstitutiveLawUtilities<6>::CalculateI3Invariant(stress_vector, I3);
-
-//     // DEBUG
-//     std::cout << "I1: " << I1 << "\tI2: " << I2 << "\tI3: " << I3 << std::endl;
+    AdvancedConstitutiveLawUtilities<6>::CalculateI1Invariant(stress_vector, I1);
+    AdvancedConstitutiveLawUtilities<6>::CalculateI2Invariant(stress_vector, I2);
+    AdvancedConstitutiveLawUtilities<6>::CalculateI3Invariant(stress_vector, I3);
 
     KRATOS_CHECK_LESS_EQUAL((   -2.27e+07 - I1)/I1, tolerance);
     KRATOS_CHECK_LESS_EQUAL((-1.70812e+14 - I2)/I2, tolerance);
     KRATOS_CHECK_LESS_EQUAL(( 2.64752e+21 - I3)/I3, tolerance);
 
-    ConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stress_vector, stress_vector);
-
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
+    AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stress_vector, stress_vector);
 
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
 
-    ConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
-
-//     // DEBUG
-//     KRATOS_WATCH(principal_stress_vector)
-
+    AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStressesWithCardano(principal_stress_vector, stress_vector);
     KRATOS_CHECK_LESS_EQUAL((1.16178e+07 - principal_stress_vector[0])/principal_stress_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-9.00151e+06 - principal_stress_vector[1])/principal_stress_vector[1], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-2.53163e+07 - principal_stress_vector[2])/principal_stress_vector[2], tolerance);
@@ -95,10 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
     C(0,1) = -1.0e-1;
 
     // Compute Hencky
-    ConstitutiveLawUtilities<6>::CalculateHenckyStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
+    AdvancedConstitutiveLawUtilities<6>::CalculateHenckyStrain(C, strain_vector);
 
     KRATOS_CHECK_LESS_EQUAL((0.0454445 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.0023557 - strain_vector[1])/strain_vector[1], tolerance);
@@ -106,10 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesHenckyAndBiot, KratosStructura
     KRATOS_CHECK_LESS_EQUAL((-0.0956005 - strain_vector[3])/strain_vector[3], tolerance);
 
     // Compute Biot
-    ConstitutiveLawUtilities<6>::CalculateBiotStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
+    AdvancedConstitutiveLawUtilities<6>::CalculateBiotStrain(C, strain_vector);
 
     KRATOS_CHECK_LESS_EQUAL((0.0476699 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.00119458 - strain_vector[1])/strain_vector[1], tolerance);
@@ -136,19 +121,13 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesAlmansiAndGreen, KratosStructu
     // Compute Green-Lagrange
     ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C, strain_vector);
 
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
-
     KRATOS_CHECK_LESS_EQUAL((0.05 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[1])/(strain_vector[1] + 1.0e-12), tolerance);
     KRATOS_CHECK_LESS_EQUAL((0.0 - strain_vector[2])/(strain_vector[2] + 1.0e-12), tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.001 - strain_vector[3])/strain_vector[3], tolerance);
 
     // Compute Alamansi (We use C, but it is supposed to be B, we are just using to compute and check)
-    ConstitutiveLawUtilities<6>::CalculateAlmansiStrain(C, strain_vector);
-
-//     // Debug
-//     KRATOS_WATCH(strain_vector)
+    AdvancedConstitutiveLawUtilities<6>::CalculateAlmansiStrain(C, strain_vector);
 
     KRATOS_CHECK_LESS_EQUAL((0.0412844 - strain_vector[0])/strain_vector[0], tolerance);
     KRATOS_CHECK_LESS_EQUAL((-0.00458716 - strain_vector[1])/strain_vector[1], tolerance);
@@ -175,11 +154,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilitiesPolarDecomposition, KratosStru
 
     // Compute Green-Lagrange
     ConstitutiveLawUtilities<6>::PolarDecomposition(F, R, U);
-
-//     // Debug
-//     KRATOS_WATCH(R)
-//     KRATOS_WATCH(U)
-//     KRATOS_WATCH(prod(R, U))
 
     // Reference solutions
     Matrix R_ref = ZeroMatrix(3, 3);
@@ -225,12 +199,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCharacteristicLength, KratosStructuralMechani
     p_node_1->Coordinates() += delta_disp;
 
     // Compute CalculateCharacteristicLength
-    const double length = ConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
+    const double length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLength(triangle);
 
     KRATOS_CHECK_NEAR(length,  0.743871, tolerance);
 
     // Compute CalculateCharacteristicLengthOnReferenceConfiguration
-    const double length_origin = ConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
+    const double length_origin = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(triangle);
 
     KRATOS_CHECK_NEAR(length_origin,  0.745356, tolerance);
 }

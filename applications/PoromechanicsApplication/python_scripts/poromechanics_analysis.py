@@ -4,6 +4,7 @@ import time as timer
 import os
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -20,19 +21,15 @@ class PoromechanicsAnalysis(AnalysisStage):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
         self.initial_time = timer.perf_counter()
 
-        # Set number of OMP threads
-        parallel=Kratos.OpenMPUtils()
-        parallel.SetNumThreads(parameters["problem_data"]["number_of_threads"].GetInt())
-
         ## Import parallel modules if needed
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration.")
         else:
             from KratosMultiphysics.PoromechanicsApplication import poromechanics_cleaning_utility
             poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
-            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration.")
 
         # Initialize Fracture Propagation Utility if necessary
         if parameters["problem_data"]["fracture_utility"].GetBool():
