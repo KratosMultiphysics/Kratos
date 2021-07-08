@@ -120,7 +120,7 @@ public:
 
 		// Incremental computation of total mass
 		for (auto& elem_i : mrModelPart.Elements()){
-			bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 			if(element_is_active)
 				total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
 		}
@@ -157,7 +157,7 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
 				if(element_is_active)
@@ -174,7 +174,7 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
 				if(element_is_active)
@@ -191,7 +191,7 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
 				if(element_is_active)
@@ -208,7 +208,7 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
-				bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
 				if(element_is_active)
