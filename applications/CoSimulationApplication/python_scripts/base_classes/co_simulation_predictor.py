@@ -84,6 +84,9 @@ class HistoricalDataAccessor:
             self.aux_data.appendleft(self.interface_data.GetData())
 
     def GetData(self, buffer_index):
+        if buffer_index >= self.buffer_size:
+            raise Exception("the buffer-size is not large enough current buffer size: {} | requested solution_step_index: {}!".format(self.buffer_size, buffer_index+1))
+
         if self.interface_data.GetBufferSize() > buffer_index:
             # the interface data buffer size is large enough
             return self.interface_data.GetData(buffer_index)
