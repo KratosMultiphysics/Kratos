@@ -23,7 +23,7 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
     def Predict(self):
         if not self.historical_data_accessor.TimeBufferIsInitialized() or not self.historical_derivative_data_accessor.TimeBufferIsInitialized():
             if self.echo_level > 0:
-                cs_tools.cs_print_info(self._ClassName(), "Skipped prediction because time buffer is not yet filled", self.historical_data_accessor.TimeBufferIsInitialized(), self.historical_derivative_data_accessor.TimeBufferIsInitialized())
+                cs_tools.cs_print_info(self._ClassName(), "Skipped prediction because time buffer is not yet filled")
             return
 
         data  = self.historical_data_accessor.GetData(1)
