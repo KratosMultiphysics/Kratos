@@ -78,9 +78,11 @@
 #include "custom_constitutive/rans_k_omega_sst_newtonian_law.h"
 
 // adjoint elements
+#include "custom_elements/scalar_equation_adjoint_element.h"
 #include "custom_elements/two_equation_turbulence_model_adjoint_element.h"
 
 // adjoint element data containers
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/qsvms_rfc_adjoint_element_data.h"
@@ -292,6 +294,9 @@ private:
 
     const RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw> mRansKOmegaSSTNewtonian2DLaw;
     const RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw> mRansKOmegaSSTNewtonian3DLaw;
+
+    // stabilization validation adjoint elements
+    const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData> mRansCircularConvectionRFCAdjoint2D3N;
 
     // k-epsilon turbulence model adjoint elements
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;

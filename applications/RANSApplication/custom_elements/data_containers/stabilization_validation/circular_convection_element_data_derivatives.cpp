@@ -61,18 +61,8 @@ void CircularConvectionElementDataDerivatives::Data::Check(
     KRATOS_CATCH("");
 }
 
-void CircularConvectionElementDataDerivatives::Data::CalculateGaussPointData(
-    const Vector& rN,
-    const Matrix& rdNdX,
-    const int Step)
-{
-    const ArrayD& gauss_coordinates = prod(mNodalCoordinates, rN);
-    mEffectiveVelocity[0] = gauss_coordinates[1];
-    mEffectiveVelocity[1] = -gauss_coordinates[0];
-}
-
 /***************************************************************/
-/************************ K Derivative  ************************/
+/*********************** Phi Derivative  ***********************/
 /***************************************************************/
 
 CircularConvectionElementDataDerivatives::PhiDerivative::PhiDerivative(

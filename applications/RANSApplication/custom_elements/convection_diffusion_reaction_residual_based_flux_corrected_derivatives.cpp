@@ -33,6 +33,9 @@
 #include "rans_application_variables.h"
 
 // Derivative data type includes
+// stabilization validaton
+#include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data_derivatives.h"
+
 // k-epsilon
 #include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
 #include "custom_elements/data_containers/k_epsilon/epsilon_element_data_derivatives.h"
@@ -572,6 +575,11 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 }
 
 // template instantiations
+
+// stabilization validation element data derivatives
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::PhiDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::ShapeDerivative>;
 
 // k-epsilon k element derivatives
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KEpsilonElementData::KElementDataDerivatives<2, 3>::Data>;

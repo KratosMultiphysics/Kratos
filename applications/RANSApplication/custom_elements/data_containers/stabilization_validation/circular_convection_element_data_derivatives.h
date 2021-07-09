@@ -228,15 +228,6 @@ public:
         static const std::string GetName() { return "StabilizationValidationCircularConvectionAdjointElementData"; }
 
         ///@}
-        ///@name Operations
-        ///@{
-
-        void CalculateGaussPointData(
-            const Vector& rN,
-            const Matrix& rdNdX,
-            const int Step = 0);
-
-        ///@}
 
     protected:
         ///@name Protected Members
