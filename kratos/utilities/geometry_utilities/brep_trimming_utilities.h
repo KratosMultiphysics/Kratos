@@ -199,19 +199,19 @@ namespace Kratos
             //perform intersection
             ClipperLib::Clipper c;
 
-            c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+            //c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
             for (IndexType i = 0; i < rSpansU.size() - 1; ++i) {
                 for (IndexType j = 0; j < rSpansV.size() - 1; ++j) {
 
-                    c.AddPaths(outer_loops, ClipperLib::ptSubject, true);
-                    c.AddPaths(inner_loops, ClipperLib::ptSubject, true);
+                    c.AddPaths(outer_loops, ClipperLib::ptClip, true);
+                    c.AddPaths(inner_loops, ClipperLib::ptClip, true);
 
                     ClipperLib::Paths span(1);
                     span[0] <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor) <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor);
 
-                    c.AddPaths(span, ClipperLib::ptClip, true);
+                    c.AddPaths(span, ClipperLib::ptSubject, true);
                     c.Execute(ClipperLib::ctDifference, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 
                     if (solution.size() == 0) {
