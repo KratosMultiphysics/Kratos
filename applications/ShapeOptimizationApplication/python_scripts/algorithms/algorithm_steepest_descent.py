@@ -180,7 +180,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         self.previous_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
-        for design_surface,  in self.design_surfaces.values():
+        for design_surface in self.design_surfaces.values():
             self.norm_objective_gradient = self.norm_objective_gradient + optimization_utilities.ComputeL2NormOfNodalVariable(design_surface, KSO.DF1DX_MAPPED)
 
         additional_values_to_log = {}
