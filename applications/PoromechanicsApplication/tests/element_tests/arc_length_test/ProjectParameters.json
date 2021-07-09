@@ -5,7 +5,6 @@
         "end_time":             2.0,
         "echo_level":           0,
         "parallel_type":        "OpenMP",
-        "number_of_threads":    1,
         "fracture_utility":     false
     },
     "solver_settings": {

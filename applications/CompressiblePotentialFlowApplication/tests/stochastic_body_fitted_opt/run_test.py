@@ -46,12 +46,13 @@ with open(optimization_log_filename, 'r') as csvfile:
 
     # Check against specifications
     TestCase().assertEqual(resulting_iteration, 3)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -12.5586, 3)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -12.5574, 3)
 
 os.chdir(original_directory)
 
 
 kratos_utilities.DeleteFileIfExisting("current_design.mdpa")
 kratos_utilities.DeleteFileIfExisting("current_design.time")
+kratos_utilities.DeleteDirectoryIfExisting(output_directory)
 
 # =======================================================================================================
