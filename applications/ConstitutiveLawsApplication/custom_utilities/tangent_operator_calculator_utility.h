@@ -356,7 +356,7 @@ public:
 
                     // Finally we compute the components
                     const IndexType voigt_index = CalculateVoigtIndex(stress_plus.size(), i_component, j_component);
-                    CalculateComponentsToTangentTensorSecondOrderNotProvidedStrain(auxiliar_tensor, stress_plus, stress_minus, voigt_index, pertubation);
+                    CalculateComponentsToTangentTensorSecondOrder(auxiliar_tensor, strain_plus, strain_minus, stress_plus, stress_minus, voigt_index);
 
                     // Reset the values to the initial ones
                     noalias(r_perturbed_integrated_stress) = unperturbed_stress_vector_gp;
@@ -708,29 +708,6 @@ private:
         const SizeType voigt_size = rStressPlus.size();
         for (IndexType row = 0; row < voigt_size; ++row) {
             rTangentTensor(row, Component) = (rStressPlus[row] - rStressMinus[row]) / perturbation;
-        }
-    }
-
-    /**
-     * @brief This calculates the values to the tangent tensor
-     * @param rTangentTensor The desired tangent tensor
-     * @param rVectorStrainPlus The positive perturbated strain considered
-     * @param rVectorStrainMinus The negative perturbated strain considered
-     * @param rStressPlus The stress with positive perturbation
-     * @param rStressMinus The stress with negative perturbation
-     * @param Component Index of the component to compute
-     */
-    static void CalculateComponentsToTangentTensorSecondOrderNotProvidedStrain(
-        Matrix& rTangentTensor,
-        const Vector& rStressPlus,
-        const Vector& rStressMinus,
-        const IndexType Component,
-        const double Perturbation
-        )
-    {
-        const SizeType voigt_size = rStressPlus.size();
-        for (IndexType row = 0; row < voigt_size; ++row) {
-            rTangentTensor(row, Component) = (rStressPlus[row] - rStressMinus[row]) / (2.0*Perturbation);
         }
     }
 

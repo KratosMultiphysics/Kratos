@@ -165,7 +165,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                    noalias(r_strain_vector) = r_strain_back_up;
                     this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_Kirchhoff);
                 } else {
                     BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
@@ -173,7 +172,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
             }
         }
     }
-    noalias(r_strain_vector) = r_strain_back_up;
 }
 
 /***********************************************************************************/
@@ -289,7 +287,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
                 characteristic_length);
         }
     }
-    noalias(r_strain_vector) = r_strain_back_up;
 }
 
 /***********************************************************************************/
@@ -314,11 +311,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
         const ConstitutiveLaw::StressMeasure& rStressMeasure
         )
 {
-    // const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    // const bool consider_perturbation_threshold = r_material_properties.Has(CONSIDER_PERTURBATION_THRESHOLD) ? r_material_properties[CONSIDER_PERTURBATION_THRESHOLD] : true;
-    // const TangentOperatorEstimation tangent_operator_estimation = r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) ? static_cast<TangentOperatorEstimation>(r_material_properties[TANGENT_OPERATOR_ESTIMATION]) : TangentOperatorEstimation::SecondOrderPerturbation;
-
     TangentOperatorCalculatorUtility::CalculateTangentTensorFiniteDeformation(rValues, this, rStressMeasure);
 }
 
