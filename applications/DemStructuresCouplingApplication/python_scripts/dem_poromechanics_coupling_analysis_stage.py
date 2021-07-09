@@ -3,21 +3,21 @@ from KratosMultiphysics.python_solver import PythonSolver
 import KratosMultiphysics.analysis_stage
 
 import KratosMultiphysics.DEMApplication as DEM
-import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 import KratosMultiphysics.PoromechanicsApplication as Poromechanics
 import KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis
 import KratosMultiphysics.DemStructuresCouplingApplication as DemStructuresCouplingApplication
+from sp_2d_rigid_fem_algorithm import DEMAnalysisStage2DSpRigidFem
 
 class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage.AnalysisStage):
     def __init__(self, model, parameters):
         self.parameters = parameters
         self.poromechanics_solution = Poromechanics.poromechanics_analysis.PoromechanicsAnalysis(model, parameters["poromechanics_parameters"])
-        self.dem_solution = DEM.DEM_analysis_stage.DEMAnalysisStage(model, parameters["dem_parameters"])
+        self.dem_solution = DEMAnalysisStage2DSpRigidFem(model, parameters["dem_parameters"])
         super().__init__(model, parameters)
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
-        self.minimum_number_of_DEM_steps_before_checking_steadiness = 100
+        self.minimum_number_of_DEM_steps_before_checking_steadiness = 10
         self.stationarity_measuring_tolerance = 1.0e-4
 
     def Initialize(self):
@@ -42,33 +42,38 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.effective_stresses_communicator.CommunicateCurrentRadialEffectiveStressesToDemWalls()
             self.pore_pressure_communicator_utility.ComputeForceOnParticlesDueToPorePressureGradient()
 
-            time_final_DEM_substepping = self.poromechanics_solution.time
-            self.Dt_DEM = self.dem_solution.spheres_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME)
-
             print("Now solving DEM...")
             self.DEM_steps_counter = 0
-            
+            self.stationarity_checking_is_activated = False
+
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
                 self.dem_solution.InitializeSolutionStep()
                 self.dem_solution._GetSolver().Predict()
                 self.dem_solution._GetSolver().SolveSolutionStep()
                 self.dem_solution.FinalizeSolutionStep()
-                self.dem_solution.OutputSolutionStep()
+                self.dem_solution.OutputSolutionStep(self.poromechanics_solution.time)
 
     def DEMSolutionIsSteady(self):
         
         if self.DEM_steps_counter >= self.minimum_number_of_DEM_steps_before_checking_steadiness:
 
+            print("\nStationarity will now be checked...\n")
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
+                self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
+                self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
+                self.stationarity_checking_is_activated = True
                 return False
 
-            print("DEM solution is steady...")
-            return True
+            if self.stationarity_checking_is_activated:
+                print("DEM solution is steady...")
+                return True
+            else:
+                return False
         else:
             self.DEM_steps_counter += 1
             return False

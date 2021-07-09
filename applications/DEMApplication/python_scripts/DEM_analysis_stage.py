@@ -485,11 +485,10 @@ class DEMAnalysisStage(AnalysisStage):
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
 
-    def PrintResults(self, poromechanics_solution_time):
+    def PrintResults(self, additional_time = 0.0):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
-            #se
-            self.PrintResultsForGid(self.time, poromechanics_solution_time)
+            self.PrintResultsForGid(self.time, additional_time)
             self.time_old_print = self.time
 
     def SolverSolve(self):
@@ -548,7 +547,7 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.
 
-    def OutputSolutionStep(self, poromechanics_solution_time):
+    def OutputSolutionStep(self, additional_time = 0.0):
         #### PRINTING GRAPHS ####
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
         self.materialTest.MeasureForcesAndPressure()
@@ -558,7 +557,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)
         self.BeforePrintingOperations(self.time)
-        self.PrintResults(poromechanics_solution_time)
+        self.PrintResults(additional_time)
 
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
@@ -638,7 +637,7 @@ class DEMAnalysisStage(AnalysisStage):
             self.demio.Initialize(self.DEM_parameters)
             self.demio.InitializeMesh(self.all_model_parts)
 
-    def PrintResultsForGid(self, time, poromechanics_solution_time):
+    def PrintResultsForGid(self, time, additional_time = 0.0):
         if self._GetSolver().poisson_ratio_option:
             self.DEMFEMProcedures.PrintPoisson(self.spheres_model_part, self.DEM_parameters, "Poisson_ratio.txt", time)
 

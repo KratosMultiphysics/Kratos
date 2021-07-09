@@ -197,7 +197,7 @@ class MaterialTest():
     def ComputeMeasuringSurface(self):
         self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
 
-    def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
+    def CylinderSkinDetermination(self):
 
         # SKIN DETERMINATION
         total_cross_section = 0.0
@@ -435,7 +435,7 @@ class MaterialTest():
         if self.CN_graph_counter == self.graph_frequency:
             self.CN_graph_counter = 0
             dummy = 0
-            CN = self.solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+            CN = solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
             self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
             self.Flush(self.CN_export)
 
