@@ -17,8 +17,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
-        self.minimum_number_of_DEM_steps_before_checking_steadiness = 10
-        self.stationarity_measuring_tolerance = 1.0e-4
+        self.minimum_number_of_DEM_steps_before_checking_steadiness = 20
+        self.stationarity_measuring_tolerance = 1.0e-2
 
     def Initialize(self):
         self.poromechanics_solution.Initialize()
@@ -30,7 +30,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
     def RunSolutionLoop(self):
         
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
-            print("Solving FEM...")
+            print("\n************************************ Solving FEM...\n")
             self.poromechanics_solution.time = self.poromechanics_solution._GetSolver().AdvanceInTime(self.poromechanics_solution.time)
             self.poromechanics_solution.InitializeSolutionStep()
             self.poromechanics_solution._GetSolver().Predict()
@@ -42,7 +42,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.effective_stresses_communicator.CommunicateCurrentRadialEffectiveStressesToDemWalls()
             self.pore_pressure_communicator_utility.ComputeForceOnParticlesDueToPorePressureGradient()
 
-            print("Now solving DEM...")
+            print("\n************************************ Now solving DEM...\n")
             self.DEM_steps_counter = 0
             self.stationarity_checking_is_activated = False
 
@@ -56,21 +56,27 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
     def DEMSolutionIsSteady(self):
         
-        if self.DEM_steps_counter >= self.minimum_number_of_DEM_steps_before_checking_steadiness:
+        if self.DEM_steps_counter == self.minimum_number_of_DEM_steps_before_checking_steadiness:
 
-            print("\nStationarity will now be checked...\n")
+            self.DEM_steps_counter = 0
+            
+            print("\n************************************ Stationarity will now be checked...\n")
+            
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
+                print("\n************************************ F_X is still larger than the tolerance given...\n")
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
+                print("\n************************************ F_Y is still larger than the tolerance given...\n")
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
+                print("\n************************************ F_Z is still larger than the tolerance given...\n")
                 self.stationarity_checking_is_activated = True
                 return False
 
             if self.stationarity_checking_is_activated:
-                print("DEM solution is steady...")
+                print("\n************************************ DEM solution is steady!...\n")
                 return True
             else:
                 return False
