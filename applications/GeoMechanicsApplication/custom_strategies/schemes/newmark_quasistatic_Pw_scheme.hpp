@@ -48,8 +48,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticPwScheme(double beta, double gamma, double theta) : 
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+    NewmarkQuasistaticPwScheme(double theta) : 
+        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
     { }
 
     //------------------------------------------------------------------------------------

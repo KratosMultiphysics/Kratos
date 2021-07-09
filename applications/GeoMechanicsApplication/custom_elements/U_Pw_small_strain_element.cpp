@@ -251,9 +251,87 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         // Initialize retention law
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
+
+    // reset hydraulic discharge
+    this->ResetHydraulicDischarge();
+
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeSolutionStep()") << std::endl;
     KRATOS_CATCH("");
 }
+
+//----------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    ResetHydraulicDischarge()
+{
+    KRATOS_TRY;
+
+    // reset hydraulic discharge
+    GeometryType& rGeom = GetGeometry();
+    for (unsigned int i=0; i<TNumNodes; i++)
+    {
+        ThreadSafeNodeWrite(rGeom[i], HYDRAULIC_DISCHARGE, 0.0 );
+    }
+
+    KRATOS_CATCH("");
+}
+
+//----------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwSmallStrainElement<TDim,TNumNodes>::
+    CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateHydraulicDischarge()") << std::endl;
+
+    std::vector<array_1d<double,3>> FluidFlux;
+    this->CalculateOnIntegrationPoints( FLUID_FLUX_VECTOR,
+                                        FluidFlux,
+                                        rCurrentProcessInfo );
+
+    const PropertiesType& Prop = this->GetProperties();
+    const GeometryType& Geom   = this->GetGeometry();
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
+
+    ElementVariables Variables;
+    // gradient of shape functions and determinant of Jacobian
+    Variables.GradNpT.resize(TNumNodes, TDim, false);
+    (Variables.detJContainer).resize(NumGPoints, false);
+    Geom.ShapeFunctionsIntegrationPointsGradients( Variables.DN_DXContainer,
+                                                   Variables.detJContainer,
+                                                   this->GetIntegrationMethod() );
+
+    //Loop over integration points
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+    {
+        noalias(Variables.GradNpT) = Variables.DN_DXContainer[GPoint];
+        Variables.detJ0 = Variables.detJContainer[GPoint];
+
+        //Compute weighting coefficient for integration
+        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
+                                              Variables.detJ0,
+                                              IntegrationPoints[GPoint].Weight());
+
+        for (unsigned int node = 0; node < TNumNodes; ++node)
+        {
+            double HydraulicDischarge = 0;
+            for (unsigned int iDir = 0; iDir < TDim; ++iDir)
+            {
+                HydraulicDischarge += Variables.GradNpT(node, iDir) * FluidFlux[GPoint][iDir];
+            }
+
+            HydraulicDischarge *= Variables.IntegrationCoefficient;
+            HydraulicDischarge += Geom[node].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE);
+            ThreadSafeNodeWrite(this->GetGeometry()[node], HYDRAULIC_DISCHARGE, HydraulicDischarge);
+        }
+    }
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateHydraulicDischarge()") << std::endl;
+
+    KRATOS_CATCH("");
+}
+
 
 
 //----------------------------------------------------------------------------------------------------
@@ -322,6 +400,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::FinalizeSolutionStep()") << std::endl;
+
+    this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
@@ -677,7 +757,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         array_1d<double,TDim> BodyAcceleration;
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
-        GeoElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,Prop);
+        GeoElementUtilities::FillPermeabilityMatrix(PermeabilityMatrix,Prop);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
         array_1d<double,TDim> GradPressureTerm;
@@ -704,17 +784,21 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             for (unsigned int node = 0; node < TNumNodes; ++node)
                 FluidPressure += NContainer(GPoint, node) * PressureVector[node];
 
-            double RelativePermeability = mRetentionLawVector[GPoint]->CalculateRelativePermeability(RetentionParameters);
+            RetentionParameters.SetFluidPressure(FluidPressure);
+
+            double RelativePermeability = mRetentionLawVector[GPoint]->
+                                            CalculateRelativePermeability(RetentionParameters);
 
             noalias(GradPressureTerm) =  prod(trans(GradNpT),PressureVector);
-            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
 
-            noalias(FluidFlux) =   PORE_PRESSURE_SIGN_FACTOR 
+            noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity * BodyAcceleration;
+
+            noalias(FluidFlux) =   PORE_PRESSURE_SIGN_FACTOR
                                  * DynamicViscosityInverse
                                  * RelativePermeability
                                  * prod(PermeabilityMatrix,GradPressureTerm);
 
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], FluidFlux);
         }
     }
     else
@@ -891,7 +975,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         //If the permeability of the element is a given property
         BoundedMatrix<double,TDim,TDim> PermeabilityMatrix;
-        GeoElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,this->GetProperties());
+        GeoElementUtilities::FillPermeabilityMatrix(PermeabilityMatrix,this->GetProperties());
 
         if ( rOutput.size() != NumGPoints )
             rOutput.resize(NumGPoints);
@@ -899,6 +983,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
+            
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
@@ -1839,7 +1924,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity = Prop[DENSITY_WATER];
     rVariables.Density = Prop[POROSITY]*rVariables.FluidDensity + (1.0-Prop[POROSITY])*Prop[DENSITY_SOLID];
-    GeoElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, Prop);
+    GeoElementUtilities::FillPermeabilityMatrix(rVariables.PermeabilityMatrix, Prop);
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
     KRATOS_CATCH( "" )

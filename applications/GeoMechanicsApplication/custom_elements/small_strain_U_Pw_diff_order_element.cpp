@@ -1116,6 +1116,7 @@ void SmallStrainUPwDiffOrderElement::
             }
 
             CalculateFluidPressure(Variables, PointNumber);
+            SetRetentionParameters(Variables, RetentionParameters);
 
             const double RelativePermeability = 
                 mRetentionLawVector[PointNumber]->CalculateRelativePermeability(RetentionParameters);

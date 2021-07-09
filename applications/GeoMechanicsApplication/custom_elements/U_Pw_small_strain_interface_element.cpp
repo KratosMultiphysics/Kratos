@@ -912,9 +912,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                                     GPoint );
 
             InterfaceElementUtilities::
-                CalculatePermeabilityMatrix(Variables.LocalPermeabilityMatrix,
-                                            JointWidth,
-                                            Transversal_Permeability);
+                FillPermeabilityMatrix(Variables.LocalPermeabilityMatrix,
+                                       JointWidth,
+                                       Transversal_Permeability);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
             noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
@@ -1084,7 +1084,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                                     VolumeAcceleration,
                                                                     GPoint );
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+            InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
                                                                    Transversal_Permeability);
 
@@ -1144,7 +1144,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth, GPoint);
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+            InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
                                                                    Transversal_Permeability);
 
@@ -1187,7 +1187,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             this->CalculateJointWidth(JointWidth, LocalRelDispVector[TDim-1], MinimumJointWidth,GPoint);
 
-            InterfaceElementUtilities::CalculatePermeabilityMatrix(LocalPermeabilityMatrix,
+            InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
                                                                    Transversal_Permeability);
 
@@ -1466,9 +1466,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                                 Variables.VolumeAcceleration,
                                                                 GPoint );
 
-        InterfaceElementUtilities::CalculatePermeabilityMatrix( Variables.LocalPermeabilityMatrix,
-                                                                Variables.JointWidth,
-                                                                Transversal_Permeability );
+        InterfaceElementUtilities::FillPermeabilityMatrix( Variables.LocalPermeabilityMatrix,
+                                                           Variables.JointWidth,
+                                                           Transversal_Permeability );
 
         //Compute constitutive tensor and stresses
         UpdateElementalVariableStressVector(Variables, GPoint);

@@ -308,6 +308,9 @@ protected:
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 
+    void ResetHydraulicDischarge();
+    void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
@@ -335,6 +338,17 @@ private:
 
     // Copy constructor.
     UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
+
+    // Private Operations
+
+    template < class TValueType >
+    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType> &Var, const TValueType Value)
+    {
+        rNode.SetLock();
+        rNode.FastGetSolutionStepValue(Var) = Value;
+        rNode.UnSetLock();
+    }
+
 
 }; // Class UPwSmallStrainElement
 

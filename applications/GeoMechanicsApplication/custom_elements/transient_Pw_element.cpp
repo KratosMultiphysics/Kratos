@@ -361,6 +361,9 @@ void TransientPwElement<TDim,TNumNodes>::
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
 
+    // reset hydraulic discharge
+    this->ResetHydraulicDischarge();
+
     // KRATOS_INFO("1-TransientPwElement::InitializeSolutionStep()") << std::endl;
     KRATOS_CATCH("");
 }
@@ -397,6 +400,8 @@ void TransientPwElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
     // KRATOS_INFO("0-TransientPwElement::FinalizeSolutionStep()") << std::endl;
+
+    this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();

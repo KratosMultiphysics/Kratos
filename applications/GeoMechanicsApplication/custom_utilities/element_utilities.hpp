@@ -127,8 +127,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //2D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
@@ -139,8 +139,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //3D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];

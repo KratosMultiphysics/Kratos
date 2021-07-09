@@ -379,6 +379,16 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+        elif(convergence_criterion.lower() == "water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        elif(convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        else:
+            err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
+            raise Exception(err_msg)
 
         return convergence_criterion
 
