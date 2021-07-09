@@ -339,8 +339,8 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
 }
 
 // template instantiations
-template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::CircularConvectionElementData>;
-template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData>;
+template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData>;
+template class ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData>;
 
 template class ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::KElementData<2>>;
 template class ConvectionDiffusionReactionElement<2, 3, KEpsilonElementData::EpsilonElementData<2>>;

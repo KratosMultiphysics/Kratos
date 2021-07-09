@@ -172,13 +172,13 @@ private:
     ///@{
 
     /// stabilization validation elements
-    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionAFC2D;
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionCWD2D;
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::CircularConvectionElementData> mRansCircularConvectionRFC2D;
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData> mRansCircularConvectionRFC2D;
 
-    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRAFC2D;
-    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRCWD2D;
-    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRRFC2D;
+    const ConvectionDiffusionReactionElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRAFC2D;
+    const ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRCWD2D;
+    const ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData> mRansBodyForceGovernedCDRRFC2D;
 
     /// incompressible potential flow elements
     const IncompressiblePotentialFlowVelocityElement<2, 3> mIncompressiblePotentialFlowVelocity2D;

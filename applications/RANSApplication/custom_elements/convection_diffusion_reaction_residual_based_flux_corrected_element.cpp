@@ -342,8 +342,8 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 }
 
 // template instantiations
-template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::CircularConvectionElementData>;
-template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData>;
 
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::KElementData<2>>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<2, 3, KEpsilonElementData::EpsilonElementData<2>>;

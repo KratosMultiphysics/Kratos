@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-namespace StabilizationValidation
+namespace StabilizationValidationElementData
 {
 CircularConvectionElementData::CircularConvectionElementData(
     const GeometryType& rGeometry,
@@ -88,6 +88,6 @@ void CircularConvectionElementData::CalculateGaussPointData(
     KRATOS_CATCH("");
 }
 
-} // namespace StabilizationValidation
+} // namespace StabilizationValidationElementData
 
 } // namespace Kratos

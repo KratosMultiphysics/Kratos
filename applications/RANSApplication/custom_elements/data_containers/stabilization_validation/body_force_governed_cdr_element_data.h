@@ -30,7 +30,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-namespace StabilizationValidation
+namespace StabilizationValidationElementData
 {
 class BodyForceGovernedCDRElementData : public ConvectionDiffusionReactionElementData<2>
 {
@@ -97,7 +97,7 @@ protected:
 
 ///@}
 
-} // namespace StabilizationValidation
+} // namespace StabilizationValidationElementData
 
 } // namespace Kratos
 

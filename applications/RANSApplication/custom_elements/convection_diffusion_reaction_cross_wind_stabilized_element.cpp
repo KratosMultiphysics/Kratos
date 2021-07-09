@@ -365,8 +365,8 @@ typename ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, 
 }
 
 // template instantiations
-template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::CircularConvectionElementData>;
-template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidation::BodyForceGovernedCDRElementData>;
+template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::CircularConvectionElementData>;
+template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, StabilizationValidationElementData::BodyForceGovernedCDRElementData>;
 
 template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KEpsilonElementData::KElementData<2>>;
 template class ConvectionDiffusionReactionCrossWindStabilizedElement<2, 3, KEpsilonElementData::EpsilonElementData<2>>;

@@ -26,7 +26,7 @@
 
 namespace Kratos
 {
-namespace StabilizationValidation
+namespace StabilizationValidationElementData
 {
 BodyForceGovernedCDRElementData::BodyForceGovernedCDRElementData(
     const GeometryType& rGeometry,
@@ -130,6 +130,6 @@ void BodyForceGovernedCDRElementData::CalculateGaussPointData(
     KRATOS_CATCH("");
 }
 
-} // namespace StabilizationValidation
+} // namespace StabilizationValidationElementData
 
 } // namespace Kratos
