@@ -619,8 +619,6 @@ public:
         //    bounded_matrix<double, NumNodes, TDim > DN_DX;
         //    array_1d<double, NumNodes > N;
            double Volume;
-           boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
-           boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Ml = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
            array_1d<double, TDim *(TDim + 1)> v = ZeroVector(TDim * (TDim + 1));   //v vector
            array_1d<double, TDim *(TDim + 1)> v_n = ZeroVector(TDim * (TDim + 1)); //v_n vector
            array_1d<double, TDim *(TDim + 1)> arhs0 = ZeroVector(TDim * (TDim + 1)); //arhs0 vector bdf0*v+bdf1*vn+bdf2*vnn
@@ -668,20 +666,27 @@ public:
         //    bounded_matrix<double, NumNodes, TDim > DN_DX;
         //    array_1d<double, NumNodes > N;
            double Volume;
-           
+           boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1)); // Mc Matrix
            array_1d<double, TDim *(TDim + 1)> R = ZeroVector(TDim * (TDim + 1));   //R vector
+           array_1d<double, TDim *(TDim + 1)> v = ZeroVector(TDim * (TDim + 1));   //v vector
+           array_1d<double, TDim *(TDim + 1)> a = ZeroVector(TDim * (TDim + 1));   //a vector
+           array_1d<double, TDim *(TDim + 1)> v_n = ZeroVector(TDim * (TDim + 1)); //v_n vector
+           for (unsigned int i = 0; i < (TDim + 1); i++)
+             {
+              v[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X));
+              v[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
+              a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X));
+              a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y));
+              v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
+              v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));   
+             }
            
 
 
            for (unsigned int g = 0; g < IntegrationPoints.size(); g++)
            {
             array_1d<double, NumNodes > N = row(NContainer,g);
-            boost::numeric::ublas::bounded_matrix<double, (TDim), (TDim * (TDim + 1))> dummyN = ZeroMatrix((TDim), TDim * (TDim + 1));
-            boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
-            boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Ml = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1));
-            array_1d<double, TDim *(TDim + 1)> v = ZeroVector(TDim * (TDim + 1));   //v vector
-            array_1d<double, TDim *(TDim + 1)> a = ZeroVector(TDim * (TDim + 1));   //a vector
-            array_1d<double, TDim *(TDim + 1)> v_n = ZeroVector(TDim * (TDim + 1)); //v_n vector
+            boost::numeric::ublas::bounded_matrix<double, (TDim), (TDim * (TDim + 1))> dummyN = ZeroMatrix((TDim), TDim * (TDim + 1));      
             array_1d<double, TDim > temp_acc = ZeroVector(TDim ); //temp_acc on gauss point
             array_1d<double, TDim > spatial_acc = ZeroVector(TDim ); //spatial_acc on gauss point 
             double vg_x = 0.0;
@@ -694,12 +699,6 @@ public:
             double dvg_ydy = 0.0;  
              for (unsigned int i = 0; i < (TDim + 1); i++)
              {
-              v[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X));
-              v[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
-              a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X));
-              a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y));
-              v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
-              v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));   
               vg_x+=  N[i] * v(TDim * i); 
               vg_y+=  N[i] * v(TDim * i+1); 
               vng_x+=  N[i] * v_n(TDim * i); 
@@ -722,9 +721,10 @@ public:
               Mc+= DetJ[g] * IntegrationPoints[g].Weight() * prod(trans(dummyN),dummyN);
               R += DetJ[g] * IntegrationPoints[g].Weight() * rho * prod(trans(dummyN),temp_acc);
               R += DetJ[g] * IntegrationPoints[g].Weight() * rho * prod(trans(dummyN),spatial_acc);
-              R -= prod(Mc,a);
               
-           }    
+              
+           }
+           R -= prod(Mc,a);    
            
 
            for (unsigned int i = 0; i < (TDim + 1); i++)
