@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
 #include "shallow_water_application_variables.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -156,8 +157,12 @@ void WaveCondition<TNumNodes>::InitializeData(
     const ProcessInfo& rProcessInfo)
 {
     rData.gravity = rProcessInfo[GRAVITY_Z];
+    rData.stab_factor = rProcessInfo[STABILIZATION_FACTOR];
+    rData.relative_dry_height = rProcessInfo[RELATIVE_DRY_HEIGHT];
 
     auto& r_geom = GetGeometry();
+    rData.length = r_geom.Length();
+
     for (IndexType i = 0; i < TNumNodes; i++)
     {
         const IndexType block = 3 * i;
@@ -208,8 +213,9 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
     const array_1d<double,TNumNodes>& rN,
     const double Weight)
 {
-    const double h = rData.height;
-    const double g = rData.gravity;
+    const bool integrate_by_parts = false;
+    const auto h = rData.height;
+    const auto g = rData.gravity;
     const auto z = rData.topography;
     const auto n = rData.normal;
 
@@ -219,25 +225,31 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
             const IndexType j_block = 3 * j;
-            const double n_ij = rN[i] * rN[j];
+
+            double n_ij;
+            if (integrate_by_parts) {
+                n_ij = rN[i] * rN[j];
+            } else {
+                n_ij = 0.0;
+            }
 
             /* First component
-             * A_1 = {{ 0   0   g },
-             *        { 0   0   0 },
-             *        { h   0   0 }}
-             */
-            rMatrix(i_block,     j_block + 2) += Weight * n_ij * g * n[0];
-            rMatrix(i_block + 2, j_block)     += Weight * n_ij * h * n[0];
-            rVector(i_block)                  -= Weight * n_ij * g * n[0] * z[j];
+            * A_1 = {{ 0   0   g },
+            *        { 0   0   0 },
+            *        { h   0   0 }}
+            */
+            rMatrix(i_block,     j_block + 2) -= Weight * n_ij * g * n[0];
+            rMatrix(i_block + 2, j_block)     -= Weight * n_ij * h * n[0];
+            rVector(i_block)                  += Weight * n_ij * g * n[0] * z[j];
 
             /* Second component
-             * A_2 = {{ 0   0   0 },
-             *        { 0   0   g },
-             *        { 0   h   0 }}
-             */
-            rMatrix(i_block + 1, j_block + 2) += Weight * n_ij * g * n[1];
-            rMatrix(i_block + 2, j_block + 1) += Weight * n_ij * h * n[1];
-            rVector(i_block + 1)              -= Weight * n_ij * g * n[1] * z[j];
+            * A_2 = {{ 0   0   0 },
+            *        { 0   0   g },
+            *        { 0   h   0 }}
+            */
+            rMatrix(i_block + 1, j_block + 2) -= Weight * n_ij * g * n[1];
+            rMatrix(i_block + 2, j_block + 1) -= Weight * n_ij * h * n[1];
+            rVector(i_block + 1)              += Weight * n_ij * g * n[1] * z[j];
         }
     }
 }
@@ -249,6 +261,56 @@ void WaveCondition<TNumNodes>::AddFluxTerms(
     const array_1d<double,TNumNodes>& rN,
     const double Weight)
 {
+}
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::AddMassTerms(
+    LocalMatrixType& rMatrix,
+    const ConditionData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const double Weight)
+{
+    const double h = rData.height;
+    const double g = rData.gravity;
+    const auto n = rData.normal;
+    const auto inv_c = std::sqrt(InverseHeight(rData) / g);
+    const auto l = StabilizationParameter(rData);
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        const IndexType i_block = 3 * i;
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            const IndexType j_block = 3 * j;
+            const double n_ij = rN[i] * rN[j];
+
+            /* Stabilization x
+             * l / sqrt(gh) * A1 * n1
+             */
+            rMatrix(i_block,     j_block + 2) -= Weight * n_ij * l * g * inv_c * n[0];
+            rMatrix(i_block + 2, j_block)     -= Weight * n_ij * l * h * inv_c * n[0];
+
+            /* Stabilization y
+             * l / sqrt(gh) * A2 * n2
+             */
+            rMatrix(i_block + 1, j_block + 2) -= Weight * n_ij * l * g * inv_c * n[1];
+            rMatrix(i_block + 2, j_block + 1) -= Weight * n_ij * l * h * inv_c * n[1];
+        }
+    }
+}
+
+template<std::size_t TNumNodes>
+double WaveCondition<TNumNodes>::StabilizationParameter(const ConditionData& rData) const
+{
+    return rData.length * rData.stab_factor;
+}
+
+template<std::size_t TNumNodes>
+double WaveCondition<TNumNodes>::InverseHeight(const ConditionData& rData) const
+{
+    const double height = rData.height;
+    const double epsilon = rData.relative_dry_height * rData.length;
+    return ShallowWaterUtilities().InverseHeight(height, epsilon);
 }
 
 template<std::size_t TNumNodes>
@@ -295,6 +357,33 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 
     noalias(rLeftHandSideMatrix) = lhs;
     noalias(rRightHandSideVector) = rhs;
+}
+
+template<std::size_t TNumNodes>
+void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{
+    if(rMassMatrix.size1() != mLocalSize)
+        rMassMatrix.resize(mLocalSize, mLocalSize, false);
+
+    LocalMatrixType m = ZeroMatrix(mLocalSize, mLocalSize);
+
+    ConditionData data;
+    InitializeData(data, rCurrentProcessInfo);
+
+    Vector weights;
+    Matrix N_container;
+    ShapeFunctionsGradientsType DN_DX_container;
+    CalculateGeometryData(weights, N_container, DN_DX_container);
+    const IndexType num_gauss_points = weights.size();
+
+    for (IndexType g = 0; g < num_gauss_points; ++g)
+    {
+        const double weight = weights[g];
+        const array_1d<double,TNumNodes> N = row(N_container, g);
+        CalculateGaussPointData(data, g, N);
+        AddMassTerms(m, data, N, weight);
+    }
+    noalias(rMassMatrix) = m;
 }
 
 template class WaveCondition<2>;
