@@ -32,8 +32,11 @@
 
 // Shallow water includes
 #include "custom_elements/swe.h"
+#include "custom_elements/wave_element.h"
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
+#include "custom_conditions/wave_condition.h"
+#include "custom_modelers/mesh_moving_modeler.h"
 
 
 namespace Kratos
@@ -93,8 +96,6 @@ namespace Kratos
 
         virtual void Register() override;
 
-
-
         ///@}
         ///@name Access
         ///@{
@@ -145,43 +146,6 @@ namespace Kratos
 
         ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
@@ -196,10 +160,18 @@ namespace Kratos
         const SWE<4, Eulerian> mSWE2D4N;
         const SWE<3, PFEM2> mLagrangianSWE2D3N;
         const SWE<4, PFEM2> mLagrangianSWE2D4N;
+        const WaveElement<3> mWaveElement2D3N;
+        const WaveElement<6> mWaveElement2D6N;
+        const WaveElement<4> mWaveElement2D4N;
+        const WaveElement<8> mWaveElement2D8N;
+        const WaveElement<9> mWaveElement2D9N;
         const ShallowWater2D3 mShallowWater2D3N;
-        // Condition
+        // Conditions
         const NothingCondition<2> mNothingCondition2D2N;
+        const WaveCondition<2> mWaveCondition2D2N;
 
+        // Modelers
+        const MeshMovingModeler mMeshMovingModeler;
 
         ///@}
         ///@name Private Operators

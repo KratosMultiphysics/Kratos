@@ -63,8 +63,6 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
-
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -172,7 +170,7 @@ public:
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
@@ -181,13 +179,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is
-    *        SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == SURFACE_INDEX;
+        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
     }
 
     ///@}
