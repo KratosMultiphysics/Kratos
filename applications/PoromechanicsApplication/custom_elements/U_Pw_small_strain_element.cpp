@@ -618,6 +618,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 
             rOutput[GPoint] = ElementUtilities::CalculateVonMises(StressVector);
         }
+    } else {
+        UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
@@ -889,6 +891,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
+    } else {
+        UPwElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(rVariable,rOutput,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
