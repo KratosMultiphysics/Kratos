@@ -95,9 +95,8 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     const Vector r_strain_back_up   = rValues.GetStrainVector();
 
     // We get the Deformation gradient F
-    const Matrix rF = rValues.GetDeformationGradientF();
-    const Matrix r_B = prod(rF, trans(rF));
-    const Matrix r_C = prod(trans(rF), rF);
+    const Matrix& rF = rValues.GetDeformationGradientF();
+    const Matrix& r_B = prod(rF, trans(rF));
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
@@ -238,8 +237,8 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
     const Vector r_strain_back_up   = rValues.GetStrainVector();
 
     // We get the Deformation gradient F
-    const Matrix rF = rValues.GetDeformationGradientF();
-    const Matrix r_B = prod(rF, trans(rF));
+    const Matrix& rF = rValues.GetDeformationGradientF();
+    const Matrix& r_B = prod(rF, trans(rF));
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
