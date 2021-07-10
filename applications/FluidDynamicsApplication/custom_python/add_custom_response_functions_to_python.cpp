@@ -10,6 +10,7 @@
 #include "custom_response_functions/velocity_pressure_norm_square_response_function.h"
 #include "custom_python/add_custom_response_functions_to_python.h"
 #include "custom_response_functions/residual_response_function.h"
+#include "custom_response_functions/domain_integrated_response_function.h"
 
 namespace Kratos
 {
@@ -67,6 +68,12 @@ void AddCustomResponseFunctionsToPython(pybind11::module& m)
         AdjointResponseFunction>(m,"DragFrequencyResponseFunction3D")
         .def(py::init<Parameters, ModelPart&>())
         ;
+
+    py::class_<
+        DomainIntegratedResponseFunction,
+        DomainIntegratedResponseFunction::Pointer,
+        AdjointResponseFunction>(m,"DomainIntegratedResponseFunction")
+        .def(py::init<Parameters, ModelPart&>());
 
     py::class_<
         VelocityPressureNormSquareResponseFunction,
