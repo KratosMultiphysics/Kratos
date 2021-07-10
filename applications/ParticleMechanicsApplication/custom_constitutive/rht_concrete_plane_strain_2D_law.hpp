@@ -10,54 +10,53 @@
 //  Main authors:    Peter Wilson
 //
 
-#if !defined (KRATOS_JOHNSON_COOK_THERMAL_PLASTIC_2D_PLANE_STRAIN_LAW_H_INCLUDED)
-#define  KRATOS_JOHNSON_COOK_THERMAL_PLASTIC_2D_PLANE_STRAIN_LAW_H_INCLUDED
+#if !defined (KRATOS_RHT_CONCRETE_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_RHT_CONCRETE_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/johnson_cook_thermal_plastic_3D_law.hpp"
+#include "custom_constitutive/rht_concrete_3D_law.hpp"
 
 namespace Kratos
 {
 	/**
-	 * The Johnson Cook strain-rate senstive plastic 2D plane strain material law
-	 * derived from the Johnson Cook 3D material law.
+	 * The Riedel-Hiermaier-Thoma (RHT) strain-rate senstive plastic plane strain 2D material law.
 	 * Requires a strain vector to be provided by the element, which
 	 * should ideally be objective to enable large displacements.
 	 * Only suitable for explicit time integration because calculate
 	 * constitutive tensor is not implemented.
+	 * Refer to RHTConcrete3DLaw for references.
 	 */
-
-	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) JohnsonCookThermalPlastic2DPlaneStrainLaw : public JohnsonCookThermalPlastic3DLaw
+	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) RHTConcretePlaneStrain2DLaw : public RHTConcrete3DLaw
 	{
 	public:
 
 		/// Type Definitions
 		typedef ProcessInfo          ProcessInfoType;
-		typedef JohnsonCookThermalPlastic3DLaw         BaseType;
+		typedef RHTConcrete3DLaw         BaseType;
 		typedef std::size_t             SizeType;
 		typedef Properties::Pointer            PropertiesPointer;
 
-		/// Counted pointer of JohnsonCookThermalPlastic2DPlaneStrainLaw
-		KRATOS_CLASS_POINTER_DEFINITION(JohnsonCookThermalPlastic2DPlaneStrainLaw);
+		/// Counted pointer of RHTConcretePlaneStrain2DLaw
+		KRATOS_CLASS_POINTER_DEFINITION(RHTConcretePlaneStrain2DLaw);
 
 		/**
 		 * Default constructor.
 		 */
-		JohnsonCookThermalPlastic2DPlaneStrainLaw();
+		RHTConcretePlaneStrain2DLaw();
 
 		/**
 		 * Copy constructor.
 		 */
-		JohnsonCookThermalPlastic2DPlaneStrainLaw(const JohnsonCookThermalPlastic2DPlaneStrainLaw& rOther);
+		RHTConcretePlaneStrain2DLaw(const RHTConcretePlaneStrain2DLaw& rOther);
 
 		/**
 		 * Assignment operator.
 		 */
-		JohnsonCookThermalPlastic2DPlaneStrainLaw& operator=(const JohnsonCookThermalPlastic2DPlaneStrainLaw& rOther);
+		RHTConcretePlaneStrain2DLaw& operator=(const RHTConcretePlaneStrain2DLaw& rOther);
 
 		/**
 		 * Clone function (has to be implemented by any derived class)
@@ -68,7 +67,7 @@ namespace Kratos
 		/**
 		 * Destructor.
 		 */
-		~JohnsonCookThermalPlastic2DPlaneStrainLaw() override;
+		~RHTConcretePlaneStrain2DLaw() override;
 
 		/// Dimension of the law:
 		SizeType WorkingSpaceDimension() override
@@ -90,13 +89,13 @@ namespace Kratos
 
 		void save(Serializer& rSerializer) const override
 		{
-			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic3DLaw);
+			KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RHTConcrete3DLaw);
 		}
 
 		void load(Serializer& rSerializer) override
 		{
-			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, JohnsonCookThermalPlastic3DLaw);
+			KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RHTConcrete3DLaw);
 		}
-	}; // Class JohnsonCookThermalPlastic2DPlaneStrainLaw
+	}; // Class RHTConcretePlaneStrain2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_JOHNSON_COOK_THERMAL_PLASTIC_2D_PLANE_STRAIN_LAW_H_INCLUDED defined
+#endif // KRATOS_RHT_CONCRETE_PLANE_STRAIN_2D_LAW_H_INCLUDED defined

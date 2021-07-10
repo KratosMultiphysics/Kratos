@@ -1027,6 +1027,7 @@ void UpdatedLagrangian::InitializeMaterial()
     {
         mConstitutiveLawVector = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         Vector N = row(GetGeometry().ShapeFunctionsValues(), 0);
+        GetGeometry().SetValue(MP_VOLUME, mMP.volume);
         mConstitutiveLawVector->InitializeMaterial(
             GetProperties(), GetGeometry(), N);
 
@@ -1553,8 +1554,12 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& rVa
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||
-        rVariable == MP_TEMPERATURE) {
-        rValues[0] = mConstitutiveLawVector->GetValue(rVariable, rValues[0]);
+        rVariable == MP_TEMPERATURE || rVariable == MP_DAMAGE ||
+        rVariable == MP_COMPACTION_RATIO || rVariable == MP_PRESSURE) {
+
+        rValues[0] = (mConstitutiveLawVector->Has(rVariable))
+            ? mConstitutiveLawVector->GetValue(rVariable, rValues[0])
+            : 0.0;
     }
     else
     {

@@ -151,10 +151,6 @@ protected:
      */
     bool CheckParameters(Parameters& rValues) override;
 
-    virtual void MakeStrainStressMatrixFromVector(const Vector& rInput, Matrix& rOutput);
-
-    virtual void MakeStrainStressVectorFromMatrix(const Matrix& rInput, Vector& rOutput);
-
     void CheckIsExplicitTimeIntegration(const ProcessInfo& rCurrentProcessInfo);
 
 private:
