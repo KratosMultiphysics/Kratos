@@ -117,17 +117,15 @@ public:
             property_ids.insert( rElem.GetProperties().Id() );
         }
 
-        std::size_t max_id = 0;
-        std::size_t min_id = 1e6;
-        for(auto id : property_ids) {
-            max_id = std::max(id,max_id);
-            min_id = std::min(id,min_id);
-        }
-
-        for(std::size_t id=min_id; id<max_id; id++) {
-            KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
-            SplitBoundary(id, mrModelPart);
-            KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids finished!"<< std::endl;
+        if(property_ids.size()) {
+            std::size_t domain_size = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
+            FindElementalNeighboursProcess(mrModelPart, domain_size).Execute();
+            for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
+                std::size_t id = *it;
+                KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
+                SplitBoundary(id, mrModelPart);
+                KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids finished!"<< std::endl;
+            }
         }
         KRATOS_CATCH("");
     }
@@ -177,13 +175,10 @@ protected:
     ///@{
     void SplitBoundary(const std::size_t PropertyIdBeingProcessed, ModelPart& rModelPart) {
         KRATOS_TRY
-        std::size_t domain_size = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
-        FindElementalNeighboursProcess(rModelPart, domain_size).Execute();
 
         //construct list of faces on the interface
         std::vector< Geometry<Node<3> > > interface_faces;
-        std::vector<
-        std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
+        std::vector< std::pair< Geometry< Node<3> >::Pointer, Geometry< Node<3> >::Pointer> > neighbouring_elements;
 
         for(auto& rElem : mrModelPart.Elements()) {
             const auto& neighb = rElem.GetValue(NEIGHBOUR_ELEMENTS);
@@ -193,7 +188,7 @@ protected:
                 if(rElem.GetProperties().Id() == PropertyIdBeingProcessed && neighb[i].GetProperties().Id() > PropertyIdBeingProcessed) {
                     auto boundary_entities = rElem.GetGeometry().GenerateBoundariesEntities();
                     interface_faces.push_back(boundary_entities[i]);
-                    neighbouring_elements.push_back( std::make_pair(rElem.pGetGeometry()  ,neighb[i].pGetGeometry()  ) );
+                    neighbouring_elements.push_back( std::make_pair(rElem.pGetGeometry(), neighb[i].pGetGeometry()) );
                 }
             }
         }
@@ -237,7 +232,7 @@ protected:
             for(std::size_t k=0; k<pgeom->size(); ++k) {
                 auto it = new_nodes_map.find((*pgeom)[k].Id());
                 if( it != new_nodes_map.end() )
-                    (*pgeom)(i) = it->second;
+                    (*pgeom)(k) = it->second;
             }
             //create prism(3D) or quadrilateral(2D) as provided in the parameters
             std::vector<std::size_t> interface_condition_ids;
