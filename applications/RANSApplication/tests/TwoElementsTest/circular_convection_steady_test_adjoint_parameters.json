@@ -28,14 +28,32 @@
         }
     },
     "processes": {
-        "initial_conditions_process_list": [],
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_flag_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart",
+                    "flag_name": "STRUCTURE",
+                    "interval": [
+                        0.0,
+                        1e30
+                    ],
+                    "value": true,
+                    "entities": [
+                        "elements"
+                    ]
+                }
+            }
+        ],
         "boundary_conditions_process_list": [
             {
                 "python_module": "assign_scalar_variable_process",
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "AssignScalarVariableProcess",
                 "Parameters": {
-                    "model_part_name": "MainModelPart.Inlet",
+                    "model_part_name": "MainModelPart.Structure",
                     "variable_name": "RANS_SCALAR_1_ADJOINT_1",
                     "value": 0.0
                 }
@@ -46,16 +64,6 @@
                 "process_name": "AssignScalarVariableProcess",
                 "Parameters": {
                     "model_part_name": "MainModelPart.Outlet",
-                    "variable_name": "RANS_SCALAR_1_ADJOINT_1",
-                    "value": 0.0
-                }
-            },
-            {
-                "python_module": "assign_scalar_variable_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "AssignScalarVariableProcess",
-                "Parameters": {
-                    "model_part_name": "MainModelPart.Boundary",
                     "variable_name": "RANS_SCALAR_1_ADJOINT_1",
                     "value": 0.0
                 }
