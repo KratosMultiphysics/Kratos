@@ -14,7 +14,7 @@ def GetFilePath(fileName):
 
 class TestProcesses(KratosUnittest.TestCase):
 
-    '''def test_assign_processes(self):
+    def test_assign_processes(self):
         current_model = KratosMultiphysics.Model()
 
         model_part= current_model.CreateModelPart("Main")
@@ -2401,7 +2401,7 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfNodes(), 3)
         self.assertEqual(result_model_part.NumberOfElements(), 0)
         self.assertEqual(result_model_part.NumberOfConditions(), 3)
-        self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)'''
+        self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)
 
     def test_split_internal_interfaces_process_2D(self):
         current_model = KratosMultiphysics.Model()
