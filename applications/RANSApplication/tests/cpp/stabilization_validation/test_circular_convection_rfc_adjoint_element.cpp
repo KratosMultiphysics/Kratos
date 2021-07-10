@@ -204,18 +204,12 @@ KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointCalculateFirstDerivati
 
 KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointCalculateFirstDerivativesLHS_PhiX, KratosRansFastSuite)
 {
-    // TODO: This test fails for some reason
-    // const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
-    //                                     const ProcessInfo& rProcessInfo) {
-    //     rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
-    // };
+    const auto& derivatives_method = [](Matrix& rMatrix, ModelPart::ElementType& rElement,
+                                        const ProcessInfo& rProcessInfo) {
+        rElement.CalculateSensitivityMatrix(SHAPE_SENSITIVITY, rMatrix, rProcessInfo);
+    };
 
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-1);
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-2);
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-3);
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-4);
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-5);
-    // RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-5, 1e-6);
+    RunRansCircularConvectionRFCAdjointTest("RansCircularConvectionRFC2D3N", SHAPE_SENSITIVITY, derivatives_method, 0, 0, 1e-8, 1e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansCircularConvectionRFCAdjointCalculateSecondDerivativesLHS_Phi, KratosRansFastSuite)
