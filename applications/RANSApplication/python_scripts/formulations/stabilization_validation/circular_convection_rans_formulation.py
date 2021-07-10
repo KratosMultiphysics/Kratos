@@ -25,6 +25,11 @@ class CircularConvectionRansFormulation(ScalarRansFormulation):
             model_part,
             settings["circular_convection_solver_settings"])
 
+    def AddVariables(self):
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
+
+        super().AddVariables()
+
     def GetSolvingVariable(self):
         return KratosRANS.VELOCITY_POTENTIAL
 

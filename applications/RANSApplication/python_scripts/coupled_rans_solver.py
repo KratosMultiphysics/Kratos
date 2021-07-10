@@ -62,12 +62,12 @@ class CoupledRANSSolver(PythonSolver):
         self.formulation = FormulationFactory(self.main_model_part,
                                 self.settings["formulation_settings"])
 
+        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
         self.formulation.SetConstants(self.settings["constants"])
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
 
         self.is_periodic = self.formulation.IsPeriodic()
 
-        self.formulation.SetTimeSchemeSettings(self.settings["time_scheme_settings"])
         self.formulation.SetWallFunctionSettings(self.settings["wall_function_settings"])
         scheme_type = self.settings["time_scheme_settings"]["scheme_type"].GetString()
         if (scheme_type == "steady"):

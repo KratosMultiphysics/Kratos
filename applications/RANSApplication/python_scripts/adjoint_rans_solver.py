@@ -139,6 +139,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         super().__init__(model, self.primal_problem_solver_settings)
 
         self.adjoint_element_map = {
+            ("RansCircularConvectionRFC",) : "RansCircularConvectionRFCAdjoint",
             ("QSVMS", ) : "QSVMSAdjoint",
             ("QSVMS", "RansKEpsilonKRFC", "RansKEpsilonEpsilonRFC") : "RansKEpsilonQSVMSRFCAdjoint",
             ("QSVMS", "RansKOmegaKRFC", "RansKOmegaOmegaRFC") : "RansKOmegaQSVMSRFCAdjoint",
@@ -146,6 +147,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         }
 
         self.adjoint_condition_map = {
+            ('',) : "LineCondition",
             # pure cfd conditions
             ("RansVMSMonolithicKBasedWall",) : "AdjointMonolithicWallCondition",
             # k-epsilon conditions
@@ -563,6 +565,10 @@ class AdjointRANSSolver(CoupledRANSSolver):
             response_function = residual_response_function_type(
                 self.adjoint_settings["response_function_settings"]["custom_settings"],
                 self.main_model_part)
+        elif response_type == "domain_integrated":
+            response_function = KratosCFD.DomainIntegratedResponseFunction(
+                self.adjoint_settings["response_function_settings"]["custom_settings"],
+                self.main_model_part)
         else:
             raise Exception("Invalid response_type: " + response_type + ". Available response functions: \'drag\'.")
         return response_function
@@ -575,6 +581,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         if (element_names == (("QSVMS"), )):
             block_size = domain_size + 1
+        elif (element_names == (("RansCircularConvectionRFC"),)):
+            block_size = 1
         else:
             block_size = domain_size + 3
 
@@ -625,6 +633,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         if (element_names == (("QSVMS"), )):
             block_size = domain_size + 1
+        elif (element_names == (("RansCircularConvectionRFC"),)):
+            block_size = 1
         else:
             block_size = domain_size + 3
 

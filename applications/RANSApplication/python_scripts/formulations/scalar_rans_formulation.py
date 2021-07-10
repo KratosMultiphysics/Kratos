@@ -156,19 +156,26 @@ class ScalarRansFormulation(RansFormulation):
             scheme_type = settings["scheme_type"].GetString()
             if (scheme_type == "steady"):
                 self.is_steady_simulation = True
-            elif (scheme_type == "bdf2" or scheme_type == "bossak"):
+                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, 0.0)
+            elif (scheme_type == "bossak"):
+                self.is_steady_simulation = False
+                default_settings = Kratos.Parameters('''{
+                    "scheme_type": "bossak",
+                    "alpha_bossak": -0.3
+                }''')
+                settings.ValidateAndAssignDefaults(default_settings)
+                self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.BOSSAK_ALPHA, settings["alpha_bossak"].GetDouble())
+            elif (scheme_type == "bdf2"):
                 self.is_steady_simulation = False
             else:
-                raise Exception(
-                    "Only \"steady\", \"bdf2\" and \"bossak\" scheme types supported. [ scheme_type = \""
-                    + scheme_type + "\" ]")
+                raise Exception("Only \"steady\" and \"bossak\" scheme types supported. [ scheme_type = \"" + scheme_type  + "\" ]")
         else:
-            raise Exception(
-                "\"scheme_type\" is missing in time scheme settings")
+            raise Exception("\"scheme_type\" is missing in time scheme settings")
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "stabilization_constants":{
+                "dynamic_tau"                       : 0.0,
                 "upwind_operator_coefficient"       : 1.2,
                 "positivity_preserving_coefficient" : 1.2
             }
@@ -178,8 +185,13 @@ class ScalarRansFormulation(RansFormulation):
 
         process_info = self.GetBaseModelPart().ProcessInfo
 
-        # stabilization parameters
         constants = settings["stabilization_constants"]
+        if (self.is_steady_simulation):
+            self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, 0.0)
+        else:
+            self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, constants["dynamic_tau"].GetDouble())
+
+        # stabilization parameters
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, constants["upwind_operator_coefficient"].GetDouble())
         process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, constants["positivity_preserving_coefficient"].GetDouble())
 
