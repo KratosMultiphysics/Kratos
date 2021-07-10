@@ -2403,6 +2403,44 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfConditions(), 3)
         self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)
 
+    def test_split_internal_interfaces_process_2D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition2D4N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_2D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 9)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 12)
+        self.assertEqual(model_part.NumberOfConditions(), 2)
+
+    def test_split_internal_interfaces_process_3D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=3
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition3D6N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_3D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 27)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 40)
+        self.assertEqual(model_part.NumberOfConditions(), 10)
+
+
+        #for cond in model_part.Conditions:
+
+
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
     vec = KratosMultiphysics.Vector(3)
