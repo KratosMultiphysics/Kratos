@@ -53,7 +53,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Miguel Angel Celigueta
  */
-class /*KRATOS_API(KRATOS_CORE)*/  SplitInternalInterfacesProcess : public Process {
+class KRATOS_API(KRATOS_CORE) SplitInternalInterfacesProcess : public Process {
 
 public:
     ///@name Type Definitions
