@@ -11,8 +11,8 @@
 //  Collaborators:   Miguel Angel Celigueta
 //
 
-#if !defined(KRATOS_SPLIT_INTERNAL_INTERFACE_PROCESS_H_INCLUDED )
-#define  KRATOS_SPLIT_INTERNAL_INTERFACE_PROCESS_H_INCLUDED
+#if !defined(KRATOS_SPLIT_INTERNAL_INTERFACES_PROCESS_H_INCLUDED )
+#define  KRATOS_SPLIT_INTERNAL_INTERFACES_PROCESS_H_INCLUDED
 
 // System includes
 
@@ -45,14 +45,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class SplitInternalInterfaceProcess
+ * @class SplitInternalInterfacesProcess
  * @ingroup KratosCore
  * @brief Computes NODAL_AREA
  * @details splits a domain across changes of property and generates a condition at the splitting positions
  * @author Riccardo Rossi
  * @author Miguel Angel Celigueta
  */
-class /*KRATOS_API(KRATOS_CORE)*/  SplitInternalInterfaceProcess : public Process {
+class /*KRATOS_API(KRATOS_CORE)*/  SplitInternalInterfacesProcess : public Process {
 
 public:
     ///@name Type Definitions
@@ -67,8 +67,8 @@ public:
     /// The definition of the node
     typedef Node<3> NodeType;
 
-    /// Pointer definition of SplitInternalInterfaceProcess
-    KRATOS_CLASS_POINTER_DEFINITION(SplitInternalInterfaceProcess);
+    /// Pointer definition of SplitInternalInterfacesProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SplitInternalInterfacesProcess);
 
     ///@}
     ///@name Life Cycle
@@ -79,7 +79,7 @@ public:
      * @param rModelPart The model part to be computed
      * @param DomainSize The size of the space, if the value is not provided will compute from the model part
      */
-    SplitInternalInterfaceProcess(Model& rModel, Parameters rParameters):Process(Flags()), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString())) {
+    SplitInternalInterfacesProcess(Model& rModel, Parameters rParameters):Process(Flags()), mrModelPart(rModel.GetModelPart(rParameters["model_part_name"].GetString())) {
         KRATOS_TRY
         const Parameters default_parameters = GetDefaultParameters();
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -88,7 +88,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~SplitInternalInterfaceProcess() override { }
+    virtual ~SplitInternalInterfacesProcess() override { }
 
 
     const Parameters GetDefaultParameters() const override {
@@ -110,6 +110,7 @@ public:
     ///@{
 
     void ExecuteInitialize() override {
+        KRATOS_TRY
         std::set< std::size_t> property_ids;
 
         for(auto& rElem : mrModelPart.Elements()) {
@@ -124,9 +125,11 @@ public:
         }
 
         for(std::size_t id=min_id; id<max_id; id++) {
-            std::cout << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
+            KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
             SplitBoundary(id, mrModelPart);
+            KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids finished!"<< std::endl;
         }
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -144,12 +147,12 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "SplitInternalInterfaceProcess";
+        return "SplitInternalInterfacesProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << "SplitInternalInterfaceProcess";
+        rOStream << "SplitInternalInterfacesProcess";
     }
 
     /// Print object's data.
@@ -173,6 +176,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     void SplitBoundary(const std::size_t PropertyIdBeingProcessed, ModelPart& rModelPart) {
+        KRATOS_TRY
         std::size_t domain_size = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension(); //TODO: this may not be a very good solution.
         FindElementalNeighboursProcess(rModelPart, domain_size).Execute();
 
@@ -206,6 +210,7 @@ protected:
         for(auto& rNode : mrModelPart.Nodes()) {
             if(rNode.Id() > max_node_id) max_node_id = rNode.Id();
         }
+        max_node_id++;
 
         std::map<std::size_t, Node<3>::Pointer> new_nodes_map;
         for(auto& id : ids_on_interface) {
@@ -223,6 +228,7 @@ protected:
         for(auto& rCond : mrModelPart.Conditions()) {
             if(rCond.Id() > max_cond_id) max_cond_id = rCond.Id();
         }
+        max_cond_id++;
 
         Properties::Pointer pInterfaceProp = mrModelPart.pGetProperties(1); //TODO: understand if the property 1 is what we want
         for(std::size_t i=0; i<interface_faces.size(); ++i) {
@@ -242,6 +248,7 @@ protected:
 
             rModelPart.CreateNewCondition(mConditionName, max_cond_id++, interface_condition_ids, pInterfaceProp ); //TODO: understand if the property 1 is what we want
         }
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -309,15 +316,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //SplitInternalInterfaceProcess& operator=(SplitInternalInterfaceProcess const& rOther);
+    //SplitInternalInterfacesProcess& operator=(SplitInternalInterfacesProcess const& rOther);
 
     /// Copy constructor.
-    //SplitInternalInterfaceProcess(SplitInternalInterfaceProcess const& rOther);
+    //SplitInternalInterfacesProcess(SplitInternalInterfacesProcess const& rOther);
 
 
     ///@}
 
-}; // Class SplitInternalInterfaceProcess
+}; // Class SplitInternalInterfacesProcess
 
 ///@}
 
@@ -331,12 +338,12 @@ private:
 
 
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream, SplitInternalInterfaceProcess& rThis) {
+inline std::istream& operator >> (std::istream& rIStream, SplitInternalInterfacesProcess& rThis) {
     return rIStream;
 }
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream, const SplitInternalInterfaceProcess& rThis) {
+inline std::ostream& operator << (std::ostream& rOStream, const SplitInternalInterfacesProcess& rThis) {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
     rThis.PrintData(rOStream);
@@ -348,6 +355,6 @@ inline std::ostream& operator << (std::ostream& rOStream, const SplitInternalInt
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SPLIT_INTERNAL_INTERFACE_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_SPLIT_INTERNAL_INTERFACES_PROCESS_H_INCLUDED  defined
 
 

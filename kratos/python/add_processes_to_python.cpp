@@ -671,7 +671,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
 
-    py::class_<SplitInternalInterfaceProcess, SplitInternalInterfaceProcess::Pointer, Process>(m, "SplitInternalInterfaceProcess")
+    py::class_<SplitInternalInterfacesProcess, SplitInternalInterfacesProcess::Pointer, Process>(m, "SplitInternalInterfacesProcess")
     .def(py::init<Model&, Parameters>())
     ;
 
