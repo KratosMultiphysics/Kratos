@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <algorithm>
 
 // External includes
 
@@ -140,7 +141,8 @@ ElementRefinementProcess::ElementRefinementProcess(
 
     mModelPartName = rParameters["model_part_name"].GetString();
     mEchoLevel = rParameters["echo_level"].GetInt();
-    mRefinedModelPartNamePrefix = rParameters["refinement_model_part_prefix"].GetString();
+    mRefinedModelPartNamePrefix = mModelPartName + "_" + rParameters["refinement_model_part_prefix"].GetString();
+    std::replace(mRefinedModelPartNamePrefix.begin(), mRefinedModelPartNamePrefix.end(), '.', ':');
 
     mRefinementLevel = rParameters["refinement_level"].GetInt();
 
