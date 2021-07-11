@@ -306,7 +306,10 @@ private:
                 rTLS.IsInitialized = true;
             }
 
-            auto& r_process_info = rTLS.pRefinedModelPart->GetProcessInfo();
+            // using the process info of the original model part because
+            // the thread local model part will not have up-to-date data if CloneTimeStep
+            // is used in the  original model part. CloneTimeStep clones existing process info data to new process info data.
+            const auto& r_process_info = rModelPart.GetProcessInfo();
 
             for (auto& p : rTLS.AssembledValues) {
                 p.second = 0.0;
