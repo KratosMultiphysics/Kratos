@@ -266,9 +266,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 3.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 5.0e3*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
-    const double zeta = 1.0e0;//1.0;//0.7;//
+    const double zeta = 5.0e-1;//1.0;//0.7;//
     const double gamma = 0.072;//0.0426;//0.0311;//
     const double micro_length_scale = 1.0e-9;
 

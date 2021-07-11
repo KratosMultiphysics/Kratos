@@ -90,7 +90,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         //const double beta_in = 1.0e2;
         //const double beta_out = 1.0e2;
         //const double beta_contact = 1.0e-3;
-        const double zeta = 1.0e0;//1.0;//0.7;//
+        const double zeta = 5.0e-1;//1.0;//0.7;//
         const double surface_tension_coefficient = 0.072;//0.0426;//0.0311;//0.072;// //0.1; //0.0322; // //Surface tension coefficient, TODO: get from properties
 
         const double theta_advancing = 149.0*PI/180.0;
