@@ -290,6 +290,16 @@ class AdjointRANSSolver(CoupledRANSSolver):
         self.GetResponseFunction().Initialize()
         self.GetSensitivityBuilder().Initialize()
 
+        model_part = self.GetComputingModelPart()
+
+        # initialize variables for response function interpolation error calculation
+        solving_variables_list = self.formulation.GetSolvingVariables()
+        number_of_dofs_per_node = len(solving_variables_list)
+        zero_vector = Kratos.Vector(number_of_dofs_per_node, 0.0)
+
+        variable_utils = Kratos.VariableUtils()
+        variable_utils.SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, zero_vector, model_part.Nodes)
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
