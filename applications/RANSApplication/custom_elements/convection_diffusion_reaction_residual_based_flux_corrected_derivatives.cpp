@@ -101,7 +101,7 @@ ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNumNodes
     mPrimalDampingMatrix.clear();
 
     mDeltaTime = rProcessInfo[DELTA_TIME];
-    KRATOS_ERROR_IF(mDeltaTime > 0.0)
+    KRATOS_ERROR_IF(mDeltaTime >= 0.0)
         << "Adjoints are computed in reverse time, therefore DELTA_TIME should "
            "be negative. [ DELTA_TIME = "
         << mDeltaTime << " ].\n";
