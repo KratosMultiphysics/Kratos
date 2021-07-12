@@ -72,6 +72,28 @@ void AssignScalarVariableToEntitiesProcess<TEntity>::Execute()
     KRATOS_CATCH("");
 }
 
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity>
+void AssignScalarVariableToEntitiesProcess<TEntity>::Clear()
+{
+    KRATOS_TRY;
+
+    if( KratosComponents< Variable<double> >::Has( mVariableName )) { //case of double variable
+        ClearValue<>(KratosComponents< Variable<double> >::Get(mVariableName));
+    } else if( KratosComponents< Variable<int> >::Has( mVariableName ) ) { //case of int variable
+        ClearValue<>(KratosComponents< Variable<int> >::Get(mVariableName));
+    } else if( KratosComponents< Variable<bool> >::Has( mVariableName ) ) { //case of bool variable
+        ClearValue<>(KratosComponents< Variable<bool> >::Get(mVariableName));
+    } else {
+        KRATOS_ERROR << "Not able to clear the variable. Attempting to clear variable: " << mVariableName << std::endl;
+    }
+
+    KRATOS_CATCH("");
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

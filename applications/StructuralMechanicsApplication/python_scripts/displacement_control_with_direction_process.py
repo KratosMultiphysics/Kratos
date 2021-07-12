@@ -76,6 +76,8 @@ class AssignDisplacementControlProcess(asvtep.AssignScalarVariableToEntitiesProc
         self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_load))
         self.aux_processes.append(asvtep.AssignScalarVariableToEntitiesProcess(Model, params_disp))
 
+        self.model_part = Model[settings["model_part_name"].GetString()]
+
         self.step_is_active = False
 
     def ExecuteInitializeSolutionStep(self):
