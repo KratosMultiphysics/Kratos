@@ -71,6 +71,7 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -222,6 +223,8 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+
             rModelPart.AddGeometry(p_brep_surface);
         }
         else
@@ -236,6 +239,8 @@ private:
                     p_surface);
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -341,6 +346,23 @@ private:
         }
 
         return std::make_tuple(outer_loops, inner_loops);
+    }
+
+    static void ReadAndAddEmbeddedEdges(
+            typename BrepSurfaceType::Pointer pBrepSurface,
+            const Parameters rParameters,
+            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+    {
+        if (rParameters.Has("embedded_edges")) {
+            if (rParameters["embedded_edges"].size() > 0) {
+                BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+
+                pBrepSurface->AddEmbeddedEdges(embedded_edges);
+            }
+        }
     }
 
     ///@}
