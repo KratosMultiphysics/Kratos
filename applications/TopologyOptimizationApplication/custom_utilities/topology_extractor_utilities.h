@@ -21,6 +21,9 @@
 // External includes
 #include <pybind11/pybind11.h>   
 #include <boost/numeric/ublas/storage.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
 
 #include "../custom_elements/small_displacement_simp_element.h"
 // Project includes
@@ -191,34 +194,41 @@ public:
 		std::cout<<"::[Surface Mesh Extraction]::"<<std::endl;
 
 		// Some type-definitions
-		typedef std::unordered_map<vector<unsigned int>, unsigned int, KeyHasher, KeyComparor > hashmap;
-		typedef std::unordered_map<vector<unsigned int>, vector<unsigned int>, KeyHasher, KeyComparor > hashmap_vec;
+		typedef std::unordered_map<vector<IndexType>, IndexType, KeyHasher, KeyComparor > hashmap;
+		typedef std::unordered_map<vector<IndexType>, vector<IndexType>, KeyHasher, KeyComparor > hashmap_vec;
 
 		// Some working variable
 		unsigned int domain_size = 3;
 
 		// Create map to ask for number of faces for the given set of node ids representing on face in the model part
 		hashmap n_faces_map;
+		const int num_elements = static_cast<int>(rExtractedVolumeModelPart.NumberOfElements());
+    	const auto elements_begin = rExtractedVolumeModelPart.ElementsBegin();
 
 		// Fill map that counts number of faces for given set of nodes
-		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+		for (int itElem = 0; itElem< num_elements; ++itElem) 
 		{
-			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+        	auto i_element = elements_begin + itElem;
+		/* for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
+		{ */
+			///Element::GeometryType::GeometriesArrayType faces = i_element->GetGeometry().GenerateFaces();
+			Element::GeometryType::GeometriesArrayType faces;
+			faces = i_element->GetGeometry().GenerateFaces();
 
-			for(unsigned int face=0; face<faces.size(); face++)
-			{
-				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
+        	for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
+            // Create vector that stores all node is of current i_face
+            vector<IndexType> ids(faces[i_face].size());
 
-				// Store node ids
-				for(unsigned int i=0; i<faces[face].size(); i++)
-					ids[i] = faces[face][i].Id();
+            // Store node ids
+            for (IndexType i = 0; i < faces[i_face].size(); i++)
+                ids[i] = faces[i_face][i].Id();
 
-				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-				std::sort(ids.begin(), ids.end());
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
 
-				// Fill the map
-				n_faces_map[ids] += 1;
+			// Fill the map
+			#pragma omp critical
+            n_faces_map[ids] += 1;
 			}
 		}
 
@@ -227,33 +237,33 @@ public:
 		hashmap_vec ordered_skin_face_nodes_map;
 
 		// Fill map that gives original node order for set of nodes
-		for (ModelPart::ElementIterator itElem = rExtractedVolumeModelPart.ElementsBegin(); itElem != rExtractedVolumeModelPart.ElementsEnd(); itElem++)
-		{
-			Element::GeometryType::GeometriesArrayType faces = itElem->GetGeometry().Faces();
+		for (int i_e = 0; i_e < num_elements; ++i_e) {
+			auto i_element = elements_begin + i_e;
+			Element::GeometryType::GeometriesArrayType faces;
+			faces = i_element->GetGeometry().GenerateFaces();
 
-			for(unsigned int face=0; face<faces.size(); face++)
-			{
-				// Create vector that stores all node is of current face
-				vector<unsigned int> ids(faces[face].size());
-				vector<unsigned int> unsorted_ids(faces[face].size());
+			for (IndexType i_face = 0; i_face < faces.size(); i_face++) {
+				// Create vector that stores all node is of current i_face
+				vector<IndexType> ids(faces[i_face].size());
+				vector<IndexType> unsorted_ids(faces[i_face].size());
 
 				// Store node ids
-				for(unsigned int i=0; i<faces[face].size(); i++)
-				{
-					ids[i] = faces[face][i].Id();
-					unsorted_ids[i] = faces[face][i].Id();
+				for (IndexType i = 0; i < faces[i_face].size(); i++) {
+					ids[i] = faces[i_face][i].Id();
+					unsorted_ids[i] = faces[i_face][i].Id();
 				}
 
 				//*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
 				std::sort(ids.begin(), ids.end());
-
-				if(n_faces_map[ids] == 1)
+				
+				if (n_faces_map[ids] == 1)
 					ordered_skin_face_nodes_map[ids] = unsorted_ids;
+				
 			}
 		}
 
 		// First assign to skin model part all nodes from original model_part, unnecessary nodes will be removed later
-		unsigned int face_id = 1;
+		IndexType face_id = 1;
 		rExtractedSurfaceModelPart.Nodes() = rExtractedVolumeModelPart.Nodes();
 
 		// Create reference conditions and elements to be assigned to a new skin-model-part
@@ -265,20 +275,26 @@ public:
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
 		{	
-			std::cout<<"  Schleife 1" <<std::endl;
+			std::cout<<"  Loop 1" <<std::endl;
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
 			if(it->second == 1)
-			{	std::cout<<"  Schleife 2" <<std::endl;
+			{	std::cout<<"  Loop 2" <<std::endl;
 				// If skin face is a triangle store triangle in with its original orientation in new skin model part
 				if(it->first.size()==3)
-				{	std::cout<<"  Schleife 3" <<std::endl;
+				{	std::cout<<"  Loop 3 Tetrahedral" <<std::endl;
 					// Getting original order is important to properly reproduce skin face including its normal orientation
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					std::cout<<"  before constructing vector" <<std::endl;
+					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					std::cout<<"  after constructing vector" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
+					std::cout<<"  pnode1 done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
+					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+					std::cout<<"  pnode3 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
+					std::cout<<"  Surfacemesh done" <<std::endl;
 
 					// Add skin face as condition
 					Triangle3D3< Node<3> > triangle_c(pnode1, pnode2, pnode3);
@@ -294,17 +310,23 @@ public:
 				// If skin face is a quadrilateral then divide in two triangles and store them with their original orientation in new skin model part
 				if(it->first.size()==4)
 				{	
-					std::cout<<"  Schleife 4" <<std::endl;
+					std::cout<<"  Loop 3 Hexahedral" <<std::endl;
 					// Getting original order is important to properly reproduce skin including its normal orientation
-					std::cout<<"  Step 1" <<std::endl;
-					vector<unsigned int> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-					std::cout<<"  Step 2" <<std::endl;
+					std::cout<<"  Before constructing vector hexahedral" <<std::endl;
+					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
+					std::cout<<"  After constructing vector hexahedral" <<std::endl;
 
+					std::cout<<"  before hexahedral pnode1" <<std::endl;
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
+					std::cout<<"  pnode1 hexahedral done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
+					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
+					std::cout<<"  pnode3 done" <<std::endl;
 					Node < 3 >::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
+					std::cout<<"  pnode4 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
+					std::cout<<"  Surfacemesh done" <<std::endl; 
 
 					// Add triangle one as condition
 					std::cout<<"  Step 3" <<std::endl;
