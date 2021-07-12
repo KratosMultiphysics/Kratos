@@ -95,8 +95,8 @@ public:
         TIndexType row_data_size=0;
         TIndexType col_data_size=0;
         rSparseGraph.ExportCSRArrays(mpRowIndicesData,row_data_size,mpColIndicesData, col_data_size);
-        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size); //no copying of data happening here
-        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData.get(), row_data_size); //no copying of data happening here
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData.get(), col_data_size);
 
         mNrows = size1();
 
@@ -137,9 +137,9 @@ public:
         rOtherMatrix.mIsOwnerOfData=false;
 
         //swap the pointers to take owership of data
-        mpRowIndicesData = rOtherMatrix.mpRowIndicesData;
-        mpColIndicesData = rOtherMatrix.mpColIndicesData;
-        mpValuesVectorData = rOtherMatrix.mpValuesVectorData;
+        mpRowIndicesData = std::move(rOtherMatrix.mpRowIndicesData);
+        mpColIndicesData = std::move(rOtherMatrix.mpColIndicesData);
+        mpValuesVectorData = std::move(rOtherMatrix.mpValuesVectorData);
 
         //here we assign the span
         mRowIndices = rOtherMatrix.mRowIndices;
@@ -153,9 +153,7 @@ public:
 
     /// Destructor.
     virtual ~CsrMatrix(){
-        AssignIndex1Data(nullptr,0);
-        AssignIndex2Data(nullptr,0);
-        AssignValueData(nullptr,0);        
+      
     }
 
     /// Assignment operator. 
@@ -271,58 +269,53 @@ public:
         mNcols = max_col+1; //note that we must add 1 to the greatest column id
     }
 
-    void AssignIndex1Data(TIndexType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpRowIndicesData != nullptr)
-            delete [] mpRowIndicesData;
-        mpRowIndicesData = pExternalData;
+    void AssignIndex1Data(Kratos::unique_ptr<IndexType[]>& pExternalData, TIndexType DataSize){
         if(DataSize!=0)
-            mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
+            mRowIndices = Kratos::span<TIndexType>(pExternalData.get(), DataSize);
         else
             mRowIndices = Kratos::span<TIndexType>();
+
+        if(IsOwnerOfData()){
+            mpRowIndicesData = std::move(pExternalData);
+        }
     }
 
-    void AssignIndex2Data(TIndexType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpColIndicesData != nullptr)
-            delete [] mpColIndicesData;
-        mpColIndicesData = pExternalData;
+    void AssignIndex2Data(Kratos::unique_ptr<IndexType[]>& pExternalData, TIndexType DataSize){
+        
         if(DataSize!=0)
-            mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
+            mColIndices = Kratos::span<TIndexType>(pExternalData.get(), DataSize);
         else
             mColIndices = Kratos::span<TIndexType>();
+
+        if(IsOwnerOfData())
+            mpColIndicesData = std::move(pExternalData);
     }
 
-    void AssignValueData(TDataType* pExternalData, TIndexType DataSize){
-        if(IsOwnerOfData() && mpValuesVectorData != nullptr)
-            delete [] mpValuesVectorData;
-        mpValuesVectorData = pExternalData;
+    void AssignValueData(Kratos::unique_ptr<TDataType[]>& pExternalData, TIndexType DataSize){
         if(DataSize!=0)
-            mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
+            mValuesVector = Kratos::span<TDataType>(pExternalData.get(), DataSize);
         else
             mValuesVector = Kratos::span<TDataType>();
+        if(IsOwnerOfData())
+            mpValuesVectorData = std::move(pExternalData);
     }
 
     void ResizeIndex1Data(TIndexType DataSize){
         KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex1Data is only allowed if the data are locally owned" << std::endl;
-        if(mpRowIndicesData != nullptr)
-            delete [] mpRowIndicesData;
-        mpRowIndicesData = new TIndexType[DataSize];
-        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, DataSize);
+        mpRowIndicesData = std::move(Kratos::unique_ptr<IndexType[]>(new TIndexType[DataSize]));
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData.get(), DataSize);
     }
 
     void ResizeIndex2Data(TIndexType DataSize){
         KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeIndex2Data is only allowed if the data are locally owned" << std::endl;
-        if(mpColIndicesData != nullptr)
-            delete [] mpColIndicesData;
-        mpColIndicesData = new TIndexType[DataSize];
-        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, DataSize);
+        mpColIndicesData = std::move(Kratos::unique_ptr<IndexType[]>(new TIndexType[DataSize]));
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData.get(), DataSize);
     }
 
     void ResizeValueData(TIndexType DataSize){
         KRATOS_ERROR_IF_NOT(IsOwnerOfData()) << "ResizeValueData is only allowed if the data are locally owned" << std::endl;
-        if(mpValuesVectorData != nullptr)
-            delete [] mpValuesVectorData;
-        mpValuesVectorData = new TDataType[DataSize];
-        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
+        mpValuesVectorData = std::move(Kratos::unique_ptr<TDataType[]>(new TDataType[DataSize]));
+        mValuesVector = Kratos::span<TDataType>(mpValuesVectorData.get(), DataSize);
     }
 
 
@@ -721,9 +714,9 @@ private:
     ///@{
     const DataCommunicator* mpComm;
     bool mIsOwnerOfData = true;
-    IndexType* mpRowIndicesData = nullptr;
-    IndexType* mpColIndicesData = nullptr;
-    TDataType* mpValuesVectorData = nullptr;
+    Kratos::unique_ptr<IndexType[]> mpRowIndicesData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
+    Kratos::unique_ptr<IndexType[]> mpColIndicesData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
+    Kratos::unique_ptr<TDataType[]> mpValuesVectorData; //this is the pointer who "owns" the data. DO NOT USE IT as such (it may be uninitialized if data is not owned), only use the span wrapper just below
     Kratos::span<IndexType> mRowIndices;
     Kratos::span<IndexType> mColIndices;
     Kratos::span<TDataType> mValuesVector;

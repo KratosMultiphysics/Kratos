@@ -69,15 +69,30 @@ public:
             pAconverted->SetIsOwnerOfData(false);
         }
         else{ //if rA is the owner, transfer ownership to the csr_matrix
-            rA.own_data = false;
+            //rA.own_data = false;
             pAconverted->SetIsOwnerOfData(true);
         }
 
+        //assume ownership of data via unique_ptr (it will be assigned to the converted matrix)
+        Kratos::unique_ptr<TIndexType[]> pRowData((TIndexType*)(rA.ptr));
+        Kratos::unique_ptr<TIndexType[]> pColData((TIndexType*)(rA.col));
+        Kratos::unique_ptr<TDataType[]> pValueData((TDataType*)(rA.val));
+
         pAconverted->SetRowSize(rA.nrows);
         pAconverted->SetColSize(rA.ncols);
-        pAconverted->AssignIndex1Data((TIndexType*)(rA.ptr), rA.nrows+1);
-        pAconverted->AssignIndex2Data((TIndexType*)(rA.col), rA.nnz);
-        pAconverted->AssignValueData((TDataType*)(rA.val), rA.nnz);
+        pAconverted->AssignIndex1Data(pRowData, rA.nrows+1);
+        pAconverted->AssignIndex2Data(pColData, rA.nnz);
+        pAconverted->AssignValueData(pValueData, rA.nnz);
+
+        if(rA.own_data == false){ //if rA is not the owner we must detach the pointers
+            pRowData.release(); //we don't want it to be deleted here
+            pColData.release(); //we don't want it to be deleted here
+            pValueData.release(); //we don't want it to be deleted here
+        }
+        else{ //if rA is the owner, transfer ownership to the csr_matrix, so we need to ensure amgcl will not delete
+            rA.own_data = false;
+        }
+
         return pAconverted;
 	}
 	
