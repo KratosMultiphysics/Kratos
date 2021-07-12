@@ -299,13 +299,16 @@ public:
      */
     static void AssembleVector( ModelPart& rModelPart,
         Vector& rVector,
-        const Variable<array_3d> &rVariable)
+        const Variable<array_3d> &rVariable, const bool Append=false)
     {
-        if (rVector.size() != rModelPart.NumberOfNodes()*3){
-            rVector.resize(rModelPart.NumberOfNodes()*3);
-        }
+        Vector back_up_vec = rVector;
+        const int initial_length = rVector.size();
+        const int model_part_var_length = rModelPart.NumberOfNodes()*3;
+        const int final_length = Append ? model_part_var_length + initial_length : model_part_var_length;
+        rVector.resize(final_length);
 
-        int i=0;
+        if (Append) subrange(rVector, 0, initial_length) = back_up_vec;
+        int i = (int)initial_length/3;
         for (auto & node_i : rModelPart.Nodes())
         {
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
@@ -324,7 +327,8 @@ public:
         const Variable<array_3d> &rVariable)
     {
         KRATOS_ERROR_IF(rVector.size() != rModelPart.NumberOfNodes()*3)
-            << "AssignVectorToVariable: Vector size does not mach number of Nodes!" << std::endl;
+            << "AssignVectorToVariable: Vector size does not match number of Nodes!\n"<<
+            "Sizes are : "<< rVector.size()<<" and "<<rModelPart.NumberOfNodes()*3 << std::endl;
 
         int i=0;
         for (auto & node_i : rModelPart.Nodes())
@@ -343,21 +347,27 @@ public:
      */
     static void AssembleMatrix(ModelPart& rModelPart,
         Matrix& rMatrix,
-        const std::vector<Variable<array_3d>*>& rVariables
+        const std::vector<Variable<array_3d>*>& rVariables, const bool Append=false
     )
     {
-        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
-            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
-        }
+        const Matrix back_up_matrix = rMatrix;
+        int initial_size1 = rMatrix.size1();
+        int initial_size2 = rMatrix.size2()==0 ? rVariables.size() : rMatrix.size2();
+        if (Append)
+            KRATOS_ERROR_IF(initial_size2 != rVariables.size()) <<"Cannot append a different number of variables(columns) to the matrix"<<std::endl;
 
-        int i=0;
-        for (auto & node_i : rModelPart.Nodes())
+        int final_size1 = rModelPart.NumberOfNodes()*3 + initial_size1;
+        rMatrix.resize(final_size1, initial_size2);
+        if(Append && initial_size2!=0 && initial_size1!=0) subrange(rMatrix, 0,back_up_matrix.size1(), 0,initial_size2) = back_up_matrix;
+
+        int i=(int)initial_size1/3;
+        for (const auto& node_i : rModelPart.Nodes())
         {
             int j=0;
             for (Variable<array_3d>* p_variable_j : rVariables)
             {
                 const Variable<array_3d>& r_variable_j = *p_variable_j;
-                array_3d& variable_vector = node_i.FastGetSolutionStepValue(r_variable_j);
+                auto& variable_vector = node_i.FastGetSolutionStepValue(r_variable_j);
                 rMatrix(i*3+0, j) = variable_vector[0];
                 rMatrix(i*3+1, j) = variable_vector[1];
                 rMatrix(i*3+2, j) = variable_vector[2];

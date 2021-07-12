@@ -72,20 +72,6 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
-inline void AssembleMatrixForVariableList(
-    ModelPart& rModelPart,
-    Matrix& rMatrix,
-    pybind11::list& rVariables)
-{
-    std::size_t list_length = pybind11::len(rVariables);
-    std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
-    for (std::size_t i = 0; i < list_length; i++)
-    {
-        variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
-    }
-    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
-}
-
 // ==============================================================================
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -171,14 +157,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                                         })
         .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
         .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
-        .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+        .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables, bool Append){
                                             std::size_t list_length = pybind11::len(rVariables);
                                             std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
                                             for (std::size_t i = 0; i < list_length; i++)
                                             {
                                                 variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
                                             }
-                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
+                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector, Append);
                                         })
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
