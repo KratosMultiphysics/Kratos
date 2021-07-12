@@ -290,5 +290,120 @@ namespace Testing {
         KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
     }
 
+    /** Checks bins search nearest, inside point
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraInside, KratosFastSuite) {
+        constexpr double tolerance = 1e-12;
+
+        Model current_model;
+        
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point near_point{0.25,0.25,0.25};
+        auto result = bins.SearchNearest(near_point);
+
+        KRATOS_CHECK(result.IsObjectFound());
+        KRATOS_CHECK_NEAR(result.GetDistance(), 0.0, tolerance);
+    }
+
+    /** Checks bins search nearest, outside near the element
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideNear, KratosFastSuite) {
+        Model current_model;
+        
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point near_point{0.75,0.75,0.75};
+        auto result = bins.SearchNearest(near_point);
+
+        KRATOS_CHECK(result.IsObjectFound());
+        KRATOS_CHECK_NEAR(result.GetDistance(), 0.7216878364, 0.01);
+    }
+
+    /** Checks bins search nearest outside close to the element
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideClose, KratosFastSuite) {
+        Model current_model;
+        
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point near_point{0.5,0.5,0.5};
+        auto result = bins.SearchNearest(near_point);
+
+        KRATOS_CHECK(result.IsObjectFound());
+        KRATOS_CHECK_NEAR(result.GetDistance(), 0.2886751346, 0.01);
+    }
+
+    /** Checks bins search nearest, far from the element
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraOutsideFar, KratosFastSuite) {
+        Model current_model;
+        
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point near_point{1.0,1.0,1.0};
+        auto result = bins.SearchNearest(near_point);
+
+        KRATOS_CHECK_IS_FALSE(result.IsObjectFound());
+    }
+
+    /** Checks bins search nearest, on the edge of the element
+    */
+    KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestTetraEdge, KratosFastSuite) {
+        Model current_model;
+        
+        // Generate the cube skin
+        ModelPart& skin_part = current_model.CreateModelPart("Skin");
+        skin_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        skin_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        skin_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        skin_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties(new Properties(0));
+        skin_part.CreateNewElement("Element3D4N",  1, { 1,2,3,4 }, p_properties);
+
+        GeometricalObjectsBins bins(skin_part.ElementsBegin(), skin_part.ElementsEnd());
+
+        Point near_point{0.5,0.0,0.0};
+        auto result = bins.SearchNearest(near_point);
+
+        KRATOS_CHECK(result.IsObjectFound());
+    }
+
 } // namespace Testing.
 } // namespace Kratos.
