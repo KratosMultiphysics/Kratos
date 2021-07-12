@@ -14,6 +14,7 @@
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : false,
+"compute_reactions_on_fixed_particles" : true,
 "DeltaOption"                      : "Absolute",
 "SearchTolerance"                  : 0.001,
 "AmplifiedSearchRadiusExtension"   : 1.1,

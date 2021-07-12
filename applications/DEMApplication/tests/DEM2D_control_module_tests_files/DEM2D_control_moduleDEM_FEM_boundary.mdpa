@@ -47,6 +47,7 @@ Begin SubModelPart left // DEM-FEM-Wall2D - group identifier: left
     IDENTIFIER left
     TOP 0
     BOTTOM 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
@@ -64,6 +65,7 @@ Begin SubModelPart right // DEM-FEM-Wall2D - group identifier: right
     IDENTIFIER right
     TOP 0
     BOTTOM 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
@@ -81,6 +83,7 @@ Begin SubModelPart bot // DEM-FEM-Wall2D - group identifier: bot
     IDENTIFIER bot
     TOP 0
     BOTTOM 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
@@ -98,6 +101,7 @@ Begin SubModelPart top // DEM-FEM-Wall2D - group identifier: top
     IDENTIFIER top
     TOP 0
     BOTTOM 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT true
     FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes

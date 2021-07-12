@@ -416,21 +416,25 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::GetRigidBodyElementsForce() {
         KRATOS_TRY
-        CalculateConditionsRHSAndAdd();
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
-        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-        ModelPart& fem_model_part = GetFemModelPart();
-        ElementsArrayType& pElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
+        ElementsArrayType& pElements = GetFemModelPart().GetCommunicator().LocalMesh().Elements();
         const int number_of_rigid_body_elements = pElements.size();
+        if( number_of_rigid_body_elements || r_process_info[COMPUTE_FEM_RESULTS_OPTION] ) {
+            CalculateConditionsRHSAndAdd();
+        }
+
+        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
 
         //DO NOT PARALLELIZE THIS LOOP, IT IS PARALLELIZED INSIDE
         for (int k = 0; k < number_of_rigid_body_elements; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
             RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
-            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
-            rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
-            rigid_body_element.GetRigidBodyElementsForce(gravity);
+            if (rigid_body_element.GetGeometry()[0].Is(DEMFlags::COMPUTE_REACTIONS)) {
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
+                rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
+                rigid_body_element.GetRigidBodyElementsForce(gravity);
+            }
 
         } // loop over rigid body elements
 
@@ -911,54 +915,82 @@ namespace Kratos {
 
         KRATOS_TRY
         ClearFEMForces();
-        ConditionsArrayType& rConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-        ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
-        const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
 
+        for (auto& submp : GetFemModelPart().SubModelParts()) {
 
-        struct my_tls {
-            Vector rhs_cond;
-            Vector rhs_cond_elas;
-        };
+            ElementsArrayType& pElements = submp.GetCommunicator().LocalMesh().Elements();
 
-        //here the my_tls is constructed in place, which is the equivalent of "private" in OpenMP
-        block_for_each(rConditions, my_tls(), [&](Condition& rCondition, my_tls& rTLS){
-            Condition::GeometryType& geom = rCondition.GetGeometry();
-            rCondition.CalculateRightHandSide(rTLS.rhs_cond, r_const_process_info);
-            DEMWall* p_wall = dynamic_cast<DEMWall*> (&(rCondition));
-            p_wall->CalculateElasticForces(rTLS.rhs_cond_elas, r_process_info);
+            KRATOS_ERROR_IF(pElements.size() == 0) << "ERROR::  << Submodelpart : " << submp[IDENTIFIER] << "does not have any element." << std::endl;
 
-            array_1d<double, 3> Normal_to_Element = ZeroVector(3);
-            const unsigned int& dim = geom.WorkingSpaceDimension();
+            ElementsArrayType::iterator it = pElements.ptr_begin();
+            RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
 
-            if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
+            Node<3>& central_node = rigid_body_element.GetGeometry()[0];
 
-            for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
-                //we are studying a certain condition here
-                unsigned int index = i * dim; //*2;
-
-                array_1d<double, 3>& node_rhs = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
-                array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
-                array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
-                array_1d<double, 3> rhs_cond_comp;
-                noalias(rhs_cond_comp) = ZeroVector(3);
-
-                geom[i].SetLock();
-
-                for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them
-                    node_rhs[j] += rTLS.rhs_cond[index + j];
-                    node_rhs_elas[j] += rTLS.rhs_cond_elas[index + j];
-                    rhs_cond_comp[j] = rTLS.rhs_cond[index + j];
+            if (central_node.Is(DEMFlags::FIXED_VEL_X) && central_node.Is(DEMFlags::FIXED_VEL_Y) && central_node.Is(DEMFlags::FIXED_VEL_Z) && central_node.Is(DEMFlags::FIXED_ANG_VEL_X) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Z)) {
+                if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 0 &&  submp[FORCE_INTEGRATION_GROUP] == 0) continue;
                 }
-                //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
-                //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
-                node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
-                noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
-
-                geom[i].UnSetLock();
+                else if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && !submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 0) continue;
+                }
+                else if (!submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT) && submp.Has(FORCE_INTEGRATION_GROUP)) {
+                    if (submp[FORCE_INTEGRATION_GROUP] == 0) continue;
+                }
+                else {
+                    continue;
+                }
             }
-        });
+
+            ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
+            ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
+            const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
+
+
+            struct my_tls {
+                Vector rhs_cond;
+                Vector rhs_cond_elas;
+            };
+
+            //here the my_tls is constructed in place, which is the equivalent of "private" in OpenMP
+            block_for_each(rConditions, my_tls(), [&](Condition& rCondition, my_tls& rTLS){
+                Condition::GeometryType& geom = rCondition.GetGeometry();
+                rCondition.CalculateRightHandSide(rTLS.rhs_cond, r_const_process_info);
+                DEMWall* p_wall = dynamic_cast<DEMWall*> (&(rCondition));
+                p_wall->CalculateElasticForces(rTLS.rhs_cond_elas, r_process_info);
+
+                array_1d<double, 3> Normal_to_Element = ZeroVector(3);
+                const unsigned int& dim = geom.WorkingSpaceDimension();
+
+                if (geom.size()>2 || dim==2) p_wall->CalculateNormal(Normal_to_Element);
+
+                for (unsigned int i = 0; i < geom.size(); i++) { //talking about each of the three nodes of the condition
+                    //we are studying a certain condition here
+                    unsigned int index = i * dim; //*2;
+
+                    array_1d<double, 3>& node_rhs = geom[i].FastGetSolutionStepValue(CONTACT_FORCES);
+                    array_1d<double, 3>& node_rhs_elas = geom[i].FastGetSolutionStepValue(ELASTIC_FORCES);
+                    array_1d<double, 3>& node_rhs_tang = geom[i].FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+                    double& node_pressure = geom[i].FastGetSolutionStepValue(DEM_PRESSURE);
+                    array_1d<double, 3> rhs_cond_comp;
+                    noalias(rhs_cond_comp) = ZeroVector(3);
+
+                    geom[i].SetLock();
+
+                    for (unsigned int j = 0; j < dim; j++) { //talking about each coordinate x, y and z, loop on them
+                        node_rhs[j] += rTLS.rhs_cond[index + j];
+                        node_rhs_elas[j] += rTLS.rhs_cond_elas[index + j];
+                        rhs_cond_comp[j] = rTLS.rhs_cond[index + j];
+                    }
+                    //node_area += 0.333333333333333 * Element_Area; //TODO: ONLY FOR TRIANGLE... Generalize for 3 or 4 nodes.
+                    //node_pressure actually refers to normal force. Pressure is actually computed later in function Calculate_Nodal_Pressures_and_Stresses()
+                    node_pressure += MathUtils<double>::Abs(GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element));
+                    noalias(node_rhs_tang) += rhs_cond_comp - GeometryFunctions::DotProduct(rhs_cond_comp, Normal_to_Element) * Normal_to_Element;
+
+                    geom[i].UnSetLock();
+                }
+            });
+        }
 
         KRATOS_CATCH("")
     }
