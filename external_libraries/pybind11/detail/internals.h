@@ -112,7 +112,7 @@ struct internals {
     PyInterpreterState *istate = nullptr;
     ~internals() {
         // This destructor is called *after* Py_Finalize() in finalize_interpreter().
-        // That *SHOULD BE* fine. The following details what happens whe PyThread_tss_free is called.
+        // That *SHOULD BE* fine. The following details what happens when PyThread_tss_free is called.
         // PYBIND11_TLS_FREE is PyThread_tss_free on python 3.7+. On older python, it does nothing.
         // PyThread_tss_free calls PyThread_tss_delete and PyMem_RawFree.
         // PyThread_tss_delete just calls TlsFree (on Windows) or pthread_key_delete (on *NIX). Neither
@@ -266,7 +266,7 @@ PYBIND11_NOINLINE inline internals &get_internals() {
         const PyGILState_STATE state;
     } gil;
 
-    constexpr auto *id = PYBIND11_INTERNALS_ID;
+    PYBIND11_STR_TYPE id(PYBIND11_INTERNALS_ID);
     auto builtins = handle(PyEval_GetBuiltins());
     if (builtins.contains(id) && isinstance<capsule>(builtins[id])) {
         internals_pp = static_cast<internals **>(capsule(builtins[id]));
