@@ -18,7 +18,8 @@
 // Project includes
 
 // Include base h
-#include "geometry_utilities.h"
+#include "utilities/geometry_utilities.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -112,6 +113,37 @@ void GeometryUtils::EvaluateHistoricalVariableGradientAtGaussPoint(
             }
         }
     }
+}
+
+bool GeometryUtils::ProjectedIsInside(
+    const GeometryType& rGeometry,
+    const GeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+    GeometryType::CoordinatesArrayType& rResult,
+    const double Tolerance
+    )
+{
+    // We compute the distance, if it is not in the pane we
+    const Point point_to_project(rPointGlobalCoordinates);
+    Point point_projected;
+    double distance = 0.0;
+    if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2) {
+        distance = GeometricalProjectionUtilities::FastProjectOnLine2D(rGeometry, point_to_project, point_projected);
+    } else if (rGeometry.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) {
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        const auto center = rGeometry.Center();
+        const array_1d<double, 3> normal = rGeometry.UnitNormal(center);
+
+        point_projected = GeometricalProjectionUtilities::FastProject(center, point_to_project, normal, distance);
+    }
+
+    // We check if we are on the plane
+    if (std::abs(distance) > std::numeric_limits<double>::epsilon()) {
+        if (std::abs(distance) > 1.0e-6 * rGeometry.Length()) {
+            return false;
+        }
+    }
+
+    return rGeometry.IsInside(rPointGlobalCoordinates, rResult, Tolerance);
 }
 
 // template instantiations
