@@ -943,6 +943,14 @@ public:
         return *mpProperties;
     }
 
+    PropertiesType const& GetPropertiesAsConst() const
+    {
+        KRATOS_DEBUG_ERROR_IF(mpProperties == nullptr)
+            << "Tryining to get the properties of " << Info()
+            << ", which are uninitialized." << std::endl;
+        return *mpProperties;
+    }
+
     void SetProperties(PropertiesType::Pointer pProperties)
     {
         mpProperties = pProperties;
