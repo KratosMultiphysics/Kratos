@@ -134,6 +134,22 @@ def InputNodalResultsFromHDF5(model_part, hdf5_file, list_of_variables, is_histo
             hdf5_file)
         nodal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
+def InputNodalFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5NodalFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadNodalFlags(model_part.Nodes, model_part.GetCommunicator())
+
 def InputConditionResultsFromHDF5(model_part, hdf5_file, list_of_variables):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
@@ -150,6 +166,22 @@ def InputConditionResultsFromHDF5(model_part, hdf5_file, list_of_variables):
         hdf5_file)
     nodal_io.ReadConditionResults(model_part.Conditions, model_part.GetCommunicator())
 
+def InputConditionFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5ConditionFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadConditionFlags(model_part.Conditions, model_part.GetCommunicator())
+
 def InputElementResultsFromHDF5(model_part, hdf5_file, list_of_variables):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
@@ -165,6 +197,22 @@ def InputElementResultsFromHDF5(model_part, hdf5_file, list_of_variables):
         hdf5_input_parameters,
         hdf5_file)
     nodal_io.ReadElementResults(model_part.Elements, model_part.GetCommunicator())
+
+def InputElementFlagsFromHDF5(model_part, hdf5_file, list_of_variables):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_input_parameters = Kratos.Parameters("""
+    {
+        "prefix": "/ResultsData",
+        "list_of_variables":[]
+    }""")
+    hdf5_input_parameters["list_of_variables"].SetStringArray(_GetListOfVariableNames(list_of_variables))
+
+    nodal_io = KratosHDF5.HDF5ElementFlagValueIO(
+        hdf5_input_parameters,
+        hdf5_file)
+    nodal_io.ReadElementFlags(model_part.Elements, model_part.GetCommunicator())
 
 def OutputModelPartToHDF5(model_part, hdf5_file):
     if (KratosHDF5 is None):
