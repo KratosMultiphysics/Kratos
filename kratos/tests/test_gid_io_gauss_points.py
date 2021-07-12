@@ -150,6 +150,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
 
 if __name__ == '__main__':
+    Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
     test = TestGiDIOGaussPoints()
     test.setUp()
     test.test_write_active_only()
