@@ -1,11 +1,13 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:                 RRossi $
-//   Date:                $Date:                     2008 $
-//   Revision:            $Revision                   0.0 $
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME )
 #define  KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_RELAXATION_SCHEME
@@ -86,10 +88,11 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef Kratos::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRelaxationScheme );
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+
+    typedef ResidualBasedRelaxationScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -105,31 +108,53 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-
     /*@} */
     /**@name Life Cycle
      */
     /*@{ */
 
+    /** Default constructor.
+     */
+    explicit ResidualBasedRelaxationScheme()
+        : BaseType()
+    {
+    }
+
     /** Constructor.
      */
-    ResidualBasedRelaxationScheme(double NewAlphaBossak, double damping_factor)
-        : Scheme<TSparseSpace, TDenseSpace>()
+    explicit ResidualBasedRelaxationScheme(const double NewAlphaBossak, const double DampingFactor)
+        : BaseType()
     {
         //default values for the Newmark Scheme
         mAlphaBossak = NewAlphaBossak;
-        mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
-        mGammaNewmark = 0.5 - mAlphaBossak;
 
-        mdamping_factor = damping_factor;
+        // Variable initialization
+        VariableInitialization();
 
-        // Allocate auxiliary memory
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        mMass.resize(num_threads);
-        mDamp.resize(num_threads);
-        mvel.resize(num_threads);
+        // Damping factor
+        mDampingFactor = DampingFactor;
 
-        //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
+        // Allocate auxiliar memory
+        AllocateAuxiliarMemory();
+    }
+
+    /**
+     * @brief Constructor
+     * @param ThisParameters The parameters containing the list of variables to consider
+     * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
+     */
+    explicit ResidualBasedRelaxationScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Variable initialization
+        VariableInitialization();
+
+        // Allocate auxiliar memory
+        AllocateAuxiliarMemory();
     }
 
     /** Destructor.
@@ -138,11 +163,23 @@ public:
     {
     }
 
-
     /*@} */
     /**@name Operators
      */
     /*@{ */
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+    
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
         Performing the update of the solution.
@@ -151,7 +188,7 @@ public:
     //***************************************************************************
 
     void Update(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
@@ -160,57 +197,30 @@ public:
     {
         KRATOS_TRY
 
-        //update of displacement (by DOF)
-        for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
-        {
-            if (i_dof->IsFree())
-            {
+        // Update of displacement (by DOF)
+        for (auto i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof) {
+            if (i_dof->IsFree()) {
                 i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
             }
         }
 
-        //updating time derivatives (nodally for efficiency)
+        // Updating time derivatives (nodally for efficiency)
         array_1d<double, 3 > DeltaDisp;
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
+        for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
 
             noalias(DeltaDisp) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            //KRATOS_WATCH( i->Id() )
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
-
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT,1) )
-            //KRATOS_WATCH( DeltaDisp )
-            //KRATOS_WATCH( OldVelocity )
-            //KRATOS_WATCH( CurrentVelocity )
-            //std::cout << "after update" << std::endl;
-
-            //std::cout  << std::endl;
-
         }
 
-
-        //          //updating time derivatives
-        //          for (it2=rDofSet.begin(); it2 != rDofSet.end(); ++it2)
-        //          {
-        ////                Dof::VariableType dof_variable = (*it2)->GetVariable();
-        //  //              if ((*it2)->HasTimeDerivative())
-        //                      mpModel->Value((*it2)->GetTimeDerivative(), *it2) = Dt(**it2, CurrentTime, DeltaTime);
-        //  //              if ((*it2)->HasSecondTimeDerivative())
-        //                      mpModel->Value((*it2)->GetSecondTimeDerivative(), *it2) = Dtt(**it2, CurrentTime, DeltaTime);
-        //          }
-
         KRATOS_CATCH( "" )
-
     }
 
 
@@ -219,31 +229,24 @@ public:
     // x = xold + vold * Dt
 
     void Predict(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
     ) override
     {
-        std::cout << "prediction" << std::endl;
+        KRATOS_INFO("ResidualBasedRelaxationScheme") << "Prediction" << std::endl;
         array_1d<double, 3 > DeltaDisp;
-        double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
+        double DeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
 
+        for (auto i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i) {
 
-        for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
-                i != r_model_part.NodesEnd(); ++i)
-        {
-            //KRATOS_WATCH( i->Id())
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(DISPLACEMENT) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(VELOCITY) )
-            //KRATOS_WATCH( i->FastGetSolutionStepValue(ACCELERATION) )
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
             array_1d<double, 3 > & CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //KRATOS_WATCH( "1" )
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                 (CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
@@ -252,27 +255,20 @@ public:
             if (i->HasDofFor(DISPLACEMENT_Z))
                 if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
                     (CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
-            //KRATOS_WATCH( "2" )
 
             //updating time derivatives ::: please note that displacements and its time derivatives
             //can not be consistently fixed separately
             noalias(DeltaDisp) = CurrentDisp - OldDisp;
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH( DeltaDisp )
 
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-            //KRATOS_WATCH( CurrentVelocity )
-            //KRATOS_WATCH( CurrentAcceleration )
-
 
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
         }
-
     }
-
 
     //***************************************************************************
 
@@ -299,23 +295,18 @@ public:
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
         rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
+
         //basic operations for the element considered
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentElement.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentElement.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
-        //KRATOS_WATCH( mMass )
-        //KRATOS_WATCH( mDamp )
-        //adding the dynamic contributions (statics is already included)
 
+        //adding the dynamic contributions (statics is already included)
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-        //KRATOS_WATCH( LHS_Contribution )
-        //KRATOS_WATCH( RHS_Contribution )
+
         KRATOS_CATCH( "" )
 
     }
@@ -337,7 +328,6 @@ public:
         rCurrentElement.EquationIdVector(EquationId, CurrentProcessInfo);
 
         //adding the dynamic contributions (static is already included)
-
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
     }
@@ -359,7 +349,6 @@ public:
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
         rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
-
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
@@ -393,20 +382,19 @@ public:
     }
 
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
     ) override
     {
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-        Scheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(r_model_part, A, Dx, b);
+        BaseType::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+        const double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
-        if (DeltaTime == 0)
-            KRATOS_THROW_ERROR( std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "" )
+        KRATOS_ERROR_IF(DeltaTime == 0) << "Detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part" << std::endl;
 
         //initializing constants
         ma0 = 1.0 / (mBetaNewmark * pow(DeltaTime, 2));
@@ -422,79 +410,86 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param r_model_part
+     * @param rModelPart
      * @return 0 all ok
      */
-    int Check(const ModelPart& r_model_part) const override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
 
-        int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
+        int err = BaseType::Check(rModelPart);
         if (err != 0) return err;
 
-        //check that variables are correctly allocated
-        for (const auto& r_node : r_model_part.Nodes())
-        {
-            if (r_node.SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
-            if (r_node.SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
-            if (r_node.SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", r_node.Id() )
+        // Check that variables are correctly allocated
+        for (const auto& r_node : rModelPart.Nodes()) {
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(DISPLACEMENT)) <<  "DISPLACEMENT variable is not allocated for node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(VELOCITY))     <<      "VELOCITY variable is not allocated for node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.SolutionStepsDataHas(ACCELERATION)) <<  "ACCELERATION variable is not allocated for node " << r_node.Id() << std::endl;
         }
 
-        //check that dofs exist
-        for (const auto& r_node : r_model_part.Nodes())
-        {
-            if (r_node.HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_X dof on node ", r_node.Id() )
-            if (r_node.HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", r_node.Id() )
-            if (r_node.HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", r_node.Id() )
+        // Check that dofs exist
+        for (const auto& r_node : rModelPart.Nodes()) {
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_X)) << "Missing DISPLACEMENT_X dof on node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_Y)) << "Missing DISPLACEMENT_Y dof on node " << r_node.Id() << std::endl;
+            KRATOS_ERROR_IF_NOT(r_node.HasDofFor(DISPLACEMENT_Z)) << "Missing DISPLACEMENT_Z dof on node " << r_node.Id() << std::endl;
         }
 
+        // Check for admissible value of the AlphaBossak
+        KRATOS_ERROR_IF(mAlphaBossak > 0.0 || mAlphaBossak < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlphaBossak << std::endl;
 
-        //check for admissible value of the AlphaBossak
-        if (mAlphaBossak > 0.0 || mAlphaBossak < -0.3)
-            KRATOS_THROW_ERROR( std::logic_error, "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlphaBossak )
-
-            //check for minimum value of the buffer index
-            //verify buffer size
-            if (r_model_part.GetBufferSize() < 2)
-                KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
-
+        // Check for minimum value of the buffer index
+        // Verify buffer size
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         return 0;
         KRATOS_CATCH( "" )
     }
 
-    /*@} */
-    /**@name Operations */
-    /*@{ */
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"               : "relaxation",
+            "alpha_bossak"       : -0.3,
+            "damping_factor"     : 10.0
+        })");
 
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "relaxation";
+    }
 
     /*@} */
     /**@name Access */
     /*@{ */
 
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Friends */
     /*@{ */
-
 
     /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
-
 
     /*@} */
     /**@name Protected member Variables */
@@ -514,16 +509,17 @@ protected:
     std::vector< Matrix >mMass;
     std::vector< Matrix >mDamp;
     std::vector< Vector >mvel;
-    //std::vector< Vector >macc;
-    //std::vector< Vector >maccold;
 
-    double mdamping_factor;
-
+    double mDampingFactor;
 
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
 
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+    
     //*********************************************************************************
     //Updating first time Derivative
 
@@ -537,8 +533,6 @@ protected:
         noalias(CurrentVelocity) = ma1 * DeltaDisp - ma4 * OldVelocity - ma5*OldAcceleration;
     }
 
-
-
     //**************************************************************************
 
     inline void UpdateAcceleration(array_1d<double, 3 > & CurrentAcceleration,
@@ -549,9 +543,6 @@ protected:
 
         noalias(CurrentAcceleration) = ma0 * DeltaDisp - ma2 * OldVelocity - ma3*OldAcceleration;
     }
-
-
-
 
     //****************************************************************************
 
@@ -565,22 +556,11 @@ protected:
         LocalSystemMatrixType& M,
         const ProcessInfo& CurrentProcessInfo)
     {
-        // adding mass contribution to the dynamic stiffness
-        if (M.size1() != 0) // if M matrix declared
-        {
-            //              noalias(LHS_Contribution) += mam*M;
-            //          }
-            //
-            //          //adding  damping contribution
-            //          if(D.size1() != 0) // if M matrix declared
-            //          {
-            noalias(LHS_Contribution) += (mdamping_factor * ma1) * M;
+        // Adding mass contribution to the dynamic stiffness
+        if (M.size1() != 0) { // if M matrix declared
+            noalias(LHS_Contribution) += (mDampingFactor * ma1) * M;
         }
     }
-
-
-
-
 
     //****************************************************************************
 
@@ -596,28 +576,12 @@ protected:
         const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution
-        if (M.size1() != 0)
-        {
+        if (M.size1() != 0) {
             int k = OpenMPUtils::ThisThread();
             const auto& r_const_elem_ref = rCurrentElement;
-            /*              rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
-                            rCurrentElement-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
 
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution
-                        if (D.size1() != 0)
-                        {*/
             r_const_elem_ref.GetFirstDerivativesVector(mvel[k], 0);
-            noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
+            noalias(RHS_Contribution) -= mDampingFactor * prod(M, mvel[k]);
         }
 
     }
@@ -630,53 +594,37 @@ protected:
         const ProcessInfo& CurrentProcessInfo)
     {
         //adding inertia contribution - DO NOT ADD
-        if (M.size1() != 0)
-        {
+        if (M.size1() != 0) {
             int k = OpenMPUtils::ThisThread();
-            /*              rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::macc,0);
-                            (RelaxationAuxiliaries::macc) *= (1.00-mAlphaBossak);
-                            rCurrentCondition-
-            >GetSecondDerivativesVector(RelaxationAuxiliaries::maccold,1);
-                            noalias(RelaxationAuxiliaries::macc) += mAlphaBossak *
-            RelaxationAuxiliaries::maccold;
-
-                            noalias(RHS_Contribution) -= prod(M,
-            RelaxationAuxiliaries::macc );*/
-            /*          }
-
-                        //adding damping contribution
-                        //damping contribution - here we use daming matrix = MAss
-            MAtrix * mdamping_factor
-                        if (D.size1() != 0)
-                        {*/
             const auto& r_const_cond_ref = rCurrentCondition;
             r_const_cond_ref.GetFirstDerivativesVector(mvel[k], 0);
-            noalias(RHS_Contribution) -= mdamping_factor * prod(M, mvel[k]);
+            noalias(RHS_Contribution) -= mDampingFactor * prod(M, mvel[k]);
         }
 
     }
 
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mAlphaBossak = ThisParameters["alpha_bossak"].GetDouble();
+        mDampingFactor = ThisParameters["damping_factor"].GetDouble();
+    }
 
     /*@} */
     /**@name Protected  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Protected Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
-
-
 
     /*@} */
 
@@ -684,6 +632,7 @@ private:
     /**@name Static Member Variables */
     /*@{ */
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     /*@} */
     /**@name Member Variables */
@@ -697,21 +646,38 @@ private:
     /**@name Private Operations*/
     /*@{ */
 
+    /**
+    * @brief Variable initialization
+    */
+    void VariableInitialization()
+    {
+        mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+        mGammaNewmark = 0.5 - mAlphaBossak;
+    }
+
+    /**
+    * @brief This method allocates the auxiliar memory
+    */
+    void AllocateAuxiliarMemory()
+    {
+        // Allocate auxiliary memory
+        const int num_threads = ParallelUtilities::GetNumThreads();
+        mMass.resize(num_threads);
+        mDamp.resize(num_threads);
+        mvel.resize(num_threads);
+    }
 
     /*@} */
     /**@name Private  Access */
     /*@{ */
 
-
     /*@} */
     /**@name Private Inquiry */
     /*@{ */
 
-
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-
 
     /*@} */
 

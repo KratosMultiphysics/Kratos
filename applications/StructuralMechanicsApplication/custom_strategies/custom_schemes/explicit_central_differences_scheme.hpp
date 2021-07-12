@@ -23,6 +23,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos {
 
@@ -67,6 +68,9 @@ public:
     /// The definition of the base type
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
+    /// Definition of the current scheme
+    typedef ExplicitCentralDifferencesScheme<TSparseSpace, TDenseSpace> ClassType;
+
     /// Some definitions related with the base class
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -108,7 +112,7 @@ public:
         const double DeltaTimeFraction,
         const double DeltaTimePredictionLevel
         )
-        : Scheme<TSparseSpace, TDenseSpace>()
+        : BaseType()
     {
         mDeltaTime.PredictionLevel = DeltaTimePredictionLevel;
         mDeltaTime.Maximum = MaximumDeltaTime;
@@ -118,24 +122,15 @@ public:
     /**
      * @brief Constructor with parameters
      * @details The ExplicitCentralDifferencesScheme method
-     * @param rParameters The parameters containing the configuration parameters
+     * @param ThisParameters The parameters containing the configuration parameters
      * @warning time_step_prediction_level should be an integer
      */
-    ExplicitCentralDifferencesScheme(Parameters rParameters =  Parameters(R"({})"))
-        : Scheme<TSparseSpace, TDenseSpace>()
+    ExplicitCentralDifferencesScheme(Parameters ThisParameters = Parameters(R"({})"))
+        : BaseType()
     {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "time_step_prediction_level" : 0.0,
-            "fraction_delta_time"        : 0.9,
-            "max_delta_time"             : 1.0e0
-        })" );
-
-        rParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mDeltaTime.PredictionLevel = rParameters["time_step_prediction_level"].GetDouble();
-        mDeltaTime.Maximum = rParameters["max_delta_time"].GetDouble();
-        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters); 
     }
 
     /** Destructor.
@@ -145,6 +140,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
@@ -697,8 +705,8 @@ public:
         KRATOS_TRY
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ConditionsArrayType& r_conditions = rModelPart.Conditions();
-        ElementsArrayType& r_elements = rModelPart.Elements();
+        auto& r_conditions = rModelPart.Conditions();
+        auto& r_elements = rModelPart.Elements();
 
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
         Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
@@ -718,7 +726,6 @@ public:
         KRATOS_CATCH("")
     }
 
-
      void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -732,9 +739,34 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                       : "central_differences",
+            "time_step_prediction_level" : 0.0,
+            "fraction_delta_time"        : 0.9,
+            "max_delta_time"             : 1.0e0
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "central_differences";
+    }
 
     ///@}
     ///@name Access
@@ -794,6 +826,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mDeltaTime.PredictionLevel = ThisParameters["time_step_prediction_level"].GetDouble();
+        mDeltaTime.Maximum = ThisParameters["max_delta_time"].GetDouble();
+        mDeltaTime.Fraction = ThisParameters["fraction_delta_time"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access
@@ -812,6 +856,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
+
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
