@@ -299,6 +299,10 @@ public:
         rSerializer.load("Data",*static_cast<TDataType* >(pData));
     }
 
+    virtual void AcceptVisitor(VariablesListVisitorBase& TheVisitor) const override {
+        TheVisitor.Visit(*this);
+    }
+
     /**
      * @brief This method returns the variable type
      * @return The type of the variable
