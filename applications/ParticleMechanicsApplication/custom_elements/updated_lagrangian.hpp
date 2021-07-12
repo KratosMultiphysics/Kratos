@@ -97,6 +97,7 @@ protected:
 
         // MP_DISPLACEMENT
         array_1d<double, 3> displacement;
+        array_1d<double, 3> displacement_total;
         // MP_VELOCITY
         array_1d<double, 3> velocity;
         // MP_ACCELERATION

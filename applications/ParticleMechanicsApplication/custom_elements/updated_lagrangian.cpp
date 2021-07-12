@@ -148,6 +148,7 @@ void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
+    mMP.displacement_total = ZeroVector(3);
 
     // Initialize constitutive law and materials
     InitializeMaterial();
@@ -1013,6 +1014,7 @@ void UpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, const P
 
     // Update the MP total displacement
     mMP.displacement += delta_xg;
+    mMP.displacement_total += delta_xg;
 
     KRATOS_CATCH( "" )
 }
@@ -1592,6 +1594,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<array_1d<dou
     else if (rVariable == MP_DISPLACEMENT) {
         rValues[0] = mMP.displacement;
     }
+    else if (rVariable == MP_TOTAL_DISPLACEMENT) {
+        rValues[0] = mMP.displacement_total;
+    }
     else if (rVariable == MP_VELOCITY) {
         rValues[0] = mMP.velocity;
     }
@@ -1672,6 +1677,9 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<array_1d<dou
     }
     else if (rVariable == MP_DISPLACEMENT) {
         mMP.displacement = rValues[0];
+    }
+    else if (rVariable == MP_TOTAL_DISPLACEMENT) {
+        mMP.displacement_total = rValues[0];
     }
     else if (rVariable == MP_VELOCITY) {
         mMP.velocity = rValues[0];

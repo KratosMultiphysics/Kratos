@@ -231,6 +231,11 @@ namespace Kratos
         MP_Displacement[0] += delta_xg;
         rElement.SetValuesOnIntegrationPoints(MP_DISPLACEMENT,MP_Displacement, rCurrentProcessInfo);
 
+        std::vector<array_1d<double, 3 > > MP_Displacement_Total;
+        rElement.CalculateOnIntegrationPoints(MP_TOTAL_DISPLACEMENT, MP_Displacement_Total, rCurrentProcessInfo);
+        MP_Displacement_Total[0] += delta_xg;
+        rElement.SetValuesOnIntegrationPoints(MP_TOTAL_DISPLACEMENT, MP_Displacement_Total, rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
