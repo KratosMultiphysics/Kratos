@@ -198,6 +198,142 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         self.assertEqual(len(condition_sub1_copy.Elements) , 0)
         self.assertEqual(len(condition_sub1_copy.Conditions) , len(sub1.Conditions))
 
+    def test_copy_to_sub_model_part(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
+
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        subsub1.AddNodes([1,2])
+        sub2.AddNodes([3])
+
+        model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
+
+        model_part1.CreateNewCondition("LineCondition2D2N", 3, [2,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([3])
+
+        current_model = KratosMultiphysics.Model()
+        new_model_part = model_part1.CreateSubModelPart("Other")
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "LineCondition2D2N")
+
+        element_id_offset = 2
+        for duplicate_element in new_model_part.Elements:
+            duplicate_element_id = duplicate_element.Id
+            original_element_id = duplicate_element_id - element_id_offset
+            original_element = model_part1.GetElement(original_element_id)
+            self.assertFalse(original_element == duplicate_element)
+            self.assertTrue(original_element.GetGeometry() == duplicate_element.GetGeometry())
+
+        condition_id_offset = 3
+        for duplicate_condition in new_model_part.Conditions:
+            duplicate_condition_id = duplicate_condition.Id
+            original_condition_id = duplicate_condition_id - condition_id_offset
+            original_condition = model_part1.GetCondition(original_condition_id)
+            self.assertFalse(original_condition == duplicate_condition)
+            self.assertTrue(original_condition.GetGeometry() == duplicate_condition.GetGeometry())
+
+    def test_copy_to_and_from_sub_model_part(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
+
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        subsub1.AddNodes([1,2])
+        sub2.AddNodes([3])
+
+        model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
+
+        model_part1.CreateNewCondition("LineCondition2D2N", 3, [2,4], model_part1.GetProperties()[1])
+        model_part1.CreateNewCondition("LineCondition2D2N", 4, [3,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([3])
+        sub2.AddConditions([4])
+        sub2.AddElements([1])
+
+        current_model = KratosMultiphysics.Model()
+        new_model_part = model_part1.CreateSubModelPart("Other")
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        modeler.GenerateModelPart(sub2, new_model_part, "Element2D3N", "LineCondition2D2N")
+
+        element_id_offset = 2
+        for duplicate_element in new_model_part.Elements:
+            duplicate_element_id = duplicate_element.Id
+            original_element_id = duplicate_element_id - element_id_offset
+            original_element = sub2.GetElement(original_element_id)
+            self.assertFalse(original_element == duplicate_element)
+            self.assertTrue(original_element.GetGeometry() == duplicate_element.GetGeometry())
+
+        condition_id_offset = 4
+        for duplicate_condition in new_model_part.Conditions:
+            duplicate_condition_id = duplicate_condition.Id
+            original_condition_id = duplicate_condition_id - condition_id_offset
+            original_condition = sub2.GetCondition(original_condition_id)
+            self.assertFalse(original_condition == duplicate_condition)
+            self.assertTrue(original_condition.GetGeometry() == duplicate_condition.GetGeometry())
+
+    def test_copy_to_different_model_part(self):
+        current_model = KratosMultiphysics.Model()
+        model_part1 = current_model.CreateModelPart("Main")
+        model_part1.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        model_part1.CreateNewNode(1,0.0,0.1,0.2)
+        model_part1.CreateNewNode(2,2.0,0.1,0.2)
+        model_part1.CreateNewNode(3,1.0,1.1,0.2)
+        model_part1.CreateNewNode(4,2.0,3.1,10.2)
+
+        sub1 = model_part1.CreateSubModelPart("sub1")
+        sub2 = model_part1.CreateSubModelPart("sub2")
+        subsub1 = sub1.CreateSubModelPart("subsub1")
+        subsub1.AddNodes([1,2])
+        sub2.AddNodes([3])
+
+        model_part1.CreateNewElement("Element2D3N", 1, [1,2,3], model_part1.GetProperties()[1])
+        model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
+
+        model_part1.CreateNewCondition("LineCondition2D2N", 3, [2,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([3])
+
+        current_model = KratosMultiphysics.Model()
+        model_part2 = current_model.CreateModelPart("Duplicated")
+
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        modeler.GenerateModelPart(model_part1, model_part2, "Element2D3N", "LineCondition2D2N")
+        new_model_part = model_part2.CreateSubModelPart("Other")
+        modeler.GenerateModelPart(model_part1, new_model_part, "Element2D3N", "LineCondition2D2N")
+
+        element_id_offset = 2
+        for duplicate_element in new_model_part.Elements:
+            duplicate_element_id = duplicate_element.Id
+            original_element_id = duplicate_element_id - element_id_offset
+            original_element = model_part1.GetElement(original_element_id)
+            self.assertFalse(original_element == duplicate_element)
+            self.assertTrue(original_element.GetGeometry() == duplicate_element.GetGeometry())
+
+        condition_id_offset = 3
+        for duplicate_condition in new_model_part.Conditions:
+            duplicate_condition_id = duplicate_condition.Id
+            original_condition_id = duplicate_condition_id - condition_id_offset
+            original_condition = model_part1.GetCondition(original_condition_id)
+            self.assertFalse(original_condition == duplicate_condition)
+            self.assertTrue(original_condition.GetGeometry() == duplicate_condition.GetGeometry())
 
 if __name__ == '__main__':
     KratosUnittest.main()

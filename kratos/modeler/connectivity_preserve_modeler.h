@@ -128,6 +128,14 @@ public:
     ///@}
 
 private:
+    ///@name Private member Variables
+    ///@{
+
+    long unsigned int mElementOffset;
+    long unsigned int mConditionOffset;
+
+    ///@}
+
     ///@name Private Operations
     ///@{
 
@@ -144,13 +152,13 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const Element& rReferenceElement
-    ) const;
+    );
 
     void DuplicateConditions(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const Condition& rReferenceBoundaryCondition
-    ) const;
+    );
 
     void DuplicateCommunicatorData(
         ModelPart& rOriginModelPart,
@@ -161,6 +169,36 @@ private:
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart
     ) const;
+
+    template <typename TContainer>
+    long unsigned int GetMaxId(
+        const TContainer& rContainer,
+        const Communicator& rCommunicator
+    ) const
+    {
+        KRATOS_TRY
+
+        const int number_of_items = rContainer.size();
+
+        long unsigned int max_item_id{0}, local_id{0};
+        // using customized max reduction since windows doesnt support max reduction in omp
+#pragma omp parallel firstprivate(local_id)
+        {
+#pragma omp for
+            for (int i_item = 0; i_item < number_of_items; ++i_item)
+            {
+                const auto& r_item = *(rContainer.begin() + i_item);
+                local_id = std::max(local_id, static_cast<long unsigned int>(r_item.Id()));
+            }
+#pragma omp critical
+            {
+                max_item_id = std::max(max_item_id, local_id);
+            }
+        }
+        return rCommunicator.GetDataCommunicator().MaxAll(max_item_id);
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
 };
