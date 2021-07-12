@@ -165,7 +165,7 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
                 "maximum_delta_time"  : 0.01,
                 "time_step"           : 0.0
             },
-            "time_scheme":"bossak",
+            "time_scheme":"bdf2",
             "alpha":-0.3,
             "velocity_relaxation":0.9,
             "pressure_relaxation":0.9,
