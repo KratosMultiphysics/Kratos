@@ -52,24 +52,10 @@ namespace Kratos
 		BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
 		mStrainOld = ZeroVector(GetStrainSize());
+		mStrainIncrementRateVec = ZeroVector(GetStrainSize());
+		mStrainIncrementRateMat = (GetStrainSize() == 3) ? ZeroMatrix(2, 2) : ZeroMatrix(3, 3);
 
-		// Add static pressure
-		const double rho = rMaterialProperties[DENSITY];
-		double elevation = 0.0;
-		const double integration_points_number = rElementGeometry.IntegrationPointsNumber();
-		double weight = 1.0;
-		const Matrix shape_functions = rElementGeometry.ShapeFunctionsValues();
-		double check = 0.0;
-		for (size_t int_p = 0; int_p < integration_points_number; int_p++)
-		{
-			if (integration_points_number > 1) weight = rElementGeometry.IntegrationPoints()[int_p].Weight();
-			for (size_t i = 0; i < rElementGeometry.PointsNumber(); i++)
-			{
-				if (shape_functions(int_p, i) > 1e-12) elevation += weight * shape_functions(int_p, i) * rElementGeometry.GetPoint(i)[1];
-			}
-		}
-
-		mPressure = 9.81*rho*(5.0-elevation);
+		mPressure = 0.0;
 
 		KRATOS_CATCH("")
 	}
@@ -92,34 +78,29 @@ namespace Kratos
 		const Properties& MaterialProperties = rValues.GetMaterialProperties();
 
 		// Get old stress vector and current strain vector
-		const Vector StrainVector = rValues.GetStrainVector();
-		Vector& StressVector = rValues.GetStressVector();
-		const Matrix identity = (GetStrainSize() == 3) ? IdentityMatrix(2) : IdentityMatrix(3);
 		const double detF = rValues.GetDeterminantF();
 
 		// Convert vectors to matrices for easier manipulation
-		const Vector strain_increment_rate_vec = (StrainVector - mStrainOld) / CurrentProcessInfo[DELTA_TIME];
-		Matrix strain_increment_rate_mat = (GetStrainSize() == 3) ? ZeroMatrix(2, 2) : ZeroMatrix(3, 3);
+		mStrainIncrementRateVec = (rValues.GetStrainVector() - mStrainOld) / CurrentProcessInfo[DELTA_TIME];
 			// Normal components
-		strain_increment_rate_mat(0, 0) = strain_increment_rate_vec[0];
-		strain_increment_rate_mat(1, 1) = strain_increment_rate_vec[1];
+		mStrainIncrementRateMat(0, 0) = mStrainIncrementRateVec[0];
+		mStrainIncrementRateMat(1, 1) = mStrainIncrementRateVec[1];
 			// Shear components
-		strain_increment_rate_mat(0, 1) = 0.5 * strain_increment_rate_vec[2]; //xy
-		strain_increment_rate_mat(1, 0) = strain_increment_rate_mat(0, 1);
+		mStrainIncrementRateMat(0, 1) = 0.5 * mStrainIncrementRateVec[2]; //xy
+		mStrainIncrementRateMat(1, 0) = mStrainIncrementRateMat(0, 1);
 
 		// Material properties
-		const double bulk_modulus_K = MaterialProperties[BULK_MODULUS];
-		const double dynamic_viscosity = MaterialProperties[VISCOSITY];
-		mPressure = bulk_modulus_K * (1.0 - detF) / detF;
+		mPressure = MaterialProperties[BULK_MODULUS] * (1.0 - detF) / detF;
 
-		Matrix stress_mat = -1.0* mPressure * identity + 2.0 * dynamic_viscosity * strain_increment_rate_mat; // [mast2013]
+		Matrix stress_mat = -1.0* mPressure * IdentityMatrix(2) + 2.0 * MaterialProperties[VISCOSITY] * mStrainIncrementRateMat; // [mast2013]
 
 		// Store stresses and strains
+		Vector& StressVector = rValues.GetStressVector();
 		StressVector.clear();
 		StressVector[0] = stress_mat(0, 0);
 		StressVector[1] = stress_mat(1, 1);
 		StressVector[2] = 2.0 * stress_mat(0, 1); //xy
-		mStrainOld = StrainVector;
+		mStrainOld = rValues.GetStrainVector();
 
 		KRATOS_CATCH("")
 	}

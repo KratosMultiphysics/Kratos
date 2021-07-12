@@ -151,6 +151,8 @@ protected:
 
     double mPressure = 0.0;
     Vector mStrainOld;
+    Vector mStrainIncrementRateVec;
+    Matrix mStrainIncrementRateMat;
 
     ///@}
     ///@name Protected Operators
