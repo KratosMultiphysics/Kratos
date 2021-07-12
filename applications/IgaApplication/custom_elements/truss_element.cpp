@@ -415,7 +415,7 @@ void TrussElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         VectorType element_mass_vector(nb_dofs);
-        CalculateLumpedMassVector(element_mass_vector);
+        CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
             double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
@@ -462,7 +462,7 @@ void TrussElement::AddExplicitContribution(
 
         // Getting the vector mass
         VectorType mass_vector(nb_dofs);
-        CalculateLumpedMassVector(mass_vector);
+        CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
 
         for (IndexType i = 0; i < nb_nodes; ++i) {
             double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
@@ -532,7 +532,7 @@ void TrussElement::CalculateMassMatrix(
 
     // Compute lumped mass vector
     Vector lumped_mass_vector(nb_dofs);
-    CalculateLumpedMassVector(lumped_mass_vector);
+    CalculateLumpedMassVector(lumped_mass_vector, rCurrentProcessInfo);
 
     // Clear matrix
     if (rMassMatrix.size1() != nb_dofs || rMassMatrix.size2() != nb_dofs) {
@@ -547,9 +547,9 @@ void TrussElement::CalculateMassMatrix(
 }
 
 void TrussElement::CalculateLumpedMassVector(
-    Vector& rMassVector,
+    Vector& rLumpedMassVector,
     const ProcessInfo& rCurrentProcessInfo
-    ) override
+    ) const
 {
     const auto& r_geometry = GetGeometry();
     const IndexType nb_nodes = r_geometry.size();
@@ -557,8 +557,8 @@ void TrussElement::CalculateLumpedMassVector(
     auto& r_integration_points = r_geometry.IntegrationPoints();
     const double num_integration_points = r_integration_points.size();
     // Clear matrix
-    if (rMassVector.size() != nb_nodes * 3) {
-        rMassVector.resize(nb_nodes * 3, false);
+    if (rLumpedMassVector.size() != nb_nodes * 3) {
+        rLumpedMassVector.resize(nb_nodes * 3, false);
     }
 
     const double A = GetProperties()[CROSS_AREA];
@@ -573,7 +573,7 @@ void TrussElement::CalculateLumpedMassVector(
             for (IndexType j = 0; j < 3; ++j) {
                 IndexType index = i * 3 + j;
 
-                rMassVector[index] = total_mass * r_N(point_number, i);
+                rLumpedMassVector[index] = total_mass * r_N(point_number, i);
             }
         }
     }
