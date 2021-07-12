@@ -78,7 +78,7 @@ namespace Kratos
         std::vector<array_1d<double, 3>> master_domain_points(std::pow(2.0, working_dim));
         CreateBoundingBoxPoints(master_domain_points, rCoordinates, side_half_length, working_dim);
 
-
+        /*
         if (rCoordinates[1] - side_half_length < 1e-6)
         {
             CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
@@ -87,7 +87,7 @@ namespace Kratos
                 rParentGeom);
             return;
         }
-
+        */
 
 
         // Initially check if the bounding box volume scalar is less than the element volume scalar

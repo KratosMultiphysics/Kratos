@@ -193,6 +193,12 @@ namespace Kratos {
                     : 1.0;
                     // we are only adding the central difference corrector here
 
+
+                // Left vertical compression only BC
+                if (fix_displacements[0] && r_nodal_momenta[0] > 0.0) {
+                    if (itCurrentNode->X() < 1e-12) fix_displacements[0] = false;
+                }
+
                 for (IndexType j = 0; j < DomainSize; j++)
                 {
                     if (fix_displacements[j])
