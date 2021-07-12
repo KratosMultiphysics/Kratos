@@ -42,8 +42,6 @@
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
-#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
 #include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
@@ -65,6 +63,11 @@
 #include "custom_constitutive/generic_anisotropic_3d_law.h"
 #include "custom_constitutive/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/multi_linear_isotropic_plane_stress_2d.h"
+
+// Masonry CLs
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
+#include "custom_constitutive/masonry_orthotropic_damage_plane_stress_2d.h"
 
 // Integrators
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_damage.h"
@@ -631,8 +634,11 @@ private:
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageVonMisesMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<TrescaYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageTrescaMohrCoulomb2D;
     const GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<DruckerPragerYieldSurface<VonMisesPlasticPotential<3>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<MohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainDplusDminusDamageDruckerPragerMohrCoulomb2D;
+
+    // Masonry Laws
     const DamageDPlusDMinusMasonry2DLaw mDamageDPlusDMinusPlaneStressMasonry2DLaw;
     const DamageDPlusDMinusMasonry3DLaw mDamageDPlusDMinusMasonry3DLaw;
+    const MasonryOrthotropicDamagePlaneStress2DLaw mMasonryOrthotropicDamagePlaneStress2DLaw;
 
     // Orthotropic Damage
     const GenericSmallStrainOrthotropicDamage<GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainOrthotropicDamageRankine3D;
