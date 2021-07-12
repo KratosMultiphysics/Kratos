@@ -57,7 +57,7 @@ def AssembleTestSuites():
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
         # 5p Shell Director
-        #ScordelisRoofShell5pTest,
+        ScordelisRoofShell5pTest,
         TTestModelers,
         TTestNurbsVolumeElements,
         # Weak support tests
