@@ -222,8 +222,8 @@ void SurfaceSmoothingProcess::Execute()
         //KRATOS_INFO("SurfaceSmoothingProcess, iId") << iId << std::endl;
         //KRATOS_INFO("SurfaceSmoothingProcess, size") << n_nodes.size() << std::endl;
         for (unsigned int j = 0; j < n_nodes.size(); ++j) {
-            if ((n_nodes[j].GetValue(IS_STRUCTURE) == 1.0 && it_node->GetValue(IS_STRUCTURE) == 1.0)
-                    || (n_nodes[j].GetValue(IS_STRUCTURE) == 0.0 && it_node->GetValue(IS_STRUCTURE) == 0.0)){
+            /* if ((n_nodes[j].GetValue(IS_STRUCTURE) == 1.0 && it_node->GetValue(IS_STRUCTURE) == 1.0)
+                    || (n_nodes[j].GetValue(IS_STRUCTURE) == 0.0 && it_node->GetValue(IS_STRUCTURE) == 0.0)) */{
                 const unsigned int jId = n_nodes[j].Id() - 1;
                 //KRATOS_INFO("SurfaceSmoothingProcess, jId") << jId << std::endl;
                 {
