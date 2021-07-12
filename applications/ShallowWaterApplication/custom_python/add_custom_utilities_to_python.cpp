@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 
 namespace Kratos
@@ -67,7 +68,6 @@ namespace Python
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
-        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<NodesContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ElementsContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ConditionsContainerType>)
@@ -117,6 +117,14 @@ namespace Python
         .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
+        ;
+
+    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Check", &MoveMeshUtility::Check)
+        .def("Initialize", &MoveMeshUtility::Initialize)
+        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
+        .def("MapResults", &MoveMeshUtility::MapResults)
         ;
 
   }

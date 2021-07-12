@@ -111,7 +111,6 @@ public:
         QUADRATURE_ON_NODES
     };
 
-
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
@@ -216,6 +215,8 @@ public:
     typedef typename PointsArrayType::ptr_iterator ptr_iterator;
     typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
     typedef typename PointsArrayType::difference_type difference_type;
+
+    static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = std::numeric_limits<IndexType>::max();
 
     ///@}
     ///@name Life Cycle
