@@ -6,6 +6,14 @@ on:
     - '.github/workflows/nightly_build.yml'
     - '.github/workflows/configure.sh'
     - '.github/workflows/configure.cmd'
+    - 'kratos/**'
+    - 'external_libraries/**'
+    - 'cmake_modules/**'
+    - 'CMakeLists.txt'
+    - 'applications/LinearSolversApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/TrilinosApplication/**'
+    
 
   schedule:
     - cron:  '0 1 * * *'
