@@ -23,6 +23,7 @@ class Inlet_3D_Test(TF.TestFactory):
     file_name = "pfem_utilities_tests/Test_3D_Inlet/Test_3D_Inlet"
     file_parameters = "pfem_utilities_tests/Test_3D_Inlet/ProjectParameters.json"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 class Thermal_Coupling_2D_Test(TF.TestFactory):
     file_name = "pfem_utilities_tests/2D_thermal_coupling/Test_2D_Thermal_Coupling_Refining"
     file_parameters = "pfem_utilities_tests/2D_thermal_coupling/ProjectParameters.json"
