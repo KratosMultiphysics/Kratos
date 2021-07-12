@@ -269,7 +269,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 	const GeometryType& rElementGeometry,
 	const Vector& rShapeFunctionsValues)
 {
-	if(!InitializeDamageLaw){
+	if(!mInitializeDamageLaw){
 		ThresholdTension            	= rMaterialProperties[YIELD_STRESS_TENSION];
 		CurrentThresholdTension   		= ThresholdTension;
 		ThresholdCompression        	= rMaterialProperties[DAMAGE_ONSET_STRESS_COMPRESSION];
@@ -284,6 +284,30 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 
 		element_center = rElementGeometry.GetGeometryParent(0).Center(); // for debugging - delete
 
+
+		// Initialize calc data storage
+		mCalcData.EffectiveStressVector.resize(3, false);
+		mCalcData.PrincipalStressVector.resize(2, false);
+		mCalcData.EffectiveTensionStressVector.resize(3, false);
+		mCalcData.EffectiveCompressionStressVector.resize(3, false);
+		mCalcData.ProjectionTensorTension.resize(3, 3, false);
+		mCalcData.ProjectionTensorCompression.resize(3, 3, false);
+
+		mCalcData.BiaxialCompressionMultiplier = rMaterialProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
+		mCalcData.ShearCompressionReductor = rMaterialProperties.Has(SHEAR_COMPRESSION_REDUCTOR) ? rMaterialProperties[SHEAR_COMPRESSION_REDUCTOR] : 1.0; // Changed default to 1.0 to match Lubliner
+		mCalcData.ShearCompressionReductor = std::min(std::max(mCalcData.ShearCompressionReductor, 0.0), 1.0);
+
+		mCalcData.ResidualStressCompression = rMaterialProperties[RESIDUAL_STRESS_COMPRESSION];
+		mCalcData.YieldStrainCompression = rMaterialProperties[YIELD_STRAIN_COMPRESSION];
+		mCalcData.BezierControllerS1 = rMaterialProperties.Has(BEZIER_CONTROLLER_S1) ? rMaterialProperties[BEZIER_CONTROLLER_S1] : 0.75; // Updated for concrete
+		mCalcData.BezierControllerEP1 = rMaterialProperties.Has(BEZIER_CONTROLLER_EP1) ? rMaterialProperties[BEZIER_CONTROLLER_EP1] : 1.1; // Updated for concrete
+		mCalcData.BezierControllerEP2 = rMaterialProperties.Has(BEZIER_CONTROLLER_EP2) ? rMaterialProperties[BEZIER_CONTROLLER_EP2] : 1.1; // Updated for concrete
+		mCalcData.BezierControllerEP3 = rMaterialProperties.Has(BEZIER_CONTROLLER_EP3) ? rMaterialProperties[BEZIER_CONTROLLER_EP3] : 1.25; // Updated for concrete
+		mCalcData.BezierControllerEP4 = rMaterialProperties.Has(BEZIER_CONTROLLER_EP4) ? rMaterialProperties[BEZIER_CONTROLLER_EP4] : 1.25; // Updated for concrete
+
+		mCalcData.CharacteristicLength = InitialCharacteristicLength;
+		mCalcData.TensionYieldModel = rMaterialProperties.Has(TENSION_YIELD_MODEL) ? rMaterialProperties[TENSION_YIELD_MODEL] : 0;
+
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
 			PreviousThresholdTension 		= ThresholdTension;
@@ -293,7 +317,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 	    }
 		// End IMPLEX Integration
 
-		InitializeDamageLaw    			= true;
+		mInitializeDamageLaw = true;
 	}
 }
 /***********************************************************************************/
@@ -365,8 +389,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	const GeometryType& geom  = rValues.GetElementGeometry();
 	const Properties&   props = rValues.GetMaterialProperties();
 
-	CalculationData data;
-
 	const Vector& StrainVector   	= rValues.GetStrainVector();
 	const Vector strain_vector_elastic = StrainVector - mStrainPlastic;
 
@@ -381,11 +403,11 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	mStrainRate = std::sqrt(0.5 * inner_prod(mStrainRateVec, mStrainRateVec));
 	mStrainOld = Vector(rValues.GetStrainVector()); // needed for the strain rate and strain increment calc.
 
-	this->InitializeCalculationData(props, geom, pinfo, data);
+	this->InitializeCalculationData(props, geom, pinfo, mCalcData);
 
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
-	this->CalculateMaterialResponseInternal(strain_vector_elastic, PredictiveStressVector, data, props);
+	this->CalculateMaterialResponseInternal(strain_vector_elastic, PredictiveStressVector, mCalcData, props);
 
 	bool is_damaging_tension = false;
 	bool is_damaging_compression = false;
@@ -395,10 +417,10 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 	if (rValues.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
 		KRATOS_ERROR << "NOT IMPLEMENTED!\n\n";
 		if(is_damaging_tension || is_damaging_compression) {
-			this->CalculateTangentTensor(rValues, StrainVector, PredictiveStressVector, data, props);
+			this->CalculateTangentTensor(rValues, StrainVector, PredictiveStressVector, mCalcData, props);
 		}
 		else {
-			this->CalculateSecantTensor(rValues, data);
+			this->CalculateSecantTensor(rValues, mCalcData);
 		}
 	}
 }
@@ -448,7 +470,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::ResetMaterial(
 	DamageParameterCompressionSoftening 	= 0.0;
 	CompressionMaxHistoricalStrain = 0.0;
 	InitialCharacteristicLength = 0.0;
-	InitializeDamageLaw 		= false;
+	mInitializeDamageLaw = false;
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -572,30 +594,20 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	// Compression Damage Properties
 	data.DamageOnsetStressCompression 	= props[DAMAGE_ONSET_STRESS_COMPRESSION] * dif_compression;
 	data.YieldStressCompression 		= props[YIELD_STRESS_COMPRESSION]* dif_compression;
-	data.ResidualStressCompression 		= props[RESIDUAL_STRESS_COMPRESSION];
-	data.YieldStrainCompression  		= props[YIELD_STRAIN_COMPRESSION];
-	data.BezierControllerS1  			= props.Has(BEZIER_CONTROLLER_S1) ? props[BEZIER_CONTROLLER_S1] : 0.75; // Updated for concrete
-	data.BezierControllerEP1  			= props.Has(BEZIER_CONTROLLER_EP1) ? props[BEZIER_CONTROLLER_EP1] : 1.1; // Updated for concrete
-	data.BezierControllerEP2  			= props.Has(BEZIER_CONTROLLER_EP2) ? props[BEZIER_CONTROLLER_EP2] : 1.1; // Updated for concrete
-	data.BezierControllerEP3  			= props.Has(BEZIER_CONTROLLER_EP3) ? props[BEZIER_CONTROLLER_EP3] : 1.25; // Updated for concrete
-	data.BezierControllerEP4  			= props.Has(BEZIER_CONTROLLER_EP4) ? props[BEZIER_CONTROLLER_EP4] : 1.25; // Updated for concrete
 	data.FractureEnergyCompression  	= props[FRACTURE_ENERGY_COMPRESSION]* dif_compression;
-	data.BiaxialCompressionMultiplier  	= props[BIAXIAL_COMPRESSION_MULTIPLIER];
-	data.ShearCompressionReductor  		= props.Has(SHEAR_COMPRESSION_REDUCTOR) ? props[SHEAR_COMPRESSION_REDUCTOR] : 1.0; // Changed default to 1.0 to match Lubliner
-	data.ShearCompressionReductor  		= std::min(std::max(data.ShearCompressionReductor,0.0),1.0);
+
 
 	// Effective Stress Data
-	data.EffectiveStressVector.resize(3,false);
-	data.PrincipalStressVector.resize(2,false);
-	data.EffectiveTensionStressVector.resize(3,false);
-	data.EffectiveCompressionStressVector.resize(3,false);
-	data.ProjectionTensorTension.resize(3,3,false);
-	data.ProjectionTensorCompression.resize(3,3,false);
+	data.EffectiveStressVector.clear();
+	data.PrincipalStressVector.clear();
+	data.EffectiveTensionStressVector.clear();
+	data.EffectiveCompressionStressVector.clear();
+	data.ProjectionTensorTension.clear();
+	data.ProjectionTensorCompression.clear();
 
 	// Misc
-	data.CharacteristicLength = InitialCharacteristicLength;
 	data.DeltaTime = pinfo[DELTA_TIME];
-	data.TensionYieldModel = props.Has(TENSION_YIELD_MODEL) ? props[TENSION_YIELD_MODEL] : 0;
+
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1093,8 +1105,12 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 			const double return_lamda = 1.0 - b_minus / trial_stress_magnitude * data.YoungModulus * macaulay_temp;
 			if (return_lamda < -1e-9 || return_lamda > (1.0+1e-9))
 			{
-				KRATOS_INFO("MPM masonry law") << "Masonry plasticity parameter return_lamda has invalid value!\n"
-					<< "return_lamda = " << return_lamda;
+				KRATOS_INFO("MPM masonry law") << "Masonry plasticity parameter return_lamda has invalid value!"
+					<< "\nreturn_lamda = " << return_lamda
+					<< "\nmacaulay_temp = " << macaulay_temp
+					<< "\nb_minus = " << b_minus
+					<< "\ntrial_stress_magnitude = " << trial_stress_magnitude
+					<< "\nrhs = " << (b_minus / trial_stress_magnitude * data.YoungModulus * macaulay_temp);
 				KRATOS_ERROR << "ERROR";
 			}
 

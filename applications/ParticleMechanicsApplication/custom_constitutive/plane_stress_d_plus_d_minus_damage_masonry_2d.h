@@ -426,7 +426,9 @@ protected:
 	///@{
 
 	// Initialization
-	bool InitializeDamageLaw = false;
+	bool mInitializeDamageLaw = false;
+
+	CalculationData mCalcData;
 
 	Vector mStrainOld = ZeroVector(GetStrainSize());
 	Vector mStrainPlastic = ZeroVector(GetStrainSize());
