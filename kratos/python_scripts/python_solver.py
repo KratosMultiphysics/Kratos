@@ -192,8 +192,9 @@ class PythonSolver:
         else:
             raise Exception("Other model part input options are not yet implemented.")
 
-        KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
-        KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("ModelPart", model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[PythonSolver]:: ", "Finished reading model part.")
 
     def _GetRestartSettings(self, model_part_import_settings):
         restart_settings = model_part_import_settings.Clone()
