@@ -126,7 +126,7 @@ namespace Kratos
       ///@{
 
     std::string const& GetCurrentMessage() {
-      return mCurrentMessage.GetMessage();
+      return mCurrentMessage.GetLoggerMessage();
         }
 
       ///@}

@@ -82,9 +82,9 @@ namespace Kratos
                 r_stream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
             if(TheMessage.GetLabel().size())
-                r_stream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+                r_stream << TheMessage.GetLabel() << ": " << TheMessage.GetLoggerMessage();
             else
-                r_stream << TheMessage.GetMessage();
+                r_stream << TheMessage.GetLoggerMessage();
 
             ResetMessageColor(message_severity);
         }

@@ -445,7 +445,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_definitions( -fPIC )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-# include subdirectories
+# Include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 
