@@ -25,7 +25,6 @@
 
 // Integrator
 #include "custom_constitutive/constitutive_laws_integrators/generic_constitutive_law_integrator_kinematic_plasticity.h"
-#include "custom_constitutive/constitutive_laws_integrators/generic_finite_strain_constitutive_law_integrator_kinematic_plasticity.h"
 
 // Yield surfaces
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
