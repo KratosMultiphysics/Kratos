@@ -39,6 +39,7 @@ public:
     typedef typename BaseType::TSystemVectorType      TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType  LocalSystemVectorType;
     typedef typename BaseType::LocalSystemMatrixType  LocalSystemMatrixType;
+    using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

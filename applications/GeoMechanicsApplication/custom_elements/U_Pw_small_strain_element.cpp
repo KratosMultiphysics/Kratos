@@ -267,7 +267,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_TRY;
 
     // reset hydraulic discharge
-    GeometryType& rGeom = GetGeometry();
+    GeometryType& rGeom = this->GetGeometry();
     for (unsigned int i=0; i<TNumNodes; i++)
     {
         ThreadSafeNodeWrite(rGeom[i], HYDRAULIC_DISCHARGE, 0.0 );
@@ -289,7 +289,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                         FluidFlux,
                                         rCurrentProcessInfo );
 
-    const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom   = this->GetGeometry();
     const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
