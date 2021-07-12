@@ -7,10 +7,12 @@ from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os, csv
 import numpy as np
+KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
+
 np.random.seed(2021)
 
 # Read parameters
-with open("stochastic_optimization_parameters.json",'r') as parameter_file:
+with open("stochastic_mlmc_optimization_parameters.json",'r') as parameter_file:
     parameters = KM.Parameters(parameter_file.read())
 
 model = KM.Model()
@@ -45,14 +47,12 @@ with open(optimization_log_filename, 'r') as csvfile:
     resulting_abs_improvement = float(last_line[2].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_iteration, 3)
-    TestCase().assertAlmostEqual(resulting_abs_improvement, -12.5574, 3)
+    TestCase().assertEqual(resulting_iteration, 2)
+    TestCase().assertAlmostEqual(resulting_abs_improvement, -25.3991, 3)
 
 os.chdir(original_directory)
 
 for file_name in os.listdir(original_directory):
     if file_name.startswith("current_design"):
         kratos_utilities.DeleteFileIfExisting(os.path.join(original_directory, file_name))
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-
 # =======================================================================================================
