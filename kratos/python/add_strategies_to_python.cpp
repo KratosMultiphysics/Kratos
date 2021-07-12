@@ -179,16 +179,10 @@ namespace Kratos
 
         void MoveMesh(Scheme< SparseSpaceType, LocalSpaceType >& dummy, ModelPart::NodesContainerType& rNodes)
         {
-            int numNodes = static_cast<int>(rNodes.size());
-
-            #pragma omp parallel for
-            for(int i = 0; i < numNodes; i++)
-            {
-                auto itNode = rNodes.begin() + i;
-
-                noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-                noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
-            }
+            block_for_each(rNodes, [](Node<3>& rNode){
+                noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+                noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            });
         }
 
         template< typename TSpaceType >
