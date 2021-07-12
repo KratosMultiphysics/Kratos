@@ -130,17 +130,18 @@ namespace Kratos
             return rM.size2();
         }
 
-        template< typename TSpaceType >
-        void ResizeMatrix(TSpaceType& dummy, typename TSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
-        {
-            dummy.Resize(A, i1, i2);
-        }
+//         template< typename TSpaceType >
+//         void ResizeMatrix(TSpaceType& dummy, typename TSpaceType::MatrixPointerType& A, unsigned int i1, unsigned int i2)
+//         {
+//             KRATOS_ERROR << "sorry sparse matrix resizing is not any longer allowed" << std::endl;
+//         }
 
-        template< typename TSpaceType >
-        void ResizeVector(TSpaceType& dummy, typename TSpaceType::VectorType& x, unsigned int i1)
-        {
-            dummy.Resize(x, i1);
-        }
+//         template< typename TSpaceType >
+//         void ResizeVector(TSpaceType& dummy, typename TSpaceType::VectorPointerType& x, unsigned int i1)
+//         {
+//             KRATOS_ERROR << "sorry sparse vector resizing is not any longer allowed" << std::endl;
+// //            dummy.Resize(x, i1);
+//         }
 
         template< typename TSpaceType >
         void SetToZeroMatrix(TSpaceType& dummy, typename TSpaceType::MatrixType& A)
@@ -192,15 +193,15 @@ namespace Kratos
         }
 
         template< typename TSpaceType >
-        typename TSpaceType::MatrixPointerType CreateEmptyMatrixPointer(TSpaceType& dummy)
+        typename TSpaceType::MatrixPointerType CreateEmptyMatrixPointer(TSpaceType& dummy, const DataCommunicator& rComm)
         {
-            return dummy.CreateEmptyMatrixPointer();
+            return dummy.CreateEmptyMatrixPointer(rComm);
         }
 
         template< typename TSpaceType >
-        typename TSpaceType::VectorPointerType CreateEmptyVectorPointer(TSpaceType& dummy)
+        typename TSpaceType::VectorPointerType CreateEmptyVectorPointer(TSpaceType& dummy, const DataCommunicator& rComm)
         {
-            return dummy.CreateEmptyVectorPointer();
+            return dummy.CreateEmptyVectorPointer(rComm);
         }
 
         CompressedMatrix& GetMatRef(Kratos::shared_ptr<CompressedMatrix>& dummy)
@@ -221,8 +222,8 @@ namespace Kratos
 
             binder.def("ClearMatrix", ClearMatrix<TSpaceType>);
             binder.def("ClearVector", ClearVector<TSpaceType>);
-            binder.def("ResizeMatrix", ResizeMatrix<TSpaceType>);
-            binder.def("ResizeVector", ResizeVector<TSpaceType>);
+            // binder.def("ResizeMatrix", ResizeMatrix<TSpaceType>);
+            // binder.def("ResizeVector", ResizeVector<TSpaceType>);
             binder.def("SetToZeroMatrix", SetToZeroMatrix<TSpaceType>);
             binder.def("SetToZeroVector", SetToZeroVector<TSpaceType>);
             binder.def("ScaleAndAdd", ScaleAndAdd<TSpaceType>);
