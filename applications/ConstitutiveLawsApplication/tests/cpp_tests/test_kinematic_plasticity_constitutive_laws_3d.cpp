@@ -248,8 +248,8 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticityFiniteStrainKi
 
 
     // Check the results
-    const double tolerance = 1.0e-4;
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(VMres, TestVM, tolerance);
+    const double tolerance = 0.1e6;
+    KRATOS_CHECK_VECTOR_NEAR(VMres, TestVM, tolerance);
 }
 
 } // namespace Testing
