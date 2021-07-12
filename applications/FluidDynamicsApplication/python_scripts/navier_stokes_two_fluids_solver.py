@@ -313,7 +313,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver", "to begin InitializeSolutionStep")
 
         if self._TimeBufferIsInitialized():
-            (self.accelerationLimitationUtility).Execute()
+            # (self.accelerationLimitationUtility).Execute()
 
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
@@ -705,9 +705,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()
-            #if (TimeStep > 3):
-            #    KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver, TIMESTEP= ", TimeStep)
-            #(self.accelerationLimitationUtility).Execute()
+            if (TimeStep >= 3):
+                KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver, TIMESTEP= ", TimeStep)
+            (self.accelerationLimitationUtility).Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):
