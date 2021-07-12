@@ -74,6 +74,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
                 cs_tools.cs_print_info(colors.bold(self._ClassName()), "Creating Mapper took: {0:.{1}f} [s]".format(time()-mapper_creation_start_time,2))
             self.__mappers[identifier_tuple].Map(variable_origin, variable_destination, mapper_flags)
 
+    def _UpdateInterface(self, settings):
+        # TODO some updates are pending in the MappingApp, after that the "settings" will be used
+        for mapper in self.__mappers.values():
+            mapper.UpdateInterface()
+
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
             if data_to_check.location != "node_historical":
