@@ -13,23 +13,20 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
-if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
-
-rem Warning: In windows this option only works if you run through a terminal with admin privileges
-rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+set KRATOS_SOURCE=~0,-1%/..
+set KRATOS_BUILD=%KRATOS_SOURCE%/build
+set KRATOS_APP_DIR=applications
+set STRUCTURAL_DISABLE_ADVANCED_CONSTITUTIVE_LAWS=ON
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
-if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
+if not defined BOOST_ROOT set BOOST_ROOT=C:\Users\Alex\Documents\KratosLibs\boost_1_72_0
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Users\Alex\AppData\Local\Programs\Python\Python38\python.exe
 
 rem Set applications to compile
-set KRATOS_APP_DIR=applications
 set KRATOS_APPLICATIONS=
-CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
@@ -39,11 +36,18 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 rem Configure
 @echo on
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DUSE_EIGEN_MKL=OFF
+-DINCLUDE_FEAST=OFF                                                                                 ^
+-DLAPACK_LIBRARIES="C:\Users\Alex\Documents\KratosLibs\lib\liblapack.lib"                                         ^
+-DBLAS_LIBRARIES="C:\Users\Alex\Documents\KratosLibs\lib\libblas.lib"                                             ^
+-DKRATOS_BUILD_TESTING=ON                                                                              ^
+-DFORCE_LOCAL_ZLIB_COMPILATION=ON
+rem -DAMATRIX_DIR="%KRATOS_SOURCE%/external_libraries/a_matrix"
 
 rem Build
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
-goto:eof
+rem cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+rem cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+rem cmake --build  "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%"  --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+rem goto:eof
 
 rem Function to add apps
 :add_app
