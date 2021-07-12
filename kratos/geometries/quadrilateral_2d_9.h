@@ -468,7 +468,7 @@ public:
     {
         return Area();
     }
-
+    
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
