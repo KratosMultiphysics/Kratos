@@ -586,6 +586,25 @@ public:
     }
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the elemental damping matrix
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(const MatrixType& rLeftHandSideMatrix,
+                                        const MatrixType& rMassMatrix,
+                                        MatrixType& rDampingMatrix,
+                                        const ProcessInfo& rCurrentProcessInfo)
+    {
+        // in case the element doesn't provide a special implementation for the
+        // damping matrix based on the LHS-Matrix and the MassMatrix (e.g. Rayleigh damping)
+        // then use the generic method
+        CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+    }
+
+    /**
      * this is called during the initialize of the builder
      * to calculate the lumped mass vector
      * @param rLumpedMassVector the elemental lumped mass vector

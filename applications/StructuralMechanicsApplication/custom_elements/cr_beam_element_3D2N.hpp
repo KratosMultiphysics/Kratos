@@ -211,6 +211,12 @@ public:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateDampingMatrix(
+        const MatrixType& rLeftHandSideMatrix,
+        const MatrixType& rMassMatrix,
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     void AddExplicitContribution(const VectorType& rRHSVector,
                                  const Variable<VectorType>& rRHSVariable,
                                  const Variable<array_1d<double, 3> >& rDestinationVariable,

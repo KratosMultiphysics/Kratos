@@ -192,6 +192,41 @@ double GetDensityForMassMatrixComputation(const Element& rElement)
 /***********************************************************************************/
 
 void CalculateRayleighDampingMatrix(
+    const Element::MatrixType& rLeftHandSideMatrix,
+    const Element::MatrixType& rMassMatrix,
+    Element::MatrixType& rDampingMatrix,
+    const Properties& rProperties,
+    const ProcessInfo& rCurrentProcessInfo,
+    const std::size_t MatrixSize)
+{
+    KRATOS_TRY;
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+
+    // 1.-Resizing if needed
+    if (rDampingMatrix.size1() != MatrixSize || rDampingMatrix.size2() != MatrixSize) {
+        rDampingMatrix.resize(MatrixSize, MatrixSize, false);
+    }
+    noalias(rDampingMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
+
+    // 2.-Add StiffnessMatrix contribution (if needed):
+    const double beta = GetRayleighBeta(rProperties, rCurrentProcessInfo);
+    if (std::abs(beta) > 0.0) {
+        noalias(rDampingMatrix) += beta  * rLeftHandSideMatrix;
+    }
+
+    // 2.-Add MassMatrix contribution (if needed):
+    const double alpha = GetRayleighAlpha(rProperties, rCurrentProcessInfo);
+    if (std::abs(alpha) > 0.0) {
+        noalias(rDampingMatrix) += alpha * rMassMatrix;
+    }
+
+    KRATOS_CATCH("CalculateRayleighDampingMatrix")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo,

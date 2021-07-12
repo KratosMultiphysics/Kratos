@@ -589,6 +589,25 @@ public:
     }
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the condition damping matrix
+     * @param rLeftHandSideMatrix the condition left hand side matrix
+     * @param rMassMatrix the condition mass matrix
+     * @param rDampingMatrix the condition damping matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateDampingMatrix(const MatrixType& rLeftHandSideMatrix,
+                                        const MatrixType& rMassMatrix,
+                                        MatrixType& rDampingMatrix,
+                                        const ProcessInfo& rCurrentProcessInfo)
+    {
+        // in case the condition doesn't provide a special implementation for the
+        // damping matrix based on the LHS-Matrix and the MassMatrix (e.g. Rayleigh damping)
+        // then use the generic method
+        CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+    }
+
+    /**
      * CONDITIONS inherited from this class must implement this methods
      * if they need to write something at the condition geometry nodes
      * AddExplicitContribution methods are: OPTIONAL ( avoid to use them is not needed )
