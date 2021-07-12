@@ -131,9 +131,11 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
             double threshold = this->GetThreshold();
             double plastic_dissipation = this->GetPlasticDissipation();
             Vector plastic_strain = this->GetPlasticStrain();
+            Vector back_stress_vector  = this->GetBackStressVector();
+            const Vector previous_stress_vector = this->GetPreviousStressVector();
 
             BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-            BoundedArrayType predictive_stress_vector;
+            BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
             noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - plastic_strain);
 
             // Initialize Plastic Parameters
@@ -142,13 +144,16 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
             BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
             BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
+            // Kinematic back stress substracted
+            noalias(kin_hard_stress_vector) = predictive_stress_vector - back_stress_vector;
+
             // Compute the plastic parameters
             const double F = TConstLawIntegratorType::CalculatePlasticParameters(
-                predictive_stress_vector, r_strain_vector, uniaxial_stress,
+                kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
                 threshold, plastic_denominator, f_flux, g_flux,
                 plastic_dissipation, plastic_strain_increment,
                 r_constitutive_matrix, rValues, characteristic_length,
-                plastic_strain);
+                plastic_strain, back_stress_vector);
 
             if (F <= std::abs(1.0e-4 * threshold)) { // Elastic case
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
@@ -160,7 +165,8 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
                     threshold, plastic_denominator, f_flux, g_flux,
                     plastic_dissipation, plastic_strain_increment,
                     r_constitutive_matrix, plastic_strain, rValues,
-                    characteristic_length);
+                    characteristic_length, back_stress_vector,
+                    previous_stress_vector);
                 noalias(r_integrated_stress_vector) = predictive_stress_vector;
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -255,9 +261,11 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         double& r_threshold = this->GetThreshold();
         double& r_plastic_dissipation = this->GetPlasticDissipation();
         Vector& r_plastic_strain = this->GetPlasticStrain();
+        Vector& r_back_stress_vector  = this->GetBackStressVector();
+        const Vector previous_stress_vector = this->GetPreviousStressVector();
 
         BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
-        BoundedArrayType predictive_stress_vector;
+        BoundedArrayType predictive_stress_vector, kin_hard_stress_vector;
         noalias(predictive_stress_vector) = prod(r_constitutive_matrix, r_strain_vector - r_plastic_strain);
 
         // Initialize Plastic Parameters
@@ -266,15 +274,18 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
         BoundedArrayType g_flux = ZeroVector(VoigtSize); // DG/DS
         BoundedArrayType plastic_strain_increment = ZeroVector(VoigtSize);
 
+        // Kinematic back stress substracted
+        noalias(kin_hard_stress_vector) = predictive_stress_vector - r_back_stress_vector;
+
         // Compute the plastic parameters
-        const double F = TConstLawIntegratorType::CalculatePlasticParameters(
-            predictive_stress_vector, r_strain_vector, uniaxial_stress,
+        const double threshold_indicator = TConstLawIntegratorType::CalculatePlasticParameters(
+            kin_hard_stress_vector, r_strain_vector, uniaxial_stress,
             r_threshold, plastic_denominator, f_flux, g_flux,
             r_plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, rValues, characteristic_length,
-            r_plastic_strain);
+            r_plastic_strain, r_back_stress_vector);
 
-        if (F > std::abs(1.0e-4 * r_threshold)) { // Plastic case
+        if (threshold_indicator > std::abs(1.0e-4 * r_threshold)) { // Plastic case
             // While loop backward euler
             /* Inside "IntegrateStressVector" the predictive_stress_vector is updated to verify the yield criterion */
             TConstLawIntegratorType::IntegrateStressVector(
@@ -282,8 +293,10 @@ void GenericFiniteStrainKinematicPlasticity<TConstLawIntegratorType>::
                 r_threshold, plastic_denominator, f_flux, g_flux,
                 r_plastic_dissipation, plastic_strain_increment,
                 r_constitutive_matrix, r_plastic_strain, rValues,
-                characteristic_length);
+                characteristic_length, r_back_stress_vector,
+                previous_stress_vector);
         }
+        noalias(this->GetPreviousStressVector()) = predictive_stress_vector;
     }
 }
 
