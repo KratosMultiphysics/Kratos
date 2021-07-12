@@ -75,3 +75,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosConstitutiveLawsCore DESTINATION libs )
 install(TARGETS KratosConstitutiveLawsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosConstitutiveLawsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosConstitutiveLawsApplication" PARENT_SCOPE)

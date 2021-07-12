@@ -80,3 +80,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCoSimulationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCoSimulationApplication" PARENT_SCOPE)
