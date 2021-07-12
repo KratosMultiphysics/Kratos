@@ -27,6 +27,9 @@ from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatch
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
 from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
 
+# Import python based truss tests
+from truss_element_tests import TrussElementTests as TTrussElementTests
+
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
@@ -50,6 +53,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         # Import test
         SinglePatchTest,
+        # Truss tests
+        TTrussElementTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
