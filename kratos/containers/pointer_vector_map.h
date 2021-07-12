@@ -67,7 +67,7 @@ template<class TKeyType,class TDataType,
          class TCompareType = std::less<TKeyType>,
          class TPointerType = Kratos::shared_ptr<TDataType>,
          class TContainerType = std::vector<std::pair<TKeyType, TPointerType> > >
-class PointerVectorMap
+class PointerVectorMap final
 {
 public:
     ///@name Type Definitions
@@ -115,7 +115,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PointerVectorMap() {}
+    ~PointerVectorMap() {}
 
 
     ///@}
@@ -516,7 +516,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Pointer vector map (size = " << size() << ") : ";
@@ -525,13 +525,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         for(typename TContainerType::const_iterator i = mData.begin() ; i != mData.end() ; i++)
             rOStream << "(" << i->first << " , " << *(i->second) << ")" << std::endl;

@@ -52,7 +52,7 @@ namespace Kratos
 
 ///This function provides essential capabilities for mapping between local and global ids in a distributed vector
 template<class TIndexType=std::size_t>
-class DistributedNumbering
+class DistributedNumbering final
 {
 public:
     ///@name Type Definitions
@@ -143,7 +143,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~DistributedNumbering() {}
+    ~DistributedNumbering() {}
 
     ///@}
     ///@name Operators
@@ -218,7 +218,7 @@ public:
     }
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "DistributedNumbering: CpuBounds = " << mCpuBounds << std::endl;
@@ -226,13 +226,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedNumbering";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
 
 protected:

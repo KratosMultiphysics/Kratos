@@ -16,6 +16,11 @@
 
 // System includes
 #include <iostream>
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
 #include "containers/csr_matrix.h"
 #include "containers/distributed_sparse_graph.h"
 #include "containers/distributed_vector_importer.h"
@@ -23,14 +28,9 @@
 #include "includes/key_hash.h"
 #include "utilities/atomic_utilities.h"
 
-
-// Project includes
-#include "includes/define.h"
-
-
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -54,7 +54,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class DistributedCsrMatrix
+class DistributedCsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -279,7 +279,7 @@ public:
         mpVectorImporter = std::move(rOtherMatrix.mpVectorImporter);
     }
     /// Destructor.
-    virtual ~DistributedCsrMatrix() {}
+    ~DistributedCsrMatrix() {}
 
     /// Assignment operator. TODO: decide if we do want to allow it
     DistributedCsrMatrix& operator=(DistributedCsrMatrix const& rOther)=delete;
@@ -735,7 +735,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "DistributedCsrMatrix" ;
@@ -743,13 +743,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "DistributedCsrMatrix";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         rOStream << "--- Diagonal Block: ---" << std::endl;
         rOStream << "size1 : " << GetDiagonalBlock().size1() <<std::endl;

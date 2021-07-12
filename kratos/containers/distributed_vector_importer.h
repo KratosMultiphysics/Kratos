@@ -53,7 +53,7 @@ namespace Kratos
 
 /// Provides a DistributedVectorImporter which implements FEM assemble capabilities
 template<class TDataType=double, class TIndexType=std::size_t>
-class DistributedVectorImporter
+class DistributedVectorImporter final
 {
 public:
     ///@name Type Definitions
@@ -173,7 +173,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~DistributedVectorImporter(){}
+    ~DistributedVectorImporter(){}
 
     ///@}
     ///@name Operators
@@ -202,18 +202,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
-    std::stringstream buffer;
-    buffer << "DistributedVectorImporter" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "DistributedVectorImporter" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorImporter";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "DistributedVectorImporter";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends

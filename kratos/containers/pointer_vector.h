@@ -68,7 +68,7 @@ namespace Kratos
 template<class TDataType,
          class TPointerType = typename TDataType::Pointer,
          class TContainerType = std::vector<TPointerType> >
-class PointerVector
+class PointerVector final
 {
 public:
     ///@name Type Definitions
@@ -122,7 +122,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PointerVector() {}
+    ~PointerVector() {}
 
     ///@}
     ///@name Operators
@@ -346,7 +346,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "PointerVector (size = " << size() << ") : ";
@@ -355,13 +355,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }

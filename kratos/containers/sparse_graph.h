@@ -62,7 +62,7 @@ namespace Kratos
 */
 
 template<class TIndexType=std::size_t>
-class SparseGraph
+class SparseGraph final
 {
 public:
     ///@name Type Definitions
@@ -98,7 +98,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~SparseGraph(){}
+    ~SparseGraph(){}
 
     /// Copy constructor. 
     SparseGraph(const SparseGraph& rOther)
@@ -401,7 +401,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SparseGraph" ;
@@ -409,10 +409,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseGraph";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseGraph";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends

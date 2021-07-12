@@ -46,7 +46,7 @@ namespace Kratos
 	/** This class works tightly with VariablesListDataValueContainer and provides the
 	the positions of variables for that containers
 	*/
-	class KRATOS_API(KRATOS_CORE) VariablesList
+	class KRATOS_API(KRATOS_CORE) VariablesList final
 	{
 	public:
 		///@name Type Definitions
@@ -112,7 +112,7 @@ namespace Kratos
 			{}
 
 		/// Destructor.
-		virtual ~VariablesList()
+		~VariablesList()
 		{
 		}
 
@@ -397,19 +397,19 @@ namespace Kratos
 		///@{
 
 		/// Turn back information as a string.
-		virtual std::string Info() const
+		std::string Info() const
 		{
 			return "variables list";
 		}
 
 		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
+		void PrintInfo(std::ostream& rOStream) const
 		{
 			rOStream << Info();
 		}
 
 		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
+		void PrintData(std::ostream& rOStream) const
 		{
 			rOStream << " with " << size() << " variables";
 			rOStream << " (size : " << mDataSize << " blocks of " << sizeof(BlockType) << " bytes) " << std::endl;
