@@ -43,6 +43,7 @@
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 
 // vms monolithic wall conditions
+#include "custom_conditions/vms_monolithic_u_based_wall_condition.h"
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
 
 // fractional step wall conditions
@@ -218,6 +219,9 @@ private:
     // vms monolithic k based wall conditions
     const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
     const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
+
+    const VMSMonolithicUBasedWallCondition<2> mRansVMSMonolithicUBasedWall2D2N;
+    const VMSMonolithicUBasedWallCondition<3> mRansVMSMonolithicUBasedWall3D3N;
 
     // fractional step wall conditions
     const FractionalStepKBasedWallCondition<2, 2> mFractionalStepKBasedWall2D2N;

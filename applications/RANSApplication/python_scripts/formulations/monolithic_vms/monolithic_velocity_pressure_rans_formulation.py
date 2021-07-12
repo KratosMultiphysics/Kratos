@@ -294,21 +294,43 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, settings["c_mu"].GetDouble())
 
     def SetWallFunctionSettings(self, settings):
-        wall_function_region_type = "logarithmic_region_only"
-        if (settings.Has("wall_function_region_type")):
-            wall_function_region_type = settings["wall_function_region_type"].GetString()
+        self.condition_name = self.GetConditionNamePrefix()
 
-        if (wall_function_region_type == "logarithmic_region_only"):
-            self.condition_name = "RansVMSMonolithicKBasedWall"
-        else:
-            msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
-            msg += "Supported wall function region types are:\n"
-            msg += "\tlogarithmic_region_only\n"
-            raise Exception(msg)
+        if (self.condition_name != ""):
+            if (settings.Has("wall_function_region_type")):
+                wall_function_region_type = settings["wall_function_region_type"].GetString()
+            else:
+                wall_function_region_type = "logarithmic_region_only"
+
+            if (settings.Has("wall_friction_velocity_calculation_method")):
+                wall_friction_velocity_calculation_method = settings["wall_friction_velocity_calculation_method"].GetString()
+            else:
+                wall_friction_velocity_calculation_method = "velocity_based"
+
+            if (wall_function_region_type == "logarithmic_region_only"):
+                if (wall_friction_velocity_calculation_method == "velocity_based"):
+                    self.condition_name = self.condition_name + "UBasedWall"
+                elif (wall_friction_velocity_calculation_method ==
+                    "turbulent_kinetic_energy_based"):
+                    self.condition_name = self.condition_name + "KBasedWall"
+                else:
+                    msg = "Unsupported wall friction velocity calculation method. [ wall_friction_velocity_calculation_method = \"" + wall_friction_velocity_calculation_method + "\" ].\n"
+                    msg += "Supported methods are:\n"
+                    msg += "\tvelocity_based\n"
+                    msg += "\tturbulent_kinetic_energy_based\n"
+                    raise Exception(msg)
+            else:
+                msg = "Unsupported wall function region type provided. [ wall_function_region_type = \"" + wall_function_region_type + "\" ]."
+                msg += "Supported wall function region types are:\n"
+                msg += "\tlogarithmic_region_only\n"
+                raise Exception(msg)
 
     def GetStrategy(self):
         return self.solver
 
     def ElementHasNodalProperties(self):
         return self.flow_solver_formulation.element_has_nodal_properties
+
+    def GetConditionNamePrefix(self):
+        return "RansVMSMonolithic"        
 
