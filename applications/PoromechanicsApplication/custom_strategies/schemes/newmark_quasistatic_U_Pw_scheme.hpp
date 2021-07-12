@@ -266,8 +266,6 @@ public:
 
         if(rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
         {
-            unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
             const int NNodes = static_cast<int>(rModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
@@ -279,9 +277,9 @@ public:
 
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
+                if(rNodalStress.size1() != 3)
+                    rNodalStress.resize(3,3,false);
+                noalias(rNodalStress) = ZeroMatrix(3,3);
                 array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
@@ -304,10 +302,10 @@ public:
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                     array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
-                    for(unsigned int i = 0; i<Dim; i++)
+                    for(unsigned int i = 0; i<3; i++)
                     {
                         r_nodal_grad_pressure[i] *= InvNodalArea;
-                        for(unsigned int j = 0; j<Dim; j++)
+                        for(unsigned int j = 0; j<3; j++)
                         {
                             rNodalStress(i,j) *= InvNodalArea;
                         }
