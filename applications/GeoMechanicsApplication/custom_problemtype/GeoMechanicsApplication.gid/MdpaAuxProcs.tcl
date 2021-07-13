@@ -1509,7 +1509,6 @@ proc WriteExcavationSubmodelPart {FileVar CondName AnchorElementDict} {
                             lappend added_entities  [lindex $Entities $j]
                         }
                     }
-                    puts $MyFileVar "    $model_part_affected"
                     if {$model_part_affected} {
                         puts $MyFileVar "    [lindex $AnchorList 0]"
                     }

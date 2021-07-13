@@ -59,6 +59,8 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
             "convergence_criterion": "Displacement_criterion",
+            "water_pressure_relative_tolerance": 1.0e-4,
+            "water_pressure_absolute_tolerance": 1.0e-9,
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
@@ -344,6 +346,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
               raise Exception("Undefined solution type", solution_type)
         elif (scheme_type.lower() == "backward_euler"or solution_type.lower() == "backward-euler"):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
+                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
+            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
