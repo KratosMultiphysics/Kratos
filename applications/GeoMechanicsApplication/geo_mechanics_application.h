@@ -72,9 +72,9 @@
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
-#include "custom_constitutive/linear_plane_strain_K0_law.h"
-#include "custom_constitutive/linear_plane_strain_2D_law.h"
-#include "custom_constitutive/linear_plane_stress_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 #include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
@@ -85,6 +85,9 @@
 #include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
 #include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
+
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
+#include "custom_constitutive/linear_elastic_3D_interface_law.h"
 
 
 namespace Kratos {
@@ -419,12 +422,12 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
 
     // constitutive models
-    const BilinearCohesive3DLaw   mBilinearCohesive3DLaw;
-    const BilinearCohesive2DLaw   mBilinearCohesive2DLaw;
-    const LinearPlaneStrainK0Law  mLinearPlaneStrainK0Law;
-    const LinearPlaneStrain2DLaw  mLinearPlaneStrain2DLaw;
-    const ElasticIsotropicK03DLaw mElasticIsotropicK03DLaw;
-    const LinearPlaneStress2DLaw  mLinearPlaneStress2DLaw;
+    const BilinearCohesive3DLaw             mBilinearCohesive3DLaw;
+    const BilinearCohesive2DLaw             mBilinearCohesive2DLaw;
+    const LinearPlaneStrainK0Law            mLinearPlaneStrainK0Law;
+    const GeoLinearElasticPlaneStrain2DLaw  mLinearElasticPlaneStrain2DLaw;
+    const ElasticIsotropicK03DLaw           mElasticIsotropicK03DLaw;
+    const GeoLinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
 
     const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw;
     const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw;
@@ -435,6 +438,9 @@ private:
     const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw;
     const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw;
     const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw;
+
+    const LinearElastic2DInterfaceLaw     mLinearElastic2DInterfaceLaw;
+    const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
 
     /// Assignment operator.
     KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication const& rOther);

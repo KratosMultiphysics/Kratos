@@ -370,11 +370,11 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive3DLaw",           mBilinearCohesive3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("BilinearCohesive2DLaw",           mBilinearCohesive2DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw", mLinearPlaneStrainK0Law)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",            mElasticIsotropicK03DLaw)
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearPlaneStress2DLaw",          mLinearPlaneStress2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticPlaneStrainK02DLaw",  mLinearPlaneStrainK0Law)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElasticK03DLaw",             mElasticIsotropicK03DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw", mLinearElasticPlaneStrain2DLaw)
 
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStrain2DLaw",mLinearPlaneStrain2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoLinearElasticPlaneStress2DLaw", mLinearElasticPlaneStress2DLaw)
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM3DLaw",            mSmallStrainUDSM3DLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUDSM2DPlaneStrainLaw", mSmallStrainUDSM2DPlaneStrainLaw)
@@ -385,6 +385,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT2DPlaneStrainLaw", mSmallStrainUMAT2DPlaneStrainLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT2DInterfaceLaw",   mSmallStrainUMAT2DInterfaceLaw)
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainUMAT3DInterfaceLaw",   mSmallStrainUMAT3DInterfaceLaw)
+
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DInterfaceLaw",   mLinearElastic2DInterfaceLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic3DInterfaceLaw",   mLinearElastic3DInterfaceLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
