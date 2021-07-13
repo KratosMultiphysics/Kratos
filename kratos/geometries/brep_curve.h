@@ -317,22 +317,22 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* @brief calls function of undelying nurbs surface,
-     *        which itself is not implented and thus is calling the
-     *        geometry base class and updates the parent to itself.
+    /* @brief calls function of underlying nurbs curve.
      *
      * @param rResultGeometries list of quadrature point geometries.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
      *        derivatives of shape functions at the quadrature point geometries.
+     * @param rIntegrationPoints the corresponding integration points.
      *
      * @see quadrature_point_geometry.h
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         mpNurbsCurve->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);
