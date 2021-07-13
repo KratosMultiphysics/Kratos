@@ -304,6 +304,19 @@
               "local_coordinates": [ 0, 0, 0 ]
             }
           ]
+        },
+        {
+          "brep_id": 71,
+          "topology": [
+            {
+              "brep_id": 1,
+              "local_coordinates": [ 10, 0, 0 ]
+            },
+            {
+              "brep_id": 15,
+              "local_coordinates": [ 10, 0, 0 ]
+            }
+          ]
         }
       ]
     }
