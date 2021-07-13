@@ -102,6 +102,13 @@ public:
     ///@{
 
     /**
+     * @brief This method copies the structure of submodelparts
+     * @param rModelPart The model part where to copy
+     * @param rModelPartToCopyFrom The model part to copy from
+     */
+    static void CopySubModelPartStructure(ModelPart& rModelPart, const ModelPart& rModelPartToCopyFrom);
+
+    /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
      * @param RemovePreviousProperties If we clear previous properties and ensure only the properties existing in the elements and conditions (true by default)
      */
