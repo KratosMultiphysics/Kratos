@@ -143,7 +143,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
 
-        self.apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
+        self._apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
