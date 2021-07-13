@@ -325,7 +325,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureC
         * GradPY-2 = GradPY at node 2
     */
 
-    BoundedMatrix<double,3,3> AuxNodalStress;
+    Matrix AuxNodalStress(3,VoigtSize);
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
     /* INFO:
@@ -352,7 +352,7 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureC
         {
             r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
         }
-        Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+        Matrix& rNodalStress = rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
         for(unsigned int j = 0; j < cl_dimension; j++){
             for(unsigned int k = 0; k < cl_dimension; k++){
                 rNodalStress(j,k) += NodalStressTensor[i](j,k);
@@ -402,7 +402,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureC
     BoundedMatrix<double,4,2> AuxNodalGradPressure;
     noalias(AuxNodalGradPressure) = prod(ExtrapolationMatrix,GradPressureContainer);
 
-    BoundedMatrix<double,4,3> AuxNodalStress;
+    Matrix AuxNodalStress(4,VoigtSize);
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
     /* INFO:
@@ -430,7 +430,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureC
         {
             r_nodal_grad_pressure[j] += NodalGradPressure[i][j];
         }
-        Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+        Matrix& rNodalStress = rGeom[i].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
         for(unsigned int j = 0; j < cl_dimension; j++){
             for(unsigned int k = 0; k < cl_dimension; k++){
                 rNodalStress(j,k) += NodalStressTensor[i](j,k);

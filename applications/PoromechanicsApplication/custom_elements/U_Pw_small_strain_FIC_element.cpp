@@ -248,7 +248,7 @@ void UPwSmallStrainFICElement<2,3>::ExtrapolateGPConstitutiveTensor(const array_
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double,3,strain_size> AuxNodalConstitutiveTensor;
+    Matrix AuxNodalConstitutiveTensor(3,strain_size);
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
@@ -280,7 +280,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPConstitutiveTensor(const array_
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
     PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double,4,strain_size> AuxNodalConstitutiveTensor;
+    Matrix AuxNodalConstitutiveTensor(4,strain_size);
 
     for(unsigned int i = 0; i < 2; i++) //TDim
     {

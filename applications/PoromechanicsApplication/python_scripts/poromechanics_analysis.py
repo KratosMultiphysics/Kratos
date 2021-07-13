@@ -43,7 +43,7 @@ class PoromechanicsAnalysis(AnalysisStage):
 
         self.initial_stress_mode = 'external' # Not from a Poromechanics solution
         if parameters["problem_data"].Has("initial_stress_utility_settings"):
-            self.initial_stress_mode = self.parameters["problem_data"]["initial_stress_utility_settings"]["mode"].GetString()
+            self.initial_stress_mode = parameters["problem_data"]["initial_stress_utility_settings"]["mode"].GetString()
         if (self.initial_stress_mode == 'load' or self.initial_stress_mode == 'save'):
             from KratosMultiphysics.PoromechanicsApplication.poromechanics_initial_stress_utility import InitialStressUtility
             self.initial_stress_utility = InitialStressUtility(model,parameters)

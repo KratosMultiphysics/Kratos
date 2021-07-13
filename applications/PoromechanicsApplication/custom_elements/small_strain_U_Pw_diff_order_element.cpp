@@ -878,7 +878,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
 
         double Pressure;
         const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-        array_1d<double,NumPNodes> PressureVector;
+        Vector PressureVector(NumPNodes);
         for(SizeType i=0; i<NumPNodes; i++)
         {
             PressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
@@ -908,7 +908,7 @@ void SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints( const Variabl
                 Pressure += NpContainer(PointNumber,i)*PressureVector[i];
             }
 
-            noalias(StressVector) += -BiotCoefficient*Pressure*VoigtVector;
+            noalias(StressVector[PointNumber]) += -BiotCoefficient*Pressure*VoigtVector;
 
             if ( rOutput[PointNumber].size2() != cl_dimension )
                 rOutput[PointNumber].resize( cl_dimension, cl_dimension, false );
