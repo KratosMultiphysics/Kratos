@@ -351,25 +351,18 @@ private:
 
             noalias(rTLS.ErrorValuesList) = ZeroVector(number_of_dofs_per_node);
 
-            for (auto& r_element : rTLS.pRefinedModelPart->Elements()) {
-                r_element.EquationIdVector(rTLS.EquationIds, rTLS.pRefinedModelPart->GetProcessInfo());
-
-                noalias(rTLS.LocalErrors) = ZeroVector(number_of_dofs_per_node);
-
-                for (const auto equation_id : rTLS.EquationIds) {
-                    const double delta_u_mp = 1.0 / std::abs(rTLS.AssembledValues.find(equation_id)->second);
-                    rTLS.LocalErrors[rTLS.ErrorIds.find(equation_id)->second] += delta_u_mp;
-                }
-
-                const auto& r_geometry = r_element.GetGeometry();
-                noalias(rTLS.ErrorValuesList) += rTLS.LocalErrors * (r_geometry.DomainSize() / r_geometry.size());
+            for (const auto p : rTLS.AssembledValues) {
+                rTLS.ErrorValuesList[rTLS.ErrorIds.find(p.first)->second] += std::abs(p.second);
             }
 
-            const double coeff = acceptable_element_error / (rTLS.pRefinedModelPart->NumberOfNodes() * rElement.GetGeometry().size());
+            const double coeff = acceptable_element_error * rElement.GetGeometry().DomainSize() / (rElement.GetGeometry().size());
 
             for (auto& r_node : rElement.GetGeometry()) {
                 r_node.SetLock();
-                r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR) += rTLS.ErrorValuesList * coeff;
+                auto& r_values = r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR);
+                for (IndexType i = 0; i < number_of_dofs_per_node; ++i) {
+                    r_values[i] += coeff / rTLS.ErrorValuesList[i];
+                }
                 r_node.UnSetLock();
             }
 

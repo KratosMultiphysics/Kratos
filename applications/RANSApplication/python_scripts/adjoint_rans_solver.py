@@ -683,7 +683,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             ])
             self._CheckAndAddValueToList(nodal_interpolation_settings, "historical_variables_list", list_of_variable_names)
             self._CheckAndAddValueToList(nodal_interpolation_settings, "non_hitsorical_variables_list", ["RELAXED_ACCELERATION"])
-            self._CheckAndAddValueToList(nodal_interpolation_settings, "flags_list", ["SLIP", "INLET", "OUTLET"])
+            self._CheckAndAddValueToList(nodal_interpolation_settings, "flags_list", ["SLIP", "INLET", "OUTLET", "STRUCTURE"])
 
             self.element_refinement_process = KratosCFD.ElementRefinementProcess(self.model, refinement_parameters)
 
