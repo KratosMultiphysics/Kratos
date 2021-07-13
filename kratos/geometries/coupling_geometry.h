@@ -493,6 +493,60 @@ public:
             << mpGeometries.size() << " are given." << std::endl;
     }
 
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
+    {
+        const double model_tolerance = 1e-3;
+
+        if (this->Dimension() != 0) {
+            BaseType::CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationInfo);
+        }
+        else {
+            rResultGeometries.resize(1);
+
+            GeometriesArrayType master_quadrature_points(1);
+            mpGeometries[0]->CreateQuadraturePointGeometries(
+                master_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            GeometriesArrayType slave_quadrature_points(1);
+            mpGeometries[1]->CreateQuadraturePointGeometries(
+                slave_quadrature_points,
+                NumberOfShapeFunctionDerivatives,
+                rIntegrationInfo);
+
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) > model_tolerance)
+                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                << slave_quadrature_points(0)->Center() << ". Distance: "
+                << norm_2(master_quadrature_points(0)->Center() - slave_quadrature_points(0)->Center()) << std::endl;
+
+            rResultGeometries(0) = Kratos::make_shared<CouplingGeometry<PointType>>(
+                master_quadrature_points(0), slave_quadrature_points(0));
+
+            if (mpGeometries.size() > 2) {
+                for (IndexType i = 2; i < mpGeometries.size(); ++i) {
+                    GeometriesArrayType more_slave_quadrature_points(1);
+                    mpGeometries[i]->CreateQuadraturePointGeometries(
+                        more_slave_quadrature_points,
+                        NumberOfShapeFunctionDerivatives,
+                        rIntegrationInfo);
+
+                    KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) > model_tolerance)
+                        << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+                        << ". Location of master: " << master_quadrature_points(0)->Center() << ", location of slave: "
+                        << more_slave_quadrature_points(0)->Center() << ". Distance: "
+                        << norm_2(master_quadrature_points(0)->Center() - more_slave_quadrature_points(0)->Center()) << std::endl;
+
+                    rResultGeometries(0)->AddGeometryPart(more_slave_quadrature_points(0));
+                }
+            }
+        }
+    }
+
     ///@}
     ///@name Span Utilities
     ///@{
