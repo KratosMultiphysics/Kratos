@@ -196,7 +196,8 @@ public:
      * @param return integration points list with one entry.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         if (rIntegrationPoints.size() != 1) { rIntegrationPoints.resize(1); }
         rIntegrationPoints[0][0] = mLocalCoordinates[0];
@@ -221,14 +222,15 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo) override
     {
         IntegrationPointsArrayType integration_point(1);
-        this->CreateIntegrationPoints(integration_point);
+        this->CreateIntegrationPoints(integration_point, rIntegrationInfo);
 
         GeometriesArrayType rQuadraturePointGeometries(1);
         mpBackgroundGeometry->CreateQuadraturePointGeometries(
-            rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point);
+            rQuadraturePointGeometries, NumberOfShapeFunctionDerivatives, integration_point, rIntegrationInfo);
 
         if (rResultGeometries.size() != 1) { rResultGeometries.resize(1); }
         // assignment operator for quadrature point geometry with Dimension being 0.
