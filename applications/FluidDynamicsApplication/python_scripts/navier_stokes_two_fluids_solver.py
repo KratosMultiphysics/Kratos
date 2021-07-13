@@ -65,6 +65,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
+            "acceleration_limitation": true,
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false
@@ -141,6 +142,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._distance_smoothing = self.settings["distance_smoothing"].GetBool()
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
+
+        self.apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -285,7 +288,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Limit the obtained acceleration for the next step
             # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
             # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
-            if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
+            if self.apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
