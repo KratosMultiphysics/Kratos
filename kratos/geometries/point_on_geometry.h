@@ -154,6 +154,16 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Return polynomial degree of the background geometry
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        return mpBackgroundGeometry->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
