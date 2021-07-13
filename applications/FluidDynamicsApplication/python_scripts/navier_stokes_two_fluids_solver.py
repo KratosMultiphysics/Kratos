@@ -288,7 +288,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Limit the obtained acceleration for the next step
             # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
             # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
-            if self.apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
+            if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
                 self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
