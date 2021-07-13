@@ -1,21 +1,22 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
+
 // System includes
 #include <iostream>
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_stress_2D_law.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -25,7 +26,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress2DLaw::LinearPlaneStress2DLaw()
+GeoLinearElasticPlaneStress2DLaw::GeoLinearElasticPlaneStress2DLaw()
     : ElasticIsotropicK03DLaw()
 {
 }
@@ -33,7 +34,7 @@ LinearPlaneStress2DLaw::LinearPlaneStress2DLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-LinearPlaneStress2DLaw::LinearPlaneStress2DLaw(const LinearPlaneStress2DLaw& rOther)
+GeoLinearElasticPlaneStress2DLaw::GeoLinearElasticPlaneStress2DLaw(const GeoLinearElasticPlaneStress2DLaw& rOther)
     : ElasticIsotropicK03DLaw(rOther)
 {
 }
@@ -41,23 +42,23 @@ LinearPlaneStress2DLaw::LinearPlaneStress2DLaw(const LinearPlaneStress2DLaw& rOt
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer LinearPlaneStress2DLaw::Clone() const
+ConstitutiveLaw::Pointer GeoLinearElasticPlaneStress2DLaw::Clone() const
 {
-    LinearPlaneStress2DLaw::Pointer p_clone(new LinearPlaneStress2DLaw(*this));
+    GeoLinearElasticPlaneStress2DLaw::Pointer p_clone(new GeoLinearElasticPlaneStress2DLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-LinearPlaneStress2DLaw::~LinearPlaneStress2DLaw()
+GeoLinearElasticPlaneStress2DLaw::~GeoLinearElasticPlaneStress2DLaw()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-bool& LinearPlaneStress2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& GeoLinearElasticPlaneStress2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
@@ -69,7 +70,7 @@ bool& LinearPlaneStress2DLaw::GetValue(const Variable<bool>& rThisVariable, bool
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void LinearPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
+void GeoLinearElasticPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRESS_LAW );
@@ -90,7 +91,7 @@ void LinearPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void GeoLinearElasticPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -112,7 +113,7 @@ void LinearPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress2DLaw::CalculatePK2Stress(
+void GeoLinearElasticPlaneStress2DLaw::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
     ConstitutiveLaw::Parameters& rValues
@@ -134,7 +135,7 @@ void LinearPlaneStress2DLaw::CalculatePK2Stress(
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress2DLaw::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
+void GeoLinearElasticPlaneStress2DLaw::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();

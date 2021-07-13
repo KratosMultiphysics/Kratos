@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
 
 #include "geo_mechanics_application_variables.h"
 
