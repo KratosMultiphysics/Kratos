@@ -527,7 +527,7 @@ private:
 
                     GeometryPointerType p_point_on_geometry = ReadPointOnGeometry(rParameters[brep_point_i]["topology"][0], rModelPart, p_geometry, EchoLevel);
 
-                    SetIdOrName(rParameters, p_point_on_geometry);
+                    SetIdOrName(rParameters[brep_point_i], p_point_on_geometry);
                     rModelPart.AddGeometry(p_point_on_geometry);
                 }
                 else {
@@ -548,7 +548,7 @@ private:
                 auto p_coupling_geometry = Kratos::make_shared<CouplingGeometryType>(
                     coupling_point_geometries);
 
-                SetIdOrName<CouplingGeometryType>(rParameters, p_coupling_geometry);
+                SetIdOrName<CouplingGeometryType>(rParameters[brep_point_i], p_coupling_geometry);
                 rModelPart.AddGeometry(p_coupling_geometry);
             }
             else {
