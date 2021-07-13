@@ -49,9 +49,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TestNumPyGenerator('test_init'))
     smallSuite.addTest(TestNumPyGenerator('test_realisation'))
     smallSuite.addTest(TestNumPyGenerator('test_realisation_fromJSON'))
-    # smallSuite.addTest(TestSolver.Base('test_init'))
-    # smallSuite.addTest(TestSolver.Base('test_solve'))
-    # smallSuite.addTest(VanDerPolTest('test_init'))
+    smallSuite.addTest(TestSolver.Base('test_init'))
+    smallSuite.addTest(TestSolver.Base('test_solve'))
+    smallSuite.addTest(VanDerPolTest('test_init'))
     smallSuite.addTest(VanDerPolTest('test_harmonic_trajectory'))
     smallSuite.addTest(VanDerPolTest('test_reference_solution'))
 
