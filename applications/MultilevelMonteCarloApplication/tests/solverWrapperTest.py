@@ -5,7 +5,6 @@ import unittest
 
 # External tools
 import numpy as np
-import matplotlib.pyplot as plt
 import json
 from typing import Callable, Type, Optional, List, Tuple
 
