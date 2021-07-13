@@ -64,6 +64,14 @@ public:
     ///@}
 
 protected:
+    ///@name Protected Member Variables
+    ///@{
+
+    File::Pointer mpFile;
+
+    std::vector<std::string> mComponentNames;
+
+    ///@}
     ///@name Protected Operations
     ///@{
 
@@ -76,9 +84,7 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-    File::Pointer mpFile;
     std::string mComponentPath;
-    std::vector<std::string> mComponentNames;
     ///@}
     ///@name Private Operations
     ///@{
@@ -92,6 +98,7 @@ private:
     ///@}
 
 }; // class ContainerComponentIO.
+
 
 ///@} // Kratos Classes
 ///@} addtogroup
