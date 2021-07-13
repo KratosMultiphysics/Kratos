@@ -55,7 +55,8 @@ namespace Kratos
             const TBrepLoopType& rInnerLoops,
             const std::vector<double>& rSpansU,
             const std::vector<double>& rSpansV,
-            IntegrationInfo& rIntegrationInfo)
+            IntegrationInfo& rIntegrationInfo,
+            IndexType ClipperClipType = 0)
         {
             ClipperLib::Paths outer_loops(rOuterLoops.size()), inner_loops(rInnerLoops.size()), solution;
             const double factor = 1e-10;
@@ -88,21 +89,29 @@ namespace Kratos
 
             //perform intersection
             ClipperLib::Clipper c;
+            ClipperLib::ClipType clipper_type = (ClipperClipType == 0)
+                ? ClipperLib::ctIntersection
+                : ClipperLib::ctDifference;
+            ClipperLib::PolyType knots_polygon_type = (ClipperClipType == 0)
+                ? ClipperLib::ptSubject
+                : ClipperLib::ptClip;
+            ClipperLib::PolyType trim_polygon_type = (ClipperClipType == 0)
+                ? ClipperLib::ptClip
+                : ClipperLib::ptSubject;
 
-            c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
             for (IndexType i = 0; i < rSpansU.size() - 1; ++i) {
                 for (IndexType j = 0; j < rSpansV.size() - 1; ++j) {
 
-                    c.AddPaths(outer_loops, ClipperLib::ptSubject, true);
-                    c.AddPaths(inner_loops, ClipperLib::ptSubject, true);
+                    c.AddPaths(outer_loops, knots_polygon_type, true);
+                    c.AddPaths(inner_loops, knots_polygon_type, true);
 
                     ClipperLib::Paths span(1);
                     span[0] <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j], factor) <<
                         BrepTrimmingUtilities::ToIntPoint(rSpansU[i + 1], rSpansV[j + 1], factor) << BrepTrimmingUtilities::ToIntPoint(rSpansU[i], rSpansV[j + 1], factor);
 
-                    c.AddPaths(span, ClipperLib::ptClip, true);
-                    c.Execute(ClipperLib::ctIntersection, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+                    c.AddPaths(span, trim_polygon_type, true);
+                    c.Execute(clipper_type, solution, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
 
                     if (solution.size() == 0) {
                         continue;
@@ -218,7 +227,22 @@ namespace Kratos
                         continue;
                     }
                     else if (std::abs((std::abs(ClipperLib::Area(solution[0])) - std::abs(ClipperLib::Area(span[0]))) * (factor * factor)) < 1e-6) {
+                        const IndexType number_of_integration_points = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0) * rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1);
 
+                        IndexType initial_integration_size = rIntegrationPoints.size();
+
+                        if (rIntegrationPoints.size() != initial_integration_size + number_of_integration_points) {
+                            rIntegrationPoints.resize(initial_integration_size + number_of_integration_points);
+                        }
+
+                        typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
+                        advance(integration_point_iterator, initial_integration_size);
+
+                        IntegrationPointUtilities::IntegrationPoints2D(
+                            integration_point_iterator,
+                            rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0), rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(1),
+                            rSpansU[i], rSpansU[i + 1],
+                            rSpansV[j], rSpansV[j + 1]);
                     }
                     else {
                         std::vector<Matrix> triangles;
