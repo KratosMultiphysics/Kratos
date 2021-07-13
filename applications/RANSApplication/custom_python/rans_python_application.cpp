@@ -45,6 +45,8 @@ PYBIND11_MODULE(KratosRANSApplication,m)
     AddCustomProcessesToPython(m);
 
     // stabilization validation specific variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CIRCULAR_CONVECTION_ROTATION_CLOCKWISE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CIRCULAR_CONVECTION_ROTATION_CENTER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, REACTION_COEFFICIENT )
 
     // incompressible potential flow specific variables

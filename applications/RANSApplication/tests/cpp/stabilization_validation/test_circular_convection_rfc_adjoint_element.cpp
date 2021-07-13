@@ -54,6 +54,8 @@ ModelPart& CreateRansCircularConvectionRFCAdjoint2D3NModelPart(
         r_process_info.SetValue(OSS_SWITCH, 0);
         r_process_info.SetValue(RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, 1.3);
         r_process_info.SetValue(RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, 2.8);
+        r_process_info.SetValue(CIRCULAR_CONVECTION_ROTATION_CLOCKWISE, true);
+        r_process_info.SetValue(CIRCULAR_CONVECTION_ROTATION_CENTER, array_1d<double, 3>({0.01, 0.01, 0.0}));
     };
 
     // preparing primal model part

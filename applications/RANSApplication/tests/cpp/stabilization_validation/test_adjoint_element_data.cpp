@@ -53,6 +53,10 @@ void StabilizationValidationSetVariables(ModelPart& rModelPart)
 
     FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, VELOCITY_POTENTIAL, -10.0, 10.0);
     FluidTestUtilities::RandomFillNodalHistoricalVariable(rModelPart, RANS_AUXILIARY_VARIABLE_1, 1.0, 10.0);
+
+    auto& r_process_info = rModelPart.GetProcessInfo();
+    r_process_info.SetValue(CIRCULAR_CONVECTION_ROTATION_CLOCKWISE, false);
+    r_process_info.SetValue(CIRCULAR_CONVECTION_ROTATION_CENTER, array_1d<double, 3>({-1.0, 1.2, 0.0}));
 }
 
 void StabilizationValidationSetProperties(Properties& rProperties)

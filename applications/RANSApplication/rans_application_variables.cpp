@@ -14,6 +14,8 @@
 namespace Kratos
 {
     // stabilization validation specific variables
+    KRATOS_CREATE_VARIABLE( bool, CIRCULAR_CONVECTION_ROTATION_CLOCKWISE )
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( CIRCULAR_CONVECTION_ROTATION_CENTER )
     KRATOS_CREATE_VARIABLE( double, REACTION_COEFFICIENT )
 
     // common auxiliary variables

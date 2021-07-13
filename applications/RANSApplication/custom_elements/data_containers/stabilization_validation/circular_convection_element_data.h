@@ -42,6 +42,8 @@ public:
 
     using GeometryType = typename BaseType::GeometryType;
 
+    using Array3D = array_1d<double, 3>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -91,6 +93,8 @@ protected:
     using BaseType::mSourceTerm;
 
     BoundedMatrix<double, 2, 3> mNodalCoordinates;
+    double mRotationFactor;
+    Array3D mRotationCenter;
 
     ///@}
 };

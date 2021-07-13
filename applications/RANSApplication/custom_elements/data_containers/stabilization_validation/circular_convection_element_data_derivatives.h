@@ -238,6 +238,7 @@ public:
         using BaseType::mReactionTerm;
         using BaseType::mSourceTerm;
         using BaseType::mNodalCoordinates;
+        using BaseType::mRotationFactor;
 
         ///@}
         ///@name Private Friends

@@ -51,6 +51,12 @@ void CircularConvectionElementDataDerivatives::Data::Check(
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CIRCULAR_CONVECTION_ROTATION_CLOCKWISE))
+        << "CIRCULAR_CONVECTION_ROTATION_CLOCKWISE is not found int process info.\n";
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CIRCULAR_CONVECTION_ROTATION_CENTER))
+        << "CIRCULAR_CONVECTION_ROTATION_CENTER is not found int process info.\n";
+
     for (const auto& r_node : rElement.GetGeometry()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_SCALAR_1_ADJOINT_1, r_node);
@@ -129,7 +135,7 @@ const Variable<double>& CircularConvectionElementDataDerivatives::ShapeDerivativ
 
 array_1d<double, 2> CircularConvectionElementDataDerivatives::ShapeDerivative::CalculateEffectiveVelocityDerivative() const
 {
-    const double N_value = this->mrN[this->mNodeIndex];
+    const double N_value = this->mrN[this->mNodeIndex] * mrData.mRotationFactor;
     return ArrayD({N_value * (this->mDirectionIndex == 1),
                    -N_value * (this->mDirectionIndex == 0)});
 }

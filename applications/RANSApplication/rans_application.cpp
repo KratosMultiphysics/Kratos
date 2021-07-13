@@ -132,6 +132,8 @@ void KratosRANSApplication::Register()
     KRATOS_INFO("") << "Initializing KratosRANSApplication..." << std::endl;
 
     // stabilization validation specific variables
+    KRATOS_REGISTER_VARIABLE( CIRCULAR_CONVECTION_ROTATION_CLOCKWISE )
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( CIRCULAR_CONVECTION_ROTATION_CENTER )
     KRATOS_REGISTER_VARIABLE( REACTION_COEFFICIENT )
 
     // incompressible potential flow specific variables

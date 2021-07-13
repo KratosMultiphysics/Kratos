@@ -55,6 +55,12 @@ void CircularConvectionElementData::Check(
 {
     KRATOS_TRY
 
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CIRCULAR_CONVECTION_ROTATION_CLOCKWISE))
+        << "CIRCULAR_CONVECTION_ROTATION_CLOCKWISE is not found int process info.\n";
+
+    KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(CIRCULAR_CONVECTION_ROTATION_CENTER))
+        << "CIRCULAR_CONVECTION_ROTATION_CENTER is not found int process info.\n";
+
     const auto& r_geometry = rElement.GetGeometry();
 
     for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
@@ -69,6 +75,8 @@ void CircularConvectionElementData::Check(
 void CircularConvectionElementData::CalculateConstants(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    mRotationFactor = (rCurrentProcessInfo[CIRCULAR_CONVECTION_ROTATION_CLOCKWISE]) ? 1.0 : -1.0;
+    mRotationCenter = rCurrentProcessInfo[CIRCULAR_CONVECTION_ROTATION_CENTER];
     mEffectiveKinematicViscosity = 0.0;
     mReactionTerm = 0.0;
     mSourceTerm = 0.0;
@@ -82,8 +90,8 @@ void CircularConvectionElementData::CalculateGaussPointData(
     KRATOS_TRY
 
     const ArrayD& gauss_coordinates = prod(mNodalCoordinates, rShapeFunctions);
-    mEffectiveVelocity[0] = gauss_coordinates[1];
-    mEffectiveVelocity[1] = -gauss_coordinates[0];
+    mEffectiveVelocity[0] = (-mRotationCenter[0] + gauss_coordinates[1]) * mRotationFactor;
+    mEffectiveVelocity[1] = ( mRotationCenter[1] - gauss_coordinates[0]) * mRotationFactor;
 
     KRATOS_CATCH("");
 }

@@ -39,3 +39,34 @@ class CircularConvectionRansFormulation(ScalarRansFormulation):
     def GetConditionNamePrefix(self):
         return ""
 
+    def SetConstants(self, settings):
+        defaults = Kratos.Parameters('''{
+            "circular_convection_constants": {
+                "is_clock_wise_rotation": true,
+                "rotation_center": [0.0, 0.0, 0.0]
+            },
+            "stabilization_constants":{
+                "dynamic_tau"                       : 0.0,
+                "upwind_operator_coefficient"       : 1.2,
+                "positivity_preserving_coefficient" : 1.2
+            }
+        }''')
+
+        settings.RecursivelyValidateAndAssignDefaults(defaults)
+
+        process_info = self.GetBaseModelPart().ProcessInfo
+
+        # stabilization parameters
+        constants = settings["circular_convection_constants"]
+        process_info.SetValue(KratosRANS.CIRCULAR_CONVECTION_ROTATION_CLOCKWISE, constants["is_clock_wise_rotation"].GetBool())
+        process_info.SetValue(KratosRANS.CIRCULAR_CONVECTION_ROTATION_CENTER, constants["rotation_center"].GetVector())
+
+        constants = settings["stabilization_constants"]
+        if (self.is_steady_simulation):
+            self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, 0.0)
+        else:
+            self.GetBaseModelPart().ProcessInfo.SetValue(Kratos.DYNAMIC_TAU, constants["dynamic_tau"].GetDouble())
+
+        # stabilization parameters
+        process_info.SetValue(KratosRANS.RANS_STABILIZATION_DISCRETE_UPWIND_OPERATOR_COEFFICIENT, constants["upwind_operator_coefficient"].GetDouble())
+        process_info.SetValue(KratosRANS.RANS_STABILIZATION_DIAGONAL_POSITIVITY_PRESERVING_COEFFICIENT, constants["positivity_preserving_coefficient"].GetDouble())
