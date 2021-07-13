@@ -33,6 +33,9 @@ class CoSimulationCouplingOperation:
     def InitializeCouplingIteration(self):
         pass
 
+    def FinalizeSolveSolutionStep(self):
+        pass
+
     def FinalizeCouplingIteration(self):
         pass
 

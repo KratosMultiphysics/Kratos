@@ -56,7 +56,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_settings, file_header).file
 
-    def FinalizeCouplingIteration(self):        
+    def FinalizeSolveSolutionStep(self):        
         current_time = self.model_part.ProcessInfo[KM.TIME]
 
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
