@@ -175,18 +175,21 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle4)
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
+        .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
         .def(py::init<ModelPart&>())
         .def(py::init<ModelPart&, const int>())
+        .def(py::init<ModelPart&, Parameters&, const int>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)
         .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet
             ,py::arg("model_part")
             ,py::arg("creator_destructor")
             ,py::arg("using_strategy_for_continuum") = false
             )
-        .def("GetNumberOfParticlesInjectedSoFar", &DEM_Inlet::CreateElementsFromInletMesh)
+        .def("GetTotalNumberOfParticlesInjectedSoFar", &DEM_Inlet::GetTotalNumberOfParticlesInjectedSoFar)
+        .def("GetTotalMassInjectedSoFar", &DEM_Inlet::GetTotalMassInjectedSoFar)
         ;
 
     py::class_<DEM_Force_Based_Inlet, DEM_Force_Based_Inlet::Pointer, DEM_Inlet>(m, "DEM_Force_Based_Inlet")

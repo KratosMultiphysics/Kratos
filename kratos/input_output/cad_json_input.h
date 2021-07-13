@@ -71,6 +71,7 @@ class CadJsonInput : public IO
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -222,6 +223,8 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+
             rModelPart.AddGeometry(p_brep_surface);
         }
         else
@@ -236,6 +239,8 @@ private:
                     p_surface);
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -341,6 +346,23 @@ private:
         }
 
         return std::make_tuple(outer_loops, inner_loops);
+    }
+
+    static void ReadAndAddEmbeddedEdges(
+            typename BrepSurfaceType::Pointer pBrepSurface,
+            const Parameters rParameters,
+            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+    {
+        if (rParameters.Has("embedded_edges")) {
+            if (rParameters["embedded_edges"].size() > 0) {
+                BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+
+                pBrepSurface->AddEmbeddedEdges(embedded_edges);
+            }
+        }
     }
 
     ///@}
@@ -524,13 +546,16 @@ private:
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
-                    knot_vector));
+                    knot_vector,
+                    control_point_weights));
         }
-        return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-            NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+        typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_curve(
+            new NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 polynomial_degree,
                 knot_vector));
+
+        return p_nurbs_curve;
     }
 
     /* @brief read NurbsSurfaces from the given parameter input.
@@ -600,13 +625,15 @@ private:
                 knot_vector_v,
                 control_point_weights);
         }
-        return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-            NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+        typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_surface(
+            new NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 p,
                 q,
                 knot_vector_u,
                 knot_vector_v));
+
+        return p_nurbs_surface;
     }
 
     ///@}

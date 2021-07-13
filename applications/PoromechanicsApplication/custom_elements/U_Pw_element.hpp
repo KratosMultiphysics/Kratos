@@ -106,6 +106,22 @@ public:
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 protected:
 
     /// Member Variables
@@ -123,6 +139,23 @@ protected:
     virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
+
+
+    virtual void CalculateFluxResidual (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateMixBodyForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateNegInternalForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateExplicitContributions (VectorType& rFluxResidual, VectorType& rBodyForce, VectorType& rNegInternalForces, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateLumpedMassMatrix( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo );
+
+    virtual void CalculateDampingMatrixWithLumpedMass( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo );
+
+    virtual void CalculateInertialForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateDampingForce (VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

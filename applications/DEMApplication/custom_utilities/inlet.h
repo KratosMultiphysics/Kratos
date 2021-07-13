@@ -11,10 +11,6 @@
 #include <iostream>
 #include <random>
 
-// External includes
-
-// Project includes
-
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
@@ -27,9 +23,10 @@
 #include "containers/global_pointers_vector.h"
 #include "includes/constitutive_law.h"
 #include "includes/condition.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../applications/DEMApplication/custom_utilities/properties_proxies.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
@@ -48,6 +45,7 @@ namespace Kratos {
 
         /// Constructor:
         DEM_Inlet(ModelPart& inlet_modelpart, const int seed=42);
+        DEM_Inlet(ModelPart& inlet_modelpart, const Parameters& r_inlet_settings, const int seed=42);
 
         /// Destructor.
         virtual ~DEM_Inlet(){}
@@ -69,6 +67,9 @@ namespace Kratos {
         int GetTotalNumberOfParticlesInjectedSoFar();
         double GetPartialMassInjectedSoFar(const int i);
         double GetTotalMassInjectedSoFar();
+        virtual double SetMaxDistributionRadius(ModelPart& mp);
+        virtual double SetDistributionMeanRadius(ModelPart& mp);
+
     protected:
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
         virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
@@ -116,6 +117,9 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
+        std::map<std::string, PiecewiseLinearRandomVariable> mInletsRandomVariables;
+        std::map<std::string, Parameters> mInletsRandomSettings;
+        Parameters mInletsSettings;
     };
 }// namespace Kratos.
 

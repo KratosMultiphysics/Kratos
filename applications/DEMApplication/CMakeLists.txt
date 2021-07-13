@@ -6,6 +6,7 @@ message("**** configuring KratosDEMApplication ****")
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
 
 ## generate variables with the sources
 set(KRATOS_DEM_APPLICATION_CORE

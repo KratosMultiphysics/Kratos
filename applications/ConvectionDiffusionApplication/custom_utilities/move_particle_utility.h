@@ -12,15 +12,12 @@
 #if !defined(KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED)
 #define  KRATOS_MOVE_PARTICLE_UTILITY_FLUID_PFEM2_TRANSPORT_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -55,7 +52,7 @@
 #include "convection_particle.h"
 
 #include "utilities/openmp_utils.h"
-
+#include "utilities/parallel_utilities.h"
 #include "time.h"
 
 //#include "processes/process.h"
@@ -1017,7 +1014,7 @@ namespace Kratos
 			const int max_results = 1000;
 
 			//tools for the paralelization
-			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+			unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
 			elem_partition.resize(number_of_threads + 1);
@@ -1136,7 +1133,7 @@ namespace Kratos
 
 			//TOOLS FOR THE PARALELIZATION
 			//int last_id= (mr_linea_model_part.NodesEnd()-1)->Id();
-			unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
+			unsigned int number_of_threads = ParallelUtilities::GetNumThreads();
 			//KRATOS_WATCH(number_of_threads);
 			vector<unsigned int> elem_partition;
 			int number_of_rows=mr_model_part.Elements().size();
