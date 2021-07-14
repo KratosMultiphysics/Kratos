@@ -52,6 +52,7 @@ def AssembleTestSuites():
     smallSuite.addTest(SolverWrapperTest('test_init'))
     smallSuite.addTest(SolverWrapperTest('test_solve'))
     smallSuite.addTest(VanDerPolTest('test_init'))
+    smallSuite.addTest(VanDerPolTest('test_solve'))
     smallSuite.addTest(VanDerPolTest('test_harmonic_trajectory'))
     smallSuite.addTest(VanDerPolTest('test_reference_solution'))
 
