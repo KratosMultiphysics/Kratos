@@ -2403,6 +2403,71 @@ class TestProcesses(KratosUnittest.TestCase):
         self.assertEqual(result_model_part.NumberOfConditions(), 3)
         self.assertEqual(result_model_part.NumberOfMasterSlaveConstraints(), 0)
 
+    def test_split_internal_interfaces_process_2D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=2
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition2D4N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_2D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 9)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 12)
+        self.assertEqual(model_part.NumberOfConditions(), 2)
+
+    def test_split_internal_interfaces_process_3D(self):
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
+        model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]=3
+        settings = KratosMultiphysics.Parameters("""{
+            "model_part_name" :"Main",
+            "condition_name"   : "PrismCondition3D6N"
+        }""")
+        ReadModelPart(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_split_internal_interfaces_process_3D"), model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 27)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+        process = KratosMultiphysics.SplitInternalInterfacesProcess(current_model, settings)
+        process.ExecuteInitialize()
+        self.assertEqual(model_part.NumberOfNodes(), 40)
+        self.assertEqual(model_part.NumberOfConditions(), 10)
+
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[0].Id, 15)
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[1].Id, 6)
+        self.assertEqual(model_part.GetCondition(1).GetGeometry()[2].Id, 20)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[0].Id, 20)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[1].Id, 6)
+        self.assertEqual(model_part.GetCondition(2).GetGeometry()[2].Id, 8)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[0].Id, 8)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[1].Id, 3)
+        self.assertEqual(model_part.GetCondition(3).GetGeometry()[2].Id, 5)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[0].Id, 6)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[1].Id, 3)
+        self.assertEqual(model_part.GetCondition(4).GetGeometry()[2].Id, 8)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[0].Id, 8)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[1].Id, 5)
+        self.assertEqual(model_part.GetCondition(5).GetGeometry()[2].Id, 4)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[0].Id, 7)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[1].Id, 8)
+        self.assertEqual(model_part.GetCondition(6).GetGeometry()[2].Id, 4)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[0].Id, 20)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[1].Id, 8)
+        self.assertEqual(model_part.GetCondition(7).GetGeometry()[2].Id, 7)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[0].Id, 17)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[1].Id, 20)
+        self.assertEqual(model_part.GetCondition(8).GetGeometry()[2].Id, 7)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[0].Id, 32)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[1].Id, 2)
+        self.assertEqual(model_part.GetCondition(9).GetGeometry()[2].Id, 33)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[0].Id, 33)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[1].Id, 2)
+        self.assertEqual(model_part.GetCondition(10).GetGeometry()[2].Id, 31)
+
 def SetNodalValuesForPointOutputProcesses(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME]
     vec = KratosMultiphysics.Vector(3)

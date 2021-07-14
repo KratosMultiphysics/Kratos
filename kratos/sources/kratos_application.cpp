@@ -49,6 +49,9 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mSurfaceCondition3D4N( 0, GeometryType::Pointer(new Quadrilateral3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mSurfaceCondition3D8N( 0, GeometryType::Pointer(new Quadrilateral3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mSurfaceCondition3D9N( 0, GeometryType::Pointer(new Quadrilateral3D9<NodeType >(GeometryType::PointsArrayType(9)))),
+      //prisms
+      mPrismCondition2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mPrismCondition3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
 
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
@@ -146,6 +149,10 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D4N", mSurfaceCondition3D4N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D8N", mSurfaceCondition3D8N);
     KRATOS_REGISTER_CONDITION("SurfaceCondition3D9N", mSurfaceCondition3D9N);
+    //prism conditions
+    KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
+    KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
+
 
     //master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
