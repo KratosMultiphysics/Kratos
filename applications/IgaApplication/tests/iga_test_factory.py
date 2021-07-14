@@ -80,5 +80,12 @@ class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
 class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
 
+# Rotation Coupling
+class TwoPatchCantileverCouplingPenaltyTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_cantilever_test/two_patch_cantilever_test_penalty"
+
+class TwoPatchCantileverRefinedCouplingPenaltyTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_cantilever_refined_test/two_patch_cantilever_refined_test_penalty"
+
 if __name__ == '__main__':
     KratosUnittest.main()
