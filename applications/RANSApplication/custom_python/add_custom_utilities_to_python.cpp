@@ -56,6 +56,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
         .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ConditionsContainerType>)
         .def("InitializeContainerEntities", &RansVariableUtilities::InitializeContainerEntities<ModelPart::ElementsContainerType>)
+        .def("AssignMaximumVectorComponents", &RansVariableUtilities::AssignMaximumVectorComponents)
+        .def("AssignMinimumVectorComponents", &RansVariableUtilities::AssignMinimumVectorComponents)
+        .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
         ;
 
     m.def_submodule("RansCalculationUtilities")
