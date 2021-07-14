@@ -104,7 +104,7 @@ class HierarchyOptimiser:
             "costParameters": None,
             "costEstimations": None,
             "minimalSamplesPerIndex": 5,
-            "variancesForHierarchy": None,
+            "blendedVariances": None,
             "defaultHierarchy": None,
         }
         return input_dict
@@ -155,12 +155,16 @@ class HierarchyOptimiser:
         """
         inputDict["tolerances"] = [self.tolerance]
         inputDict = self.toleranceSplitting(inputDict)
-        indices = self.optimalIndexSet(inputDict)
+        new_ind = self.optimalIndexSet(inputDict)
+        # Enforce index space bounds
+        # 2nd condition necessary until MC indices are fixed
+        if self.indexSpace and new_ind[0]:
+            indices = [i for i in new_ind if i[0] <= max(self.indexSpace)]
+        else:
+            indices = new_ind
         # TODO - Think of a better way to do the following. Very fragile.
-        if self.isVarianceBlended is True:
-            inputDict["variancesForHierarchy"] = self.varianceBlender.blend(indices, inputDict)
-        elif "estimations" in inputDict.keys() and inputDict["estimations"]:
-            inputDict["variancesForHierarchy"] = inputDict["estimations"][-1]
+        if self.isVarianceBlended and inputDict["parametersForModel"][0]:
+            inputDict["blendedVariances"] = self.varianceBlender.blend(indices, inputDict)
         sample_numbers = self.optimalSampleNumbers(inputDict, indices)
         sample_numbers = [
             max(inputDict["minimalSamplesPerIndex"], sample_numbers[i])
