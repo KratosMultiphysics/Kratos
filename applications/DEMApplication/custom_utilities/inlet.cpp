@@ -111,6 +111,17 @@ namespace Kratos {
         }
     }
 
+    double DEM_Inlet::SetDistributionMeanRadius(ModelPart& mp) {
+        double mean_radius = mp[RADIUS];
+        return mean_radius;
+    }
+
+    double DEM_Inlet::SetMaxDistributionRadius(ModelPart& mp) {
+
+        double max_radius = 1.5 * mp[RADIUS];
+        return max_radius;
+    }
+
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
 
         mStrategyForContinuum = using_strategy_for_continuum;
@@ -143,11 +154,13 @@ namespace Kratos {
 
             CheckSubModelPart(mp);
 
+            double max_radius = SetMaxDistributionRadius(mp);
+
             if (!mp[MINIMUM_RADIUS]) {
                 mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
             }
             if (!mp[MAXIMUM_RADIUS]) {
-                mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
+                mp[MAXIMUM_RADIUS] = max_radius;
             }
 
             int mesh_size = mp.NumberOfNodes();
@@ -532,7 +545,7 @@ namespace Kratos {
                 number_of_particles_to_insert = mesh_size_elements; // The maximum possible, to increase random.
 
                 if(mass_flow) {
-                    const double mean_radius = mp[RADIUS];
+                    const double mean_radius = SetDistributionMeanRadius(mp);
                     const double density = r_modelpart.GetProperties(mp[PROPERTIES_ID])[PARTICLE_DENSITY];
                     const double estimated_mass_of_a_particle = density * 4.0/3.0 * Globals::Pi * mean_radius * mean_radius * mean_radius;
                     const double maximum_time_until_release = estimated_mass_of_a_particle * mesh_size_elements / mass_flow;
