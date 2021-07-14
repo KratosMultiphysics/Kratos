@@ -117,7 +117,6 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -138,8 +137,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeSolutionStep(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -148,15 +150,17 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeSolutionStep(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -185,8 +189,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -195,8 +202,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
@@ -220,8 +230,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -230,8 +243,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")

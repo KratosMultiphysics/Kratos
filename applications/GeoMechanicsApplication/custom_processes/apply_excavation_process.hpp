@@ -58,6 +58,8 @@ class ApplyExcavationProcess : public Process
     {
         KRATOS_TRY
         mDeactivateSoilPart =  rParameters["deactivate_soil_part"].GetBool();
+        mModelPartName      =  rParameters["model_part_name"].GetString();
+        
 
         KRATOS_CATCH("");
     }
@@ -78,13 +80,11 @@ class ApplyExcavationProcess : public Process
 
         if (nelements != 0)
         {
-            ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-            mNumNode = el_begin->GetGeometry().PointsNumber();
-
             if (mDeactivateSoilPart == true)
             {
                 // Deactivation of the existing parts:
                 // ( User must specify each part through the interface)
+                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
                 #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
@@ -100,12 +100,14 @@ class ApplyExcavationProcess : public Process
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
                     it->Set(ACTIVE, false);
                     it->Set(SOLID, false);
+
                 }
             }
             else
             {
                 // Activation of the existing parts:
                 // ( User must specify each part through the interface)
+                ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
                 #pragma omp parallel for
                 for (int k = 0; k < nelements; ++k)
                 {
@@ -172,8 +174,6 @@ class ApplyExcavationProcess : public Process
     ModelPart& mr_model_part;
     bool mDeactivateSoilPart;
     std::string mModelPartName;
-
-    int mNumNode;
 
 }; //Class
 
