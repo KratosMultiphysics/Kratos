@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -136,7 +137,6 @@ protected:
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosity;
-        Matrix IntrinsicPermeability;
         double NewmarkCoefficient1;
         double NewmarkCoefficient2;
     };
@@ -148,6 +148,10 @@ protected:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     Geometry< Node<3> >::Pointer mpPressureGeometry;
+
+    Matrix mIntrinsicPermeability;
+    
+    std::vector<double> mImposedZStrainVector; /// The vector containing the imposed z strains (for 2.5D element: 2D geom with 3D CL)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

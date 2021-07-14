@@ -154,6 +154,10 @@ public:
             noalias(r_external_force) = ZeroVector(3);
             noalias(r_internal_force) = ZeroVector(3);
             noalias(r_damping_force) = ZeroVector(3);
+            Matrix& rInitialStress = it_node->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(rInitialStress.size1() != 3)
+                rInitialStress.resize(3,3,false);
+            noalias(rInitialStress) = ZeroMatrix(3,3);
         }
 
         KRATOS_CATCH("")

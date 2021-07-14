@@ -143,11 +143,20 @@ void UPwElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessIn
     if ( mConstitutiveLawVector.size() != NumGPoints )
         mConstitutiveLawVector.resize( NumGPoints );
 
+    //Imposed Z strain vector initialisation
+    if ( mImposedZStrainVector.size() != NumGPoints )
+        mImposedZStrainVector.resize( NumGPoints );
+
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
     {
         mConstitutiveLawVector[i] = Prop[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLawVector[i]->InitializeMaterial( Prop, Geom,row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+
+        mImposedZStrainVector[i] = 0.0;
     }
+
+    // Initializing the intrinsic permeability matrix from the properties
+    PoroElementUtilities::CalculatePermeabilityMatrix(mIntrinsicPermeability,Prop,TDim);
 
     KRATOS_CATCH( "" )
 }
@@ -513,8 +522,31 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues,
                                                                 const ProcessInfo& rCurrentProcessInfo )
 {
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    if (rVariable == IMPOSED_Z_STRAIN_VALUE) {
+        for ( unsigned int i = 0; i < mImposedZStrainVector.size(); ++i ) {
+            mImposedZStrainVector[i] = rValues[i];
+        }
+
+    } else {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    }
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwElement<TDim,TNumNodes>::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,const std::vector<Matrix>& rValues,
+                                                            const ProcessInfo& rCurrentProcessInfo )
+{
+    if (rVariable == PERMEABILITY_MATRIX) {
+        // Permeability is set only on the element, not on every GP
+        noalias(mIntrinsicPermeability) = rValues[0];
+
+    } else {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    }
 }
 
 //----------------------------------------------------------------------------------------
