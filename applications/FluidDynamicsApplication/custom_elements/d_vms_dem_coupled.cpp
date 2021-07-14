@@ -672,7 +672,7 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
         }
         convection_velocity_norm = std::sqrt(convection_velocity_norm);
 
-        BoundedMatrix<double,Dim,Dim> inv_tau = (c1 * viscosity / (h * h) + density * ( 1.0 / rData.DeltaTime + c2 * convection_velocity_norm / h ) + viscosity * std::sqrt(sigma_term)) * I;
+        BoundedMatrix<double,Dim,Dim> inv_tau = (c1 * viscosity / (h * h) + density * ( 1.0 / dt + c2 * convection_velocity_norm / h ) + viscosity * std::sqrt(sigma_term)) * I;
 
         // Newton-Raphson LHS
         noalias(J) = density * resolved_velocity_gradient;
