@@ -242,10 +242,10 @@ namespace Kratos
                                const double BoundRHSCoeffAcc,
                                const double BoundRHSCoeffDev);
 
-    void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
-                                       const double TimeStep,
-                                       const double BoundRHSCoeff,
-                                       const VectorType SpatialDefRate);
+    void ComputeBoundaryTermForPressure(VectorType &BoundRHSVector,
+                                        const double TimeStep,
+                                        const double BoundRHSCoeff,
+                                        const VectorType SpatialDefRate);
 
     void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
                                        const double TimeStep,

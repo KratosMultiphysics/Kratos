@@ -559,15 +559,28 @@ namespace Kratos
         for (int i_node = 0; i_node < n_nodes; ++i_node)
         {
           auto it_node = rModelPart.NodesBegin() + i_node;
-          const double NodalArea = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
+          const double NodalVolume = it_node->FastGetSolutionStepValue(NODAL_VOLUME);
+          double fractionalVelocity = 0;
           if (it_node->IsNot(ISOLATED))
           {
             if (!it_node->IsFixed(VELOCITY_X))
-              it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+            {
+              fractionalVelocity = it_node->FastGetSolutionStepValue(VELOCITY_X);                                            // VELOCITY_X stores the velocity after the first step computation
+              it_node->FastGetSolutionStepValue(VELOCITY_X) += it_node->FastGetSolutionStepValue(FRACT_VEL_X) / NodalVolume; // here FRACT_VEL stores the gradient of pressure computed inside the element
+              it_node->FastGetSolutionStepValue(FRACT_VEL_X) = fractionalVelocity;                                           // now FRACT_VEL stores the real fractional velocity (the ones after the first step computation)
+            }
             if (!it_node->IsFixed(VELOCITY_Y))
-              it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+            {
+              fractionalVelocity = it_node->FastGetSolutionStepValue(VELOCITY_Y);                                            // VELOCITY_Y stores the velocity after the first step computation
+              it_node->FastGetSolutionStepValue(VELOCITY_Y) += it_node->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalVolume; // here FRACT_VEL stores the gradient of pressure computed inside the element
+              it_node->FastGetSolutionStepValue(FRACT_VEL_Y) = fractionalVelocity;                                           // now FRACT_VEL stores the real fractional velocity (the ones after the first step computation)
+            }
             if (!it_node->IsFixed(VELOCITY_Z))
-              it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+            {
+              fractionalVelocity = it_node->FastGetSolutionStepValue(VELOCITY_Z);                                            // VELOCITY_Z stores the velocity after the first step computation
+              it_node->FastGetSolutionStepValue(VELOCITY_Z) += it_node->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalVolume; // here FRACT_VEL stores the gradient of pressure computed inside the element
+              it_node->FastGetSolutionStepValue(FRACT_VEL_Z) = fractionalVelocity;                                           // now FRACT_VEL stores the real fractional velocity (the ones after the first step computation)
+            }
           }
         }
       }

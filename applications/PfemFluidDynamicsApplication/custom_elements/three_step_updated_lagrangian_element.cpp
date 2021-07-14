@@ -156,7 +156,7 @@ namespace Kratos
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
-    const unsigned int schemeOrder = 2;
+    const unsigned int schemeOrder = 1;
     double theta_velocity = 1.0;
     double gamma_pressure = 0.0;
     if (schemeOrder == 2)
@@ -289,7 +289,7 @@ namespace Kratos
         // double DeltaPressure;
         // this->EvaluateInPoint(DeltaPressure, PRESSURE_OLD_IT, N);
 
-        const unsigned int schemeOrder = 2;
+        const unsigned int schemeOrder = 1;
         double elementalPressure = 0;
         if (schemeOrder == 2)
         {
@@ -643,7 +643,7 @@ namespace Kratos
       this->EvaluateInPoint(Density, DENSITY, N);
       this->EvaluateInPoint(BodyForce, VOLUME_ACCELERATION, N);
 
-      const unsigned int schemeOrder = 2;
+      const unsigned int schemeOrder = 1;
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       if (schemeOrder == 2)
       {
@@ -757,7 +757,7 @@ namespace Kratos
       double StabilizedWeight = Tau * GaussWeight;
       // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
 
-      const unsigned int schemeOrder = 2;
+      const unsigned int schemeOrder = 1;
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       if (schemeOrder == 2)
       {
@@ -1033,7 +1033,7 @@ namespace Kratos
   {
     GeometryType &rGeom = this->GetGeometry();
     const double coeff = 1.0 / 3.0;
-    const double timeFactor = 0.5 / TimeStep;
+    // const double timeFactor = 0.5 / TimeStep;
 
     if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
     {
