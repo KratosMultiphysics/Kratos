@@ -219,6 +219,16 @@ public:
     {
     }
 
+    /// Copy constructor with different dimension TOtherDimension.
+    template<int TOtherDimension>
+    QuadraturePointGeometry(
+        QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension> const& rOther)
+        : BaseType(rOther)
+        , mGeometryData(rOther.mGeometryData)
+        , mpGeometryParent(rOther.mpGeometryParent)
+    {
+    }
+
     ///@}
     ///@name Operators
     ///@{
@@ -228,6 +238,19 @@ public:
         const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
+
+        mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
+
+        return *this;
+    }
+
+    /// Assignment operator with other Dimension.
+    template<int TOtherDimension>
+    QuadraturePointGeometry& operator=(
+        const QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TOtherDimension>&& rOther)
+    {
+        BaseType::operator=(rOther);
 
         mGeometryData = rOther.mGeometryData;
         mpGeometryParent = rOther.mpGeometryParent;
