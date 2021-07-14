@@ -3,8 +3,8 @@
 #include <iostream>
 
 // Project includes
-#include "../custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
