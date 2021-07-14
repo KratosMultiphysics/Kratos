@@ -77,3 +77,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install( TARGETS KratosShallowWaterCore DESTINATION libs )
 install( TARGETS KratosShallowWaterApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosShallowWaterCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosShallowWaterApplication" PARENT_SCOPE)

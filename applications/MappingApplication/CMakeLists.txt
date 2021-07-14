@@ -85,3 +85,7 @@ if(${USE_MPI})
   message("Enabling mpi extension for MappingApplication")
   add_subdirectory(mpi_extension)
 endif(${USE_MPI})
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMappingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMappingApplication" PARENT_SCOPE)

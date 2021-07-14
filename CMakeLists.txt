@@ -282,8 +282,11 @@ set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
 endif()
+set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+
+message("Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -470,6 +473,12 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
         endif(NOT TARGET Kratos${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
+
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+
+message("Interface List: ${KRATOS_PYTHON_INTERFACE}")
 
 message("")
 message("***********************************************************************")

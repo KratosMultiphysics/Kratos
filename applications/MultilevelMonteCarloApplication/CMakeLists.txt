@@ -103,3 +103,7 @@ else (NOT USING_INTERNAL_XMC)
     message ( STATUS "Manual installation of XMC library" )
     add_definitions(-DKRATOS_MLMC_USE_INTERNAL_XMC=0)
 endif(NOT DEFINED USING_INTERNAL_XMC OR USING_INTERNAL_XMC)
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMultilevelMonteCarloCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMultilevelMonteCarloApplication" PARENT_SCOPE)

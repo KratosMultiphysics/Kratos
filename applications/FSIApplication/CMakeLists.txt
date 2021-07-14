@@ -68,3 +68,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosFSIApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFSIApplication" PARENT_SCOPE)
