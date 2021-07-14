@@ -105,6 +105,10 @@ void KRATOS_API(RANS_APPLICATION) CopyNodalSolutionStepVariablesList(
 void KRATOS_API(RANS_APPLICATION)
     SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements);
 
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart);
+
 ///@}
 } // namespace RansVariableUtilities
 

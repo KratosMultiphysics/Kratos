@@ -54,6 +54,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
         .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
+        .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
         ;
 
     m.def_submodule("RansCalculationUtilities")

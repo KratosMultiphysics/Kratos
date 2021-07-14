@@ -246,6 +246,8 @@ def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinme
     if (KratosRANS is None):
         raise Exception("Please compile and install the RANS application first.")
 
+    KratosRANS.RansVariableUtilities.CalculateNodalNormal(model_part)
+
     output_variable = _GetListOfVariables([output_variable])[0]
     for condition in model_part.Conditions:
         normal = condition.GetValue(Kratos.NORMAL)
@@ -253,15 +255,16 @@ def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinme
         normal = normal / normal_mag
         y = KratosRANS.RansCalculationUtilities.CalculateWallHeight(condition, normal)
 
-        reaction = Kratos.Array3(0.0)
+        reaction_per_area = Kratos.Array3(0.0)
         for node in condition.GetGeometry():
-            reaction += node.GetSolutionStepValue(Kratos.REACTION)
-            
-        reaction /= len(condition.GetGeometry())            
+            nodal_normal = node.GetSolutionStepValue(Kratos.NORMAL)
+            nodal_normal_mag = sqrt(_Array3DInnerProduct(nodal_normal, nodal_normal))
+            reaction_per_area += node.GetSolutionStepValue(Kratos.REACTION) / nodal_normal_mag
 
-        perpendicular_reaction = normal * _Array3DInnerProduct(reaction, normal)
-        tangential_reaction = (reaction - perpendicular_reaction)
+        reaction_per_area /= len(condition.GetGeometry())
+
+        perpendicular_reaction = normal * _Array3DInnerProduct(reaction_per_area, normal)
+        tangential_reaction = (reaction_per_area - perpendicular_reaction)
         shear_stress = sqrt(_Array3DInnerProduct(tangential_reaction, tangential_reaction))
-        shear_stress /= condition.GetGeometry().DomainSize()
         u_tau = sqrt(shear_stress / density)
         condition.SetValue(output_variable, u_tau * y / kinmeatic_viscosity)

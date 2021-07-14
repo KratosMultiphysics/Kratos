@@ -330,6 +330,29 @@ void SetElementConstitutiveLaws(ModelPart::ElementsContainerType& rElements)
     KRATOS_CATCH("");
 }
 
+void KRATOS_API(RANS_APPLICATION)
+    CalculateNodalNormal(
+        ModelPart& rModelPart)
+{
+    block_for_each(rModelPart.Nodes(), [](ModelPart::NodeType& rNode){
+        rNode.FastGetSolutionStepValue(NORMAL) = ZeroVector(3);
+    });
+
+    std::unordered_map<IndexType, Vector> nodal_areas;
+
+    block_for_each(rModelPart.Conditions(), [](ModelPart::ConditionType& rCondition) {
+        const array_1d<double, 3>& r_normal = rCondition.GetValue(NORMAL) / rCondition.GetGeometry().size();
+
+        for (auto& r_node : rCondition.GetGeometry()) {
+            r_node.SetLock();
+            r_node.FastGetSolutionStepValue(NORMAL) += r_normal;
+            r_node.UnSetLock();
+        }
+    });
+
+    rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);
