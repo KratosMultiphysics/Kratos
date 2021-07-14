@@ -240,7 +240,12 @@ namespace Kratos
                                const ShapeFunctionsType &rN,
                                const double TimeStep,
                                const double BoundRHSCoeffAcc,
-                               const double BoundRHSCoeffDev) ;
+                               const double BoundRHSCoeffDev);
+
+    void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
+                                       const double TimeStep,
+                                       const double BoundRHSCoeff,
+                                       const VectorType SpatialDefRate);
 
     void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
                                        const double TimeStep,
@@ -372,8 +377,8 @@ namespace Kratos
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculatePSPGLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                  VectorType &rRightHandSideVector,
-                                                  const ProcessInfo &rCurrentProcessInfo);
+                                                   VectorType &rRightHandSideVector,
+                                                   const ProcessInfo &rCurrentProcessInfo);
 
     void CalculateFICLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                   VectorType &rRightHandSideVector,

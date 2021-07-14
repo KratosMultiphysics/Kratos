@@ -46,8 +46,8 @@ namespace Kratos
     }
     case 5:
     {
-      //this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-      CalculatePSPGLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      this->CalculateLocalPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      //CalculatePSPGLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       //CalculateFICLocalContinuityEqForPressure(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       break;
     }
@@ -156,7 +156,7 @@ namespace Kratos
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
 
-    const unsigned int schemeOrder = 1;
+    const unsigned int schemeOrder = 2;
     double theta_velocity = 1.0;
     double gamma_pressure = 0.0;
     if (schemeOrder == 2)
@@ -289,7 +289,7 @@ namespace Kratos
         // double DeltaPressure;
         // this->EvaluateInPoint(DeltaPressure, PRESSURE_OLD_IT, N);
 
-        const unsigned int schemeOrder = 1;
+        const unsigned int schemeOrder = 2;
         double elementalPressure = 0;
         if (schemeOrder == 2)
         {
@@ -624,12 +624,10 @@ namespace Kratos
     this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    // Stabilization parameters
+    // double theta = 1.0;
     // double ElemSize = this->ElementSize();
-    // double TauOne = 0;
-    // double TauTwo = 0;
-
-    //const double gamma_pressure = rCurrentProcessInfo[FS_PRESSURE_GRADIENT_RELAXATION_FACTOR]; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // ElementalVariables rElementalVariables;
+    // this->InitializeElementalVariables(rElementalVariables);
 
     // Loop on integration points
     for (unsigned int g = 0; g < NumGauss; g++)
@@ -645,11 +643,7 @@ namespace Kratos
       this->EvaluateInPoint(Density, DENSITY, N);
       this->EvaluateInPoint(BodyForce, VOLUME_ACCELERATION, N);
 
-      // array_1d<double, 3> MomentumProjection = ZeroVector(3);
-      // this->EvaluateInPoint(MomentumProjection, PRESS_PROJ, N);
-      // // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-
-      const unsigned int schemeOrder = 1;
+      const unsigned int schemeOrder = 2;
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       if (schemeOrder == 2)
       {
@@ -660,18 +654,17 @@ namespace Kratos
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
       }
 
-      // Stabilization parameters
-      // array_1d<double, 3> ConvVel = ZeroVector(3);
-
       double Viscosity = 0;
       this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, N);
 
       double DivU = 0;
       this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
 
-      // // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
-      // const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
       const double LaplacianCoeff = TimeStep / Density;
+
+      // double BoundLHSCoeff = 100.0*GaussWeight;
+      // this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);
+      // bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       // Add convection, stabilization and RHS contributions to the local system equation
       for (SizeType i = 0; i < NumNodes; ++i)
@@ -691,6 +684,13 @@ namespace Kratos
 
         // Velocity divergence
         double RHSi = -N[i] * DivU;
+
+        // double BoundRHSCoeffAcc = 0;
+        // // double BoundRHSCoeffDev = GaussWeight * 2 * Viscosity;
+        // // rElementalVariables.SpatialDefRate[0] -= DivU / 3.0;
+        // // rElementalVariables.SpatialDefRate[1] -= DivU / 3.0;
+        // double BoundRHSCoeffDev = GaussWeight;
+        // this->ComputeBoundaryTermForPressure(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
 
         for (SizeType d = 0; d < TDim; ++d)
         {
@@ -757,7 +757,7 @@ namespace Kratos
       double StabilizedWeight = Tau * GaussWeight;
       // this->ComputeStabLaplacianMatrix(rLeftHandSideMatrix, rDN_DX, StabilizedWeight);
 
-      const unsigned int schemeOrder = 1;
+      const unsigned int schemeOrder = 2;
       array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
       if (schemeOrder == 2)
       {
@@ -861,6 +861,9 @@ namespace Kratos
       this->EvaluateInPoint(Density, DENSITY, N);
       this->EvaluateInPoint(VolumetricCoeff, BULK_MODULUS, N);
 
+      double DivU = 0;
+      this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
+
       VolumetricCoeff *= TimeStep;
 
       if (DeviatoricCoeff > maxViscousValueForStabilization)
@@ -869,16 +872,17 @@ namespace Kratos
       }
 
       this->CalculateTauFIC(Tau, ElemSize, Density, DeviatoricCoeff, rCurrentProcessInfo);
+
       computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, theta);
 
       if (computeElement == true && this->IsNot(BLOCKED) && this->IsNot(ISOLATED))
       {
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-
         this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, N, BoundLHSCoeff);
 
-        double BoundRHSCoeffAcc = Tau * Density * 2 * GaussWeight / ElemSize;
-        double BoundRHSCoeffDev = Tau * 8.0 * DeviatoricCoeff * GaussWeight / (ElemSize * ElemSize);
+        double BoundRHSCoeffAcc = -Tau * Density * 2 * GaussWeight / ElemSize;
+        double BoundRHSCoeffDev = -Tau * 8.0 * DeviatoricCoeff * GaussWeight / (ElemSize * ElemSize);
+
         this->ComputeBoundRHSVectorComplete(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
 
         double StabLaplacianWeight = Tau * GaussWeight;
@@ -891,7 +895,8 @@ namespace Kratos
         {
           // RHS contribution
           // Velocity divergence
-          rRightHandSideVector[i] += GaussWeight * N[i] * rElementalVariables.VolumetricDefRate;
+          rRightHandSideVector[i] += -GaussWeight * N[i] * DivU;
+
           this->AddStabilizationNodalTermsRHS(rRightHandSideVector, Tau, Density, GaussWeight, rDN_DX, i);
           double laplacianRHSi = 0;
           for (SizeType d = 0; d < TDim; ++d)
@@ -913,23 +918,23 @@ namespace Kratos
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
       rLeftHandSideMatrix += LaplacianMatrix;
 
-      this->GetPressureValues(PressureValues, 1);
-      noalias(PressureValuesForRHS) += -PressureValues;
-      MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
-      MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes, NumNodes);
-      double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
-      double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
+      // this->GetPressureValues(PressureValues, 1);
+      // noalias(PressureValuesForRHS) += -PressureValues;
+      // MatrixType BulkMatrix = ZeroMatrix(NumNodes, NumNodes);
+      // MatrixType BulkMatrixConsistent = ZeroMatrix(NumNodes, NumNodes);
+      // double lumpedBulkCoeff = totalVolume / (VolumetricCoeff);
+      // double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
 
-      this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-      noalias(rLeftHandSideMatrix) += BulkMatrix;
-      noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
+      // this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
+      // noalias(rLeftHandSideMatrix) += BulkMatrix;
+      // noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
 
-      this->GetPressureVelocityValues(PressureValues, 0);
-      noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
-      noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
-      this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
-      noalias(rLeftHandSideMatrix) += BulkMatrix;
-      noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
+      // this->GetPressureVelocityValues(PressureValues, 0);
+      // noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
+      // noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
+      // this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
+      // noalias(rLeftHandSideMatrix) += BulkMatrix;
+      // noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
     }
   }
 
@@ -949,10 +954,74 @@ namespace Kratos
 
       for (SizeType d = 0; d < TDim; ++d)
       {
-        RHSi += -rDN_DX(i, d) * Tau * (Density * VolumeAcceleration[d]);
+        RHSi += +rDN_DX(i, d) * Tau * (Density * VolumeAcceleration[d]);
       }
     }
     rRightHandSideVector[i] += Weight * RHSi;
+  }
+
+  template <>
+  void ThreeStepUpdatedLagrangianElement<2>::ComputeBoundaryTermForPressure(VectorType &BoundRHSVector,
+                                                                            const double TimeStep,
+                                                                            const double BoundRHSCoeff,
+                                                                            const VectorType SpatialDefRate)
+  {
+    GeometryType &rGeom = this->GetGeometry();
+    const double coeff = 1.0 / 3.0;
+
+    if (rGeom[0].Is(FREE_SURFACE) && rGeom[1].Is(FREE_SURFACE))
+    {
+      // array_1d<double, 3> NormalVector(3, 0.0);
+      // this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 0, 1, 2);
+      // double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
+      // BoundRHSVector[0] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+      // BoundRHSVector[1] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+
+      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+        BoundRHSVector[0] += coeff * BoundRHSCoeff * rGeom[0].FastGetSolutionStepValue(PRESSURE, 0);
+
+      if (rGeom[1].IsNot(INLET))
+        BoundRHSVector[1] += coeff * BoundRHSCoeff * rGeom[1].FastGetSolutionStepValue(PRESSURE, 0);
+    }
+
+    if (rGeom[0].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
+    {
+      // array_1d<double, 3> NormalVector(3, 0.0);
+      // this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 0, 2, 1);
+      // double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
+      // BoundRHSVector[0] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+      // BoundRHSVector[2] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+
+      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+        BoundRHSVector[0] += coeff * BoundRHSCoeff * rGeom[0].FastGetSolutionStepValue(PRESSURE, 0);
+
+      if (rGeom[2].IsNot(INLET))
+        BoundRHSVector[2] += coeff * BoundRHSCoeff * rGeom[2].FastGetSolutionStepValue(PRESSURE, 0);
+    }
+
+    if (rGeom[1].Is(FREE_SURFACE) && rGeom[2].Is(FREE_SURFACE))
+    {
+      // array_1d<double, 3> NormalVector(3, 0.0);
+      // this->GetOutwardsUnitNormalForTwoPoints(NormalVector, 1, 2, 0);
+      // double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
+      // BoundRHSVector[1] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+      // BoundRHSVector[2] += coeff * BoundRHSCoeff * SpatialDefRateNormalProjection * 0.5;
+
+      if (rGeom[1].IsNot(INLET)) //to change into moving wall!!!!!
+        BoundRHSVector[1] += coeff * BoundRHSCoeff * rGeom[1].FastGetSolutionStepValue(PRESSURE, 0);
+
+      if (rGeom[2].IsNot(INLET))
+        BoundRHSVector[2] += coeff * BoundRHSCoeff * rGeom[2].FastGetSolutionStepValue(PRESSURE, 0);
+    }
+  }
+
+  template <>
+  void ThreeStepUpdatedLagrangianElement<3>::ComputeBoundaryTermForPressure(VectorType &BoundRHSVector,
+                                                                            const double TimeStep,
+                                                                            const double BoundRHSCoeff,
+                                                                            const VectorType SpatialDefRate)
+  {
+    std::cout << "!!! ComputeBoundaryTermForPressure in 3D TO DO " << std::endl;
   }
 
   template <>
@@ -977,9 +1046,17 @@ namespace Kratos
 
       double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
 
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
+      // noalias(AccA) = (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      // noalias(AccB) = (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      // KRATOS_WATCH("1st oder AccA= ");
+      // KRATOS_WATCH(AccA);
+      noalias(AccA) = 0.0 * rGeom[0].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
+      noalias(AccB) = 0.0 * rGeom[1].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccB) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
+      // KRATOS_WATCH("2nd oder AccA= ");
+      // KRATOS_WATCH(AccA);
+      noalias(MeanAcc) = -0.5 * (AccA + AccB);
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
@@ -1002,9 +1079,13 @@ namespace Kratos
 
       double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
 
-      noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
+      // noalias(AccA) = (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      // noalias(AccB) = (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      noalias(AccA) = 0.0 * rGeom[0].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
+      noalias(AccB) = 0.0 * rGeom[2].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccA) = timeFactor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
+      noalias(MeanAcc) = -0.5 * (AccA + AccB);
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
@@ -1027,9 +1108,13 @@ namespace Kratos
 
       double SpatialDefRateNormalProjection = this->CalcNormalProjectionDefRate(SpatialDefRate, NormalVector);
 
-      noalias(AccA) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
-      noalias(MeanAcc) = 0.5 * (AccA + AccB);
+      // noalias(AccA) = (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      // noalias(AccB) = (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) / TimeStep;
+      noalias(AccA) = 0.0 * rGeom[1].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
+      noalias(AccB) = 0.0 * rGeom[2].FastGetSolutionStepValue(ACCELERATION, 0) + 1.0 * rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccA) = timeFactor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
+      // noalias(AccB) = timeFactor * (rGeom[2].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[2].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[2].FastGetSolutionStepValue(ACCELERATION, 1);
+      noalias(MeanAcc) = -0.5 * (AccA + AccB);
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
@@ -1181,6 +1266,7 @@ namespace Kratos
   void ThreeStepUpdatedLagrangianElement<2>::ComputeBoundLHSMatrix(Matrix &BoundLHSMatrix,
                                                                    const ShapeFunctionsType &rN,
                                                                    const double Weight)
+
   {
     GeometryType &rGeom = this->GetGeometry();
     double coeff = 1.0 / 3.0;
