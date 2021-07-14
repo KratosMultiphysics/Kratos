@@ -305,6 +305,8 @@ def CalculateFirstElementYPlusValues(model_part, output_variable, density, kinme
         for node in condition.GetGeometry():
             reaction += node.GetSolutionStepValue(Kratos.REACTION)
 
+        reaction /= len(condition.GetGeometry())
+
         perpendicular_reaction = normal * _Array3DInnerProduct(reaction, normal)
         tangential_reaction = (reaction - perpendicular_reaction)
         shear_stress = sqrt(_Array3DInnerProduct(tangential_reaction, tangential_reaction))
