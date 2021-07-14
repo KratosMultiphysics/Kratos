@@ -38,7 +38,7 @@ class FluidRefiningMesher(mesher.Mesher):
             execution_options.Set(KratosDelaunay.MesherUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
 
         execution_options.Set(KratosDelaunay.MesherUtilities.SELECT_TESSELLATION_ELEMENTS, True)
-        execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, True)
+        execution_options.Set(KratosDelaunay.MesherUtilities.KEEP_ISOLATED_NODES, False)
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)

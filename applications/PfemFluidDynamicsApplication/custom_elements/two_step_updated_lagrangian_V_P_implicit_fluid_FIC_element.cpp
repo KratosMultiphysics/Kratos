@@ -706,11 +706,21 @@ namespace Kratos
     // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
 
-    const double tolerance = 1.0e-13;
-    if (MeanVelocity < tolerance)
+    const double tolerance = 1.0e-11;
+    if (Tau < tolerance)
     {
-      Tau = 0;
+      std::cout << "Tau " << Tau << std::endl;
+      Tau = 1.0e-09;
     }
+    if (Tau > 1.0e-05)
+    {
+      std::cout << "Tau " << Tau << std::endl;
+      Tau = 1.0e-05;
+    }
+    // if (MeanVelocity < tolerance)
+    // {
+    //   Tau = 0;
+    // }
   }
 
   template <unsigned int TDim>
@@ -865,7 +875,7 @@ namespace Kratos
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
 
-    double maxViscousValueForStabilization = 0.1;
+    double maxViscousValueForStabilization = 100.1;
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
     double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
@@ -946,7 +956,7 @@ namespace Kratos
       //the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
       rLeftHandSideMatrix += LaplacianMatrix;
-     // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
+      // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
 
       // VectorType RhsLaplacian = ZeroVector(NumNodes);
 

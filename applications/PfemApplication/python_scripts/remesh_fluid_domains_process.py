@@ -31,7 +31,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
     def GetModelManager(self):
         meshing_options = KratosMultiphysics.Flags()
         self.mesher_utils = KratosDelaunay.MesherUtilities()
-        meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, True)
+        meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, False)
 
         return KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
 

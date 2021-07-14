@@ -290,7 +290,7 @@ class RemeshFluidDomainsProcess(KratosMultiphysics.Process):
             self.mesher_utils = KratosDelaunay.MesherUtilities()
 
 
-            meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, True)
+            meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, False)
 
             ############ choose just one of the following two options: ############
             ## use this if you want conditions

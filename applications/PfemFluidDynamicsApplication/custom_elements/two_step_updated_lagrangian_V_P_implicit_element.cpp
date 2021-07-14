@@ -151,7 +151,21 @@ namespace Kratos
       if (BulkReductionCoefficient != 1.0)
       {
         // VolumetricCoeff*=BulkReductionCoefficient;
-        VolumetricCoeff *= MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
+        double bulkReduction = MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
+        double tolerance = 1.0e-7;
+        double bulkFactor = bulkReduction * TimeStep; //coefficient that muliplies the bulk modulus in stiffness matrix
+        if (bulkFactor < tolerance)
+        {
+          // std::cout<<"bulkReduction "<<bulkReduction<<std::endl;
+          bulkReduction = tolerance / TimeStep;
+        }
+        if (bulkReduction > 1.0)
+        {
+          bulkReduction = 1.0;
+        }
+
+        VolumetricCoeff *= bulkReduction;
+
         StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
 
         for (unsigned int g = 0; g < NumGauss; ++g)
@@ -214,8 +228,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<bool> &rVariable,
-                                                                                    std::vector<bool> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<bool> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == YIELDED)
     {
@@ -225,8 +239,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<double> &rVariable,
-                                                                                    std::vector<double> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<double> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == EQ_STRAIN_RATE)
     {
@@ -236,8 +250,8 @@ namespace Kratos
 
   template <unsigned int TDim>
   void TwoStepUpdatedLagrangianVPImplicitElement<TDim>::CalculateOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                                                                    std::vector<Vector> &rOutput,
-                                                                                    const ProcessInfo &rCurrentProcessInfo)
+                                                                                     std::vector<Vector> &rOutput,
+                                                                                     const ProcessInfo &rCurrentProcessInfo)
   {
     if (rVariable == CAUCHY_STRESS_VECTOR)
     {

@@ -2,6 +2,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 #import kratos core and applications
 import KratosMultiphysics
+import KratosMultiphysics.EigenSolversApplication as KratosEigen
+import KratosMultiphysics.LinearSolversApplication as KratosLinear
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 from KratosMultiphysics.python_solver import PythonSolver
 
