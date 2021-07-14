@@ -30,6 +30,7 @@
 
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve.h"
 
 namespace Kratos
 {
@@ -70,6 +71,7 @@ class CadJsonInput : public IO
 
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -398,7 +400,7 @@ private:
         {
             if (rParameters["topology"].size() == 0)
             {
-                KRATOS_ERROR << "BrepCurves are not yet enabled." << std::endl;
+                ReadBrepCurve(rParameters, rModelPart, EchoLevel);
             }
             else if (rParameters["topology"].size() == 1)
             {
@@ -409,6 +411,31 @@ private:
             }
         }
     }
+
+    static void ReadBrepCurve(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
+            << "Missing 'brep_id' or 'brep_name' in brep curve." << std::endl;
+
+        KRATOS_INFO_IF("ReadBrepCurve", (EchoLevel > 3))
+            << "Reading BrepCurve \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(rParameters.Has("3d_curve"))
+            << "Missing '3d_curve' in brep curve." << std::endl;
+
+        auto p_curve = ReadNurbsCurve<3, TNodeType>(
+            rParameters["3d_curve"], rModelPart, EchoLevel);
+
+        auto p_brep_curve = Kratos::make_shared<BrepCurveType>(p_curve);
+
+        SetIdOrName<BrepCurveType>(rParameters, p_brep_curve);
+
+        rModelPart.AddGeometry(p_brep_curve);
+    }
+
 
     static void ReadBrepEdgeBrepCurveOnSurface(
         const Parameters & rParameters,

@@ -293,6 +293,27 @@
               "relative_direction": false
             }
           ]
+        },
+        {
+          "brep_id": 55,
+          "3d_curve": {
+            "degree": 1,
+            "knot_vector": [ 0, 0, 14.142135623730951, 14.142135623730951 ],
+            "active_range": [ 0, 14.142135623730951 ],
+            "control_points": [
+              [
+                56,
+                [ 0, 0, 0, 1 ]
+              ],
+              [
+                57,
+                [ 10, 10, 0, 1 ]
+              ]
+            ]
+          },
+          "topology": [],
+          "embedded_points": [],
+          "embedded_edges": []
         }
       ],
       "vertices": []
