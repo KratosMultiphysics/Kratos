@@ -423,6 +423,19 @@ namespace MPMSearchElementUtility
     {
         ResetElementsAndNodes(rBackgroundGridModelPart);
 
+        auto element_begin = rBackgroundGridModelPart.Elements().begin();
+        if (!element_begin->GetGeometry().Has(GEOMETRY_NEIGHBOURS))
+        {
+            KRATOS_WATCH("PRE-COMPUTING ALL GRID NEIGHBOURS");
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(rBackgroundGridModelPart.Elements().size()); ++i) {
+                auto element_itr = element_begin + i;
+                auto& r_geometry = element_itr->GetGeometry();
+                ConstructNeighbourRelations(r_geometry, rBackgroundGridModelPart);
+            }
+            KRATOS_WATCH("COMPUTED ALL GRID NEIGHBOURS");
+        }
+
         std::vector<typename Element::Pointer> missing_elements;
         std::vector<typename Condition::Pointer> missing_conditions;
 
