@@ -144,7 +144,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
 
     def SolveCouplingStep(self):
         if (not self.IsConverged()):
-            self.velocity_strategy.Predict()
             self.is_converged = self.velocity_strategy.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")

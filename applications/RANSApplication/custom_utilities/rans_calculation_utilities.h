@@ -137,6 +137,10 @@ void CalculateNumberOfNeighbourEntities(
     ModelPart& rModelPart,
     const Variable<double>& rOutputVariable);
 
+void CalculateWallTurbulentViscosity(
+    ModelPart& rModelPart,
+    const double mMinTurbulentViscosityValue);
+
 } // namespace RansCalculationUtilities
 
 ///@}

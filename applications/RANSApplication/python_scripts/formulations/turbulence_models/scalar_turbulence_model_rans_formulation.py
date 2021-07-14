@@ -76,6 +76,10 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
         settings = self.GetParameters()
 
+        for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+            if (constraint.GetSlaveDofsVector()[0].GetVariable() == self.GetSolvingVariable()):
+                self.GetModelPart().AddMasterSlaveConstraint(constraint)
+
         if (self.IsPeriodic()):
             InitializePeriodicConditions(
                 self.GetBaseModelPart(),
@@ -125,7 +129,6 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             self.ExecuteBeforeCouplingSolveStep()
-            self.solver.Predict()
             self.solver.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")
@@ -202,6 +205,9 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 msg += "Supported wall function region types are:\n"
                 msg += "\tlogarithmic_region_only\n"
                 raise Exception(msg)
+
+    def ElementHasNodalProperties(self):
+        return False
 
     def _CreateAlgebraicFluxCorrectedSteadyScalarScheme(self, relaxation_factor):
         if (self.IsPeriodic()):

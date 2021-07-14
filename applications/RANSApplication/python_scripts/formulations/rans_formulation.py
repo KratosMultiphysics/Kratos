@@ -107,6 +107,13 @@ class RansFormulation:
         if (self.GetStrategy() is not None):
             self.GetStrategy().InitializeSolutionStep()
 
+    def Predict(self):
+        for formulation in self.__list_of_formulations:
+            formulation.Predict()
+
+        if (self.GetStrategy() is not None):
+            self.GetStrategy().Predict()
+
     def SolveCouplingStep(self):
         """Solves current formulation
 
@@ -123,6 +130,9 @@ class RansFormulation:
                     return False
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling itr. " + str(iteration + 1) + "/" + str(max_iterations) + ".")
+            if (self.IsConverged()):
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Coupling iter. {:d}/{:d} - *** CONVERGENCE ACHIEVED ***".format(iteration + 1, max_iterations))
+                return True
 
         return True
 
@@ -192,6 +202,19 @@ class RansFormulation:
             return is_converged
 
         return True
+
+    def ElementHasNodalProperties(self):
+        """Recursively checks whether any one of the formulations require nodal properties.
+
+        Returns:
+            bool: True if one of them require nodal properties
+        """
+
+        for formulation in self.__list_of_formulations:
+            if (formulation.ElementHasNodalProperties()):
+                return True
+
+        return False
 
     def GetMoveMeshFlag(self):
         """Returns move mesh flag

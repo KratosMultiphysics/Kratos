@@ -81,11 +81,6 @@ public:
     ///@name Operations
     ///@{
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     void CalculateConstants(
         const ProcessInfo& rCurrentProcessInfo);
 
@@ -122,6 +117,7 @@ protected:
     double mBlendedSimgaK;
     double mVelocityDivergence;
     double mDensity;
+    double mA1;
 
     ///@}
     ///@name Protected Operations

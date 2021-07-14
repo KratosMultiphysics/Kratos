@@ -43,6 +43,7 @@
 #include "custom_elements/data_containers/k_omega_sst/omega_element_data.h"
 
 // vms monolithic wall conditions
+#include "custom_conditions/vms_monolithic_u_based_wall_condition.h"
 #include "custom_conditions/vms_monolithic_k_based_wall_condition.h"
 
 // fractional step wall conditions
@@ -62,9 +63,16 @@
 #include "custom_conditions/data_containers/k_omega/omega_k_based_wall_condition_data.h"
 #include "custom_conditions/data_containers/k_omega/omega_u_based_wall_condition_data.h"
 
+// k-omega-sst turbulence model condition data
+#include "custom_conditions/data_containers/k_omega_sst/omega_k_based_wall_condition_data.h"
+#include "custom_conditions/data_containers/k_omega_sst/omega_u_based_wall_condition_data.h"
+
 // constitutive laws
-#include "custom_constitutive/rans_newtonian_2d_law.h"
-#include "custom_constitutive/rans_newtonian_3d_law.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
+#include "custom_constitutive/rans_k_epsilon_newtonian_law.h"
+#include "custom_constitutive/rans_k_omega_newtonian_law.h"
+#include "custom_constitutive/rans_k_omega_sst_newtonian_law.h"
 
 namespace Kratos
 {
@@ -212,6 +220,9 @@ private:
     const VMSMonolithicKBasedWallCondition<2> mRansVMSMonolithicKBasedWall2D2N;
     const VMSMonolithicKBasedWallCondition<3> mRansVMSMonolithicKBasedWall3D3N;
 
+    const VMSMonolithicUBasedWallCondition<2> mRansVMSMonolithicUBasedWall2D2N;
+    const VMSMonolithicUBasedWallCondition<3> mRansVMSMonolithicUBasedWall3D3N;
+
     // fractional step wall conditions
     const FractionalStepKBasedWallCondition<2, 2> mFractionalStepKBasedWall2D2N;
     const FractionalStepKBasedWallCondition<3, 3> mFractionalStepKBasedWall3D3N;
@@ -234,9 +245,22 @@ private:
     const ScalarWallFluxCondition<2, 2, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall2D2N;
     const ScalarWallFluxCondition<3, 3, KOmegaWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaOmegaUBasedWall3D3N;
 
+    // k-omega-sst turbulence model conditions
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaSSTOmegaKBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaKBasedWallConditionData> mRansKOmegaSSTOmegaKBasedWall3D3N;
+
+    const ScalarWallFluxCondition<2, 2, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaSSTOmegaUBasedWall2D2N;
+    const ScalarWallFluxCondition<3, 3, KOmegaSSTWallConditionData::OmegaUBasedWallConditionData> mRansKOmegaSSTOmegaUBasedWall3D3N;
+
     // constitutive laws
-    const RansNewtonian2DLaw mRansNewtonian2DLaw;
-    const RansNewtonian3DLaw mRansNewtonian3DLaw;
+    const RansKEpsilonNewtonianLaw<Newtonian2DLaw> mRansKEpsilonNewtonian2DLaw;
+    const RansKEpsilonNewtonianLaw<Newtonian3DLaw> mRansKEpsilonNewtonian3DLaw;
+
+    const RansKOmegaNewtonianLaw<Newtonian2DLaw> mRansKOmegaNewtonian2DLaw;
+    const RansKOmegaNewtonianLaw<Newtonian3DLaw> mRansKOmegaNewtonian3DLaw;
+
+    const RansKOmegaSSTNewtonianLaw<2, Newtonian2DLaw> mRansKOmegaSSTNewtonian2DLaw;
+    const RansKOmegaSSTNewtonianLaw<3, Newtonian3DLaw> mRansKOmegaSSTNewtonian3DLaw;
 
     ///@}
     ///@name Un accessible methods

@@ -69,6 +69,14 @@ class CoupledRANSSolver(PythonSolver):
         else:
             self.is_steady = False
 
+        if (self.settings["time_scheme_settings"].Has("ramp_up_interval")):
+            self.ramp_up_interval = self.settings["time_scheme_settings"]["ramp_up_interval"].GetVector()
+            self.ramp_up_interval = sorted(self.ramp_up_interval)
+            if (len(self.ramp_up_interval) != 2):
+                raise Exception("Ramp up interval should only have two values indicating ramp up start time and end time.")
+        else:
+            self.ramp_up_interval = None
+
         self.is_converged = False
         self.min_buffer_size = self.formulation.GetMinimumBufferSize()
         self.move_mesh = self.settings["move_mesh"].GetBool()
@@ -103,7 +111,8 @@ class CoupledRANSSolver(PythonSolver):
             "assign_neighbour_elements_to_conditions": true,
             "move_mesh": false,
             "time_scheme_settings":{
-                "scheme_type": "steady"
+                "scheme_type": "steady",
+                "ramp_up_interval": [-1.0, -1.0]
             },
             "time_stepping": {
                 "automatic_time_step" : false,
@@ -126,6 +135,10 @@ class CoupledRANSSolver(PythonSolver):
 
         if (IsDistributedRun()):
             self.main_model_part.AddNodalSolutionStepVariable(Kratos.PARTITION_INDEX)
+
+        if (self.formulation.ElementHasNodalProperties()):
+            self.main_model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+            self.main_model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
 
         Kratos.Logger.PrintInfo(
             self.__class__.__name__, "Solver variables added correctly.")
@@ -217,6 +230,9 @@ class CoupledRANSSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self.formulation.InitializeSolutionStep()
 
+    def Predict(self):
+        self.formulation.Predict()
+
     def SolveSolutionStep(self):
         self.formulation.SolveCouplingStep()
         self.is_converged = self.formulation.IsConverged()
@@ -240,7 +256,19 @@ class CoupledRANSSolver(PythonSolver):
         return self.is_steady
 
     def IsConverged(self):
-        return self.is_steady and self.is_converged
+        if (self.IsSteadySimulation()):
+            current_time = self.main_model_part.ProcessInfo[Kratos.TIME]
+            if (self.ramp_up_interval is not None):
+                if (current_time >= self.ramp_up_interval[0] and current_time <= self.ramp_up_interval[1]):
+                    if (self.is_converged):
+                        Kratos.Logger.PrintInfo(self.__class__.__name__, "Continuing steady simulation because it is still within ramp up interval.")
+                    return False
+                else:
+                    return self.is_converged
+            else:
+                return self.is_converged
+        else:
+            return False
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
@@ -308,7 +336,27 @@ class CoupledRANSSolver(PythonSolver):
         else:
             materials_imported = False
 
+        # If the element uses nodal material properties, transfer them to the nodes
+        if self.formulation.ElementHasNodalProperties():
+            self._SetNodalProperties()
+
         return materials_imported
+
+    def _SetNodalProperties(self):
+        # Get density and dynamic viscostity from the properties of the first element
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(Kratos.DENSITY)
+            mu = el.Properties.GetValue(Kratos.DYNAMIC_VISCOSITY)
+
+            if (rho <= 0.0):
+                raise Exception ("DENSITY is not properly set in material properties.")
+
+            nu = mu / rho
+
+            Kratos.VariableUtils().SetVariable(Kratos.DENSITY, rho, self.main_model_part.Nodes)
+            Kratos.VariableUtils().SetVariable(Kratos.VISCOSITY, nu, self.main_model_part.Nodes)
+
+            break
 
     def Finalize(self):
         self.formulation.Finalize()

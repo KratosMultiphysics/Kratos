@@ -30,7 +30,7 @@ class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
         return "RansKOmegaSSTOmega"
 
     def GetConditionNamePrefix(self):
-        return "RansKOmegaOmega"
+        return "RansKOmegaSSTOmega"
 
 
 class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
@@ -70,12 +70,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             KOmegaSSTOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
@@ -113,30 +110,14 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
         self.AddProcess(wall_distance_process)
 
-        minimum_nut = settings["minimum_turbulent_viscosity"].GetDouble()
-
-        nut_process = KratosRANS.RansNutKOmegaSSTUpdateProcess(
-                                            model,
-                                            self.GetBaseModelPart().Name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_process)
-
-        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
-                                            model,
-                                            wall_model_part_name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_wall_process)
-
         super().Initialize()
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "wall_law_constants":{
-                "kappa"       : 0.41,
-                "c_mu"        : 0.09,
-                "sigma_omega" : 0.0
+                "kappa"            : 0.41,
+                "c_mu"             : 0.09,
+                "correction_factor": 1.0
             },
             "k_omega_constants": {
                 "sigma_k"    : 0.85,
@@ -160,10 +141,9 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         process_info = self.GetBaseModelPart().ProcessInfo
         # wall law constants
         constants = settings["wall_law_constants"]
-        # TODO: This needs to be checked with validation cases
-        process_info.SetValue(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA, constants["sigma_omega"].GetDouble())
         process_info.SetValue(KratosRANS.VON_KARMAN, constants["kappa"].GetDouble())
         process_info.SetValue(KratosRANS.TURBULENCE_RANS_C_MU, constants["c_mu"].GetDouble())
+        process_info.SetValue(KratosRANS.WALL_CORRECTION_FACTOR, constants["correction_factor"].GetDouble())
 
         # k-omega constants
         constants = settings["k_omega_constants"]

@@ -12,8 +12,10 @@
 
 // System includes
 #include <cmath>
+#include <tuple>
 
 // Project includes
+#include "includes/cfd_variables.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
 
@@ -346,6 +348,56 @@ void CalculateNumberOfNeighbourEntities(
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputVariable);
 
     KRATOS_CATCH("");
+}
+
+void CalculateWallTurbulentViscosity(
+    ModelPart& rModelPart,
+    const double mMinTurbulentViscosityValue)
+{
+    using tls_type = std::tuple<Vector, Matrix>;
+
+    const double von_karman = rModelPart.GetProcessInfo()[VON_KARMAN];
+
+    block_for_each(rModelPart.Conditions(), tls_type(), [&](ConditionType& rCondition, tls_type& rTLS) {
+        double nu_t = 0.0;
+        if (IsWallFunctionActive(rCondition)) {
+            auto& r_geometry = rCondition.GetGeometry();
+
+            auto& Ws = std::get<0>(rTLS);
+            auto& Ns = std::get<1>(rTLS);
+
+            // computing everything based on a fixed gauss integration rather than based
+            // on the condition one. This is because, in RANS there can be different conditions
+            // with different gauss integration methods. So in order to be consistent
+            // GI_GAUSS_1 is chosen
+            const auto& r_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_1;
+
+            CalculateConditionGeometryData(r_geometry, r_integration_method, Ws, Ns);
+
+            const auto& r_properties = rCondition.GetProperties();
+            const double y_plus_limit = r_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+            const double y_plus = std::max(rCondition.GetValue(RANS_Y_PLUS), y_plus_limit);
+
+            auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
+            auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+            const auto& r_elem_properties = r_parent_element.GetProperties();
+            const double density = r_elem_properties[DENSITY];
+
+            ConstitutiveLaw::Parameters cl_parameters(r_parent_element.GetGeometry(), r_elem_properties, rModelPart.GetProcessInfo());
+
+            const Vector& N = row(Ns, 0);
+
+            cl_parameters.SetShapeFunctionsValues(N);
+
+            double nu;
+            constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+            nu /= density;
+
+            nu_t = von_karman * y_plus * nu;
+        }
+
+        rCondition.SetValue(TURBULENT_VISCOSITY, std::max(nu_t, mMinTurbulentViscosityValue));
+    });
 }
 
 // template instantiations

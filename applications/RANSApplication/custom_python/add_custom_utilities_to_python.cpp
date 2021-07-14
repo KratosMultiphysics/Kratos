@@ -21,7 +21,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "custom_utilities/rans_variable_utilities.h"
-#include "custom_utilities/rans_variable_difference_norm_calculation_utility.h"
+#include "custom_utilities/rans_nut_utility.h"
 #include "custom_utilities/test_utilities.h"
 
 namespace Kratos
@@ -32,11 +32,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    using RansScalarVariableDifferenceNormCalculationUtilityType = RansVariableDifferenceNormsCalculationUtility<double>;
-    py::class_<RansScalarVariableDifferenceNormCalculationUtilityType, RansScalarVariableDifferenceNormCalculationUtilityType::Pointer>(m, "ScalarVariableDifferenceNormCalculationUtility")
-        .def(py::init<const ModelPart&, const Variable<double>&>())
-        .def("InitializeCalculation", &RansScalarVariableDifferenceNormCalculationUtilityType::InitializeCalculation)
-        .def("CalculateDifferenceNorm", &RansScalarVariableDifferenceNormCalculationUtilityType::CalculateDifferenceNorm);
+    py::class_<RansNutUtility, RansNutUtility::Pointer>(m, "RansNutUtility")
+        .def(py::init<ModelPart&, const Variable<double>&, const Variable<double>&, const double, const double, const int>())
+        .def("Initialize", &RansNutUtility::Initialize)
+        .def("InitializeCalculation", &RansNutUtility::InitializeCalculation)
+        .def("CheckConvergence", &RansNutUtility::CheckConvergence)
+        .def("UpdateTurbulenceData", &RansNutUtility::UpdateTurbulenceData)
+        .def("UpdateTurbulentViscosity", &RansNutUtility::UpdateTurbulentViscosity)
+        ;
 
     m.def_submodule("RansVariableUtilities")
         .def("ClipScalarVariable", &RansVariableUtilities::ClipScalarVariable)
@@ -51,20 +54,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<double>)
         .def("CalculateTransientVariableConvergence", &RansVariableUtilities::CalculateTransientVariableConvergence<array_1d<double, 3>>)
         .def("SetElementConstitutiveLaws", &RansVariableUtilities::SetElementConstitutiveLaws)
+        .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
         ;
 
     m.def_submodule("RansCalculationUtilities")
-        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6);
-
-    m.def_submodule("RansTestUtilities")
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<double>)
-        .def("RandomFillNodalHistoricalVariable", &RansApplicationTestUtilities::RandomFillNodalHistoricalVariable<array_1d<double, 3>>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, double>)
-        .def("RandomFillNodalNonHistoricalVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::NodesContainerType, array_1d<double, 3>>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, double>)
-        .def("RandomFillConditionVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ConditionsContainerType, array_1d<double, 3>>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, double>)
-        .def("RandomFillElementVariable", &RansApplicationTestUtilities::RandomFillContainerVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>)
+        .def("CalculateLogarithmicYPlusLimit", &RansCalculationUtilities::CalculateLogarithmicYPlusLimit, py::arg("kappa"), py::arg("beta"), py::arg("max_iterations") = 20, py::arg("tolerance") = 1e-6)
+        .def("CalculateWallHeight", &RansCalculationUtilities::CalculateWallHeight)
         ;
 }
 

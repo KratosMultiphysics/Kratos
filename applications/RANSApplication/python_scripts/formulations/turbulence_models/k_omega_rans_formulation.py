@@ -58,12 +58,9 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             KOmegaOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DENSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NORMAL)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VISCOSITY)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
@@ -79,30 +76,6 @@ class KOmegaRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         Kratos.VariableUtils().AddDof(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, self.GetBaseModelPart())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
-
-    def Initialize(self):
-        model_part = self.GetBaseModelPart()
-        model = model_part.GetModel()
-
-        process_info = model_part.ProcessInfo
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-        minimum_nut = self.GetParameters()["minimum_turbulent_viscosity"].GetDouble()
-
-        nut_process = KratosRANS.RansNutKOmegaUpdateProcess(
-                                            model,
-                                            self.GetBaseModelPart().Name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_process)
-
-        nut_wall_process = KratosRANS.RansNutYPlusWallFunctionUpdateProcess(
-                                            model,
-                                            wall_model_part_name,
-                                            minimum_nut,
-                                            self.echo_level)
-        self.AddProcess(nut_wall_process)
-
-        super().Initialize()
 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{

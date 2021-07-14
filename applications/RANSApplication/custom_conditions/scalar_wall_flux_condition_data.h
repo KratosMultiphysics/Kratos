@@ -18,9 +18,8 @@
 // External includes
 
 // Project includes
-#include "containers/variable.h"
 #include "geometries/geometry.h"
-#include "includes/constitutive_law.h"
+#include "includes/element.h"
 #include "includes/node.h"
 #include "includes/process_info.h"
 #include "includes/properties.h"
@@ -36,7 +35,29 @@ namespace Kratos
 class ScalarWallFluxConditionData
 {
 public:
-    using GeometryType = Geometry<Node<3>>;
+    ///@name Type Definitions
+    ///@{
+
+    using NodeType = Node<3>;
+
+    using GeometryType = Geometry<NodeType>;
+
+    ///@}
+    ///@name Classes
+    ///@{
+
+    struct Parameters
+    {
+        double mYPlus;
+        double mWallTurbulentViscosity;
+        double mDensity;
+        double mKinematicViscosity;
+        double mKappa;
+    };
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     ScalarWallFluxConditionData(
         const GeometryType& rGeometry,
@@ -44,22 +65,13 @@ public:
         const ProcessInfo& rProcessInfo)
         : mrGeometry(rGeometry),
           mrConditionProperties(rConditionProperties),
-          mrElementProperties(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()),
-          mrConstitutiveLaw(*rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetValue(CONSTITUTIVE_LAW))
+          mrElementProperties(rGeometry.GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties())
     {
-        mConstitutiveLawParameters =
-            ConstitutiveLaw::Parameters(rGeometry, mrElementProperties, rProcessInfo);
     }
 
-    ConstitutiveLaw::Parameters& GetConstitutiveLawParameters()
-    {
-        return mConstitutiveLawParameters;
-    }
-
-    ConstitutiveLaw& GetConstitutiveLaw()
-    {
-        return mrConstitutiveLaw;
-    }
+    ///@}
+    ///@name Access
+    ///@{
 
     const GeometryType& GetGeometry() const
     {
@@ -76,12 +88,17 @@ public:
         return mrConditionProperties;
     }
 
+    ///@}
+
 private:
+    ///@name Private Members
+    ///@{
+
     const GeometryType& mrGeometry;
     const Properties& mrConditionProperties;
     const Properties& mrElementProperties;
-    ConstitutiveLaw& mrConstitutiveLaw;
-    ConstitutiveLaw::Parameters mConstitutiveLawParameters;
+
+    ///@}
 };
 } // namespace Kratos
 
