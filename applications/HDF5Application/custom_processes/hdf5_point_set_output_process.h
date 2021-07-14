@@ -39,6 +39,8 @@ public:
 
     PointSetOutputProcess(Parameters parameters, Model& rModel);
 
+    virtual void ExecuteInitialize() override;
+
     virtual void ExecuteFinalizeSolutionStep() override;
 
     virtual const Parameters GetDefaultParameters() const override;
@@ -71,8 +73,6 @@ private:
      */
     void InitializeFromParameters(Parameters parameters);
 
-    File::Pointer MakeHDF5File(const std::size_t stepID) const;
-
     ModelPart& mrModelPart;
 
     IntervalUtility mInterval;
@@ -81,9 +81,11 @@ private:
 
     std::unique_ptr<Locator> mpLocator;
 
-    std::vector<std::string> mVariableNames;
+    Parameters mVariables;
 
-    std::string mOutputPath;
+    File::Pointer mpFile;
+
+    std::string mPrefix;
 };
 
 

@@ -13,6 +13,11 @@
 // Internal includes
 #include "hdf5_point_set_output_process.h"
 
+// Application includes
+#include "custom_io/hdf5_vertex_container_io.h"
+#include "custom_io/hdf5_file_parallel.h"
+#include "custom_io/hdf5_file_serial.h"
+
 // Core includes
 #include "utilities/parallel_utilities.h"
 
@@ -64,9 +69,34 @@ PointSetOutputProcess::PointSetOutputProcess(Parameters parameters,
 }
 
 
+void PointSetOutputProcess::ExecuteInitialize()
+{
+    KRATOS_TRY
+
+    // Dump vertex coordinates
+    Parameters io_parameters;
+    io_parameters.AddString("prefix", mPrefix);
+    VertexContainerIO(io_parameters, mpFile).WriteCoordinates(mVertices);
+
+    KRATOS_CATCH("");
+}
+
+
 void PointSetOutputProcess::ExecuteFinalizeSolutionStep()
 {
     KRATOS_TRY
+
+    // Create IO
+    const std::size_t step_id = mrModelPart.GetProcessInfo()[STEP];
+    const std::string group_name = "step_" + std::to_string(step_id);
+    Parameters io_parameters;
+    io_parameters.AddString("prefix", mPrefix);
+    io_parameters.AddString("variables_path", "/" + group_name);
+    io_parameters.AddValue("list_of_variables", mVariables);
+
+    VertexContainerIO vertex_io(
+        io_parameters,
+        mpFile);
 
     // Update vertices
     block_for_each(mVertices,
@@ -74,6 +104,9 @@ void PointSetOutputProcess::ExecuteFinalizeSolutionStep()
             rVertex.Locate(*mpLocator);
         }
     );
+
+    // Write
+    vertex_io.WriteVariables(mVertices);
 
     KRATOS_CATCH("");
 }
@@ -90,8 +123,8 @@ const Parameters PointSetOutputProcess::GetDefaultParameters() const
         "historical_value"     : true,
         "search_configuration" : "initial",
         "search_tolerance"     : 1e-6,
-        "output_path"          : "",
-        "prefix"               : "point_set_output"
+        "file_path"            : "",
+        "prefix"               : "/point_set_output"
     })");
 }
 
@@ -123,12 +156,7 @@ void PointSetOutputProcess::InitializeFromParameters(Parameters parameters)
     KRATOS_TRY
 
     // Initialize variable names
-    const std::size_t number_of_variables = parameters["output_variables"].size();
-    mVariableNames.reserve(number_of_variables);
-
-    for (std::size_t i_name; i_name<number_of_variables; ++i_name) {
-        mVariableNames.push_back(parameters["output_variables"].GetArrayItem(i_name).GetString());
-    }
+    mVariables = parameters["output_variables"].Clone();
 
     // Initialize locator
     const std::string configuration_name = parameters["search_configuration"].GetString();
@@ -150,25 +178,20 @@ void PointSetOutputProcess::InitializeFromParameters(Parameters parameters)
         configuration,
         search_tolerance));
 
+    // Initialize file
+    Parameters file_parameters;
+    file_parameters.AddValue("file_name", parameters["file_path"]);
+
+    const bool is_mpi_run = false; // TODO: detect serial/parallel
+    if (is_mpi_run) {
+        mpFile = std::make_shared<FileParallel>(file_parameters);
+    }
+    else {
+        mpFile = std::make_shared<FileSerial>(file_parameters);
+    }
+
     // Initialize other members
-    mOutputPath = parameters["output_path"].GetString();
-
-    KRATOS_CATCH("");
-}
-
-
-File::Pointer PointSetOutputProcess::MakeHDF5File(const std::size_t stepID) const
-{
-    KRATOS_TRY
-
-    Parameters file_parameters(R"({
-        "file_name" : ""
-    })");
-
-    const std::string file_name = mOutputPath + "/step_" + std::to_string(stepID);
-    file_parameters["file_name"].SetString(file_name);
-
-    return make_shared<File>(file_parameters);
+    mPrefix = parameters["prefix"].GetString();
 
     KRATOS_CATCH("");
 }

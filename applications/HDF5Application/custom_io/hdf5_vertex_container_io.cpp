@@ -33,17 +33,12 @@ VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
     
     const std::string prefix = parameters["prefix"].GetString(); 
     mCoordinatesPath = prefix + parameters["coordinates_path"].GetString();
-    std::string variables_path = prefix + parameters["variables_path"].GetString();
 
-    // Check/create paths
+    // Check/create prefix path
+    // TODO: this doesn't take care of multi-level prefixes
     if (!mpFile->IsGroup(prefix)) {
         KRATOS_ERROR_IF(mpFile->HasPath(prefix)) << "'prefix' points to an existing dataset!";
         mpFile->CreateGroup(prefix);
-    }
-
-    if (!mpFile->IsGroup(variables_path)) {
-        KRATOS_ERROR_IF(mpFile->HasPath(variables_path)) << "'variables_path' points to an existing dataset!";
-        mpFile->CreateGroup(variables_path);
     }
 
     KRATOS_CATCH("");
@@ -80,6 +75,13 @@ void VertexContainerIO::WriteVariables(const Detail::VertexContainerType& rVerti
 {
     KRATOS_TRY
 
+    // Check/create variables path
+    // TODO: this doesn't take care of multi-level prefixes
+    if (!mpFile->IsGroup(mComponentPath)) {
+        KRATOS_ERROR_IF(mpFile->HasPath(mComponentPath)) << "'variables_path' points to an existing dataset!";
+        mpFile->CreateGroup(mComponentPath);
+    }
+
     this->WriteContainerComponents(rVertices);
 
     KRATOS_CATCH("");
@@ -101,11 +103,12 @@ Parameters VertexContainerIO::FormatParameters(Parameters parameters)
 {
     KRATOS_TRY
 
-    parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
-    parameters.RemoveValue("coordinates_path");
-    parameters.RemoveValue("variables_path");
+    Parameters output = parameters.Clone();
+    output.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    output.RemoveValue("coordinates_path");
+    output.RemoveValue("variables_path");
 
-    return parameters;
+    return output;
 
     KRATOS_CATCH("");
 }

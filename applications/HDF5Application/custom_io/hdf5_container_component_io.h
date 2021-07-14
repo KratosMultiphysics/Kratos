@@ -71,6 +71,8 @@ protected:
 
     std::vector<std::string> mComponentNames;
 
+    std::string mComponentPath;
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -82,10 +84,6 @@ protected:
     ///@}
 
 private:
-    ///@name Member Variables
-    ///@{
-    std::string mComponentPath;
-    ///@}
     ///@name Private Operations
     ///@{
 

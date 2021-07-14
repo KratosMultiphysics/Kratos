@@ -12,6 +12,7 @@
 #include "hdf5_application_define.h"
 #include "tests/test_utils.h"
 #include "custom_utilities/vertex.h"
+#include "custom_processes/hdf5_point_set_output_process.h"
 
 
 namespace Kratos
@@ -51,59 +52,23 @@ ModelPart& MakeModelPart(Model& rModel)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_TMP, KratosHDF5TestSuite)
 {
     Model model;
-    ModelPart& r_model_part = MakeModelPart(model);
+    MakeModelPart(model);
 
-    try
+    Parameters parameters(R"(
     {
-        Parameters file_parameters(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "sec2"
-        })");
-        
-        auto p_file = HDF5::File::Pointer(new HDF5::FileSerial(file_parameters));
+        "model_part_name" : "main",
+        "positions" : [
+            [0.0, 0.0, 0.0],
+            [0.5, 0.5, 0.0],
+            [1.0, 1.0, 0.0]
+        ],
+        "output_variables" : ["DISPLACEMENT"],
+        "file_path" : "test.h5"
+    })");
 
-        Parameters write_parameters(R"({
-            "prefix" : "/prefix",
-            "list_of_variables" : ["DISPLACEMENT"]
-        })");
-
-        HDF5::Detail::VertexContainerType vertices;
-        BruteForcePointLocator locator(r_model_part);
-
-        vertices.push_back(HDF5::Detail::Vertex::Pointer(new HDF5::Detail::Vertex(
-            array_1d<double,3>{{0.0, 0.0, 0.0}},
-            r_model_part)));
-        vertices.push_back(HDF5::Detail::Vertex::Pointer(new HDF5::Detail::Vertex(
-            array_1d<double,3>{{0.5, 0.5, 0.0}},
-            r_model_part)));
-        vertices.push_back(HDF5::Detail::Vertex::Pointer(new HDF5::Detail::Vertex(
-            array_1d<double,3>{{1.0, 1.0, 0.0}},
-            r_model_part)));
-
-        for (HDF5::Detail::Vertex& rVertex : vertices) {
-            rVertex.Locate(locator);
-        }
-
-        try
-        {
-            HDF5::VertexContainerIO writer(write_parameters, p_file);
-            writer.WriteCoordinates(vertices);
-            writer.WriteVariables(vertices);
-        }
-        catch (std::exception& rException)
-        {
-            puts(rException.what());
-            puts("nope");
-            return;
-        }
-    }
-    catch (std::exception& rException)
-    {
-        puts(rException.what());
-        puts("something went wrong");
-        return;
-    }
+    HDF5::PointSetOutputProcess point_output_process(parameters, model);
+    point_output_process.ExecuteInitialize();
+    point_output_process.ExecuteFinalizeSolutionStep();
 }
 
 
