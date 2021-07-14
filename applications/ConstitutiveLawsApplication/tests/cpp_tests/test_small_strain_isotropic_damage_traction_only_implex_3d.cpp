@@ -155,9 +155,6 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamageTractionOnl
     cl.CalculateValue(cl_parameters, STRAIN, value_vector);
     KRATOS_CHECK_VECTOR_NEAR(value_vector, imposed_strain, tolerance);
 
-    cl.CalculateValue(cl_parameters, INITIAL_STRAIN_VECTOR, value_vector);
-    KRATOS_CHECK_VECTOR_NEAR(value_vector, ZeroVector(6), tolerance);
-
     cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
     KRATOS_CHECK_NEAR(internal_variables_r.size(), 2., tolerance);
     KRATOS_CHECK_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
