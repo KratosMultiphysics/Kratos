@@ -294,3 +294,51 @@ def CreateBlockBuilderAndSolver(
                 linear_solver, KratosCFD.PATCH_INDEX)
         else:
             return ResidualBasedBlockBuilderAndSolver(linear_solver)
+
+def GetTimeDerivativeVariable(variable):
+    if (variable == Kratos.VELOCITY_X):
+        return Kratos.ACCELERATION_X
+    elif (variable == Kratos.VELOCITY_Y):
+        return Kratos.ACCELERATION_Y
+    elif (variable == Kratos.VELOCITY_Z):
+        return Kratos.ACCELERATION_Z
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY):
+        return KratosRANS.TURBULENT_KINETIC_ENERGY_RATE
+    elif (variable == KratosRANS.TURBULENT_KINETIC_ENERGY_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE):
+        return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2
+    elif (variable == KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_2
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL):
+        return KratosRANS.VELOCITY_POTENTIAL_RATE
+    elif (variable == KratosRANS.VELOCITY_POTENTIAL_RATE):
+        return KratosRANS.RANS_AUXILIARY_VARIABLE_1
+    else:
+        return None
+
+def GetTimeDerivativeVariablesRecursively(var):
+    time_derivative_var = GetTimeDerivativeVariable(var)
+    if (time_derivative_var is None):
+        return [var]
+    else:
+        v = [var]
+        v.extend(GetTimeDerivativeVariablesRecursively(time_derivative_var))
+        return v
+
+def AddFileLoggerOutput(log_file_name):
+    file_logger = Kratos.FileLoggerOutput(log_file_name)
+    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
+    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
+    Kratos.Logger.AddOutput(file_logger)
+
+    return default_severity, file_logger
+
+def RemoveFileLoggerOutput(default_severity, file_logger):
+    Kratos.Logger.Flush()
+    Kratos.Logger.RemoveOutput(file_logger)
+    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)

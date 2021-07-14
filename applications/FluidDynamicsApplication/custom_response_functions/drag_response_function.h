@@ -65,12 +65,14 @@ public:
         Parameters default_settings(R"(
         {
             "structure_model_part_name": "PLEASE_SPECIFY_STRUCTURE_MODEL_PART",
-            "drag_direction": [1.0, 0.0, 0.0]
+            "drag_direction": [1.0, 0.0, 0.0],
+            "start_time"    : 0.0
         })");
 
         Settings.ValidateAndAssignDefaults(default_settings);
 
         mStructureModelPartName = Settings["structure_model_part_name"].GetString();
+        mStartTime = Settings["start_time"].GetDouble();
 
         if (Settings["drag_direction"].IsArray() == false ||
             Settings["drag_direction"].size() != 3)
@@ -98,14 +100,14 @@ public:
         KRATOS_CATCH("");
     }
 
-    /// Destructor.
-    ~DragResponseFunction() override
+    DragResponseFunction(
+        ModelPart& rModelPart)
+        : mrModelPart(rModelPart)
     {
     }
 
-    ///@}
-    ///@name Operators
-    ///@{
+    /// Destructor.
+    ~DragResponseFunction() override = default;
 
     ///@}
     ///@name Operations
@@ -131,7 +133,7 @@ public:
                            const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
     }
 
     void CalculateGradient(
@@ -149,7 +151,7 @@ public:
                                            const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
     }
 
     void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
@@ -166,7 +168,7 @@ public:
                                             const ProcessInfo& rProcessInfo) override
     {
         CalculateDragContribution(
-            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient);
+            rResidualGradient, rAdjointElement.GetGeometry().Points(), rResponseGradient, rProcessInfo);
     }
 
     void CalculateSecondDerivativesGradient(const Condition& rAdjointCondition,
@@ -186,7 +188,7 @@ public:
         KRATOS_TRY;
 
         CalculateDragContribution(
-            rSensitivityMatrix, rAdjointElement.GetGeometry().Points(), rSensitivityGradient);
+            rSensitivityMatrix, rAdjointElement.GetGeometry().Points(), rSensitivityGradient, rProcessInfo);
 
         KRATOS_CATCH("");
     }
@@ -214,33 +216,16 @@ public:
     ///@}
 
 protected:
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
+    ///@name Protected Member Variables
     ///@{
 
     ModelPart& mrModelPart;
     std::string mStructureModelPartName;
     array_1d<double, TDim> mDragDirection;
+    double mStartTime;
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     void Check()
@@ -256,28 +241,35 @@ private:
 
     void CalculateDragContribution(const Matrix& rDerivativesOfResidual,
                                    const Element::NodesArrayType& rNodes,
-                                   Vector& rDerivativesOfDrag) const
+                                   Vector& rDerivativesOfDrag,
+                                   const ProcessInfo& rProcessInfo) const
     {
-        constexpr std::size_t max_size = 50;
-        BoundedVector<double, max_size> drag_flag_vector(rDerivativesOfResidual.size2());
-        drag_flag_vector.clear();
-
-        const unsigned num_nodes = rNodes.size();
-        const unsigned local_size = rDerivativesOfResidual.size2() / num_nodes;
-
-        for (unsigned i_node = 0; i_node < num_nodes; ++i_node)
-        {
-            if (rNodes[i_node].Is(STRUCTURE))
-            {
-                for (unsigned d = 0; d < TDim; ++d)
-                    drag_flag_vector[i_node * local_size + d] = mDragDirection[d];
-            }
-        }
-
         if (rDerivativesOfDrag.size() != rDerivativesOfResidual.size1())
             rDerivativesOfDrag.resize(rDerivativesOfResidual.size1(), false);
 
-        noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, drag_flag_vector);
+        const double current_time = rProcessInfo[TIME];
+
+        if (mStartTime <= current_time) {
+            constexpr std::size_t max_size = 50;
+            BoundedVector<double, max_size> drag_flag_vector(rDerivativesOfResidual.size2());
+            drag_flag_vector.clear();
+
+            const unsigned num_nodes = rNodes.size();
+            const unsigned local_size = rDerivativesOfResidual.size2() / num_nodes;
+
+            for (unsigned i_node = 0; i_node < num_nodes; ++i_node)
+            {
+                if (rNodes[i_node].Is(STRUCTURE))
+                {
+                    for (unsigned d = 0; d < TDim; ++d)
+                        drag_flag_vector[i_node * local_size + d] = mDragDirection[d];
+                }
+            }
+
+            noalias(rDerivativesOfDrag) = prod(rDerivativesOfResidual, drag_flag_vector);
+        } else {
+            rDerivativesOfDrag.clear();
+        }
     }
 
     ///@}

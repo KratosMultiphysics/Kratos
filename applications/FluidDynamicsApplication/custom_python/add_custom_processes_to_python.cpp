@@ -40,6 +40,8 @@
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
+#include "custom_processes/calculate_sensitivity_metric_process.h"
+#include "custom_processes/element_refinement_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
@@ -162,6 +164,19 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init< ModelPart& >())
     .def(py::init< ModelPart&, Parameters >())
     .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<CalculateSensitivityMetricProcess, CalculateSensitivityMetricProcess::Pointer, Process>(m,"CalculateSensitivityMetricProcess")
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<ElementRefinementProcess, ElementRefinementProcess::Pointer, Process>(m, "ElementRefinementProcess")
+    .def(py::init<Model&, Parameters>())
+    .def("InterpolateAllRefinedMeshesFromCoarseElement", &ElementRefinementProcess::InterpolateAllRefinedMeshesFromCoarseElement)
+    .def("InterpolateThreadLocalRefinedMeshFromCoarseElement", &ElementRefinementProcess::InterpolateThreadLocalRefinedMeshFromCoarseElement)
+    .def("SetEntityIds", &ElementRefinementProcess::SetEntityIds)
+    .def("SetConditionParentIds", &ElementRefinementProcess::SetConditionParentIds)
+    .def("GetThreadLocalModelPart", &ElementRefinementProcess::GetThreadLocalModelPart, py::return_value_policy::reference_internal)
     ;
 }
 

@@ -31,7 +31,11 @@ class ModelPartController:
             "model_part_name"       : "OPTIMIZATION_MODEL_PART_NAME",
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "OPTIMIZATION_MODEL_PART_FILENAME"
+                "input_filename" : "OPTIMIZATION_MODEL_PART_FILENAME",
+                "restart_settings": {
+                    "is_restarted"             : false,
+                    "restarted_input_filename" : "OPTIMIZATION_MODEL_PART_FILENAME"
+                }
             },
             "design_surface_sub_model_part_name" : "DESIGN_SURFACE_NAME",
             "damping" : {
@@ -149,8 +153,19 @@ class ModelPartController:
             raise RuntimeError("The model part for the optimization has to be read from the mdpa file!")
         input_filename = self.model_settings["model_import_settings"]["input_filename"].GetString()
 
+        model_import_settings = self.model_settings["model_import_settings"]
+        is_restarted = False
+        if (model_import_settings["restart_settings"].Has("is_restarted")):
+            if (model_import_settings["restart_settings"]["is_restarted"].GetBool()):
+                is_restarted = True
+                input_filename = model_import_settings["restart_settings"]["restarted_input_filename"].GetString()
+                self.optimization_model_part.RemoveSubModelPart("auto_surface_nodes")
+
         model_part_io = KM.ModelPartIO(input_filename)
         model_part_io.ReadModelPart(self.optimization_model_part)
+
+        if (is_restarted):
+            self.optimization_model_part.GetSubModelPart("auto_surface_nodes").GetNodes().clear()
 
         self.SetMinimalBufferSize(1)
 

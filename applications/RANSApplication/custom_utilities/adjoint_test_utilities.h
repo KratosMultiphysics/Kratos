@@ -274,10 +274,13 @@ public:
 
                     rUpdateFunction(r_model_part);
 
+                    TPrimalElementDataType perturbed_primal_element_data(r_geometry, r_properties, r_process_info);
+                    perturbed_primal_element_data.CalculateConstants(r_process_info);
+
                     std::tie(velocity, viscosity, reaction_term, source_term) =
                         ComputeElementDataValues(
                             r_geometry, g, primal_W_values, primal_N_vectors,
-                            primal_dNdX_matrices, r_process_info, r_integration_method, primal_element_data);
+                            primal_dNdX_matrices, r_process_info, r_integration_method, perturbed_primal_element_data);
 
                     const ArrayD fd_velocity_derivative = (velocity - ref_velocity) / Perturbation;
                     const double fd_viscosity_derivative = (viscosity - ref_viscosity) / Perturbation;

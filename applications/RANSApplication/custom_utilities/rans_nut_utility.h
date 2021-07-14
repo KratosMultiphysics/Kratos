@@ -58,8 +58,6 @@ public:
      */
     RansNutUtility(
         ModelPart& rModelPart,
-        const Variable<double>& rTurbulenceVariable1,
-        const Variable<double>& rTurbulenceVariable2,
         const double RelativeTolerance,
         const double AbsoluteTolerance,
         const int EchoLevel);
@@ -81,8 +79,6 @@ public:
     void InitializeCalculation();
 
     bool CheckConvergence() const;
-
-    void UpdateTurbulenceData();
 
     void UpdateTurbulentViscosity();
 
@@ -115,9 +111,6 @@ private:
     const int mEchoLevel;
     const double mRelativeTolerance;
     const double mAbsoluteTolerance;
-
-    const Variable<double>& mrTurbulenceVariable1;
-    const Variable<double>& mrTurbulenceVariable2;
 
     ///@}
     ///@name Private Operations

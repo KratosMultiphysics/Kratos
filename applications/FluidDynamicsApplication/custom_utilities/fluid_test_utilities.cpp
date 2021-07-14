@@ -81,9 +81,9 @@ ModelPart& FluidTestUtilities::CreateTestModelPart(
     auto& r_model_part = rModel.CreateModelPart(rModelPartName, BufferSize);
     rAddNodalSolutionStepVariablesFuncion(r_model_part);
 
-    r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0);
-    r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0);
+    r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0);
+    r_model_part.CreateNewNode(3, 2.0, 1.0, 0.0);
 
     for (auto& r_node : r_model_part.Nodes()) {
         rAddDofsFunction(r_node);

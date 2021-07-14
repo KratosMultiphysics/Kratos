@@ -60,6 +60,20 @@ public:
     {
     }
 
+    virtual void GetResponseFunctionInterpolationErrorAuxiliaryVector(
+        std::size_t NodeId,
+        std::vector<IndirectScalar<double>>& rVector,
+        std::size_t Step)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR
+            << "Calling base class GetResponseFunctionInterpolationErrorAuxiliaryVector "
+               "method. Please implement this in the derrived class.\n";
+
+        KRATOS_CATCH("");
+    }
+
     virtual void GetFirstDerivativesVariables(std::vector<VariableData const*>& rVariables) const
     {
     }
@@ -70,6 +84,17 @@ public:
 
     virtual void GetAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const
     {
+    }
+
+    virtual void GetResponseFunctionInterpolationErrorAuxiliaryVariables(std::vector<VariableData const*>& rVariables) const
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR
+            << "Calling base class GetResponseFunctionInterpolationErrorAuxiliaryVariables "
+               "method. Please implement this in the derrived class.\n";
+
+        KRATOS_CATCH("");
     }
 
     virtual std::ostream& Print(std::ostream& os) const

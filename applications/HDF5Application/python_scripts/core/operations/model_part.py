@@ -16,6 +16,11 @@ def Prefix(pattern, model_part, time_format=''):
     if hasattr(model_part, 'ProcessInfo'):
         time = model_part.ProcessInfo[KratosMultiphysics.TIME]
         prefix = format(time, time_format).join(pattern.split('<time>'))
+        if KratosMultiphysics.STEP in model_part.ProcessInfo:
+            prefix = prefix.replace('<step>', str(model_part.ProcessInfo[KratosMultiphysics.STEP]))
+        else:
+            # to be removed once analysis stage sets the STEP variable.
+            prefix = prefix.replace('<step>', "0")
     else:
         prefix = pattern
     if hasattr(model_part, 'Name'):

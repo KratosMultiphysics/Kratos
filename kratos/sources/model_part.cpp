@@ -1425,7 +1425,7 @@ void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexT
             if(it!=root_model_part->ConditionsEnd())
                 aux.push_back(*(it.base()));
             else
-                KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part";
+                KRATOS_ERROR << "the condition with Id " << ConditionIds[i] << " does not exist in the root model part [ root_model_part = " << root_model_part->Name() << ", sub_model_part = " << this->Name() << " ].\n";
         }
 
         ModelPart* current_part = this;
@@ -1729,7 +1729,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometryNodes);
         this->AddGeometry(p_new_geometry);
@@ -1746,7 +1746,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 
@@ -1757,7 +1757,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     )
 {
     KRATOS_TRY
-    
+
     if (IsSubModelPart()) {
         GeometryType::Pointer p_new_geometry = mpParentModelPart->CreateNewGeometry(rGeometryTypeName, GeometryId, pGeometry);
         this->AddGeometry(p_new_geometry);
@@ -1774,7 +1774,7 @@ ModelPart::GeometryType::Pointer ModelPart::CreateNewGeometry(
     this->AddGeometry(p_geometry);
 
     return p_geometry;
-    
+
     KRATOS_CATCH("")
 }
 

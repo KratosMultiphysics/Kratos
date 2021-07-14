@@ -511,6 +511,34 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 }
 
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
+void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calculate(
+    const Variable<Matrix>& rVariable,
+    Matrix& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES) {
+
+        if (rOutput.size1() != TElementLocalSize || rOutput.size2() != TElementLocalSize) {
+            rOutput.resize(TElementLocalSize, TElementLocalSize, false);
+        }
+
+        rOutput.clear();
+
+        AddFluidFirstDerivatives(rOutput, rCurrentProcessInfo, 0.0);
+        AddTurbulenceFirstDerivatives(rOutput, rCurrentProcessInfo, 0.0);
+
+    } else {
+        KRATOS_ERROR << "Unsupported variable requested for Calculate method. "
+                        "[ rVariable.Name() = "
+                     << rVariable.Name() << " ].\n";
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 std::string TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::Info() const
 {
     std::stringstream buffer;
@@ -568,7 +596,8 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddFluidFirstDerivatives(
     MatrixType& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -600,17 +629,17 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
         IndexType row = 0;
         for (IndexType c = 0; c < TNumNodes; ++c) {
             for (IndexType k = 0; k < TDim; ++k) {
-                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+                velocity_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, k, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
                 AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
             }
 
-            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            pressure_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
 
-            turbulence_equation_1_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            turbulence_equation_1_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
 
-            turbulence_equation_2_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative);
+            turbulence_equation_2_derivative.CalculateGaussPointResidualsDerivativeContributions(residual, c, 0, W, N, dNdX, 0.0, 0.0, dNdXDerivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row++, 0, residual);
         }
     }
@@ -767,7 +796,8 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 template <unsigned int TDim, unsigned int TNumNodes, class TAdjointElementData>
 void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementData>::AddTurbulenceFirstDerivatives(
     MatrixType& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo,
+    const double MassTermsDerivativesWeight)
 {
     KRATOS_TRY
 
@@ -811,9 +841,9 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
 
             // add derivatives w.r.t velocity
             for (IndexType k = 0; k < TDim; ++k) {
-                eq_1_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative);
+                eq_1_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
                 AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-                eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative);
+                eq_2_derivative_0.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, k, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
                 AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
                 ++row_index;
             }
@@ -822,16 +852,16 @@ void TwoEquationTurbulenceModelAdjointElement<TDim, TNumNodes, TAdjointElementDa
             ++row_index;
 
             // add derivatives w.r.t. turbulence variable 1
-            eq_1_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
+            eq_1_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-            eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
+            eq_2_derivative_1.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
             ++row_index;
 
             // add derivative w.r.t. turbulence variable 2
-            eq_1_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
+            eq_1_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 1, residual_derivatives);
-            eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative);
+            eq_2_derivative_2.CalculateGaussPointResidualsDerivativeContributions(residual_derivatives, c, 0, W, N, dNdX, 0, 0, dNdX_derivative, MassTermsDerivativesWeight);
             AssembleSubVectorToMatrix(rOutput, row_index, TDim + 2, residual_derivatives);
             ++row_index;
         }

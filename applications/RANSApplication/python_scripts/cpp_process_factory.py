@@ -58,6 +58,10 @@ def Factory(settings, Model):
         [
             "ComputeReactionsProcess",
             KratosRANS.RansComputeReactionsProcess
+        ],
+        [
+            "VariableDataTransferProcess",
+            KratosRANS.RansVariableDataTransferProcess
         ]
     ]
 

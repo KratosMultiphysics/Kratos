@@ -55,7 +55,18 @@ void AddResponseFunctionsToPython(pybind11::module& m)
         .def("Initialize", &AdjointResponseFunction::Initialize)
         .def("InitializeSolutionStep", &AdjointResponseFunction::InitializeSolutionStep)
         .def("FinalizeSolutionStep", &AdjointResponseFunction::FinalizeSolutionStep)
-        .def("CalculateValue", &AdjointResponseFunction::CalculateValue);
+        .def("CalculateValue", &AdjointResponseFunction::CalculateValue)
+        .def("CalculateGradient", static_cast<void(AdjointResponseFunction::*)(const Condition&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateGradient))
+        .def("CalculateGradient", static_cast<void(AdjointResponseFunction::*)(const Element&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateGradient))
+        .def("CalculateFirstDerivativesGradient", static_cast<void(AdjointResponseFunction::*)(const Condition&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateFirstDerivativesGradient))
+        .def("CalculateFirstDerivativesGradient", static_cast<void(AdjointResponseFunction::*)(const Element&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateFirstDerivativesGradient))
+        .def("CalculateSecondDerivativesGradient", static_cast<void(AdjointResponseFunction::*)(const Condition&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateSecondDerivativesGradient))
+        .def("CalculateSecondDerivativesGradient", static_cast<void(AdjointResponseFunction::*)(const Element&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculateSecondDerivativesGradient))
+        .def("CalculatePartialSensitivity", static_cast<void(AdjointResponseFunction::*)(Condition&, const Variable<double>&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculatePartialSensitivity))
+        .def("CalculatePartialSensitivity", static_cast<void(AdjointResponseFunction::*)(Element&, const Variable<double>&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculatePartialSensitivity))
+        .def("CalculatePartialSensitivity", static_cast<void(AdjointResponseFunction::*)(Condition&, const Variable<array_1d<double, 3>>&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculatePartialSensitivity))
+        .def("CalculatePartialSensitivity", static_cast<void(AdjointResponseFunction::*)(Element&, const Variable<array_1d<double, 3>>&, const Matrix&, Vector&, const ProcessInfo&)>(&AdjointResponseFunction::CalculatePartialSensitivity))
+        ;
 }
 
 }  // namespace Python.

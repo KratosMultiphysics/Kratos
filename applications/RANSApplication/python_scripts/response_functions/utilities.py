@@ -3,10 +3,14 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
 from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
 
+from KratosMultiphysics.RANSApplication.formulations.utilities import AddFileLoggerOutput
+from KratosMultiphysics.RANSApplication.formulations.utilities import RemoveFileLoggerOutput
+
 from pathlib import Path
 from shutil import copy
+import math
 
-def SolvePrimalProblem(kratos_primal_parameters_file_name):
+def SolvePrimalProblem(kratos_primal_parameters_file_name, log_file_name = "primal_evaluation.log"):
     primal_filled_settings_file = Path(kratos_primal_parameters_file_name[:kratos_primal_parameters_file_name.rfind(".")] + "_final.json")
 
     if (not primal_filled_settings_file.is_file()):
@@ -14,10 +18,7 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name):
             primal_parameters = Kratos.Parameters(file_input.read())
 
         # set the loggers
-        file_logger = Kratos.FileLoggerOutput("primal_evaluation.log")
-        default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
-        Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-        Kratos.Logger.AddOutput(file_logger)
+        default_severity, file_logger = AddFileLoggerOutput(log_file_name)
 
         # run the primal analysis
         primal_model = Kratos.Model()
@@ -31,9 +32,7 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name):
         del primal_model
 
         # flush the primal output
-        Kratos.Logger.Flush()
-        Kratos.Logger.RemoveOutput(file_logger)
-        Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
+        RemoveFileLoggerOutput(default_severity, file_logger)
         Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(kratos_primal_parameters_file_name))
     else:
         # following is done to initialize default settings
@@ -43,23 +42,26 @@ def SolvePrimalProblem(kratos_primal_parameters_file_name):
 
     return primal_parameters
 
-def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name):
+def SolveAdjointProblem(model, adjoint_parameters_file_name, log_file_name, skip_if_already_run = False):
+    if (skip_if_already_run):
+        if Path(log_file_name).is_file():
+            with open(log_file_name, "r") as log_file_input:
+                last_line = log_file_input.readlines()[-1][:-1].strip()
+
+            if (last_line == "AdjointRANSAnalysis: Analysis -END-"):
+                Kratos.Logger.PrintInfo("SolveAdjointProblem", "Found existing completed adjoint evaluation at {}.".format(adjoint_parameters_file_name))
+                return
+
     with open(adjoint_parameters_file_name, "r") as file_input:
         adjoint_parameters = Kratos.Parameters(file_input.read())
 
     # set the lift loggers
-    file_logger = Kratos.FileLoggerOutput(log_file_name)
-    default_severity = Kratos.Logger.GetDefaultOutput().GetSeverity()
-    Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.WARNING)
-    Kratos.Logger.AddOutput(file_logger)
+    default_severity, file_logger = AddFileLoggerOutput(log_file_name)
 
     adjoint_simulation = AdjointRANSAnalysis(model, adjoint_parameters)
     adjoint_simulation.Run()
 
-    Kratos.Logger.Flush()
-
-    Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
-    Kratos.Logger.RemoveOutput(file_logger)
+    RemoveFileLoggerOutput(default_severity, file_logger)
 
     return adjoint_simulation
 
@@ -74,36 +76,60 @@ def RecursiveCopy(src, dest):
             new_path.mkdir(exist_ok=True)
             RecursiveCopy(str(item), str(new_path))
 
-def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction):
+def GetDragValues(kratos_parameters, model_part_name):
     output_process = _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name)
     if (output_process is not None):
         output_file_name = output_process["Parameters"]["output_file_settings"]["file_name"].GetString()
-        time_steps, reactions = _ReadDrag(output_file_name)
-        total_drag = 0.0
-        for reaction in reversed(reactions):
-            total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
-            if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
-                break
-        if len(time_steps) > 1:
-            delta_time = time_steps[1] - time_steps[0]
-            total_drag *= delta_time
-        return total_drag
+        time_steps, reactions = ReadDrag(output_file_name)
+        return time_steps, reactions
     else:
         raise RuntimeError("No \"compute_body_fitted_drag_process\" found in auxiliar_process_list.")
 
-def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
-    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
-    for process_settings in auxiliar_process_list:
-        if (
-            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "compute_body_fitted_drag_process" and
-            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
-            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
-            ):
-            return process_settings
+def CalculateTimeAveragedDrag(kratos_parameters, model_part_name, direction, start_time = 0.0):
+    time_steps, reactions = GetDragValues(kratos_parameters, model_part_name)
+    total_drag = 0.0
+    for index, reaction in enumerate(reversed(reactions)):
+        if (time_steps[len(time_steps) - index - 1] >= start_time):
+            total_drag += reaction[0] * direction[0] + reaction[1] * direction[1] + reaction[2] * direction[2]
+            if (kratos_parameters["solver_settings"]["time_scheme_settings"]["scheme_type"].GetString() == "steady"):
+                break
+    if len(time_steps) > 1:
+        delta_time = time_steps[1] - time_steps[0]
+        total_drag *= delta_time
+    return total_drag
 
-    return None
+def CalculateDragFrequencyDistribution(time_steps, reactions, drag_direction, windowing_length):
+    delta_time = time_steps[1] - time_steps[0]
 
-def _ReadDrag(file_name):
+    number_of_steps = len(reactions)
+    number_of_frequencies = number_of_steps // 2
+    windowing_steps = int(windowing_length / delta_time)
+
+    drag_values = [0.0] * number_of_steps
+    for index, reaction in enumerate(reactions):
+        drag_values[index] = reaction[0] * drag_direction[0] + reaction[1] * drag_direction[1] + reaction[2] * drag_direction[2]
+
+    frequency_real_components = [0.0] * number_of_frequencies
+    frequency_imag_components = [0.0] * number_of_frequencies
+    frequency_amplitudes = [0.0] * number_of_frequencies
+    frequency_list = [0.0] * number_of_frequencies
+
+    for index, drag in enumerate(drag_values[number_of_steps - windowing_steps:]):
+        time_step_index = index + number_of_steps - windowing_steps
+        window_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * index / windowing_steps))
+        for k in range(number_of_frequencies):
+            time_step_value = 2.0 * math.pi * time_step_index * k / number_of_steps
+            frequency_real_components[k] += window_value * drag * math.cos(time_step_value)
+            frequency_imag_components[k] += window_value * drag * math.sin(time_step_value)
+
+    frequency_resolution = 1.0 / (delta_time * number_of_steps)
+    for k in range(number_of_frequencies):
+        frequency_list[k] = k * frequency_resolution
+        frequency_amplitudes[k] = math.sqrt(frequency_real_components[k] ** 2 + frequency_imag_components[k] ** 2) * 2 / windowing_steps
+
+    return frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes
+
+def ReadDrag(file_name):
     with open(file_name, "r") as file_input:
         lines = file_input.readlines()
     time_steps = []
@@ -117,3 +143,17 @@ def _ReadDrag(file_name):
         time_steps.append(time)
         reaction.append([fx, fy, fz])
     return time_steps, reaction
+
+def _GetDragResponseFunctionOutputProcess(kratos_parameters, model_part_name):
+    auxiliar_process_list = kratos_parameters["processes"]["auxiliar_process_list"]
+    for process_settings in auxiliar_process_list:
+        if (
+            process_settings.Has("python_module") and process_settings["python_module"].GetString() == "compute_body_fitted_drag_process" and
+            process_settings.Has("kratos_module") and process_settings["kratos_module"].GetString() == "KratosMultiphysics.FluidDynamicsApplication" and
+            process_settings["Parameters"].Has("model_part_name") and process_settings["Parameters"]["model_part_name"].GetString() == model_part_name
+            ):
+            return process_settings
+
+    return None
+
+

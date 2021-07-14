@@ -246,6 +246,11 @@ public:
         Vector& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -277,7 +282,8 @@ protected:
 
     void AddFluidFirstDerivatives(
         MatrixType& rDerivativesMatrix,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo,
+        const double MassTermsDerivativesWeight = 1.0);
 
     void AddFluidSecondDerivatives(
         MatrixType& rDerivativesMatrix,

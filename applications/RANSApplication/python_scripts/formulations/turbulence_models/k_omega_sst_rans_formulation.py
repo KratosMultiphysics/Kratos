@@ -84,6 +84,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 	    # additional variables required for wall distance calculation
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
