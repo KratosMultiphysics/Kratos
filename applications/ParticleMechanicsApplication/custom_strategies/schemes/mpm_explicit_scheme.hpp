@@ -369,6 +369,28 @@ namespace Kratos {
 
                         ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
 
+                        // Dodgy hack to transfer completely failed concrete particles to water MP
+                        if (rModelPart.HasSubModelPart("Parts_column") && contact_release_mp_name == "Parts_water")
+                        {
+                            ModelPart& r_concrete_mp = rModelPart.GetSubModelPart("Parts_column");
+                            std::vector<int> mps_to_move(0);
+                            for (auto& mp : r_concrete_mp.Elements())
+                            {
+                                if (mp.GetValue(DAMAGE_COMPRESSION) > 0.95)
+                                {
+                                    if (mp.GetValue(DAMAGE_TENSION) > 0.95)
+                                    {
+                                        mps_to_move.push_back(mp.GetId());
+                                    }
+                                }
+                            }
+                            for (size_t i = 0; i < mps_to_move.size(); ++i)
+                            {
+                                r_contact_mp.AddElement(r_concrete_mp.pGetElement(mps_to_move[i]));
+                                r_concrete_mp.RemoveElement(mps_to_move[i]);
+                            }
+                        }
+
                         CleanAndDetermineAuxMassContactReleaseModelPart(r_contact_mp);
 
                         // Compute modelpart normals
