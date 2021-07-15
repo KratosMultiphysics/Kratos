@@ -51,11 +51,11 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
 {
     this->CalculateMaterialResponsePK2(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+    Vector& r_stress_vector                = rValues.GetStressVector();
+    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
     const double determinant_f           = rValues.GetDeterminantF();
 
-    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+    this->TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f,
         ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
 }
 
@@ -70,11 +70,11 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
 {
     this->CalculateMaterialResponseKirchhoff(rValues);
 
-    Vector& stress_vector                = rValues.GetStressVector();
-    const Matrix& deformation_gradient_f = rValues.GetDeformationGradientF();
+    Vector& r_stress_vector                = rValues.GetStressVector();
+    const Matrix& r_deformation_gradient_f = rValues.GetDeformationGradientF();
     const double determinant_f           = rValues.GetDeterminantF();
 
-    this->TransformStresses(stress_vector, deformation_gradient_f, determinant_f,
+    this->TransformStresses(r_stress_vector, r_deformation_gradient_f, determinant_f,
         ConstitutiveLaw::StressMeasure_Kirchhoff, ConstitutiveLaw::StressMeasure_PK2);
 }
 
@@ -184,13 +184,13 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
 {
     this->CalculateMaterialResponseKirchhoff(rValues);
 
-    Vector& stress_vector       = rValues.GetStressVector();
-    Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+    Vector& r_stress_vector       = rValues.GetStressVector();
+    Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
     const double determinant_f  = rValues.GetDeterminantF();
 
     // Set to Cauchy Stress:
-    stress_vector       /= determinant_f;
-    constitutive_matrix /= determinant_f;
+    r_stress_vector       /= determinant_f;
+    r_constitutive_matrix /= determinant_f;
 }
 
 /***********************************************************************************/
