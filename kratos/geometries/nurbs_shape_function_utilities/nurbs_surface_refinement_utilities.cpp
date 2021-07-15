@@ -223,7 +223,7 @@ namespace Kratos {
 
                 const array_1d<double, 3> cp_coordinates = rGeometry[cp_index_old] * weights_old[cp_index_old];
 
-                rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(cp_index_refined + 1, cp_coordinates);
+                rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(0, cp_coordinates);
                 rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
             }
         }
@@ -237,7 +237,7 @@ namespace Kratos {
 
                 const array_1d<double, 3> cp_coordinates = rGeometry[cp_index_old] * weights_old[cp_index_old];
 
-                rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(cp_index_refined + 1, cp_coordinates);
+                rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(0, cp_coordinates);
                 rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
             }
         }
@@ -268,7 +268,7 @@ namespace Kratos {
                     rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(0, cp_coordinates);
                     rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
                 }
-                rKnotsVRefined[k - 1] = knots_v_old[-1 + i];
+                rKnotsVRefined[k - 1] = knots_v_old[i - 1];
 
                 k -= 1;
                 i -= 1;
