@@ -14,11 +14,14 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
         self.mpi_model_part = Model[self.inlet_model_part_name]
         self.data_comm = self.mpi_model_part.GetCommunicator().GetDataCommunicator()
         # serial inlet
-        self.model_part = Model.CreateModelPart("wind_inlet_serial")
+        if not Model.HasModelPart("wind_inlet_serial"):
+            self.model_part = Model.CreateModelPart("wind_inlet_serial")
+        else:
+            self.model_part = Model.GetModelPart("wind_inlet_serial")
         # if self.data_comm.Rank() == 0:
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.wind_inlet_model_part_name = "wind_inlet_sub_model_part"
+        self.wind_inlet_model_part_name = "problem_settings/wind_inlet_sub_model_part"
         self.x0 = 0.0
 
         if self.data_comm.Rank() == 0:
