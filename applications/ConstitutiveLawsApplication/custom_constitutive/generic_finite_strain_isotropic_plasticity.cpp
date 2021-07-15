@@ -239,11 +239,6 @@ void GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>::
 
     AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(r_B, r_strain_vector);
 
-    // We check the current step and NL iteration
-    const ProcessInfo& r_current_process_info = rValues.GetProcessInfo();
-    const bool first_computation = (r_current_process_info[NL_ITERATION_NUMBER] == 1 && r_current_process_info[STEP] == 1) ? true : false;
-
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
     const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
     this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
