@@ -104,6 +104,19 @@ def GetDefaultInputParameters():
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
+            "rayleigh_central_differences_parameters": {
+                "calculate_alpha_beta"         : false,
+                "omega_1"                      : 1.0,
+                "omega_n"                      : 10.0,
+                "xi_1"                         : 1.0,
+                "xi_n"                         : 0.05,
+                "rayleigh_alpha"               : 0.0,
+                "rayleigh_beta"                : 0.0,
+                "theta_factor"                 : 1.0,
+                "g_factor"                     : 0.0,
+                "calculate_xi"                 : false,
+                "xi_1_factor"                  : 1.0
+            },
             "virtual_sea_surface_settings"     : {
                 "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,

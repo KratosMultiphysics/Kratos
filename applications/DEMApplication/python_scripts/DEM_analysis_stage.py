@@ -185,6 +185,44 @@ class DEMAnalysisStage(AnalysisStage):
             return TaylorScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             return VelocityVerletScheme()
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Central_Differences':
+
+            rayleigh_cd_param = self.DEM_parameters["rayleigh_central_differences_parameters"]
+            g_factor = rayleigh_cd_param["g_factor"].GetDouble()
+            theta_factor = rayleigh_cd_param["theta_factor"].GetDouble()
+            g_coefficient = 0.0
+            Dt = self.DEM_parameters["MaxTimeStep"].GetDouble()
+            omega_1 = rayleigh_cd_param["omega_1"].GetDouble()
+            omega_n = rayleigh_cd_param["omega_n"].GetDouble()
+            rayleigh_alpha = rayleigh_cd_param["rayleigh_alpha"].GetDouble()
+            rayleigh_beta = rayleigh_cd_param["rayleigh_beta"].GetDouble()
+            if g_factor >= 1.0:
+                theta_factor = 0.5
+                g_coefficient = Dt*omega_n*omega_n*0.25*g_factor
+            if rayleigh_cd_param["calculate_alpha_beta"].GetBool():
+                xi_1 = rayleigh_cd_param["xi_1"].GetDouble()
+                xi_n = rayleigh_cd_param["xi_n"].GetDouble()
+                if rayleigh_cd_param["calculate_xi"].GetBool():
+                    xi_1_factor = rayleigh_cd_param["xi_1_factor"].GetDouble()                
+                    import numpy as np
+                    xi_1 = (np.sqrt(1+g_coefficient*Dt)-theta_factor*omega_1*Dt*0.5)*xi_1_factor
+                    xi_n = (np.sqrt(1+g_coefficient*Dt)-theta_factor*omega_n*Dt*0.5)
+                rayleigh_beta = 2.0*(xi_n*omega_n-xi_1*omega_1)/(omega_n*omega_n-omega_1*omega_1)
+                rayleigh_alpha = 2.0*xi_1*omega_1-rayleigh_beta*omega_1*omega_1
+                Logger.PrintInfo('DEM', 'Rayleigh Alpha and Beta.')
+                Logger.PrintInfo('DEM', 'g_coefficient: ',g_coefficient)
+                Logger.PrintInfo('DEM', 'omega_1: ',omega_1)
+                Logger.PrintInfo('DEM', 'omega_n: ',omega_n)
+                Logger.PrintInfo('DEM', 'xi_1: ',xi_1)
+                Logger.PrintInfo('DEM', 'xi_n: ',xi_n)
+                Logger.PrintInfo('DEM', 'rayleigh_alpha: ',rayleigh_alpha)
+                Logger.PrintInfo('DEM', 'rayleigh_beta: ',rayleigh_beta)
+
+            self.spheres_model_part.ProcessInfo.SetValue(RAYLEIGH_ALPHA, rayleigh_alpha)
+            self.spheres_model_part.ProcessInfo.SetValue(RAYLEIGH_BETA, rayleigh_beta)
+            self.spheres_model_part.ProcessInfo.SetValue(G_COEFFICIENT, g_coefficient)
+            self.spheres_model_part.ProcessInfo.SetValue(THETA_FACTOR, theta_factor)
+            return CentralDifferencesScheme()
 
         return None
 

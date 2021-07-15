@@ -567,6 +567,8 @@ class ExplicitStrategy():
             class_name = 'TaylorScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        elif name == 'Central_Differences':
+            class_name = 'CentralDifferencesScheme'
 
         return class_name
 
@@ -583,6 +585,8 @@ class ExplicitStrategy():
             class_name = 'TaylorScheme'
         elif name_rotational == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
+        elif name_rotational == 'Central_Differences':
+            class_name = 'CentralDifferencesScheme'
         elif name_rotational == 'Runge_Kutta':
             class_name = 'RungeKuttaScheme'
         elif name_rotational == 'Quaternion_Integration':

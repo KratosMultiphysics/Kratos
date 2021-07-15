@@ -381,6 +381,8 @@ class Procedures():
             translational_scheme = TaylorScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Central_Differences':
+            translational_scheme = CentralDifferencesScheme()
         else:
             raise Exception('Error: selected translational integration scheme not defined. Please select a different scheme')
         return translational_scheme
@@ -395,6 +397,8 @@ class Procedures():
                 rotational_scheme = TaylorScheme()
             elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
                 rotational_scheme = VelocityVerletScheme()
+            elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Central_Differences':
+                rotational_scheme = CentralDifferencesScheme()
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta':
             rotational_scheme = RungeKuttaScheme()
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
@@ -434,6 +438,21 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
+        # TODO.Ignasi: if we end up adding the Rayleigh CD scheme, we should think how we can add these variables properly
+        model_part.AddNodalSolutionStepVariable(DISPLACEMENT_OLD)
+        model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE)
+        model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE_OLD)
+        model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE)
+        model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE_OLD)
+        model_part.AddNodalSolutionStepVariable(RAYLEIGH_ALPHA)
+        model_part.AddNodalSolutionStepVariable(RAYLEIGH_BETA)
+        model_part.AddNodalSolutionStepVariable(THETA_FACTOR)
+        model_part.AddNodalSolutionStepVariable(G_COEFFICIENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE_OLD)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_INTERNAL_MOMENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_INTERNAL_MOMENT_OLD)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_EXTERNAL_MOMENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_EXTERNAL_MOMENT_OLD)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
