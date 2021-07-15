@@ -10,9 +10,9 @@
   },
   "hierarchyOptimiserInputDictionary": {
     "defaultHierarchy": [
-      [[0], 5],
-      [[1], 5],
-      [[2], 5]
+      [[0], 25],
+      [[1], 25],
+      [[2], 25]
     ],
     "indexSpace": [10],
     "optimalIndexSet": "xmc.methodDefs_hierarchyOptimiser.optimalIndexSet.constantNumberLevels",
