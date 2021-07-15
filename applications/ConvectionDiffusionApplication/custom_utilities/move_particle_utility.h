@@ -282,10 +282,11 @@ namespace Kratos
 	        IteratorType it_end                =  rElements.end();
 	        //const int number_of_elem 		   =   rElements.size();
 
+			typename BinsObjectDynamic<Configure>::Pointer paux;
 			if(rCellSizeProvided==false) {
-				typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
+				paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
 			} else {
-				typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, rCellSize ) );
+				paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, rCellSize ) );
 			}
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
