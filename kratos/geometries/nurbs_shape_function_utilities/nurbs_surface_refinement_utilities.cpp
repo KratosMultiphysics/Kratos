@@ -32,7 +32,6 @@ namespace Kratos {
         const SizeType nb_knots_u_to_insert = rKnotsUToInsert.size();
 
         const SizeType degree_u = rGeometry.PolynomialDegree(0);
-        const SizeType degree_v = rGeometry.PolynomialDegree(1);
 
         const SizeType nb_cp_u_old = rGeometry.PointsNumberInDirection(0);
         const SizeType nb_cp_v = rGeometry.PointsNumberInDirection(1);
@@ -43,7 +42,6 @@ namespace Kratos {
         const Vector& weights_old = rGeometry.Weights();
 
         const SizeType nb_knots_u_old = knots_u_old.size();
-        const SizeType nb_knots_v = knots_v.size();
 
         const SizeType a = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, *knots_u_old.begin());
         const SizeType b = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, *knots_u_old.end());
@@ -102,7 +100,6 @@ namespace Kratos {
         }
 
         const IndexType n = nb_cp_u_old - 1;
-        const IndexType m = n + degree_u + 1;
         const IndexType r = nb_knots_u_to_insert - 1;
 
         IndexType i = b + 2 + degree_u - 1;
@@ -189,7 +186,6 @@ namespace Kratos {
 
         const SizeType nb_knots_v_to_insert = rKnotsVToInsert.size();
 
-        const SizeType degree_u = rGeometry.PolynomialDegree(0);
         const SizeType degree_v = rGeometry.PolynomialDegree(1);
 
         const SizeType nb_cp_u = rGeometry.PointsNumberInDirection(0);
@@ -200,7 +196,6 @@ namespace Kratos {
 
         const Vector& weights_old = rGeometry.Weights();
 
-        const SizeType nb_knots_u = knots_u.size();
         const SizeType nb_knots_v_old = knots_v_old.size();
 
         const SizeType a = NurbsUtilities::GetUpperSpan(degree_v, knots_v_old, *knots_v_old.begin());
@@ -259,7 +254,6 @@ namespace Kratos {
         }
 
         const IndexType n = nb_cp_v_old - 1;
-        const IndexType m = n + degree_v + 1;
         const IndexType r = nb_knots_v_to_insert - 1;
 
         IndexType i = b + 2 + degree_v - 1;
@@ -310,7 +304,7 @@ namespace Kratos {
                     }
                 }
                 else {
-                    alpha = alpha / (rKnotsVRefined[k + l - 1] - knots_v_old[i + l - degree_u - 1]);
+                    alpha = alpha / (rKnotsVRefined[k + l - 1] - knots_v_old[i + l - degree_v - 1]);
                     for (IndexType m = 0; m < nb_cp_u; ++m) {
                         IndexType cp_index_refined_before = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                             nb_cp_u, nb_cp_v_refined, m, index);
