@@ -71,7 +71,7 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef typename GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType> BaseType;
+    typedef GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType> BaseType;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
