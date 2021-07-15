@@ -722,9 +722,9 @@ namespace Kratos
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     if (BulkAccMatrix.size1() != NumNodes)
-      BulkAccMatrix.resize(NumNodes, NumNodes);
+      BulkAccMatrix.resize(NumNodes, NumNodes, false);
 
-    BulkAccMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(BulkAccMatrix) = ZeroMatrix(NumNodes, NumNodes);
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       // LHS contribution
@@ -843,13 +843,13 @@ namespace Kratos
     if (rLeftHandSideMatrix.size1() != NumNodes)
       rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(NumNodes, NumNodes);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
     MatrixType LaplacianMatrix = ZeroMatrix(NumNodes, NumNodes);
 
     if (rRightHandSideVector.size() != NumNodes)
-      rRightHandSideVector.resize(NumNodes);
+      rRightHandSideVector.resize(NumNodes, false);
 
-    rRightHandSideVector = ZeroVector(NumNodes);
+    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
 
     // Shape functions and integration points
     ShapeFunctionDerivativesArrayType DN_DX;
@@ -946,7 +946,7 @@ namespace Kratos
       //the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
       rLeftHandSideMatrix += LaplacianMatrix;
-     // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
+      // noalias(rRightHandSideVector) -= prod(LaplacianMatrix, PressureValuesForRHS);
 
       // VectorType RhsLaplacian = ZeroVector(NumNodes);
 
@@ -1031,7 +1031,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
+      rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {

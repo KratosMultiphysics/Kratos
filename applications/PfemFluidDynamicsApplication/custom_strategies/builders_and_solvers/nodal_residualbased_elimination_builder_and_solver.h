@@ -250,8 +250,8 @@ namespace Kratos
           if (EquationId.size() != localSize)
             EquationId.resize(localSize, false);
 
-          LHS_Contribution = ZeroMatrix(localSize, localSize);
-          RHS_Contribution = ZeroVector(localSize);
+          noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
+          noalias(RHS_Contribution) = ZeroVector(localSize);
 
           this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 

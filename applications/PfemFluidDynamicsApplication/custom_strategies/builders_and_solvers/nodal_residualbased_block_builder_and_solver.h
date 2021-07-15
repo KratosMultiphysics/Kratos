@@ -287,8 +287,8 @@ public:
           const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
           const double timeInterval = CurrentProcessInfo[DELTA_TIME];
 
-          LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-          RHS_Contribution = ZeroVector(neighSize);
+          noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+          noalias(RHS_Contribution) = ZeroVector(neighSize);
 
           if (EquationId.size() != neighSize)
             EquationId.resize(neighSize, false);

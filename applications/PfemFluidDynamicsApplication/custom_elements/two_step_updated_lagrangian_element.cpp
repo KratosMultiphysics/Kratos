@@ -330,7 +330,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianElement<3>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
                                                                        const double Weight)
   {
-    std::cout << "TO IMPLEMENT AND CHECK " << std::endl;
+    KRATOS_ERROR << "TO IMPLEMENT AND CHECK " << std::endl;
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType i = 0; i < NumNodes; ++i)
     {
@@ -363,7 +363,7 @@ namespace Kratos
     }
     else
     {
-      std::cout << "... ComputeBulkMatrixLump TO IMPLEMENT" << std::endl;
+      KRATOS_ERROR << "... ComputeBulkMatrixLump TO IMPLEMENT" << std::endl;
     }
   }
 

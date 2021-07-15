@@ -310,8 +310,8 @@ namespace Kratos
             if (solidEquationId.size() != localSize)
               solidEquationId.resize(localSize, false);
 
-            solidLHS_Contribution = ZeroMatrix(localSize, localSize);
-            solidRHS_Contribution = ZeroVector(localSize);
+            noalias(solidLHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(solidRHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToSolid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
 
@@ -635,8 +635,8 @@ namespace Kratos
             if (EquationId.size() != localSize)
               EquationId.resize(localSize, false);
 
-            LHS_Contribution = ZeroMatrix(localSize, localSize);
-            RHS_Contribution = ZeroVector(localSize);
+            noalias(LHS_Contribution) = ZeroMatrix(localSize, localSize);
+            noalias(RHS_Contribution) = ZeroVector(localSize);
 
             this->SetMaterialPropertiesToFluid(itNode, density, deviatoricCoeff, volumetricCoeff, timeInterval, nodalVolume);
             // if(itNode->FastGetSolutionStepValue(INTERFACE_NODE)==true){

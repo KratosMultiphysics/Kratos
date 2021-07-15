@@ -120,7 +120,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rResult.size() != NumNodes)
-      rResult.resize(NumNodes);
+      rResult.resize(NumNodes, false);
 
     const unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
 
@@ -194,7 +194,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
+      rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
@@ -209,7 +209,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
+      rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
@@ -225,7 +225,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
+      rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {
@@ -289,7 +289,7 @@ namespace Kratos
     const unsigned int number_of_nodes = this->GetGeometry().PointsNumber();
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
-    rDeltaPosition = ZeroMatrix(number_of_nodes, dimension);
+    noalias(rDeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
@@ -314,7 +314,7 @@ namespace Kratos
     const SizeType LocalSize = 2 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -334,7 +334,7 @@ namespace Kratos
     const SizeType LocalSize = 3 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -355,7 +355,7 @@ namespace Kratos
     const SizeType LocalSize = 2 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -375,7 +375,7 @@ namespace Kratos
     const SizeType LocalSize = 3 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -413,7 +413,7 @@ namespace Kratos
     const SizeType LocalSize = 2 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -433,7 +433,7 @@ namespace Kratos
     const SizeType LocalSize = 3 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -454,7 +454,7 @@ namespace Kratos
     const SizeType LocalSize = 2 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -475,7 +475,7 @@ namespace Kratos
     const SizeType LocalSize = 3 * NumNodes;
 
     if (rValues.size() != LocalSize)
-      rValues.resize(LocalSize);
+      rValues.resize(LocalSize, false);
 
     SizeType Index = 0;
 
@@ -602,7 +602,7 @@ namespace Kratos
 
     Fgrad.resize(TDim, TDim, false);
 
-    Fgrad = ZeroMatrix(TDim, TDim);
+    noalias(Fgrad) = ZeroMatrix(TDim, TDim);
     for (SizeType i = 0; i < TDim; i++)
     {
       for (SizeType j = 0; j < TDim; j++)
@@ -616,7 +616,7 @@ namespace Kratos
 
     //Inverse
     invFgrad.resize(TDim, TDim, false);
-    invFgrad = ZeroMatrix(TDim, TDim);
+    noalias(invFgrad) = ZeroMatrix(TDim, TDim);
     FJacobian = 1;
 
     if (TDim == 2)
@@ -677,7 +677,7 @@ namespace Kratos
 
     FgradVel.resize(TDim, TDim, false);
 
-    FgradVel = ZeroMatrix(TDim, TDim);
+    noalias(FgradVel) = ZeroMatrix(TDim, TDim);
     for (SizeType i = 0; i < TDim; i++)
     {
       for (SizeType j = 0; j < TDim; j++)
@@ -709,7 +709,7 @@ namespace Kratos
 
     FgradVel.resize(TDim, TDim, false);
 
-    FgradVel = ZeroMatrix(TDim, TDim);
+    noalias(FgradVel) = ZeroMatrix(TDim, TDim);
     for (SizeType i = 0; i < TDim; i++)
     {
       for (SizeType j = 0; j < TDim; j++)
@@ -723,7 +723,7 @@ namespace Kratos
 
     //Inverse
     invFgradVel.resize(TDim, TDim, false);
-    invFgradVel = ZeroMatrix(TDim, TDim);
+    noalias(invFgradVel) = ZeroMatrix(TDim, TDim);
     FVelJacobian = 1;
 
     if (TDim == 2)
@@ -1096,7 +1096,7 @@ namespace Kratos
     const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes)
-      rValues.resize(NumNodes);
+      rValues.resize(NumNodes, false);
 
     for (SizeType i = 0; i < NumNodes; ++i)
     {

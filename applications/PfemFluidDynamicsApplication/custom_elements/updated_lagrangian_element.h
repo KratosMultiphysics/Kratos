@@ -723,7 +723,7 @@ namespace Kratos
     {
       unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_1);
       /* unsigned int NumValues = this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_4); */
-      rOutput.resize(NumValues);
+      rOutput.resize(NumValues, false);
       /*
 	    The cast is done to avoid modification of the element's data. Data modification
 	    would happen if rVariable is not stored now (would initialize a pointer to &rVariable

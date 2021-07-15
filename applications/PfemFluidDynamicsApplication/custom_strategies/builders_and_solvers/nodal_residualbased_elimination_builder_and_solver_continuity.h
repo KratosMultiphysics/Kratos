@@ -191,8 +191,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -504,8 +504,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -749,8 +749,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -912,8 +912,8 @@ namespace Kratos
 
 						const double nodalVolume = itNode->FastGetSolutionStepValue(NODAL_VOLUME);
 
-						LHS_Contribution = ZeroMatrix(neighSize, neighSize);
-						RHS_Contribution = ZeroVector(neighSize);
+						noalias(LHS_Contribution) = ZeroMatrix(neighSize, neighSize);
+						noalias(RHS_Contribution) = ZeroVector(neighSize);
 
 						if (EquationId.size() != neighSize)
 							EquationId.resize(neighSize, false);
@@ -1027,8 +1027,8 @@ namespace Kratos
 					if (RHS_Contribution.size() != 1)
 						RHS_Contribution.resize(1, false); //false says not to preserve existing storage!!
 
-					LHS_Contribution = ZeroMatrix(1, 1);
-					RHS_Contribution = ZeroVector(1);
+					noalias(LHS_Contribution) = ZeroMatrix(1, 1);
+					noalias(RHS_Contribution) = ZeroVector(1);
 
 					if (EquationId.size() != 1)
 						EquationId.resize(1, false);

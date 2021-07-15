@@ -37,7 +37,7 @@ namespace Kratos
   }
 
   template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+  void TwoStepUpdatedLagrangianVPImplicitFluidElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -435,7 +435,7 @@ namespace Kratos
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::ComputeBulkMatrixConsistent(Matrix &BulkMatrix,
                                                                                       const double Weight)
   {
-    std::cout << "TO IMPLEMENT AND CHECK " << std::endl;
+    KRATOS_ERROR << "TO IMPLEMENT AND CHECK " << std::endl;
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     for (SizeType i = 0; i < NumNodes; ++i)
     {
@@ -468,7 +468,7 @@ namespace Kratos
     }
     else
     {
-      std::cout << "... ComputeBulkMatrixLump TO IMPLEMENT" << std::endl;
+      KRATOS_ERROR << "... ComputeBulkMatrixLump TO IMPLEMENT" << std::endl;
     }
   }
 
@@ -668,7 +668,6 @@ namespace Kratos
     this->mMaterialVolumetricCoefficient = VolumetricCoeff;
     this->mMaterialDensity = Density;
   }
-
 
   template class TwoStepUpdatedLagrangianVPImplicitFluidElement<2>;
   template class TwoStepUpdatedLagrangianVPImplicitFluidElement<3>;
