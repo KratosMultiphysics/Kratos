@@ -1190,36 +1190,19 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(
     return Hvel;
 }
 
-// Triangle2D3 version.
 template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,3,2>& rDN_DX)
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,TNumNodes,TDim>& rDN_DX)
 {
-
     double h = 0.0;
-    for(unsigned int i = 0; i < 3; ++i){
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         double h_inv = 0.0;
-        for(unsigned int k = 0; k < 2; ++k){
-            h_inv += rDN_DX(i,k)*rDN_DX(i,k);
+        for (unsigned int k = 0; k < TDim; ++k) {
+            h_inv += rDN_DX(i, k) * rDN_DX(i, k);
         }
-        h += 1.0/h_inv;
+        h += 1.0 / h_inv;
     }
-    return sqrt(h)/3.0;
-}
+    return sqrt(h) / static_cast<double>(TNumNodes);
 
-// Tetrahedra3D4 version.
-template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const BoundedMatrix<double,4,3>& rDN_DX)
-{
-
-    double h = 0.0;
-    for(unsigned int i = 0; i < 4; ++i){
-        double h_inv = 0.0;
-        for(unsigned int k = 0; k < 3; ++k){
-            h_inv += rDN_DX(i,k)*rDN_DX(i,k);
-        }
-        h += 1.0/h_inv;
-    }
-    return sqrt(h)/4.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

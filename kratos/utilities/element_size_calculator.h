@@ -123,18 +123,13 @@ public:
      */
     static double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
 
-    /// Element size based on the shape functions gradients. Triangle element version.
+
+
+    /// Element size based on the shape functions gradients.
     /** @param rDN_DX The shape functions gradients.
      *  @return The computed size.
      */
-    static double GradientsElementSize(const BoundedMatrix<double, 3, 2>& rDN_DX);
-
-
-    /// Element size based on the shape functions gradients. Tetrahedral element version.
-    /** @param rDN_DX The shape functions gradients.
-     *  @return The computed size.
-     */
-    static double GradientsElementSize(const BoundedMatrix<double, 4, 3>& rDN_DX);
+    static double GradientsElementSize(const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX);
 
     ///@}
 
