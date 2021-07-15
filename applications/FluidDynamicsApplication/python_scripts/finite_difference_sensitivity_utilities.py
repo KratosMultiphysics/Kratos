@@ -4,6 +4,7 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
 
 import os
+from math import fabs
 
 
 def DeleteH5Files():
@@ -306,7 +307,7 @@ class FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis:
             if (is_steady):
                 break
 
-        return value * delta_time
+        return value * fabs(delta_time)
 
     @staticmethod
     def _AddResponseFunctionOutput(kratos_parameters, norm_model_part_name):
