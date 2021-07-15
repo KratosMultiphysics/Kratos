@@ -104,7 +104,7 @@ namespace Kratos {
         IndexType k = b + 2 + degree_u + r;
 
         for (int j = r; j >= 0; --j) {
-            while (rKnotsUToInsert[j] <= knots_u_old[-1 + i] && i > a + 1) {
+            while (rKnotsUToInsert[j] <= knots_u_old[i - 1] && i > a + 1) {
                 for (IndexType m = 0; m < nb_cp_v; ++m) {
                     IndexType cp_index_refined = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         nb_cp_u_refined, nb_cp_v, k - degree_u - 1, m);
@@ -117,7 +117,7 @@ namespace Kratos {
                     rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
                 }
 
-                rKnotsURefined[-1 + k] = knots_u_old[-1 + i];
+                rKnotsURefined[k - 1] = knots_u_old[i - 1];
 
                 k -= 1;
                 i -= 1;
@@ -135,7 +135,7 @@ namespace Kratos {
 
             for (IndexType l = 1; l < degree_u + 1; ++l) {
                 const IndexType index = k - degree_u + l;
-                auto alpha = rKnotsURefined[-1 + k + l] - rKnotsUToInsert[j];
+                auto alpha = rKnotsURefined[k + l - 1] - rKnotsUToInsert[j];
 
                 if (std::abs(alpha) < 1e-7) {
                     for (IndexType m = 0; m < nb_cp_v; ++m) {
@@ -163,7 +163,7 @@ namespace Kratos {
                     }
                 }
             }
-            rKnotsURefined[-1 + k] = rKnotsUToInsert[j];
+            rKnotsURefined[k - 1] = rKnotsUToInsert[j];
 
             k -= 1;
         }
@@ -256,7 +256,7 @@ namespace Kratos {
         IndexType k = b + 2 + degree_v + r;
 
         for (int j = r; j >= 0; --j) {
-            while ((rKnotsVToInsert[j] <= knots_v_old[-1 + i]) && (i > a + 1)) {
+            while ((rKnotsVToInsert[j] <= knots_v_old[i - 1]) && (i > a + 1)) {
                 for (IndexType m = 0; m < nb_cp_u; ++m) {
                     IndexType cp_index_refined = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                         nb_cp_u, nb_cp_v_refined, m, k - degree_v - 1);
@@ -268,7 +268,7 @@ namespace Kratos {
                     rPointsRefined(cp_index_refined) = Kratos::make_intrusive<NodeType>(0, cp_coordinates);
                     rWeightsRefined[cp_index_refined] = weights_old[cp_index_old];
                 }
-                rKnotsVRefined[-1 + k] = knots_v_old[-1 + i];
+                rKnotsVRefined[k - 1] = knots_v_old[-1 + i];
 
                 k -= 1;
                 i -= 1;
@@ -314,7 +314,7 @@ namespace Kratos {
                     }
                 }
             }
-            rKnotsVRefined[-1 + k] = rKnotsVToInsert[j];
+            rKnotsVRefined[k - 1] = rKnotsVToInsert[j];
 
             k -= 1;
         }
