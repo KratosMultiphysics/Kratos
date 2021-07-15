@@ -596,7 +596,7 @@ public:
             for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
-                inode->FastGetSolutionStepValue(ACCELERATION) = ZeroVector(3);
+                inode->FastGetSolutionStepValue(ACCELERATION_AUX) = ZeroVector(3);
                 inode->FastGetSolutionStepValue(DELTA_ACCELERATION) = ZeroVector(3);
                 inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE) = 0.0;
                 
@@ -675,8 +675,8 @@ public:
              {
               v[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X));
               v[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
-              a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X));
-              a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y));
+              a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_X));
+              a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_Y));
               v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
               v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));   
              }
@@ -748,16 +748,16 @@ public:
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
 
-                        inode->FastGetSolutionStepValue(ACCELERATION_X) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X);
-                        inode->FastGetSolutionStepValue(ACCELERATION_Y) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y);
-                        inode->FastGetSolutionStepValue(ACCELERATION_Z) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z);
+                        inode->FastGetSolutionStepValue(ACCELERATION_AUX_X) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X);
+                        inode->FastGetSolutionStepValue(ACCELERATION_AUX_Y) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y);
+                        inode->FastGetSolutionStepValue(ACCELERATION_AUX_Z) += inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z);
 
                         double deltaaccelerationnorm = sqrt(inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_X) 
                         + inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Y) 
                         + inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z) * inode->FastGetSolutionStepValue(DELTA_ACCELERATION_Z));
-                        double accelerationnorm = sqrt(inode->FastGetSolutionStepValue(ACCELERATION_X) * inode->FastGetSolutionStepValue(ACCELERATION_X) 
-                        + inode->FastGetSolutionStepValue(ACCELERATION_Y) * inode->FastGetSolutionStepValue(ACCELERATION_Y) 
-                        + inode->FastGetSolutionStepValue(ACCELERATION_Z) * inode->FastGetSolutionStepValue(ACCELERATION_Z));
+                        double accelerationnorm = sqrt(inode->FastGetSolutionStepValue(ACCELERATION_AUX_X) * inode->FastGetSolutionStepValue(ACCELERATION_AUX_X) 
+                        + inode->FastGetSolutionStepValue(ACCELERATION_AUX_Y) * inode->FastGetSolutionStepValue(ACCELERATION_AUX_Y) 
+                        + inode->FastGetSolutionStepValue(ACCELERATION_AUX_Z) * inode->FastGetSolutionStepValue(ACCELERATION_AUX_Z));
 
                         inode->FastGetSolutionStepValue(DELTA_ACCELERATION) = ZeroVector(3);
 
