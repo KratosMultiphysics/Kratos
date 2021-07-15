@@ -354,11 +354,8 @@ void VMSMonolithicUBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
             double u_tau{0.0};
             CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
                                   mWallHeight, nu, kappa, beta);
-            y_plus = std::max(y_plus, y_plus_limit);
 
             if (wall_velocity_magnitude > eps) {
-                const double u_tau = wall_velocity_magnitude / (inv_kappa * std::log(y_plus) + beta);                    
-
                 const double value = rho * std::pow(u_tau, 2) *
                                      gauss_weights[g] / wall_velocity_magnitude;
 
