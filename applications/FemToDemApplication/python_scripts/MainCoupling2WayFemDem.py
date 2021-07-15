@@ -21,9 +21,16 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
     def __init__(self, Model, path = ""):
         self.model = Model
         # Initialize solutions
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, path)
+
+        if path == "":
+            DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')
+        else:
+            DEMProjectParametersFile = open(os.path.join(path, "ProjectParametersDEM.json"), 'r')
+        DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
+
         self.DEM_Solution.Initialize()
-        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution.solver)
+        self.FEM_Solution = FEM.FEM_for_coupling_Solution(Model, path, self.DEM_Solution._GetSolver())
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -150,12 +157,12 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.ComputeSkinSubModelPart()
             if self.DEMFEM_contact:
                 self.TransferFEMSkinToDEM()
-            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
+            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.DEM_Solution.spheres_model_part).Execute()
 
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
-        
+
         self.FindNeighboursIfNecessary()
 
 
@@ -176,6 +183,9 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: InitializeSolutionStep of the FEM part")
 
         self.FEM_Solution.InitializeSolutionStep()
+        self.DEM_Solution._GetSolver().AdvanceInTime(self.FEM_Solution.time)
+        self.DEM_Solution.time = self.FEM_Solution.time
+        self.DEM_Solution.step = self.FEM_Solution.step
 
 #============================================================================================================================
     def SolveSolutionStep(self):  # Method to perform the coupling FEM <-> DEM
@@ -202,7 +212,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
 
         # Print required info
         self.PrintPlotsFiles()
-        
+
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
 
@@ -220,7 +230,7 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
 
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
-        
+
         if not self.is_slave:
             self.PrintResults()
 
@@ -254,11 +264,12 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
             self.EraseConditionsAndNodesSubModelPart()
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.GetSubModelPart("SkinTransferredFromStructure")
             dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
-            props = self.DEM_Solution.rigid_face_model_part.GetProperties(self.created_props_id,0)
+            props = self.DEM_Solution.spheres_model_part.GetProperties()[2]
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)
         else: # have to create it
-            props = self.CreateFEMPropertiesForDEFEContact()
+            # props = self.CreateFEMPropertiesForDEFEContact()
+            props = self.DEM_Solution.spheres_model_part.GetProperties()[2]
             dem_walls_mp = self.DEM_Solution.rigid_face_model_part.CreateSubModelPart("SkinTransferredFromStructure")
             dem_walls_mp.SetValue(KratosDEM.RIGID_BODY_OPTION, False)
-            dem_walls_mp.AddProperties(props)
+            # dem_walls_mp.AddProperties(props)
             DemFem.DemStructuresCouplingUtilities().TransferStructuresSkinToDem(fem_skin_mp, dem_walls_mp, props)

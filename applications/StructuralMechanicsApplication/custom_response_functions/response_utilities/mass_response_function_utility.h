@@ -120,7 +120,9 @@ public:
 
 		// Incremental computation of total mass
 		for (auto& elem_i : mrModelPart.Elements()){
-			total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
+			const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
+			if(element_is_active)
+				total_mass += TotalStructuralMassProcess::CalculateElementMass(elem_i, domain_size);
 		}
 
 		return total_mass;
@@ -155,9 +157,11 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
-				mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				if(element_is_active)
+					mass_before_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 
 			// Compute sensitivities using finite differencing in the three spatial direction
@@ -170,9 +174,11 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
-				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				if(element_is_active)
+					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.X() -= mDelta;
@@ -185,9 +191,11 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
-				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				if(element_is_active)
+					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Y() -= mDelta;
@@ -200,9 +208,11 @@ public:
 			for(std::size_t i = 0; i < ng_elem.size(); i++)
 			{
 				Element& ng_elem_i = ng_elem[i];
+				const bool element_is_active = ng_elem_i.IsDefined(ACTIVE) ? ng_elem_i.Is(ACTIVE) : true;
 
 				// Compute mass according to element dimension
-				mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
+				if(element_is_active)
+					mass_after_fd += TotalStructuralMassProcess::CalculateElementMass(ng_elem_i, domain_size);
 			}
 			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
 			node_i.Z() -= mDelta;

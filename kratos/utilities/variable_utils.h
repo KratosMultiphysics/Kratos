@@ -130,9 +130,10 @@ public:
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
 
-        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes) << "Origin and destination model parts have different number of nodes."
-                                                        << "\n\t- Number of origin nodes: " << n_orig_nodes
-                                                        << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
+        KRATOS_ERROR_IF_NOT(n_orig_nodes == n_dest_nodes)
+            << "Origin and destination model parts have different number of nodes."
+            << "\n\t- Number of origin nodes: " << n_orig_nodes
+            << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
         IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
@@ -140,6 +141,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
     }
 
     /**
@@ -183,6 +186,8 @@ public:
             const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
             it_dest_node->GetValue(rDestinationVariable) = r_value;
         });
+
+        rDestinationModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDestinationVariable);
     }
 
     template< class TVarType >

@@ -1,8 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
@@ -39,8 +40,10 @@
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_implex_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_implex_3d.h"
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 #include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
@@ -95,6 +98,8 @@
 
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
+
+#include "custom_constitutive/associative_plastic_damage_model.h"
 
 namespace Kratos {
 
@@ -259,8 +264,10 @@ private:
     const SmallStrainJ2Plasticity3D mSmallStrainJ2Plasticity3D;
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
+    const SmallStrainIsotropicDamageImplex3D mSmallStrainIsotropicDamageImplex3D;
     const SmallStrainIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;
     const SmallStrainIsotropicDamageTractionOnly3D mSmallStrainIsotropicDamageTractionOnly3D;
+    const SmallStrainIsotropicDamageTractionOnlyImplex3D mSmallStrainIsotropicDamageTractionOnlyImplex3D;
     const TrussPlasticityConstitutiveLaw mTrussPlasticityConstitutiveLaw;
     const HyperElasticIsotropicOgden1D mHyperElasticIsotropicOgden1D;
     const HyperElasticIsotropicHenky1D mHyperElasticIsotropicHenky1D;
@@ -653,6 +660,10 @@ private:
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;
+
+    const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
+    const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
+    const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb;
 
     ///@}
     ///@name Private Operators

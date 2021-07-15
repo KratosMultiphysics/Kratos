@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosExaquteSandboxApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 

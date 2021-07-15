@@ -83,7 +83,7 @@ namespace Kratos
 
    }
 
-   void HydraulicRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void HydraulicRigidContactPenalty3DCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -106,7 +106,7 @@ namespace Kratos
    //***********************************************************************************
 
    void HydraulicRigidContactPenalty3DCondition::GetDofList(DofsVectorType& rConditionDofList,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 
@@ -130,7 +130,7 @@ namespace Kratos
    //***********************************************************************************
 
    void HydraulicRigidContactPenalty3DCondition::EquationIdVector(EquationIdVectorType& rResult,
-         ProcessInfo& rCurrentProcessInfo)
+         const ProcessInfo& rCurrentProcessInfo) const
    {
       KRATOS_TRY
 

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -18,82 +18,22 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mapper_typedefs.h"
-
 #include "mapper_factory.h"
+#include "mapper_define.h"
 
 
-namespace Kratos
-{
+namespace Kratos {
 
-template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
-    MapperDefinitions::DenseSpaceType>();
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template<> KRATOS_API(MAPPING_APPLICATION) std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>();
-#endif
+typedef typename MapperDefinitions::SparseSpaceType SparseSpaceType;
+typedef typename MapperDefinitions::DenseSpaceType  DenseSpaceType;
 
 template<>
-std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::SparseSpaceType,
-    MapperDefinitions::DenseSpaceType>()
+std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer>& MapperFactory<SparseSpaceType,
+    DenseSpaceType>::GetRegisteredMappersList()
 {
-    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
+    static std::unordered_map<std::string, typename Mapper<SparseSpaceType, DenseSpaceType>::Pointer> registered_mappers;
 
     return registered_mappers;
-}
-
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-template<>
-std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>::Pointer>& MapperFactory::GetRegisteredMappersList<MapperDefinitions::MPISparseSpaceType,
-    MapperDefinitions::DenseSpaceType>()
-{
-    static std::unordered_map<std::string, typename Mapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::Pointer> registered_mappers;
-
-    return registered_mappers;
-}
-#endif
-
-ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
-                                                    Parameters InterfaceParameters,
-                                                    const std::string& InterfaceSide)
-{
-    int echo_level = 0;
-    // read the echo_level temporarily, bcs the mJsonParameters have not yet been validated and defaults assigned
-    if (InterfaceParameters.Has("echo_level"))
-    {
-        echo_level = std::max(echo_level, InterfaceParameters["echo_level"].GetInt());
-    }
-
-    int comm_rank = rModelPart.GetCommunicator().MyPID();
-
-    std::string key_sub_model_part = "interface_submodel_part_";
-    key_sub_model_part.append(InterfaceSide);
-
-    if (InterfaceParameters.Has(key_sub_model_part))
-    {
-        const std::string name_interface_submodel_part = InterfaceParameters[key_sub_model_part].GetString();
-
-        if (echo_level >= 3 && comm_rank == 0)
-        {
-            std::cout << "Mapper: SubModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-        }
-
-        return rModelPart.GetSubModelPart(name_interface_submodel_part);
-    }
-    else
-    {
-        if (echo_level >= 3 && comm_rank == 0)
-        {
-            std::cout << "Mapper: Main ModelPart used for " << InterfaceSide << "-ModelPart" << std::endl;
-        }
-
-        return rModelPart;
-    }
 }
 
     /* // CommRank is used as input bcs the MyPID function of the non-MPI MapperCommunicator is used
@@ -154,6 +94,10 @@ ModelPart& MapperFactory::ReadInterfaceModelPart(ModelPart& rModelPart,
         }
     }
  */
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Class template instantiation
+template class MapperFactory< SparseSpaceType, DenseSpaceType >;
 
 }  // namespace Kratos.
 

@@ -83,6 +83,8 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mDistanceCalculationElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mLevelSetConvectionElementSimplex2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
       mLevelSetConvectionElementSimplex3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
+      mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N( 0, GeometryType::Pointer(new Triangle2D3<NodeType >(GeometryType::PointsArrayType(3)))),
+      mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N( 0, GeometryType::Pointer(new Tetrahedra3D4<NodeType >(GeometryType::PointsArrayType(4)))),
 
       // Components
       mpVariableData(KratosComponents<VariableData>::pGetComponents()),
@@ -177,6 +179,8 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("DistanceCalculationElementSimplex3D4N", mDistanceCalculationElementSimplex3D4N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex2D3N", mLevelSetConvectionElementSimplex2D3N)
     KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplex3D4N", mLevelSetConvectionElementSimplex3D4N)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplexAlgebraicStabilization2D3N", mLevelSetConvectionElementSimplexAlgebraicStabilization2D3N)
+    KRATOS_REGISTER_ELEMENT("LevelSetConvectionElementSimplexAlgebraicStabilization3D4N", mLevelSetConvectionElementSimplexAlgebraicStabilization3D4N)
 
     KRATOS_REGISTER_MODELER("Modeler", mModeler);
     KRATOS_REGISTER_MODELER("CadIoModeler", mCadIoModeler);
