@@ -33,7 +33,9 @@
 #include "custom_constitutive/small_strain_j2_plasticity_3d.h"
 #include "custom_constitutive/small_strain_j2_plasticity_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_implex_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_traction_only_implex_3d.h"
 #include "custom_constitutive/wrinkling_linear_2d_law.h"
 #include "custom_constitutive/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/multi_linear_isotropic_plane_stress_2d.h"
@@ -168,8 +170,16 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"SmallStrainIsotropicDamage3DLaw").def(py::init<>())
     ;
 
+    py::class_< SmallStrainIsotropicDamageImplex3D, typename SmallStrainIsotropicDamageImplex3D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamageImplex3DLaw").def(py::init<>())
+    ;
+
     py::class_< SmallStrainIsotropicDamageTractionOnly3D, typename SmallStrainIsotropicDamageTractionOnly3D::Pointer,  ConstitutiveLaw  >
     (m,"SmallStrainIsotropicDamageTractionOnly3DLaw").def(py::init<>())
+    ;
+
+    py::class_< SmallStrainIsotropicDamageTractionOnlyImplex3D, typename SmallStrainIsotropicDamageTractionOnlyImplex3D::Pointer,  ConstitutiveLaw  >
+    (m,"SmallStrainIsotropicDamageTractionOnlyImplex3DLaw").def(py::init<>())
     ;
 
     py::class_< PlasticityIsotropicKinematicJ2, typename PlasticityIsotropicKinematicJ2::Pointer,  ConstitutiveLaw >

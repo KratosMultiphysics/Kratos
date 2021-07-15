@@ -82,6 +82,7 @@ class ExplicitStrategy():
 
         self.search_increment = 0.0
         self.search_increment_for_walls = 0.0
+        self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
 
@@ -107,15 +108,17 @@ class ExplicitStrategy():
         elif DEM_parameters["DeltaOption"].GetString() == "Absolute":
             self.delta_option = 1
             self.search_increment = DEM_parameters["SearchTolerance"].GetDouble()
+            if not "SearchToleranceForBondsCreation" in DEM_parameters.keys():
+                self.search_increment_for_bonds_creation  = self.search_increment
+            else:
+                self.search_increment_for_bonds_creation = DEM_parameters["SearchToleranceForBondsCreation"].GetDouble()
 
         elif DEM_parameters["DeltaOption"].GetString() == "Coordination_Number":
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
-
         self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
-
 
         # TIME RELATED PARAMETERS
         self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -265,6 +268,7 @@ class ExplicitStrategy():
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION, self.search_increment_for_bonds_creation)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
         if self.contact_mesh_option:
