@@ -215,6 +215,18 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
     SetValue(WALL_POINT_CONDITION_ELASTIC_FORCES, std::vector<array_1d<double, 3> >());
     SetValue(WALL_POINT_CONDITION_TOTAL_FORCES, std::vector<array_1d<double, 3> >());
 
+    // TODO.Ignasi: we define alpha and beta constant for all particles 
+    //              (ideally we should read these variables in the scheme directly from the process info)
+    NodeType& this_node = GetGeometry()[0];
+    double& alpha = this_node.FastGetSolutionStepValue(RAYLEIGH_ALPHA);
+    double& beta = this_node.FastGetSolutionStepValue(RAYLEIGH_BETA);
+    double& theta_factor = this_node.FastGetSolutionStepValue(THETA_FACTOR);
+    double& g_coefficient = this_node.FastGetSolutionStepValue(G_COEFFICIENT);
+    alpha = r_process_info[RAYLEIGH_ALPHA];
+    beta = r_process_info[RAYLEIGH_BETA];
+    theta_factor = r_process_info[THETA_FACTOR];
+    g_coefficient = r_process_info[G_COEFFICIENT];
+
     KRATOS_CATCH( "" )
 }
 
@@ -243,6 +255,15 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     array_1d<double, 3>& elastic_force       = this_node.FastGetSolutionStepValue(ELASTIC_FORCES);
     array_1d<double, 3>& contact_force       = this_node.FastGetSolutionStepValue(CONTACT_FORCES);
     array_1d<double, 3>& rigid_element_force = this_node.FastGetSolutionStepValue(RIGID_ELEMENT_FORCE);
+
+    array_1d<double, 3>& internal_force = this_node.FastGetSolutionStepValue(INTERNAL_FORCE);
+    array_1d<double, 3>& internal_force_old = this_node.FastGetSolutionStepValue(INTERNAL_FORCE_OLD);
+    array_1d<double, 3>& external_force = this_node.FastGetSolutionStepValue(EXTERNAL_FORCE);
+    array_1d<double, 3>& external_force_old = this_node.FastGetSolutionStepValue(EXTERNAL_FORCE_OLD);
+    array_1d<double, 3>& internal_moment = this_node.FastGetSolutionStepValue(PARTICLE_INTERNAL_MOMENT);
+    array_1d<double, 3>& internal_moment_old = this_node.FastGetSolutionStepValue(PARTICLE_INTERNAL_MOMENT_OLD);
+    array_1d<double, 3>& external_moment = this_node.FastGetSolutionStepValue(PARTICLE_EXTERNAL_MOMENT);
+    array_1d<double, 3>& external_moment_old = this_node.FastGetSolutionStepValue(PARTICLE_EXTERNAL_MOMENT_OLD);
 
     mContactMoment.clear();
     elastic_force.clear();
@@ -286,7 +307,20 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
     total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
+    internal_force_old = internal_force;
+    external_force_old = external_force;
+    internal_force = -1.0*elastic_force;
+    external_force = additional_forces;
+    internal_moment_old = internal_moment;
+    external_moment_old = external_moment;
+    internal_moment = -1.0*mContactMoment; // NOTE: we assume ViscoLocalRotationalMoment is zero
+    external_moment = additionally_applied_moment;
+    
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
+
+    // TODO.Ignasi: this may be not necessary for CD scheme...
+    ApplyNegGlobalDampingToContactForcesAndMoments(internal_force, internal_moment);
+    ApplyGlobalDampingToContactForcesAndMoments(external_force, external_moment);
 
     #ifdef KRATOS_DEBUG
     DemDebugFunctions::CheckIfNan(total_forces, "NAN in Total Forces in RHS of Ball");
@@ -2075,6 +2109,36 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
         }
         if (central_node.IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
             total_moment[2] *= (1.0 - mGlobalDamping * GeometryFunctions::sign(total_moment[2] * angular_velocity[2]));
+        }
+
+        KRATOS_CATCH("")
+    }
+
+void SphericParticle::ApplyNegGlobalDampingToContactForcesAndMoments(array_1d<double,3>& internal_forces, array_1d<double,3>& internal_moment) {
+
+        KRATOS_TRY
+
+        const array_1d<double, 3> velocity =         this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const array_1d<double, 3> angular_velocity = this->GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_X)) {
+            internal_forces[0] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_forces[0] * velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Y)) {
+            internal_forces[1] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_forces[1] * velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_VEL_Z)) {
+            internal_forces[2] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_forces[2] * velocity[2]));
+        }
+
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_X)) {
+            internal_moment[0] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_moment[0] * angular_velocity[0]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Y)) {
+            internal_moment[1] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_moment[1] * angular_velocity[1]));
+        }
+        if (this->GetGeometry()[0].IsNot(DEMFlags::FIXED_ANG_VEL_Z)) {
+            internal_moment[2] *= (1.0 + mGlobalDamping * GeometryFunctions::sign(internal_moment[2] * angular_velocity[2]));
         }
 
         KRATOS_CATCH("")
