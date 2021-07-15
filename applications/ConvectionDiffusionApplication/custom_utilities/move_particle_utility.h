@@ -174,7 +174,7 @@ namespace Kratos
 							if (Length < mElemSize) mElemSize = Length;
 						}
 					mElemSize = sqrt(mElemSize);
-					ielem->GetValue(MEAN_SIZE) = mElemSize;
+					ielem->SetValue(MEAN_SIZE,mElemSize);
 				}
 			}
 
@@ -271,7 +271,7 @@ namespace Kratos
 		virtual ~MoveParticleUtilityScalarTransport()
 		{}
 
-		void MountBin()
+		void MountBin(const bool& rCellSizeProvided=false, const double& rCellSize=1.0)
 		{
 			KRATOS_TRY
 
@@ -282,7 +282,11 @@ namespace Kratos
 	        IteratorType it_end                =  rElements.end();
 	        //const int number_of_elem 		   =   rElements.size();
 
-			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
+			if(rCellSizeProvided==false) {
+				typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
+			} else {
+				typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, rCellSize ) );
+			}
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
@@ -323,7 +327,7 @@ namespace Kratos
 					vector_mean_velocity *= nodal_weight;
 
 					const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-					ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / (ielem->GetValue(MEAN_SIZE));
+					ielem->SetValue(MEAN_VEL_OVER_ELEM_SIZE,mean_velocity/(ielem->GetValue(MEAN_SIZE)));
 				}
 			}
 			KRATOS_CATCH("")
