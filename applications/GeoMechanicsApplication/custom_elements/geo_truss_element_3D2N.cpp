@@ -55,12 +55,12 @@ GeoTrussElement3D2N::~GeoTrussElement3D2N() {}
 void GeoTrussElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    KRATOS_INFO("0-GeoTrussElement3D2N::: Initialize()") << std::endl;
+    // KRATOS_INFO("0-GeoTrussElement3D2N::: Initialize()") << std::endl;
     TrussElement3D2N::Initialize(rCurrentProcessInfo);
 
     mIsInitialization = true;
 
-    KRATOS_INFO("1-GeoTrussElement3D2N::: Initialize()") << std::endl;
+    // KRATOS_INFO("1-GeoTrussElement3D2N::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -245,18 +245,13 @@ void GeoTrussElement3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProc
 void GeoTrussElement3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    KRATOS_INFO("0-GeoTrussElement3D2N::: FinalizeSolutionStep()") << std::endl;
+    // KRATOS_INFO("0-GeoTrussElement3D2N::: FinalizeSolutionStep()") << std::endl;
 
     TrussElement3D2N::FinalizeSolutionStep(rCurrentProcessInfo);
 
-    KRATOS_INFO("01-GeoTrussElement3D2N::: FinalizeSolutionStep()") << std::endl;
-    KRATOS_INFO("mInternalStressesFinalized") << mInternalStressesFinalized << std::endl;
-    KRATOS_INFO("mInternalStresses") << mInternalStresses << std::endl;
-    KRATOS_INFO("mInternalStressesFinalizedPrevious") << mInternalStressesFinalizedPrevious << std::endl;
-
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
 
-    KRATOS_INFO("1-GeoTrussElement3D2N::: FinalizeSolutionStep()") << std::endl;
+    // KRATOS_INFO("1-GeoTrussElement3D2N::: FinalizeSolutionStep()") << std::endl;
 
     KRATOS_CATCH("");
 }

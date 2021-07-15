@@ -89,7 +89,7 @@ void GeoCrBeamElement2D2N::GetDofList(DofsVectorType& rElementalDofList,
 void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
-    KRATOS_INFO("0-GeoCrBeamElement2D2N::: InitializeSolutionStep()") << this->Id() << std::endl;
+    // KRATOS_INFO("0-GeoCrBeamElement2D2N::: InitializeSolutionStep()") << this->Id() << std::endl;
 
     if (mIsInitialization)
     {
@@ -109,7 +109,7 @@ void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentPro
 
     mIsInitialization = false;
 
-    KRATOS_INFO("1-GeoCrBeamElement2D2N::: InitializeSolutionStep()") << this->Id() << std::endl;
+    // KRATOS_INFO("1-GeoCrBeamElement2D2N::: InitializeSolutionStep()") << this->Id() << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -118,11 +118,11 @@ void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
     KRATOS_TRY;
-    KRATOS_INFO("0-GeoCrBeamElement2D2N::: Initialize()") << std::endl;
+    // KRATOS_INFO("0-GeoCrBeamElement2D2N::: Initialize()") << std::endl;
 
     mIsInitialization = true;
 
-    KRATOS_INFO("1-GeoCrBeamElement2D2N::: Initialize()") << std::endl;
+    // KRATOS_INFO("1-GeoCrBeamElement2D2N::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -1006,11 +1006,11 @@ int GeoCrBeamElement2D2N::Check(const ProcessInfo& rCurrentProcessInfo) const
 
 void GeoCrBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_INFO("0-GeoCrBeamElement2D2N::: FinalizeSolutionStep()") << std::endl;
+    // KRATOS_INFO("0-GeoCrBeamElement2D2N::: FinalizeSolutionStep()") << std::endl;
 
     noalias(mInternalGlobalForcesFinalized) = mInternalGlobalForces + mInternalGlobalForcesFinalizedPrevious;
 
-    KRATOS_INFO("1-GeoCrBeamElement2D2N::: FinalizeSolutionStep()") << std::endl;
+    // KRATOS_INFO("1-GeoCrBeamElement2D2N::: FinalizeSolutionStep()") << std::endl;
 
 }
 
