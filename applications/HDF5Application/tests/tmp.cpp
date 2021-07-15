@@ -25,24 +25,55 @@ ModelPart& MakeModelPart(Model& rModel)
 {
     ModelPart& r_model_part = rModel.CreateModelPart("main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(REACTION);
+    Node<3>::Pointer p_node;
 
-    r_model_part.CreateNewNode(
+    p_node = r_model_part.CreateNewNode(
         1,
-        0.0, 0.0, 0.0)->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{0.0, 0.0, 0.0}};
-    r_model_part.CreateNewNode(
+        0.0, 0.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{0.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 0.0}};
+
+    p_node = r_model_part.CreateNewNode(
         2,
-        1.0, 0.0, 0.0)->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{1.0, 0.0, 0.0}};
-    r_model_part.CreateNewNode(
+        1.0, 0.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{1.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 1.0}};
+
+    p_node = r_model_part.CreateNewNode(
         3,
-        1.0, 1.0, 0.0)->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{2.0, 0.0, 0.0}};
-    r_model_part.CreateNewNode(
+        1.0, 1.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{2.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 2.0}};
+
+    p_node = r_model_part.CreateNewNode(
         4,
-        0.0, 1.0, 0.0)->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{3.0, 0.0, 0.0}};
+        0.0, 1.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{3.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 3.0}};
+
+    p_node = r_model_part.CreateNewNode(
+        5,
+        2.0, 0.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{4.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 4.0}};
+
+    p_node = r_model_part.CreateNewNode(
+        6,
+        2.0, 1.0, 0.0);
+    p_node->GetSolutionStepValue(DISPLACEMENT) = array_1d<double,3>{{5.0, 0.0, 0.0}};
+    p_node->GetSolutionStepValue(REACTION) = array_1d<double,3>{{0.0, 0.0, 5.0}};
 
     r_model_part.CreateNewElement(
         "Element2D4N",
         0,
         {1, 2, 3, 4},
+        make_shared<Properties>(0));
+    
+    r_model_part.CreateNewElement(
+        "Element2D4N",
+        1,
+        {2, 5, 6, 3},
         make_shared<Properties>(0));
 
     return r_model_part;
@@ -60,9 +91,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_TMP, KratosHDF5TestSuite)
         "positions" : [
             [0.0, 0.0, 0.0],
             [0.5, 0.5, 0.0],
-            [1.0, 1.0, 0.0]
+            [1.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.5, 0.5, 0.0],
+            [2.0, 1.0, 0.0]
         ],
-        "output_variables" : ["DISPLACEMENT"],
+        "output_variables" : ["DISPLACEMENT", "REACTION"],
         "file_path" : "test.h5"
     })");
 

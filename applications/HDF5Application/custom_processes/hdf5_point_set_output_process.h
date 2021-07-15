@@ -69,7 +69,7 @@ private:
     };
 
     /** Initialize common members
-     *  (except Points and members that must be initialized before the constructor body gets executed)
+     *  (except vertices and members that must be initialized before the constructor body gets executed)
      */
     void InitializeFromParameters(Parameters parameters);
 
