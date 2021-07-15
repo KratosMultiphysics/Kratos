@@ -16,18 +16,17 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
         # serial inlet
         if not Model.HasModelPart("wind_inlet_serial"):
             self.model_part = Model.CreateModelPart("wind_inlet_serial")
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+            if self.data_comm.Rank() == 0:
+                KratosMultiphysics.ModelPartIO(self.wind_inlet_aux_file_name).ReadModelPart(self.model_part)
         else:
             self.model_part = Model.GetModelPart("wind_inlet_serial")
-        # if self.data_comm.Rank() == 0:
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.wind_inlet_model_part_name = "problem_settings/wind_inlet_sub_model_part"
-        self.x0 = 0.0
 
-        if self.data_comm.Rank() == 0:
-            KratosMultiphysics.ModelPartIO(self.wind_inlet_model_part_name).ReadModelPart(self.model_part)
         ParallelFillCommunicator = KratosMPI.ParallelFillCommunicator(self.model_part, self.data_comm)
         ParallelFillCommunicator.Execute()
+
+        self.x0 = 0.0
         if self.data_comm.Rank() == 0:
             if len(self.inlet_nodes) > 0:
                 # define dimensions of the inlet domain
@@ -75,7 +74,7 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
         if self.data_comm.Rank() == 0:
             super().ExecuteInitializeSolutionStep()
 
-        KratosMultiphysics.Logger.PrintInfo("PERFORMING MAPPING")
+        KratosMultiphysics.Logger.PrintInfo("ImposeWindInletProcessMPI", "Mapping started")
         # map from current model part of interest to reference model part
         ini_time = time.time()
         mapping_parameters = KratosMultiphysics.Parameters("""{
@@ -86,4 +85,4 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
         mapper.Map(KratosMultiphysics.VELOCITY, \
             KratosMultiphysics.VELOCITY)
         mapping_time = time.time() - ini_time
-        KratosMultiphysics.Logger.PrintInfo("TIME SPENT MAPPING:", self.data_comm.MaxAll(mapping_time))
+        KratosMultiphysics.Logger.PrintInfo("ImposeWindInletProcessMPI", "TIME SPENT MAPPING:", self.data_comm.MaxAll(mapping_time))
