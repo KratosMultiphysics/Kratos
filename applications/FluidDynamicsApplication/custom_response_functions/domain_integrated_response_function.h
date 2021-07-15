@@ -113,6 +113,10 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rResidualGradient.size1()) {
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+        }
+
         rResponseGradient.clear();
     }
 
@@ -122,6 +126,10 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rResidualGradient.size1()) {
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+        }
+
         rResponseGradient.clear();
     }
 
@@ -174,6 +182,10 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rResidualGradient.size1()) {
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+        }
+
         rResponseGradient.clear();
     }
 
@@ -183,6 +195,10 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rResidualGradient.size1()) {
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+        }
+
         rResponseGradient.clear();
     }
 
@@ -192,6 +208,10 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
+        if (rResponseGradient.size() != rResidualGradient.size1()) {
+            rResponseGradient.resize(rResidualGradient.size1(), false);
+        }
+
         rResponseGradient.clear();
     }
 
