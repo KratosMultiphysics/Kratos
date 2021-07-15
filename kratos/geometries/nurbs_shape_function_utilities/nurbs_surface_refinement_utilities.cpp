@@ -37,7 +37,6 @@ namespace Kratos {
         const SizeType nb_cp_v = rGeometry.PointsNumberInDirection(1);
 
         const Vector& knots_u_old = rGeometry.KnotsU();
-        const Vector& knots_v = rGeometry.KnotsV();
 
         const Vector& weights_old = rGeometry.Weights();
 
@@ -99,7 +98,6 @@ namespace Kratos {
             rKnotsURefined[i + nb_knots_u_to_insert] = knots_u_old[i];
         }
 
-        const IndexType n = nb_cp_u_old - 1;
         const IndexType r = nb_knots_u_to_insert - 1;
 
         IndexType i = b + 2 + degree_u - 1;
@@ -191,7 +189,6 @@ namespace Kratos {
         const SizeType nb_cp_u = rGeometry.PointsNumberInDirection(0);
         const SizeType nb_cp_v_old = rGeometry.PointsNumberInDirection(1);
 
-        const Vector& knots_u = rGeometry.KnotsU();
         const Vector& knots_v_old = rGeometry.KnotsV();
 
         const Vector& weights_old = rGeometry.Weights();
@@ -253,7 +250,6 @@ namespace Kratos {
             rKnotsVRefined[i + nb_knots_v_to_insert] = knots_v_old[i];
         }
 
-        const IndexType n = nb_cp_v_old - 1;
         const IndexType r = nb_knots_v_to_insert - 1;
 
         IndexType i = b + 2 + degree_v - 1;
