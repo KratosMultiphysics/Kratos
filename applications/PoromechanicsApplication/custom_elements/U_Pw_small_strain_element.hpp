@@ -96,7 +96,6 @@ protected:
         double Density;
         double BiotCoefficient;
         double BiotModulusInverse;
-        BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
 
         ///ProcessInfo variables
         double VelocityCoefficient;
@@ -159,6 +158,12 @@ protected:
 
     void CalculateBMatrix(Matrix& rB, const Matrix& GradNpT);
 
+    void CalculateKinematics(Matrix& rGradNpT,
+                                Matrix& rB,
+                                Vector& rStrainVector,
+                                const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer,
+                                const array_1d<double,TNumNodes*TDim>& DisplacementVector,
+                                const unsigned int& GPoint);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 

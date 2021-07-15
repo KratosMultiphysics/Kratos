@@ -100,7 +100,7 @@ public:
         this->WriteLinearElements(initial_stresses_mdpa,rCurrentModelPart);
 
         this->CalculateNodalStresses(rCurrentModelPart);
-        Matrix InitialStressTensor(2,2);
+        Matrix InitialStressTensor(3,3);
         initial_stresses_mdpa << "Begin NodalData INITIAL_STRESS_TENSOR" << std::endl;
         // #pragma omp parallel for
         for(int i = 0; i < NNodes; i++) {
@@ -362,9 +362,9 @@ private:
             ModelPart::NodesContainerType::iterator it_node = node_begin + i;
             it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
             Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-            if(rNodalStress.size1() != 2) // Dimension
-                rNodalStress.resize(2,2,false);
-            noalias(rNodalStress) = ZeroMatrix(2,2);
+            if(rNodalStress.size1() != 3)
+                rNodalStress.resize(3,3,false);
+            noalias(rNodalStress) = ZeroMatrix(3,3);
         }
 
         // Calculate and Extrapolate Stresses
@@ -386,9 +386,9 @@ private:
             {
                 const double InvNodalArea = 1.0/NodalArea;
                 Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                for(unsigned int i = 0; i<2; i++) // Dimension
+                for(unsigned int i = 0; i<3; i++) // Dimension
                 {
-                    for(unsigned int j = 0; j<2; j++)
+                    for(unsigned int j = 0; j<3; j++)
                     {
                         rNodalStress(i,j) *= InvNodalArea;
                     }
