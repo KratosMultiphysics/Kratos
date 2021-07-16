@@ -25,7 +25,7 @@ namespace Kratos
 //************************************************************************************
 
 SmallStrainIsotropicDamageImplex3D::SmallStrainIsotropicDamageImplex3D()
-    : ElasticIsotropic3D()
+    : SmallStrainIsotropicDamage3D()
 {
 }
 
@@ -57,12 +57,9 @@ bool SmallStrainIsotropicDamageImplex3D::Has(const Variable<double>& rThisVariab
     if (rThisVariable == SCALE_FACTOR) {
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-    } else if (rThisVariable == STRAIN_ENERGY) {
+    } else {
         // explicitly returning "false", so the element calls CalculateValue(...)
-        return false;
-    } else if (rThisVariable == DAMAGE_VARIABLE) {
-        // explicitly returning "false", so the element calls CalculateValue(...)
-        return false;
+        SmallStrainIsotropicDamage3D::Has(rThisVariable);
     }
 
     return false;
@@ -413,30 +410,9 @@ double& SmallStrainIsotropicDamageImplex3D::CalculateValue(
 
         rValue = ((stress_like_variable - hardening_modulus * mStrainVariable) / (mStrainVariable*mStrainVariable))*(mStrainVariable - mStrainVariablePrevious);
 
-    } else if (rThisVariable == STRAIN_ENERGY) {
-        Vector& r_strain_vector = rParametersValues.GetStrainVector();
-        this->CalculateValue(rParametersValues, STRAIN, r_strain_vector);
-        const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
-        Matrix constitutive_matrix;
-        CalculateElasticMatrix(constitutive_matrix, rParametersValues);
-        const double stress_like_variable = EvaluateHardeningLaw(
-                                                mStrainVariable,
-                                                r_material_properties);
-        const double damage_variable = 1. - stress_like_variable / mStrainVariable;
-
-        rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
-                                        prod(constitutive_matrix, r_strain_vector)));
-
-    } else if (rThisVariable == DAMAGE_VARIABLE){
-        const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
-        const double stress_like_variable = EvaluateHardeningLaw(
-                                                mStrainVariable,
-                                                r_material_properties);
-
-        rValue = 1. - stress_like_variable / mStrainVariable;
-
     } else {
-        ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+        SmallStrainIsotropicDamage3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+
 
     }
 
