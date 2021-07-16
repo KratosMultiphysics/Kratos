@@ -60,6 +60,7 @@ namespace Kratos
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainIsotropicDamageTractionOnlyImplex3D
     : public SmallStrainIsotropicDamageImplex3D
+
 {
 public:
 
