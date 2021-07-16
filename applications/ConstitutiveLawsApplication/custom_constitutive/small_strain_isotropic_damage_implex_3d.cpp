@@ -16,7 +16,6 @@
 #include "small_strain_isotropic_damage_implex_3d.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
-#include "constitutive_laws_application_variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -54,11 +53,10 @@ SmallStrainIsotropicDamageImplex3D::~SmallStrainIsotropicDamageImplex3D() = defa
 
 bool SmallStrainIsotropicDamageImplex3D::Has(const Variable<double>& rThisVariable)
 {
-    if (rThisVariable == SCALE_FACTOR) {
+    if(rThisVariable == SCALE_FACTOR){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
     } else {
-        // explicitly returning "false", so the element calls CalculateValue(...)
         SmallStrainIsotropicDamage3D::Has(rThisVariable);
     }
 
@@ -88,7 +86,7 @@ Vector& SmallStrainIsotropicDamageImplex3D::GetValue(
     Vector& rValue
     )
 {
-    if (rThisVariable == INTERNAL_VARIABLES) {
+    if(rThisVariable == INTERNAL_VARIABLES){
         rValue.resize(2);
         rValue[0] = mStrainVariable;
         rValue[1] = mStrainVariablePrevious;
@@ -134,7 +132,7 @@ void SmallStrainIsotropicDamageImplex3D::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(2);
-    this->CalculateStressResponse(rParametersValues, internal_variables);
+    CalculateStressResponse(rParametersValues, internal_variables);
     mStrainVariable = internal_variables[0];
     mStrainVariablePrevious = internal_variables[1];
 }
@@ -192,8 +190,10 @@ void SmallStrainIsotropicDamageImplex3D::CalculateStressResponse(
 
         const double strain_norm = std::sqrt(energy);
 
-        // inelastic case
         if (strain_norm > mStrainVariable) {
+
+            // inelastic case
+
             r = strain_norm;
         }
 
