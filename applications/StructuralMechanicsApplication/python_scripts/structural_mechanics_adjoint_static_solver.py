@@ -28,8 +28,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
     def AddVariables(self):
         super().AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_REACTION)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_REACTION_MOMENT)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
@@ -89,13 +91,13 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X, StructuralMechanicsApplication.ADJOINT_REACTION_X, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y, StructuralMechanicsApplication.ADJOINT_REACTION_Y, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z, StructuralMechanicsApplication.ADJOINT_REACTION_Z, self.main_model_part)
         if self.settings["rotation_dofs"].GetBool():
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X, StructuralMechanicsApplication.ADJOINT_REACTION_MOMENT_X, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y, StructuralMechanicsApplication.ADJOINT_REACTION_MOMENT_Y, self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z, StructuralMechanicsApplication.ADJOINT_REACTION_MOMENT_Z, self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "DOF's ADDED.")
 
     def Initialize(self):
@@ -149,8 +151,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
     def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
-            if self.settings["compute_reactions"].GetBool():
-                raise Exception("\"compute_reactions\" is not possible for adjoint models parts")
+            #if self.settings["compute_reactions"].GetBool():
+            #    raise Exception("\"compute_reactions\" is not possible for adjoint models parts")
             if self.settings["move_mesh_flag"].GetBool():
                 raise Exception("\"move_mesh_flag\" is not allowed for adjoint models parts")
             mechanical_solution_strategy = self._create_linear_strategy()

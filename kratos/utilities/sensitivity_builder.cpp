@@ -501,6 +501,10 @@ void SensitivityBuilder::ClearSensitivities()
         mElementDataValueSensitivityVariablesList, mpModelPart->Elements());
     ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
         mConditionDataValueSensitivityVariablesList, mpModelPart->Conditions());
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mElementDataValueSensitivityVariablesList, mpModelPart->Conditions());
+    ExecuteFunctorInContainer<SetNonHistoricalValueToZeroFunctor>(
+        mConditionDataValueSensitivityVariablesList, mpModelPart->Elements());
     ExecuteFunctorInContainer<SetHistoricalValueToZeroFunctor>(
         mNodalSolutionStepSensitivityVariablesList, mpModelPart->Nodes());
 

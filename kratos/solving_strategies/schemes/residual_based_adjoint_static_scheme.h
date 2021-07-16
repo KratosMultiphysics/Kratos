@@ -190,6 +190,17 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculateRHSContribution(Element& rElement,
+                                  LocalSystemVectorType& RHS_Contribution,
+                                  Element::EquationIdVectorType& rEquationIdVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        LocalSystemMatrixType dummy_LHS = LocalSystemMatrixType(0, 0);
+        this->CalculateSystemContributions(rElement, dummy_LHS, RHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
+        KRATOS_CATCH("");
+    }
+
     void CalculateSystemContributions(Condition& rCurrentCondition,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
@@ -228,6 +239,19 @@ public:
 
         rCurrentCondition.CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
         rCurrentCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
+
+        KRATOS_CATCH("");
+    }
+
+    void CalculateRHSContribution(Condition& rCondition,
+                                LocalSystemVectorType& RHS_Contribution,
+                                Element::EquationIdVectorType& rEquationIdVector,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+
+        LocalSystemMatrixType dummy_LHS = LocalSystemMatrixType(0, 0);
+        this->CalculateSystemContributions(rCondition, dummy_LHS, RHS_Contribution, rEquationIdVector, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }

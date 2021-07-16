@@ -77,7 +77,7 @@ class ElementSensitivityDomainIntegrationProcess(KratosMultiphysics.Process):
         return 0
 
 
-    def ExecuteFinalizeSolutionStep(self):
+        def ExecuteBeforeOutputStep(self):
         """ This method is executed in order to finalize the current step
         Keyword arguments:
         self -- It signifies an instance of a class.

@@ -98,6 +98,7 @@ void BaseLoadCondition::EquationIdVector(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     const SizeType block_size = this->GetBlockSize();
+    rResult.clear();
     if (rResult.size() != dim * number_of_nodes) {
         rResult.resize(number_of_nodes * block_size, false);
     }

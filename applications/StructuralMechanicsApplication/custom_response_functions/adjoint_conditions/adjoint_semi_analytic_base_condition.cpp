@@ -136,7 +136,13 @@ namespace Kratos
 
         }
         else {
-            KRATOS_ERROR << "Unsupported output variable." << std::endl;
+            const SizeType gauss_points_number = this->GetGeometry()
+                .IntegrationPointsNumber(this->GetIntegrationMethod());
+            if (rOutput.size() != gauss_points_number) {
+                rOutput.resize(gauss_points_number);
+            }
+            rOutput.clear();
+            //KRATOS_ERROR << "Unsupported output variable." << std::endl;
         }
 
         KRATOS_CATCH("")
