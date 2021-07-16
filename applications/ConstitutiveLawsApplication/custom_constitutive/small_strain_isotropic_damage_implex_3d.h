@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 
 namespace Kratos
 {
@@ -59,7 +59,7 @@ namespace Kratos
  * @author Marcelo Raschi
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SmallStrainIsotropicDamageImplex3D
-    : public ElasticIsotropic3D
+    : public SmallStrainIsotropicDamage3D
 {
 public:
 
@@ -254,7 +254,6 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    double mStrainVariable;
     double mStrainVariablePrevious;
     ///@}
 
@@ -270,9 +269,9 @@ protected:
      * @param rStressVectorPos
      * @param rStressVector
      */
-    virtual void ComputePositiveStressVector(
+    void ComputePositiveStressVector(
             Vector& rStressVectorPos,
-            Vector& rStressVector);
+            Vector& rStressVector) override;
 
     /**
      * @brief Computes H(r), the hardening module value as a function of the strain variable
