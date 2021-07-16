@@ -1515,6 +1515,9 @@ void UpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<int>& rVaria
     if (rVariable == MP_MATERIAL_ID) {
         rValues[0] = GetProperties().Id();
     }
+    else if (rVariable == IS_TRANSFERRED_TO_CONTACT_MP) {
+        rValues[0] = mMP.is_transferred_to_contact_mp;
+    }
     else
     {
         KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
@@ -1639,6 +1642,13 @@ void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<int>& rVaria
     std::vector<int>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_ERROR_IF(rValues.size() > 1)
+        << "Only 1 value per integration point allowed! Passed values vector size: "
+        << rValues.size() << std::endl;
+
+    if (rVariable == IS_TRANSFERRED_TO_CONTACT_MP) {
+        mMP.is_transferred_to_contact_mp = rValues[0];
+    }
 }
 
 void UpdatedLagrangian::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,

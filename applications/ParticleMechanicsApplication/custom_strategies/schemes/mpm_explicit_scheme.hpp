@@ -370,18 +370,26 @@ namespace Kratos {
                         ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
 
                         // Dodgy hack to transfer completely failed concrete particles to water MP
+
                         if (rModelPart.HasSubModelPart("Parts_column") && contact_release_mp_name == "Parts_water")
                         {
                             ModelPart& r_concrete_mp = rModelPart.GetSubModelPart("Parts_column");
+                            const auto it_elem_begin = r_concrete_mp.ElementsBegin();
                             std::vector<int> mps_to_move(0);
-                            for (auto& mp : r_concrete_mp.Elements())
-                            {
-                                if (mp.GetValue(DAMAGE_COMPRESSION) > 0.95)
+
+                            #pragma omp parallel for
+                            for (int i = 0; i < static_cast<int>(r_concrete_mp.Elements().size()); ++i) {
+                                auto it_elem = it_elem_begin + i;
+                                std::vector<double> damage_comp(1);
+                                it_elem->CalculateOnIntegrationPoints(DAMAGE_COMPRESSION, damage_comp, rCurrentProcessInfo);
+                                if (damage_comp[0] > 0.95)
                                 {
-                                    if (mp.GetValue(DAMAGE_TENSION) > 0.95)
-                                    {
-                                        mps_to_move.push_back(mp.GetId());
-                                    }
+                                    std::vector<int> flag(1);
+                                    flag[0] = 1;
+                                    it_elem->SetValuesOnIntegrationPoints(IS_TRANSFERRED_TO_CONTACT_MP, flag, rCurrentProcessInfo);
+
+                                    #pragma omp critical
+                                    mps_to_move.push_back(it_elem->GetId());
                                 }
                             }
                             for (size_t i = 0; i < mps_to_move.size(); ++i)

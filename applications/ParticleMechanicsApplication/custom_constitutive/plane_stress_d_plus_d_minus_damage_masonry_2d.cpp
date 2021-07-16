@@ -407,7 +407,8 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseCauchy (
 
 	Vector& PredictiveStressVector	= rValues.GetStressVector();
 
-	this->CalculateMaterialResponseInternal(strain_vector_elastic, PredictiveStressVector, mCalcData, props);
+	if (DamageParameterCompression < 0.99) this->CalculateMaterialResponseInternal(strain_vector_elastic, PredictiveStressVector, mCalcData, props);
+	else PredictiveStressVector.clear();
 
 	bool is_damaging_tension = false;
 	bool is_damaging_compression = false;

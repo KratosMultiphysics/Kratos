@@ -95,6 +95,8 @@ protected:
         // MP_VOLUME
         double volume;
 
+        int is_transferred_to_contact_mp = 0;
+
         // MP_DISPLACEMENT
         array_1d<double, 3> displacement;
         array_1d<double, 3> displacement_total;
