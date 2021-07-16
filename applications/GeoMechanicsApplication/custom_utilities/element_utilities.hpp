@@ -196,6 +196,21 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    template< unsigned int TDim>
+    static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < TDim; ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < TDim; ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TDim*TNumNodes, TDim*TNumNodes> &UBlockMatrix)

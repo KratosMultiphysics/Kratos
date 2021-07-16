@@ -110,8 +110,8 @@ double SaturatedLaw::
 
 //-------------------------------------------------------------------------------------------------
 double& SaturatedLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>& rThisVariable,
-                                        double& rValue)
+                                     const Variable<double>& rThisVariable,
+                                     double& rValue)
 {
     if (rThisVariable == DEGREE_OF_SATURATION)
     {

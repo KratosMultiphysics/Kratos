@@ -132,7 +132,10 @@ protected:
         bool ConsiderGeometricStiffness;
         double DynamicViscosityInverse;
         double FluidDensity;
+        double SolidDensity;
         double Density;
+        double Porosity;
+
         double BiotCoefficient;
         double BiotModulusInverse;
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
@@ -155,6 +158,7 @@ protected:
         Matrix B;
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
+        array_1d<double, TDim> SoilGamma;
         double IntegrationCoefficient;
 
         ///Constitutive Law parameters
@@ -206,6 +210,8 @@ protected:
     void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
                                            const ProcessInfo& CurrentProcessInfo ) override;
 
+    void CalculateMassMatrix( MatrixType& rMassMatrix,
+                              const ProcessInfo& rCurrentProcessInfo ) override;
 
     void CalculateAll( MatrixType &rLeftHandSideMatrix,
                        VectorType &rRightHandSideVector,
@@ -310,6 +316,8 @@ protected:
 
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
+    void CalculateSoilGamma(ElementVariables &rVariables);
+    void CalculateSoilDensity(ElementVariables &rVariables);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

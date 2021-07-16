@@ -378,48 +378,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
-    //Resizing mass matrix
-    if ( rMassMatrix.size1() != N_DOF )
-        rMassMatrix.resize( N_DOF, N_DOF, false );
-    noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
-
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
-    const unsigned int NumGPoints = IntegrationPoints.size();
-
-    //Defining shape functions and the determinant of the jacobian at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
-    Vector detJContainer(NumGPoints);
-    Geom.DeterminantOfJacobian(detJContainer, this->GetIntegrationMethod());
-
-    //Defining necessary variables
-    double IntegrationCoefficient;
-    const double& Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
-    BoundedMatrix<double,TDim+1, TNumNodes*(TDim+1)> Nut = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
-
-    //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
-    {
-        GeoElementUtilities::CalculateNuElementMatrix<TDim, TNumNodes>(Nut,NContainer,GPoint);
-
-        Matrix DNu_DX0;
-        double detJ = CalculateDerivativesOnInitialConfiguration(Geom,
-                                                                 DNu_DX0,
-                                                                 GPoint,
-                                                                 this->GetIntegrationMethod());
-
-        //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( IntegrationCoefficient,
-                                               detJ,
-                                               IntegrationPoints[GPoint].Weight() );
-
-        //Adding contribution to Mass matrix
-        noalias(rMassMatrix) += Density*prod(trans(Nut),Nut)*IntegrationCoefficient;
-    }
+    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
