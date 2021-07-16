@@ -9,7 +9,6 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Marcelo Raschi
-//  Collaborator:
 
 #if !defined(KRATOS_LINEAR_ISOTROPIC_DAMAGE_TRACTION_ONLY_3D_LAW_H_INCLUDED)
 #define KRATOS_LINEAR_ISOTROPIC_DAMAGE_TRACTION_ONLY_3D_LAW_H_INCLUDED
@@ -49,9 +48,10 @@ namespace Kratos
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
- * - YIELD_STRESS
- * - INFINITY_YIELD_STRESS
- * - ISOTROPIC_HARDENING_MODULUS
+ * - HARDEDNING_CURVE: Type of hardening model: 0 exponential, 1 multilinear
+ * - STRESS_LIMITS: list of stress values in which the corresponding hardening
+ *   parameter is valid
+ * - HARDENING_PARAMETERS: List of hardening modules (max three branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi
@@ -65,10 +65,9 @@ public:
     ///@name Type Definitions
     ///@{
     typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
     typedef std::size_t SizeType;
 
-    // Counted pointer of LinearIsotropicDamageTractionOnly3DLaw
+    // Counted pointer
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamageTractionOnly3D);
 
     ///@}
@@ -81,12 +80,12 @@ public:
     SmallStrainIsotropicDamageTractionOnly3D();
 
     /**
-     * @brief Default constructor.
+     * @brief Copy constructor.
      */
     SmallStrainIsotropicDamageTractionOnly3D(const SmallStrainIsotropicDamageTractionOnly3D& rOther);
 
     /**
-     * @brief Default constructor.
+     * @brief Destructor.
      */
     ~SmallStrainIsotropicDamageTractionOnly3D() override;
 
@@ -95,15 +94,6 @@ public:
      * @return A pointer to a new instance of this constitutive law
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-//    /**
-//     * @brief This method computes the stress and constitutive tensor
-//     * @param rValues The norm of the deviation stress
-//     * @param rStrainVariable
-//     */
-//    void CalculateStressResponse(
-//            ConstitutiveLaw::Parameters& rValues,
-//            double& rStrainVariable) override;
 
     /**
      * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
@@ -149,6 +139,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class LinearIsotropicDamage3DLaw
+}; // class SmallStrainIsotropicDamageTractionOnly3D
 } // namespace Kratos
 #endif
