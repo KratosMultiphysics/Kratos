@@ -18,15 +18,19 @@
 #include "testing/testing.h"
 #include "containers/pointer_vector.h"
 #include "geometries/nurbs_volume_geometry.h"
+#include "geometries/surface_in_nurbs_volume_geometry.h"
 #include "geometries/quadrature_point_surface_in_volume_geometry.h"
+#include "geometries/triangle_3d_3.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
 namespace Testing {
 
     typedef Node<3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
-    NurbsVolumeGeometry<PointerVector<NodeType>> GenerateCubeForQPSurfaceInVolume() {
+    Kratos::shared_ptr<NurbsVolumeGeometry<PointerVector<NodeType>>> GenerateCubeNurbsVolume() {
         PointerVector<NodeType> points(8);
         double t = 1.0;
         std::vector<double> z_direction = {0.0, 1.0};
@@ -65,14 +69,15 @@ namespace Testing {
         knot_vector_w[0] = 0.0;
         knot_vector_w[1] = 1.0;
 
-        return NurbsVolumeGeometry<PointerVector<NodeType>>(
-            points, polynomial_degree_u, polynomial_degree_v, polynomial_degree_w,
-                knot_vector_u, knot_vector_v, knot_vector_w);
+        auto volume = NurbsVolumeGeometry<PointerVector<NodeType>>(points, polynomial_degree_u,
+            polynomial_degree_v, polynomial_degree_w, knot_vector_u, knot_vector_v, knot_vector_w);
+
+        return Kratos::make_shared<NurbsVolumeGeometry<PointerVector<NodeType>>>(volume);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(QuadraturePointSurfaceInVolumeGeometryTest, KratosCoreNurbsGeometriesFastSuite)
     {
-        NurbsVolumeGeometry<PointerVector<NodeType>> cube = GenerateCubeForQPSurfaceInVolume();
+        auto cube = GenerateCubeNurbsVolume();
 
         IntegrationPoint<3> integration_point;
         integration_point[0] = 0.5;
@@ -85,19 +90,40 @@ namespace Testing {
 
         PointerVector<Geometry<NodeType>> quad_geometries(1);
 
+        auto p_node_1 = Kratos::make_intrusive<NodeType>(0, 0.0, 0.0, 0.0);
+        auto p_node_2 = Kratos::make_intrusive<NodeType>(1, 1.0, 1.0, 0.0);
+        auto p_node_3 = Kratos::make_intrusive<NodeType>(2, 0.0, 1.0, 0.0);
+        NodeType node1(0, 0.2, 0.2, 0.2);
+        auto triangle = Kratos::make_shared<Triangle3D3<NodeType>>( p_node_1, p_node_2, p_node_3);
         // Create quadrature point geometries in the background.
-        cube.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points);
+        SurfaceInNurbsVolumeGeometry<3, PointerVector<NodeType>> surface_in_volume(cube, triangle);
+        //cube.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points);
 
-        auto quad_surface_in_volume = QuadraturePointSurfaceInVolumeGeometry<NodeType>(
-            static_cast<QuadraturePointGeometry<NodeType,3,3,3>>(quad_geometries[0]), 1.0, 1.0, 1.0);
+        // KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
+        KRATOS_CHECK_NEAR(surface_in_volume.Area(), 0.5, 1e-10);
+        std::vector<double> center_ref = {1.0/3.0, 2.0/3.0, 0.0};
+        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), center_ref, 1e-10);
+        CoordinatesArrayType test_point;
+        test_point[0] = 1.0/3.0;
+        test_point[1] = 1.0/3.0;
+        test_point[2] = 0.0;
+        // Check what should determinatn be??
+        KRATOS_WATCH( surface_in_volume.DeterminantOfJacobian(test_point) );
 
-        KRATOS_CHECK_EQUAL(quad_surface_in_volume.Dimension(), 2);
-        KRATOS_CHECK_EQUAL(quad_surface_in_volume.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(quad_surface_in_volume.LocalSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(quad_surface_in_volume.PointsNumber(), 8);
 
-        KRATOS_WATCH(quad_surface_in_volume.DeterminantOfJacobian(0));
-    }
+        // Check everthing after double DeterminantOfJacobian(
+
+
+    //     auto quad_surface_in_volume = QuadraturePointSurfaceInVolumeGeometry<NodeType>(
+    //         casted, 1.0, 1.0, 1.0);
+
+    //     KRATOS_CHECK_EQUAL(quad_surface_in_volume.Dimension(), 2);
+    //     KRATOS_CHECK_EQUAL(quad_surface_in_volume.WorkingSpaceDimension(), 3);
+    //     KRATOS_CHECK_EQUAL(quad_surface_in_volume.LocalSpaceDimension(), 3);
+    //     KRATOS_CHECK_EQUAL(quad_surface_in_volume.PointsNumber(), 8);
+
+    //     KRATOS_WATCH(quad_surface_in_volume.DeterminantOfJacobian(0));
+        }
 
 } // End namespace Testsing
 } // End namespace Kratos
