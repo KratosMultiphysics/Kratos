@@ -68,7 +68,7 @@ struct Array1DModifier
     {
     }
 };
-    
+
 template< class TBinderType, typename TContainerType, typename TVariableType > void VariableIndexingUtility(TBinderType& binder)
 {
     // Data container
@@ -87,7 +87,7 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
     VariableIndexingUtility<TBinderType, TContainerType, TVariableType>(binder);
     binder.def("Erase", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
 }
-    
+
 void  AddContainersToPython(pybind11::module& m)
 {
     typedef Variable<array_1d<double, 3> > Array1DVariable3;
@@ -346,6 +346,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_XI )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_ETA )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_TANGENT )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_TANGENT_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TORQUE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MOMENT )
