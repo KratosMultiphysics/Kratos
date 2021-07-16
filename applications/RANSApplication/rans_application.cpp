@@ -32,6 +32,9 @@ KratosRANSApplication::KratosRANSApplication()
       mRansBodyForceGovernedCDRAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansBodyForceGovernedCDRCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mRansBodyForceGovernedCDRRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionAFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionCWD2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionRFC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       // incompressible potential flow elements
       mIncompressiblePotentialFlowVelocity2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
       mIncompressiblePotentialFlowVelocity3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
@@ -235,6 +238,9 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRAFC2D3N", mRansBodyForceGovernedCDRAFC2D);
     KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRCWD2D3N", mRansBodyForceGovernedCDRCWD2D);
     KRATOS_REGISTER_ELEMENT("RansBodyForceGovernedCDRRFC2D3N", mRansBodyForceGovernedCDRRFC2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionAFC2D3N", mRansDiffusionAFC2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionCWD2D3N", mRansDiffusionCWD2D);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionRFC2D3N", mRansDiffusionRFC2D);
 
     // registering incompressible potential flow elements
     KRATOS_REGISTER_ELEMENT("RansIncompressiblePotentialFlowVelocity2D3N", mIncompressiblePotentialFlowVelocity2D);
