@@ -271,7 +271,7 @@ namespace Kratos
 		virtual ~MoveParticleUtilityScalarTransport()
 		{}
 
-		void MountBin(const bool& rCellSizeProvided=false, const double& rCellSize=1.0)
+		void MountBin()
 		{
 			KRATOS_TRY
 
@@ -282,16 +282,28 @@ namespace Kratos
 	        IteratorType it_end                =  rElements.end();
 	        //const int number_of_elem 		   =   rElements.size();
 
-			typename BinsObjectDynamic<Configure>::Pointer paux;
-			if(rCellSizeProvided==false) {
-				paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
-			} else {
-				paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, rCellSize ) );
-			}
+			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end  ) );
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
 			std::cout << "finished mounting Bins" << std::endl;
+
+			KRATOS_CATCH("")
+		}
+
+		void MountBinWithCellSize(const double CellSize)
+		{
+			KRATOS_TRY
+
+			//copy the elements to a new container, as the list will
+			//be shuffled duringthe construction of the tree
+			ContainerType& rElements           =  mr_model_part.ElementsArray();
+	        IteratorType it_begin              =  rElements.begin();
+	        IteratorType it_end                =  rElements.end();
+			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, CellSize ) );
+			paux.swap(mpBinsObjectDynamic);
+
+			KRATOS_INFO("MoveParticleUtilityScalarTransport") << "Finished mounting Bins with cell size: " << CellSize << std::endl;
 
 			KRATOS_CATCH("")
 		}
