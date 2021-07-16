@@ -39,6 +39,7 @@
 #include "custom_processes/move_rotor_process.h"
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/surface_smoothing_process.h"     //MRH
+#include "custom_processes/contact_angle_evaluator.h"     //MRH
 #include "custom_processes/mass_conservation_correction.h"  //MRH
 #include "custom_processes/lumped_eikonal_distance_calculation.h"  //MRH
 #include "custom_processes/variational_non_eikonal_distance.h"   //MRH
@@ -152,6 +153,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<SurfaceSmoothingProcess, SurfaceSmoothingProcess::Pointer, Process> (m, "SurfaceSmoothingProcess")
     .def(py::init<ModelPart&, LinearSolverType::Pointer>())
     .def("Clear", &SurfaceSmoothingProcess::Clear)
+    ;
+
+    py::class_<ContactAngleEvaluator, ContactAngleEvaluator::Pointer, Process>
+    (m,"ContactAngleEvaluator")
+    .def(py::init < ModelPart& >())
     ;
 
     py::class_<MassConservationCorrection, MassConservationCorrection::Pointer, Process>

@@ -266,7 +266,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 1.0e4*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 5.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     const double zeta = 5.0e-1;//1.0;//0.7;//
     const double gamma = 0.072;//0.0426;//0.0311;//
@@ -440,7 +440,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                             Vector contact_vector_macro = ZeroVector(num_dim);
                             MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
                             const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
-                            const double theta_macro = std::acos(cos_theta_macro);
+                            const double theta_macro = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_ANGLE);//std::acos(cos_theta_macro);
 
                             double theta_equilibrium = theta_receding;
                             if (theta_macro > theta_equilibrium){

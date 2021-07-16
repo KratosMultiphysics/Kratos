@@ -82,6 +82,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_check_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/two_fluids_inlet_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/surface_smoothing_process.cpp #MRH
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/contact_angle_evaluator.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mass_conservation_correction.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/lumped_eikonal_distance_calculation.cpp #MRH
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/variational_non_eikonal_distance.cpp #MRH

@@ -240,14 +240,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX2)
         #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
+        #KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Re-distancing is finished")
 
         self.surface_smoothing_process = self._set_surface_smoothing_process()
 
-        print("Smoothing")
-        print(time.time())
+        print("Contact Angle Evaluator Const 1")
+        self.contact_angle_evaluator = self._set_contact_angle_evaluator()
+        print("Contact Angle Evaluator Const 2")
+
+        #print("Smoothing")
+        #print(time.time())
         #(self.surface_smoothing_process).Execute()
-        print(time.time())
+        #print(time.time())
         #for node in self.main_model_part.Nodes:
         #    smooth_distance = node.GetSolutionStepValue(KratosCFD.DISTANCE_AUX)
         #    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, smooth_distance)
@@ -321,14 +325,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.05*9.81
+            gravity = TimeStep*DT/0.01*9.81
             if gravity > 9.81:
                 gravity = 9.81
 
             tilting_angle = 0.0
 
             if gravity == 9.81:
-                tilting_angle = (TimeStep*DT - 0.05)/1.0*(90.0/180.0)*math.pi
+                tilting_angle = (TimeStep*DT - 0.01)/1.0*(90.0/180.0)*math.pi
                 if tilting_angle > (90.0/180.0)*math.pi:
                     tilting_angle = (90.0/180.0)*math.pi
 
@@ -402,10 +406,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ####################################
             # Smoothing the surface to filter oscillatory surface
             (self.distance_gradient_process).Execute() # Always check if calculated above
-            print("Smoothing")
+            print("Smoothing Started")
             print(time.time())
             (self.surface_smoothing_process).Execute()
             print(time.time())
+            print("Smoothing Finished")
 
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             if (TimeStep % 1 == 0):
@@ -419,6 +424,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Compute CURVATURE on nodes
             (self.curvature_calculation_process).Execute()
+
+            # Evaluating the average nodal contact angle
+            print("Contact Angle Evaluator Exe 1")
+            (self.contact_angle_evaluator).Execute()
+            print("Contact Angle Evaluator Exe 2")
 
             # Calculate nodal pressure gradient excluding the cut elements needed for stabilization of Kee_inv
             (self.interface_pressure_gradient_calculation).Execute()
@@ -436,7 +446,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         # Do the necessary correction
         for node in self.main_model_part.Nodes:
-            node.Free(KratosMultiphysics.DISTANCE)
+            #node.Free(KratosMultiphysics.DISTANCE)
             dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             if (abs(dist) < 1.0e-12):
                 print("Solver: do the correction")
@@ -1001,3 +1011,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 50000, 1.0e-9, 1.0e-6)
 
         return hyperbolic_distance_reinitialization
+
+
+    def _set_contact_angle_evaluator(self):
+        contact_angle_evaluator = KratosCFD.ContactAngleEvaluator(self.main_model_part)
+
+        return contact_angle_evaluator
