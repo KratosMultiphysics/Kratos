@@ -4053,7 +4053,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
                     contact_angle_equilibrium = theta_advancing;
                 } else {
                     contact_angle_equilibrium = contact_angle_macro_gp;
-                    zeta_effective = 1.0e5*zeta;
+                    zeta_effective = 1.0e0*zeta;
                 }
             }
 

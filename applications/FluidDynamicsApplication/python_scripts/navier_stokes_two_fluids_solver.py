@@ -325,7 +325,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.01*9.81
+            gravity = TimeStep*DT/0.05*9.81
             if gravity > 9.81:
                 gravity = 9.81
 
