@@ -31,25 +31,6 @@ class AdjointCircularConvectionTwoElementsTest(KratosUnittest.TestCase):
         parameters["problem_data"]["parallel_type"].SetString("OpenMP")
         return parameters
 
-    # def testQSVMSSteadySlip(self):
-    #     with KratosUnittest.WorkFolderScope('.', __file__):
-    #         node_ids = [1]
-
-    #         # calculate sensitivity by finite difference
-    #         primal_parameters = AdjointCircularConvectionTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_parameters.json')
-    #         step_size = 1e-9
-    #         fd_sensitivities = FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis.ComputeSensitivity(
-    #             node_ids, step_size, primal_parameters, [1.0, 0.0, 0.0],
-    #             'MainModelPart.Structure',
-    #             SolvePrimalProblem,
-    #             AdjointCircularConvectionTwoElementsTest._AddHDF5PrimalOutputProcess)
-
-    #         # solve adjoint
-    #         adjoint_parameters = AdjointCircularConvectionTwoElementsTest._ReadParameters('./TwoElementsTest/qsvms_test_adjoint_parameters.json')
-    #         adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
-
-    #         self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 3)
-
     def testCircularConvectionSteady(self):
         with KratosUnittest.WorkFolderScope('.', __file__):
             node_ids = [1]
@@ -65,6 +46,24 @@ class AdjointCircularConvectionTwoElementsTest(KratosUnittest.TestCase):
 
             # solve adjoint
             adjoint_parameters = AdjointCircularConvectionTwoElementsTest._ReadParameters('./TwoElementsTest/circular_convection_steady_test_adjoint_parameters.json')
+            adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
+
+            self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 2)
+
+    def testCircularConvectionBossak(self):
+        with KratosUnittest.WorkFolderScope('.', __file__):
+            node_ids = [1]
+
+            # calculate sensitivity by finite difference
+            primal_parameters = AdjointCircularConvectionTwoElementsTest._ReadParameters('./TwoElementsTest/circular_convection_bossak_test_parameters.json')
+            step_size = 1e-8
+            fd_sensitivities = FiniteDifferenceDomainIntegratedShapeSensitivityAnalysis.ComputeSensitivity(
+                node_ids, step_size, primal_parameters, 'MainModelPart',
+                SolvePrimalProblem,
+                AdjointCircularConvectionTwoElementsTest._AddHDF5PrimalOutputProcess)
+
+            # solve adjoint
+            adjoint_parameters = AdjointCircularConvectionTwoElementsTest._ReadParameters('./TwoElementsTest/circular_convection_bossak_test_adjoint_parameters.json')
             adjoint_sensitivities = ComputeAdjointSensitivity(node_ids, adjoint_parameters, SolveAdjointProblem)
 
             self.assertMatrixAlmostEqual(adjoint_sensitivities, fd_sensitivities, 2)

@@ -147,7 +147,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
         }
 
         self.adjoint_condition_map = {
-            ('',) : "LineCondition",
+            ('',) : "RansScalarEquationAdjoint",
             # pure cfd conditions
             ("RansVMSMonolithicKBasedWall",) : "AdjointMonolithicWallCondition",
             # k-epsilon conditions
@@ -351,9 +351,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                         "element_data_value_settings" : {
                             "list_of_variables": [
                             "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM"
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2"
                             ]
                         }
                     }
@@ -378,10 +376,13 @@ class AdjointRANSSolver(CoupledRANSSolver):
             solving_variables_list = self.formulation.GetSolvingVariables()
             number_of_dofs_per_node = len(solving_variables_list)
             zero_vector = Kratos.Vector(number_of_dofs_per_node, 0.0)
+            max_vector = Kratos.Vector(number_of_dofs_per_node, 1e+50)
 
             variable_utils = Kratos.VariableUtils()
-            variable_utils.SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, zero_vector, model_part.Nodes)
-            variable_utils.SetNonHistoricalVariable(KratosRANS.RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR, zero_vector, model_part.Elements)
+            # set initial error to zero assuming, we dont have any errors before start of the error calculation
+            # this corresponds to 0th step errors
+            variable_utils.SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, max_vector, model_part.Nodes)
+            variable_utils.SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, zero_vector, model_part.Elements)
             variable_utils.SetNonHistoricalVariable(KratosRANS.RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE, zero_vector, model_part.Elements)
 
             hdf5_settings = Kratos.Parameters("""
@@ -396,9 +397,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
                     "element_data_value_settings" : {
                         "list_of_variables": [
                             "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM"
+                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2"
                         ]
                     }
                 }
@@ -412,48 +411,40 @@ class AdjointRANSSolver(CoupledRANSSolver):
             delta_time = self._ComputeDeltaTime()
             gamma = Kratos.TimeDiscretization.Bossak(model_part.ProcessInfo[Kratos.BOSSAK_ALPHA]).GetGamma()
 
-
-            hdf5_output_settings = Kratos.Parameters("""
-            {
-                "Parameters": {
-                    "model_part_name": "",
-                    "file_settings": {
-                        "file_name": "response_function_interpolation_data/forward_<model_part_name>-<time>.h5",
-                        "time_format": "0.6f",
-                        "file_access_mode": "truncate",
-                        "echo_level": 1
-                    },
-                    "output_time_settings": {
-                        "step_frequency": 1,
-                        "time_frequency": 1.0
-                    },
-                    "nodal_data_value_settings": {
-                        "list_of_variables": [
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR"
-                        ]
-                    },
-                    "element_data_value_settings" : {
-                        "list_of_variables": [
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
-                            "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
-                            "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR",
-                            "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE"
-                        ]
-                    }
-                }
+            vtk_settings = Kratos.Parameters("""{
+                "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "file_format"                                 : "binary",
+                "output_precision"                            : 7,
+                "output_control_type"                         : "step",
+                "output_interval"                             : 1.0,
+                "output_sub_model_parts"                      : false,
+                "output_path"                                 : "goal_error_vtk_output",
+                "nodal_solution_step_data_variables"          : [
+                    "VELOCITY_POTENTIAL"
+                ],
+                "nodal_data_value_variables"                  : [
+                    "RESPONSE_FUNCTION_INTERPOLATION_ERROR"
+                ],
+                "element_data_value_variables"                : [
+                    "RESPONSE_FUNCTION_INTERPOLATION_ERROR",
+                    "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
+                    "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
+                    "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE"
+                ],
+                "element_flags": [
+                    "STRUCTURE"
+                ]
             }""")
-            hdf5_output_settings["Parameters"]["model_part_name"].SetString(self.GetComputingModelPart().FullName())
-            hdf5_output_settings["Parameters"]["output_time_settings"]["time_frequency"].SetDouble(self._ComputeDeltaTime())
-            response_function_interpolation_data_output_process = OutputFactory(hdf5_output_settings, self.GetComputingModelPart().GetModel())
-            response_function_interpolation_data_output_process.ExecuteInitialize()
+
+            vtk_settings["model_part_name"].SetString(self.main_model_part.FullName())
+            vtk_output = Kratos.VtkOutput(self.main_model_part, vtk_settings)
 
             # calculate interpolation errors in forward time
             model_part.ProcessInfo[Kratos.TIME] = 0.0
-            response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()
 
             self.adjoint_list_of_time_steps = sorted(self.adjoint_list_of_time_steps)
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Running forward interpolation error calculation with {:f} relaxation.".format(self.interpolation_error_relaxation))
-            for current_time_step in self.adjoint_list_of_time_steps:
+            for index, current_time_step in enumerate(self.adjoint_list_of_time_steps):
                 model_part.ProcessInfo[Kratos.TIME] = current_time_step
 
                 # read RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1 and RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2
@@ -463,12 +454,9 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 KratosRANS.RansAdjointUtilities.CalculateTransientReponseFunctionInterpolationError(
                     model_part,
                     gamma,
-                    delta_time,
-                    self.element_refinement_process.GetThreadLocalModelPart().NumberOfNodes(),
-                    self.interpolation_error_relaxation)
+                    delta_time)
 
-                response_function_interpolation_data_output_process.ExecuteFinalizeSolutionStep()
-
+                vtk_output.PrintOutput()
 
                 if (self.echo_level > 0):
                     Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response function interpolation error at {:f}s".format(current_time_step))

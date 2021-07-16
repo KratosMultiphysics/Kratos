@@ -128,6 +128,7 @@ def AssembleTestSuites():
     allSuite.addTests(nightSuite)
 
     validationSuite = suites['validation']
+    validationSuite.addTests(allSuite)
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKOmegaTwoElementsTest]))
 
     return suites
