@@ -287,6 +287,8 @@ namespace MPMSearchElementUtility
         Vector N;
         const int max_result = 1000;
 
+        bool is_erase_element = false;
+
         #pragma omp parallel
         {
             BinBasedFastPointLocator<TDimension> SearchStructure(rBackgroundGridModelPart);
@@ -354,6 +356,11 @@ namespace MPMSearchElementUtility
                     element_itr->GetGeometry().clear();
                     element_itr->Reset(ACTIVE);
                     element_itr->Set(TO_ERASE);
+                    if (!is_erase_element)
+                    {
+                        #pragma omp critical
+                        is_erase_element = true;
+                    }
                 }
             }
 
@@ -380,8 +387,8 @@ namespace MPMSearchElementUtility
                         for (IndexType j = 0; j < r_geometry.PointsNumber(); ++j)
                             r_geometry[j].Set(ACTIVE);
                     } else {
-                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
-                            << " is failed. Geometry is cleared." << std::endl;
+                            //KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
+                            //<< " is failed. Geometry is cleared." << std::endl;
 
                         condition_itr->GetGeometry().clear();
                         condition_itr->Reset(ACTIVE);
@@ -389,6 +396,14 @@ namespace MPMSearchElementUtility
                     }
                 }
             }
+        }
+
+        if (is_erase_element)
+        {
+            const int initial_num_element = rMPMModelPart.NumberOfElements();
+            rMPMModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+            const int num_element = rMPMModelPart.NumberOfElements();
+            std::cout << initial_num_element - num_element << " MPs erased\n";
         }
     }
 
