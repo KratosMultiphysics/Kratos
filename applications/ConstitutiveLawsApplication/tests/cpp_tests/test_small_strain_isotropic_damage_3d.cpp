@@ -8,9 +8,8 @@
 //  License:         BSD License
 //                     license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
-//                   Marcelo Raschi
-//
+//  Main authors:    Marcelo Raschi
+//                   Alejandro Cornejo
 
 // System includes
 
@@ -50,6 +49,7 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     // Create gauss point
     Model current_model;
     ModelPart& test_model_part = current_model.CreateModelPart("Main");
+    test_model_part.SetBufferSize(2);
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     NodeType::Pointer p_node_3 = test_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
@@ -63,7 +63,6 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     stress_limits(0) = 1.5;
     stress_limits(1) = 3.0;
     material_properties.SetValue(STRESS_LIMITS, stress_limits);
-    //Vector hardening_params(3);
     Vector hardening_params(1);
     hardening_params(0) = 0.5;
     material_properties.SetValue(HARDENING_PARAMETERS, hardening_params);
@@ -87,20 +86,21 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     //
 
     //
-    // Test: check correct behavior of internal and calculated variables
+    // Test 0: check correct behavior of internal and calculated variables
     //
     KRATOS_CHECK_IS_FALSE(cl.Check(material_properties, geometry, test_model_part.GetProcessInfo()));
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN_ENERGY));  // false
+    KRATOS_CHECK_IS_FALSE(cl.Has(DAMAGE_VARIABLE));  // false
+    KRATOS_CHECK_IS_FALSE(cl.Has(STRAIN));  // false
+    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // true
     Vector internal_variables_w(1);
     internal_variables_w[0] = 0.123;
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
-    Vector internal_variables_r;  // CL should internally resize it to 1
-    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
-    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);  // = True
-    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);  // = True
+    Vector internal_variables_r;
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);  // CL resizes it
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., 1.e-5);
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 0.123, 1.e-5);
 
     // Check CalculateValue(INITIAL_STRAIN_VECTOR)
     Vector initial_strain_w(6);
@@ -137,13 +137,13 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     // reset values
     p_initial_state->SetInitialStrainVector(ZeroVector(6));
 
+    //
+    // Test 1: exponential hardening model, load in traction
+    //
 
-    //
-    // Test: exponential hardening model, load in traction
-    //
-    const double tolerance = 1e-4;
-    double ref_damage_variable = 0.562727;
-    double ref_strain_energy = 1.36795;
+    // Simulate the call sequence of the element
+    Vector dummy_vector;
+    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
     Vector imposed_strain = ZeroVector(6);
     imposed_strain(0) = -0.0759;
     imposed_strain(1) =  0.7483;
@@ -151,26 +151,11 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     imposed_strain(3) =  0.5391;
     imposed_strain(4) =  0.0063;
     imposed_strain(5) = -0.3292;
-    Vector ref_stress = ZeroVector(6);
-    ref_stress(0) =  1.1490;
-    ref_stress(1) =  2.8123;
-    ref_stress(2) =  1.6813;
-    ref_stress(3) =  0.5440;
-    ref_stress(4) =  0.0063;
-    ref_stress(5) = -0.3321;
-    Matrix ref_C = ZeroMatrix(6, 6);
-    ref_C(0,0) =  3.1672e+00; ref_C(0,1) =  6.2137e-01; ref_C(0,2) =  9.8019e-01; ref_C(0,3) = -1.7259e-01; ref_C(0,4) = -2.0169e-03; ref_C(0,5) =  1.0539e-01;
-    ref_C(1,0) =  6.2137e-01; ref_C(1,1) =  1.3478e+00; ref_C(1,2) =  2.0793e-01; ref_C(1,3) = -4.2244e-01; ref_C(1,4) = -4.9367e-03; ref_C(1,5) =  2.5796e-01;
-    ref_C(2,0) =  9.8019e-01; ref_C(2,1) =  2.0793e-01; ref_C(2,2) =  2.7511e+00; ref_C(2,3) = -2.5256e-01; ref_C(2,4) = -2.9514e-03; ref_C(2,5) =  1.5422e-01;
-    ref_C(3,0) = -1.7259e-01; ref_C(3,1) = -4.2244e-01; ref_C(3,2) = -2.5256e-01; ref_C(3,3) =  9.2737e-01; ref_C(3,4) = -9.5492e-04; ref_C(3,5) =  4.9898e-02;
-    ref_C(4,0) = -2.0169e-03; ref_C(4,1) = -4.9367e-03; ref_C(4,2) = -2.9514e-03; ref_C(4,3) = -9.5492e-04; ref_C(4,4) =  1.0090e+00; ref_C(4,5) =  5.8312e-04;
-    ref_C(5,0) =  1.0539e-01; ref_C(5,1) =  2.5796e-01; ref_C(5,2) =  1.5422e-01; ref_C(5,3) =  4.9898e-02; ref_C(5,4) =  5.8312e-04; ref_C(5,5) =  9.7862e-01;
-
-    // Simulate the call sequence of the element
-    Vector dummy_vector;
-    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
 
     for (std::size_t t = 0; t < 10; ++t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
         for (std::size_t comp = 0; comp < 6; ++comp)
             strain_vector(comp) = t / 9 * imposed_strain(comp);
 
@@ -185,45 +170,112 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
         }
     }
 
-    // Check damage variable and strain energy
-    double value;
-    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
-    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    // Checks
+    const double tolerance = 1e-4;
+    double value_double;
+    Vector value_vector;
 
-    // Check stress
-    for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
+    KRATOS_CHECK_NEAR(0.56273, value_double, tolerance);
 
-    // Check constitutive tensor
-    for (std::size_t i = 0; i < 6; ++i)
-        for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
+    KRATOS_CHECK_NEAR(1.36795, value_double, tolerance);
+
+    cl.CalculateValue(cl_parameters, STRAIN, value_vector);
+    KRATOS_CHECK_VECTOR_NEAR(value_vector, imposed_strain, tolerance);
+
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., tolerance);
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
+
+    Vector ref_stress = ZeroVector(6);
+    ref_stress(0) =  1.1490;
+    ref_stress(1) =  2.8123;
+    ref_stress(2) =  1.6813;
+    ref_stress(3) =  0.5440;
+    ref_stress(4) =  0.0063;
+    ref_stress(5) = -0.3321;
+    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+
+    Matrix ref_C = ZeroMatrix(6, 6);
+    ref_C(0,0) =  3.1672e+00; ref_C(0,1) =  6.2137e-01; ref_C(0,2) =  9.8019e-01; ref_C(0,3) = -1.7259e-01; ref_C(0,4) = -2.0169e-03; ref_C(0,5) =  1.0539e-01;
+    ref_C(1,0) =  6.2137e-01; ref_C(1,1) =  1.3478e+00; ref_C(1,2) =  2.0793e-01; ref_C(1,3) = -4.2244e-01; ref_C(1,4) = -4.9367e-03; ref_C(1,5) =  2.5796e-01;
+    ref_C(2,0) =  9.8019e-01; ref_C(2,1) =  2.0793e-01; ref_C(2,2) =  2.7511e+00; ref_C(2,3) = -2.5256e-01; ref_C(2,4) = -2.9514e-03; ref_C(2,5) =  1.5422e-01;
+    ref_C(3,0) = -1.7259e-01; ref_C(3,1) = -4.2244e-01; ref_C(3,2) = -2.5256e-01; ref_C(3,3) =  9.2737e-01; ref_C(3,4) = -9.5492e-04; ref_C(3,5) =  4.9898e-02;
+    ref_C(4,0) = -2.0169e-03; ref_C(4,1) = -4.9367e-03; ref_C(4,2) = -2.9514e-03; ref_C(4,3) = -9.5492e-04; ref_C(4,4) =  1.0090e+00; ref_C(4,5) =  5.8312e-04;
+    ref_C(5,0) =  1.0539e-01; ref_C(5,1) =  2.5796e-01; ref_C(5,2) =  1.5422e-01; ref_C(5,3) =  4.9898e-02; ref_C(5,4) =  5.8312e-04; ref_C(5,5) =  9.7862e-01;
+    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
+
 
     //
-    // Test: trilinear hardening model, load in traction
+    // Test 2: exponential hardening model, load-unload cycles
     //
-    ref_damage_variable = 0.510366;
-    ref_strain_energy = 1.53176;
-    imposed_strain(0) = -0.0759;
-    imposed_strain(1) =  0.7483;
-    imposed_strain(2) =  0.1879;
-    imposed_strain(3) =  0.5391;
-    imposed_strain(4) =  0.0063;
-    imposed_strain(5) = -0.3292;
-    ref_stress(0) =  1.28659;
-    ref_stress(1) =  3.14916;
-    ref_stress(2) =  1.88274;
-    ref_stress(3) =  0.60914;
-    ref_stress(4) =  0.00712;
-    ref_stress(5) = -0.37197;
-    ref_C(0,0) =  3.41440e+00; ref_C(0,1) =  3.72331e-01; ref_C(0,2) =  9.04190e-01; ref_C(0,3) = -2.55822e-01; ref_C(0,4) = -2.98958e-03; ref_C(0,5) =  1.56217e-01;
-    ref_C(1,0) =  3.72331e-01; ref_C(1,1) =  7.17543e-01; ref_C(1,2) = -2.40482e-01; ref_C(1,3) = -6.26171e-01; ref_C(1,4) = -7.31753e-03; ref_C(1,5) =  3.82370e-01;
-    ref_C(2,0) =  9.04191e-01; ref_C(2,1) = -2.40483e-01; ref_C(2,2) =  2.79766e+00; ref_C(2,3) = -3.74359e-01; ref_C(2,4) = -4.37481e-03; ref_C(2,5) =  2.28601e-01;
-    ref_C(3,0) = -2.55822e-01; ref_C(3,1) = -6.26171e-01; ref_C(3,2) = -3.74359e-01; ref_C(3,3) =  1.00880e+00; ref_C(3,4) = -1.41543e-03; ref_C(3,5) =  7.39619e-02;
-    ref_C(4,0) = -2.98958e-03; ref_C(4,1) = -7.31753e-03; ref_C(4,2) = -4.37481e-03; ref_C(4,3) = -1.41543e-03; ref_C(4,4) =  1.12991e+00; ref_C(4,5) =  8.64329e-04;
-    ref_C(5,0) =  1.56217e-01; ref_C(5,1) =  3.82370e-01; ref_C(5,2) =  2.28601e-01; ref_C(5,3) =  7.39619e-02; ref_C(5,4) =  8.64329e-04; ref_C(5,5) =  1.08476e+00;
+
+    // Simulate the call sequence of the element
+    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
+
+    for (std::size_t t = 0; t < 10; ++t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
+
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
+
+        cl.CalculateMaterialResponseCauchy(cl_parameters);
+
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
+    }
+
+    for (std::size_t t = 8; t > -12; --t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
+
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
+
+        cl.CalculateMaterialResponseCauchy(cl_parameters);
+
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
+    }
+
+    // Checks
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
+    KRATOS_CHECK_NEAR(0.562727, value_double, tolerance);
+
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
+    KRATOS_CHECK_NEAR(1.36795, value_double, tolerance);
+
+    ref_stress(0) =  1.14900;
+    ref_stress(1) =  2.81239;
+    ref_stress(2) =  1.68140;
+    ref_stress(3) =  0.54400;
+    ref_stress(4) =  0.00636;
+    ref_stress(5) = -0.33219;
+    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+
+    ref_C(0,0) =  3.16728; ref_C(0,1) =  0.62137; ref_C(0,2) =  0.980191; ref_C(0,3) = -0.172591; ref_C(0,4) = -0.002017; ref_C(0,5) = 0.105392;
+    ref_C(1,0) =  0.62137; ref_C(1,1) =  1.34784; ref_C(1,2) =  0.207934; ref_C(1,3) = -0.422448; ref_C(1,4) = -0.004937; ref_C(1,5) = 0.257967;
+    ref_C(2,0) =  0.98019; ref_C(2,1) =  0.20793; ref_C(2,2) =  2.751200; ref_C(2,3) = -0.252562; ref_C(2,4) = -0.002952; ref_C(2,5) = 0.154227;
+    ref_C(3,0) = -0.17259; ref_C(3,1) = -0.42245; ref_C(3,2) = -0.252562; ref_C(3,3) =  0.927376; ref_C(3,4) = -0.000955; ref_C(3,5) = 0.049899;
+    ref_C(4,0) = -0.00202; ref_C(4,1) = -0.00494; ref_C(4,2) = -0.002952; ref_C(4,3) = -0.000955; ref_C(4,4) =  1.009080; ref_C(4,5) = 0.000583;
+    ref_C(5,0) =  0.10539; ref_C(5,1) =  0.25797; ref_C(5,2) =  0.154227; ref_C(5,3) =  0.049899; ref_C(5,4) =  0.000583; ref_C(5,5) = 0.978620;
+    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
+
+    //
+    // Test 3: trilinear hardening model, load in traction
+    //
 
     // Update properties for this test
     material_properties.SetValue(HARDENING_CURVE, 1);
@@ -243,6 +295,9 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
     cl.InitializeMaterial(material_properties, geometry, dummy_vector);
 
     for (std::size_t t = 0; t < 10; ++t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
         for (std::size_t comp = 0; comp < 6; ++comp)
             strain_vector(comp) = t / 9 * imposed_strain(comp);
 
@@ -257,22 +312,96 @@ KRATOS_TEST_CASE_IN_SUITE(_ConstitutiveLaw_SmallStrainIsotropicDamage3D, KratosC
         }
     }
 
-    // Check damage variable and strain energy
-    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value);
-    KRATOS_CHECK_NEAR(ref_damage_variable, value, tolerance);
-    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value);
-    KRATOS_CHECK_NEAR(ref_strain_energy, value, tolerance);
+    // Checks
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
+    KRATOS_CHECK_NEAR(0.51037, value_double, tolerance);
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
+    KRATOS_CHECK_NEAR(1.53176, value_double, tolerance);
+    ref_stress(0) =  1.28659;
+    ref_stress(1) =  3.14916;
+    ref_stress(2) =  1.88274;
+    ref_stress(3) =  0.60914;
+    ref_stress(4) =  0.00712;
+    ref_stress(5) = -0.37197;
+    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+    ref_C(0,0) =  3.41440e+00; ref_C(0,1) =  3.72331e-01; ref_C(0,2) =  9.04190e-01; ref_C(0,3) = -2.55822e-01; ref_C(0,4) = -2.98958e-03; ref_C(0,5) =  1.56217e-01;
+    ref_C(1,0) =  3.72331e-01; ref_C(1,1) =  7.17543e-01; ref_C(1,2) = -2.40482e-01; ref_C(1,3) = -6.26171e-01; ref_C(1,4) = -7.31753e-03; ref_C(1,5) =  3.82370e-01;
+    ref_C(2,0) =  9.04191e-01; ref_C(2,1) = -2.40483e-01; ref_C(2,2) =  2.79766e+00; ref_C(2,3) = -3.74359e-01; ref_C(2,4) = -4.37481e-03; ref_C(2,5) =  2.28601e-01;
+    ref_C(3,0) = -2.55822e-01; ref_C(3,1) = -6.26171e-01; ref_C(3,2) = -3.74359e-01; ref_C(3,3) =  1.00880e+00; ref_C(3,4) = -1.41543e-03; ref_C(3,5) =  7.39619e-02;
+    ref_C(4,0) = -2.98958e-03; ref_C(4,1) = -7.31753e-03; ref_C(4,2) = -4.37481e-03; ref_C(4,3) = -1.41543e-03; ref_C(4,4) =  1.12991e+00; ref_C(4,5) =  8.64329e-04;
+    ref_C(5,0) =  1.56217e-01; ref_C(5,1) =  3.82370e-01; ref_C(5,2) =  2.28601e-01; ref_C(5,3) =  7.39619e-02; ref_C(5,4) =  8.64329e-04; ref_C(5,5) =  1.08476e+00;
+    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
 
-    // Check stress
-    for (std::size_t comp = 0; comp < 6; ++comp)
-        KRATOS_CHECK_NEAR(stress_vector(comp), ref_stress(comp), tolerance);
 
-    // Check constitutive tensor
-    for (std::size_t i = 0; i < 6; ++i)
-        for (std::size_t j = 0; j < 6; ++j)
-            KRATOS_CHECK_NEAR(const_matrix(i, j), ref_C(j, i), tolerance);
+    //
+    // Test 4: trilinear hardening model, load-unload cycles
+    //
 
+    // Simulate the call sequence of the element
+    cl.InitializeMaterial(material_properties, geometry, dummy_vector);
 
+    for (std::size_t t = 0; t < 10; ++t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
+
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
+
+        cl.CalculateMaterialResponseCauchy(cl_parameters);
+
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
+    }
+
+    for (std::size_t t = 8; t > -12; --t){
+
+        test_model_part.CloneTimeStep(t / 9);
+
+        for (std::size_t comp = 0; comp < 6; ++comp)
+            strain_vector(comp) = t / 9 * imposed_strain(comp);
+
+        if (cl.RequiresInitializeMaterialResponse()){
+            cl.InitializeMaterialResponseCauchy(cl_parameters);
+        }
+
+        cl.CalculateMaterialResponseCauchy(cl_parameters);
+
+        if (cl.RequiresFinalizeMaterialResponse()){
+            cl.FinalizeMaterialResponseCauchy(cl_parameters);
+        }
+    }
+
+    // Checks
+    cl.CalculateValue(cl_parameters, DAMAGE_VARIABLE, value_double);
+    KRATOS_CHECK_NEAR(0.510366, value_double, tolerance);
+
+    cl.CalculateValue(cl_parameters, STRAIN_ENERGY, value_double);
+    KRATOS_CHECK_NEAR(1.53176, value_double, tolerance);
+
+    cl.GetValue(INTERNAL_VARIABLES, internal_variables_r);
+    KRATOS_CHECK_NEAR(internal_variables_r.size(), 1., tolerance);
+    KRATOS_CHECK_NEAR(internal_variables_r[0], 2.50135, tolerance);  // r_{t}
+
+    ref_stress(0) =  1.28659;
+    ref_stress(1) =  3.14916;
+    ref_stress(2) =  1.88274;
+    ref_stress(3) =  0.60914;
+    ref_stress(4) =  0.00712;
+    ref_stress(5) = -0.37197;
+    KRATOS_CHECK_VECTOR_NEAR(stress_vector, ref_stress, tolerance);
+
+    ref_C(0,0) =  3.41440; ref_C(0,1) =  0.372331; ref_C(0,2) =  0.90419; ref_C(0,3) = -0.25582; ref_C(0,4) = -0.00299; ref_C(0,5) =  0.15622;
+    ref_C(1,0) =  0.37233; ref_C(1,1) =  0.717543; ref_C(1,2) = -0.24048; ref_C(1,3) = -0.62617; ref_C(1,4) = -0.00732; ref_C(1,5) =  0.38237;
+    ref_C(2,0) =  0.90419; ref_C(2,1) = -0.240483; ref_C(2,2) =  2.79767; ref_C(2,3) = -0.37436; ref_C(2,4) = -0.00438; ref_C(2,5) =  0.22860;
+    ref_C(3,0) = -0.25582; ref_C(3,1) = -0.626171; ref_C(3,2) = -0.37436; ref_C(3,3) =  1.00880; ref_C(3,4) = -0.00142; ref_C(3,5) =  0.07396;
+    ref_C(4,0) = -0.00299; ref_C(4,1) = -0.007318; ref_C(4,2) = -0.00438; ref_C(4,3) = -0.00142; ref_C(4,4) =  1.12991; ref_C(4,5) =  0.00086;
+    ref_C(5,0) =  0.15622; ref_C(5,1) =  0.38237 ; ref_C(5,2) =  0.22860; ref_C(5,3) =  0.07396; ref_C(5,4) =  0.00086; ref_C(5,5) =  1.08476;
+    KRATOS_CHECK_MATRIX_NEAR(const_matrix, ref_C, tolerance);
 }
 } // namespace Testing
 } // namespace Kratos
