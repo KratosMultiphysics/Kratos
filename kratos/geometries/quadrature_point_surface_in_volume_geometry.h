@@ -7,6 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Manuel Messmer
+//
 
 #if !defined(KRATOS_QUADRATURE_POINT_SURFACE_IN_VOLUME_GEOMETRY_H_INCLUDED )
 #define  KRATOS_QUADRATURE_POINT_SURFACE_IN_VOLUME_GEOMETRY_H_INCLUDED
@@ -22,13 +24,13 @@
 namespace Kratos
 {
 /**
- * @class QuadraturePointGeometry
+ * @class QuadraturePointSurfaceInVolumeGeometry
  * @ingroup KratosCore
  * @brief A sinlge quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
- *        This point defines a line segment described on a underlying surface.
+ *        This point defines a surface segment described in a underlying volume.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  *        The parent pointer can provide the adress to the owner of this quadrature point.
@@ -51,21 +53,13 @@ public:
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
-    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
-    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
     typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> GeometryShapeFunctionContainerType;
-
-    typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
-    typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-    typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    typedef BoundedMatrix<double,3,2> TangentMatrixType;
 
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues; 
+    using BaseType::ShapeFunctionsValues;
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
@@ -77,13 +71,9 @@ public:
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        double LocalTangentsW)
+        TangentMatrixType LocalTangents )
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-        , mLocalTangentsW(LocalTangentsW)
+        , mLocalTangents(LocalTangents)
     {
     }
 
@@ -91,14 +81,10 @@ public:
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        double LocalTangentsW,
+        TangentMatrixType LocalTangents,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-        , mLocalTangentsW(LocalTangentsW)
+        , mLocalTangents(LocalTangents)
     {
     }
 
@@ -108,21 +94,7 @@ public:
     /// Copy constructor.
     QuadraturePointSurfaceInVolumeGeometry(QuadraturePointSurfaceInVolumeGeometry const& rOther )
         : BaseType( rOther )
-        , mLocalTangentsU(rOther.mLocalTangentsU)
-        , mLocalTangentsV(rOther.mLocalTangentsV)
-        , mLocalTangentsW(rOther.mLocalTangentsW)
-    {
-    }
-
-    /// Move constructor from QuadraturePointGeometry.
-    QuadraturePointSurfaceInVolumeGeometry(QuadraturePointGeometry<TPointType, 3, 3, 3> && rOther,
-        double LocalTangentsU,
-        double LocalTangentsV,
-        double LocalTangentsW)
-        : BaseType(std::move(rOther))
-        , mLocalTangentsU(LocalTangentsU)
-        , mLocalTangentsV(LocalTangentsV)
-        , mLocalTangentsW(LocalTangentsW)
+        , mLocalTangents(rOther.mLocalTangents)
     {
     }
 
@@ -135,9 +107,7 @@ public:
     {
         BaseType::operator=( rOther );
 
-        mLocalTangentsU = rOther.mLocalTangentsU;
-        mLocalTangentsV = rOther.mLocalTangentsV;
-        mLocalTangentsW = rOther.mLocalTangentsW;
+        mLocalTangents = rOther.mLocalTangents;
 
         return *this;
     }
@@ -146,40 +116,28 @@ public:
     ///@name Dynamic access to internals
     ///@{
 
-    /// Assign with array_1d<double, 3>
+    /// Assign with Matrix
     void Assign(
-        const Variable<array_1d<double, 3>>& rVariable,
-        const array_1d<double, 3>& rInput) override
+        const Variable<Matrix >& rVariable,
+        const Matrix& rInput) override
     {
-        if (rVariable == LOCAL_TANGENT)
-        {
-            mLocalTangentsU = rInput[0];
-            mLocalTangentsV = rInput[1];
-            mLocalTangentsW = rInput[2];
+        KRATOS_ERROR_IF( rInput.size1() != mLocalTangents.size1() || rInput.size2() != mLocalTangents.size2() )
+            << "QuadraturePointSurfaceInVolume :: Input Matrix does not have the same size as LocalTangentMatrix. Size must be (3,2)." << std::endl;
+        if (rVariable == LOCAL_TANGENT_MATRIX) {
+            mLocalTangents = rInput;
         }
     }
 
-    /// Calculate with array_1d<double, 3>
+    /// Calculate with Matrix
     void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput) const override
+        const Variable<Matrix >& rVariable,
+        Matrix& rOutput) const override
     {
-        if (rVariable == LOCAL_TANGENT)
-        {
-            rOutput[0] = mLocalTangentsU;
-            rOutput[1] = mLocalTangentsV;
-            rOutput[2] = mLocalTangentsW;
-        }
-    }
-
-    /// Calculate with Vector
-    void Calculate(
-        const Variable<Vector>& rVariable,
-        Vector& rOutput) const override
-    {
-        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
-        {
-            DeterminantOfJacobianParent(rOutput);
+        if (rVariable == LOCAL_TANGENT_MATRIX) {
+            if( rOutput.size1() != mLocalTangents.size1() || rOutput.size2() != mLocalTangents.size2() ){
+                rOutput.resize(mLocalTangents.size1(),mLocalTangents.size2());
+            }
+            rOutput = mLocalTangents;
         }
     }
 
@@ -204,9 +162,8 @@ public:
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
-        CoordinatesArrayType normal = column(J, 0) * mLocalTangentsU
-                                    + column(J, 1) * mLocalTangentsV
-                                    + column(J, 2) * mLocalTangentsW;
+        TangentMatrixType global_tangents = prod(J, mLocalTangents);
+        CoordinatesArrayType normal = MathUtils<double>::CrossProduct( column(global_tangents,0), column(global_tangents,1) );
 
         return normal;
     }
@@ -216,7 +173,7 @@ public:
     ///@{
 
     /*
-    * @brief returns the respective curve length of this
+    * @brief returns the respective surface area of this
     *        quadrature point.
     * @param IntegrationPointIndex index should be always 0.
     */
@@ -225,15 +182,14 @@ public:
         GeometryData::IntegrationMethod ThisMethod) const override
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
-            << "Trying to access DeterminantOfJacobian of QuadraturePointCurveOnSurface "
+            << "Trying to access DeterminantOfJacobian of QuadraturePointSurfaceInSurface "
             << "with an integration point index != 0." << std::endl;
 
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
+        TangentMatrixType global_tangents = prod(J, mLocalTangents);
 
-        return norm_2(column(J, 0) * mLocalTangentsU
-                    + column(J, 1) * mLocalTangentsV
-                    + column(J, 2) * mLocalTangentsW);
+        return MathUtils<double>::GeneralizedDet( global_tangents );
     }
 
     /* @brief returns the respective segment length of this
@@ -252,28 +208,6 @@ public:
         return rResult;
     }
 
-    /* @brief returns the respective segment length of this
-     *        quadrature point, computed on the parent of this geometry.
-     *        Required for reduced quadrature point geometries (Not all
-     *        nodes are part of this geometry - used for mapping).
-     * @param rResult vector of results of this quadrature point.
-     */
-    Vector& DeterminantOfJacobianParent(
-        Vector& rResult) const
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
-
-        Matrix J;
-        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
-
-        rResult[0] = norm_2(column(J, 0) * mLocalTangentsU
-                          + column(J, 1) * mLocalTangentsV
-                          + column(J, 2) * mLocalTangentsW);
-
-        return rResult;
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -281,15 +215,18 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Quadrature point geometry for a surface in a volume with Id: ";
-            //<< std::to_string(this->Id()) << ", containing: " << std::to_string(this->size()) << " points.";
+        std::stringstream buffer;
+        buffer << "Quadrature point geometry for a surface in a volume with Id: "
+            << std::to_string(this->Id()) << ", containing: " << std::to_string(this->size()) << " points." << std::endl;
+
+        return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
         rOStream << "Quadrature point geometry for a surface in a volume with Id: "
-            << this->Id() << ", containing: " << this->size() << " points.";
+            << this->Id() << ", containing: " << this->size() << " points." << std::endl;
     }
 
     /// Print object's data.
@@ -302,9 +239,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    double mLocalTangentsU;
-    double mLocalTangentsV;
-    double mLocalTangentsW;
+    TangentMatrixType mLocalTangents;
 
     ///@}
     ///@name Serialization
@@ -321,17 +256,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
-        rSerializer.save("LocalTangentsU", mLocalTangentsU);
-        rSerializer.save("LocalTangentsV", mLocalTangentsV);
-        rSerializer.save("LocalTangentsW", mLocalTangentsW);
+        rSerializer.save("LocalTangents", mLocalTangents);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("LocalTangentsU", mLocalTangentsU);
-        rSerializer.load("LocalTangentsV", mLocalTangentsV);
-        rSerializer.load("LocalTangentsW", mLocalTangentsW);
+        rSerializer.load("LocalTangents", mLocalTangents);
     }
 
     ///@}

@@ -139,10 +139,8 @@ public:
 
     /**
     * @brief This function returns the pointer of the geometry
-    *        which is corresponding to the trim index.
-    *        Possible indices are:
-    *        VOLUME_INDEX or EMBEDDED_SURFACE_INDEX.
-    * @param Index: VOLUME_INDEX or EMBEDDED_SURFACE_INDEX.
+    *        which is corresponding to the BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     GeometryPointerType pGetGeometryPart(const IndexType Index) override
@@ -154,31 +152,28 @@ public:
 
     /**
     * @brief This function returns the pointer of the geometry
-    *        which is corresponding to the trim index.
-    *        Possible indices are:
-    *        VOLUME_INDEX or EMBEDDED_SURFACE_INDEX.
-    * @param Index: VOLUME_INDEX or EMBEDDED_SURFACE_INDEX.
+    *        which is corresponding to the BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointerType pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == VOLUME_INDEX) {
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsVolume;
-        }
 
-        KRATOS_ERROR << "Index " << Index << " not existing in NurbsSurfaceOnVolume: "
+        KRATOS_ERROR << "Index " << Index << " not existing in SurfaceInNurbsVolume: "
             << this->Id() << std::endl;
     }
 
     /**
     * @brief This function is used to check if the index is
-    *        VOLUME_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index of the geometry part.
-    * @return true if VOLUME_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == VOLUME_INDEX;
+        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
     }
 
     ///@}
@@ -233,7 +228,12 @@ public:
         std::vector<CoordinatesArrayType> global_space_derivatives(2);
         this->GlobalSpaceDerivatives(
             global_space_derivatives, rPoint, 1);
-        return norm_2(global_space_derivatives[1]);
+
+        BoundedMatrix<double,3,2> global_tangents;
+        column(global_tangents,0) = global_space_derivatives[1];
+        column(global_tangents,1) = global_space_derivatives[2];
+
+        return MathUtils<double>::GeneralizedDet( global_tangents );
     }
 
     ///@}
@@ -327,11 +327,20 @@ public:
                 default_method, tmp_integration_point,
                 N, shape_function_derivatives);
 
+            BoundedMatrix<double,3,2> local_tangents;
+            local_tangents(0,0) = global_space_derivatives[1][0];
+            local_tangents(1,0) = global_space_derivatives[1][1];
+            local_tangents(2,0) = global_space_derivatives[1][2];
+            local_tangents(0,1) = global_space_derivatives[2][0];
+            local_tangents(1,1) = global_space_derivatives[2][1];
+            local_tangents(2,1) = global_space_derivatives[2][2];
+
             rResultGeometries(point_index) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointSurfaceInVolume(
                 data_container, nonzero_control_points,
-                global_space_derivatives[1][0], global_space_derivatives[1][1], global_space_derivatives[1][2], this);
+                local_tangents, this);
         }
     }
+
 
     ///@}
     ///@name Operation within Global Space
@@ -355,6 +364,57 @@ public:
 
         // Compute and return the coordinates of the surface in the geometric space
         return mpNurbsVolume->GlobalCoordinates(rResult, result_local);
+    }
+
+/**
+    * @brief This method maps from dimension space to working space and computes the
+    *        number of derivatives at the dimension parameter.
+    * @param rCoordinates The local coordinates in dimension space
+    * @param DerivativeOrder Number of computed derivatives
+    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    * @see PointLocalCoordinates
+    */
+    void GlobalSpaceDerivatives(
+        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+        const CoordinatesArrayType& rCoordinates,
+        const SizeType DerivativeOrder) const override
+    {
+
+        KRATOS_ERROR_IF( DerivativeOrder > 1 )  << "Surface in Nurbs Volume: Global Space Derivatives are not yet "
+            << "implemented for derivative order > 1." << std::endl;
+
+        // Check size of output
+        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        }
+
+        // Compute the gradients of the embedded curve in the parametric space of the surface
+        std::vector<array_1d<double, 3>> surface_derivatives;
+        mpSurface->GlobalSpaceDerivatives(surface_derivatives, rCoordinates, DerivativeOrder);
+
+        // Compute the gradients of the surface in the geometric space
+        array_1d<double, 3> volume_coordinates =  ZeroVector(3);
+        volume_coordinates[0] = surface_derivatives[0][0];
+        volume_coordinates[1] = surface_derivatives[0][1];
+        volume_coordinates[2] = surface_derivatives[0][2];
+
+        std::vector<array_1d<double, 3>> volume_derivatives;
+        mpNurbsVolume->GlobalSpaceDerivatives(volume_derivatives, volume_coordinates, DerivativeOrder);
+
+        rGlobalSpaceDerivatives[0] = volume_derivatives[0];
+
+        BoundedMatrix<double,3,3> volume_jacobian;
+        noalias(column(volume_jacobian,0)) =  volume_derivatives[0];
+        noalias(column(volume_jacobian,1)) =  volume_derivatives[1];
+        noalias(column(volume_jacobian,2)) =  volume_derivatives[2];
+        BoundedMatrix<double,3,2> surface_jacobian;
+        noalias(column(surface_jacobian,0)) =  surface_derivatives[0];
+        noalias(column(surface_jacobian,1)) =  surface_derivatives[1];
+
+        BoundedMatrix<double,3,2> global_tangents = prod(volume_jacobian, surface_jacobian);
+        rGlobalSpaceDerivatives[1] = column(global_tangents,0);
+        rGlobalSpaceDerivatives[2] = column(global_tangents,1);
+
     }
 
     ///@}
