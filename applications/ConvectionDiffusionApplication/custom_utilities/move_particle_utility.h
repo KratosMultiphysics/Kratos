@@ -174,7 +174,7 @@ namespace Kratos
 							if (Length < mElemSize) mElemSize = Length;
 						}
 					mElemSize = sqrt(mElemSize);
-					ielem->SetValue(MEAN_SIZE,mElemSize);
+					ielem->GetValue(MEAN_SIZE) = mElemSize;
 				}
 			}
 
@@ -328,7 +328,7 @@ namespace Kratos
 					vector_mean_velocity *= nodal_weight;
 
 					const double mean_velocity = sqrt ( pow(vector_mean_velocity[0],2) + pow(vector_mean_velocity[1],2) + pow(vector_mean_velocity[2],2) );
-					ielem->SetValue(MEAN_VEL_OVER_ELEM_SIZE,mean_velocity/(ielem->GetValue(MEAN_SIZE)));
+					ielem->GetValue(MEAN_VEL_OVER_ELEM_SIZE) = mean_velocity / (ielem->GetValue(MEAN_SIZE));
 				}
 			}
 			KRATOS_CATCH("")
