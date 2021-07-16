@@ -126,10 +126,6 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rResponseGradient.size() != rResidualGradient.size1()) {
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-        }
-
         rResponseGradient.clear();
     }
 
@@ -150,6 +146,8 @@ public:
             rResponseGradient.resize(rResidualGradient.size2());
         }
 
+        rResponseGradient.clear();
+
         if (rAdjointElement.Is(STRUCTURE)) {
             Matrix shape_functions;
             this->CalculateGeometryData(r_geometry, shape_functions);
@@ -164,7 +162,7 @@ public:
             IndexType local_index = 0;
             for (IndexType c = 0; c < number_of_nodes; ++c) {
                 // adding velocity potential derivative
-                rResponseGradient[local_index] += volume * N[c];
+                rResponseGradient[local_index] = volume * N[c];
 
                 // skipping rest of the derivatives if they are used
                 local_index += skip_size + 1;
@@ -182,10 +180,6 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rResponseGradient.size() != rResidualGradient.size1()) {
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-        }
-
         rResponseGradient.clear();
     }
 
@@ -208,10 +202,6 @@ public:
         Vector& rResponseGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rResponseGradient.size() != rResidualGradient.size1()) {
-            rResponseGradient.resize(rResidualGradient.size1(), false);
-        }
-
         rResponseGradient.clear();
     }
 
@@ -278,8 +268,9 @@ public:
         Vector& rSensitivityGradient,
         const ProcessInfo& rProcessInfo) override
     {
-        if (rSensitivityGradient.size() != rSensitivityMatrix.size1())
+        if (rSensitivityGradient.size() != rSensitivityMatrix.size1()) {
             rSensitivityGradient.resize(rSensitivityMatrix.size1(), false);
+        }
 
         rSensitivityGradient.clear();
     }
