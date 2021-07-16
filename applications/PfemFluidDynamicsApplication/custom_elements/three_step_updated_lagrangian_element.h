@@ -1,13 +1,13 @@
 //
 //   Project Name:        KratosFluidDynamicsApplication $
 //   Last modified by:    $Author:               AFranci $
-//   Date:                $Date:              April 2018 $
+//   Date:                $Date:               June 2021 $
 //   Revision:            $Revision:                 0.0 $
 //
 //
 
-#if !defined(KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
+#define KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 #include <string>
@@ -59,15 +59,14 @@ namespace Kratos
    */
 
   template <unsigned int TDim>
-  class TwoStepUpdatedLagrangianElement : public UpdatedLagrangianElement<TDim>
+  class ThreeStepUpdatedLagrangianElement : public UpdatedLagrangianElement<TDim>
   {
-
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TwoStepUpdatedLagrangianElement
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TwoStepUpdatedLagrangianElement);
+    /// Pointer definition of ThreeStepUpdatedLagrangianElement
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ThreeStepUpdatedLagrangianElement);
 
     typedef UpdatedLagrangianElement<TDim> BaseType;
 
@@ -127,7 +126,7 @@ namespace Kratos
     /**
        * @param NewId Index number of the new element (optional)
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId = 0) : BaseType(NewId)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId = 0) : BaseType(NewId)
     {
     }
 
@@ -136,7 +135,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param ThisNodes An array containing the nodes of the new element
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, const NodesArrayType &ThisNodes) : BaseType(NewId, ThisNodes)
     {
     }
 
@@ -145,7 +144,7 @@ namespace Kratos
        * @param NewId Index of the new element
        * @param pGeometry Pointer to a geometry object
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry)
     {
     }
 
@@ -155,16 +154,16 @@ namespace Kratos
        * @param pGeometry Pointer to a geometry object
        * @param pProperties Pointer to the element's properties
        */
-    TwoStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
+    ThreeStepUpdatedLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, pPropertiesType pProperties) : BaseType(NewId, pGeometry, pProperties)
     {
     }
 
     /// copy constructor
 
-    TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const &rOther) : BaseType(rOther){};
+    ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const &rOther) : BaseType(rOther){};
 
     /// Destructor.
-    virtual ~TwoStepUpdatedLagrangianElement()
+    virtual ~ThreeStepUpdatedLagrangianElement()
     {
     }
 
@@ -178,7 +177,7 @@ namespace Kratos
 
     /// Create a new element of this type
     /**
-       * Returns a pointer to a new TwoStepUpdatedLagrangianElement element, created using given input
+       * Returns a pointer to a new ThreeStepUpdatedLagrangianElement element, created using given input
        * @param NewId: the ID of the new element
        * @param ThisNodes: the nodes of the new element
        * @param pProperties: the properties assigned to the new element
@@ -187,7 +186,7 @@ namespace Kratos
     Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes,
                             pPropertiesType pProperties) const override
     {
-      return Element::Pointer(new TwoStepUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+      return Element::Pointer(new ThreeStepUpdatedLagrangianElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
     }
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
@@ -202,15 +201,86 @@ namespace Kratos
     /// Calculate the element's local contribution to the system for the current step.
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
-                              const ProcessInfo &rCurrentProcessInfo) override{};
+                              const ProcessInfo &rCurrentProcessInfo) override;
+
+    void CalculateFirstVelocitySystem(MatrixType &rLeftHandSideMatrix,
+                                      VectorType &rRightHandSideVector,
+                                      const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateLocalPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                      VectorType &rRightHandSideVector,
+                                      const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateLastVelocitySystem(MatrixType &rLeftHandSideMatrix,
+                                     VectorType &rRightHandSideVector,
+                                     const ProcessInfo &rCurrentProcessInfo);
+
+    void AddMomentumMassTerm(Matrix &rMassMatrix,
+                             const ShapeFunctionsType &rN,
+                             const double Weight);
+
+    void AddMomentumRHSTerms(Vector &rRHSVector,
+                             const double Density,
+                             const array_1d<double, 3> &rBodyForce,
+                             const double OldPressure,
+                             const ShapeFunctionsType &rN,
+                             const ShapeFunctionDerivativesType &rDN_DX,
+                             const double Weight);
+
+    void AddViscousTerm(MatrixType &rDampingMatrix,
+                        const ShapeFunctionDerivativesType &rShapeDeriv,
+                        const double Weight,
+                        const double theta_velocity);
+
+    void ComputeBoundLHSMatrix(MatrixType &BoundLHSMatrix,
+                               const ShapeFunctionsType &rN,
+                               const double Weight);
+
+    void ComputeBoundRHSVector(VectorType &BoundRHSVector,
+                               const ShapeFunctionsType &rN,
+                               const double TimeStep,
+                               const double BoundRHSCoeffAcc,
+                               const double BoundRHSCoeffDev);
+
+    void ComputeBoundaryTermForPressure(VectorType &BoundRHSVector,
+                                        const double TimeStep,
+                                        const double BoundRHSCoeff,
+                                        const VectorType SpatialDefRate);
+
+    void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
+                                       const double TimeStep,
+                                       const double BoundRHSCoeffAcc,
+                                       const double BoundRHSCoeffDev,
+                                       const VectorType SpatialDefRate);
+
+    void ComputeStabLaplacianMatrix(MatrixType &StabLaplacianMatrix,
+                                    const ShapeFunctionDerivativesType &rShapeDeriv,
+                                    const double Weight);
+
+    void CalculateTauFIC(double &TauOne,
+                         double ElemSize,
+                         const double Density,
+                         const double Viscosity,
+                         const ProcessInfo &rCurrentProcessInfo);
+
+    double ElementSize();
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                const ProcessInfo &rCurrentProcessInfo) override
     {
       KRATOS_TRY;
-      KRATOS_THROW_ERROR(std::logic_error, "TwoStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
+      KRATOS_THROW_ERROR(std::logic_error, "ThreeStepUpdatedLagrangianElement::CalculateLeftHandSide not implemented", "");
       KRATOS_CATCH("");
     }
+
+    /**
+         * @param rVariable Use ADVPROJ or VELOCITY
+         * @param Output (unused)
+         * @param rCurrentProcessInfo Process info instance (unused)
+         */
+    void Calculate(const Variable<array_1d<double, 3>> &rVariable,
+                   array_1d<double, 3> &rOutput,
+                   const ProcessInfo &rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
                                 const ProcessInfo &rCurrentProcessInfo) override{};
@@ -236,7 +306,7 @@ namespace Kratos
 
     virtual void UpdateCauchyStress(unsigned int g, const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void InitializeElementalVariables(ElementalVariables &rElementalVariables) override{};
+    void InitializeElementalVariables(ElementalVariables &rElementalVariables) override;
 
     ///@}
     ///@name Access
@@ -269,7 +339,7 @@ namespace Kratos
     std::string Info() const override
     {
       std::stringstream buffer;
-      buffer << "TwoStepUpdatedLagrangianElement #" << this->Id();
+      buffer << "ThreeStepUpdatedLagrangianElement #" << this->Id();
       return buffer.str();
     }
 
@@ -285,8 +355,6 @@ namespace Kratos
 
     ///@}
   protected:
-
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -308,9 +376,37 @@ namespace Kratos
                                                  VectorType &rRightHandSideVector,
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
-    virtual void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                       VectorType &rRightHandSideVector,
-                                                       const ProcessInfo &rCurrentProcessInfo) override{};
+    void CalculatePSPGLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                   VectorType &rRightHandSideVector,
+                                                   const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateFICLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
+                                                  VectorType &rRightHandSideVector,
+                                                  const ProcessInfo &rCurrentProcessInfo);
+    void CalculateTauPSPG(double &TauOne,
+                          double ElemSize,
+                          const double Density,
+                          const double Viscosity,
+                          const ProcessInfo &rCurrentProcessInfo);
+
+    void AddStabilizationNodalTermsRHS(VectorType &rRightHandSideVector,
+                                       const double Tau,
+                                       const double Density,
+                                       const double Weight,
+                                       const ShapeFunctionDerivativesType &rDN_DX,
+                                       const SizeType i);
+
+    void AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
+                                         const double Tau,
+                                         const double Density,
+                                         const double Weight,
+                                         const double TimeStep,
+                                         const ShapeFunctionDerivativesType &rDN_DX,
+                                         const ShapeFunctionsType &rN,
+                                         const SizeType i);
+
+    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
+                               const double Weight) override;
 
     virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
                                                      VectorType &rRightHandSideVector,
@@ -331,37 +427,13 @@ namespace Kratos
     void CalculateMassMatrix(Matrix &rMassMatrix,
                              const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void ComputeMassMatrix(Matrix &rMassMatrix,
-                           const ShapeFunctionsType &rN,
-                           const double Weight,
-                           double &MeanValue) override;
-
     void ComputeLumpedMassMatrix(Matrix &rMassMatrix,
-                                 const double Weight,
-                                 double &MeanValue) override;
+                                 const double Weight);
 
     void AddExternalForces(Vector &rRHSVector,
                            const double Density,
                            const ShapeFunctionsType &rN,
                            const double Weight) override;
-
-    void AddInternalForces(Vector &rRHSVector,
-                           const ShapeFunctionDerivativesType &rDN_DX,
-                           ElementalVariables &rElementalVariables,
-                           const double Weight) override;
-
-    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                               const double Weight) override;
-
-    void ComputeBulkMatrixConsistent(MatrixType &BulkMatrix,
-                                     const double Weight) override;
-
-    void ComputeBulkMatrix(MatrixType &BulkMatrix,
-                           const ShapeFunctionsType &rN,
-                           const double Weight) override;
-
-    virtual void ComputeBulkMatrixRHS(MatrixType &BulkMatrix,
-                                      const double Weight) override{};
 
     virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
                                                   unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
@@ -426,14 +498,14 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    TwoStepUpdatedLagrangianElement &operator=(TwoStepUpdatedLagrangianElement const &rOther);
+    ThreeStepUpdatedLagrangianElement &operator=(ThreeStepUpdatedLagrangianElement const &rOther);
 
     /* /// Copy constructor. */
-    /* TwoStepUpdatedLagrangianElement(TwoStepUpdatedLagrangianElement const& rOther); */
+    /* ThreeStepUpdatedLagrangianElement(ThreeStepUpdatedLagrangianElement const& rOther); */
 
     ///@}
 
-  }; // Class TwoStepUpdatedLagrangianElement
+  }; // Class ThreeStepUpdatedLagrangianElement
 
   ///@}
 
@@ -447,7 +519,7 @@ namespace Kratos
   /// input stream function
   template <unsigned int TDim>
   inline std::istream &operator>>(std::istream &rIStream,
-                                  TwoStepUpdatedLagrangianElement<TDim> &rThis)
+                                  ThreeStepUpdatedLagrangianElement<TDim> &rThis)
   {
     return rIStream;
   }
@@ -455,7 +527,7 @@ namespace Kratos
   /// output stream function
   template <unsigned int TDim>
   inline std::ostream &operator<<(std::ostream &rOStream,
-                                  const TwoStepUpdatedLagrangianElement<TDim> &rThis)
+                                  const ThreeStepUpdatedLagrangianElement<TDim> &rThis)
   {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -466,4 +538,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_TWO_STEP_UPDATED_LAGRANGIAN_ELEMENT  defined
+#endif // KRATOS_THREE_STEP_UPDATED_LAGRANGIAN_ELEMENT  defined
