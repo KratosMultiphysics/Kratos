@@ -31,8 +31,8 @@ protected:
     struct KinematicVariables
     {
         // covariant metric
-        array_1d<double, 3> metricChange;
-        array_1d<double, 3> curvature;
+        //array_1d<double, 3> metricChange;
+        //array_1d<double, 3> curvature;
         array_1d<double, 2> transShear; //shear
 
         //base vectors current and reference
@@ -61,18 +61,16 @@ protected:
         Matrix F;
 
         //Transformationg matrices
-        BoundedMatrix<double, 6, 6> T;
-        BoundedMatrix<double, 6, 6> Tcont;
+        //BoundedMatrix<double, 6, 6> T;
+        //BoundedMatrix<double, 6, 6> Tcont;
 
         //differential area
-        double dA;
+        //double dA;
         //thickness coordinate
         double zeta;
 
         void setZero()
         {
-            metricChange = ZeroVector(3);
-            curvature = ZeroVector(3);
             transShear = ZeroVector(2);
 
             a1 = ZeroVector(3);
@@ -81,8 +79,8 @@ protected:
             g2 = ZeroVector(3);
             A1 = ZeroVector(3);
             A2 = ZeroVector(3);
-            G1 = ZeroVector(3);
-            G2 = ZeroVector(3);
+            //G1 = ZeroVector(3);
+            //G2 = ZeroVector(3);
             t = ZeroVector(3);
             dtd1 = ZeroVector(3);
             dtd2 = ZeroVector(3);
@@ -90,13 +88,13 @@ protected:
             dud2 = ZeroVector(3);
 
             j = ZeroMatrix(3, 3);
-            J = ZeroMatrix(3, 3);
+            //J = ZeroMatrix(3, 3);
             F = ZeroMatrix(3, 3);
 
-            T = ZeroMatrix(6, 6);
-            Tcont = ZeroMatrix(6, 6);
+ /*           T = ZeroMatrix(6, 6);
+            Tcont = ZeroMatrix(6, 6);*/
 
-            dA = 0;
+            //dA = 0;
         }
     };
 
@@ -109,6 +107,7 @@ protected:
         BoundedMatrix <double, 5, 5> ConstitutiveMatrix;
     };
 
+    using Matrix6d = BoundedMatrix<double, 6, 6>;
     using Matrix3d = BoundedMatrix<double, 3, 3>;
     using Matrix2d = BoundedMatrix<double, 2, 2>;
     using Matrix32d = BoundedMatrix<double, 3, 2>;
@@ -382,13 +381,15 @@ private:
     //std::vector<array_1d<double, 2>> reference_TransShear;
 
     // Reference Jacobians
-    std::vector<Matrix3d> reference_ReferenceJacobianInverse;
-    std::vector<Matrix3d> reference_ReferenceCartesianJacobian;
+    std::vector< std::vector<Matrix3d>> m_referenceJacobianInverse;
+    std::vector< std::vector<Matrix3d>> m_referenceCartesianJacobian;
+    std::vector< std::vector<Matrix3d>> m_referenceCoVariantTransformationMatrix;
+    std::vector< std::vector<Matrix3d>> m_referenceContraVariantTransformationMatrix;
 
     // Shape functions at all integration points
     Matrix m_N;
     // Determinant of the geometrical Jacobian.
-    Vector m_dA_vector;
+    std::vector< std::vector<double>> m_dV_vector;
 
     Kratos::Variable<Vector>::Type const& (NodeType::*m_GetValueFunctor)(const Kratos::Variable<Vector >&) const = &NodeType::GetValue;
     Kratos::Variable<array_1d<double, 3>>::Type const& (NodeType::*m_FastGetSolutionStepValueFunctor)(const Kratos::Variable<array_1d<double,3> >&) const = &NodeType::FastGetSolutionStepValue;
@@ -396,7 +397,7 @@ private:
     NodeType::PointType const& (NodeType::* m_GetInitialPositionFunctor)() const = &NodeType::GetInitialPosition;
 
     // Transformed curvilinear derivatives into cartesian derivatives/
-    std::vector<Matrix> m_cart_deriv;
+    std::vector<Matrix> m_dN;
 
     /// The vector containing the constitutive laws for all integration points.
     std::vector<std::vector<ConstitutiveLaw::Pointer>> mConstitutiveLawVectorOfVector;
@@ -457,7 +458,6 @@ private:
         const IndexType IntegrationPointIndex,
         const IndexType ThicknessIntegrationPointIndex,
         const KinematicVariables& rActualMetric,
-        ConstitutiveVariables& rThisConstitutiveVariables,
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
@@ -466,7 +466,7 @@ private:
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
 
-    const std::array<double, 2>& GetThicknessIntegrationPoint(const IndexType ThicknessIntegrationPointIndex) const;
+    const std::array<double, 2> GetThicknessIntegrationPoint(const IndexType ThicknessIntegrationPointIndex) const;
 
     public:
     static BoundedMatrix<double, 3, 2> TangentSpaceFromStereographicProjection(const array_1d<double, 3 >& director);
@@ -480,20 +480,26 @@ private:
     void save(Serializer& rSerializer) const final
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-        rSerializer.save("reference_ReferenceCartesianJacobian", reference_ReferenceCartesianJacobian);
-        rSerializer.save("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
-        rSerializer.save("dA_vector", m_dA_vector);
-        rSerializer.save("cart_deriv", m_cart_deriv);
+        rSerializer.save("reference_ReferenceCartesianJacobian", m_referenceCartesianJacobian);
+        rSerializer.save("reference_ReferenceJacobianInverse", m_referenceJacobianInverse);
+        rSerializer.save("m_referenceCoVariantTransformationMatrix", m_referenceCoVariantTransformationMatrix);
+        rSerializer.save("m_referenceContraVariantTransformationMatrix", m_referenceContraVariantTransformationMatrix);
+        rSerializer.save("dA_vector", m_dV_vector);
+        rSerializer.save("ansatzfunction", m_N);
+        rSerializer.save("ansatzfunction_deriv", m_dN);
         rSerializer.save("constitutive_law_vector", mConstitutiveLawVectorOfVector);
     }
 
     void load(Serializer& rSerializer) final
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-        rSerializer.load("reference_ReferenceCartesianJacobian", reference_ReferenceCartesianJacobian);
-        rSerializer.load("reference_ReferenceJacobianInverse", reference_ReferenceJacobianInverse);
-        rSerializer.load("dA_vector", m_dA_vector);
-        rSerializer.load("cart_deriv", m_cart_deriv);
+        rSerializer.load("reference_ReferenceCartesianJacobian", m_referenceCartesianJacobian);
+        rSerializer.load("reference_ReferenceJacobianInverse", m_referenceJacobianInverse);
+        rSerializer.load("m_referenceCoVariantTransformationMatrix", m_referenceCoVariantTransformationMatrix);
+        rSerializer.load("m_referenceContraVariantTransformationMatrix", m_referenceContraVariantTransformationMatrix);
+        rSerializer.load("dA_vector", m_dV_vector);
+        rSerializer.load("ansatzfunction", m_N);
+        rSerializer.load("ansatzfunction_deriv", m_dN);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVectorOfVector);
     }
 
