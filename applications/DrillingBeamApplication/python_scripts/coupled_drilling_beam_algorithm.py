@@ -149,7 +149,7 @@ class CoupledDrillingBeamAlgorithm(dem_fem_coupling_algorithm.Algorithm):
             DemFem.InterpolateStructuralSolutionForDEM().RestoreStructuralSolution(self.structural_mp)
 
             self.beam_solids_utility.ComputeEdgePointOfBeamSolids(self.structural_main_model_part)
-            # self.beam_solids_utility.ComputeDirectiveLineOfBeamSolids(self.structural_main_model_part)
+            self.beam_solids_utility.ComputeDirectiveLineOfBeamSolids(self.structural_main_model_part)
             self.beam_solids_utility.ComputeReactionsOfBeamSolids(self.structural_main_model_part)
 
 if __name__ == "__main__":

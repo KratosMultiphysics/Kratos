@@ -50,7 +50,7 @@ SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometr
     mpInlet = NULL;
 }
 
-SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : DiscreteElement(NewId, pGeometry, pProperties), mRealMass(0)
 {
     mRadius = 0;
@@ -2069,7 +2069,7 @@ void SphericParticle::ApplyGlobalDampingToContactForcesAndMoments(array_1d<doubl
     }
 
     void SphericParticle::CheckBreakageCriterion(double LocalContactForce[3]) {
-        if ( LocalContactForce[2] > 25.0e6 ) {
+        if ( LocalContactForce[2] > 10.0 ) {
             this->Set(TO_ERASE, true);
         }
     }

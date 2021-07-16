@@ -32,7 +32,6 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         ;
 
     py::class_<BeamSolidsUtility, BeamSolidsUtility::Pointer>(m, "BeamSolidsUtility", py::module_local())
-        .def(py::init<>())
         .def(py::init<ModelPart&>())
         .def("ComputeEdgePointOfBeamSolids", &BeamSolidsUtility::ComputeEdgePointOfBeamSolids)        
         .def("ComputeDirectiveLineOfBeamSolids", &BeamSolidsUtility::ComputeDirectiveLineOfBeamSolids)

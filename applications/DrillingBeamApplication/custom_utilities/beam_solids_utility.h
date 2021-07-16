@@ -19,32 +19,26 @@ namespace Kratos {
 
         typedef ModelPart::NodesContainerType NodesArrayType;
 
-        unsigned int mNodesEdge, submodel_number_of_nodes_A1, submodel_number_of_nodes_A2;
-
-        std::vector<int> IDs_edge;
-
-        std::vector<int> IDs_A1;
-        std::vector<int> IDs_A2;
-
-        std::vector<int> sorted_labels_A1;
-        std::vector<int> sorted_labels_A2;
-
-        NodesArrayType* mpNodesPt;       
-
-        // std::vector<array_1d<double,3>> initial_directive_line;
-        // std::vector<array_1d<double,3>> directive_line;
-        // std::vector<array_1d<double,3>> normals;       
+        NodesArrayType* mpNodesPt;
+        NodesArrayType* mpNodesA1;
+        NodesArrayType* mpNodesA2;
+        NodesArrayType* mpNodesBC;
 
         /////   Default constructor   /////
 
-        // BeamSolidsUtility() {}
-
-        /////   Constructor with ModelPart   /////
-
         BeamSolidsUtility(ModelPart& r_model_part) {
 
-            ModelPart& EdgePoints = r_model_part.GetSubModelPart("GENERIC_SbModel_edge");
-            pNodesPt = &(EdgePoints.GetCommunicator().LocalMesh().Nodes());
+            ModelPart& EdgeNodes = r_model_part.GetSubModelPart("GENERIC_SbModel_edge");
+            mpNodesPt = &(EdgeNodes.GetCommunicator().LocalMesh().Nodes());
+
+            ModelPart& EdgeLineA1 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A1");
+            mpNodesA1 = &(EdgeLineA1.GetCommunicator().LocalMesh().Nodes());
+
+            ModelPart& EdgeLineA2 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A2");
+            mpNodesA2 = &(EdgeLineA2.GetCommunicator().LocalMesh().Nodes());
+
+            ModelPart& BaseNodes = r_model_part.GetSubModelPart("DISPLACEMENT_BC");
+            mpNodesBC = &(BaseNodes.GetCommunicator().LocalMesh().Nodes());
 
         }
 
@@ -56,33 +50,29 @@ namespace Kratos {
 // -------------------------------------------------------------------------------------------------
     void ComputeEdgePointOfBeamSolids(ModelPart& r_model_part){
 
-        // ModelPart& EdgePoints = r_model_part.GetSubModelPart("GENERIC_SbModel_edge");
-        // NodesArrayType& pNodesPt = EdgePoints.GetCommunicator().LocalMesh().Nodes();                 
+        unsigned int aux_label;
 
-        array_1d<double,3> coords1, coords2, displacements, edge_coords;
+        array_1d<double,3> coords1, coords2, displacements, edge_coords,edge_coords_C;
+        double edge_coords_X, edge_coords_X0;
 
         Node < 3 > Aux_Node;
 
         std::ofstream RES_edgePoint("RES_edgePoint.txt", std::ios_base::out | std::ios_base::app);
 
 
-        nodes_edge = pNodesPt->size();
-        std::cout << "submodel_number_of_nodes ..... point " << nodes_edge << std::endl;
-
-
-        ModelPart::NodeIterator i_iteratorPt1 = pNodesPt->ptr_begin();
-        Aux_Node = *i_iteratorPt1;
+        ModelPart::NodeIterator iteratorPt1 = mpNodesPt->ptr_begin();
+        Aux_Node = *iteratorPt1;
 
         coords1 = Aux_Node.Coordinates();
         displacements = Aux_Node.FastGetSolutionStepValue(DISPLACEMENT);
 
-        ModelPart::NodeIterator i_iteratorPt2 = pNodesPt->ptr_begin() + 1;
-        Aux_Node = *i_iteratorPt2;
+        ModelPart::NodeIterator iteratorPt2 = mpNodesPt->ptr_begin() + 1;
+        Aux_Node = *iteratorPt2;
 
         coords2 = Aux_Node.Coordinates();
         displacements = Aux_Node.FastGetSolutionStepValue(DISPLACEMENT);
 
-        edge_coords = 0.5*(coords1 + coords2);                
+        edge_coords = 0.5*(coords1 + coords2);                       
 
         RES_edgePoint << edge_coords[0] << " " << edge_coords[1] << " " << edge_coords[2] << "\n";
 
@@ -92,80 +82,50 @@ namespace Kratos {
 // ------------------------------------------------------------------------------------------------
     void ComputeDirectiveLineOfBeamSolids(ModelPart& r_model_part){
 
-        typedef ModelPart::NodesContainerType NodesArrayType;
+        unsigned int submodel_number_of_nodes_A1, submodel_number_of_nodes_A2, aux_label, aux_id;
+
+        double modulus, directive_length=0, dlength=0;
+        double coord_X_1, coord_X_2, coord_X0_1, coord_X0_2;
+
+        std::vector<int> IDs_A1, IDs_A2, sorted_labels_A1, sorted_labels_A2;        
+
+        array_1d<double,3> coords_A1, coords_A2, coords_directive;
+        array_1d<double,3> aux_vector_rot, aux_vector_last, aux_vector_delta, aux_vector_dir;        
 
         Node < 3 > Aux_Node;
 
-        array_1d<double,3> coords_A1, coords_A2, directive_coords;
-        array_1d<double,3> aux_vector_rot, aux_vector_last, aux_vector_delta, aux_vector_dir;
-
-        unsigned int aux_label;
-
-        double modulus, directive_length=0, dlength=0;
-
-        std::ofstream RES_directive("RES_directive.txt", std::ios_base::out | std::ios_base::app);
-
-        ModelPart& EdgeLineA1 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A1");
-        ModelPart& EdgeLineA2 = r_model_part.GetSubModelPart("GENERIC_SbModel_line_A2");
-
-        NodesArrayType& pNodesA1 = EdgeLineA1.GetCommunicator().LocalMesh().Nodes();
-        NodesArrayType& pNodesA2 = EdgeLineA2.GetCommunicator().LocalMesh().Nodes();
+        std::ofstream RES_directive("RES_directiveLine.txt", std::ios_base::out | std::ios_base::app);
 
 
-        submodel_number_of_nodes_A1 = pNodesA1.size();
-        std::cout << "submodel_number_of_nodes A1.................." << submodel_number_of_nodes_A1 << std::endl;
+        submodel_number_of_nodes_A1 = mpNodesA1->size();
+        submodel_number_of_nodes_A2 = mpNodesA2->size();
 
-        submodel_number_of_nodes_A2 = pNodesA2.size();
-        std::cout << "submodel_number_of_nodes A2.................." << submodel_number_of_nodes_A2 << std::endl;
+        std::cout << "nº nodes " << submodel_number_of_nodes_A1 << " " << submodel_number_of_nodes_A2 << std::endl;
 
         // KRATOS_ERROR_IF(pNodesA1.size() != pNodesA2.size())<<"The number of nodes is not consistent between edges"<<std::endl;
 
         for (unsigned int inode = 0; inode < submodel_number_of_nodes_A1; inode++) {
 
-            ModelPart::NodeIterator i_iteratorA1 = pNodesA1.ptr_begin() + inode;
-            Aux_Node = *i_iteratorA1;
+            ModelPart::NodeIterator iteratorA1 = mpNodesA1->ptr_begin() + inode;
+            Aux_Node = *iteratorA1;
 
-            const int& aux_id = Aux_Node.Id(); 
+            aux_id = Aux_Node.Id(); 
             IDs_A1.push_back(aux_id);
-
-        }
-
-        for (unsigned int inode = 0; inode < submodel_number_of_nodes_A2; inode++) {
-
-            ModelPart::NodeIterator i_iteratorA2 = pNodesA2.ptr_begin() + inode;
-            Aux_Node = *i_iteratorA2;
-
-            const int& aux_id = Aux_Node.Id(); 
-            IDs_A2.push_back(aux_id);
-
-        }
-
-        // unsigned int values[] = { 20, 60, 40, 25, 15, 2 };
-        // int compare(const void * a, const void * b ){
-        //     return ( *(int*)a - *(int*)b );
-        // }
-
-        // qsort(values, 6, sizeof(int), compare);
-        // std::cout << values << std::endl;
-
-        sorted_labels_A1 = IDs_A1;
-        sorted_labels_A2 = IDs_A2; 
-
-        for (unsigned int inode = 0; inode < submodel_number_of_nodes_A1; inode++) {
-
-            aux_label = sorted_labels_A1[inode];
-            Aux_Node = r_model_part.GetNode(aux_label);
             coords_A1 = Aux_Node.Coordinates();
+            coord_X_1 = Aux_Node.X();
+            coord_X0_1 = Aux_Node.X0();
 
-            aux_label = sorted_labels_A2[inode];
-            Aux_Node = r_model_part.GetNode(aux_label);
+            aux_id = Aux_Node.Id(); 
+            IDs_A2.push_back(aux_id);
             coords_A2 = Aux_Node.Coordinates();
+            coord_X_2 = Aux_Node.X();
+            coord_X0_2 = Aux_Node.X0();            
 
-            directive_coords = 0.5*(coords_A1 + coords_A2);                     
+            coords_directive = 0.5*(coords_A1 + coords_A2);
 
-            RES_directive << directive_coords[0] << " " << directive_coords[1] << " " << directive_coords[2] << "\n";                         
+            // RES_directive << "Node: " << coords_directive[0] << " " coords_directive[1] << " " coords_directive[2] << " "<< "\n"; 
 
-        }
+        }                        
 
     //         int label_B = sorted_labels_B[inode];
     //         Aux_Node = r_model_part.GetNode(label_B);
@@ -206,25 +166,19 @@ namespace Kratos {
 // -------------------------------------------------------------------------------------------------
     void ComputeReactionsOfBeamSolids(ModelPart& r_model_part){
 
-        typedef ModelPart::NodesContainerType NodesArrayType;
+        double feed_pressure=0, rotation_pressure=0, area=0.587141e-3;
 
         array_1d<double,3> coords,reactions;
 
         Node < 3 > Aux_Node;
 
-        double feed_pressure=0, rotation_pressure=0, area=0;
-
         std::ofstream RES_reactions("RES_reactions.txt", std::ios_base::out | std::ios_base::app);
-        area = 0.587141e-3;
 
 
-        ModelPart& Base = r_model_part.GetSubModelPart("DISPLACEMENT_BC");
-        NodesArrayType& pNodes = Base.GetCommunicator().LocalMesh().Nodes();
+        for (unsigned int inode = 0; inode < mpNodesBC->size(); inode++) {
 
-        for (unsigned int inode = 0; inode < pNodes.size(); inode++) {
-
-            ModelPart::NodeIterator i_iteratorA = pNodes.ptr_begin() + inode;
-            Aux_Node = *i_iteratorA;
+            ModelPart::NodeIterator iteratorBC = mpNodesBC->ptr_begin() + inode;
+            Aux_Node = *iteratorBC;
 
             reactions = Aux_Node.FastGetSolutionStepValue(REACTION);
             coords = Aux_Node.Coordinates();
