@@ -100,6 +100,8 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // stabilization validation adjoint elements
       mRansCircularConvectionRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      // stabilization adjoint validation conditions
+      mRansScalarEquationAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       // k-epsilon adjoint elements
       mRansKEpsilonQSVMSRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mRansKEpsilonQSVMSRFCAdjoint3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -219,6 +221,7 @@ void KratosRANSApplication::Register()
     KRATOS_REGISTER_VARIABLE( RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY )
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_VELOCITY)
+    KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_VELOCITY_POTENTIAL)
     KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_PRESSURE)
     KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_KINETIC_ENERGY)
     KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_TURBULENT_ENERGY_DISSIPATION_RATE)
@@ -337,6 +340,9 @@ void KratosRANSApplication::Register()
 
     // registering stabilization validation adjoint elements
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFCAdjoint2D3N", mRansCircularConvectionRFCAdjoint2D3N);
+
+    // registering stabilization validation adjoint conditions
+    KRATOS_REGISTER_CONDITION("RansScalarEquationAdjoint2D2N", mRansScalarEquationAdjoint2D2N);
 
     // registering k-epsilon adjoint elements
     KRATOS_REGISTER_ELEMENT("RansKEpsilonQSVMSRFCAdjoint2D3N", mRansKEpsilonQSVMSRFCAdjoint2D3N);

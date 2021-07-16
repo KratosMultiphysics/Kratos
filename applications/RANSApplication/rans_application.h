@@ -89,6 +89,7 @@
 
 // adjoint conditions
 #include "custom_conditions/two_equation_turbulence_model_adjoint_condition.h"
+#include "custom_conditions/scalar_equation_adjoint_condition.h"
 
 // adjoint condition data containers
 // k-epsilon condition data containers
@@ -297,6 +298,9 @@ private:
 
     // stabilization validation adjoint elements
     const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData> mRansCircularConvectionRFCAdjoint2D3N;
+
+    // stabilization validation adjoint conditions
+    const ScalarEquationAdjointCondition<2, 2> mRansScalarEquationAdjoint2D2N;
 
     // k-epsilon turbulence model adjoint elements
     const TwoEquationTurbulenceModelAdjointElement<2, 3, KEpsilonElementData::QSVMSRFCAdjointElementData<2, 3>> mRansKEpsilonQSVMSRFCAdjoint2D3N;

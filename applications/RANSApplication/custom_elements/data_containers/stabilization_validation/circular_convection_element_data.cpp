@@ -90,8 +90,8 @@ void CircularConvectionElementData::CalculateGaussPointData(
     KRATOS_TRY
 
     const ArrayD& gauss_coordinates = prod(mNodalCoordinates, rShapeFunctions);
-    mEffectiveVelocity[0] = (-mRotationCenter[0] + gauss_coordinates[1]) * mRotationFactor;
-    mEffectiveVelocity[1] = ( mRotationCenter[1] - gauss_coordinates[0]) * mRotationFactor;
+    mEffectiveVelocity[0] = (-mRotationCenter[1] + gauss_coordinates[1]) * mRotationFactor;
+    mEffectiveVelocity[1] = ( mRotationCenter[0] - gauss_coordinates[0]) * mRotationFactor;
 
     KRATOS_CATCH("");
 }
