@@ -121,15 +121,13 @@ def AssembleTestSuites():
     nightSuite.addTest(FractionalStepKOmegaSSTTest("testVMSRfcTkeTransient"))
 
     # For very long tests that should not be in nighly and you can use to validate
-    # validationSuite = suites['validation']
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKOmegaTwoElementsTest]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite)
-
-    validationSuite = suites['validation']
-    validationSuite.addTests(allSuite)
-    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKOmegaTwoElementsTest]))
+    allSuite.addTests(validationSuite)
 
     return suites
 
@@ -144,3 +142,4 @@ if __name__ == '__main__':
     KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
     KratosUnittest.runTests(AssembleTestSuites())
     KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
+
