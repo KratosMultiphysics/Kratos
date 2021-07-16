@@ -133,35 +133,27 @@ namespace Kratos
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
-            double LocalTangentU,
-            double LocalTangentV,
-            double LocalTangentW,
+            BoundedMatrix<double,3,2> LocalTangentMatrix,
             GeometryType* pGeometryParent)
         {
             return Kratos::make_shared<
                 QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
                     rPoints,
                     rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV,
-                    LocalTangentW,
+                    LocalTangentMatrix,
                     pGeometryParent);
         }
 
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
-            double LocalTangentU,
-            double LocalTangentV,
-            double LocalTangentW)
+            BoundedMatrix<double,3,2> LocalTangentMatrix)
         {
             return Kratos::make_shared<
                 QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
                     rPoints,
                     rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV,
-                    LocalTangentW);
+                    LocalTangentMatrix );
         }
 
         static GeometryPointerType CreateQuadraturePoint(
