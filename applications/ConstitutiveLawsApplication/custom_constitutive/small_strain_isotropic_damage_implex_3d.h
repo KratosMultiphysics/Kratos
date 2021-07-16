@@ -66,7 +66,11 @@ public:
     ///@name Type Definitions
     ///@{
     typedef ProcessInfo ProcessInfoType;
+    typedef SmallStrainIsotropicDamage3D BaseType;
     typedef std::size_t SizeType;
+
+    using BaseType::Has;
+    using BaseType::CalculateValue;
 
     // Counted pointer
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamageImplex3D);
@@ -99,16 +103,10 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This function is designed to be called once to check compatibility with element
-     * @param rFeatures The Features of the law
-     */
-    void GetLawFeatures(Features& rFeatures) override;
 
     /**
      * @brief Returns whether this constitutive Law has specified variable (double)
@@ -116,13 +114,6 @@ public:
      * @return true if the variable is defined in the constitutive law
      */
     bool Has(const Variable<double>& rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector>& rThisVariable) override;
 
     /**
      * @brief Returns the value of a specified variable (Vector)
@@ -174,24 +165,6 @@ public:
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
     /**
-     * @brief Indicates if this CL requires initialization of the material response,
-     * called by the element in InitializeMaterialResponse.
-     */
-    bool RequiresInitializeMaterialResponse() override
-    {
-        return false;
-    }
-
-    /**
-     * @brief Indicates if this CL requires finalization of the material response,
-     * called by the element in FinalizeMaterialResponse.
-     */
-    bool RequiresFinalizeMaterialResponse() override
-    {
-        return true;
-    }
-
-    /**
      * @brief Finalize the material response in terms of Cauchy stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -208,31 +181,6 @@ public:
     double& CalculateValue(Parameters& rValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
-
-    /**
-     * @brief calculates the value of a specified variable (Vector)
-     * @param rValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-     Vector& CalculateValue(Parameters& rValues,
-                            const Variable<Vector>& rThisVariable,
-                            Vector& rValue) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
-     * @param rMaterialProperties The properties of the material
-     * @param rElementGeometry The geometry of the element
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
 
     ///@}
     ///@name Inquiry
@@ -263,34 +211,6 @@ protected:
 
     ///@name Protected Operations
     ///@{
-
-    /**
-     * @brief This method computes the positive stress vector, which in the traction-only model, is different from the stress vector.
-     * @param rStressVectorPos
-     * @param rStressVector
-     */
-    void ComputePositiveStressVector(
-            Vector& rStressVectorPos,
-            Vector& rStressVector) override;
-
-    /**
-     * @brief Computes H(r), the hardening module value as a function of the strain variable
-     * @param StrainVariable The properties of the material
-     * @param rMaterialProperties The elastic tensor/matrix to be computed
-     */
-    double EvaluateHardeningModulus(
-            double StrainVariable,
-            const Properties &rMaterialProperties);
-
-    /**
-     * @brief Computes q(r), the hardening law value as a function of the strain variable
-     * @param StrainVariable The properties of the material
-     * @param rMaterialProperties The elastic tensor/matrix to be computed
-     */
-    double EvaluateHardeningLaw(
-            double StrainVariable,
-            const Properties &rMaterialProperties);
-
     ///@}
 
 private:
@@ -328,6 +248,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-}; // class SmallStrainIsotropicDamage3D
+}; // class SmallStrainIsotropicDamageImplex3D
 } // namespace Kratos
 #endif
