@@ -86,7 +86,7 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
         super().Finalize()
 
-class TestDEMInlet(KratosUnittest.TestCase):
+class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
@@ -106,6 +106,28 @@ class TestDEMInlet(KratosUnittest.TestCase):
             project_parameters = Kratos.Parameters(parameter_file.read())
 
         TestDEMInletAnalysis(model, project_parameters).Run()
+
+class TestDiscreteDEMInlet(KratosUnittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    @staticmethod
+    def Say(*args):
+        Logger.PrintInfo("DEM", *args)
+        Logger.Flush()
+
+    @classmethod
+    def test_piecewise_linear_inlet(self):
+        path = TestDEMInletAnalysis.GetMainPath()
+        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        model = Kratos.Model()
+
+        with open(parameters_file_name, 'r') as parameter_file:
+            project_parameters = Kratos.Parameters(parameter_file.read())
+
+        TestDEMInletAnalysis(model, project_parameters).Run()
+
 
 if __name__ == "__main__":
     if debug_mode:

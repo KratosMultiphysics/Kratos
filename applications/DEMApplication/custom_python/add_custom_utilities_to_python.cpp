@@ -35,6 +35,8 @@
 #include "custom_utilities/multiaxial_control_module_generalized_2d_utilities.hpp"
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
+
 
 namespace Kratos {
 
@@ -385,6 +387,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("Sample", &PiecewiseLinearRandomVariable::Sample)
         .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
         .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
+        ;
+
+    py::class_<DiscreteRandomVariable, DiscreteRandomVariable::Pointer, RandomVariable>(m, "DiscreteRandomVariable")
+        .def(py::init<const Parameters>())
+        .def(py::init<const Parameters, const int>())
+        .def("Sample", &DiscreteRandomVariable::Sample)
+        .def("ProbabilityDensity", &DiscreteRandomVariable::ProbabilityDensity)
+        .def("GetMean", &DiscreteRandomVariable::GetMean)
         ;
 
     }

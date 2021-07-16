@@ -25,7 +25,9 @@
 #include "includes/condition.h"
 #include "custom_elements/discrete_element.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
+#include "custom_utilities/discrete_random_variable.h"
 #include "custom_utilities/properties_proxies.h"
 #include "custom_elements/spheric_particle.h"
 
@@ -117,7 +119,7 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
-        std::map<std::string, PiecewiseLinearRandomVariable> mInletsRandomVariables;
+        std::map<std::string, RandomVariable> mInletsRandomVariables;
         std::map<std::string, Parameters> mInletsRandomSettings;
         Parameters mInletsSettings;
     };

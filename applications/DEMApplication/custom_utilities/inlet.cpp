@@ -192,14 +192,24 @@ namespace Kratos {
                 mLastInjectionTimes[smp_number] = mp[INLET_START_TIME];
             }
 
-            if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
+            if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
                 if (!mInletsSettings.Has(mp.Name())){
                     KRATOS_ERROR << "dem_inlet_settings does not contain settings for the inlet" << mp.Name() << ". Please, provide them.";
                 }
                 const Parameters& inlet_settings = mInletsSettings[mp.Name()];
                 mInletsRandomSettings.emplace(mp.Name(), inlet_settings["random_variable_settings"]);
                 const Parameters& rv_settings = mInletsRandomSettings[mp.Name()];
-                mInletsRandomVariables.emplace(mp.Name(), PiecewiseLinearRandomVariable(rv_settings));
+                if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear"){
+                    mInletsRandomVariables.emplace(mp.Name(), PiecewiseLinearRandomVariable(rv_settings));
+                }
+
+                else if (mp[PROBABILITY_DISTRIBUTION] == "discrete_linear"){
+                    mInletsRandomVariables.emplace(mp.Name(), DiscreteRandomVariable(rv_settings));
+                }
+
+                else {
+                    KRATOS_ERROR << "Unknown DEM inlet random variable: " << mp[PROBABILITY_DISTRIBUTION] << ".";
+                }
             }
 
             Element::Pointer dummy_element_pointer;
