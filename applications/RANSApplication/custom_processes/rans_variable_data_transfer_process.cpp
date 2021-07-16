@@ -438,7 +438,7 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
                 << " is of double variable type, but destination variable "
                 << destination_variable_name
                 << " not found in double variables database." << std::endl;
-            const auto& r_destination_variable = KratosComponents<Variable<double>>::Get(source_variable_name);
+            const auto& r_destination_variable = KratosComponents<Variable<double>>::Get(destination_variable_name);
 
             mCopyDoubleVariableDataList.push_back(CopyVariableData<Variable<double>>(
                 r_source_variable, is_source_variable_historical,
@@ -451,7 +451,7 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
                 << "Source variable " << source_variable_name << " is of array_1d<double, 3> variable type, but destination variable "
                 << destination_variable_name
                 << " not found in array_1d<double, 3> variables database." << std::endl;
-            const auto& r_destination_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(source_variable_name);
+            const auto& r_destination_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(destination_variable_name);
 
             mCopyArray3DVariableDataList.push_back(CopyVariableData<Variable<array_1d<double, 3>>>(
                 r_source_variable, is_source_variable_historical,
@@ -464,7 +464,7 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
                 << " is of Vector variable type, but destination variable "
                 << destination_variable_name
                 << " not found in Vector variables database." << std::endl;
-            const auto& r_destination_variable = KratosComponents<Variable<Vector>>::Get(source_variable_name);
+            const auto& r_destination_variable = KratosComponents<Variable<Vector>>::Get(destination_variable_name);
 
             mCopyVectorVariableDataList.push_back(CopyVariableData<Variable<Vector>>(
                 r_source_variable, is_source_variable_historical,
@@ -477,7 +477,7 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
                 << " is of Matrix variable type, but destination variable "
                 << destination_variable_name
                 << " not found in Matrix variables database." << std::endl;
-            const auto& r_destination_variable = KratosComponents<Variable<Matrix>>::Get(source_variable_name);
+            const auto& r_destination_variable = KratosComponents<Variable<Matrix>>::Get(destination_variable_name);
 
             mCopyMatrixVariableDataList.push_back(CopyVariableData<Variable<Matrix>>(
                 r_source_variable, is_source_variable_historical,

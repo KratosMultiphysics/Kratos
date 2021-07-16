@@ -135,12 +135,10 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {},
             "adaptive_mesh_refinement_based_on_response_function": false,
             "adaptive_mesh_refinement_based_on_response_function_settings": {
-                "primal_problem_project_parameters_file_name" : "PLEASE_SPECIFY_PRIMAL_PROBLEM_PROJECT_PARAMETERS_FILE_NAME",
-                "adjoint_problem_project_parameters_file_name": "PLEASE_SPECIFY_ADJOINT_PROBLEM_PROJECT_PARAMETERS_FILE_NAME",
-                "time_range"                                  : [0.0, 1e+30],
-                "step_interval"                               : 10,
-                "output_model_part_name"                      : "adapted_mesh",
-                "output_log_files_folder_name"                : "logs",
+                "time_range"                                                : [0.0, 1e+30],
+                "step_interval"                                             : 50,
+                "output_model_part_name"                                    : "adapted_mesh",
+                "response_function_interpolation_error_computation_settings": {},
                 "mmg_process_parameters": {
                     "strategy"               : "hessian",
                     "automatic_remesh"       : false,
@@ -313,12 +311,12 @@ class CoupledRANSSolver(PythonSolver):
             CoupledRANSSolver._ExecuteRecursively(self.formulation,
                 lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(True) if x.GetStrategy() is not None else None)
 
-            self.perform_automatic_mesh_refinement = False
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 
         self.formulation.InitializeSolutionStep()
 
         if (self.perform_automatic_mesh_refinement):
+            self.perform_automatic_mesh_refinement = False
             # re-set all the dofs
             CoupledRANSSolver._ExecuteRecursively(self.formulation,
                 lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(False) if x.GetStrategy() is not None else None)
@@ -346,7 +344,9 @@ class CoupledRANSSolver(PythonSolver):
             current_time = self.main_model_part.ProcessInfo[Kratos.TIME]
             if (current_time >= automatic_mesh_refinement_time_range[0] and current_time <= automatic_mesh_refinement_time_range[1]):
                 if (self.automatic_mesh_refinement_step % adaptive_mesh_refinement_settings["step_interval"].GetInt() == 0):
-                    self._ExecuteAdaptiveMeshRefinementBasedOnResponseFunction(current_time)
+                    Kratos.ModelPartIO(adaptive_mesh_refinement_settings["output_model_part_name"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+                    self.formulation.ComputeTransientResponseFunctionInterpolationError(adaptive_mesh_refinement_settings["response_function_interpolation_error_computation_settings"].Clone())
+                    self.perform_automatic_mesh_refinement = True
                 self.automatic_mesh_refinement_step += 1
 
     def Finalize(self):
@@ -463,103 +463,6 @@ class CoupledRANSSolver(PythonSolver):
             Kratos.VariableUtils().SetVariable(Kratos.VISCOSITY, nu, self.main_model_part.Nodes)
 
             break
-
-    def _ExecuteAdaptiveMeshRefinementBasedOnResponseFunction(self, current_time):
-        if (not self.is_steady):
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Performing adaptive mesh refinement...")
-
-            adaptive_mesh_refinement_based_on_response_function_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
-
-            log_path = Path(adaptive_mesh_refinement_based_on_response_function_settings["output_log_files_folder_name"].GetString())
-            log_path.mkdir(parents=True, exist_ok=True)
-            current_step = self.main_model_part.ProcessInfo[Kratos.STEP]
-            primal_log_file_name = str(log_path / "primal_error_analysis_evaluation_step_{:d}.log".format(current_step))
-            adjoint_log_file_name = str(log_path / "adjoint_error_analysis_evaluation_step_{:d}.log".format(current_step))
-
-            # write the current mesh so primal and adjoint problems can read it properly
-            Kratos.ModelPartIO(adaptive_mesh_refinement_based_on_response_function_settings["output_model_part_name"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
-
-            # set the starting point of the simulation to current step
-            dt = self._ComputeDeltaTime()
-            time_steps = adaptive_mesh_refinement_based_on_response_function_settings["step_interval"].GetInt()
-            start_time = current_time
-            end_time = current_time + dt * time_steps
-
-            # compute the list of variables to be passed as initial conditions for primal
-            # and adjoint problem
-            list_of_solving_variables = []
-            for var in self.formulation.GetSolvingVariables():
-                time_derivative_vars_list = GetTimeDerivativeVariablesRecursively(var)
-                for time_derivative_var in time_derivative_vars_list:
-                    list_of_solving_variables.append(time_derivative_var)
-
-            total_variables_list = []
-            for var in list_of_solving_variables:
-                total_variables_list.append((var.Name(), True, var.Name(), True))
-            total_variables_list.append(("RELAXED_ACCELERATION", False, "RELAXED_ACCELERATION", False))
-
-            # open primal parameters
-            with open(adaptive_mesh_refinement_based_on_response_function_settings["primal_problem_project_parameters_file_name"].GetString(),'r') as parameter_file:
-                primal_parameters = Kratos.Parameters(parameter_file.read())
-
-            primal_parameters["problem_data"]["start_time"].SetDouble(start_time)
-            primal_parameters["problem_data"]["end_time"].SetDouble(end_time)
-
-            # solve the primal problem
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving primal problem for error analysis...")
-            default_severity, file_logger = AddFileLoggerOutput(primal_log_file_name)
-            from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
-            primal_model = Kratos.Model()
-            primal_simulation = RANSAnalysis(primal_model, primal_parameters)
-            with open(str(log_path / "primal_error_analysis_evaluation_step_{:d}.json".format(current_step)), "w") as file_output:
-                file_output.write(primal_parameters.PrettyPrintJsonString())
-            primal_simulation.Run()
-            RemoveFileLoggerOutput(default_severity, file_logger)
-
-            # copy time averaged quantities from the primal_simulation
-            time_averaged_variable_data = [
-                ("TIME_AVERAGED_{:s}".format(var.Name()), False, "TIME_AVERAGED_{:s}".format(var.Name()), False) for var in self.formulation.GetSolvingVariables()
-            ]
-            KratosRANS.RansVariableDataTransferProcess(
-                primal_model,
-                self.main_model_part.GetModel(),
-                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
-                self.main_model_part.FullName(),
-                ["execute"],
-                time_averaged_variable_data,
-                self.echo_level).Execute()
-
-            # open adjoint problem
-            with open(adaptive_mesh_refinement_based_on_response_function_settings["adjoint_problem_project_parameters_file_name"].GetString(),'r') as parameter_file:
-                adjoint_parameters = Kratos.Parameters(parameter_file.read())
-
-            adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time + dt)
-            adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
-
-            # run adjoint problem
-            # importing is done here to avoid circular dependency
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving adjoint problem for error analysis...")
-            default_severity, file_logger = AddFileLoggerOutput(adjoint_log_file_name)
-            from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
-            adjoint_model = Kratos.Model()
-            adjoint_simulation = AdjointRANSAnalysis(adjoint_model, adjoint_parameters)
-            with open(str(log_path / "adjoint_error_analysis_evaluation_step_{:d}.json".format(current_step)), "w") as file_output:
-                file_output.write(adjoint_parameters.PrettyPrintJsonString())
-            adjoint_simulation.Run()
-            RemoveFileLoggerOutput(default_severity, file_logger)
-
-            # copy interpolation error data from adjoint model.
-            KratosRANS.RansVariableDataTransferProcess(
-                adjoint_model,
-                self.main_model_part.GetModel(),
-                adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
-                self.main_model_part.FullName(),
-                ["execute"],
-                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False)],
-                self.echo_level).Execute()
-
-            self.perform_automatic_mesh_refinement = True
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response based interpolation errors for adaptive mesh refinement.")
 
     def _RecreateFormulationModelParts(self, formulation, original_model_part):
         if (formulation.GetModelPart() is not None):

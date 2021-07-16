@@ -1,4 +1,5 @@
 from importlib import import_module
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
@@ -342,3 +343,22 @@ def RemoveFileLoggerOutput(default_severity, file_logger):
     Kratos.Logger.Flush()
     Kratos.Logger.RemoveOutput(file_logger)
     Kratos.Logger.GetDefaultOutput().SetSeverity(default_severity)
+
+def SolveProblem(analysis_class_type, kratos_parameters, execution_prefix):
+    # set the loggers
+    default_severity, file_logger = AddFileLoggerOutput(execution_prefix + ".log")
+
+    # run the primal analysis
+    model = Kratos.Model()
+    primal_simulation = analysis_class_type(model, kratos_parameters)
+    primal_simulation.Run()
+
+    with open(execution_prefix + ".json", "w") as file_output:
+        file_output.write(kratos_parameters.PrettyPrintJsonString())
+
+    # flush the primal output
+    RemoveFileLoggerOutput(default_severity, file_logger)
+    Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(execution_prefix + ".json"))
+
+    return model, primal_simulation
+
