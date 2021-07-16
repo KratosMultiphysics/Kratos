@@ -366,9 +366,7 @@ void RansAdjointUtilities::RescaleShapeSensitivity(ModelPart& rModelPart)
 void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
     ModelPart& rModelPart,
     const double Gamma,
-    const double DeltaTime,
-    const IndexType NumberOfRefinedNodes,
-    const double RelaxationFactor)
+    const double DeltaTime)
 {
     KRATOS_TRY
 
@@ -394,10 +392,6 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
         << "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2 is not calculated properly in elements in "
         << rModelPart.Name() << ".\n";
 
-    KRATOS_ERROR_IF_NOT(r_front_element.Has(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR))
-        << "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR is not calculated properly in elements in "
-        << rModelPart.Name() << ".\n";
-
     KRATOS_ERROR_IF_NOT(r_front_element.Has(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE))
         << "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE is not calculated properly in elements in "
         << rModelPart.Name() << ".\n";
@@ -410,12 +404,6 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
         << ", RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2.size() = " << r_front_element.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2).size()
         << " ].\n";
 
-    KRATOS_ERROR_IF(r_front_element.GetValue(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR).size() != number_of_dofs_per_node)
-        << "Size mismatch between RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1 and RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR vectors in " << rModelPart.Name() << "."
-        << " [ RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1.size() = " << number_of_dofs_per_node
-        << ", RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR.size() = " << r_front_element.GetValue(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR).size()
-        << " ].\n";
-
     KRATOS_ERROR_IF(r_front_element.GetValue(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE).size() != number_of_dofs_per_node)
         << "Size mismatch between RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1 and RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE vectors in " << rModelPart.Name() << "."
         << " [ RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1.size() = " << number_of_dofs_per_node
@@ -426,7 +414,7 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
 
     const double coeff_1 = std::abs((Gamma - 1.0) / Gamma);
     const double coeff_2 = std::abs(1.0 / (Gamma * DeltaTime));
-    const double coeff_3 = 1.0 / (number_of_elements * NumberOfRefinedNodes);
+    const double coeff_3 = 1.0 / number_of_elements;
     const double coeff_4 = 1.0 / r_front_element.GetGeometry().size();
 
     const ZeroVector zero(number_of_dofs_per_node);
@@ -435,13 +423,14 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
     });
 
     block_for_each(rModelPart.Elements(), Vector(), [&](ElementType& rElement, Vector& rTLS) {
+        const double domain_size = rElement.GetGeometry().DomainSize();
         // get a^{n,h}_m
         const auto& r_auxiliary_values_1 = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1);
         // get b^{n,h}_m
         const auto& r_auxiliary_values_2 = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2);
 
         // these currently hold previous time step errors
-        auto& r_response_function_dofs_interpolation_error  = rElement.GetValue(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR);
+        auto& r_response_function_dofs_interpolation_error  = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR);
         auto& r_response_function_dofs_interpolation_error_rate  = rElement.GetValue(RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE);
 
         KRATOS_DEBUG_ERROR_IF(r_auxiliary_values_1.size() != number_of_dofs_per_node)
@@ -462,15 +451,6 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
             << ", RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2.size() = "
             << r_auxiliary_values_2.size() << " ].\n";
 
-        KRATOS_DEBUG_ERROR_IF(r_response_function_dofs_interpolation_error.size() != number_of_dofs_per_node)
-            << "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR.size() is "
-               "not equal to number of dofs per node in element data container "
-               "with id "
-            << rElement.Id() << " in " << rModelPart.Name()
-            << " [ number of dofs per node = " << number_of_dofs_per_node
-            << ", RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR.size() = "
-            << r_response_function_dofs_interpolation_error.size() << " ].\n";
-
         KRATOS_DEBUG_ERROR_IF(r_response_function_dofs_interpolation_error_rate.size() != number_of_dofs_per_node)
             << "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE.size() is "
                "not equal to number of dofs per node in element data container "
@@ -484,47 +464,41 @@ void RansAdjointUtilities::CalculateTransientReponseFunctionInterpolationError(
             rTLS.resize(number_of_dofs_per_node, false);
         }
 
-        const auto& r_response_function_interpolation_auxiliary_1_extremum = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM);
-        const auto& r_response_function_interpolation_auxiliary_2_extremum = rElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM);
-
         for (IndexType i = 0; i < number_of_dofs_per_node; ++i) {
-            // calculate current allowed elemental response function interpolation error
+            // now calculate current time step interpolation
             //**************************************************************************************
-            rTLS[i] = std::max(
-                coeff_3 * r_auxiliary_values_1[i] -
-                    (coeff_1 * r_response_function_dofs_interpolation_error_rate[i] +
-                     coeff_2 * r_response_function_dofs_interpolation_error[i]) *
-                        r_auxiliary_values_2[i] * RelaxationFactor,
-                0.0);
-
-            // update elemental allowed response function interpolation error
-            r_response_function_dofs_interpolation_error[i] = std::max(
-                coeff_3 * r_response_function_interpolation_auxiliary_1_extremum -
-                    (coeff_1 * r_response_function_dofs_interpolation_error_rate[i] +
-                     coeff_2 * r_response_function_dofs_interpolation_error[i]) *
-                        r_response_function_interpolation_auxiliary_2_extremum,
-                0.0);
+            rTLS[i] = (coeff_3 +
+                       (coeff_1 * r_response_function_dofs_interpolation_error_rate[i] +
+                        coeff_2 * r_response_function_dofs_interpolation_error[i]) *
+                           r_auxiliary_values_2[i]) *
+                      domain_size / std::max(r_auxiliary_values_1[i], 1e-30);
 
             // update elemental allowed response function interpolation error rate
             r_response_function_dofs_interpolation_error_rate[i] =
-                coeff_2 * r_response_function_dofs_interpolation_error[i] +
-                coeff_1 * r_response_function_dofs_interpolation_error_rate[i];
+                r_response_function_dofs_interpolation_error_rate[i] * coeff_1 +
+                coeff_2 * (r_response_function_dofs_interpolation_error[i] + rTLS[i]);
+
+            r_response_function_dofs_interpolation_error[i] = rTLS[i];
             //**************************************************************************************
         }
 
         // distribute elemental response function interpolation error to nodes
         for (auto& r_node : rElement.GetGeometry()) {
             r_node.SetLock();
-            r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY) += rTLS * coeff_4;
+            noalias(r_node.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY)) += rTLS * coeff_4;
             r_node.UnSetLock();
         }
     });
 
     rModelPart.GetCommunicator().AssembleNonHistoricalData(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY);
 
-    // add current time step nodal response function interpolation error to final error
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        noalias(rNode.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR)) += rNode.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY);
+    block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        auto& aggregated_interpolation_errors = rNode.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR);
+        const auto& current_interpolation_error = rNode.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY);
+
+        for (IndexType i = 0; i < number_of_dofs_per_node; ++i) {
+            aggregated_interpolation_errors[i] = 1.0 / (1.0 / aggregated_interpolation_errors[i] + 1.0 / current_interpolation_error[i]);
+        }
     });
 
     KRATOS_CATCH("");

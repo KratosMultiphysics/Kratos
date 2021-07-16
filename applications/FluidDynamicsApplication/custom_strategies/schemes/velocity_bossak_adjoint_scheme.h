@@ -144,8 +144,6 @@ public:
 
                 rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1, zero_vector_values);
                 rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2, zero_vector_values);
-                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM, 0.0);
-                rElement.SetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM, 0.0);
             });
 
         }
@@ -169,6 +167,15 @@ public:
         mC3 = (mBossak.Gamma - 1.0) / mBossak.Gamma;
         mC4 = 1.0 - mBossak.Alpha;
         mC5 = (1.0 - mBossak.Alpha) / mBossak.Alpha;
+
+        if (mpElementRefinementProcess) {
+            int num_threads = ParallelUtilities::GetNumThreads();
+
+            IndexPartition<int>(num_threads).for_each([&](const int) {
+                auto& r_thread_local_refined_model_part = mpElementRefinementProcess->GetThreadLocalModelPart();
+                r_thread_local_refined_model_part.GetProcessInfo() = rModelPart.GetProcessInfo();
+            });
+        }
 
         KRATOS_CATCH("")
     }
@@ -609,7 +616,7 @@ private:
         };
 
         block_for_each(rModelPart.Elements(), TLS(mpElementRefinementProcess, number_of_dofs_per_node), [&](Element& rCoarseElement, TLS& rTLS) {
-            auto& r_process_info = rTLS.pRefinedModelPart->GetProcessInfo();
+            const auto& r_process_info = rTLS.pRefinedModelPart->GetProcessInfo();
 
             for (auto& p : rTLS.AssemblyData) {
                 std::get<1>(p.second) = 0.0;
@@ -668,22 +675,14 @@ private:
 
             auto& r_response_function_interpolation_auxiliary_1 = rCoarseElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1);
             auto& r_response_function_interpolation_auxiliary_2 = rCoarseElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2);
-            auto& r_response_function_interpolation_auxiliary_1_extremum = rCoarseElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1_EXTREMUM);
-            auto& r_response_function_interpolation_auxiliary_2_extremum = rCoarseElement.GetValue(RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2_EXTREMUM);
 
             noalias(r_response_function_interpolation_auxiliary_1) = zero_vector_values;
             noalias(r_response_function_interpolation_auxiliary_2) = zero_vector_values;
-            r_response_function_interpolation_auxiliary_1_extremum = 0.0;
-            r_response_function_interpolation_auxiliary_2_extremum = std::numeric_limits<double>::max();
 
             for (auto& p : rTLS.AssemblyData) {
                 const IndexType dof_id = std::get<0>(p.second);
-                const double inv_a = 1.0 / std::abs(std::get<1>(p.second));
-                const double b_over_a = std::abs(std::get<2>(p.second)) * inv_a;
-                r_response_function_interpolation_auxiliary_1_extremum = std::max(r_response_function_interpolation_auxiliary_1_extremum, inv_a);
-                r_response_function_interpolation_auxiliary_2_extremum = std::min(r_response_function_interpolation_auxiliary_2_extremum, b_over_a);
-                r_response_function_interpolation_auxiliary_1[dof_id] += inv_a;
-                r_response_function_interpolation_auxiliary_2[dof_id] += b_over_a;
+                r_response_function_interpolation_auxiliary_1[dof_id] += std::abs(std::get<1>(p.second));
+                r_response_function_interpolation_auxiliary_2[dof_id] += std::abs(std::get<2>(p.second));
             }
         });
 

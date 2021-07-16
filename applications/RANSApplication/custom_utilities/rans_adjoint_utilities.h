@@ -95,9 +95,7 @@ public:
     static void CalculateTransientReponseFunctionInterpolationError(
         ModelPart& rModelPart,
         const double Gamma,
-        const double DeltaTime,
-        const IndexType NumberOfRefinedNodes,
-        const double RelaxationFactor);
+        const double DeltaTime);
 
     ///@}
     ///@name Classes
