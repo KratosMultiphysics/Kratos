@@ -42,8 +42,8 @@ namespace Kratos {
 
         const SizeType nb_knots_u_old = knots_u_old.size();
 
-        const SizeType a = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, *knots_u_old.begin());
-        const SizeType b = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, *knots_u_old.end());
+        const SizeType a = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, knots_u_old[0]);
+        const SizeType b = NurbsUtilities::GetUpperSpan(degree_u, knots_u_old, knots_u_old[knots_u_old.size() - 1]);
 
         const SizeType nb_cp_u_refined = nb_cp_u_old + nb_knots_u_to_insert;
         const SizeType nb_knots_u_refined = nb_knots_u_old + nb_knots_u_to_insert;
@@ -195,8 +195,8 @@ namespace Kratos {
 
         const SizeType nb_knots_v_old = knots_v_old.size();
 
-        const SizeType a = NurbsUtilities::GetUpperSpan(degree_v, knots_v_old, *knots_v_old.begin());
-        const SizeType b = NurbsUtilities::GetUpperSpan(degree_v, knots_v_old, *knots_v_old.end());
+        const SizeType a = NurbsUtilities::GetUpperSpan(degree_v, knots_v_old, knots_v_old[0]);
+        const SizeType b = NurbsUtilities::GetUpperSpan(degree_v, knots_v_old, knots_v_old[knots_v_old.size() - 1]);
 
         const SizeType nb_cp_v_refined = nb_cp_v_old + nb_knots_v_to_insert;
         const SizeType nb_knots_v_refined = nb_knots_v_old + nb_knots_v_to_insert;
