@@ -16,7 +16,6 @@
 #include "small_strain_isotropic_damage_3d.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
-#include "constitutive_laws_application_variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -135,7 +134,7 @@ void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(1);
-    this->CalculateStressResponse(rParametersValues, internal_variables);
+    CalculateStressResponse(rParametersValues, internal_variables);
     mStrainVariable = internal_variables[0];
 }
 
@@ -186,7 +185,8 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 
         if (strain_norm <= mStrainVariable)
         {
-            // ELASTIC
+            // elastic regime
+
             r = mStrainVariable;
             const double q = EvaluateHardeningLaw(r, r_material_properties);
             const double d = 1. - q / r;
@@ -195,7 +195,8 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         }
         else
         {
-            // INELASTIC
+            // inelastic regime
+
             r = strain_norm;
             const double q = EvaluateHardeningLaw(r, r_material_properties);
             const double d = 1. - q / r;
@@ -508,7 +509,7 @@ int SmallStrainIsotropicDamage3D::Check(
 
 void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ElasticIsotropic3D);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
@@ -517,7 +518,7 @@ void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 
 void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ElasticIsotropic3D);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
