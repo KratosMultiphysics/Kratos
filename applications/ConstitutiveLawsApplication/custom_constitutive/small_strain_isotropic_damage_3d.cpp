@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/checks.h"
@@ -39,8 +39,7 @@ SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(
 
 ConstitutiveLaw::Pointer SmallStrainIsotropicDamage3D::Clone() const
 {
-    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(
-        SmallStrainIsotropicDamage3D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
@@ -421,7 +420,7 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
         rValue = 1. - stress_like_variable / mStrainVariable;
 
     } else {
-        ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+        BaseType::CalculateValue(rParametersValues, rThisVariable, rValue);
 
     }
 
@@ -438,7 +437,7 @@ Vector& SmallStrainIsotropicDamage3D::CalculateValue(
     )
 {
     //Explicitly having STRAIN and INITAL_STRAIN_VECTOR calculated in base class
-    ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+    BaseType::CalculateValue(rParametersValues, rThisVariable, rValue);
     return(rValue);
 }
 
@@ -504,7 +503,7 @@ int SmallStrainIsotropicDamage3D::Check(
 
 void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ElasticIsotropic3D);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
@@ -513,7 +512,7 @@ void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 
 void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ElasticIsotropic3D);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 

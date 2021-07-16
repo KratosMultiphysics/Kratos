@@ -65,8 +65,9 @@ public:
     ///@name Type Definitions
     ///@{
     typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
+    typedef ElasticIsotropic3D BaseType;
     typedef std::size_t SizeType;
+    using BaseType::Has;
 
     // Counted pointer
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainIsotropicDamage3D);
@@ -99,8 +100,8 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    ///@}
 
+    ///@}
     ///@name Operations
     ///@{
 
