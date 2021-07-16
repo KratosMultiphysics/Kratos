@@ -33,6 +33,9 @@ void ContactAngleEvaluator::Execute()
 {
     KRATOS_TRY;
 
+    const double theta_advancing = 149.0*PI/180.0;
+    const double theta_receding = 115.0*PI/180.0;
+
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();
 
@@ -162,7 +165,7 @@ void ContactAngleEvaluator::Execute()
             const double contact_angle = avg_contact_angle/weight;
             it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = contact_angle;
 
-            if (it_node->GetValue(IS_STRUCTURE) == 1.0 && contact_angle > 115 && contact_angle < 149){
+            if (it_node->GetValue(IS_STRUCTURE) == 1.0 && contact_angle > theta_receding && contact_angle < theta_advancing){
                 it_node->Fix(DISTANCE);
             }
 
