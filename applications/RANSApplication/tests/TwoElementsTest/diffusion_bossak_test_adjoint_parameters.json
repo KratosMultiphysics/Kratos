@@ -1,0 +1,83 @@
+{
+    "problem_data": {
+        "problem_name": "one_element",
+        "start_time": 0.0,
+        "end_time": 3e-3,
+        "echo_level": 0,
+        "parallel_type": "OpenMP"
+    },
+    "solver_settings": {
+        "solver_type": "AdjointRANSSolver",
+        "response_function_settings": {
+            "response_type": "domain_integrated",
+            "custom_settings": {
+                "variable_name": "VELOCITY_POTENTIAL"
+            }
+        },
+        "sensitivity_settings": {
+            "sensitivity_model_part_name": "Boundary",
+            "nodal_solution_step_sensitivity_variables": [
+                "SHAPE_SENSITIVITY"
+            ],
+            "build_mode": "integrate",
+            "nodal_solution_step_sensitivity_calculation_is_thread_safe": true
+        },
+        "primal_problem_project_parameters_file_name": "./TwoElementsTest/diffusion_bossak_test_parameters.json",
+        "linear_solver_settings": {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list": [
+            {
+                "python_module": "assign_flag_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart",
+                    "flag_name": "STRUCTURE",
+                    "interval": [
+                        0.0,
+                        1e30
+                    ],
+                    "value": true,
+                    "entities": [
+                        "elements"
+                    ]
+                }
+            }
+        ],
+        "boundary_conditions_process_list": [
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Structure",
+                    "variable_name": "RANS_SCALAR_1_ADJOINT_1",
+                    "value": 0.0
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignScalarVariableProcess",
+                "Parameters": {
+                    "model_part_name": "MainModelPart.Outlet",
+                    "variable_name": "RANS_SCALAR_1_ADJOINT_1",
+                    "value": 0.0
+                }
+            }
+        ],
+        "gravity": [],
+        "auxiliar_process_list": [
+            {
+                "kratos_module": "KratosMultiphysics.RANSApplication",
+                "python_module": "primal_hdf5_input_process",
+                "Parameters": {
+                    "model_part_name": "MainModelPart"
+                }
+            }
+        ]
+    }
+}

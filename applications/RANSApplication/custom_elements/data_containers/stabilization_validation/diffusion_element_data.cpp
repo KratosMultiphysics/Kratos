@@ -48,6 +48,18 @@ void DiffusionElementData::Check(
 
     const auto& r_geometry = rElement.GetGeometry();
 
+    const auto& r_properties = rElement.GetProperties();
+
+    KRATOS_ERROR_IF_NOT(r_properties.Has(DYNAMIC_VISCOSITY))
+        << "DYNAMIC_VISCOSITY is not found in properties with id "
+        << r_properties.Id() << " in element with id " << rElement.Id() << ".\n";
+
+    KRATOS_ERROR_IF(r_properties[DYNAMIC_VISCOSITY] <= 0.0)
+        << "DYNAMIC_VISCOSITY is needs to be greater than zero in properties "
+           "with id "
+        << r_properties.Id() << " in element with id " << rElement.Id()
+        << " [ DYNAMIC_VISCOSITY = " << r_properties[DYNAMIC_VISCOSITY] << " ].\n";
+
     for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node) {
         const auto& r_node = r_geometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, r_node);

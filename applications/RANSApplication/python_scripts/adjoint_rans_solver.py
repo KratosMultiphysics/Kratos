@@ -140,6 +140,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
 
         self.adjoint_element_map = {
             ("RansCircularConvectionRFC",) : "RansCircularConvectionRFCAdjoint",
+            ("RansDiffusionRFC",) : "RansDiffusionRFCAdjoint",
             ("QSVMS", ) : "QSVMSAdjoint",
             ("QSVMS", "RansKEpsilonKRFC", "RansKEpsilonEpsilonRFC") : "RansKEpsilonQSVMSRFCAdjoint",
             ("QSVMS", "RansKOmegaKRFC", "RansKOmegaOmegaRFC") : "RansKOmegaQSVMSRFCAdjoint",
@@ -574,15 +575,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
     def __CreateSensitivityBuilder(self):
         response_function = self.GetResponseFunction()
 
-        element_names = tuple(self.formulation.GetElementNames())
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-
-        if (element_names == (("QSVMS"), )):
-            block_size = domain_size + 1
-        elif (element_names == (("RansCircularConvectionRFC"),)):
-            block_size = 1
-        else:
-            block_size = domain_size + 3
+        block_size = len(self.formulation.GetSolvingVariables())
 
         time_scheme_settings = self.settings["time_scheme_settings"]
         time_scheme_type = time_scheme_settings["scheme_type"].GetString()
@@ -626,15 +620,8 @@ class AdjointRANSSolver(CoupledRANSSolver):
     def _CreateScheme(self):
         response_function = self.GetResponseFunction()
 
-        element_names = tuple(self.formulation.GetElementNames())
         domain_size = self.main_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-
-        if (element_names == (("QSVMS"), )):
-            block_size = domain_size + 1
-        elif (element_names == (("RansCircularConvectionRFC"),)):
-            block_size = 1
-        else:
-            block_size = domain_size + 3
+        block_size = len(self.formulation.GetSolvingVariables())
 
         self.element_refinement_process = None
         if (self.adjoint_settings["compute_response_function_interpolation_error"].GetBool()):

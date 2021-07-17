@@ -40,6 +40,7 @@ from fractional_step_k_omega_sst_formulation_tests import FractionalStepKOmegaSS
 
 ### adjoint two element test_classes
 from adjoint_cc_two_elements_tests import AdjointCircularConvectionTwoElementsTest
+from adjoint_diffusion_two_elements_tests import AdjointDiffusionTwoElementsTest
 from adjoint_ke_two_elements_tests import AdjointKEpsilonTwoElementsTest
 from adjoint_kw_two_elements_tests import AdjointKOmegaTwoElementsTest
 
@@ -81,6 +82,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointKEpsilonTwoElementsTest]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointCircularConvectionTwoElementsTest]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([AdjointDiffusionTwoElementsTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

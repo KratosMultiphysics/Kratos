@@ -35,6 +35,7 @@
 // Derivative data type includes
 // stabilization validaton
 #include "custom_elements/data_containers/stabilization_validation/circular_convection_element_data_derivatives.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_element_data_derivatives.h"
 
 // k-epsilon
 #include "custom_elements/data_containers/k_epsilon/k_element_data_derivatives.h"
@@ -580,6 +581,10 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<TDim, TNum
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::PhiDerivative>;
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::CircularConvectionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::CircularConvectionElementDataDerivatives::ShapeDerivative>;
+
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::DiffusionElementDataDerivatives::PhiDerivative>;
+template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, StabilizationValidationElementData::DiffusionElementDataDerivatives::Data>::VariableDerivatives<StabilizationValidationElementData::DiffusionElementDataDerivatives::ShapeDerivative>;
 
 // k-epsilon k element derivatives
 template class ConvectionDiffusionReactionResidualBasedFluxCorrectedDerivatives<2, 3, KEpsilonElementData::KElementDataDerivatives<2, 3>::Data>;

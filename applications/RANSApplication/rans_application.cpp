@@ -103,6 +103,7 @@ KratosRANSApplication::KratosRANSApplication()
       mRansKOmegaSSTOmegaUBasedWall3D3N(0,Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3)))),
       // stabilization validation adjoint elements
       mRansCircularConvectionRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mRansDiffusionRFCAdjoint2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       // stabilization adjoint validation conditions
       mRansScalarEquationAdjoint2D2N(0,Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2)))),
       // k-epsilon adjoint elements
@@ -346,6 +347,7 @@ void KratosRANSApplication::Register()
 
     // registering stabilization validation adjoint elements
     KRATOS_REGISTER_ELEMENT("RansCircularConvectionRFCAdjoint2D3N", mRansCircularConvectionRFCAdjoint2D3N);
+    KRATOS_REGISTER_ELEMENT("RansDiffusionRFCAdjoint2D3N", mRansDiffusionRFCAdjoint2D3N);
 
     // registering stabilization validation adjoint conditions
     KRATOS_REGISTER_CONDITION("RansScalarEquationAdjoint2D2N", mRansScalarEquationAdjoint2D2N);

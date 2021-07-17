@@ -84,6 +84,7 @@
 
 // adjoint element data containers
 #include "custom_elements/data_containers/stabilization_validation/circular_convection_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_epsilon/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega/qsvms_rfc_adjoint_element_data.h"
 #include "custom_elements/data_containers/k_omega_sst/qsvms_rfc_adjoint_element_data.h"
@@ -303,6 +304,7 @@ private:
 
     // stabilization validation adjoint elements
     const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData> mRansCircularConvectionRFCAdjoint2D3N;
+    const ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::DiffusionRFCAdjointElementData> mRansDiffusionRFCAdjoint2D3N;
 
     // stabilization validation adjoint conditions
     const ScalarEquationAdjointCondition<2, 2> mRansScalarEquationAdjoint2D2N;

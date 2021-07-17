@@ -29,6 +29,7 @@
 
 // data containers
 #include "custom_elements/data_containers/stabilization_validation/circular_convection_rfc_adjoint_element_data.h"
+#include "custom_elements/data_containers/stabilization_validation/diffusion_rfc_adjoint_element_data.h"
 
 // Include base h
 #include "scalar_equation_adjoint_element.h"
@@ -767,5 +768,6 @@ void ScalarEquationAdjointElement<TDim, TNumNodes, TAdjointElementData>::Calcula
 // template instantiations
 // k-epsilon
 template class ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::CircularConvectionRFCAdjointElementData>;
+template class ScalarEquationAdjointElement<2, 3, StabilizationValidationElementData::DiffusionRFCAdjointElementData>;
 
 } // namespace Kratos
