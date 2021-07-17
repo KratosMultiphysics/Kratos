@@ -447,6 +447,7 @@ class AdjointRANSSolver(CoupledRANSSolver):
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Running forward interpolation error calculation with {:f} relaxation.".format(self.interpolation_error_relaxation))
             for index, current_time_step in enumerate(self.adjoint_list_of_time_steps):
                 model_part.ProcessInfo[Kratos.TIME] = current_time_step
+                model_part.ProcessInfo[Kratos.STEP] = index + 1
 
                 # read RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1 and RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2
                 response_function_interpolation_data_input_process.ExecuteInitializeSolutionStep()

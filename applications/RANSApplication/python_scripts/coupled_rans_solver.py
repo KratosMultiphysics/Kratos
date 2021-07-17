@@ -139,7 +139,7 @@ class CoupledRANSSolver(PythonSolver):
                 "step_interval"                                             : 50,
                 "output_model_part_name"                                    : "adapted_mesh",
                 "response_function_interpolation_error_computation_settings": {},
-                "mmg_process_parameters": {
+                "mmg_mesh_refinement_process_parameters": {
                     "strategy"               : "hessian",
                     "automatic_remesh"       : false,
                     "enforce_current"        : false,
@@ -157,6 +157,22 @@ class CoupledRANSSolver(PythonSolver):
                     "force_min"       : true,
                     "force_max"       : true,
                     "echo_level"      : 3
+                },
+                "apply_mesh_optimization": true,
+                "mmg_mesh_optimization_process_parameters": {
+                    "strategy"        : "optimization",
+                    "model_part_name" : "FluidModelPart",
+                    "step_frequency"  : 1,
+                    "automatic_remesh": true,
+                    "automatic_remesh_parameters": {
+                        "automatic_remesh_type": "Ratio",
+                        "min_size_ratio": 1e-4,
+                        "max_size_ratio": 1e+4,
+                        "refer_type"    : "Mean"
+                    },
+                    "echo_level": 0,
+                    "force_min" : true,
+                    "force_max" : true
                 }
             }
         }""")
@@ -273,14 +289,23 @@ class CoupledRANSSolver(PythonSolver):
 
     def InitializeSolutionStep(self):
         if (self.perform_automatic_mesh_refinement):
+            adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
             # perform adaptive remeshing
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Remeshing based on response function error analysis...")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Performing adaptive mesh refinement based on response function error analysis...")
             from KratosMultiphysics.MeshingApplication.mmg_process import MmgProcess
-            remeshing_process = MmgProcess(self.main_model_part.GetModel(), self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]["mmg_process_parameters"])
+            remeshing_process = MmgProcess(self.main_model_part.GetModel(), adaptive_mesh_refinement_settings["mmg_mesh_refinement_process_parameters"].Clone())
             remeshing_process.ExecuteInitialize()
             remeshing_process.ExecuteInitializeSolutionStep()
             remeshing_process.ExecuteFinalizeSolutionStep()
             remeshing_process.ExecuteFinalize()
+
+            if adaptive_mesh_refinement_settings["apply_mesh_optimization"].GetBool():
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Optimizing refined mesh...")
+                remeshing_process = MmgProcess(self.main_model_part.GetModel(), adaptive_mesh_refinement_settings["mmg_mesh_optimization_process_parameters"].Clone())
+                remeshing_process.ExecuteInitialize()
+                remeshing_process.ExecuteInitializeSolutionStep()
+                remeshing_process.ExecuteFinalizeSolutionStep()
+                remeshing_process.ExecuteFinalize()
 
             # re-do tetrahedral mesh orientation check
             tmoc = Kratos.TetrahedralMeshOrientationCheck

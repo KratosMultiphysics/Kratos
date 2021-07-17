@@ -71,10 +71,10 @@ class DiffusionRansFormulation(ScalarRansFormulation):
     def ComputeTransientResponseFunctionInterpolationError(self, settings):
         # in here we need to calculate response function interpolation error
         default_settings = Kratos.Parameters("""{
-            "primal_transient_project_parameters_file_name": "PLEASE_SPECIFY_TRANSIENT_PRIMAL_PROJECT_PARAMETERS_FILE",
-            "adjoint_steady_project_parameters_file_name"  : "PLEASE_SPECIFY_STEADY_ADJOINT_PROJECT_PARAMETERS_FILE",
-            "logs_path"                                    : "logs",
-            "number_of_transient_steps_to_consider"        : 50
+            "primal_transient_project_parameters_file_name" : "PLEASE_SPECIFY_TRANSIENT_PRIMAL_PROJECT_PARAMETERS_FILE",
+            "adjoint_transient_project_parameters_file_name": "PLEASE_SPECIFY_TRANSIENT_ADJOINT_PROJECT_PARAMETERS_FILE",
+            "logs_path"                                     : "logs",
+            "number_of_transient_steps_to_consider"         : 50
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -131,12 +131,12 @@ class DiffusionRansFormulation(ScalarRansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving adjoint solution for transient response function interpolation error calculation...")
 
         # open adjoint parameters json file
-        with open(settings["adjoint_steady_project_parameters_file_name"].GetString(), "r") as file_input:
+        with open(settings["adjoint_transient_project_parameters_file_name"].GetString(), "r") as file_input:
             adjoint_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
 
         # set start time and end time
-        adjoint_parameters["problem_data"]["start_time"].SetDouble(0.0)
-        adjoint_parameters["problem_data"]["end_time"].SetDouble(1.0)
+        adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time)
+        adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
 
         # solve adjoint problem
         from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
