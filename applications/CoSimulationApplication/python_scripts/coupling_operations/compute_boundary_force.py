@@ -7,6 +7,9 @@ from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupl
 # Additional imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
+# CoSimulation imports
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 def Create(*args):
     return ComputeBoundaryForce(*args)
 
@@ -49,7 +52,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                     warn_msg = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
                     warn_msg += '"' + file_handler_settings["file_name"].GetString() + '"}\n'
                     warn_msg += 'Using this specififed file name instead of the default "' + output_file_name + '"'
-                    KM.Logger.PrintWarning("ComputeBoundaryForce", warn_msg)
+                    cs_tools.cs_print_info(self._ClassName(), warn_msg)
                 else:
                     file_handler_settings.AddEmptyValue("file_name")
                     file_handler_settings["file_name"].SetString(output_file_name)
@@ -75,7 +78,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
                     res_labels = ['time: ', 'vel_x: ', 'vel_y: ', 'vel_z: ', 'f_x: ', 'f_y: ', 'f_z: ', 'p: ',]
                     result_msg = 'Boundary Force force evaluation for model part ' + self.model_part_name + '\n'
                     result_msg += ', '.join([a + b for a, b in zip(res_labels, output_values)])
-                    KM.Logger.PrintInfo('ComputeBoundaryForce', result_msg)
+                    cs_tools.cs_print_info(self._ClassName(), result_msg)
                 
                 if(self.write_output_file):
                     self.output_file.write(' '.join(output_values) + '\n')
@@ -125,7 +128,7 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
         
         if self.echo_level > 1:
             info_msg = "Computed boundary forces for model part \"" + self.model_part_name  + "\" in solver: \"" + self.settings["solver"].GetString() + "\""
-            KM.Logger.PrintInfo("ComputeBoundaryForce", info_msg)
+            cs_tools.cs_print_info(self._ClassName(), info_msg)
         
         return velocity + sum_forces + pressure_list
     
