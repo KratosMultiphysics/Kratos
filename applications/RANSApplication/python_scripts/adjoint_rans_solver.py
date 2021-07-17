@@ -420,9 +420,6 @@ class AdjointRANSSolver(CoupledRANSSolver):
                 "output_interval"                             : 1.0,
                 "output_sub_model_parts"                      : false,
                 "output_path"                                 : "goal_error_vtk_output",
-                "nodal_solution_step_data_variables"          : [
-                    "VELOCITY_POTENTIAL"
-                ],
                 "nodal_data_value_variables"                  : [
                     "RESPONSE_FUNCTION_INTERPOLATION_ERROR"
                 ],
@@ -431,9 +428,6 @@ class AdjointRANSSolver(CoupledRANSSolver):
                     "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_1",
                     "RESPONSE_FUNCTION_INTERPOLATION_ERROR_AUXILIARY_2",
                     "RANS_RESPONSE_FUNCTION_DOFS_INTERPOLATION_ERROR_RATE"
-                ],
-                "element_flags": [
-                    "STRUCTURE"
                 ]
             }""")
 
