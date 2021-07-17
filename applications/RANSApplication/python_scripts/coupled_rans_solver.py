@@ -138,6 +138,8 @@ class CoupledRANSSolver(PythonSolver):
                 "time_range"                                                : [0.0, 1e+30],
                 "step_interval"                                             : 50,
                 "output_model_part_name"                                    : "adapted_mesh",
+                "re_calculate_time_step_after_refinement"                                    : false,
+                "desired_cfl_number_after_refinement"                          : 10.0,
                 "response_function_interpolation_error_computation_settings": {},
                 "mmg_mesh_refinement_process_parameters": {
                     "strategy"               : "hessian",
@@ -335,6 +337,19 @@ class CoupledRANSSolver(PythonSolver):
             # re-set all the dofs
             CoupledRANSSolver._ExecuteRecursively(self.formulation,
                 lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(True) if x.GetStrategy() is not None else None)
+
+            # re-calculate time step if required
+            if adaptive_mesh_refinement_settings["re_calculate_time_step_after_refinement"].GetBool():
+                desired_cfl_number_after_refinement = adaptive_mesh_refinement_settings["desired_cfl_number_after_refinement"].GetDouble()
+                KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.main_model_part)
+
+                # now calculate the max cfl number in the domain
+                import KratosMultiphysics.StatisticsApplication as KratosStats
+                max_cfl, _ = KratosStats.SpatialMethods.NonHistorical.Elements.NormMethods.Max(self.main_model_part, Kratos.CFL_NUMBER, "value")
+
+                new_time_step = self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl
+                self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 

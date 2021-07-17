@@ -1,4 +1,3 @@
-from os import terminal_size
 from pathlib import Path
 
 # import kratos
@@ -7,11 +6,11 @@ import KratosMultiphysics as Kratos
 # import RANS
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-# import utilities
-from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
-
 # import formulation interface
 from KratosMultiphysics.RANSApplication.formulations.scalar_rans_formulation import ScalarRansFormulation
+
+# import utilities
+from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
 
 class DiffusionRansFormulation(ScalarRansFormulation):
     def __init__(self, model_part, settings):

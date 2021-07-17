@@ -1,3 +1,5 @@
+from pathlib import Path
+
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 
@@ -9,6 +11,7 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 from KratosMultiphysics.RANSApplication.formulations.rans_formulation import RansFormulation
 
 # import utilities
+from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRansFormulationModelPart
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
