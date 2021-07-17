@@ -344,6 +344,7 @@ class CoupledRANSSolver(PythonSolver):
             # re-calculate time step if required
             if adaptive_mesh_refinement_settings["re_calculate_time_step_after_refinement"].GetBool():
                 time_step_re_calculation_settings = adaptive_mesh_refinement_settings["time_step_re_calculation_settings"]
+                time_step_re_calculation_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"]["time_step_re_calculation_settings"])
 
                 # now calculate the max cfl number in the domain
                 KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.main_model_part)
@@ -355,6 +356,11 @@ class CoupledRANSSolver(PythonSolver):
                 new_time_step = max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble())
                 self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
+
+            # store the mdpa for post processing
+            mdpa_path = Path("refined_mdpas")
+            mdpa_path.mkdir(exist_ok=True)
+            Kratos.ModelPartIO(str(mdpa_path / "refined_step_{:d}".format(self.main_model_part.ProcessInfo[Kratos.STEP])), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 
@@ -384,6 +390,7 @@ class CoupledRANSSolver(PythonSolver):
 
         if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
             adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
+            adaptive_mesh_refinement_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"])
             automatic_mesh_refinement_time_range = adaptive_mesh_refinement_settings["time_range"].GetVector()
 
             current_time = self.main_model_part.ProcessInfo[Kratos.TIME]

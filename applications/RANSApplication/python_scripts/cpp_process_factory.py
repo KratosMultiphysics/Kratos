@@ -62,6 +62,10 @@ def Factory(settings, Model):
         [
             "VariableDataTransferProcess",
             KratosRANS.RansVariableDataTransferProcess
+        ],
+        [
+            "ComputePreviousStepBossakSecondDerivativesProcess",
+            KratosRANS.RansComputePreviousStepBossakSecondDerivativesProcess
         ]
     ]
 

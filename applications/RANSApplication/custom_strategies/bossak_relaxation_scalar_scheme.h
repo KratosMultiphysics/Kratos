@@ -217,6 +217,23 @@ public:
                                        rEquationIdVector, rCurrentProcessInfo);
     }
 
+    void UpdateScalarRateVariables(ModelPart& rModelPart)
+    {
+        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative());
+            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative(), 1);
+            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
+            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
+
+            // update scalar rate variable
+            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
+
+            // update relaxed scalar rate variable
+            rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()) =
+                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
+        });
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -383,23 +400,6 @@ private:
         }
 
         KRATOS_CATCH("");
-    }
-
-    void UpdateScalarRateVariables(ModelPart& rModelPart)
-    {
-        block_for_each(rModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
-            double& r_current_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative());
-            const double old_rate = rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative(), 1);
-            const double current_value = rNode.FastGetSolutionStepValue(mrScalarVariable);
-            const double old_value = rNode.FastGetSolutionStepValue(mrScalarVariable, 1);
-
-            // update scalar rate variable
-            r_current_rate = mBossak.C2 * (current_value - old_value) - mBossak.C3 * old_rate;
-
-            // update relaxed scalar rate variable
-            rNode.FastGetSolutionStepValue(mrScalarVariable.GetTimeDerivative().GetTimeDerivative()) =
-                this->mAlphaBossak * old_rate + (1.0 - this->mAlphaBossak) * r_current_rate;
-        });
     }
 
     ///@}

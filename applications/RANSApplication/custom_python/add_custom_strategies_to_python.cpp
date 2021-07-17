@@ -51,7 +51,8 @@ void AddCustomStrategiesToPython(pybind11::module& m)
 
     using BossakRelaxationScalarSchemeType = BossakRelaxationScalarScheme<SparseSpaceType, LocalSpaceType>;
     py::class_<BossakRelaxationScalarSchemeType, typename BossakRelaxationScalarSchemeType::Pointer, BaseSchemeType>(m, "BossakRelaxationScalarScheme")
-        .def(py::init<const double, const double, const Variable<double>&>());
+        .def(py::init<const double, const double, const Variable<double>&>())
+        .def("UpdateScalarRateVariables", &BossakRelaxationScalarSchemeType::UpdateScalarRateVariables);
 
 }
 

@@ -15,9 +15,11 @@ class CustomProcessTest(UnitTest.TestCase):
     def setUpClass(cls):
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("FluidModelPart")
+        cls.model_part.SetBufferSize(2)
 
         # add required variables to solution step list
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
@@ -29,8 +31,10 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.TURBULENT_VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_Y_PLUS)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_1)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
 
         cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
@@ -48,8 +52,12 @@ class CustomProcessTest(UnitTest.TestCase):
     def setUp(self):
         # reinitialize variables for each test
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.ACCELERATION, 0.0, 10.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.ACCELERATION, 20.0, 50.0, 1)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 20.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 50.0, 100.0, 1)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
 
@@ -336,6 +344,45 @@ class CustomProcessTest(UnitTest.TestCase):
 
         CalculateNormalsOnConditions(self.model_part)
         self._RunProcessTest(settings)
+
+    def testComputePreviousStepBossakSecondDerivativesProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "python_module" : "cpp_process_factory",
+                "process_name"  : "ComputePreviousStepBossakSecondDerivativesProcess",
+                "Parameters" : {
+                    "model_part_name" : "FluidModelPart",
+                    "execution_points": ["initialize"],
+                    "echo_level"      : 1,
+                    "variables_list"  : [
+                        {
+                            "second_derivative_variable_name"        : "TURBULENT_KINETIC_ENERGY_RATE",
+                            "relaxed_second_derivative_variable_name": "RANS_AUXILIARY_VARIABLE_1",
+                            "is_relaxed_second_derivative_historical": true
+                        }
+                    ]
+                }
+            }
+        ]''')
+
+        scalar_scheme = KratosRANS.BossakRelaxationScalarScheme(-0.3, 1.0, KratosRANS.TURBULENT_KINETIC_ENERGY)
+        scalar_scheme.UpdateScalarRateVariables(self.model_part)
+
+        second_derivative_values = {}
+        for node in self.model_part.Nodes:
+            second_derivative_values[node.Id] = [
+                node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 0),
+                node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1)]
+            node.SetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1, 0.0)
+
+        self._RunProcessTest(settings)
+
+        for node in self.model_part.Nodes:
+            current_nodal_data = second_derivative_values[node.Id]
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 0), current_nodal_data[0], 9)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosRANS.TURBULENT_KINETIC_ENERGY_RATE, 1), current_nodal_data[1], 9)
 
     def _RunProcessTest(self, settings):
         with UnitTest.WorkFolderScope(".", __file__):

@@ -37,6 +37,7 @@
 #include "custom_processes/rans_nut_nodal_update_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
 #include "custom_processes/rans_variable_data_transfer_process.h"
+#include "custom_processes/rans_compute_previous_step_bossak_second_derivatives_process.h"
 
 // Include base h
 #include "custom_python/add_custom_processes_to_python.h"
@@ -69,6 +70,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansLineOutputProcess, RansLineOutputProcess::Pointer, Process>(m, "RansLineOutputProcess")
         .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansComputePreviousStepBossakSecondDerivativesProcess, RansComputePreviousStepBossakSecondDerivativesProcess::Pointer, Process>(m, "RansComputePreviousStepBossakSecondDerivativesProcess")
+        .def(py::init<Model&, Parameters&>())
+        ;
 
     // adding RansFormulationProcesses
     py::class_<RansFormulationProcess, RansFormulationProcess::Pointer, Process>(m, "RansFormulationProcess")
