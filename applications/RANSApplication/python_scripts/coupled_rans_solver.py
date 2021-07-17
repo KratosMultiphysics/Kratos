@@ -135,11 +135,14 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {},
             "adaptive_mesh_refinement_based_on_response_function": false,
             "adaptive_mesh_refinement_based_on_response_function_settings": {
-                "time_range"                                                : [0.0, 1e+30],
-                "step_interval"                                             : 50,
-                "output_model_part_name"                                    : "adapted_mesh",
-                "re_calculate_time_step_after_refinement"                                    : false,
-                "desired_cfl_number_after_refinement"                          : 10.0,
+                "time_range"                             : [0.0, 1e+30],
+                "step_interval"                          : 50,
+                "output_model_part_name"                 : "adapted_mesh",
+                "re_calculate_time_step_after_refinement": false,
+                "time_step_re_calculation_settings: {
+                    "desired_cfl_number": 10.0,
+                    "minimum_time_step" : 1e-5
+                },
                 "response_function_interpolation_error_computation_settings": {},
                 "mmg_mesh_refinement_process_parameters": {
                     "strategy"               : "hessian",
@@ -340,14 +343,16 @@ class CoupledRANSSolver(PythonSolver):
 
             # re-calculate time step if required
             if adaptive_mesh_refinement_settings["re_calculate_time_step_after_refinement"].GetBool():
-                desired_cfl_number_after_refinement = adaptive_mesh_refinement_settings["desired_cfl_number_after_refinement"].GetDouble()
-                KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.main_model_part)
+                time_step_re_calculation_settings = adaptive_mesh_refinement_settings["time_step_re_calculation_settings"]
 
                 # now calculate the max cfl number in the domain
+                KratosCFD.FluidCharacteristicNumbersUtilities.CalculateLocalCFL(self.main_model_part)
                 import KratosMultiphysics.StatisticsApplication as KratosStats
                 max_cfl, _ = KratosStats.SpatialMethods.NonHistorical.Elements.NormMethods.Max(self.main_model_part, Kratos.CFL_NUMBER, "value")
 
-                new_time_step = self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl
+                # now calculate the new time step
+                desired_cfl_number_after_refinement = time_step_re_calculation_settings["desired_cfl_number"].GetDouble()
+                new_time_step = max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble())
                 self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
 
