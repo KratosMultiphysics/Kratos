@@ -139,7 +139,7 @@ class CoupledRANSSolver(PythonSolver):
                 "step_interval"                          : 50,
                 "output_model_part_name"                 : "adapted_mesh",
                 "re_calculate_time_step_after_refinement": false,
-                "time_step_re_calculation_settings: {
+                "time_step_re_calculation_settings": {
                     "desired_cfl_number": 10.0,
                     "minimum_time_step" : 1e-5
                 },
