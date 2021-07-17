@@ -135,7 +135,7 @@ class DiffusionRansFormulation(ScalarRansFormulation):
             adjoint_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
 
         # set start time and end time
-        adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time)
+        adjoint_parameters["problem_data"]["start_time"].SetDouble(start_time + current_dt)
         adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
 
         # solve adjoint problem
