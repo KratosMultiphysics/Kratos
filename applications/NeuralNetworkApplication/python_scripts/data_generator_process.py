@@ -313,4 +313,6 @@ class DataGeneratorProcess(KM.Process):
                     nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_output_parameters, self.hdf5_file_training_output)
                     nodal_io.WriteNodalResults(self.model_part,1)
 
+    def IsOutputStep(self):
+        return False
 
