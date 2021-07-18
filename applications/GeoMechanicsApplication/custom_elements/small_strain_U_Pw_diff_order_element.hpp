@@ -196,6 +196,7 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double Density;
 
         //Properties and processinfo variables
         bool IgnoreUndrained;
@@ -305,6 +306,7 @@ protected:
                                      RetentionLaw::Parameters &rRetentionParameters,
                                      const unsigned int &GPoint );
 
+    void CalculateSoilDensity(ElementVariables &rVariables);
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

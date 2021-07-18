@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -462,16 +463,19 @@ void SmallStrainUPwDiffOrderElement::
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+
+    // create general parametes of retention law
+    RetentionLaw::Parameters RetentionParameters(rGeom, this->GetProperties(), rCurrentProcessInfo);
 
     Matrix M = ZeroMatrix(BlockElementSize, BlockElementSize);
 
     //Defining shape functions and the determinant of the jacobian at all integration points
 
     //Loop over integration points
-    double Porosity = GetProperties()[POROSITY];
-    double Density = Porosity*GetProperties()[DENSITY_WATER] + (1.0-Porosity)*GetProperties()[DENSITY_SOLID];
-    Matrix Nu = ZeroMatrix( Dim , NumUNodes * Dim );
+    Matrix Nu                = ZeroMatrix( Dim , NumUNodes * Dim );
+    Matrix AuxDensityMatrix  = ZeroMatrix( Dim , NumUNodes * Dim );
+    Matrix DensityMatrix     = ZeroMatrix( Dim, Dim );
 
     for ( SizeType PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
@@ -483,6 +487,9 @@ void SmallStrainUPwDiffOrderElement::
                                               Variables.detJ0,
                                               IntegrationPoints[PointNumber].Weight());
 
+        CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
+
+        this->CalculateSoilDensity(Variables);
 
         //Setting the shape function matrix
         SizeType Index = 0;
@@ -494,8 +501,13 @@ void SmallStrainUPwDiffOrderElement::
             }
         }
 
+        GeoElementUtilities::
+            AssembleDensityMatrix(DensityMatrix, Variables.Density);
+
+        noalias(AuxDensityMatrix) = prod(DensityMatrix, Nu);
+
         //Adding contribution to Mass matrix
-        noalias(M) += Density*prod(trans(Nu),Nu) * Variables.IntegrationCoefficient;
+        noalias(M) += prod(trans(Nu), AuxDensityMatrix) * Variables.IntegrationCoefficient;
     }
 
     //Distribute mass block matrix into the elemental matrix
@@ -2226,12 +2238,10 @@ void SmallStrainUPwDiffOrderElement::
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
-    const PropertiesType& Prop = this->GetProperties();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
 
-    const double Porosity = Prop[POROSITY];
-    const double Density = Porosity*Prop[DENSITY_WATER] + (1.0-Porosity)*Prop[DENSITY_SOLID];
+    this->CalculateSoilDensity(rVariables);
 
     Vector BodyAcceleration = ZeroVector(Dim);
     SizeType Index = 0;
@@ -2249,13 +2259,31 @@ void SmallStrainUPwDiffOrderElement::
         Index = i * Dim;
         for (SizeType idim=0; idim < Dim; ++idim)
         {
-            rRightHandSideVector[Index+idim] += rVariables.Nu[i] * Density * BodyAcceleration[idim] * rVariables.IntegrationCoefficient;
+            rRightHandSideVector[Index+idim] += rVariables.Nu[i] * rVariables.Density * BodyAcceleration[idim] * rVariables.IntegrationCoefficient;
         }
     }
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << std::endl;
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    CalculateSoilDensity(ElementVariables &rVariables)
+{
+    KRATOS_TRY;
+    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
+    const PropertiesType& Prop = this->GetProperties();
+
+    rVariables.Density = (  rVariables.DegreeOfSaturation
+                          * Prop[POROSITY]
+                          * Prop[DENSITY_WATER] )
+                        + (1.0 - Prop[POROSITY])*Prop[DENSITY_SOLID];
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
+    KRATOS_CATCH("");
+
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

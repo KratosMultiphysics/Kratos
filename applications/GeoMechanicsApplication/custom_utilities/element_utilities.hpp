@@ -209,6 +209,19 @@ public:
         }
     }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
