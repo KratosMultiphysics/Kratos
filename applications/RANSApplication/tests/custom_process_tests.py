@@ -345,19 +345,19 @@ class CustomProcessTest(UnitTest.TestCase):
         CalculateNormalsOnConditions(self.model_part)
         self._RunProcessTest(settings)
 
-    def testComputePreviousStepBossakSecondDerivativesProcess(self):
+    def testInitializeBossakPreviousStepVariableDerivatives(self):
         settings = Kratos.Parameters(r'''
         [
             {
                 "kratos_module" : "KratosMultiphysics.RANSApplication",
                 "python_module" : "cpp_process_factory",
-                "process_name"  : "ComputePreviousStepBossakSecondDerivativesProcess",
+                "process_name"  : "InitializeBossakPreviousStepVariableDerivatives",
                 "Parameters" : {
                     "model_part_name" : "FluidModelPart",
-                    "execution_points": ["initialize"],
                     "echo_level"      : 1,
                     "variables_list"  : [
                         {
+                            "first_derivative_variable_name"         : "TURBULENT_KINETIC_ENERGY",
                             "second_derivative_variable_name"        : "TURBULENT_KINETIC_ENERGY_RATE",
                             "relaxed_second_derivative_variable_name": "RANS_AUXILIARY_VARIABLE_1",
                             "is_relaxed_second_derivative_historical": true
