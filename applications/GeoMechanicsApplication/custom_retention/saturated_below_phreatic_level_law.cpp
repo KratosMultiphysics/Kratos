@@ -105,7 +105,6 @@ double SaturatedBelowPhreaticLevelLaw::
         return rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY];;
     }
 
-
     KRATOS_CATCH("")
 }
 

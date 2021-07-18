@@ -386,7 +386,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
     //Element variables
     InterfaceElementVariables Variables;
-    this->InitializeElementVariables(Variables, ConstitutiveParameters, Geom, Prop, CurrentProcessInfo);
+    this->InitializeElementVariables(Variables, Geom, Prop, CurrentProcessInfo);
+    this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];

@@ -26,7 +26,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement : public UPwBaseElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainInterfaceElement :
+    public UPwBaseElement<TDim,TNumNodes>
 {
 
 public:
@@ -34,7 +35,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
     typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
+    typedef Properties PropertiesType;
     typedef Node <3> NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
@@ -125,7 +126,9 @@ protected:
         bool IgnoreUndrained;
         double DynamicViscosityInverse;
         double FluidDensity;
+        double SolidDensity;
         double Density;
+        double Porosity;
         double BiotCoefficient;
         double BiotModulusInverse;
 
@@ -159,6 +162,8 @@ protected:
         BoundedMatrix<double,TDim, TNumNodes*TDim> Nu;
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix;
         array_1d<double,TDim> BodyAcceleration;
+        array_1d<double, TDim> SoilGamma;
+
         double IntegrationCoefficient;
         double JointWidth;
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;
@@ -209,7 +214,6 @@ protected:
                        const bool CalculateResidualVectorFlag) override;
 
     void InitializeElementVariables(InterfaceElementVariables& rVariables,
-                                    ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                     const GeometryType& Geom,
                                     const PropertiesType& Prop,
                                     const ProcessInfo& CurrentProcessInfo);
@@ -288,6 +292,12 @@ protected:
     void CalculateRetentionResponse( InterfaceElementVariables& rVariables,
                                      RetentionLaw::Parameters& rRetentionParameters,
                                      const unsigned int &GPoint );
+
+    void CalculateSoilGamma(InterfaceElementVariables &rVariables);
+    void CalculateSoilDensity(InterfaceElementVariables &rVariables);
+
+    void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
+                                   ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

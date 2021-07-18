@@ -1094,10 +1094,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
 
-    //Defining shape functions and the determinant of the jacobian at all integration points
-    // Vector detJContainer(NumGPoints);
-    // Geom.DeterminantOfJacobian(detJContainer, this->GetIntegrationMethod());
-
+    //Defining shape functions at all integration points
     //Defining necessary variables
     BoundedMatrix<double, TDim+1, TNumNodes*(TDim+1)> Nut              = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
     BoundedMatrix<double, TDim+1, TNumNodes*(TDim+1)> AuxDensityMatrix = ZeroMatrix(TDim+1, TNumNodes*(TDim+1));
