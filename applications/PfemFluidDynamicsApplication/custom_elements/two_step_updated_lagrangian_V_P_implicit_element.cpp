@@ -80,7 +80,7 @@ namespace Kratos
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     if (rRightHandSideVector.size() != LocalSize)
-      rRightHandSideVector.resize(LocalSize);
+      rRightHandSideVector.resize(LocalSize, false);
 
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
@@ -152,7 +152,7 @@ namespace Kratos
       {
         // VolumetricCoeff*=BulkReductionCoefficient;
         VolumetricCoeff *= MeanValueMass * 2.0 / (TimeStep * MeanValueStiffness);
-        StiffnessMatrix = ZeroMatrix(LocalSize, LocalSize);
+        noalias(StiffnessMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
         for (unsigned int g = 0; g < NumGauss; ++g)
         {
