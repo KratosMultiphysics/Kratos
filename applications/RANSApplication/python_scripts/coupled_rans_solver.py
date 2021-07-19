@@ -13,9 +13,6 @@ import KratosMultiphysics.RANSApplication as KratosRANS
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
-from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariablesRecursively
-from KratosMultiphysics.RANSApplication.formulations.utilities import AddFileLoggerOutput
-from KratosMultiphysics.RANSApplication.formulations.utilities import RemoveFileLoggerOutput
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -140,8 +137,9 @@ class CoupledRANSSolver(PythonSolver):
                 "output_model_part_name"                 : "adapted_mesh",
                 "re_calculate_time_step_after_refinement": false,
                 "time_step_re_calculation_settings": {
-                    "desired_cfl_number": 10.0,
-                    "minimum_time_step" : 1e-5
+                    "desired_maximum_cfl_number": 10.0,
+                    "minimum_time_step"         : 1e-5,
+                    "maximum_time_step"         : 0.01
                 },
                 "response_function_interpolation_error_computation_settings": {},
                 "mmg_mesh_refinement_process_parameters": {
@@ -352,8 +350,8 @@ class CoupledRANSSolver(PythonSolver):
                 max_cfl, _ = KratosStats.SpatialMethods.NonHistorical.Elements.NormMethods.Max(self.main_model_part, Kratos.CFL_NUMBER, "value")
 
                 # now calculate the new time step
-                desired_cfl_number_after_refinement = time_step_re_calculation_settings["desired_cfl_number"].GetDouble()
-                new_time_step = max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble())
+                desired_cfl_number_after_refinement = time_step_re_calculation_settings["desired_maximum_cfl_number"].GetDouble()
+                new_time_step = min(time_step_re_calculation_settings["maximum_time_step"].GetDouble(), max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble()))
                 self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
 
