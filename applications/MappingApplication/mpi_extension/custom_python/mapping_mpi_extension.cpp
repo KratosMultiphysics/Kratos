@@ -21,7 +21,7 @@
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_utilities/mapper_mpi_define.h"
 #include "custom_utilities/mapper_mpi_backend.h"
-#include "custom_utilities/mapper_factory.h"
+#include "factoriess/mapper_factory.h"
 #include "custom_python/add_mapper_to_python.h"
 
 namespace Kratos {

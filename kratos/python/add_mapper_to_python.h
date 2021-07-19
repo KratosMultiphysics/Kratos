@@ -22,11 +22,9 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "custom_mappers/mapper.h"
-#include "custom_utilities/mapper_factory.h"
-#include "custom_utilities/mapper_flags.h"
-
-
+#include "mappers/mapper.h"
+#include "factories/mapper_factory.h"
+#include "mappers/mapper_flags.h"
 
 namespace Kratos {
 namespace Python {
