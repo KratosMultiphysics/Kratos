@@ -42,6 +42,8 @@ public:
     typedef Matrix MatrixType;
     using UPwElement<TDim,TNumNodes>::mThisIntegrationMethod;
     using UPwElement<TDim,TNumNodes>::mConstitutiveLawVector;
+    using UPwElement<TDim,TNumNodes>::mIntrinsicPermeability;
+    using UPwElement<TDim,TNumNodes>::mImposedZStrainVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
