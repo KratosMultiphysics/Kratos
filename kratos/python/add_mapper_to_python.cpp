@@ -7,11 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher, Jordi Cotela
-//
-// See Master-Thesis P.Bucher
-// "Development and Implementation of a Parallel
-//  Framework for Non-Matching Grid Mapping"
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 
 // System includes
 
