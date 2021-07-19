@@ -17,8 +17,8 @@ def run_modelers(current_model, modelers_list):
         modeler.SetupModelPart()
 
 class TestModelers(KratosUnittest.TestCase):
-    def _strong_support_surface_test(self, current_model):
-
+    def test_StrongSupportSurface(self):
+        current_model = KratosMultiphysics.Model()
         modelers_list = KratosMultiphysics.Parameters(
         """ [{
             "modeler_name": "CadIoModeler",
@@ -66,10 +66,6 @@ class TestModelers(KratosUnittest.TestCase):
         self.assertEqual(support_2_Variation_model_part.GetNodes()[4].Id, 4)
         self.assertEqual(support_2_Variation_model_part.GetNodes()[5].Id, 5)
         self.assertEqual(support_2_Variation_model_part.GetNodes()[6].Id, 6)
-
-    def test_StrongSupportSurface(self):
-        current_model = KratosMultiphysics.Model()
-        self._strong_support_surface_test(current_model)
 
     def test_nurbs_geometry_3d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
