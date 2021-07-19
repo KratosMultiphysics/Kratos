@@ -315,7 +315,7 @@ namespace Kratos {
                         IndexType cp_index_refined_after = NurbsUtilities::GetVectorIndexFromMatrixIndices(
                             nb_cp_u, nb_cp_v_refined, m, index - 1);
 
-                        array_1d<double, 3> cp_coordinates = alpha * rPointsRefined[cp_index_refined_after] + (1.0 - alpha) * rPointsRefined[cp_index_refined_before];
+                        const array_1d<double, 3> cp_coordinates = alpha * rPointsRefined[cp_index_refined_after] + (1.0 - alpha) * rPointsRefined[cp_index_refined_before];
 
                         rPointsRefined(cp_index_refined_after) = Kratos::make_intrusive<NodeType>(0, cp_coordinates);
                         rWeightsRefined[cp_index_refined_after] = rWeightsRefined[cp_index_refined_after] * alpha + rWeightsRefined[cp_index_refined_before] * (1 - alpha);
