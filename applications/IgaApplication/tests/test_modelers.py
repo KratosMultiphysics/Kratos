@@ -67,6 +67,30 @@ class TestModelers(KratosUnittest.TestCase):
         self.assertEqual(support_2_Variation_model_part.GetNodes()[5].Id, 5)
         self.assertEqual(support_2_Variation_model_part.GetNodes()[6].Id, 6)
 
+    def test_RefinementModeler(self):
+        current_model = KratosMultiphysics.Model()
+        modelers_list = KratosMultiphysics.Parameters(
+        """ [{
+            "modeler_name": "CadIoModeler",
+            "Parameters": {
+                "echo_level": 0,
+                "cad_model_part_name": "IgaModelPart",
+                "geometry_file_name": "modeler_tests/surface_geometry.cad.json"
+            } }, {
+            "modeler_name": "RefinementModeler",
+            "Parameters": {
+                "echo_level":  0,
+                "refinements_file_name": "modeler_tests/refinements.iga.json"
+            } }] """ )
+
+        run_modelers(current_model, modelers_list)
+
+        model_part = current_model.GetModelPart("IgaModelPart")
+
+        # Check if all needed node are within the model parts
+        self.assertEqual(model_part.NumberOfNodes(), 40)
+        self.assertEqual(model_part.GetGeometry(1).GetGeometryPart(KratosMultiphysics.Geometry.BACKGROUND_GEOMETRY_INDEX).PointsNumber(), 28)
+
     def test_nurbs_geometry_3d_modeler_control_points(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
