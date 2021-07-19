@@ -187,7 +187,7 @@ void AddMappingToPython(pybind11::module& m)
     ;
 }
 
-void KRATOS_API(KRATOS_CORE) AddMapperToPython(pybind11::module& m);
+void AddMapperToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
