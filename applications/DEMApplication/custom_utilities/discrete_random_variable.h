@@ -62,23 +62,18 @@ protected:
 
 private:
 
-    void CalculateTrapezoidProbabilitiesAndNormalize();
-    std::size_t SampleTrapezoidChoice();
-    double SampleWithinTrapezoid(const double H, const double B1, const double B2);
-    double SampleWithinStandardTrapezoid(const double b);
-    double SamplePositiveSlopingStandardTriangle();
-    double SampleNegativeSlopingStandardTriangle();
+    void Normalize();
 
     /// Assignment operator.
     DiscreteRandomVariable & operator=(DiscreteRandomVariable const& rOther);
 
     double mRelativeClosenessTolerance = 0.0;
-    double mMean = 0.0 ;
+    double mMean = 0.0;
     bool mMeanHasAlreadyBeenCalculated=false;
     std::vector<double> mPDFValues;
     std::vector<double> mPDFBreakpoints;
     std::mt19937 mRandomNumberGenerator;
-    std::discrete_distribution<int> mTrapezoidsDiscreteDistribution;
+    std::discrete_distribution<> mTrapezoidsDiscreteDistribution;
 
 }; // Class DiscreteRandomVariable
 

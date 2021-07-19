@@ -9,7 +9,7 @@ import random_variable_tests_files.random_variable as rv
 
 debug_mode = True
 
-class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
+class TestDEMPiecewiseInletInletAnalysis(dem_analysis.DEMAnalysisStage):
 
     @staticmethod
     def Say(*args):
@@ -25,9 +25,9 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "random_variable_based_inlet_tests_files")
 
     def __init__(self, model, DEM_parameters):
-        self.tolerance = 0.05
-        self.error = self.tolerance + 1
-        self.n_bins = 25 # for the histogram
+        self.tolerance = 0.2
+        self.error_norm = self.tolerance + 1
+        self.n_bins = 50 # for the histogram
 
         super().__init__(model, DEM_parameters)
 
@@ -39,7 +39,7 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
         return super().InitializeSolutionStep()
 
     def HasConverged(self):
-        return self.error < self.tolerance
+        return self.error_norm < self.tolerance
 
     def KeepAdvancingSolutionLoop(self):
         return super().KeepAdvancingSolutionLoop() and not self.HasConverged()
@@ -66,8 +66,8 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
             expected_rv = rv.PiecewiseLinearRV(rv_parameters)
             self.pdf_expected = np.array([expected_rv.InterpolateHeight(x) for x in self.centers])
 
-            self.error = TestDEMInletAnalysis.Error(self.empirical_pdf, self.pdf_expected, interval_widths)
-            TestDEMInletAnalysis.Say('Error = ' + '{:.4f}'.format(self.error), '( self.tolerance = ' + '{:.4f}'.format(self.tolerance), ')')
+            self.error_norm = TestDEMPiecewiseInletInletAnalysis.Error(self.empirical_pdf, self.pdf_expected, interval_widths)
+            TestDEMPiecewiseInletInletAnalysis.Say('Error = ' + '{:.4f}'.format(self.error_norm), '( self.tolerance = ' + '{:.4f}'.format(self.tolerance), ')')
 
         super().FinalizeSolutionStep()
 
@@ -78,14 +78,80 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
         if debug_mode:
             import matplotlib.pyplot as plt
+            plt.plot(self.centers, self.pdf_expected, label='desired')
             plt.plot(self.centers, self.empirical_pdf, label='obtained (' + str(len(self.samples)) + ' samples)')
             plt.hist(self.samples, bins = self.n_bins, density=True, color = "skyblue", lw=0, alpha=0.25)
-            plt.plot(self.centers, self.pdf_expected, label='desired')
+            plt.xlabel("radius")
+            plt.ylabel("probability density")
             plt.legend()
             plt.savefig('histogram_' + self.problem_name + '.pdf')
             plt.close()
 
         super().Finalize()
+
+
+class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletInletAnalysis):
+
+    def __init__(self, model, DEM_parameters):
+        super().__init__(model, DEM_parameters)
+        rv_settings = DEM_parameters['dem_inlets_settings']['Inlet_inlet']['random_variable_settings']
+        self.breakpoints = np.array(rv_settings["possible_values"].GetVector())
+        self.pdf_expected = np.array(rv_settings["pdf_values"].GetVector())
+        self.relative_closeness_tolerance = rv_settings["relative_closeness_tolerance"].GetDouble()
+        self.n_bins = len(self.breakpoints)
+        self.support_diamter = self.breakpoints[-1] - self.breakpoints[0]
+        self.histogram_expected = self.pdf_expected / sum(self.pdf_expected)
+        self.histogram = np.zeros(len(self.breakpoints))
+        TestDEMPiecewiseInletInletAnalysis.Say('histogram before', self.histogram)
+        self.error_norm = 1 + self.tolerance
+
+    def FinalizeSolutionStep(self):
+        particle_nodes = [node for node in self.spheres_model_part.Nodes if node.IsNot(Kratos.BLOCKED)]
+
+        # Mapping to Id so it works even if some particles are removed before the end of the simulation
+        for node in particle_nodes:
+            sample = node.GetSolutionStepValue(Kratos.RADIUS)
+            not_found = True
+            for i, b in enumerate(list(self.breakpoints)):
+
+                if sample < b + self.relative_closeness_tolerance and sample > b - self.relative_closeness_tolerance:
+                    self.samples[node.Id] = sample
+                    self.histogram[i] += 1
+                    not_found = False
+                    break
+
+            if not_found:
+                raise ValueError('The DEM inlet has generated a particle with a radius that is not within' +
+                                 'the chosen tolerance (' + '{:.2e}'.format(self.relative_closeness_tolerance) + ') of any' +
+                                 'of the possible values in the imposed discrete distribution.')
+
+        if sum(self.histogram):
+            error = self.histogram_expected  - self.histogram / sum(self.histogram)
+            self.error_norm = abs(sum(abs(p) for p in error))
+
+        TestDEMPiecewiseInletInletAnalysis.Say('Error = ' + '{:.2e}'.format(self.error_norm) + ' (Error tolerance = ' + '{:.2e}'.format(self.tolerance) + ')')
+
+        dem_analysis.DEMAnalysisStage.FinalizeSolutionStep(self)
+
+    def Finalize(self):
+        self.samples = np.array(list(self.samples.values()))
+
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+
+        if debug_mode:
+            import matplotlib.pyplot as plt
+            normalization_factor = sum(self.histogram) / sum(self.pdf_expected)
+            column_width = 0.1 * self.support_diamter
+            plt.bar(self.breakpoints - 0.5 * column_width, self.pdf_expected * normalization_factor, width = column_width, label='desired')
+            plt.bar(self.breakpoints + 0.5 * column_width, self.histogram, width = column_width, label='obtained' + ' (error = ' + '{:.2e}'.format(self.error_norm) + ')')
+            plt.xlabel("radius")
+            plt.ylabel("quantity")
+            plt.legend()
+
+            plt.savefig('histogram_' + self.problem_name + '.pdf')
+            plt.close()
+
+        dem_analysis.DEMAnalysisStage.Finalize(self)
 
 class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
 
@@ -99,14 +165,14 @@ class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
 
     @classmethod
     def test_piecewise_linear_inlet(self):
-        path = TestDEMInletAnalysis.GetMainPath()
+        path = TestDEMPiecewiseInletInletAnalysis.GetMainPath()
         parameters_file_name = os.path.join(path, "PiecewiseLinearProjectParametersDEM.json")
         model = Kratos.Model()
 
         with open(parameters_file_name, 'r') as parameter_file:
             project_parameters = Kratos.Parameters(parameter_file.read())
 
-        TestDEMInletAnalysis(model, project_parameters).Run()
+        TestDEMPiecewiseInletInletAnalysis(model, project_parameters).Run()
 
 class TestDiscreteDEMInlet(KratosUnittest.TestCase):
 
@@ -120,14 +186,14 @@ class TestDiscreteDEMInlet(KratosUnittest.TestCase):
 
     @classmethod
     def test_piecewise_linear_inlet(self):
-        path = TestDEMInletAnalysis.GetMainPath()
+        path = TestDEMDiscreteInletAnalysis.GetMainPath()
         parameters_file_name = os.path.join(path, "DiscreteProjectParametersDEM.json")
         model = Kratos.Model()
 
         with open(parameters_file_name, 'r') as parameter_file:
             project_parameters = Kratos.Parameters(parameter_file.read())
 
-        TestDEMInletAnalysis(model, project_parameters).Run()
+        TestDEMDiscreteInletAnalysis(model, project_parameters).Run()
 
 
 if __name__ == "__main__":

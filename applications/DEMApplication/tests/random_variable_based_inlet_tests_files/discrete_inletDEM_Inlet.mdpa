@@ -2362,7 +2362,7 @@ Begin SubModelPart Inlet_inlet // Group inlet // Subtree Inlet
         INLET_START_TIME 0.0
         INLET_STOP_TIME 100.0
         RADIUS 0.0005
-        PROBABILITY_DISTRIBUTION piecewise_linear
+        PROBABILITY_DISTRIBUTION discrete
         STANDARD_DEVIATION 0.00025
     End SubModelPartData
     Begin SubModelPartNodes
@@ -4694,9 +4694,9 @@ Begin SubModelPart Inlet_inlet // Group inlet // Subtree Inlet
       2326
     End SubModelPartNodes
   End SubModelPart
-    
+
         Begin Table 0 TIME VELOCITY
         0.0  0.0
         1.0  0.0
         End Table
-        
+

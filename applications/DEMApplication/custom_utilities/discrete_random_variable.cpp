@@ -16,7 +16,7 @@ namespace Kratos {
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "pdf_breakpoints" : [0, 1],
+            "possible_values" : [0, 1],
             "pdf_values"      : [1, 1],
             "do_use_seed"     : false,
             "seed"            : 1,
@@ -32,7 +32,7 @@ namespace Kratos {
             mRelativeClosenessTolerance = rParameters["relative_closeness_tolerance"].GetDouble();
         }
 
-        const auto breakpoints = rParameters["pdf_breakpoints"].GetVector();
+        const auto breakpoints = rParameters["possible_values"].GetVector();
         const auto values = rParameters["pdf_values"].GetVector();
 
         if (breakpoints.size() != values.size()){
@@ -48,9 +48,11 @@ namespace Kratos {
             mPDFValues[i] = values[i];
         }
 
+        mTrapezoidsDiscreteDistribution = std::discrete_distribution<int>(mPDFValues.begin(), mPDFValues.end());
+
         Check();
 
-        CalculateTrapezoidProbabilitiesAndNormalize();
+        Normalize();
     }
 
    void DiscreteRandomVariable::Check()
@@ -71,7 +73,7 @@ namespace Kratos {
                             << "smaller tolerance.";
            }
        }
-   };
+   }
 
    double DiscreteRandomVariable::ProbabilityDensity(const double x)
    {
@@ -84,12 +86,8 @@ namespace Kratos {
 
        for (std::size_t i = 0; i < mPDFBreakpoints.size() - 1; ++i){
            const double& x2 = mPDFBreakpoints[i + 1];
-           if (x <= x2){
-               const double& x1 = mPDFBreakpoints[i];
-               const double alpha =  (x - x1) / (x2 - x1);
-               const double value1 = mPDFValues[i];
-               const double value2 = mPDFValues[i + 1];
-               return (1 - alpha) * value1 + alpha * value2;
+           if (x <= x2 + mRelativeClosenessTolerance && x > x2 - mRelativeClosenessTolerance){
+               return mPDFValues[i];
            }
        }
 
@@ -97,111 +95,25 @@ namespace Kratos {
    }
 
     double DiscreteRandomVariable::Sample(){
-        const auto i_bin = SampleTrapezoidChoice();
-        const double x0 = mPDFBreakpoints[i_bin];
-        const double H = mPDFBreakpoints[i_bin + 1] - x0;
-        const double B1 = mPDFValues[i_bin];
-        const double B2 = mPDFValues[i_bin + 1];
-        const double x_within = SampleWithinTrapezoid(H, B1, B2);
-        return x0 + x_within;
+        return mPDFBreakpoints[mTrapezoidsDiscreteDistribution(mRandomNumberGenerator)];
     }
 
-    void DiscreteRandomVariable::CalculateTrapezoidProbabilitiesAndNormalize(){
-        double total_area = 0.0;
-        std::vector<double> areas(mPDFBreakpoints.size() - 1);
-
-        // Area under each straight bin
-        for (std::size_t i = 0; i < areas.size(); ++i) {
-            const double trapezoid_area = 0.5 * (mPDFBreakpoints[i + 1] - mPDFBreakpoints[i]) * (mPDFValues[i + 1] + mPDFValues[i]);
-            total_area += trapezoid_area;
-            areas[i] = trapezoid_area;
-        }
-
-        // Normalization to obtain probability of hitting each particular straight bin
-        for (std::size_t i = 0; i < areas.size(); ++i) {
-            areas[i] /= total_area;
-        }
-
+    void DiscreteRandomVariable::Normalize(){
+        const double total_area = std::accumulate(mPDFValues.begin(), mPDFValues.end(), 0);
         // Normalization of probability function
         for (std::size_t i = 0; i < mPDFValues.size(); ++i) {
             mPDFValues[i] /= total_area;
         }
-
-        mTrapezoidsDiscreteDistribution = std::discrete_distribution<int>(areas.begin(), areas.end());
-    }
-
-    std::size_t DiscreteRandomVariable::SampleTrapezoidChoice(){
-        return mTrapezoidsDiscreteDistribution(mRandomNumberGenerator);
     }
 
     double DiscreteRandomVariable::GetMean(){
-
         if (!mMeanHasAlreadyBeenCalculated){
-            std::vector<double> areas(mPDFBreakpoints.size() - 1);
-
-            // Compute the mean by weighing the centroid coordinate of every trapezoid by its area
-            mMean = 0.0;
-            for (std::size_t i = 0; i < areas.size(); ++i) {
-                const double& x1 = mPDFBreakpoints[i];
-                const double& x2 = mPDFBreakpoints[i + 1];
-                const double& v1 = mPDFValues[i];
-                const double& v2 = mPDFValues[i+1];
-                const double h = x2 - x1;
-                const double trapezoid_area = 0.5 * (v1 + v2) * h;
-                const double square_area = std::min(v1, v2) * h;
-                const double delta_v = v2 - v1;
-                const double triangle_area = 0.5 * std::abs(delta_v)  * h;
-                const int sign_delta_v = (delta_v > 0) - (delta_v < 0);
-                const double x_triangle = (0.5 + 1.0/6 * sign_delta_v) * h; // covers triangles sloping up or down
-                const double x_square = 0.5 * h;
-                const double x_centroid_within_trapezoid = (triangle_area * x_triangle + square_area * x_square) / trapezoid_area;
-                const double x_centroid = x1 + x_centroid_within_trapezoid;
-                mMean += trapezoid_area * x_centroid;
-            }
-
+            const auto n = mPDFValues.size();
+            mMean = std::accumulate(mPDFValues.begin(), mPDFValues.end(), 0.0) / n;
             mMeanHasAlreadyBeenCalculated = true;
         }
 
         return mMean;
-    }
-
-    double DiscreteRandomVariable::SampleWithinTrapezoid(const double H, const double B1, const double B2){
-        double x;
-        if (B1 == 0){ //TODO: improve
-            x = SamplePositiveSlopingStandardTriangle();
-        }
-
-        else {
-            const double beta = B2/B1;
-            const double b = 2.0 / (1 + beta);
-            x = SampleWithinStandardTrapezoid(b);
-        }
-        return H * x;
-    }
-
-    double DiscreteRandomVariable::SampleWithinStandardTrapezoid(const double b){
-        std::uniform_real_distribution<> uniform_distribution(0, 1);
-        const double alpha = uniform_distribution(mRandomNumberGenerator);
-        double x;
-        if (alpha < b/2){
-            x = SampleNegativeSlopingStandardTriangle();
-        }
-
-        else {
-            x = SamplePositiveSlopingStandardTriangle();
-        }
-
-        return x;
-    }
-
-    double DiscreteRandomVariable::SamplePositiveSlopingStandardTriangle(){
-        std::uniform_real_distribution<> uniform_distribution(0, 1);
-        const double x = uniform_distribution(mRandomNumberGenerator);
-        return std::sqrt(x);
-    }
-
-    double DiscreteRandomVariable::SampleNegativeSlopingStandardTriangle(){
-        return 1.0 - SamplePositiveSlopingStandardTriangle();
     }
 
 }

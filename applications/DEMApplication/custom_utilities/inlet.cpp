@@ -203,7 +203,7 @@ namespace Kratos {
                     mInletsRandomVariables.emplace(mp.Name(), std::unique_ptr<PiecewiseLinearRandomVariable>(new PiecewiseLinearRandomVariable(rv_settings)));
                 }
 
-                else if (mp[PROBABILITY_DISTRIBUTION] == "discrete_linear"){
+                else if (mp[PROBABILITY_DISTRIBUTION] == "discrete"){
                     mInletsRandomVariables.emplace(mp.Name(), std::unique_ptr<DiscreteRandomVariable>(new DiscreteRandomVariable(rv_settings)));
                 }
 
