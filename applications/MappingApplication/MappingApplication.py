@@ -1,5 +1,7 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics import Mapper as CoreMapper
+from KratosMultiphysics import MapperFactory as CoreMapperFactory
 from KratosMappingApplication import *
 application = KratosMappingApplication()
 application_name = "KratosMappingApplication"
@@ -23,6 +25,9 @@ def GetRegisteredMPIMapperNames(*args):
     IssueDeprecationWarning("MappingApplication", 'GetRegisteredMPIMapperNames is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.GetRegisteredMapperNames" instead')
     from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
     return MPIMapperFactory.GetRegisteredMapperNames(*args)
+
+MapperFactory = CoreMapperFactory
+Mapper = CoreMapper
 
 setattr(MapperFactory, 'CreateMPIMapper', CreateMPIMapper)
 setattr(MapperFactory, 'HasMPIMapper', HasMPIMapper)
