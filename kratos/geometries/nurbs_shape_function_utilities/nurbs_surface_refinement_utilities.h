@@ -45,7 +45,7 @@ public:
      *          Piegl 1995, Algorithm A5.5.
      *
      * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
-     * and ANurbs (https://www.bgu.tum.de/st/software/forschung/anurbs/)
+     * and ANurbs (https://github.com/oberbichler/ANurbs)
      *
      * @param rGeometry surface to be refined.
      * @param rKnotsUToInsert Knots to be inserted.
@@ -66,7 +66,7 @@ public:
      *          Piegl 1995, Algorithm A5.5.
      *
      * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
-     * and ANurbs (https://www.bgu.tum.de/st/software/forschung/anurbs/)
+     * and ANurbs (https://github.com/oberbichler/ANurbs)
      *
      * @param rGeometry surface to be refined.
      * @param rKnotsVToInsert Knots to be inserted.
