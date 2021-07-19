@@ -41,7 +41,11 @@ public:
 
     /*
      * @brief Refines the u-knot vector of a NurbsSurfaceGeometry.
-     * @details This function adopts the surface knot-refinement algorithm from Piegl 1995.
+     * @details This function adopts the surface knot-refinement algorithm from
+     *          Piegl 1995, Algorithm A5.5.
+     *
+     * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
+     * and ANurbs (https://www.bgu.tum.de/st/software/forschung/anurbs/)
      *
      * @param rGeometry surface to be refined.
      * @param rKnotsUToInsert Knots to be inserted.
@@ -58,7 +62,11 @@ public:
 
     /*
      * @brief Refines the v-knot vector of a NurbsSurfaceGeometry.
-     * @details This function adopts the surface knot-refinement algorithm from Piegl 1995.
+     * @details This function adopts the surface knot-refinement algorithm from
+     *          Piegl 1995, Algorithm A5.5.
+     *
+     * Portet from carat++ (https://www.bgu.tum.de/st/software/forschung/carat/)
+     * and ANurbs (https://www.bgu.tum.de/st/software/forschung/anurbs/)
      *
      * @param rGeometry surface to be refined.
      * @param rKnotsVToInsert Knots to be inserted.
