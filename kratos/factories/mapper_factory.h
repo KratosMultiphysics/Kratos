@@ -40,7 +40,7 @@ namespace Kratos
 * Some checks are performed to see if the Input (ModelParts and JSON-Parameters) are valid
 */
 template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) MapperFactory
+class KRATOS_API(KRATOS_CORE) MapperFactory
 {
 public:
     ///@name Type Definitions
