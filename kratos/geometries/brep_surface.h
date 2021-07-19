@@ -432,14 +432,16 @@ public:
                     rIntegrationPoints,
                     mOuterLoopArray, mInnerLoopArray,
                     spans_u, spans_v,
-                    rIntegrationInfo);
+                    rIntegrationInfo,
+                    0);
             }
             else {
-                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPointsReverseLoop<BrepCurveOnSurfaceLoopArrayType, PointType>(
+                BrepTrimmingUtilities::CreateBrepSurfaceTrimmingIntegrationPoints<BrepCurveOnSurfaceLoopArrayType, PointType>(
                     rIntegrationPoints,
                     mOuterLoopArray, mInnerLoopArray,
                     spans_u, spans_v,
-                    rIntegrationInfo);
+                    rIntegrationInfo,
+                    1);
             }
 
         }
