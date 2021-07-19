@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-class NurbsSurfaceRefinementUtilities
+class KRATOS_API(KRATOS_CORE) NurbsSurfaceRefinementUtilities
 {
 public:
     ///@name Type Definitions
