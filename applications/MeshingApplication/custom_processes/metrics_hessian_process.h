@@ -60,6 +60,8 @@ namespace Kratos
             const double InterpolationError,
             const bool UseResponseFunctionValueInterpolationError,
             const int ResponseFunctionInterpolationVariableIndex,
+            const double MinResponseFunctionValueInterpolationError,
+            const double MaxResponseFunctionValueInterpolationError,
             const double MeshDependentConstant,
             const bool AnisotropyRemeshing,
             const bool EnforceAnisotropyRelativeVariable
@@ -71,6 +73,8 @@ namespace Kratos
             mInterpolationError(InterpolationError),
             mUseResponseFunctionValueInterpolationError(UseResponseFunctionValueInterpolationError),
             mResponseFunctionInterpolationVariableIndex(ResponseFunctionInterpolationVariableIndex),
+            mMinResponseFunctionValueInterpolationError(MinResponseFunctionValueInterpolationError),
+            mMaxResponseFunctionValueInterpolationError(MaxResponseFunctionValueInterpolationError),
             mMeshDependentConstant(MeshDependentConstant),
             mAnisotropyRemeshing(AnisotropyRemeshing),
             mEnforceAnisotropyRelativeVariable(EnforceAnisotropyRelativeVariable)
@@ -85,6 +89,8 @@ namespace Kratos
         const double mInterpolationError;              /// The error of interpolation allowed
         const bool mUseResponseFunctionValueInterpolationError;   /// Use the reponse function interpolation error from the adjoint solutions
         const int mResponseFunctionInterpolationVariableIndex;
+        const double mMinResponseFunctionValueInterpolationError;
+        const double mMaxResponseFunctionValueInterpolationError;
         const double mMeshDependentConstant;           /// The mesh constant to remesh (depends of the element type)
         const bool mAnisotropyRemeshing;               /// If we consider anisotropic remeshing
         const bool mEnforceAnisotropyRelativeVariable; /// If we enforce a certain anisotropy relative toa  variable

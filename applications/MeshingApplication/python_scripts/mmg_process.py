@@ -100,6 +100,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 "estimate_interpolation_error"                  : false,
                 "interpolation_error"                           : 0.04,
                 "use_response_function_interpolation_error"     : false,
+                "min_response_function_interpolation_error"     : 1e-100,
+                "max_response_function_interpolation_error"     : 1e+100,
                 "response_function_interpolation_variable_index": [0],
                 "mesh_dependent_constant"                       : 0.28125
             },
@@ -874,7 +876,7 @@ class MmgProcess(KratosMultiphysics.Process):
             "file_format"                        : "ascii",
             "output_precision"                   : 7,
             "output_control_type"                : "step",
-            "output_frequency"                   : 1.0,
+            "output_interval"                   : 1.0,
             "output_sub_model_parts"             : false,
             "custom_name_prefix"                 : "",
             "save_output_files_in_folder"        : false,
@@ -882,14 +884,14 @@ class MmgProcess(KratosMultiphysics.Process):
             "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : [],
             "condition_data_value_variables"     : [],
-            "gauss_point_variables"              : []
+            "gauss_point_variables_in_elements"              : []
         }""")
 
         vtk_settings["custom_name_prefix"].SetString(prefix + "REMESHING_" + name + "_STEP_" + str(label) + "_")
         if self.settings["framework"].GetString() ==  "Lagrangian":
             vtk_settings["nodal_solution_step_data_variables"].Append("DISPLACEMENT")
             for var in self.internal_variable_interpolation_list:
-                vtk_settings["gauss_point_variables"].Append(var.Name())
+                vtk_settings["gauss_point_variables_in_elements"].Append(var.Name())
         else:
             vtk_settings["nodal_solution_step_data_variables"].Append("VELOCITY")
 

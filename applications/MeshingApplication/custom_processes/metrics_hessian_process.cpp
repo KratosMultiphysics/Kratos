@@ -137,7 +137,12 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
                     << ", available number of variables = "
                     << interpolation_errors.size() << " ].\n";
             }
-            interpolation_error = interpolation_error * interpolation_errors[rAuxiliarHessianComputationVariables.mResponseFunctionInterpolationVariableIndex];
+            interpolation_error = interpolation_error * std::max(
+                                    rAuxiliarHessianComputationVariables.mMinResponseFunctionValueInterpolationError,
+                                    std::min(
+                                        interpolation_errors[rAuxiliarHessianComputationVariables.mResponseFunctionInterpolationVariableIndex],
+                                        rAuxiliarHessianComputationVariables.mMaxResponseFunctionValueInterpolationError
+                                    ));
         } else {
             KRATOS_ERROR << "RESPONSE_FUNCTION_INTERPOLATION_ERROR not found "
                             "in node with id "
@@ -413,12 +418,27 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     const double interpolation_error = mThisParameters["interpolation_error"].GetDouble();                               /// The error of interpolation allowed
     const bool use_response_function_interpolation_error = mThisParameters["use_response_function_interpolation_error"].GetBool();
     const int response_function_interpolation_variable_index = mThisParameters["response_function_interpolation_variable_index"].GetInt();
+    const double min_response_function_interpolation_error = mThisParameters["min_response_function_interpolation_error"].GetDouble();
+    const double max_response_function_interpolation_error = mThisParameters["max_response_function_interpolation_error"].GetDouble();
     const double mesh_dependent_constant = mThisParameters["mesh_dependent_constant"].GetDouble();                       /// The error of interpolation allowed
     const double hmin_over_hmax_anisotropic_ratio = mThisParameters["hmin_over_hmax_anisotropic_ratio"].GetDouble();     /// The error of interpolation allowed
     const double boundary_layer_max_distance = mThisParameters["boundary_layer_max_distance"].GetDouble();               /// The error of interpolation allowed
 
     // Create auxiliar variable structure
-    AuxiliarHessianComputationVariables aux_variables(1.0, 0.0, 0.0, 0.0, estimate_interpolation_error, interpolation_error, use_response_function_interpolation_error, response_function_interpolation_variable_index, mesh_dependent_constant, anisotropy_remeshing, enforce_anisotropy_relative_variable);
+    AuxiliarHessianComputationVariables aux_variables(
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        estimate_interpolation_error,
+        interpolation_error,
+        use_response_function_interpolation_error,
+        response_function_interpolation_variable_index,
+        min_response_function_interpolation_error,
+        max_response_function_interpolation_error,
+        mesh_dependent_constant,
+        anisotropy_remeshing,
+        enforce_anisotropy_relative_variable);
 
     /// The type of array considered for the tensor
     typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
@@ -504,6 +524,8 @@ const Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "estimate_interpolation_error"                  : false,
             "interpolation_error"                           : 1.0e-6,
             "use_response_function_interpolation_error"     : false,
+            "min_response_function_interpolation_error"     : 1e-100,
+            "max_response_function_interpolation_error"     : 1e+100,
             "response_function_interpolation_variable_index": 0,
             "mesh_dependent_constant"                       : 0.28125
         },
@@ -562,6 +584,8 @@ void ComputeHessianSolMetricProcess::InitializeVariables(Parameters ThisParamete
     mThisParameters.AddValue("boundary_layer_max_distance", considered_parameters["enforced_anisotropy_parameters"]["boundary_layer_max_distance"]);
     mThisParameters.AddValue("use_response_function_interpolation_error", considered_parameters["hessian_strategy_parameters"]["use_response_function_interpolation_error"]);
     mThisParameters.AddValue("response_function_interpolation_variable_index", considered_parameters["hessian_strategy_parameters"]["response_function_interpolation_variable_index"]);
+    mThisParameters.AddValue("min_response_function_interpolation_error", considered_parameters["hessian_strategy_parameters"]["min_response_function_interpolation_error"]);
+    mThisParameters.AddValue("max_response_function_interpolation_error", considered_parameters["hessian_strategy_parameters"]["max_response_function_interpolation_error"]);
 
     // Interpolation type
     mInterpolation = ConvertInter(considered_parameters["enforced_anisotropy_parameters"]["interpolation"].GetString());
