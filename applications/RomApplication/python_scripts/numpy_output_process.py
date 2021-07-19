@@ -6,11 +6,11 @@ import os
 def Factory(parameters, model):
     if not isinstance(parameters, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return RomBasisProcess(model, parameters["Parameters"])
+    return NumpyOutputProcess(model, parameters["Parameters"])
 
 ## All the processes python should be derived from "Process"
 
-class RomBasisProcess(KratosMultiphysics.Process):
+class NumpyOutputProcess(KratosMultiphysics.Process):
     def __init__(self, Model, parameters):
         KratosMultiphysics.Process.__init__(self)
 
