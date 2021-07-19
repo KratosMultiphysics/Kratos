@@ -368,7 +368,6 @@ class Procedures():
 
         # MODEL
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
-        self.aux = AuxiliaryUtilities()
 
     def Barrier(self):
         pass
@@ -884,8 +883,6 @@ class DEMFEMProcedures():
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
         self.rigid_face_model_part = rigid_face_model_part
-        #self.solver = solver
-        self.aux = AuxiliaryUtilities()
 
         self.fem_mesh_nodes = []
 

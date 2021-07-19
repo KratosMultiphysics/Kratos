@@ -28,14 +28,11 @@ class BKLDLT
 {
 private:
     using Index = Eigen::Index;
-    using Matrix = Eigen::Matrix<Scalar, Eigen::Dynamic, Eigen::Dynamic>;
     using Vector = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
     using MapVec = Eigen::Map<Vector>;
     using MapConstVec = Eigen::Map<const Vector>;
     using IntVector = Eigen::Matrix<Index, Eigen::Dynamic, 1>;
     using GenericVector = Eigen::Ref<Vector>;
-    using GenericMatrix = Eigen::Ref<Matrix>;
-    using ConstGenericMatrix = const Eigen::Ref<const Matrix>;
     using ConstGenericVector = const Eigen::Ref<const Vector>;
 
     Index m_n;
@@ -72,29 +69,38 @@ private:
     }
 
     // Copy mat - shift * I to m_data
-    void copy_data(ConstGenericMatrix& mat, int uplo, const Scalar& shift)
+    template <typename Derived>
+    void copy_data(const Eigen::MatrixBase<Derived>& mat, int uplo, const Scalar& shift)
     {
-        if (uplo == Eigen::Lower)
+        // If mat is an expression, first evaluate it into a temporary object
+        // This can be achieved by assigning mat to a const Eigen::Ref<const Matrix>&
+        // If mat is a plain object, no temporary object is created
+        const Eigen::Ref<const typename Derived::PlainObject>& src(mat);
+
+        // Efficient copying for column-major matrices with lower triangular part
+        if ((!Derived::PlainObject::IsRowMajor) && uplo == Eigen::Lower)
         {
             for (Index j = 0; j < m_n; j++)
             {
-                const Scalar* begin = &mat.coeffRef(j, j);
+                const Scalar* begin = &src.coeffRef(j, j);
                 const Index len = m_n - j;
                 std::copy(begin, begin + len, col_pointer(j));
                 diag_coeff(j) -= shift;
             }
+            return;
         }
-        else
+
+        Scalar* dest = m_data.data();
+        for (Index j = 0; j < m_n; j++)
         {
-            Scalar* dest = m_data.data();
-            for (Index i = 0; i < m_n; i++)
+            for (Index i = j; i < m_n; i++, dest++)
             {
-                for (Index j = i; j < m_n; j++, dest++)
-                {
-                    *dest = mat.coeff(i, j);
-                }
-                diag_coeff(i) -= shift;
+                if (uplo == Eigen::Lower)
+                    *dest = src.coeff(i, j);
+                else
+                    *dest = src.coeff(j, i);
             }
+            diag_coeff(j) -= shift;
         }
     }
 
@@ -376,13 +382,15 @@ public:
     {}
 
     // Factorize mat - shift * I
-    BKLDLT(ConstGenericMatrix& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0)) :
+    template <typename Derived>
+    BKLDLT(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0)) :
         m_n(mat.rows()), m_computed(false), m_info(CompInfo::NotComputed)
     {
         compute(mat, uplo, shift);
     }
 
-    void compute(ConstGenericMatrix& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0))
+    template <typename Derived>
+    void compute(const Eigen::MatrixBase<Derived>& mat, int uplo = Eigen::Lower, const Scalar& shift = Scalar(0))
     {
         using std::abs;
 
