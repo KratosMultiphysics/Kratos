@@ -173,7 +173,7 @@ void ExposeMapperToPython(pybind11::module& m)
 } // anonymous namespace
 
 template<class TSparseSpace, class TDenseSpace>
-void AddMapperToPython(pybind11::module& m)
+void AddMappingToPython(pybind11::module& m)
 {
     ExposeMapperToPython<TSparseSpace, TDenseSpace>(m);
 
@@ -186,6 +186,8 @@ void AddMapperToPython(pybind11::module& m)
         .def_static("GetRegisteredMapperNames", &MapperFactoryType::GetRegisteredMapperNames)
     ;
 }
+
+void AddMapperToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.
