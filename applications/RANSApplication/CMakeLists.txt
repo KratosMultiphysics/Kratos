@@ -7,8 +7,8 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication
 ################### PYBIND11
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
 
 ## RANSApplication Core instances sources
 set(KRATOS_RANS_APPLICATION_CORE_INSTANCES
@@ -25,6 +25,7 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE_UTILITIES
 file(GLOB_RECURSE KRATOS_RANS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
 )
@@ -48,10 +49,11 @@ pybind11_add_module(KratosRANSApplication MODULE THIN_LTO ${KRATOS_RANS_APPLICAT
 target_link_libraries(KratosRANSApplication PRIVATE KratosRANSCore)
 set_target_properties(KratosRANSApplication PROPERTIES PREFIX "")
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRANSCore)
-    cotire(KratosRANSApplication)
-endif(USE_COTIRE MATCHES ON)
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosRANSCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosRANSApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

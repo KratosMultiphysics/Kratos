@@ -33,7 +33,7 @@
 #include "processes/find_elements_neighbours_process.h"
 #include "utilities/math_utils.h"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/split_triangle.c"
+#include "utilities/split_triangle.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "spatial_containers/spatial_containers.h"

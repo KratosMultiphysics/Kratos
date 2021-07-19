@@ -68,10 +68,10 @@ struct Array1DModifier
     {
     }
 };
-
+    
 template< class TBinderType, typename TContainerType, typename TVariableType > void VariableIndexingUtility(TBinderType& binder)
 {
-    // Data value container
+    // Data container
     binder.def("__contains__", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
     binder.def("__setitem__", [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
     binder.def("__getitem__", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
@@ -81,6 +81,13 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
     binder.def("Clear", [](TContainerType& container){container.Clear();} );
 }
 
+template< class TBinderType, typename TContainerType, typename TVariableType > void DataValueContainerIndexingUtility(TBinderType& binder)
+{
+    // Data value container
+    VariableIndexingUtility<TBinderType, TContainerType, TVariableType>(binder);
+    binder.def("Erase", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
+}
+    
 void  AddContainersToPython(pybind11::module& m)
 {
     typedef Variable<array_1d<double, 3> > Array1DVariable3;
@@ -161,19 +168,19 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerBinderType DataValueBinder(m, "DataValueContainer" );
     DataValueBinder.def( "__len__", &DataValueContainer::Size );
     DataValueBinder.def("__str__", PrintObject<DataValueContainer>);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
-    VariableIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<bool> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<int> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<double> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable3 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable4 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable6 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Array1DVariable9 >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
+    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
     typedef py::class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer> VariableDataValueContainerBinderType;
     VariableDataValueContainerBinderType VariableDataValueBinder(m, "VariablesListDataValueContainer" );
@@ -271,6 +278,8 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MARKER_MESHES )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_DISTANCES )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_EDGE_DISTANCES )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NL_ITERATION_NUMBER )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRACTIONAL_STEP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, STEP )
@@ -322,6 +331,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, EXTERNAL_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTACT_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CONTACT_NORMAL )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TEMPERATURE_GRADIENT )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EXTERNAL_FORCES_VECTOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_FORCES_VECTOR )
@@ -335,6 +345,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NORMAL )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_XI )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TANGENT_ETA )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, LOCAL_TANGENT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TORQUE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MOMENT )
@@ -368,7 +379,12 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LOCAL_CONSTITUTIVE_MATRIX )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_MATRIX )
 
+    // for geometrical application
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, CHARACTERISTIC_GEOMETRY_LENGTH)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DETERMINANTS_OF_JACOBIAN_PARENT)
+
     //for structural application TO BE REMOVED
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NUMBER_OF_CYCLES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONSTITUTIVE_LAW )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTERNAL_VARIABLES )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MATERIAL_PARAMETERS )
@@ -568,6 +584,7 @@ void  AddContainersToPython(pybind11::module& m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AMBIENT_TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VEL_ART_VISC )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PR_ART_VISC )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, LIMITER_COEFFICIENT )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SOUND_VELOCITY )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SEARCH_RADIUS )
@@ -575,6 +592,8 @@ void  AddContainersToPython(pybind11::module& m)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, INTEGRATION_COORDINATES )
+
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, PARAMETER_2D_COORDINATES)
 
 
     py::class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer >	(m,"ConvectionDiffusionSettings")
@@ -587,6 +606,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("SetProjectionVariable",&ConvectionDiffusionSettings::SetProjectionVariable)
     .def("SetMeshVelocityVariable",&ConvectionDiffusionSettings::SetMeshVelocityVariable)
     .def("SetConvectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
+    .def("SetGradientVariable",&ConvectionDiffusionSettings::SetGradientVariable)
     .def("SetTransferCoefficientVariable",&ConvectionDiffusionSettings::SetTransferCoefficientVariable)
     .def("SetSpecificHeatVariable",&ConvectionDiffusionSettings::SetSpecificHeatVariable)
     .def("SetVelocityVariable",&ConvectionDiffusionSettings::SetVelocityVariable)
@@ -600,6 +620,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, py::return_value_policy::reference_internal )
     .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
     .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, py::return_value_policy::reference_internal )
+    .def("GetGradientVariable",&ConvectionDiffusionSettings::GetGradientVariable, py::return_value_policy::reference_internal )
     .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, py::return_value_policy::reference_internal)
     .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, py::return_value_policy::reference_internal )
     .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, py::return_value_policy::reference_internal )
@@ -613,6 +634,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("IsDefinedProjectionVariable",&ConvectionDiffusionSettings::IsDefinedProjectionVariable)
     .def("IsDefinedMeshVelocityVariable",&ConvectionDiffusionSettings::IsDefinedMeshVelocityVariable)
     .def("IsDefinedConvectionVariable",&ConvectionDiffusionSettings::IsDefinedConvectionVariable)
+    .def("IsDefinedGradientVariable",&ConvectionDiffusionSettings::IsDefinedGradientVariable)
     .def("IsDefinedSpecificHeatVariable",&ConvectionDiffusionSettings::IsDefinedSpecificHeatVariable)
     .def("IsDefinedVelocityVariable",&ConvectionDiffusionSettings::IsDefinedVelocityVariable)
     .def("IsDefinedTransferCoefficientVariable",&ConvectionDiffusionSettings::IsDefinedTransferCoefficientVariable)

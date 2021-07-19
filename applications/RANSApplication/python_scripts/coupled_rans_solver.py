@@ -9,6 +9,7 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
+from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
 
@@ -194,8 +195,7 @@ class CoupledRANSSolver(PythonSolver):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility(
-            )
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         RansVariableUtilities.AssignBoundaryFlagsToGeometries(self.main_model_part)
         self.formulation.Initialize()
@@ -261,14 +261,11 @@ class CoupledRANSSolver(PythonSolver):
         return delta_time
 
     def _GetAutomaticTimeSteppingUtility(self):
-        if (self.GetComputingModelPart().ProcessInfo[
-                Kratos.DOMAIN_SIZE] == 2):
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(
-                self.GetComputingModelPart(), self.settings["time_stepping"])
-        else:
-            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(
-                self.GetComputingModelPart(), self.settings["time_stepping"])
-        return EstimateDeltaTimeUtility
+        estimate_delta_time_utility = KratosCFD.EstimateDtUtility(
+            self.GetComputingModelPart(),
+            self.settings["time_stepping"])
+
+        return estimate_delta_time_utility
 
     def _ExecuteCheckAndPrepare(self):
         ## Check that the input read has the shape we like
@@ -301,6 +298,12 @@ class CoupledRANSSolver(PythonSolver):
                 materials_filename)
             Kratos.ReadMaterialsUtility(material_settings,
                                                     self.model)
+            # add wall law properties
+            InitializeWallLawProperties(self.model)
+
+            # initialize constitutive laws
+            RansVariableUtilities.SetElementConstitutiveLaws(self.main_model_part.Elements)
+
             materials_imported = True
         else:
             materials_imported = False

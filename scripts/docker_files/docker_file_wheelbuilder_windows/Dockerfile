@@ -19,9 +19,9 @@ RUN C:\TEMP\vs_buildtools.exe --quiet --wait --norestart --nocache \
 #install chocolatey
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    iex ((New-Object System.Net.WebClient).DownloadString('http://chocolatey.org/install.ps1'))
 
-#install 7zip
+#install git
 RUN powershell.exe -Command \
     choco install -y 7zip.install
 
@@ -29,15 +29,9 @@ RUN powershell.exe -Command \
 RUN powershell.exe -Command \
     choco install -y git
 
-
 #install cmake
 RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://github.com/Kitware/CMake/releases/download/v3.14.1/cmake-3.14.1-win64-x64.zip -OutFile c:\TEMP\cmake.zip; \
-    mkdir c:\cmake; \
-    7z x c:\TEMP\cmake.zip -o"c:\cmake"
-
-
+    choco install -y cmake
 
 #download and extract boost
 RUN powershell.exe -Command \
@@ -82,6 +76,15 @@ RUN powershell.exe -Command \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.9
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
+    mkdir c:\python\39; \
+    Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
+    c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
 #Downloand blas/lapack
 RUN powershell.exe -Command \

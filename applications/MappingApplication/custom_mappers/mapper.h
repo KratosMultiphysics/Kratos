@@ -161,12 +161,23 @@ public:
         KRATOS_ERROR << "This mapper doesn't implement \"GetMappingMatrix\"!" << std::endl;
     }
 
+    virtual ModelPart& GetInterfaceModelPartOrigin()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartOrigin\"!" << std::endl;
+    }
+
+    virtual ModelPart& GetInterfaceModelPartDestination()
+    {
+        KRATOS_ERROR << "This mapper doesn't implement \"GetInterfaceModelPartDestination\"!" << std::endl;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
 
     /**
     * @brief Quering for mesh conformity
+      This function is deprecated and will eventually be removed, hence it is best not to use it
     * returns 1 if all the nodes are conform and 0 otherwise
     */
     virtual int AreMeshesConforming() const

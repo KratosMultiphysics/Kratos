@@ -37,8 +37,7 @@ void GenerateTransonicPerturbationElement(ModelPart& rModelPart) {
     rModelPart.GetProcessInfo()[FREE_STREAM_MACH] = 0.6;
     rModelPart.GetProcessInfo()[HEAT_CAPACITY_RATIO] = 1.4;
     rModelPart.GetProcessInfo()[SOUND_VELOCITY] = 340.3;
-    rModelPart.GetProcessInfo()[MACH_LIMIT] = 0.94;
-    rModelPart.GetProcessInfo()[MACH_SQUARED_LIMIT] = 3.0;
+    rModelPart.GetProcessInfo()[MACH_LIMIT] = 1.73205080756887729;
     rModelPart.GetProcessInfo()[CRITICAL_MACH] = 0.99;
     rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = 1.0;
 
@@ -87,16 +86,16 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementRHS, Compress
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    pElement->SetFlags(INLET);
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->SetFlags(INLET);
 
-    AssignPotentialsToNormalTransonicPerturbationElement(pElement);
+    AssignPotentialsToNormalTransonicPerturbationElement(p_element);
 
     // Compute RHS
     Vector RHS = ZeroVector(4);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
 
@@ -111,16 +110,16 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementRHS, Com
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
 
-    AssignPotentialsToNormalTransonicPerturbationElement(pElement);
+    AssignPotentialsToNormalTransonicPerturbationElement(p_element);
 
     // Compute RHS
     Vector RHS = ZeroVector(3);
 
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{146.2643261263345,-122.1426284341492,-24.12169769218525};
 
@@ -135,17 +134,17 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementLHS, Compress
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
-    pElement->SetFlags(INLET);
+    p_element->SetFlags(INLET);
 
-    AssignPotentialsToNormalTransonicPerturbationElement(pElement);
+    AssignPotentialsToNormalTransonicPerturbationElement(p_element);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(4, 4);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 16> reference{ 0.061142784644415527,-0.1306215050744058, 0.06947872042999037, 0.0,
                                      -0.1306215050744058, 0.6710758508914103,-0.5404543458170046, 0.0,
@@ -169,20 +168,20 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     GenerateTransonicPerturbationElement(model_part);
     GenerateTransonicPerturbationUpwindElement(model_part);
 
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer pUpwindElement = model_part.pGetElement(2);
 
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
     pUpwindElement->SetFlags(INLET);
 
     std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
     std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
-    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    AssignPerturbationPotentialsToTransonicElement(*p_element, high_potential);
     // mach number 0.39943
     AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
@@ -191,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     }
 
     Element::DofsVectorType CurrentElementalDofList;
-    pElement->GetDofList(CurrentElementalDofList, r_current_process_info);
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
 
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
@@ -206,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementLHS
     // // Compute LHS
     Matrix LHS = ZeroMatrix(4, 4);
 
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 16> reference{ 0.37708651121240516,-0.54915594944726343,0.17743192602659938,-0.0053624877917411414,
                                      -0.35664864389216139,1.0308840557120569,-0.68092794767744869,0.0066925358575532206,
@@ -230,20 +229,20 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
     GenerateTransonicPerturbationElement(model_part);
     GenerateTransonicPerturbationUpwindElement(model_part);
 
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer pUpwindElement = model_part.pGetElement(2);
 
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
     pUpwindElement->SetFlags(INLET);
 
     std::array<double, 3> high_potential{10.0, 200.0, 350.0};  // node id order 23 74 55
     std::array<double, 3> higher_potential{10.0, 350.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
-    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    AssignPerturbationPotentialsToTransonicElement(*p_element, high_potential);
     // mach number 2.0898
     AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, higher_potential);
 
@@ -253,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
     }
 
     Element::DofsVectorType CurrentElementalDofList;
-    pElement->GetDofList(CurrentElementalDofList, r_current_process_info);
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
 
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
@@ -268,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicDecelerati
     // // Compute LHS
     Matrix LHS = ZeroMatrix(4, 4);
 
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 16> reference{ -0.054669771246690091,-0.14888540383260493,0.40255671949894734,-0.19900154441965234,
                                       -0.083557300280464597,0.51822478070562072,-0.55794161182804491,0.12327413140288881,
@@ -292,7 +291,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
     GenerateTransonicPerturbationElement(model_part);
     GenerateTransonicPerturbationUpwindElement(model_part);
 
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer pUpwindElement = model_part.pGetElement(2);
 
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
@@ -301,7 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
     std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
     std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
-    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    AssignPerturbationPotentialsToTransonicElement(*p_element, high_potential);
     // mach number 0.3999
     AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
@@ -312,7 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
 
     Element::DofsVectorType CurrentElementalDofList;
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->GetDofList(CurrentElementalDofList, r_current_process_info);
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
 
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
@@ -324,13 +323,13 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowSupersonicElementRHS
         UpwindElementalDofList[i]->SetEquationId(upwind_ids[i]);
     }
 
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
     pUpwindElement->SetFlags(INLET);
 
     // Compute RHS
     Vector RHS = ZeroVector(4);
 
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
     std::vector<double> reference{185.25633340652948,-231.20512387394589,45.948790467416408,0.0};
 
@@ -345,18 +344,18 @@ KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowInletElementLHS, Com
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
 
-    pElement->SetFlags(INLET);
+    p_element->SetFlags(INLET);
 
-    AssignPotentialsToNormalTransonicPerturbationElement(pElement);
+    AssignPotentialsToNormalTransonicPerturbationElement(p_element);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(4, 4);
 
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     std::array<double, 9> reference{ 0.061142784644415527,-0.1306215050744058, 0.06947872042999037,
                                      -0.1306215050744058, 0.67107585089141042,-0.5404543458170046,
@@ -377,12 +376,12 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    Element::Pointer p_element = model_part.pGetElement(1);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
-    pElement->SetFlags(INLET);
+    p_element->SetFlags(INLET);
 
-    AssignPotentialsToNormalTransonicPerturbationElement(pElement);
+    AssignPotentialsToNormalTransonicPerturbationElement(p_element);
 
     Vector RHS_original = ZeroVector(number_of_nodes);
     Matrix LHS_original = ZeroMatrix(number_of_nodes, number_of_nodes);
@@ -391,17 +390,17 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
 
     // Compute original RHS and LHS
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < number_of_nodes; i++){
         // Pinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
 
         Vector RHS_pinged = ZeroVector(number_of_nodes);
         Matrix LHS_pinged = ZeroMatrix(number_of_nodes, number_of_nodes);
         // Compute pinged LHS and RHS
-        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
+        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
 
         for(unsigned int k = 0; k < number_of_nodes; k++){
             // Compute the finite difference estimate of the sensitivity
@@ -411,14 +410,10 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS, Comp
         }
 
         // Unpinging
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 /** Checks the TransonicPerturbationPotentialFlowElement.
@@ -431,21 +426,21 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
     GenerateTransonicPerturbationElement(model_part);
     GenerateTransonicPerturbationUpwindElement(model_part);
 
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
     Element::Pointer pUpwindElement = model_part.pGetElement(2);
-    const unsigned int number_of_nodes = pElement->GetGeometry().size();
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->Initialize(r_current_process_info);
+    p_element->Initialize(r_current_process_info);
     pUpwindElement->SetFlags(INLET);
 
     std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
     std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
     // mach number 1.92516
-    AssignPerturbationPotentialsToTransonicElement(*pElement, high_potential);
+    AssignPerturbationPotentialsToTransonicElement(*p_element, high_potential);
     // mach number 0.39943
     AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
 
@@ -454,7 +449,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
     }
 
     Element::DofsVectorType CurrentElementalDofList;
-    pElement->GetDofList(CurrentElementalDofList, r_current_process_info);
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
 
     Element::DofsVectorType UpwindElementalDofList;
     pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
@@ -472,13 +467,13 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
     Matrix LHS_analytical = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
 
     // Compute original RHS and LHS
-    pElement->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
 
     double delta = 1e-3;
     for(unsigned int i = 0; i < 4; i++){
         // Pinging
         if (i < 3) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
         }
         else {
             pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
@@ -487,7 +482,7 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
         Vector RHS_pinged = ZeroVector(number_of_nodes + 1);
         Matrix LHS_pinged = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
         // Compute pinged LHS and RHS
-        pElement->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
+        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
 
         for(unsigned int k = 0; k < number_of_nodes + 1; k++){
             // Compute the finite difference estimate of the sensitivity
@@ -498,18 +493,14 @@ KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElemen
 
         // Unpinging
         if (i < 3) {
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
         }
         else {
             pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
         }
     }
 
-    for (unsigned int i = 0; i < LHS_finite_diference.size1(); i++) {
-        for (unsigned int j = 0; j < LHS_finite_diference.size2(); j++) {
-            KRATOS_CHECK_NEAR(LHS_finite_diference(i,j), LHS_analytical(i,j), 1e-10);
-        }
-    }
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransonicPerturbationPotentialFlowElementEquationId, CompressiblePotentialApplicationFastSuite) {
@@ -565,21 +556,19 @@ BoundedVector<double,3> AssignDistancesToPerturbationTransonicElement()
     return distances;
 }
 
-void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances)
+void AssignPotentialsToWakeTransonicPerturbationElement(Element::Pointer pElement, const array_1d<double, 3>& rDistances, const std::array<double, 6>& rPotential)
 {
-    const std::array<double, 3> potential{1.0, 100.0, 150.0};
-
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) > 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i];
         else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i];
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i];
     }
     for (unsigned int i = 0; i < 3; i++){
         if (rDistances(i) < 0.0)
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential[i]+5;
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = rPotential[i+3];
         else
-            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = potential[i]+5;
+            pElement->GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) = rPotential[i+3];
     }
 }
 
@@ -588,22 +577,23 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementRHS, Comp
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationTransonicElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
-    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances);
+    const std::array<double, 6> potential{1.0, 101.0, 150.0, 6.0, 105.0, 155.0};
+    AssignPotentialsToWakeTransonicPerturbationElement(p_element, distances, potential);
 
     // Compute RHS and LHS
     Vector RHS = ZeroVector(6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateRightHandSide(RHS, r_current_process_info);
+    p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
-    std::vector<double> reference{146.2643261263345,-0,-0,-0,-122.1426284341492,-24.12169769218525};
+    std::vector<double> reference{146.392649744264,-1.225,0.6125,-0.6125,-122.1426284341492,-24.12169769218525};
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
 }
@@ -613,28 +603,28 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
     GenerateTransonicPerturbationElement(model_part);
-    Element::Pointer pElement = model_part.pGetElement(1);
+    Element::Pointer p_element = model_part.pGetElement(1);
 
     BoundedVector<double,3> distances = AssignDistancesToPerturbationTransonicElement();
 
-    pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-    pElement->GetValue(WAKE) = true;
+    p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+    p_element->GetValue(WAKE) = true;
 
-    AssignPotentialsToWakeTransonicPerturbationElement(pElement, distances);
+    const std::array<double, 6> potential{1.0, 100.0, 150.0, 6.0, 105.0, 155.0};
+    AssignPotentialsToWakeTransonicPerturbationElement(p_element, distances, potential);
 
     // Compute LHS
     Matrix LHS = ZeroMatrix(6, 6);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+    p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
     // Check the LHS values
-    std::array<double,36> reference{0.061142784644415527,-0.1306215050744058,0.06947872042999037,0,0,0,
-    -0.1306215050744058,0.67107585089141042,-0.5404543458170046,0.1306215050744058,-0.67107585089141042,0.5404543458170046,
-    0.06947872042999037,-0.5404543458170046,0.4709756253870142,-0.06947872042999037,0.5404543458170046,-0.4709756253870142,
-    -0.061142784644415527,0.1306215050744058,-0.06947872042999037,0.061142784644415527,-0.1306215050744058,0.06947872042999037,
-    0,0,0,-0.1306215050744058,0.67107585089141042,-0.5404543458170046,
-    0,0,0,0.06947872042999037,-0.5404543458170046,0.4709756253870142};
+    std::array<double,36> reference{0.06114278464441553,-0.1306215050744058,
+    0.06947872042999036,0,0,0,-0.6125,1.225,-0.6125,0.6125,-1.225,0.6125,0,
+    -0.6125,0.6125,-0,0.6125,-0.6125,-0.6125,0.6125,-0,0.6125,-0.6125,0,0,0,
+    0,-0.1306215050744058,0.6710758508914104,-0.5404543458170046,0,0,0,
+    0.06947872042999036,-0.5404543458170046,0.4709756253870142};
 
     for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {

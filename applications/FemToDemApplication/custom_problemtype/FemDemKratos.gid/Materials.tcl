@@ -9,7 +9,6 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
     puts $FileVar ""
     puts $FileVar "from __future__ import print_function, absolute_import, division"
     puts $FileVar "from KratosMultiphysics import *"
-    puts $FileVar "from KratosMultiphysics.SolidMechanicsApplication import *"
     puts $FileVar "from KratosMultiphysics.FemToDemApplication import *"
     puts $FileVar ""
     puts $FileVar "def AssignMaterial(Properties):"
@@ -29,11 +28,11 @@ proc WriteMaterials { basename dir problemtypedir TableDict} {
 
         if {[GiD_AccessValue get gendata Plane_state] eq "Plane_Strain"} {
 
-        	puts $FileVar "    mat = LinearPlaneStrain()"
+        	puts $FileVar "    mat = LinearPlaneStrainFEMDEM()"
 
         } else {
 
-        	puts $FileVar "    mat = LinearPlaneStress()"
+        	puts $FileVar "    mat = LinearPlaneStressFEMDEM()"
         }
         puts $FileVar "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())"
         puts $FileVar ""

@@ -48,17 +48,19 @@ namespace Testing
         volume_acceleration[0] = 0.0;
         volume_acceleration[1] = -9.8;
         volume_acceleration[2] = 0.0;
-        pElement->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, rModelPart.GetProcessInfo());
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        pElement->SetValuesOnIntegrationPoints(MP_COORD, { mp_coordinate }, r_current_process_info);
         std::vector<double> mp_mass_vector = { 1.5 };
-        pElement->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, rModelPart.GetProcessInfo());
-        pElement->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_MASS, mp_mass_vector, r_current_process_info);
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME_ACCELERATION, { volume_acceleration }, r_current_process_info);
 
         // For kinetic energy
         array_1d<double, 3> velocity;
         velocity[0] = 1.0;
         velocity[1] = 2.0;
         velocity[2] = 3.0;
-        pElement->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VELOCITY, { velocity }, r_current_process_info);
 
         // For strain energy
         //Vector mp_cauchy_stress1 = ;
@@ -77,11 +79,11 @@ namespace Testing
         mp_strain[4] = 0.5;
         mp_strain[5] = 0.6;
         std::vector<double> mp_volume_vector = { 2.5 };
-        pElement->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_VOLUME, mp_volume_vector, r_current_process_info);
         std::vector<Vector> mp_cauchy_stress_vector = { mp_cauchy_stress };
-        pElement->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy_stress_vector, r_current_process_info);
         std::vector<Vector> mp_almansi_strain_vector = { mp_strain };
-        pElement->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, rModelPart.GetProcessInfo());
+        pElement->SetValuesOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain_vector, r_current_process_info);
     }
 
     /**
@@ -100,16 +102,18 @@ namespace Testing
         const std::size_t element_id = 1;
 
         std::vector<double> r_MP_PotentialEnergy(1);
-        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_model_part.GetProcessInfo());
+        const ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_POTENTIAL_ENERGY, r_MP_PotentialEnergy, r_current_process_info);
         
         std::vector<double> r_MP_KineticEnergy(1);
-        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_KINETIC_ENERGY, r_MP_KineticEnergy, r_current_process_info);
 
         std::vector<double> r_MP_StrainEnergy(1);
-        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_STRAIN_ENERGY, r_MP_StrainEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_STRAIN_ENERGY, r_MP_StrainEnergy, r_current_process_info);
 
         std::vector<double> r_MP_TotalEnergy(1);
-        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_model_part.GetProcessInfo());
+        r_model_part.pGetElement(element_id)->CalculateOnIntegrationPoints(MP_TOTAL_ENERGY, r_MP_TotalEnergy, r_current_process_info);
 
         KRATOS_CHECK_NEAR(r_MP_PotentialEnergy[0], 7.35  , 1e-6);
         KRATOS_CHECK_NEAR(r_MP_KineticEnergy[0]  , 10.50 , 1e-6);

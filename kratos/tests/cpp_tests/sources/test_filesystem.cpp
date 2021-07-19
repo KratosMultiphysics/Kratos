@@ -50,6 +50,17 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinPaths, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(Kratos::FilesystemExtensions::JoinPaths(paths_2), "");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FileSystemParentPathFilename, KratosCoreFastSuite)
+{
+    std::vector<std::string> paths_1 {"sl", "", "uom", "dssc"};
+    const std::string& path = Kratos::FilesystemExtensions::JoinPaths(paths_1);
+    const auto& parent_path = Kratos::filesystem::parent_path(path);
+    const auto& parent_parent_path = Kratos::filesystem::parent_path(parent_path);
+    KRATOS_CHECK_STRING_EQUAL(parent_parent_path, "sl");
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::filename(parent_path), "uom");
+    KRATOS_CHECK_STRING_EQUAL(Kratos::filesystem::filename(path), "dssc");
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FileSystemJoinEmptyPaths, KratosCoreFastSuite)
 {
     std::vector<std::string> paths_1 {"eee", "", "gt"};
@@ -189,6 +200,52 @@ KRATOS_TEST_CASE_IN_SUITE(FileSystemRenameDirectory, KratosCoreFastSuite)
     Kratos::filesystem::remove_all(dir_name_new);
 
     KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name_new));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ListDirectory, KratosCoreFastSuite)
+{
+    const std::string dir_name("ListDirectoryTest");
+    const std::string dir_name_2("ListDirectoryTestSub");
+
+    const std::string raw_file_name_1("dummy_file_1.txt");
+    const std::string raw_file_name_2("dummy_file_2.txt");
+    const std::string sub_dir(Kratos::FilesystemExtensions::JoinPaths({dir_name, dir_name_2}));
+    const std::string file_name_1(Kratos::FilesystemExtensions::JoinPaths({dir_name, raw_file_name_1}));
+    const std::string file_name_2(Kratos::FilesystemExtensions::JoinPaths({dir_name, raw_file_name_2}));
+
+    KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
+    KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(sub_dir));
+    KRATOS_CHECK(Kratos::filesystem::create_directories(sub_dir));
+
+    std::ofstream output_file;
+    output_file.open(file_name_1);
+    output_file.close();
+    output_file.open(file_name_2);
+    output_file.close();
+
+    KRATOS_CHECK(Kratos::filesystem::exists(file_name_1));
+    KRATOS_CHECK(Kratos::filesystem::exists(file_name_2));
+    KRATOS_CHECK(Kratos::filesystem::exists(sub_dir));
+
+    const auto& list_of_dirs = Kratos::FilesystemExtensions::ListDirectory(dir_name);
+    const std::vector<std::string> check_list = {sub_dir, file_name_1, file_name_2};
+    KRATOS_CHECK_EQUAL(check_list.size(), list_of_dirs.size());
+
+    for (const auto& r_dir : list_of_dirs) {
+        bool found_check_dir = false;
+        for (const auto& check_dir : check_list) {
+            if (filesystem::parent_path(r_dir) == filesystem::parent_path(check_dir) &&
+                filesystem::filename(r_dir) == filesystem::filename(check_dir)) {
+                found_check_dir = true;
+                break;
+            }
+        }
+        KRATOS_CHECK(found_check_dir);
+    }
+
+    Kratos::filesystem::remove_all(dir_name);
+
+    KRATOS_CHECK_IS_FALSE(Kratos::filesystem::exists(dir_name));
 }
 
 } // namespace Testing

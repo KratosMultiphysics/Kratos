@@ -21,6 +21,7 @@
 #include "utilities/math_utils.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -31,7 +32,7 @@ namespace Kratos
 {
 template <unsigned int TDim, unsigned int TNumNodes>
 int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -53,7 +54,7 @@ int IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Check(
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Initialize()
+void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -181,8 +182,9 @@ void IncompressiblePotentialFlowVelocityInletCondition<TDim, TNumNodes>::Calcula
         for (IndexType g = 0; g < num_gauss_points; ++g) {
             const Vector gauss_shape_functions = row(shape_functions, g);
 
-            EvaluateInPoint(this->GetGeometry(), gauss_shape_functions,
-                            std::tie(velocity, VELOCITY));
+            FluidCalculationUtilities::EvaluateInPoint(
+                this->GetGeometry(), gauss_shape_functions,
+                std::tie(velocity, VELOCITY));
 
             const double velocity_potential_flux =
                 inner_prod(velocity, r_normal) * gauss_weights[g];

@@ -162,7 +162,7 @@ class Averager:
                 self.rotator.UndoRotationOfVectors(float(time_str) - self.reference_time, vel)
                 field[:3] += vel
                 field[3] += p
-                print('averaging step ', i_sample, '...')
+                Kratos.Logger.PrintInfo("SwimmingDEM", 'averaging step ', i_sample, '...')
 
             field /= i_sample
 
@@ -175,7 +175,7 @@ class Averager:
                     for i in range(3):
                         std_dev[0] += (field[i] - vel[i]) ** 2
                     std_dev[1] += (field[3] - p) ** 2
-                    print('calculating standard deviations step ', i_sample, '...')
+                    Kratos.Logger.PrintInfo("SwimmingDEM", 'calculating standard deviations step ', i_sample, '...')
 
                 std_dev **= 0.5
                 std_dev /= i_sample
@@ -209,8 +209,8 @@ class Averager:
                     stat_group.attrs['pressure_standard_deviation'] = p_stdv_modulus
                     stat_group.create_dataset('v_mod_stdv', data = std_dev[0])
                     stat_group.create_dataset('p_stdv', data = std_dev[1])
-                    print('velocity modulus mean standard deviation:', v_stdv_modulus)
-                    print('pressure mean standard deviation:', p_stdv_modulus)
+                    Kratos.Logger.PrintInfo("SwimmingDEM", 'velocity modulus mean standard deviation:', v_stdv_modulus)
+                    Kratos.Logger.PrintInfo("SwimmingDEM", 'pressure mean standard deviation:', p_stdv_modulus)
 
 if __name__ == '__main__':
     import os

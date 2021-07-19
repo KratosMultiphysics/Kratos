@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -15,7 +13,7 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
+class DEM2D_ControlModuleTestSolution(DEMAnalysisStage, KratosUnittest.TestCase):
 
     def GetMainPath(self):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
@@ -23,8 +21,9 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
+
     def Initialize(self):
-        super(DEM2D_ControlModuleTestSolution, self).Initialize()
+        super().Initialize()
 
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         cm_project_parameters_file_name = os.path.join(path, "cm_parameters.json")
@@ -38,17 +37,17 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
         self.multiaxial_control_module.ExecuteInitialize()
 
     def InitializeSolutionStep(self):
-        super(DEM2D_ControlModuleTestSolution, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
 
         self.multiaxial_control_module.ExecuteInitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
-        super(DEM2D_ControlModuleTestSolution, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
 
         self.multiaxial_control_module.ExecuteFinalizeSolutionStep()
 
     def PrintResultsForGid(self, time):
-        super(DEM2D_ControlModuleTestSolution, self).PrintResultsForGid(time)
+        super().PrintResultsForGid(time)
 
         self.multiaxial_control_module.PrintResults()
 
@@ -58,21 +57,13 @@ class DEM2D_ControlModuleTestSolution(DEMAnalysisStage):
             if node.Id == 5:
                 node_force_x = node.GetSolutionStepValue(DEM.CONTACT_FORCES_X)
                 expected_value = 316.79
-                self.CheckForceX(node_force_x, expected_value, tolerance)
+                self.assertAlmostEqual(node_force_x, expected_value, delta=tolerance)
             elif node.Id == 6:
                 node_force_y = node.GetSolutionStepValue(DEM.CONTACT_FORCES_Y)
                 expected_value = 150.1
-                self.CheckForceY(node_force_y, expected_value, tolerance)
-
-        super(DEM2D_ControlModuleTestSolution, self).Finalize()
-
-    def CheckForceX(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_X: expected value was '+ str(expected_value) + ' but received ' + str(force))
-
-    def CheckForceY(self, force, expected_value, tolerance):
-        if abs(expected_value) > abs(force*tolerance) or abs(expected_value) < abs(force/tolerance):
-            raise ValueError('Incorrect value for CONTACT_FORCES_Y: expected value was '+ str(expected_value) + ' but received ' + str(force))
+                self.assertAlmostEqual(node_force_y, expected_value, delta=tolerance)
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 
 class TestDEM2DControlModule(KratosUnittest.TestCase):
@@ -84,13 +75,7 @@ class TestDEM2DControlModule(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_control_module_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM2D_control_module_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
-
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_ControlModuleTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 if __name__ == "__main__":
     Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

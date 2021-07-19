@@ -6,8 +6,8 @@ from importlib import import_module
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.DelaunayMeshingApplication
-import KratosMultiphysics.PfemFluidDynamicsApplication
+import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
+import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.PfemFluidDynamicsApplication import python_solvers_wrapper_pfem_fluid as solver_wrapper
@@ -33,7 +33,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         #### TIME MONITORING END ####
 
         #### PARSING THE PARAMETERS ####
-
         #set echo level
         self.echo_level = parameters["problem_data"]["echo_level"].GetInt()
 
@@ -70,6 +69,20 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self.problem_path = os.getcwd()
         self.problem_name = parameters["problem_data"]["problem_name"].GetString()
 
+                        #print model_part and properties
+        if (self.echo_level>-1):
+            for properties in self.main_model_part.Properties:
+                self.KratosPrintInfo(properties)
+
+        self.AddPfemVariables()
+
+        if parameters["solver_settings"].Has("constitutive_laws_list"):
+            self.constitutive_laws_names     = parameters["solver_settings"]["constitutive_laws_list"]
+            self.AddMaterialVariables()
+        #else:
+        #    self.AddAllMaterialVariables()
+
+
     def _CreateSolver(self):
         """Create the solver
         """
@@ -88,11 +101,7 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         self._solver.PrepareModelPart()
 
         # Add dofs (always after importing the model part)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self._solver.AddDofs()
-        else:
-            self._solver.AddDofs()
+        self._solver.AddDofs()
 
         #print model_part and properties
         if (self.echo_level>1):
@@ -118,6 +127,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         ## here we initialize user-provided processes
         order_processes_initialization = self._GetOrderOfProcessesInitialization()
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
+        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_processes.extend(self._list_of_output_processes)
 
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
@@ -144,8 +155,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
             process.ExecuteBeforeSolutionLoop()
 
         self.GraphicalOutputExecuteBeforeSolutionLoop()
-
-        self._solver.InitializeSolutionStep()
 
         # write output results GiD: (frequency writing is controlled internally)
         self.GraphicalOutputPrintOutput()
@@ -205,11 +214,6 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
 
         self.StopTimeMeasuring(self.clock_time,"Finalize Step" , self.report);
 
-    def OutputSolutionStep(self):
-        """This function printed / writes output files after the solution of a step
-        """
-        pass
-
     def Finalize(self):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
@@ -259,10 +263,8 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
         """This function performs the ExecuteBeforeSolutionLoop
         of the graphical_output
         """
-        # writing a initial state results file or single file (if no restart)
-        if((self.main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
-            if(self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-                self.graphical_output.ExecuteBeforeSolutionLoop()
+        # writing a initial state results file or single file
+        self.graphical_output.ExecuteBeforeSolutionLoop()
 
     def GraphicalOutputExecuteInitializeSolutionStep(self):
         """This function performs the ExecuteInitializeSolutionStep
@@ -302,14 +304,12 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
     def SetParallelSize(self, num_threads):
         """This function sets the number of threads
         """
-        parallel = KratosMultiphysics.OpenMPUtils()
-        parallel.SetNumThreads(int(num_threads))
+        KratosMultiphysics.ParallelUtilities.SetNumThreads(int(num_threads))
 
     def GetParallelSize(self):
         """This function returns the number of threads
         """
-        parallel = KratosMultiphysics.OpenMPUtils()
-        return parallel.GetNumThreads()
+        KratosMultiphysics.ParallelUtilities.GetNumThreads()
 
     def StartTimeMeasuring(self):
         """This function starts time calculation
@@ -335,20 +335,89 @@ class PfemFluidDynamicsAnalysis(AnalysisStage):
                 "loads_process_list",
                 "auxiliar_process_list"]
 
-    #### Main internal methods ####
-
-    def _import_project_parameters(self, input_file):
-        """This function reads the ProjectsParameters.json
-        """
-        from KratosMultiphysics.PfemFluidDynamicsApplication.input_manager import InputManager
-        self.input_manager = InputManager(input_file)
-        return self.input_manager.Getparameters()
-
     def KratosPrintInfo(self, message):
         """This function prints info on screen
         """
         KratosMultiphysics.Logger.Print(message, label="")
         KratosMultiphysics.Logger.Flush()
+
+    def AddMaterialVariables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
+
+        for i in range(self.constitutive_laws_names.size()):
+            if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplastic3DLaw"):
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+            elif (self.constitutive_laws_names[i].GetString()=="Hypoelastic2DLaw" or self.constitutive_laws_names[i].GetString()=="Hypoelastic3DLaw"):
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
+            elif (self.constitutive_laws_names[i].GetString()=="Bingham2DLaw" or self.constitutive_laws_names[i].GetString()=="Bingham3DLaw"):
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+            elif (self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="PapanastasiouMuIRheology3DLaw" or
+            self.constitutive_laws_names[i].GetString()=="BarkerBercovierMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerBercovierMuIRheology3DLaw" or
+            self.constitutive_laws_names[i].GetString()=="BarkerMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerMuIRheology3DLaw"):
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
+                self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+                if (self.constitutive_laws_names[i].GetString()=="BarkerBercovierMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerBercovierMuIRheology3DLaw" or
+                self.constitutive_laws_names[i].GetString()=="BarkerMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerMuIRheology3DLaw"):
+                    self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
+                    self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+                    self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
+            elif (self.constitutive_laws_names[i].GetString()!="None" and self.constitutive_laws_names[i].GetString()!="Newtonian2DLaw" and self.constitutive_laws_names[i].GetString()!="Newtonian3DLaw"):
+                print("ERROR: THE CONSTITUTIVE LAW PROVIDED FOR THIS SUBMODEL PART IS NOT IN THE PFEM FLUID DATABASE")
+
+    def AddAllMaterialVariables(self):
+        print("ATTENTION! YOU ARE ADDING ALL MATERIAL VARIABLES, PLEASE UPDATE YOUR PROJECTPARAMETERS.JSON")
+
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BULK_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FRICTION_ANGLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.COHESION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ZERO)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DIAMETER)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
+
+
+    def AddPfemVariables(self):
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.SHRINK_FACTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+
 
 if __name__ == "__main__":
     parameter_file_name = "ProjectParameters.json"
@@ -357,4 +426,3 @@ if __name__ == "__main__":
     model = KratosMultiphysics.Model()
     simulation = PfemFluidDynamicsAnalysis(model,parameters)
     simulation.Run()
-

@@ -73,7 +73,6 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>> VariableComponentType;
     typedef ModelPart::IndexType IndexType;
     typedef ModelPart::NodeType NodeType;
     typedef Kratos::Variable<double> VariableType;

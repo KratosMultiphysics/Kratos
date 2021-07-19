@@ -3,6 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    from KratosMultiphysics import ConstitutiveLawsApplication
+
 from math import sqrt, sin, cos, pi, exp, atan
 
 class TestMassCalculation(KratosUnittest.TestCase):
@@ -34,6 +38,7 @@ class TestMassCalculation(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 
     def _apply_orthotropic_shell_material_properties(self,mp):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
         #define properties
         # we specify only the properties we need (others are youngs modulus etc)
         num_plies = 3
@@ -52,7 +57,7 @@ class TestMassCalculation(KratosUnittest.TestCase):
 
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.SHELL_ORTHOTROPIC_LAYERS,orthotropic_props)
 
-        cl = StructuralMechanicsApplication.LinearElasticOrthotropic2DLaw()
+        cl = ConstitutiveLawsApplication.LinearElasticOrthotropic2DLaw()
 
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
 

@@ -198,53 +198,91 @@ namespace Kratos
 
 			if (DELTA_TIME.Key() == 0)
 				KRATOS_THROW_ERROR(std::runtime_error, "DELTA_TIME Key is 0. Check that the application was correctly registered.", "");
-			if (BDF_COEFFICIENTS.Key() == 0)
-				KRATOS_THROW_ERROR(std::runtime_error, "BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.", "");
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 
-			if (mTimeOrder == 2 && rModelPart.GetBufferSize() < 3)
-				KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (BDF2), needed 3, got ", rModelPart.GetBufferSize());
-			if (mTimeOrder == 1 && rModelPart.GetBufferSize() < 2)
-				KRATOS_THROW_ERROR(std::invalid_argument, "Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ", rModelPart.GetBufferSize());
+			// const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			// for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
+			// {
+			// 	ierr = itEl->Check(rCurrentProcessInfo);
+			// 	if (ierr != 0)
+			// 		break;
+			// }
 
-			for (ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl)
+			const auto &r_current_process_info = rModelPart.GetProcessInfo();
+			for (const auto &r_element : rModelPart.Elements())
 			{
-				ierr = itEl->Check(rCurrentProcessInfo);
+				ierr = r_element.Check(r_current_process_info);
 				if (ierr != 0)
+				{
 					break;
+				}
 			}
 
-			for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-			{
-				ierr = itCond->Check(rCurrentProcessInfo);
-				if (ierr != 0)
-					break;
-			}
+			// for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
+			// {
+			// 	ierr = itCond->Check(rCurrentProcessInfo);
+			// 	if (ierr != 0)
+			// 		break;
+			// }
 
 			return ierr;
 
 			KRATOS_CATCH("");
 		}
 
-		double Solve() override
+		void SetTimeCoefficients(ProcessInfo &rCurrentProcessInfo)
+		{
+			KRATOS_TRY;
+
+			if (mTimeOrder == 2)
+			{
+				//calculate the BDF coefficients
+				double Dt = rCurrentProcessInfo[DELTA_TIME];
+				double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+
+				double Rho = OldDt / Dt;
+				double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+
+				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+				BDFcoeffs.resize(3, false);
+
+				BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);		   //coefficient for step n+1 (3/2Dt if Dt is constant)
+				BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+				BDFcoeffs[2] = TimeCoeff;								   //coefficient for step n-1 (1/2Dt if Dt is constant)
+			}
+			else if (mTimeOrder == 1)
+			{
+				double Dt = rCurrentProcessInfo[DELTA_TIME];
+				double TimeCoeff = 1.0 / Dt;
+
+				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+				BDFcoeffs.resize(2, false);
+
+				BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
+				BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
+			}
+
+			KRATOS_CATCH("");
+		}
+
+		bool SolveSolutionStep() override
 		{
 			// Initialize BDF2 coefficients
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			this->SetTimeCoefficients(rModelPart.GetProcessInfo());
-			double NormDp = 0.0;
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			double currentTime = rCurrentProcessInfo[TIME];
 			double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			bool timeIntervalChanged = rCurrentProcessInfo[TIME_INTERVAL_CHANGED];
+			bool converged = false;
 
 			// bool momentumAlreadyConverged=false;
 			// bool continuityAlreadyConverged=false;
 
 			unsigned int maxNonLinearIterations = mMaxPressureIter;
-			std::cout << "\n                   Solve with nodally_integrated_two_step_vp strategy at t=" << currentTime << "s" << std::endl;
+
+			KRATOS_INFO("\n                  Solve with nodally_integrated_two_step_vp strategy at t=") << currentTime << "s" << std::endl;
 
 			if (timeIntervalChanged == true && currentTime > 10 * timeInterval)
 			{
@@ -326,6 +364,7 @@ namespace Kratos
 				{
 					rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
 					rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
+					converged = true;
 					std::cout << "nodal V-P strategy converged in " << it + 1 << " iterations." << std::endl;
 					break;
 				}
@@ -339,7 +378,7 @@ namespace Kratos
 
 			/* std::cout << "solve_step_time : " << solve_step_time.elapsed() << std::endl; */
 
-			return NormDp;
+			return converged;
 		}
 
 		void FinalizeSolutionStep() override
@@ -350,7 +389,6 @@ namespace Kratos
 		void Initialize() override
 		{
 
-			std::cout << "                                 Initialize in nodal_two_step_v_p_strategy" << std::endl;
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			unsigned int sizeStrains = 3 * (dimension - 1);
@@ -484,56 +522,11 @@ namespace Kratos
 			// }
 		}
 
-		void UnactiveSliverElements()
-		{
-			KRATOS_TRY;
-
-			ModelPart &rModelPart = BaseType::GetModelPart();
-			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-			MesherUtilities MesherUtils;
-			double ModelPartVolume = MesherUtils.ComputeModelPartVolume(rModelPart);
-			double CriticalVolume = 0.001 * ModelPartVolume / double(rModelPart.Elements().size());
-			double ElementalVolume = 0;
-
-#pragma omp parallel
-			{
-				ModelPart::ElementIterator ElemBegin;
-				ModelPart::ElementIterator ElemEnd;
-				OpenMPUtils::PartitionedIterators(rModelPart.Elements(), ElemBegin, ElemEnd);
-				for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-				{
-					unsigned int numNodes = itElem->GetGeometry().size();
-					if (numNodes == (dimension + 1))
-					{
-						if (dimension == 2)
-						{
-							ElementalVolume = (itElem)->GetGeometry().Area();
-						}
-						else if (dimension == 3)
-						{
-							ElementalVolume = (itElem)->GetGeometry().Volume();
-						}
-
-						if (ElementalVolume < CriticalVolume)
-						{
-							// std::cout << "sliver element: it has Volume: " << ElementalVolume << " vs CriticalVolume(meanVol/1000): " << CriticalVolume<< std::endl;
-							(itElem)->Set(ACTIVE, false);
-						}
-						else
-						{
-							(itElem)->Set(ACTIVE, true);
-						}
-					}
-				}
-			}
-			KRATOS_CATCH("");
-		}
-
 		void AssignFluidMaterialToEachNode(ModelPart::NodeIterator itNode)
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
 			double deviatoricCoeff = itNode->FastGetSolutionStepValue(DYNAMIC_VISCOSITY);
@@ -725,7 +718,7 @@ namespace Kratos
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			ElementsArrayType &pElements = rModelPart.Elements();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #ifdef _OPENMP
 			int number_of_threads = omp_get_max_threads();
@@ -1205,7 +1198,7 @@ namespace Kratos
 		void CalculatePressureVelocity()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			unsigned int timeStep = rCurrentProcessInfo[STEP];
 
@@ -1230,7 +1223,7 @@ namespace Kratos
 		void CalculatePressureAcceleration()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 			unsigned int timeStep = rCurrentProcessInfo[STEP];
 
@@ -1255,7 +1248,6 @@ namespace Kratos
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
 			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
-			Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
 			for (ModelPart::NodeIterator i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i)
 			{
@@ -1268,7 +1260,7 @@ namespace Kratos
 
 				if ((i)->IsNot(ISOLATED) && ((i)->IsNot(RIGID) || (i)->Is(SOLID)))
 				{
-					UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity, BDFcoeffs);
+					UpdateAccelerations(CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity);
 				}
 				else if ((i)->Is(RIGID))
 				{
@@ -1302,20 +1294,18 @@ namespace Kratos
 		inline void UpdateAccelerations(array_1d<double, 3> &CurrentAcceleration,
 										const array_1d<double, 3> &CurrentVelocity,
 										array_1d<double, 3> &PreviousAcceleration,
-										const array_1d<double, 3> &PreviousVelocity,
-										Vector &BDFcoeffs)
+										const array_1d<double, 3> &PreviousVelocity)
 		{
-			/* noalias(PreviousAcceleration)=CurrentAcceleration; */
-			noalias(CurrentAcceleration) = -BDFcoeffs[1] * (CurrentVelocity - PreviousVelocity) - PreviousAcceleration;
-			// std::cout<<"rBDFCoeffs[0] is "<<rBDFCoeffs[0]<<std::endl;//3/(2*delta_t)
-			// std::cout<<"rBDFCoeffs[1] is "<<rBDFCoeffs[1]<<std::endl;//-2/(delta_t)
-			// std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
+			ModelPart &rModelPart = BaseType::GetModelPart();
+			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			double Dt = rCurrentProcessInfo[DELTA_TIME];
+			noalias(CurrentAcceleration) = 2.0 * (CurrentVelocity - PreviousVelocity) / Dt - PreviousAcceleration;
 		}
 
 		void CalculateDisplacements()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 
 			for (ModelPart::NodeIterator i = rModelPart.NodesBegin(); i != rModelPart.NodesEnd(); ++i)
@@ -1341,7 +1331,7 @@ namespace Kratos
 		void CalculateDisplacementsAndResetNodalVariables()
 		{
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
 			const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 			unsigned int sizeStrains = 3 * (dimension - 1);
@@ -1473,42 +1463,8 @@ namespace Kratos
 
 		/// Calculate the coefficients for time iteration.
 		/**
-     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME and BDF_COEFFICIENTS variables.
+     * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
-		void SetTimeCoefficients(ProcessInfo &rCurrentProcessInfo)
-		{
-			KRATOS_TRY;
-
-			if (mTimeOrder == 2)
-			{
-				//calculate the BDF coefficients
-				double Dt = rCurrentProcessInfo[DELTA_TIME];
-				double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
-
-				double Rho = OldDt / Dt;
-				double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
-
-				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-				BDFcoeffs.resize(3, false);
-
-				BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho);		   //coefficient for step n+1 (3/2Dt if Dt is constant)
-				BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-				BDFcoeffs[2] = TimeCoeff;								   //coefficient for step n-1 (1/2Dt if Dt is constant)
-			}
-			else if (mTimeOrder == 1)
-			{
-				double Dt = rCurrentProcessInfo[DELTA_TIME];
-				double TimeCoeff = 1.0 / Dt;
-
-				Vector &BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-				BDFcoeffs.resize(2, false);
-
-				BDFcoeffs[0] = TimeCoeff;  //coefficient for step n+1 (1/Dt)
-				BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
-			}
-
-			KRATOS_CATCH("");
-		}
 
 		bool SolveMomentumIteration(unsigned int it, unsigned int maxIt, bool &fixedTimeStep, double &velocityNorm)
 		{
@@ -1546,7 +1502,7 @@ namespace Kratos
 			// Check convergence
 			if (it == maxIt - 1)
 			{
-				std::cout << "         iteration(" << it << ") Final Velocity error: " << DvErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Final Velocity error: " << DvErrorNorm << std::endl;
 				fixedTimeStep = this->FixTimeStepMomentum(DvErrorNorm);
 			}
 			else if (it > iterationForCheck)
@@ -1607,7 +1563,7 @@ namespace Kratos
 
 			if (it == 0)
 			{
-				NormP=this->ComputePressureNorm();
+				NormP = this->ComputePressureNorm();
 			}
 
 			double DpErrorNorm = NormDp / (NormP);
@@ -1617,12 +1573,12 @@ namespace Kratos
 			// Check convergence
 			if (it == maxIt - 1)
 			{
-				std::cout << "                  iteration(" << it << ") Final Pressure error: " << DpErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Final Pressure error: " << DpErrorNorm << std::endl;
 				ConvergedContinuity = this->FixTimeStepContinuity(DpErrorNorm);
 			}
 			else
 			{
-				std::cout << "                             iteration(" << it << ") Pressure error: " << DpErrorNorm << std::endl;
+				KRATOS_INFO("Iteration") << it << "  Pressure error: " << DpErrorNorm << std::endl;
 			}
 
 			// ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -1783,7 +1739,7 @@ namespace Kratos
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
 
 			double sumErrorL2Velocity = 0;
@@ -1886,7 +1842,7 @@ namespace Kratos
 		{
 
 			ModelPart &rModelPart = BaseType::GetModelPart();
-			ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
+			const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
 			const double currentTime = rCurrentProcessInfo[TIME];
 
 			double sumErrorL2VelocityTheta = 0;
@@ -2170,8 +2126,6 @@ namespace Kratos
 		void InitializeStrategy(SolverSettingsType &rSolverConfig)
 		{
 			KRATOS_TRY;
-
-			mTimeOrder = rSolverConfig.GetTimeOrder();
 
 			// Check that input parameters are reasonable and sufficient.
 			this->Check();

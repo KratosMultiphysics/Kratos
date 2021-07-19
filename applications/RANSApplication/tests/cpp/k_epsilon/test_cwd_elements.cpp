@@ -91,9 +91,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateLocalSystem, KratosRansF
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 5.37345247209500698204e+00;
-    ref_RHS[1] = 4.41760932398444161606e+00;
-    ref_RHS[2] = 3.70832201470035016655e+00;
+    ref_RHS[0] = 2.4695760450111890e+00;
+    ref_RHS[1] = 1.5697917442624412e+00;
+    ref_RHS[2] = 1.6364013801278432e+00;
     ref_LHS = ZeroMatrix(3, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
@@ -113,9 +113,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateRightHandSide, KratosRan
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 5.37345247209500698204e+00;
-    ref_RHS[1] = 4.41760932398444161606e+00;
-    ref_RHS[2] = 3.70832201470035016655e+00;
+    ref_RHS[0] = 2.4695760450111890e+00;
+    ref_RHS[1] = 1.5697917442624412e+00;
+    ref_RHS[2] = 1.6364013801278432e+00;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
@@ -134,19 +134,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateLocalVelocityContributio
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_LHS(0, 0) = 4.2893038165788439e+03;
-    ref_LHS(0, 1) = -3.8852537884546250e+03;
-    ref_LHS(0, 2) = 1.6201859781096070e+02;
-    ref_LHS(1, 0) = -3.8840910810345840e+03;
-    ref_LHS(1, 1) = 8.4666046917560780e+03;
-    ref_LHS(1, 2) = -3.8562328510448169e+03;
-    ref_LHS(2, 0) = 1.6228920741534276e+02;
-    ref_LHS(2, 1) = -3.8563681075215354e+03;
-    ref_LHS(2, 2) = 4.4411025228580056e+03;
+    ref_LHS(0, 0) = 1.6511229077990392e+03;
+    ref_LHS(0, 1) = -1.1991325806552495e+03;
+    ref_LHS(0, 2) = 2.5025247442245546e+02;
+    ref_LHS(1, 0) = -1.1980949932426622e+03;
+    ref_LHS(1, 1) = 3.0794974206941502e+03;
+    ref_LHS(1, 2) = -1.1061922886004156e+03;
+    ref_LHS(2, 0) = 2.4945420324918433e+02;
+    ref_LHS(2, 1) = -1.1068712901544172e+03;
+    ref_LHS(2, 2) = 2.1086889311039668e+03;
 
-    ref_RHS[0] = 5.6985814337556279e+04;
-    ref_RHS[1] = -2.7085795513256371e+05;
-    ref_RHS[2] = 1.1012241420630479e+05;
+    ref_RHS[0] = -7.6693850827911156e+04;
+    ref_RHS[1] = 1.1565609025107691e+05;
+    ref_RHS[2] = -1.5878096958352003e+05;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -165,15 +165,15 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateMassMatrix, KratosRansFa
         M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_M(0, 0) = 2.50532335875678302539e-01;
-    ref_M(0, 1) = 4.19634778924654755494e-02;
-    ref_M(0, 2) = 4.17743584847495852408e-02;
-    ref_M(1, 0) = 4.12513965507812913058e-02;
-    ref_M(1, 1) = 2.49710814178599527224e-01;
-    ref_M(1, 2) = 4.15718436913353611706e-02;
-    ref_M(2, 0) = 4.15488298639444322835e-02;
-    ref_M(2, 1) = 4.16586585271019743670e-02;
-    ref_M(2, 2) = 2.49986886967303090223e-01;
+    ref_M(0, 0) = 2.5029360576994164e-01;
+    ref_M(0, 1) = 4.1823656676744807e-02;
+    ref_M(0, 2) = 4.1665033297574171e-02;
+    ref_M(1, 0) = 4.1127050327195616e-02;
+    ref_M(1, 1) = 2.4972648367064140e-01;
+    ref_M(1, 2) = 4.1479036517969040e-02;
+    ref_M(2, 0) = 4.1911311947768010e-02;
+    ref_M(2, 1) = 4.1782742630364203e-02;
+    ref_M(2, 2) = 2.5018882857250418e-01;
 
     KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
 }
@@ -191,15 +191,15 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKCWD2D3N_CalculateDampingMatrix, KratosRan
         D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_D(0, 0) = 4.28930381657884390734e+03;
-    ref_D(0, 1) = -3.88525378845462455502e+03;
-    ref_D(0, 2) = 1.62018597810960670813e+02;
-    ref_D(1, 0) = -3.88409108103458356709e+03;
-    ref_D(1, 1) = 8.46660469175607795478e+03;
-    ref_D(1, 2) = -3.85623285104481601593e+03;
-    ref_D(2, 0) = 1.62289207415342730201e+02;
-    ref_D(2, 1) = -3.85636810752153451176e+03;
-    ref_D(2, 2) = 4.44110252285800561367e+03;
+    ref_D(0, 0) = 1.6511229077990392e+03;
+    ref_D(0, 1) = -1.1991325806552495e+03;
+    ref_D(0, 2) = 2.5025247442245546e+02;
+    ref_D(1, 0) = -1.1980949932426622e+03;
+    ref_D(1, 1) = 3.0794974206941502e+03;
+    ref_D(1, 2) = -1.1061922886004156e+03;
+    ref_D(2, 0) = 2.4945420324918433e+02;
+    ref_D(2, 1) = -1.1068712901544172e+03;
+    ref_D(2, 2) = 2.1086889311039668e+03;
 
     KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
 }
@@ -239,9 +239,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateLocalSystem, Krato
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 1.37446875321031166095e+04;
-    ref_RHS[1] = 1.51517239040961503633e+04;
-    ref_RHS[2] = 1.27268835458987086895e+04;
+    ref_RHS[0] = 7.2795364762640693e+03;
+    ref_RHS[1] = 5.6030107739153955e+03;
+    ref_RHS[2] = 8.9536897200863350e+03;
     ref_LHS = ZeroMatrix(3, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
@@ -261,9 +261,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateRightHandSide, Kra
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] = 1.37446875321031166095e+04;
-    ref_RHS[1] = 1.51517239040961503633e+04;
-    ref_RHS[2] = 1.27268835458987086895e+04;
+    ref_RHS[0] = 7.2795364762640693e+03;
+    ref_RHS[1] = 5.6030107739153955e+03;
+    ref_RHS[2] = 8.9536897200863350e+03;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
@@ -283,19 +283,19 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateLocalVelocityContr
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_LHS(0, 0) = 2.80119755201019279411e+03;
-    ref_LHS(0, 1) = -1.91314366447455131492e+03;
-    ref_LHS(0, 2) = 3.56393868176833166217e+02;
-    ref_LHS(1, 0) = -1.91198095705451078175e+03;
-    ref_LHS(1, 1) = 5.35831147262243030127e+03;
-    ref_LHS(1, 2) = -1.84613921505327198247e+03;
-    ref_LHS(2, 0) = 3.56664477781215282448e+02;
-    ref_LHS(2, 1) = -1.84627447152999047830e+03;
-    ref_LHS(2, 2) = 3.13403990859786790679e+03;
+    ref_LHS(0, 0) = 6.4521088571726850e+03;
+    ref_LHS(0, 1) = -5.4551585627305139e+03;
+    ref_LHS(0, 2) = 5.5050038350403634e+02;
+    ref_LHS(1, 0) = -5.4541209753179273e+03;
+    ref_LHS(1, 1) = 1.2417229118782147e+04;
+    ref_LHS(1, 2) = -5.2527845961460152e+03;
+    ref_LHS(2, 0) = 5.4970211233076498e+02;
+    ref_LHS(2, 1) = -5.2534635977000162e+03;
+    ref_LHS(2, 2) = 7.4575884339650765e+03;
 
-    ref_RHS[0] = 1.26084123398276511580e+06;
-    ref_RHS[1] = -3.45570070061441790313e+06;
-    ref_RHS[2] = 8.03514606517215957865e+05;
+    ref_RHS[0] = 2.3047840766158318e+06;
+    ref_RHS[1] = -3.0274356798856929e+06;
+    ref_RHS[2] = -3.2842685958113703e+06;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
     KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
@@ -314,15 +314,15 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateMassMatrix, Kratos
         M, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_M(0, 0) = 2.50241898508869575757e-01;
-    ref_M(0, 1) = 4.18015351003653765072e-02;
-    ref_M(0, 2) = 4.17156064356362030199e-02;
-    ref_M(1, 0) = 4.14780941241942521791e-02;
-    ref_M(1, 1) = 2.49868669893776873536e-01;
-    ref_M(1, 2) = 4.16236172731955650361e-02;
-    ref_M(2, 0) = 4.16131820321236772786e-02;
-    ref_M(2, 1) = 4.16630495923386856560e-02;
-    ref_M(2, 2) = 2.49994059368444709879e-01;
+    ref_M(0, 0) = 2.5013332426115625e-01;
+    ref_M(0, 1) = 4.1737911996962647e-02;
+    ref_M(0, 2) = 4.1665911192115976e-02;
+    ref_M(1, 0) = 4.1422058814290195e-02;
+    ref_M(1, 1) = 2.4987598010247652e-01;
+    ref_M(1, 2) = 4.1581587888279564e-02;
+    ref_M(2, 0) = 4.1777671955126640e-02;
+    ref_M(2, 1) = 4.1719349318447244e-02;
+    ref_M(2, 2) = 2.5008574539664696e-01;
 
     KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
 }
@@ -340,15 +340,15 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonCWD2D3N_CalculateDampingMatrix, Kra
         D, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_D(0, 0) = 2.80119755201019279411e+03;
-    ref_D(0, 1) = -1.91314366447455131492e+03;
-    ref_D(0, 2) = 3.56393868176833166217e+02;
-    ref_D(1, 0) = -1.91198095705451078175e+03;
-    ref_D(1, 1) = 5.35831147262243030127e+03;
-    ref_D(1, 2) = -1.84613921505327198247e+03;
-    ref_D(2, 0) = 3.56664477781215282448e+02;
-    ref_D(2, 1) = -1.84627447152999047830e+03;
-    ref_D(2, 2) = 3.13403990859786790679e+03;
+    ref_D(0, 0) = 6.4521088571726850e+03;
+    ref_D(0, 1) = -5.4551585627305139e+03;
+    ref_D(0, 2) = 5.5050038350403634e+02;
+    ref_D(1, 0) = -5.4541209753179273e+03;
+    ref_D(1, 1) = 1.2417229118782147e+04;
+    ref_D(1, 2) = -5.2527845961460152e+03;
+    ref_D(2, 0) = 5.4970211233076498e+02;
+    ref_D(2, 1) = -5.2534635977000162e+03;
+    ref_D(2, 2) = 7.4575884339650765e+03;
 
     KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
 }

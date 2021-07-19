@@ -1,6 +1,3 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 import math
 import os
 import shutil
@@ -163,15 +160,26 @@ class GranulometryUtils():
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
 
+        self.PrintCurrentData()
+
     def PrintCurrentData(self):
 
-        Logger.Print("number_of_spheres: ", self.number_of_spheres, label="")
-        Logger.Print("solid volume: ", self.solid_volume, label="")
-        Logger.Print("voids volume: ", self.voids_volume, label="")
-        Logger.Print("global porosity: ", self.global_porosity, label="")
-        Logger.Print("D50: ", self.d_50, label="")
-        Logger.Print("spheres per area unit: ", self.spheres_per_area, label="")
+        Logger.Print("number_of_spheres:", self.number_of_spheres, label="")
+        Logger.Print("solid volume:", self.solid_volume, label="")
+        Logger.Print("voids volume:", self.voids_volume, label="")
+        Logger.Print("global porosity:", self.global_porosity, label="")
+        Logger.Print("D50:", self.d_50, label="")
+        Logger.Print("spheres per area unit:", self.spheres_per_area, label="")
+        Logger.Print("")
 
+        granul_file = open('granulometry_data.txt', 'w')
+        granul_file.write("Number of spheres: " + str(self.number_of_spheres) + '\n')
+        granul_file.write("Solid volume: " + str(self.solid_volume) + '\n')
+        granul_file.write("Voids volume: " + str(self.voids_volume) + '\n')
+        granul_file.write("Global porosity: " + str(self.global_porosity) + '\n')
+        granul_file.write("D50: " + str(self.d_50) + '\n')
+        granul_file.write("Spheres per area unit: " + str(self.spheres_per_area) + '\n')
+        granul_file.close()
 
 class PostUtils():
 
@@ -360,7 +368,6 @@ class Procedures():
 
         # MODEL
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
-        self.aux = AuxiliaryUtilities()
 
     def Barrier(self):
         pass
@@ -375,8 +382,7 @@ class Procedures():
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             translational_scheme = VelocityVerletScheme()
         else:
-            self.KratosPrintWarning('Error: selected translational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected translational integration scheme not defined. Please select a different scheme')
         return translational_scheme
 
     def SetRotationalScheme(self):
@@ -394,8 +400,7 @@ class Procedures():
         elif self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Quaternion_Integration':
             rotational_scheme = QuaternionIntegrationScheme()
         else:
-            self.KratosPrintWarning('Error: selected rotational integration scheme not defined. Please select a different scheme')
-            sys.exit("\nExecution was aborted.\n")
+            raise Exception('Error: selected rotational integration scheme not defined. Please select a different scheme')
         return rotational_scheme
 
     def AddAllVariablesInAllModelParts(self, solver, translational_scheme, rotational_scheme, all_model_parts, DEM_parameters):
@@ -428,6 +433,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
 
     def AddSpheresVariables(self, model_part, DEM_parameters):
 
@@ -438,6 +444,7 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
         model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
         model_part.AddNodalSolutionStepVariable(NORMAL_IMPACT_VELOCITY)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_IMPACT_VELOCITY)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -456,7 +463,6 @@ class Procedures():
         # FORCES
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(LOCAL_CONTACT_FORCE)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
         model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
         # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
@@ -477,6 +483,7 @@ class Procedures():
         if self.DEM_parameters["RotationOption"].GetBool():
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+            model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
             # TODO: only if self.DEM_parameters-RotationOption! Check that no one accesses them in c++ without checking the rotation option
             model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
             if self.DEM_parameters["RollingFrictionOption"].GetBool():
@@ -518,7 +525,6 @@ class Procedures():
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
 
         model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
-        model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(DEM_PRESSURE)
         model_part.AddNodalSolutionStepVariable(TANGENTIAL_ELASTIC_FORCES)
         model_part.AddNodalSolutionStepVariable(SHEAR_STRESS)
@@ -832,16 +838,11 @@ class Procedures():
         if actual_type is int and expected_type is float:
             return
         if actual_type is not expected_type:
-            self.KratosPrintWarning(
-                "**************************************************************************")
-            self.KratosPrintWarning(
+            KratosPrintWarning(
                 "ERROR: Input parameter of wrong type in file 'DEM_explicit_solver_var.py'.")
             a = str(expected_type)
             b = str(var)
-            self.KratosPrintWarning("The type expected was " + a + " but " + b + " was read.")
-            self.KratosPrintWarning(
-                "**************************************************************************")
-            sys.exit()
+            raise Exception("The type expected was " + a + " but " + b + " was read.")
 
     @classmethod
     def Flush(self, a):
@@ -882,8 +883,6 @@ class DEMFEMProcedures():
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
         self.rigid_face_model_part = rigid_face_model_part
-        #self.solver = solver
-        self.aux = AuxiliaryUtilities()
 
         self.fem_mesh_nodes = []
 
@@ -978,6 +977,7 @@ class DEMFEMProcedures():
 
     @classmethod
     def UpdateTimeInOneModelPart(self, model_part, time, dt, step, is_time_to_print=False):
+        KratosPrintWarning('This method is deprecated, please use the new one from the sphere strategy.')
         model_part.ProcessInfo[TIME] = time
         model_part.ProcessInfo[DELTA_TIME] = dt
         model_part.ProcessInfo[TIME_STEPS] = step
@@ -1250,6 +1250,10 @@ class MaterialTest():
         if self.TestType != "None":
             self.script.GenerateGraphics()
 
+    def PrintCoordinationNumberGraph(self, time, solver):
+        if self.TestType != "None":
+            self.script.PrintCoordinationNumberGraph(time, solver)
+
 
 class MultifileList():
 
@@ -1335,6 +1339,10 @@ class DEMIo():
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
         self.VelTrapGraphExportFreq = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
+        if not "PostDeltaDisplacement" in self.DEM_parameters.keys():
+            self.PostDeltaDisplacement = False
+        else:
+            self.PostDeltaDisplacement = self.DEM_parameters["PostDeltaDisplacement"].GetBool()
         if not "PostCharacteristicLength" in self.DEM_parameters.keys():
             self.PostCharacteristicLength = 0
         else:
@@ -1445,12 +1453,14 @@ class DEMIo():
         self.PushPrintVar(self.PostDisplacement, DISPLACEMENT, self.global_variables)
         self.PushPrintVar(self.PostVelocity, VELOCITY, self.global_variables)
         self.PushPrintVar(self.PostTotalForces, TOTAL_FORCES, self.global_variables)
+        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_FORCE, self.global_variables)
         self.PushPrintVar(self.PostAppliedForces, EXTERNAL_APPLIED_MOMENT, self.global_variables)
         if self.DEM_parameters["PostAngularVelocity"].GetBool():
             self.PushPrintVar(self.PostAngularVelocity, ANGULAR_VELOCITY, self.global_variables)
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
+        self.PushPrintVar(self.PostDeltaDisplacement, DELTA_DISPLACEMENT, self.global_variables)
 
     def AddGlobalNonHistoricalNodalVariables(self):
         self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
@@ -1520,7 +1530,6 @@ class DEMIo():
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)
-        self.PushPrintVar(self.PostContactForces, CONTACT_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostPressure, DEM_PRESSURE, self.fem_boundary_variables)
         self.PushPrintVar(self.PostTangentialElasticForces, TANGENTIAL_ELASTIC_FORCES, self.fem_boundary_variables)
         self.PushPrintVar(self.PostShearStress, SHEAR_STRESS, self.fem_boundary_variables)
@@ -1640,7 +1649,7 @@ class DEMIo():
             self.gid_io.InitializeMesh(0.0)
             self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
             self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
@@ -1658,10 +1667,11 @@ class DEMIo():
             self.RemoveElementsAndNodes()
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(time)
-            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
+            if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D" or self.DEM_parameters["ElementType"].GetString() == "CylinderPartDEMElement2D":
                 self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
             else:
                 self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+
             if self.contact_mesh_option:
                 #We overwrite the Id of the properties 0 not to overlap with other entities that use layer 0 for PRINTING
                 contact_model_part.GetProperties(0)[0].Id = 9184

@@ -23,6 +23,10 @@ def  AuxiliarContactSettings():
             "max_number_splits"                                       : 3,
             "inner_loop_iterations"                                   : 5,
             "inner_loop_adaptive"                                     : false,
+            "rotation_relative_tolerance"                             : 1.0e-4,
+            "rotation_absolute_tolerance"                             : 1.0e-9,
+            "rotation_residual_relative_tolerance"                    : 1.0e-4,
+            "rotation_residual_absolute_tolerance"                    : 1.0e-9,
             "contact_displacement_relative_tolerance"                 : 1.0e-4,
             "contact_displacement_absolute_tolerance"                 : 1.0e-9,
             "contact_residual_relative_tolerance"                     : 1.0e-4,
@@ -222,6 +226,10 @@ def  AuxiliarCreateConvergenceParameters(main_model_part, settings, contact_sett
     conv_params.AddValue("displacement_absolute_tolerance", settings["displacement_absolute_tolerance"])
     conv_params.AddValue("residual_relative_tolerance", settings["residual_relative_tolerance"])
     conv_params.AddValue("residual_absolute_tolerance", settings["residual_absolute_tolerance"])
+    conv_params.AddValue("rotation_relative_tolerance", contact_settings["rotation_relative_tolerance"])
+    conv_params.AddValue("rotation_absolute_tolerance", contact_settings["rotation_absolute_tolerance"])
+    conv_params.AddValue("rotation_residual_relative_tolerance", contact_settings["rotation_residual_relative_tolerance"])
+    conv_params.AddValue("rotation_residual_absolute_tolerance", contact_settings["rotation_residual_absolute_tolerance"])
     conv_params.AddValue("contact_displacement_relative_tolerance", contact_settings["contact_displacement_relative_tolerance"])
     conv_params.AddValue("contact_displacement_absolute_tolerance", contact_settings["contact_displacement_absolute_tolerance"])
     conv_params.AddValue("contact_residual_relative_tolerance", contact_settings["contact_residual_relative_tolerance"])
@@ -312,7 +320,7 @@ def  AuxiliarLineSearch(computing_model_part, mechanical_scheme, linear_solver, 
                                             newton_parameters
                                             )
 
-def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
+def  AuxiliarNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings, processes_list, post_process):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("adaptative_strategy", contact_settings["adaptative_strategy"])
     newton_parameters.AddValue("split_factor", contact_settings["split_factor"])
@@ -320,7 +328,6 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
     newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
     return CSMA.ResidualBasedNewtonRaphsonContactStrategy(computing_model_part,
                                                             mechanical_scheme,
-                                                            linear_solver,
                                                             mechanical_convergence_criterion,
                                                             builder_and_solver,
                                                             settings["max_iteration"].GetInt(),
@@ -332,14 +339,13 @@ def  AuxiliarNewton(computing_model_part, mechanical_scheme, linear_solver, mech
                                                             post_process
                                                             )
 
-def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, linear_solver, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
+def  AuxiliarMPCNewton(computing_model_part, mechanical_scheme, mechanical_convergence_criterion, builder_and_solver, settings, contact_settings):
     newton_parameters = KM.Parameters("""{}""")
     newton_parameters.AddValue("inner_loop_iterations", contact_settings["inner_loop_iterations"])
     newton_parameters.AddValue("update_each_nl_iteration", contact_settings["update_each_nl_iteration"])
     newton_parameters.AddValue("enforce_ntn", contact_settings["enforce_ntn"])
     return CSMA.ResidualBasedNewtonRaphsonMPCContactStrategy(computing_model_part,
                                                                 mechanical_scheme,
-                                                                linear_solver,
                                                                 mechanical_convergence_criterion,
                                                                 builder_and_solver,
                                                                 settings["max_iteration"].GetInt(),

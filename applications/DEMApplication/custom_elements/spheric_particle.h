@@ -12,13 +12,13 @@
 // Project includes
 #include "includes/define.h"
 #include "discrete_element.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
-#include "../custom_constitutive/DEM_discontinuum_constitutive_law.h"
-#include "../custom_conditions/RigidFace.h"
-#include "../custom_conditions/dem_wall.h"
-#include "../custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "custom_constitutive/DEM_discontinuum_constitutive_law.h"
+#include "custom_conditions/RigidFace.h"
+#include "custom_conditions/dem_wall.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "includes/kratos_export_api.h"
-#include "../custom_utilities/properties_proxies.h"
+#include "custom_utilities/properties_proxies.h"
 #include "includes/kratos_flags.h"
 
 namespace Kratos
@@ -121,37 +121,36 @@ virtual std::unique_ptr<ParticleDataBuffer> CreateParticleDataBuffer(SphericPart
 
 void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer);
 void TransformNeighbourCoorsToClosestInPeriodicDomain(ParticleDataBuffer & data_buffer,
-                                                      const array_1d<double, 3>& coors,
-                                                      array_1d<double, 3>& neighbour_coors);
+                                                    const array_1d<double, 3>& coors,
+                                                    array_1d<double, 3>& neighbour_coors);
 void TransformNeighbourCoorsToClosestInPeriodicDomain(const ProcessInfo& r_process_info,
-                                                      const double coors[3],
-                                                      double neighbour_coors[3]);
+                                                    const double coors[3],
+                                                    double neighbour_coors[3]);
 
 virtual bool CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer);
 
-using DiscreteElement::Initialize; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
-virtual void Initialize(const ProcessInfo& r_process_info) override;
+void Initialize(const ProcessInfo& r_process_info) override;
 virtual void MemberDeclarationFirstStep(const ProcessInfo& r_process_info);
-virtual void CreateDiscontinuumConstitutiveLaws(const ProcessInfo& r_process_info);
 using DiscreteElement::CalculateRightHandSide; //To avoid Clang Warning. We tell the compiler that we are aware of the existence of this function, but we overload it still.
-virtual void CalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity, int search_control);
-virtual void FirstCalculateRightHandSide(ProcessInfo& r_process_info, double dt, int search_control);
-virtual void CollectCalculateRightHandSide(ProcessInfo& r_process_info);
-virtual void FinalCalculateRightHandSide(ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
-virtual void InitializeForceComputation(ProcessInfo& r_process_info);
+virtual void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
+virtual void FirstCalculateRightHandSide(const ProcessInfo& r_process_info, double dt);
+virtual void CollectCalculateRightHandSide(const ProcessInfo& r_process_info);
+virtual void FinalCalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double,3>& gravity);
+virtual void InitializeForceComputation(const ProcessInfo& r_process_info);
 virtual void FinalizeForceComputation(ParticleDataBuffer & data_buffer){}
-virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override;
-virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override;
-virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override;
-virtual void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& r_process_info ) override;
+virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& r_process_info) const override;
+virtual void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& r_process_info) override;
+virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& r_process_info) override;
+virtual void GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& r_process_info ) const override;
 virtual void ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids, std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces);
 virtual void ComputeNewRigidFaceNeighboursHistoricalData();
-virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
-virtual void FinalizeStressTensor(ProcessInfo& r_process_info, double& rRepresentative_Volume){};
+virtual void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+virtual void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
+virtual void FinalizeStressTensor(const ProcessInfo& r_process_info, double& rRepresentative_Volume){};
 virtual void SymmetrizeStressTensor();
 virtual void CorrectRepresentativeVolume(double& rRepresentative_Volume/*, bool& is_smaller_than_sphere*/);
 virtual void ComputeReactions();
-virtual void PrepareForPrinting(ProcessInfo& r_process_info);
+virtual void PrepareForPrinting(const ProcessInfo& r_process_info);
 virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& r_process_info) override;
 virtual void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
@@ -188,7 +187,6 @@ virtual double CalculateVolume();
 virtual double GetInteractionRadius(const int radius_index = 0);
 virtual void SetInteractionRadius(const double radius, const int radius_index = 0);
 virtual double GetSearchRadius();
-DEMDiscontinuumConstitutiveLaw::Pointer GetConstitutiveLawPointer();
 virtual void SetDefaultRadiiHierarchy(const double radius);
 virtual void SetSearchRadius(const double radius);
 virtual double GetMass();
@@ -196,30 +194,13 @@ virtual void   SetMass(double real_mass);
 virtual double   CalculateMomentOfInertia();
 virtual double GetYoung();
 void   SetYoungFromProperties(double* young);
-virtual double GetRollingFriction();
-void   SetRollingFrictionFromProperties(double* rolling_friction);
-virtual double GetRollingFrictionWithWalls();
-void   SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
 virtual double GetPoisson();
 void   SetPoissonFromProperties(double* poisson);
-virtual double GetTgOfStaticFrictionAngle();
-void   SetTgOfStaticFrictionAngleFromProperties(double* tg_of_static_friction_angle);
-virtual double GetTgOfDynamicFrictionAngle();
-void   SetTgOfDynamicFrictionAngleFromProperties(double* tg_of_dynamic_friction_angle);
-virtual double GetCoefficientOfRestitution();
-void   SetCoefficientOfRestitutionFromProperties(double* coefficient_of_restitution);
-virtual double GetLnOfRestitCoeff();
-void   SetLnOfRestitCoeffFromProperties(double* ln_of_restit_coeff);
 virtual double GetDensity();
 void   SetDensityFromProperties(double* density);
 virtual int    GetParticleMaterial();
 void   SetParticleMaterialFromProperties(int* particle_material);
-virtual double GetParticleCohesion();
-void   SetParticleCohesionFromProperties(double* particle_cohesion);
-virtual double GetParticleKNormal();
-void   SetParticleKNormalFromProperties(double* particle_k_normal);
-virtual double GetParticleKTangential();
-void   SetParticleKTangentialFromProperties(double* particle_k_tangential);
+
 
 array_1d<double, 3>& GetForce();
 
@@ -232,14 +213,8 @@ void   SetFastProperties(PropertiesProxy* pProps);
 void   SetFastProperties(std::vector<PropertiesProxy>& list_of_proxies);
 
 double SlowGetYoung() const;
-double SlowGetRollingFriction() const;
-double SlowGetRollingFrictionWithWalls() const;
 double SlowGetPoisson() const;
-double SlowGetTgOfStaticFrictionAngle() const;
-double SlowGetTgOfDynamicFrictionAngle() const;
-double SlowGetCoefficientOfRestitution() const;
 double SlowGetDensity() const;
-double SlowGetParticleCohesion() const;
 int    SlowGetParticleMaterial() const;
 
 /// Turn back information as a string.
@@ -285,6 +260,8 @@ BoundedMatrix<double, 3, 3>* mSymmStressTensor;
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity);
 virtual array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
 virtual void CalculateOnContactElements(size_t i_neighbour_count, double LocalContactForce[3]);
+DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour);
+DEMDiscontinuumConstitutiveLaw* pGetDiscontinuumConstitutiveLawWithFEMNeighbour(Condition* neighbour);
 
 protected:
 
@@ -293,28 +270,25 @@ virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer
                                                 array_1d<double, 3>& rContactForce,
                                                 double& RollingResistance,
                                                 array_1d<double, 3>& rigid_element_force,
-                                                ProcessInfo& r_process_info,
-                                                int search_control) ;
-
-virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override;
+                                                const ProcessInfo& r_process_info) ;
 
 virtual void CalculateMomentum(array_1d<double, 3>& rMomentum);
 
 virtual void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
 
 virtual void ComputeBallToBallContactForce(ParticleDataBuffer & data_buffer,
-                                           ProcessInfo& r_process_info,
-                                           array_1d<double, 3>& rElasticForce,
-                                           array_1d<double, 3>& rContactForce,
-                                           double& RollingResistance);
+                                        const ProcessInfo& r_process_info,
+                                        array_1d<double, 3>& rElasticForce,
+                                        array_1d<double, 3>& rContactForce,
+                                        double& RollingResistance);
 
 virtual void EvaluateDeltaDisplacement(ParticleDataBuffer & data_buffer,
-                                       double DeltDisp[3],
-                                       double RelVel[3],
-                                       double LocalCoordSystem[3][3],
-                                       double OldLocalCoordSystem[3][3],
-                                       const array_1d<double, 3> &vel,
-                                       const array_1d<double, 3> &delta_displ);
+                                    double DeltDisp[3],
+                                    double RelVel[3],
+                                    double LocalCoordSystem[3][3],
+                                    double OldLocalCoordSystem[3][3],
+                                    const array_1d<double, 3> &vel,
+                                    const array_1d<double, 3> &delta_displ);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotation(const double indentation,
                                                                         double DeltDesp[3],
@@ -333,20 +307,20 @@ virtual void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(cons
                                                                             SphericParticle* neighbour_iterator);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationMatrix(double DeltDisp[3],
-                                                                              double RelVel[3],
-                                                                              const double OldLocalCoordSystem[3][3],
-                                                                              const double& other_radius,
-                                                                              const double& dt,
-                                                                              const array_1d<double, 3>& ang_vel,
-                                                                              SphericParticle* p_neighbour);
+                                                                            double RelVel[3],
+                                                                            const double OldLocalCoordSystem[3][3],
+                                                                            const double& other_radius,
+                                                                            const double& dt,
+                                                                            const array_1d<double, 3>& ang_vel,
+                                                                            SphericParticle* p_neighbour);
 
 virtual void RelativeDisplacementAndVelocityOfContactPointDueToRotationQuaternion(double DeltDesp[3],
-                                                                                  double RelVel[3],
-                                                                                  const double OldLocalCoordSystem[3][3],
-                                                                                  const double &other_radius,
-                                                                                  const double &dt,
-                                                                                  const array_1d<double, 3> &angl_vel,
-                                                                                  SphericParticle* neighbour_iterator);
+                                                                                double RelVel[3],
+                                                                                const double OldLocalCoordSystem[3][3],
+                                                                                const double &other_radius,
+                                                                                const double &dt,
+                                                                                const array_1d<double, 3> &angl_vel,
+                                                                                SphericParticle* neighbour_iterator);
 
 virtual void ComputeMoments(double normalLocalContactForce,
                             double GlobalElasticContactForces[3],
@@ -354,13 +328,20 @@ virtual void ComputeMoments(double normalLocalContactForce,
                             double LocalCoordSystem_2[3],
                             SphericParticle* neighbour_iterator,
                             double indentation,
-                            bool wall,
+                            unsigned int i);
+
+virtual void ComputeMomentsWithWalls(double normalLocalContactForce,
+                            double GlobalElasticContactForces[3],
+                            double& RollingResistance,
+                            double LocalCoordSystem_2[3],
+                            Condition* wall,
+                            double indentation,
                             unsigned int i);
 
 virtual void ComputeRollingResistance(double& RollingResistance,
-                                      const double& NormalLocalContactForce,
-                                      const double& equiv_rolling_friction_coeff,
-                                      const unsigned int i);
+                                    const double& NormalLocalContactForce,
+                                    const double& equiv_rolling_friction_coeff,
+                                    const unsigned int i);
 
 virtual void ComputeRollingFriction(array_1d<double, 3>& rolling_resistance_moment, double& RollingResistance, double dt) final;
 
@@ -369,64 +350,64 @@ virtual double GetInitialDeltaWithFEM(int index);
 virtual void ComputeOtherBallToBallForces(array_1d<double, 3>& other_ball_to_ball_forces);
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                              const ProcessInfo& r_process_info,
-                                                              double LocalElasticContactForce[3],
-                                                              double DeltDisp[3],
-                                                              double LocalDeltDisp[3],
-                                                              double RelVel[3],
-                                                              double indentation,
-                                                              double ViscoDampingLocalContactForce[3],
-                                                              double& cohesive_force,
-                                                              SphericParticle* element2,
-                                                              bool& sliding,
-                                                              double LocalCoordSystem[3][3],
-                                                              double OldLocalCoordSystem[3][3],
-                                                              array_1d<double, 3>& neighbour_elastic_contact_force);
+                                                            const ProcessInfo& r_process_info,
+                                                            double LocalElasticContactForce[3],
+                                                            double DeltDisp[3],
+                                                            double LocalDeltDisp[3],
+                                                            double RelVel[3],
+                                                            double indentation,
+                                                            double ViscoDampingLocalContactForce[3],
+                                                            double& cohesive_force,
+                                                            SphericParticle* element2,
+                                                            bool& sliding,
+                                                            double LocalCoordSystem[3][3],
+                                                            double OldLocalCoordSystem[3][3],
+                                                            array_1d<double, 3>& neighbour_elastic_contact_force);
 
 
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
-                                   double LocalCoordSystem[3][3],
-                                   double LocalContactForce[3],
-                                   double LocalElasticContactForce[3],
-                                   double LocalElasticExtraContactForce[3],
-                                   double GlobalContactForce[3],
-                                   double GlobalElasticContactForce[3],
-                                   double GlobalElasticExtraContactForce[3],
-                                   double TotalGlobalElasticContactForce[3],
-                                   double ViscoDampingLocalContactForce[3],
-                                   const double cohesive_force,
-                                   array_1d<double, 3>& other_ball_to_ball_forces,
-                                   array_1d<double, 3>& rElasticForce,
-                                   array_1d<double, 3>& rContactForce,
-                                   const unsigned int i_neighbour_count,
-                                   ProcessInfo& r_process_info) final;
+                                double LocalCoordSystem[3][3],
+                                double LocalContactForce[3],
+                                double LocalElasticContactForce[3],
+                                double LocalElasticExtraContactForce[3],
+                                double GlobalContactForce[3],
+                                double GlobalElasticContactForce[3],
+                                double GlobalElasticExtraContactForce[3],
+                                double TotalGlobalElasticContactForce[3],
+                                double ViscoDampingLocalContactForce[3],
+                                const double cohesive_force,
+                                array_1d<double, 3>& other_ball_to_ball_forces,
+                                array_1d<double, 3>& rElasticForce,
+                                array_1d<double, 3>& rContactForce,
+                                const unsigned int i_neighbour_count,
+                                const ProcessInfo& r_process_info) final;
 
 virtual void AddUpFEMForcesAndProject(double LocalCoordSystem[3][3],
-                                      double LocalContactForce[3],
-                                      double LocalElasticContactForce[3],
-                                      double GlobalContactForce[3],
-                                      double GlobalElasticContactForce[3],
-                                      double ViscoDampingLocalContactForce[3],
-                                      const double cohesive_force,
-                                      array_1d<double, 3>& rElasticForce,
-                                      array_1d<double, 3>& rContactForce,
-                                      array_1d<double, 3>& elastic_force_backup,
-                                      array_1d<double, 3>& total_force_backup) final;
+                                    double LocalContactForce[3],
+                                    double LocalElasticContactForce[3],
+                                    double GlobalContactForce[3],
+                                    double GlobalElasticContactForce[3],
+                                    double ViscoDampingLocalContactForce[3],
+                                    const double cohesive_force,
+                                    array_1d<double, 3>& rElasticForce,
+                                    array_1d<double, 3>& rContactForce,
+                                    array_1d<double, 3>& elastic_force_backup,
+                                    array_1d<double, 3>& total_force_backup) final;
 
 virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
 virtual void ComputeWear(double LocalRelVel[3],
-                         double mTimeStep,
-                         bool sliding,
-                         double inverse_of_volume,
-                         double LocalElasticContactForce,
-                         DEMWall* cast_neighbour);
+                        double mTimeStep,
+                        bool sliding,
+                        double inverse_of_volume,
+                        double LocalElasticContactForce,
+                        DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 
-virtual void AddNeighbourContributionToStressTensor(ProcessInfo& r_process_info,
+virtual void AddNeighbourContributionToStressTensor(const ProcessInfo& r_process_info,
                                                     const double GlobalElasticContactForce[3],
                                                     const double other_to_me_vect[3],
                                                     const double distance,
@@ -439,10 +420,9 @@ virtual void AddWallContributionToStressTensor(const double GlobalElasticContact
                                                const double contact_area);
 
 virtual void RotateOldContactForces(const double LocalCoordSystem[3][3], const double OldLocalCoordSystem[3][3], array_1d<double, 3>& mNeighbourElasticContactForces) final;
-
 virtual void ApplyGlobalDampingToContactForcesAndMoments(array_1d<double,3>& total_forces, array_1d<double,3>& total_moment);
 
-DEMDiscontinuumConstitutiveLaw::Pointer mDiscontinuumConstitutiveLaw;
+DEMDiscontinuumConstitutiveLaw* mDiscontinuumConstitutiveLaw;
 double mRadius;
 double mSearchRadius;
 double mRealMass;
@@ -489,14 +469,10 @@ virtual void save(Serializer& rSerializer) const override
     }
 
     // protected members
-    rSerializer.save("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
     rSerializer.save("mRadius", mRadius);
     rSerializer.save("mSearchRadius", mSearchRadius);
     rSerializer.save("mRealMass", mRealMass);
-    //rSerializer.save("mFastProperties", mFastProperties);
     rSerializer.save("mClusterId", mClusterId);
-    //rSerializer.save("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    //rSerializer.save("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.save("mGlobalDamping",mGlobalDamping);
 }
 
@@ -538,14 +514,10 @@ virtual void load(Serializer& rSerializer) override
     }
 
     // protected members
-    rSerializer.load("mDiscontinuumConstitutiveLaw", mDiscontinuumConstitutiveLaw);
     rSerializer.load("mRadius", mRadius);
     rSerializer.load("mSearchRadius", mSearchRadius);
     rSerializer.load("mRealMass", mRealMass);
-    //rSerializer.load("mFastProperties", mFastProperties);
     rSerializer.load("mClusterId", mClusterId);
-    //rSerializer.load("mpTranslationalIntegrationScheme", mpTranslationalIntegrationScheme);
-    //rSerializer.load("mpRotationalIntegrationScheme",mpRotationalIntegrationScheme);
     rSerializer.load("mGlobalDamping",mGlobalDamping);
 }
 
