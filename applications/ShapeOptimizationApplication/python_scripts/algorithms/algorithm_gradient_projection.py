@@ -235,16 +235,23 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             s,
             c)
 
-        if c.norm_inf() != 0.0:
-            if c.norm_inf() <= self.max_correction_share * self.step_size:
-                delta = self.step_size - c.norm_inf()
-                s *= delta/s.norm_inf()
+        s_inf_norm = s.norm_inf()
+        s_norm_corrected = s_inf_norm
+        if s_inf_norm == 0.0:
+            KM.Logger.PrintWarning("ShapeOpt", f"Norm of projected search direction is 0.0!")
+            s_norm_corrected = 1.0
+        c_inf_norm = c.norm_inf()
+
+        if c_inf_norm != 0.0:
+            if c_inf_norm <= self.max_correction_share * self.step_size:
+                delta = self.step_size - c_inf_norm
+                s *= delta/s_norm_corrected
             else:
-                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c.norm_inf()} to {self.max_correction_share * self.step_size}.")
-                c *= self.max_correction_share * self.step_size / c.norm_inf()
-                s *= (1.0 - self.max_correction_share) * self.step_size / s.norm_inf()
+                KM.Logger.PrintWarning("ShapeOpt", f"Correction is scaled down from {c_inf_norm} to {self.max_correction_share * self.step_size}.")
+                c *= self.max_correction_share * self.step_size / c_inf_norm
+                s *= (1.0 - self.max_correction_share) * self.step_size / s_norm_corrected
         else:
-            s *= self.step_size / s.norm_inf()
+            s *= self.step_size / s_norm_corrected
 
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.SEARCH_DIRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, c, KSO.CORRECTION)
@@ -259,6 +266,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
+                if self.__isGradientNormZero(constraint):
+                    KM.Logger.PrintWarning("ShapeOpt", f"Constraint '{identifier}' is active (value={constraint_value}), but gradient norm is zero. Will not be considered!")
+                    continue
                 active_constraint_values.append(constraint_value)
                 active_constraint_variables.append(
                     self.constraint_gradient_variables[identifier]["mapped_gradient"])
@@ -275,6 +285,13 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             return True
         else:
             return False
+
+    # --------------------------------------------------------------------------
+    def __isGradientNormZero(self, constraint):
+        identifier = constraint["identifier"].GetString()
+        gradient = self.communicator.getStandardizedGradient(identifier)
+        max_abs_gradient_value = max(map(lambda x: max(x, key=abs), gradient.values()), key=abs)
+        return max_abs_gradient_value == 0.0
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
