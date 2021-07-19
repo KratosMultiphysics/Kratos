@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
 
-debug_mode = False
+debug_mode = True
 
 class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
@@ -22,7 +22,7 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
 
     @classmethod
     def GetMainPath(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "piecewise_linear_inlet_tests_files")
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "random_variable_based_inlet_tests_files")
 
     def __init__(self, model, DEM_parameters):
         self.tolerance = 0.05
@@ -82,7 +82,8 @@ class TestDEMInletAnalysis(dem_analysis.DEMAnalysisStage):
             plt.hist(self.samples, bins = self.n_bins, density=True, color = "skyblue", lw=0, alpha=0.25)
             plt.plot(self.centers, self.pdf_expected, label='desired')
             plt.legend()
-            plt.savefig('histogram.pdf')
+            plt.savefig('histogram_' + self.problem_name + '.pdf')
+            plt.close()
 
         super().Finalize()
 
@@ -99,7 +100,7 @@ class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
     @classmethod
     def test_piecewise_linear_inlet(self):
         path = TestDEMInletAnalysis.GetMainPath()
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        parameters_file_name = os.path.join(path, "PiecewiseLinearProjectParametersDEM.json")
         model = Kratos.Model()
 
         with open(parameters_file_name, 'r') as parameter_file:
@@ -120,7 +121,7 @@ class TestDiscreteDEMInlet(KratosUnittest.TestCase):
     @classmethod
     def test_piecewise_linear_inlet(self):
         path = TestDEMInletAnalysis.GetMainPath()
-        parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
+        parameters_file_name = os.path.join(path, "DiscreteProjectParametersDEM.json")
         model = Kratos.Model()
 
         with open(parameters_file_name, 'r') as parameter_file:

@@ -119,7 +119,7 @@ namespace Kratos {
         void ThrowWarningTooSmallInlet(const ModelPart& mp);
         void ThrowWarningTooSmallInletForMassFlow(const ModelPart& mp);
         std::vector<ModelPart*> mListOfSubModelParts;
-        std::map<std::string, RandomVariable> mInletsRandomVariables;
+        std::map<std::string, std::unique_ptr<RandomVariable>> mInletsRandomVariables;
         std::map<std::string, Parameters> mInletsRandomSettings;
         Parameters mInletsSettings;
     };
