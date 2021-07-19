@@ -70,8 +70,8 @@ private:
     double mRelativeClosenessTolerance = 0.0;
     double mMean = 0.0;
     bool mMeanHasAlreadyBeenCalculated=false;
-    std::vector<double> mPDFValues;
-    std::vector<double> mPDFBreakpoints;
+    std::vector<double> mRelativeFrequencies;
+    std::vector<double> mPossibleValues;
     std::mt19937 mRandomNumberGenerator;
     std::discrete_distribution<> mTrapezoidsDiscreteDistribution;
 

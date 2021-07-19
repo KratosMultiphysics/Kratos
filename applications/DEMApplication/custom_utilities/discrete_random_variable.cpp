@@ -16,10 +16,10 @@ namespace Kratos {
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "possible_values" : [0, 1],
-            "pdf_values"      : [1, 1],
-            "do_use_seed"     : false,
-            "seed"            : 1,
+            "possible_values"              : [0, 1],
+            "relative_frequencies"         : [1, 1],
+            "do_use_seed"                  : false,
+            "seed"                         : 1,
             "relative_closeness_tolerance" : 1e-6
         })" );
 
@@ -32,23 +32,23 @@ namespace Kratos {
             mRelativeClosenessTolerance = rParameters["relative_closeness_tolerance"].GetDouble();
         }
 
-        const auto breakpoints = rParameters["possible_values"].GetVector();
-        const auto values = rParameters["pdf_values"].GetVector();
+        const auto possible_values = rParameters["possible_values"].GetVector();
+        const auto values = rParameters["relative_frequencies"].GetVector();
 
-        if (breakpoints.size() != values.size()){
-            KRATOS_ERROR << "Check failed because the breakpoints list has a different size than the pdf_values list.";
+        if (possible_values.size() != values.size()){
+            KRATOS_ERROR << "Check failed because the possible_values list has a different size than the relative_frequencies list.";
         }
 
-        const std::size_t n_points = breakpoints.size();
-        mPDFBreakpoints.resize(n_points);
-        mPDFValues.resize(n_points);
+        const std::size_t n_points = possible_values.size();
+        mPossibleValues.resize(n_points);
+        mRelativeFrequencies.resize(n_points);
 
         for (std::size_t i = 0; i < n_points; ++i) {
-            mPDFBreakpoints[i] = breakpoints[i];
-            mPDFValues[i] = values[i];
+            mPossibleValues[i] = possible_values[i];
+            mRelativeFrequencies[i] = values[i];
         }
 
-        mTrapezoidsDiscreteDistribution = std::discrete_distribution<int>(mPDFValues.begin(), mPDFValues.end());
+        mTrapezoidsDiscreteDistribution = std::discrete_distribution<int>(mRelativeFrequencies.begin(), mRelativeFrequencies.end());
 
         Check();
 
@@ -57,19 +57,19 @@ namespace Kratos {
 
    void DiscreteRandomVariable::Check()
    {
-       for (std::size_t i = 0; i < mPDFValues.size(); ++i){
-           if (mPDFValues[i] < 0.0){
-               KRATOS_ERROR << "Check failed because the " << i << "-th entry of the pdf_values list is negative.";
+       for (std::size_t i = 0; i < mRelativeFrequencies.size(); ++i){
+           if (mRelativeFrequencies[i] < 0.0){
+               KRATOS_ERROR << "Check failed because the " << i << "-th entry of the relative_frequencies list is negative.";
            }
        }
 
-       const double support = mPDFBreakpoints[mPDFBreakpoints.size() - 1] - mPDFBreakpoints[0];
+       const double support = mPossibleValues[mPossibleValues.size() - 1] - mPossibleValues[0];
 
-       for (std::size_t i = 0; i < mPDFBreakpoints.size() - 1; ++i){
-           KRATOS_CHECK_GREATER(mPDFBreakpoints[i+1], mPDFBreakpoints[i]);
-           if (std::abs(mPDFBreakpoints[i+1] - mPDFBreakpoints[i]) < mRelativeClosenessTolerance * support){
-               KRATOS_ERROR << "Check failed because the " << i << "-th" << " and " << i+1 << "-th consecutive breakpoints are too close (" \
-                            << mPDFBreakpoints[i] << " ~ " << mPDFBreakpoints[i+1] << "). Increase the separation between them or pick a " \
+       for (std::size_t i = 0; i < mPossibleValues.size() - 1; ++i){
+           KRATOS_CHECK_GREATER(mPossibleValues[i+1], mPossibleValues[i]);
+           if (std::abs(mPossibleValues[i+1] - mPossibleValues[i]) < mRelativeClosenessTolerance * support){
+               KRATOS_ERROR << "Check failed because the " << i << "-th" << " and " << i+1 << "-th consecutive possible_values are too close (" \
+                            << mPossibleValues[i] << " ~ " << mPossibleValues[i+1] << "). Increase the separation between them or pick a " \
                             << "smaller tolerance.";
            }
        }
@@ -77,17 +77,17 @@ namespace Kratos {
 
    double DiscreteRandomVariable::ProbabilityDensity(const double x)
    {
-       const double& x_min = mPDFBreakpoints[0];
-       const double& x_max = mPDFBreakpoints[mPDFBreakpoints.size() - 1];
+       const double& x_min = mPossibleValues[0];
+       const double& x_max = mPossibleValues[mPossibleValues.size() - 1];
 
        if (x < x_min || x > x_max){
            return 0.0;
        }
 
-       for (std::size_t i = 0; i < mPDFBreakpoints.size() - 1; ++i){
-           const double& x2 = mPDFBreakpoints[i + 1];
+       for (std::size_t i = 0; i < mPossibleValues.size() - 1; ++i){
+           const double& x2 = mPossibleValues[i + 1];
            if (x <= x2 + mRelativeClosenessTolerance && x > x2 - mRelativeClosenessTolerance){
-               return mPDFValues[i];
+               return mRelativeFrequencies[i];
            }
        }
 
@@ -95,21 +95,21 @@ namespace Kratos {
    }
 
     double DiscreteRandomVariable::Sample(){
-        return mPDFBreakpoints[mTrapezoidsDiscreteDistribution(mRandomNumberGenerator)];
+        return mPossibleValues[mTrapezoidsDiscreteDistribution(mRandomNumberGenerator)];
     }
 
     void DiscreteRandomVariable::Normalize(){
-        const double total_area = std::accumulate(mPDFValues.begin(), mPDFValues.end(), 0);
+        const double total_area = std::accumulate(mRelativeFrequencies.begin(), mRelativeFrequencies.end(), 0);
         // Normalization of probability function
-        for (std::size_t i = 0; i < mPDFValues.size(); ++i) {
-            mPDFValues[i] /= total_area;
+        for (std::size_t i = 0; i < mRelativeFrequencies.size(); ++i) {
+            mRelativeFrequencies[i] /= total_area;
         }
     }
 
     double DiscreteRandomVariable::GetMean(){
         if (!mMeanHasAlreadyBeenCalculated){
-            const auto n = mPDFValues.size();
-            mMean = std::accumulate(mPDFValues.begin(), mPDFValues.end(), 0.0) / n;
+            const auto n = mRelativeFrequencies.size();
+            mMean = std::accumulate(mRelativeFrequencies.begin(), mRelativeFrequencies.end(), 0.0) / n;
             mMeanHasAlreadyBeenCalculated = true;
         }
 

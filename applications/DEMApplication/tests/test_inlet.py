@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
 
-debug_mode = True
+debug_mode = False
 
 class TestDEMPiecewiseInletInletAnalysis(dem_analysis.DEMAnalysisStage):
 
@@ -25,7 +25,7 @@ class TestDEMPiecewiseInletInletAnalysis(dem_analysis.DEMAnalysisStage):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)), "random_variable_based_inlet_tests_files")
 
     def __init__(self, model, DEM_parameters):
-        self.tolerance = 0.2
+        self.tolerance = 0.05
         self.error_norm = self.tolerance + 1
         self.n_bins = 50 # for the histogram
 
@@ -96,7 +96,7 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletInletAnalysis):
         super().__init__(model, DEM_parameters)
         rv_settings = DEM_parameters['dem_inlets_settings']['Inlet_inlet']['random_variable_settings']
         self.breakpoints = np.array(rv_settings["possible_values"].GetVector())
-        self.pdf_expected = np.array(rv_settings["pdf_values"].GetVector())
+        self.pdf_expected = np.array(rv_settings["relative_frequencies"].GetVector())
         self.relative_closeness_tolerance = rv_settings["relative_closeness_tolerance"].GetDouble()
         self.n_bins = len(self.breakpoints)
         self.support_diamter = self.breakpoints[-1] - self.breakpoints[0]
