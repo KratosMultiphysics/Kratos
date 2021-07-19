@@ -2,6 +2,7 @@ import time as timer
 import os
 import sys
 import pathlib
+import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -489,7 +490,36 @@ class DEMAnalysisStage(AnalysisStage):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time, additional_time)
+            self.PrintAdditionalInfo(self.time, additional_time)
             self.time_old_print = self.time
+
+    def PrintAdditionalInfo(self, time, additional_time):
+
+        filename = 'radial_normal_and_smoothed_reaction_stresses_values_' + str(time) + '.txt'
+
+        try:
+            os.remove(filename)
+        except OSError:
+            pass
+
+        radial_normal_and_smoothed_reaction_stresses_file = open(filename, 'a')
+
+        for node in self.rigid_face_model_part.Nodes:
+
+            total_radial_normal_stress_value = node.GetValue(KratosMultiphysics.DEMApplication.RADIAL_NORMAL_STRESS_COMPONENT)
+
+            #smoothed_reaction_stress = Array3()
+            #smoothed_reaction_stress = node.GetSolutionStepValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS)
+            #A = smoothed_reaction_stress[0]
+            #B = smoothed_reaction_stress[1]
+            #C = smoothed_reaction_stress[2]
+            A =  node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_X)
+            B =  node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y)
+            C =  node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z)
+            total_smoothed_reaction_stress_value = math.sqrt(A*A + B*B + C*C)
+            radial_normal_and_smoothed_reaction_stresses_file.write(str(node.Id) + " " + str(node.X) + " " + str(node.Y) + " " + str(node.Z) + " " + str(total_radial_normal_stress_value) + " " + str(total_smoothed_reaction_stress_value) + '\n')
+        
+        radial_normal_and_smoothed_reaction_stresses_file.close()
 
     def SolverSolve(self):
         self._GetSolver().SolveSolutionStep()

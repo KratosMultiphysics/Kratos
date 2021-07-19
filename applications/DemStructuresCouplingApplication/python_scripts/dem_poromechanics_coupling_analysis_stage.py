@@ -7,6 +7,7 @@ import KratosMultiphysics.PoromechanicsApplication as Poromechanics
 import KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis
 import KratosMultiphysics.DemStructuresCouplingApplication as DemStructuresCouplingApplication
 from sp_2d_rigid_fem_algorithm import DEMAnalysisStage2DSpRigidFem
+import os
 
 class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage.AnalysisStage):
     def __init__(self, model, parameters):
@@ -17,8 +18,22 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
-        self.minimum_number_of_DEM_steps_before_checking_steadiness = 20
-        self.stationarity_measuring_tolerance = 1.0e-2
+
+        self.number_of_DEM_steps_between_steadiness_checks = 1e1
+        self.stationarity_measuring_tolerance = 1e-2
+
+        file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
+        file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
+        file3 = os.path.join(os.getcwd(), "poro_solution_time_vs_dem_time_vs_dems_steps.txt")
+        file4 = os.path.join(os.getcwd(), "radial_normal_and_smoothed_reaction_stresses_values.txt")
+        if os.path.exists(file1):
+            os.remove(file1)
+        if os.path.exists(file2):
+            os.remove(file2)
+        if os.path.exists(file3):
+            os.remove(file3)
+        if os.path.exists(file4):
+            os.remove(file4)
 
     def Initialize(self):
         self.poromechanics_solution.Initialize()
@@ -30,7 +45,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
     def RunSolutionLoop(self):
         
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
-            print("\n************************************ Solving FEM...\n")
+            print("\n************************************ Solving FEM...\n", flush=True)
             self.poromechanics_solution.time = self.poromechanics_solution._GetSolver().AdvanceInTime(self.poromechanics_solution.time)
             self.poromechanics_solution.InitializeSolutionStep()
             self.poromechanics_solution._GetSolver().Predict()
@@ -42,9 +57,10 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.effective_stresses_communicator.CommunicateCurrentRadialEffectiveStressesToDemWalls()
             self.pore_pressure_communicator_utility.ComputeForceOnParticlesDueToPorePressureGradient()
 
-            print("\n************************************ Now solving DEM...\n")
+            print("\n************************************ Now solving DEM...\n", flush=True)
             self.DEM_steps_counter = 0
             self.stationarity_checking_is_activated = False
+            self.dem_time_steps_per_fem_time_step = 0
 
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
@@ -56,27 +72,31 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
     def DEMSolutionIsSteady(self):
         
-        if self.DEM_steps_counter == self.minimum_number_of_DEM_steps_before_checking_steadiness:
+        self.dem_time_steps_per_fem_time_step += 1
+
+        if self.DEM_steps_counter == self.number_of_DEM_steps_between_steadiness_checks:
 
             self.DEM_steps_counter = 0
             
-            print("\n************************************ Stationarity will now be checked...\n")
+            print("\n************************************ DEM stationarity will now be checked...\n", flush=True)
             
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_X is still larger than the tolerance given...\n")
+                print("\n************************************ F_X is larger than the desired maximum...\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_Y is still larger than the tolerance given...\n")
+                print("\n************************************ F_Y is larger than the desired maximum...\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_Z is still larger than the tolerance given...\n")
+                print("\n************************************ F_Z is larger than the desired maximum...\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
 
             if self.stationarity_checking_is_activated:
-                print("\n************************************ DEM solution is steady!...\n")
+                print("\n************************************ DEM solution is steady...!\n", flush=True)
+                with open('poro_solution_time_vs_dem_time_vs_dems_steps.txt', 'a') as time_and_steps_file:
+                    time_and_steps_file.write(str(self.poromechanics_solution.time) + " " + str(self.dem_solution.time) + " " + str(self.dem_time_steps_per_fem_time_step) + '\n')
                 return True
             else:
                 return False

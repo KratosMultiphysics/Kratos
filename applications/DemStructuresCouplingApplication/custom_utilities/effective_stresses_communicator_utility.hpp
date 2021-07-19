@@ -69,13 +69,10 @@ namespace Kratos {
 
             #pragma omp parallel
             {
-                Vector  N;
+                Vector N;
                 typename BinBasedFastPointLocator<2>::ResultContainerType results(max_results);
                 typename BinBasedFastPointLocator<2>::ResultIteratorType results_begin = results.begin();
-                Matrix interpolated_effective_stress_tensor = ZeroMatrix(2, 2);
-                Matrix tempM = ZeroMatrix(2, 2);
                 Vector unitary_radial_vector = ZeroVector(2);
-                Vector tempV = ZeroVector(2);
 
                 #pragma omp for
                 for (int i=0; i<(int)mrDestinationModelPart.Nodes().size(); i++) {
@@ -95,13 +92,14 @@ namespace Kratos {
                     bool is_found = false;
                     Element::Pointer shared_p_element;
                     is_found = mpSearchStructure->FindPointOnMesh(particle_coordinates, N, shared_p_element, results_begin, max_results, 0.0);
-                    if (is_found == true) {
+                    if (is_found) {
+                        Matrix interpolated_effective_stress_tensor = ZeroMatrix(2, 2);
                         const auto& geom = shared_p_element->GetGeometry();
                         for(size_t j=0; j<geom.size(); j++){
-                            tempM = geom[j].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
+                            const Matrix& tempM = geom[j].FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                             noalias(interpolated_effective_stress_tensor) += N[j] * tempM;
                         }
-                        tempV = prod(interpolated_effective_stress_tensor, unitary_radial_vector);
+                        Vector tempV = prod(interpolated_effective_stress_tensor, unitary_radial_vector);
                         double radial_stress = MathUtils<double>::Dot(tempV, unitary_radial_vector);
                         node_it->SetValue(RADIAL_NORMAL_STRESS_COMPONENT, radial_stress);
                     }

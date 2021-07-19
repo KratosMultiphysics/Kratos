@@ -79,7 +79,6 @@ class ExplicitStrategy():
         self.search_increment_for_walls = 0.0
         self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
-        self.case_option = 3
 
         if self._GetInputType() == 'rest':
             self.search_control = 2
@@ -230,7 +229,6 @@ class ExplicitStrategy():
         self.spheres_model_part.ProcessInfo.SetValue(IS_TIME_TO_PRINT, False)
         self.spheres_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.spheres_model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
-        self.spheres_model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
         self.spheres_model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ROTATION_OPTION, self.rotation_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, BOUNDING_BOX_OPTION, self.bounding_box_option)
