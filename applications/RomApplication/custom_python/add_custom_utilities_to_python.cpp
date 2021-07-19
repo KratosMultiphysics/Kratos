@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
+#include "custom_utilities/rom_output_utility.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -41,6 +42,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
     .def("GetResiduals",&RomResidualsUtility::Calculate) //
+    ;   
+
+    class_<RomOutputUtility, typename RomOutputUtility::Pointer>(m, "RomOutputUtility")
+    .def(init<ModelPart&, Parameters>()) // 
+    .def("Start",&RomOutputUtility::Start) //
+    .def("GetSnapshotOfDisplacements",&RomOutputUtility::GetSnapshotOfDisplacements) //
+    .def("GetSnapshotOfVelocityAndPressure",&RomOutputUtility::GetSnapshotOfVelocityAndPressure)
     ;     
 
 }
