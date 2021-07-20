@@ -498,17 +498,14 @@ void Define3DWakeProcess::MarkWakeElements() const
     std::vector<std::size_t> wake_elements_ordered_ids;
     std::vector<std::size_t> trailing_edge_elements_ordered_ids;
 
-    bool found_value = true;
-    while (found_value) {
-        std::size_t id;
-        found_value = wake_elements_ordered_ids_concurrent_queue.try_dequeue(id);
+    bool found_value;
+    std::size_t id;
+
+    while ( (found_value = wake_elements_ordered_ids_concurrent_queue.try_dequeue(id)) ) {
         wake_elements_ordered_ids.push_back(id);
     }
 
-    found_value = true;
-    while (found_value) {
-        std::size_t id;
-        found_value = trailing_edge_elements_ordered_ids_concurrent_queue.try_dequeue(id);
+    while ( (found_value = trailing_edge_elements_ordered_ids_concurrent_queue.try_dequeue(id)) ) {
         trailing_edge_elements_ordered_ids.push_back(id);
     }
 
