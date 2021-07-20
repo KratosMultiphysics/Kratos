@@ -8,7 +8,7 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi
 import KratosMultiphysics.MultilevelMonteCarloApplication
 import KratosMultiphysics.MappingApplication
-from from applications.MultilevelMonteCarloApplication.tests.caarc_wind_mpi.FluidDynamicsAnalysisMC import FluidDynamicsAnalysisMC
+from applications.MultilevelMonteCarloApplication.tests.caarc_wind_mpi.FluidDynamicsAnalysisMC import FluidDynamicsAnalysisMC
 from KratosMultiphysics.FluidDynamicsApplication import check_and_prepare_model_process_fluid
 
 # Avoid printing of Kratos informations
