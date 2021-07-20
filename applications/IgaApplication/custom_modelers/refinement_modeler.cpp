@@ -57,7 +57,6 @@ namespace Kratos
             ? mpModel->GetModelPart(model_part_name)
             : mpModel->CreateModelPart(model_part_name);
 
-
         // Generate the list of geometries, which are needed, here.
         GeometriesArrayType geometry_list;
         GetGeometryList(geometry_list, r_model_part, rParameters);
@@ -70,10 +69,9 @@ namespace Kratos
             << rParameters << std::endl;
         if (rParameters["geometry_type"].GetString() == "NurbsSurface") {
             for (IndexType n = 0; n < geometry_list.size(); ++n) {
-                //auto nurbs_surface = (geometry_list[n].size() > 0)
-                //    ? static_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list[n])
-                //    : static_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list[n].GetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
-                auto p_nurbs_surface = dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list[n].pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
+                auto p_nurbs_surface = (geometry_list[n].size() > 0)
+                    ? dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n))
+                    : dynamic_pointer_cast<NurbsSurfaceGeometry<3, PointerVector<Node<3>>>>(geometry_list(n)->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX));
                 if (rParameters["parameters"].Has("insert_nb_per_span_u")) {
                     const IndexType nb_per_span_u = rParameters["parameters"]["insert_nb_per_span_u"].GetInt();
 
