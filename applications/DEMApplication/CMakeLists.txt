@@ -105,6 +105,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/apply_forces_and_moments_to_walls_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/discrete_random_variable.cpp
 
 )
 
