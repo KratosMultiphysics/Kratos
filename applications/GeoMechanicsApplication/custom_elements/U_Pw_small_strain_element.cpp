@@ -1081,7 +1081,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         rMassMatrix.resize( N_DOF, N_DOF, false );
     noalias( rMassMatrix ) = ZeroMatrix( N_DOF, N_DOF );
 
-    const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
     const unsigned int NumGPoints = IntegrationPoints.size();
