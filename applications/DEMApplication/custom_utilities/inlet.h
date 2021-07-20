@@ -52,6 +52,9 @@ namespace Kratos {
         /// Destructor.
         virtual ~DEM_Inlet(){}
 
+        DEM_Inlet(const DEM_Inlet&) = delete;
+        DEM_Inlet& operator=(const DEM_Inlet&) = delete;
+
         template<class TDataType> void CheckIfSubModelPartHasVariable(ModelPart& smp, const Variable<TDataType>& rThisVariable) {
             if(!smp.Has(rThisVariable)) KRATOS_ERROR<<"The SubModelPart '"<<smp.Name()<<"' does not have the variable '"<<rThisVariable.Name()<<"'";
         }
@@ -77,6 +80,8 @@ namespace Kratos {
         virtual void AddRandomPerpendicularComponentToGivenVector2D(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
+
+
         void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
         virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
