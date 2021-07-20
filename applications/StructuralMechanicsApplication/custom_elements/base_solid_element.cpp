@@ -758,7 +758,21 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = integration_weight;
             }
-        } else if ( rVariable == STRAIN_ENERGY ) {
+        }
+        else if (rVariable == KINETIC_ENERGY) {
+            rOutput.clear();
+
+            const SizeType number_dofs = r_geometry.WorkingSpaceDimension() * r_geometry.size();
+            Matrix mass_matrix = ZeroMatrix(number_dofs, number_dofs);
+            CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+            Vector current_nodal_velocities = ZeroVector(number_dofs);
+            GetFirstDerivativesVector(current_nodal_velocities);
+
+            // average element kinetic energy over all integration points
+            const double element_kinetic_energy = 0.50 * inner_prod(current_nodal_velocities, prod(mass_matrix, current_nodal_velocities));
+            for (size_t i = 0; i < number_of_integration_points; ++i) rOutput[i] = element_kinetic_energy / number_of_integration_points;
+        }
+        else if ( rVariable == STRAIN_ENERGY ) {
             const SizeType number_of_nodes = r_geometry.size();
             const SizeType dimension = r_geometry.WorkingSpaceDimension();
             const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
