@@ -159,6 +159,7 @@ protected:
     Matrix mDeltaReactionStress;
     double mNormOfInitiallyEstimatedStiffness;
     double mMaxNodalVelocityForMultiDofs = 0.0;
+    double mCompressionLengthForMultiDofs = 0.0;
 
 ///@}
 ///@name Protected member r_variables

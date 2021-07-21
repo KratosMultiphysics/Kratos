@@ -19,8 +19,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
 
-        self.number_of_DEM_steps_between_steadiness_checks = 1e1
-        self.stationarity_measuring_tolerance = 1e-2
+        self.number_of_DEM_steps_between_steadiness_checks = 10
+        self.stationarity_measuring_tolerance = 5e-3
 
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
         file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
@@ -43,7 +43,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.pore_pressure_communicator_utility.Initialize()
 
     def RunSolutionLoop(self):
-        
+        self.stationarity_checking_is_activated = False
+
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
             print("\n************************************ Solving FEM...\n", flush=True)
             self.poromechanics_solution.time = self.poromechanics_solution._GetSolver().AdvanceInTime(self.poromechanics_solution.time)
@@ -59,8 +60,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
             print("\n************************************ Now solving DEM...\n", flush=True)
             self.DEM_steps_counter = 0
-            self.stationarity_checking_is_activated = False
             self.dem_time_steps_per_fem_time_step = 0
+            self.dem_solution.time = self.poromechanics_solution.time
 
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
@@ -71,15 +72,15 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
                 self.dem_solution.OutputSolutionStep(self.poromechanics_solution.time)
 
     def DEMSolutionIsSteady(self):
-        
+
         self.dem_time_steps_per_fem_time_step += 1
 
         if self.DEM_steps_counter == self.number_of_DEM_steps_between_steadiness_checks:
 
             self.DEM_steps_counter = 0
-            
+
             print("\n************************************ DEM stationarity will now be checked...\n", flush=True)
-            
+
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
                 print("\n************************************ F_X is larger than the desired maximum...\n", flush=True)
                 self.stationarity_checking_is_activated = True

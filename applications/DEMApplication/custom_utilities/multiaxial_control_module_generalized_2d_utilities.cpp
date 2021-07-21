@@ -108,6 +108,7 @@ MultiaxialControlModuleGeneralized2DUtilities::MultiaxialControlModuleGeneralize
             }
             mListsOfFEMSubModelPartsForEachActuator[actuator_name] = list_of_fem_submodelparts;
             mMaxNodalVelocityForMultiDofs = this_actuator_parameters["Parameters"]["max_nodal_velocity"].GetDouble();
+            mCompressionLengthForMultiDofs = this_actuator_parameters["Parameters"]["compression_length"].GetDouble();
         }
         else if (actuator_name == "Z") {
             this_actuator_parameters.ValidateAndAssignDefaults(GetDefaultParametersForZActuator());
@@ -252,7 +253,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::ExecuteInitialize() {
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, 0.0);
                 }
             }
-        }        
+        }
     }
 
     SetProvidedInitialVelocityToTheControlledBoundaries();
@@ -824,8 +825,13 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
                 const double nodal_reaction_stress = r_nodal_reaction_stress_vector[0] * radial_normal[0] + r_nodal_reaction_stress_vector[1] * radial_normal[1];
 
                 const double nodal_delta_target_stress = r_nodal_next_target_stress + nodal_reaction_stress;
-                if(nodal_delta_target_stress < 0.0) {
-                    double nodal_velocity_estimated = nodal_delta_target_stress / mNormOfInitiallyEstimatedStiffness / mCMDeltaTime; //TODO: norm_stiffness?
+
+                if(std::abs(nodal_reaction_stress) < std::numeric_limits<double>::epsilon()) {
+                    double nodal_smoothed_nodal_velocity = (1.0 - mVelocityAlpha) * -1.0 * mMaxNodalVelocityForMultiDofs + mVelocityAlpha * it->GetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY);
+                    it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, nodal_smoothed_nodal_velocity);
+                }
+                else if(nodal_delta_target_stress < 0.0 && nodal_reaction_stress > 0.0) {
+                    double nodal_velocity_estimated = nodal_delta_target_stress * mCompressionLengthForMultiDofs / mNormOfInitiallyEstimatedStiffness / mCMDeltaTime; //TODO: norm_stiffness?
                     if (std::abs(nodal_velocity_estimated) > mMaxNodalVelocityForMultiDofs) {
                         nodal_velocity_estimated *= mMaxNodalVelocityForMultiDofs / std::abs(nodal_velocity_estimated);
                     }

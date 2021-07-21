@@ -517,8 +517,12 @@ class DEMAnalysisStage(AnalysisStage):
             B =  node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Y)
             C =  node.GetValue(KratosMultiphysics.DEMApplication.SMOOTHED_REACTION_STRESS_Z)
             total_smoothed_reaction_stress_value = math.sqrt(A*A + B*B + C*C)
-            radial_normal_and_smoothed_reaction_stresses_file.write(str(node.Id) + " " + str(node.X) + " " + str(node.Y) + " " + str(node.Z) + " " + str(total_radial_normal_stress_value) + " " + str(total_smoothed_reaction_stress_value) + '\n')
-        
+            displ = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displ_norm = math.sqrt(displ[0]*displ[0]+displ[1]*displ[1]+displ[2]*displ[2])
+            vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            vel_norm = math.sqrt(vel[0]*vel[0]+vel[1]*vel[1]+vel[2]*vel[2])
+            radial_normal_and_smoothed_reaction_stresses_file.write(str(node.Id) + " " + str(node.X) + " " + str(node.Y) + " " + str(node.Z) + " " + str(total_radial_normal_stress_value) + " " + str(total_smoothed_reaction_stress_value) + " " + str(displ_norm) + " " + str(vel_norm) + '\n')
+
         radial_normal_and_smoothed_reaction_stresses_file.close()
 
     def SolverSolve(self):
