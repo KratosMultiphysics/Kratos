@@ -52,7 +52,7 @@ namespace Kratos {
 
         size_t low_index;
         size_t high_index;
-        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mPossibleValues, low_index, high_index);
+        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mRelativeFrequencies, low_index, high_index);
         SetSupport(mPossibleValues[low_index], mPossibleValues[high_index]);
 
         Check();
