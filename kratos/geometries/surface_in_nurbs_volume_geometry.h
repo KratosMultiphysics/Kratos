@@ -225,11 +225,12 @@ public:
     double DeterminantOfJacobian(
         const CoordinatesArrayType& rPoint) const override
     {
-        std::vector<CoordinatesArrayType> global_space_derivatives(2);
+        std::vector<CoordinatesArrayType> global_space_derivatives(3);
         this->GlobalSpaceDerivatives(
             global_space_derivatives, rPoint, 1);
 
         BoundedMatrix<double,3,2> global_tangents;
+
         column(global_tangents,0) = global_space_derivatives[1];
         column(global_tangents,1) = global_space_derivatives[2];
 
@@ -274,7 +275,8 @@ public:
 
         // Get integration points from surface
         const SizeType number_of_points = mpSurface->IntegrationPointsNumber();
-        const IntegrationPointsArrayType& integration_points = mpSurface->IntegrationPoints(default_method);
+        auto surface_method = mpSurface->GetDefaultIntegrationMethod();
+        const IntegrationPointsArrayType& integration_points = mpSurface->IntegrationPoints(surface_method);
 
         // Resize containers.
         if (rResultGeometries.size() != integration_points.size() ){
@@ -283,12 +285,13 @@ public:
 
         for (IndexType point_index = 0; point_index < number_of_points; ++point_index)
         {
-            std::vector<CoordinatesArrayType> global_space_derivatives(2);
-            mpSurface->GlobalSpaceDerivatives(global_space_derivatives, integration_points[point_index], 1);
+
+            array_1d<double,3> global_coordinates;
+            mpSurface->GlobalCoordinates(global_coordinates, integration_points[point_index]);
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mpNurbsVolume->KnotsU(), mpNurbsVolume->KnotsV(),  mpNurbsVolume->KnotsW(),
-                global_space_derivatives[0][0], global_space_derivatives[0][1], global_space_derivatives[0][2]);
+                global_coordinates[0], global_coordinates[1], global_coordinates[2]);
 
             /// Get List of Control Points
             PointsArrayType nonzero_control_points(num_nonzero_cps);
@@ -318,22 +321,19 @@ public:
                 }
             }
 
-            const double determinant_volume = mpNurbsVolume->DeterminantOfJacobian(global_space_derivatives[0]);
+            const double determinant_volume = mpNurbsVolume->DeterminantOfJacobian(global_coordinates);
             // Get area of surface in global space
             const double weight = mpSurface->Area() * determinant_volume;
-            IntegrationPoint<3> tmp_integration_point(global_space_derivatives[0][0], global_space_derivatives[0][1], global_space_derivatives[0][2], weight);
+            IntegrationPoint<3> tmp_integration_point(global_coordinates[0], global_coordinates[1], global_coordinates[2], weight);
 
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, tmp_integration_point,
                 N, shape_function_derivatives);
 
+            Matrix jacobian_surface;
+            mpSurface->Jacobian(jacobian_surface, integration_points[point_index]);
             BoundedMatrix<double,3,2> local_tangents;
-            local_tangents(0,0) = global_space_derivatives[1][0];
-            local_tangents(1,0) = global_space_derivatives[1][1];
-            local_tangents(2,0) = global_space_derivatives[1][2];
-            local_tangents(0,1) = global_space_derivatives[2][0];
-            local_tangents(1,1) = global_space_derivatives[2][1];
-            local_tangents(2,1) = global_space_derivatives[2][2];
+            local_tangents = jacobian_surface;
 
             rResultGeometries(point_index) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointSurfaceInVolume(
                 data_container, nonzero_control_points,
@@ -384,36 +384,34 @@ public:
             << "implemented for derivative order > 1." << std::endl;
 
         // Check size of output
-        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
-            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+        if (rGlobalSpaceDerivatives.size() != 3) {
+            rGlobalSpaceDerivatives.resize(3);
         }
 
         // Compute the gradients of the embedded curve in the parametric space of the surface
-        std::vector<array_1d<double, 3>> surface_derivatives;
-        mpSurface->GlobalSpaceDerivatives(surface_derivatives, rCoordinates, DerivativeOrder);
+        array_1d<double,3> global_coordinates;
+        mpSurface->GlobalCoordinates(global_coordinates, rCoordinates);
 
-        // Compute the gradients of the surface in the geometric space
-        array_1d<double, 3> volume_coordinates =  ZeroVector(3);
-        volume_coordinates[0] = surface_derivatives[0][0];
-        volume_coordinates[1] = surface_derivatives[0][1];
-        volume_coordinates[2] = surface_derivatives[0][2];
+        // Compute the gradients of the volume in the geometric space
+        std::vector<CoordinatesArrayType> volume_derivatives(1 + DerivativeOrder*3);
+        mpNurbsVolume->GlobalSpaceDerivatives(volume_derivatives, global_coordinates, DerivativeOrder);
 
-        std::vector<array_1d<double, 3>> volume_derivatives;
-        mpNurbsVolume->GlobalSpaceDerivatives(volume_derivatives, volume_coordinates, DerivativeOrder);
-
-        rGlobalSpaceDerivatives[0] = volume_derivatives[0];
+        rGlobalSpaceDerivatives[0] = global_coordinates;
 
         BoundedMatrix<double,3,3> volume_jacobian;
-        noalias(column(volume_jacobian,0)) =  volume_derivatives[0];
-        noalias(column(volume_jacobian,1)) =  volume_derivatives[1];
-        noalias(column(volume_jacobian,2)) =  volume_derivatives[2];
+        noalias(column(volume_jacobian,0)) =  volume_derivatives[1];
+        noalias(column(volume_jacobian,1)) =  volume_derivatives[2];
+        noalias(column(volume_jacobian,2)) =  volume_derivatives[3];
+
+        Matrix jacobian_surface;
+        mpSurface->Jacobian(jacobian_surface, rCoordinates);
         BoundedMatrix<double,3,2> surface_jacobian;
-        noalias(column(surface_jacobian,0)) =  surface_derivatives[0];
-        noalias(column(surface_jacobian,1)) =  surface_derivatives[1];
+        surface_jacobian = jacobian_surface;
 
         BoundedMatrix<double,3,2> global_tangents = prod(volume_jacobian, surface_jacobian);
         rGlobalSpaceDerivatives[1] = column(global_tangents,0);
         rGlobalSpaceDerivatives[2] = column(global_tangents,1);
+
 
     }
 
@@ -486,7 +484,7 @@ const GeometryData SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeC
 
 template<int TWorkingSpaceDimension, class TVolumeContainerPointType>
 const GeometryDimension SurfaceInNurbsVolumeGeometry<TWorkingSpaceDimension, TVolumeContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+    2, TWorkingSpaceDimension, 3);
 
 } // namespace Kratos
 

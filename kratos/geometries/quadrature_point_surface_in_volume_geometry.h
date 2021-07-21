@@ -162,8 +162,14 @@ public:
         Matrix J;
         this->Jacobian(J, IntegrationPointIndex, ThisMethod);
 
+        // Map tangents into global space
         TangentMatrixType global_tangents = prod(J, mLocalTangents);
-        CoordinatesArrayType normal = MathUtils<double>::CrossProduct( column(global_tangents,0), column(global_tangents,1) );
+
+        Vector g1 = column(global_tangents,0);
+        Vector g2 = column(global_tangents,1);
+
+        // Compute normal
+        CoordinatesArrayType normal = MathUtils<double>::CrossProduct( g1, g2 );
 
         return normal;
     }
