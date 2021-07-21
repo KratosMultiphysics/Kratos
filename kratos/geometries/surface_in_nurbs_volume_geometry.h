@@ -231,6 +231,18 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
+    /* Creates integration points according to the knot intersections
+     * of the underlying nurbs surface.
+     * @param result integration points.
+     */
+    void CreateIntegrationPoints(
+        IntegrationPointsArrayType& rIntegrationPoints) const override
+    {
+        const auto surface_method = mpSurface->GetDefaultIntegrationMethod();
+        rIntegrationPoints = mpSurface->IntegrationPoints(surface_method);
+
+    }
+
     /**
      * @brief This method creates a list of quadrature point geometries
      *        from a list of integration points.
@@ -245,7 +257,7 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rDummyIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints) override
     {
         // shape function container.
         NurbsVolumeShapeFunction shape_function_container(
@@ -264,20 +276,20 @@ public:
         }
 
         // Get integration points from surface
-        const SizeType number_of_points = mpSurface->IntegrationPointsNumber();
+        const SizeType number_of_points = rIntegrationPoints.size();
         auto surface_method = mpSurface->GetDefaultIntegrationMethod();
         const IntegrationPointsArrayType& integration_points = mpSurface->IntegrationPoints(surface_method);
 
         // Resize containers.
-        if (rResultGeometries.size() != integration_points.size() ){
-            rResultGeometries.resize(integration_points.size());
+        if (rResultGeometries.size() != rIntegrationPoints.size() ){
+            rResultGeometries.resize(rIntegrationPoints.size());
         }
 
         for (IndexType point_index = 0; point_index < number_of_points; ++point_index)
         {
 
             array_1d<double,3> global_coordinates;
-            mpSurface->GlobalCoordinates(global_coordinates, integration_points[point_index]);
+            mpSurface->GlobalCoordinates(global_coordinates, rIntegrationPoints[point_index]);
 
             shape_function_container.ComputeBSplineShapeFunctionValues(
                 mpNurbsVolume->KnotsU(), mpNurbsVolume->KnotsV(),  mpNurbsVolume->KnotsW(),
@@ -311,13 +323,8 @@ public:
                 }
             }
 
-            const double determinant_volume = mpNurbsVolume->DeterminantOfJacobian(global_coordinates);
-            // Get area of surface in global space
-            const double weight = mpSurface->Area() * determinant_volume;
-            IntegrationPoint<3> tmp_integration_point(global_coordinates[0], global_coordinates[1], global_coordinates[2], weight);
-
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
-                default_method, tmp_integration_point,
+                default_method, rIntegrationPoints[point_index],
                 N, shape_function_derivatives);
 
             Matrix jacobian_surface;
