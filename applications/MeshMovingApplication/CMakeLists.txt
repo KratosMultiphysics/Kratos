@@ -74,3 +74,7 @@ if(${USE_MPI})
   message("Enabling trilinos extension for KratosMeshMovingApplication")
   add_subdirectory(trilinos_extension)
 endif(${USE_MPI})
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMeshMovingCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMeshMovingApplication" PARENT_SCOPE)
