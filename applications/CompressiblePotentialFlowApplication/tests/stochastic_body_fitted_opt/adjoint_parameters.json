@@ -13,7 +13,7 @@
         "reform_dofs_at_each_step": true,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "../naca0012_small_mdpa/naca0012_small"
+            "input_filename": "current_design"
         },
         "echo_level": 0,
         "formulation": {

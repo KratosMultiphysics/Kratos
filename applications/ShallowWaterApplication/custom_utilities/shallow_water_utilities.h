@@ -105,9 +105,7 @@ public:
 
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
-    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness = 0.0);
-
-    void ResetDryDomain(ModelPart& rModelPart, double Thickness = 0.0);
+    void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = 0.1);
 
     template<class TContainerType>
     void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
@@ -244,6 +242,37 @@ private:
 
     template<bool THistorical>
     double GetValue(NodeType& rNode, const Variable<double>& rVariable);
+
+    template<class TContainerType>
+    void IdentifyWetEntities(TContainerType& rContainer, Flags WetFlag, double RelativeDryHeight)
+    {
+        block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
+            const auto& r_geom = rEntity.GetGeometry();
+            double height = 0.0;
+            for (auto& r_node : r_geom)
+            {
+                height += r_node.FastGetSolutionStepValue(HEIGHT);
+            }
+            height /= r_geom.size();
+            const double epsilon = RelativeDryHeight * r_geom.Length();
+            const double wet_fraction = WetFraction(height, epsilon);
+            const double one = 1.0 - 1e-16;
+            const bool is_wet = (wet_fraction >= one);
+            rEntity.Set(WetFlag, is_wet);
+            for (auto& r_node : r_geom)
+            {
+                if (is_wet)
+                {
+                    if (r_node.IsNot(WetFlag))
+                    {
+                        r_node.SetLock();
+                        r_node.Set(WetFlag);
+                        r_node.UnSetLock();
+                    }
+                }
+            }
+        });
+    }
 
     template<class TContainerType>
     array_1d<double,3> EvaluateHydrostaticForce(

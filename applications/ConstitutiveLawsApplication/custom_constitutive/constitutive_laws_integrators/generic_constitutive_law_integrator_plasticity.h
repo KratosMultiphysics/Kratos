@@ -21,7 +21,7 @@
 #include "includes/checks.h"
 #include "includes/properties.h"
 #include "utilities/math_utils.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 
 namespace Kratos
@@ -246,7 +246,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         YieldSurfaceType::CalculateEquivalentStress( rPredictiveStressVector, rStrainVector, rUniaxialStress, rValues);
         const double I1 = rPredictiveStressVector[0] + rPredictiveStressVector[1] + rPredictiveStressVector[2];
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
         CalculateFFluxVector(rPredictiveStressVector, deviator, J2, rFflux, rValues);
         CalculateGFluxVector(rPredictiveStressVector, deviator, J2, rGflux, rValues);
         CalculateIndicatorsFactors(rPredictiveStressVector, tensile_indicator_factor,compression_indicator_factor);
@@ -338,7 +338,7 @@ class GenericConstitutiveLawIntegratorPlasticity
 
         // We proceed as usual
         array_1d<double, Dimension> principal_stresses = ZeroVector(Dimension);
-        ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stresses, rPredictiveStressVector);
 
         double suma = 0.0, sumb = 0.0, sumc = 0.0;
         double aux_sa;
@@ -420,7 +420,7 @@ class GenericConstitutiveLawIntegratorPlasticity
             dplastic_dissipation = 0.0;
 
         rPlasticDissipation += dplastic_dissipation;
-        if (rPlasticDissipation >= 1.0)
+        if (rPlasticDissipation >= 0.9999)
             rPlasticDissipation = 0.9999;
         else if (rPlasticDissipation < 0.0)
             rPlasticDissipation = 0.0;
