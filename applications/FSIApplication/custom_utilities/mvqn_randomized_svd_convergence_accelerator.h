@@ -171,6 +171,9 @@ public:
         mpJacQU = nullptr;
         mpJacSigmaV = nullptr;
 
+        // Update the seed for the next time step
+        mSeed++;
+
         KRATOS_CATCH( "" );
     }
 
@@ -425,6 +428,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    SizeType mSeed = 0; // Seed to be used in the random matrix generation (to be updated at each step)
     SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
     SizeType mNumberOfExtraModes; // Number of extra modes used in the randomization
     SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD
@@ -447,7 +451,9 @@ private:
     {
         // Initialize auxiliary variables
         bool is_number_of_modes_limited = false;
-        mNumberOfExtraModes = 1;
+        const std::size_t min_extra_modes = 2;
+        const std::size_t aux_extra_modes = std::ceil(0.2 * mUserNumberOfModes);
+        mNumberOfExtraModes = min_extra_modes > aux_extra_modes ? min_extra_modes : aux_extra_modes;
 
         // Check if the user-defined number of modes exceeds the iteration number
         // Note that we check it with the current number of observations rather than using the iteration counter
@@ -470,7 +476,7 @@ private:
         std::swap(p_aux_omega, mpOmega);
 
         // Create the random values generator
-        std::mt19937 generator(1); //Standard mersenne_twister_engine seeded with 1
+        std::mt19937 generator(mSeed); //Standard mersenne_twister_engine seeded with the step number as seed
         std::uniform_real_distribution<> distribution(0.0, 1.0);
 
         // Fill the random values matrix
@@ -608,7 +614,8 @@ private:
         MatrixType v_svd; // Orthogonal matrix (n x n)
         std::string svd_type = "Jacobi"; // SVD decomposition type
         double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+        const std::size_t max_iter = 500; // Maximum number of iterations of the Jacobi SVD decomposition
+        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol, max_iter);
 
         // Compute the matrix pseudo-inverse
         // Note that we take advantage of the fact that the matrix is always squared

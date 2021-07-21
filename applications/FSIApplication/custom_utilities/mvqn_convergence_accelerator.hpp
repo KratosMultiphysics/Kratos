@@ -352,7 +352,8 @@ protected:
         MatrixType v_svd; // Orthogonal matrix (n x n)
         std::string svd_type = "Jacobi"; // SVD decomposition type
         const double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol);
+        const std::size_t max_iter = 500; // Maximum number of iterations of the Jacobi SVD decomposition
+        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol, max_iter);
 
         // Get the maximum and minimum eigenvalues
         // Note that eigenvalues of trans(A)*A are equal to the eigenvalues of A^2
