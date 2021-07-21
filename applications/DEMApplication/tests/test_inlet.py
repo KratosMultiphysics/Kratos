@@ -3,7 +3,6 @@ import numpy as np
 import KratosMultiphysics as Kratos
 from Kratos import Logger
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.KratosUnittest import TestCase
 
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
