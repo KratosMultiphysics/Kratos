@@ -50,13 +50,13 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
     }
 }
 
-template<int TDim>
+template<unsigned int TDim>
 void MountBin1(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility)
 {
     rMoveParticleUtility.MountBin();
 }
 
-template<int TDim>
+template<unsigned int TDim>
 void MountBin2(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility, const double CellSize)
 {
     rMoveParticleUtility.MountBin(CellSize);
