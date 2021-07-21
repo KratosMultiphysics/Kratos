@@ -53,13 +53,13 @@ void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_mo
 template<int TDim>
 void MountBin1(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility)
 {
-    rMoveParticleUtility.Mountbin();
+    rMoveParticleUtility.MountBin();
 }
 
 template<int TDim>
 void MountBin2(MoveParticleUtilityScalarTransport<TDim>& rMoveParticleUtility, const double CellSize)
 {
-    rMoveParticleUtility.Mountbin(CellSize);
+    rMoveParticleUtility.MountBin(CellSize);
 }
 
 void  AddCustomUtilitiesToPython(pybind11::module& m)
