@@ -291,7 +291,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		void MountBinWithCellSize(const double CellSize)
+		void MountBin(const double CellSize)
 		{
 			KRATOS_TRY
 
