@@ -462,6 +462,32 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
 
+    def test_copy_deepcopy(self):
+        kp = Parameters(json_string)
+
+        # Copy values
+        kp_copy = kp.__copy__()
+        kp_deepcopy = kp.__deepcopy__()
+
+        # Check is the same
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+        self.assertTrue(kp_copy.Has("int_value"))
+        self.assertTrue(kp_copy.Has("level1"))
+        self.assertTrue(kp_deepcopy.Has("int_value"))
+        self.assertTrue(kp_deepcopy.Has("level1"))
+
+        # Remove values
+        kp.RemoveValue("int_value")
+        kp.RemoveValue("level1")
+
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+        self.assertFalse(kp_copy.Has("int_value"))
+        self.assertFalse(kp_copy.Has("level1"))
+        self.assertTrue(kp_deepcopy.Has("int_value"))
+        self.assertTrue(kp_deepcopy.Has("level1"))
+
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods
         tmp = Parameters("""{
