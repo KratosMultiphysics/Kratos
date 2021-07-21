@@ -75,6 +75,13 @@ namespace Testing
             r_node.FastGetSolutionStepValue(REACTION_FLUX) = 37.5 - 3.5 * aux;
         }
 
+        void EquationIdVector(
+            EquationIdVectorType& rEquationIdVector,
+            const ProcessInfo& rCurrentProcessInfo) const override
+        {
+            rEquationIdVector.resize(1);
+        }
+
     };
 
 
