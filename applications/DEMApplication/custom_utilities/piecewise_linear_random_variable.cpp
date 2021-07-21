@@ -50,7 +50,7 @@ namespace Kratos {
 
         size_t low_index;
         size_t high_index;
-        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mPDFBreakpoints, low_index, high_index);
+        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mPDFValues, low_index, high_index);
 
         SetSupport(mPDFBreakpoints[low_index], mPDFBreakpoints[high_index]);
 
