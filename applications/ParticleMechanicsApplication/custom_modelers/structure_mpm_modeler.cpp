@@ -26,7 +26,7 @@ namespace Kratos
     {
         CheckParameters();
 
-        const bool is_create_segmented_fem_quads = true;
+        const bool is_create_segmented_fem_quads = false;
 
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
         Model* p_model_fem = (mIsOriginMpm) ? mpModelDest : mpModelOrigin;
@@ -151,6 +151,44 @@ namespace Kratos
             coupling_model_part.AddCondition(Kratos::make_intrusive<Condition>(
                 condition_id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(p_quads_origin[i], p_quads_dest[i])));
         }
+        KRATOS_WATCH("2222222222222HEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeLLO")
+        auto mpm_material_model_part_name = "Coupling_Interface";
+        ModelPart& mpm_support_mp = p_model_mpm->HasModelPart(mpm_material_model_part_name)
+        ? p_model_mpm->GetModelPart(mpm_material_model_part_name)
+        : p_model_mpm->CreateModelPart(mpm_material_model_part_name);
+        // TO DO Check id properties
+        Properties::Pointer p_properties = coupling_model_part.GetRootModelPart().CreateNewProperties(10000);
+        const Condition& new_condition = KratosComponents<Condition>::Get("MPMParticlePenaltyCouplingInterfaceCondition2D3N");
+        KRATOS_WATCH("HEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeLLO")
+        for (IndexType i = 0; i < p_quads_dest.size(); ++i) {
+
+            Condition::Pointer p_condition = new_condition.Create(condition_id + i+p_quads_origin.size() , p_quads_dest[i], p_properties);
+            ProcessInfo process_info = ProcessInfo();
+            
+            std::vector<double> mpc_penalty_factor(1);
+            mpc_penalty_factor[0]=0.0;
+            p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+            
+            // Setting particle condition's initial condition
+            // p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
+
+            
+            // p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+            // p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                                // Mark as boundary condition
+            p_condition->Set(BOUNDARY, false);
+            
+            mpm_support_mp.AddCondition(p_condition);
+            
+        }
+        
+        KRATOS_WATCH(*p_model_mpm)
     }
 
     void StructureMpmModeler::UpdateGeometryModel()
