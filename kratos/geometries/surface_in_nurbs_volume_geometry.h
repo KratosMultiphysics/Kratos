@@ -177,16 +177,6 @@ public:
     }
 
     ///@}
-    ///@name Mathematical Informations
-    ///@{
-
-    /// Return polynomial degree of the embedded surface
-    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
-    {
-        return mpSurface->PolynomialDegree(LocalDirectionIndex);
-    }
-
-    ///@}
     ///@name Set/ Get functions
     ///@{
 
@@ -411,8 +401,6 @@ public:
         BoundedMatrix<double,3,2> global_tangents = prod(volume_jacobian, surface_jacobian);
         rGlobalSpaceDerivatives[1] = column(global_tangents,0);
         rGlobalSpaceDerivatives[2] = column(global_tangents,1);
-
-
     }
 
     ///@}
@@ -422,13 +410,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "2 dimensional nurbs curve on 3D surface.";
+        return "2 dimensional surface in 3D nurbs volume.";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "2 dimensional nurbs curve on 3D surface.";
+        rOStream << "2 dimensional surface in 3D nurbs volume.";
     }
 
     /// Print object's data.
@@ -468,7 +456,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-        rSerializer.load("pNurbsSurface", mpNurbsVolume);
+        rSerializer.load("pNurbsVolume", mpNurbsVolume);
         rSerializer.load("pSurface", mpSurface);
     }
 
