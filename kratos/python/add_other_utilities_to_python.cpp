@@ -58,6 +58,7 @@
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/force_and_torque_utils.h"
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
+#include "utilities/element_size_calculator.h"
 
 namespace Kratos {
 namespace Python {
@@ -173,6 +174,21 @@ void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::s
         .def_static("Intersection", &UtilityType::Intersection)
         .def_static("Difference", &UtilityType::Difference)
         ;
+}
+    
+template< std::size_t TDim, std::size_t TNumNodes >
+void AddElementSizeCalculator(pybind11::module &m)
+{
+    using element_size_calculator = ElementSizeCalculator<TDim, TNumNodes>;
+    std::stringstream name;
+    name << "ElementSizeCalculator" << TDim << "D" << TNumNodes << "N";
+    pybind11::class_<element_size_calculator, typename element_size_calculator::Pointer>(m, name.str().c_str())
+        .def_static("MinimumElementSize", &element_size_calculator::MinimumElementSize)
+        .def_static("MinimumElementSizeDerivative", &element_size_calculator::MinimumElementSizeDerivative)
+        .def_static("AverageElementSize", &element_size_calculator::AverageElementSize)
+        .def_static("AverageElementSizeDerivative", &element_size_calculator::AverageElementSizeDerivative)
+        .def_static("ProjectedElementSize", &element_size_calculator::ProjectedElementSize)
+    ;
 }
 
 void AddOtherUtilitiesToPython(pybind11::module &m)
@@ -670,6 +686,11 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
         m, "SubModelPartConstraintsBooleanOperationUtility");
 
+    AddElementSizeCalculator<2, 3>(m);
+    AddElementSizeCalculator<2, 4>(m);
+    AddElementSizeCalculator<3, 4>(m);
+    AddElementSizeCalculator<3, 6>(m);
+    AddElementSizeCalculator<3, 8>(m);
 }
 
 } // namespace Python.
