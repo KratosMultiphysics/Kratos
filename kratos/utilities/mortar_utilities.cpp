@@ -20,6 +20,8 @@
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/math_utils.h"
 #include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -163,22 +165,18 @@ void ComputeNodesTangentModelPart(
 
     // We iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_node_begin + i;
-
-        // Computing only slave nodes
-        if (it_node->Is(SLAVE)) {
-            if (has_lm && !SlipAlways) {
-                ComputeTangentNodeWithLMAndSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
-            } else {
-                ComputeTangentNodeWithSlip(*it_node, 0, pSlipVariable, SlipCoefficient, domain_size);
+    block_for_each(
+        r_nodes_array,
+        [&pSlipVariable,SlipCoefficient,domain_size,has_lm,SlipAlways](Node<3>& rNode) {
+            if (rNode.Is(SLAVE)) {
+                if (has_lm && !SlipAlways)
+                    ComputeTangentNodeWithLMAndSlip(rNode, 0, pSlipVariable, SlipCoefficient, domain_size);
+                else
+                    ComputeTangentNodeWithSlip(rNode, 0, pSlipVariable, SlipCoefficient, domain_size);
             }
         }
-    }
+    );
 }
 
 /***********************************************************************************/
@@ -194,19 +192,16 @@ void ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart)
 
     // We iterate over nodes
     auto& r_nodes_array = rModelPart.Nodes();
-    const auto it_node_begin = r_nodes_array.begin();
-    const int num_nodes = static_cast<int>(r_nodes_array.size());
 
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = it_node_begin + i;
-
-        // Computing only slave nodes
-        if (it_node->Is(SLAVE)) {
-            const array_1d<double, 3>& r_normal = it_node->FastGetSolutionStepValue(NORMAL);
-            ComputeTangentsFromNormal(*it_node, r_normal, domain_size);
+    block_for_each(
+        r_nodes_array,
+        [domain_size](Node<3>& rNode) {
+            if (rNode.Is(SLAVE)) {
+                const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+                ComputeTangentsFromNormal(rNode, r_normal, domain_size);
+            }
         }
-    }
+    );
 }
 
 /***********************************************************************************/
@@ -578,8 +573,7 @@ void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariabl
 {
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
         double& r_aux_value = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
-        #pragma omp atomic
-        r_aux_value += rThisValue(i_node, 0);
+        AtomicAdd(r_aux_value, rThisValue(i_node, 0));
     }
 }
 
@@ -597,8 +591,7 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHist
         auto& r_aux_vector = rThisGeometry[i_node].FastGetSolutionStepValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
             double& r_aux_value = r_aux_vector[i_dim];
-            #pragma omp atomic
-            r_aux_value += rThisValue(i_node, i_dim);
+            AtomicAdd(r_aux_value, rThisValue(i_node, i_dim));
         }
     }
 }
@@ -615,8 +608,7 @@ void AddValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVari
 {
     for (IndexType i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
         double& r_aux_value = rThisGeometry[i_node].GetValue(rThisVariable);
-        #pragma omp atomic
-        r_aux_value += rThisValue(i_node, 0);
+        AtomicAdd(r_aux_value, rThisValue(i_node, 0));
     }
 }
 
@@ -634,8 +626,7 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonH
         auto& aux_vector = rThisGeometry[i_node].GetValue(rThisVariable);
         for (IndexType i_dim = 0; i_dim < rThisGeometry.WorkingSpaceDimension(); ++i_dim) {
             double& r_aux_value = aux_vector[i_dim];
-            #pragma omp atomic
-            r_aux_value += rThisValue(i_node, i_dim);
+            AtomicAdd(r_aux_value, rThisValue(i_node, i_dim));
         }
     }
 }
@@ -720,11 +711,12 @@ void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalV
     IntMap& rConectivityDatabase
     )
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
-        p_node->FastGetSolutionStepValue(rThisVariable) += rDx[i];
-    }
+    IndexPartition<std::size_t>(rDx.size()).for_each(
+        [&](std::size_t i_increment) {
+            auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i_increment]);
+            p_node->FastGetSolutionStepValue(rThisVariable) += rDx[i_increment];
+        }
+    );
 }
 
 /***********************************************************************************/
@@ -739,12 +731,13 @@ void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::Save
     IntMap& rConectivityDatabase
     )
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
-        auto& r_value = p_node->FastGetSolutionStepValue(rThisVariable);
-        r_value[Index] += rDx[i];
-    }
+    IndexPartition<std::size_t>(rDx.size()).for_each(
+        [&](std::size_t i_increment) {
+            auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i_increment]);
+            auto& r_value = p_node->FastGetSolutionStepValue(rThisVariable);
+            r_value[Index] += rDx[i_increment];
+        }
+    );
 }
 
 /***********************************************************************************/
@@ -759,11 +752,12 @@ void UpdateDatabase<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoric
     IntMap& rConectivityDatabase
     )
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
-        p_node->GetValue(rThisVariable) += rDx[i];
-    }
+    IndexPartition<std::size_t>(rDx.size()).for_each(
+        [&](std::size_t i_increment) {
+            auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i_increment]);
+            p_node->GetValue(rThisVariable) += rDx[i_increment];
+        }
+    );
 }
 
 /***********************************************************************************/
@@ -778,12 +772,13 @@ void UpdateDatabase<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::Save
     IntMap& rConectivityDatabase
     )
 {
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rDx.size()); ++i) {
-        auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i]);
-        auto& value = p_node->GetValue(rThisVariable);
-        value[Index] += rDx[i];
-    }
+    IndexPartition<std::size_t>(rDx.size()).for_each(
+        [&](std::size_t i_increment) {
+            auto p_node = rThisModelPart.pGetNode(rConectivityDatabase[i_increment]);
+            auto& value = p_node->GetValue(rThisVariable);
+            value[Index] += rDx[i_increment];
+        }
+    );
 }
 } // namespace MortarUtilities
 } // namespace Kratos

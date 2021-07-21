@@ -55,12 +55,20 @@ public:
 
     /// Constructor
     FindNodalNeighboursForEntitiesProcess(
-        const DataCommunicator& rDataCommunicator,
         ModelPart& rModelPart,
         const Variable<GlobalPointersVector<NodeType>>& rOutputVariable)
         : mrModelPart(rModelPart),
-          mrDataCommunicator(rDataCommunicator),
+          mrDataCommunicator(rModelPart.GetCommunicator().GetDataCommunicator()),
           mrOutputVariable(rOutputVariable)
+    {
+    }
+
+    KRATOS_DEPRECATED_MESSAGE("Use of DataCommunicator is deprecated. Please use constructor without it.")
+    FindNodalNeighboursForEntitiesProcess(
+        const DataCommunicator& rDataCommunicator,
+        ModelPart& rModelPart,
+        const Variable<GlobalPointersVector<NodeType>>& rOutputVariable)
+        : FindNodalNeighboursForEntitiesProcess(rModelPart, rOutputVariable)
     {
     }
 

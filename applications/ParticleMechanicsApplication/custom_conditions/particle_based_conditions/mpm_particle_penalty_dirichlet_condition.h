@@ -138,11 +138,11 @@ public:
     ///@{
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}

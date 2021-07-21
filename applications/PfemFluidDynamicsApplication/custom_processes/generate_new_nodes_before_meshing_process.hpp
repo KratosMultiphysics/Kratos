@@ -1563,7 +1563,7 @@ namespace Kratos
 					{
 						if (Element[pn].X() > RefiningBoxMinimumPoint[0] && Element[pn].X() < RefiningBoxMaximumPoint[0] &&
 							Element[pn].Y() > RefiningBoxMinimumPoint[1] && Element[pn].Y() < RefiningBoxMaximumPoint[1] &&
-							Element[pn].Z() < RefiningBoxMinimumPoint[2] && Element[pn].Z() < RefiningBoxMaximumPoint[2])
+							Element[pn].Z() > RefiningBoxMinimumPoint[2] && Element[pn].Z() < RefiningBoxMaximumPoint[2])
 						{
 							meanMeshSize = mrRemesh.RefiningBoxMeshSize;
 						}

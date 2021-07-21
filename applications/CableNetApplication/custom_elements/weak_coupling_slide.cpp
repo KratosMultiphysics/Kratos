@@ -23,6 +23,7 @@
 #include "includes/variables.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
+#include "utilities/atomic_utilities.h"
 
 
 namespace Kratos {
@@ -387,8 +388,7 @@ void WeakSlidingElement3D3N::AddExplicitContribution(
             size_t index = msDimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < msDimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j];
+                AtomicAdd(r_force_residual[j], rRHSVector[index + j]);
             }
         }
     }

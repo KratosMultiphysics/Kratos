@@ -23,8 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/model.h"
-#include "spatial_containers/spatial_containers.h"
-
 #include "includes/kratos_components.h"
 
 namespace Kratos

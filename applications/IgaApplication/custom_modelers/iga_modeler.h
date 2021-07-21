@@ -23,7 +23,6 @@
 #include "includes/properties.h"
 #include "includes/define.h"
 
-
 namespace Kratos
 {
 

@@ -222,7 +222,7 @@ namespace Kratos
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override;
 
-    void Initialize() override{};
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override{};
@@ -339,22 +339,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    virtual void GetValueOnIntegrationPoints(const Variable<bool> &rVariable,
-                                             std::vector<bool> &rOutput,
-                                             const ProcessInfo &rCurrentProcessInfo) override{};
-
-    virtual void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                             std::vector<double> &rOutput,
-                                             const ProcessInfo &rCurrentProcessInfo) override{};
-
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector> &rVariable,
-                                             std::vector<Vector> &rOutput,
-                                             const ProcessInfo &rCurrentProcessInfo) override{};
-
-    virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>> &rVariable,
-                                             std::vector<array_1d<double, 3>> &rOutput,
-                                             const ProcessInfo &rCurrentProcessInfo) override{};
 
     virtual void CalculateLocalMomentumEquations(MatrixType &rLeftHandSideMatrix,
                                                  VectorType &rRightHandSideVector,

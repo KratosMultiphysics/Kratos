@@ -19,11 +19,11 @@ namespace Kratos {
 
     void DEM_D_Stress_Dependent_Cohesive::Check(Properties::Pointer pProp) const {
         DEMDiscontinuumConstitutiveLaw::Check(pProp);
-        if(!pProp->Has(PARTICLE_INITIAL_COHESION)) {
+        if(!pProp->Has(INITIAL_COHESION)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable PARTICLE_INITIAL_COHESION should be present in the properties when using DEM_D_Stress_Dependent_Cohesive. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable INITIAL_COHESION should be present in the properties when using DEM_D_Stress_Dependent_Cohesive. 0.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(PARTICLE_INITIAL_COHESION) = 0.0;
+            pProp->GetValue(INITIAL_COHESION) = 0.0;
         }
         if(!pProp->Has(AMOUNT_OF_COHESION_FROM_STRESS)) {
             KRATOS_WARNING("DEM")<<std::endl;
@@ -34,7 +34,7 @@ namespace Kratos {
     }
 
     std::string DEM_D_Stress_Dependent_Cohesive::GetTypeOfLaw() {
-        std::string type_of_law = "Stress_Dependent_Cohesive";
+        std::string type_of_law = "Linear";
         return type_of_law;
     }
 
@@ -130,7 +130,7 @@ namespace Kratos {
         double MaximumAdmisibleShearForce;
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              sliding, element1, element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                                              LocalRelVel, sliding, element1, element2, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element1->GetElasticEnergy();
         DEM_D_Linear_viscous_Coulomb::CalculateElasticEnergyDEM(elastic_energy, indentation, LocalElasticContactForce);
@@ -163,14 +163,15 @@ namespace Kratos {
         double contact_area = 0.0;
         CalculateIndentedContactArea(radius, other_radius, indentation, contact_area);
 
-        double equiv_cohesion = 0.0;
-        double equiv_amount_of_cohesion_from_stress = 0.5 * (p_element1->GetAmountOfCohesionFromStress() + p_element2->GetAmountOfCohesionFromStress());
+        double cohesion = 0.0;
+        Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
+        double amount_of_cohesion_from_stress = properties_of_this_contact[AMOUNT_OF_COHESION_FROM_STRESS];
 
         for (unsigned int i = 0; p_element1->mNeighbourElements.size(); i++) {
             if (p_element1->mNeighbourElements[i]->Id() == p_element2->Id()) {
-                if (initial_time_step) p_element1->mNeighbourCohesion[i] = 0.5 * (p_element1->GetParticleInitialCohesion() + p_element2->GetParticleInitialCohesion());
-                equiv_cohesion = std::min(0.5 * (p_element1->GetParticleCohesion() + p_element2->GetParticleCohesion()), equiv_amount_of_cohesion_from_stress * p_element1->mNeighbourContactStress[i]);
-                if (p_element1->mNeighbourCohesion[i] != 0.0) equiv_cohesion = std::max(p_element1->mNeighbourCohesion[i], equiv_cohesion);
+                if (initial_time_step) p_element1->mNeighbourCohesion[i] = properties_of_this_contact[INITIAL_COHESION];
+                cohesion = std::min(properties_of_this_contact[PARTICLE_COHESION], amount_of_cohesion_from_stress * p_element1->mNeighbourContactStress[i]);
+                if (p_element1->mNeighbourCohesion[i] != 0.0) cohesion = std::max(p_element1->mNeighbourCohesion[i], cohesion);
 
                 double contact_stress = normal_contact_force / contact_area;
                 p_element1->mNeighbourContactStress[i] = std::max(p_element1->mNeighbourContactStress[i], contact_stress);
@@ -178,7 +179,7 @@ namespace Kratos {
             }
         }
 
-        const double cohesive_force = equiv_cohesion * contact_area;
+        const double cohesive_force = cohesion * contact_area;
 
         return cohesive_force;
 
@@ -273,7 +274,7 @@ namespace Kratos {
         double MaximumAdmisibleShearForce;
 
         CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              sliding, element, wall, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+                                              LocalRelVel, sliding, element, wall, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element->GetElasticEnergy();
         DEM_D_Linear_viscous_Coulomb::CalculateElasticEnergyFEM(elastic_energy, indentation, LocalElasticContactForce);
@@ -305,12 +306,13 @@ namespace Kratos {
         CalculateIndentedContactAreaWithFEM(radius, indentation, contact_area);
 
         double equiv_cohesion = 0.0;
-        double equiv_amount_of_cohesion_from_stress = p_element->GetAmountOfCohesionFromStress();
+        Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
+        double equiv_amount_of_cohesion_from_stress = properties_of_this_contact[AMOUNT_OF_COHESION_FROM_STRESS];
 
         for (unsigned int i = 0; p_element->mNeighbourRigidFaces.size(); i++) {
             if (p_element->mNeighbourRigidFaces[i]->Id() == wall->Id()) {
-                if (initial_time_step) p_element->mNeighbourRigidCohesion[i] = 0.5 * (p_element->GetParticleInitialCohesion() + wall->GetProperties()[WALL_INITIAL_COHESION]);
-                equiv_cohesion = std::min(0.5 * (p_element->GetParticleCohesion() + wall->GetProperties()[WALL_COHESION]), equiv_amount_of_cohesion_from_stress * p_element->mNeighbourRigidContactStress[i]);
+                if (initial_time_step) p_element->mNeighbourRigidCohesion[i] = properties_of_this_contact[INITIAL_COHESION];
+                equiv_cohesion = std::min(properties_of_this_contact[PARTICLE_COHESION], equiv_amount_of_cohesion_from_stress * p_element->mNeighbourRigidContactStress[i]);
                 if (p_element->mNeighbourRigidCohesion[i] != 0.0) equiv_cohesion = std::max(p_element->mNeighbourRigidCohesion[i], equiv_cohesion);
 
                 double contact_stress = normal_contact_force / contact_area;

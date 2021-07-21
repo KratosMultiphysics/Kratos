@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //                   Vicente Mataix Ferrandiz
@@ -68,27 +69,23 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Pointer definition of ContactErrorMeshCriteria
     KRATOS_CLASS_POINTER_DEFINITION( ContactErrorMeshCriteria );
 
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >        BaseType;
+    /// The base convergence criteria class definition
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                       BaseType;
 
-    typedef TSparseSpace                                     SparseSpaceType;
+    /// The definition of the current class
+    typedef ContactErrorMeshCriteria< TSparseSpace, TDenseSpace >                 ClassType;
 
-    typedef typename BaseType::TDataType                           TDataType;
+   /// The dofs array type
+    typedef typename BaseType::DofsArrayType                                  DofsArrayType;
 
-    typedef typename BaseType::DofsArrayType                   DofsArrayType;
+    /// The sparse matrix type
+    typedef typename BaseType::TSystemMatrixType                          TSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixType           TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType           TSystemVectorType;
-
-    typedef ModelPart::ConditionsContainerType           ConditionsArrayType;
-
-    typedef ModelPart::NodesContainerType                     NodesArrayType;
-
-    typedef std::size_t                                              KeyType;
-
-    typedef std::size_t                                             SizeType;
+    /// The dense vector type
+    typedef typename BaseType::TSystemVectorType                          TSystemVectorType;
 
     ///@}
     ///@name Enum's
@@ -98,35 +95,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
-    explicit ContactErrorMeshCriteria(Parameters ThisParameters = Parameters(R"({})"))
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
-          mThisParameters(ThisParameters)
+    /**
+     * @brief Default constructor.
+     */
+    explicit ContactErrorMeshCriteria()
+        : BaseType()
     {
-        /**
-         * error_mesh_tolerance: The tolerance in the convergence criteria of the error
-         * error_mesh_constant: The constant considered in the remeshing process
-         * penalty_normal: The penalty used in the normal direction (for the contact patch)
-         * penalty_tangential: The penalty used in the tangent direction (for the contact patch)
-         * echo_level: The verbosity
-         */
-        Parameters default_parameters = Parameters(R"(
-        {
-            "error_mesh_tolerance" : 5.0e-3,
-            "error_mesh_constant"  : 5.0e-3,
-            "compute_error_extra_parameters":
-            {
-                "penalty_normal"                      : 1.0e4,
-                "penalty_tangential"                  : 1.0e4,
-                "echo_level"                          : 0
-            }
-        })" );
+    }
 
-        mThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mErrorTolerance = mThisParameters["error_mesh_tolerance"].GetDouble();
-        mConstantError = mThisParameters["error_mesh_constant"].GetDouble();
-
+    /// Default constructors
+    explicit ContactErrorMeshCriteria(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
     }
 
     ///Copy constructor
@@ -143,6 +126,19 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
 
     /**
      * @brief This function initialize the convergence criteria
@@ -170,9 +166,9 @@ public:
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
         // The process info
@@ -203,9 +199,39 @@ public:
         return converged_error;
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                 : "contact_error_mesh_criteria",
+            "error_mesh_tolerance" : 5.0e-3,
+            "error_mesh_constant"  : 5.0e-3,
+            "compute_error_extra_parameters":
+            {
+                "penalty_normal"       : 1.0e4,
+                "penalty_tangential"   : 1.0e4,
+                "echo_level"           : 0
+            }
+        })" );
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "contact_error_mesh_criteria";
+    }
 
     ///@}
     ///@name Acces
@@ -214,6 +240,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ContactErrorMeshCriteria";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends
@@ -235,6 +283,18 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mThisParameters = ThisParameters;
+        mErrorTolerance = mThisParameters["error_mesh_tolerance"].GetDouble();
+        mConstantError = mThisParameters["error_mesh_constant"].GetDouble();
+    }
 
     ///@}
     ///@name Protected  Access

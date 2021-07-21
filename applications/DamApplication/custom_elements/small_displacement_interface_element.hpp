@@ -40,7 +40,7 @@ class SmallDisplacementInterfaceElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementInterfaceElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementInterfaceElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                       std::vector<array_1d<double,3>>& rOutput,
