@@ -157,9 +157,9 @@ namespace Kratos
 					int CountNodes = 0;
 
 					NewPositions.resize(ElementsToRefine);
-					BiggestVolumes.resize(ElementsToRefine);
+					BiggestVolumes.resize(ElementsToRefine, false);
 					NodesIDToInterpolate.resize(ElementsToRefine);
-					// NewDofs.resize(ElementsToRefine);
+					// NewDofs.resize(ElementsToRefine, false);
 
 					for (int nn = 0; nn < ElementsToRefine; nn++)
 					{
@@ -173,9 +173,9 @@ namespace Kratos
 					// int maxOfNewWallNodes = toleredExtraNodes;
 					// if (mrRemesh.ExecutionOptions.Is(MesherUtilities::REFINE_WALL_CORNER))
 					// {
-					// 	CornerWallNewPositions.resize(maxOfNewWallNodes);
-					// 	CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes);
-					// 	CornerWallNewDofs.resize(maxOfNewWallNodes);
+					// 	CornerWallNewPositions.resize(maxOfNewWallNodes, false);
+					// 	CornerWallNodesIDToInterpolate.resize(maxOfNewWallNodes, false);
+					// 	CornerWallNewDofs.resize(maxOfNewWallNodes, false);
 					// }
 
 					ModelPart::ElementsContainerType::iterator element_begin = mrModelPart.ElementsBegin();
@@ -209,9 +209,9 @@ namespace Kratos
 					{
 						mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
 						NewPositions.resize(CountNodes);
-						BiggestVolumes.resize(CountNodes);
+						BiggestVolumes.resize(CountNodes, false);
 						NodesIDToInterpolate.resize(CountNodes);
-						// NewDofs.resize(CountNodes);
+						// NewDofs.resize(CountNodes, false);
 					}
 					unsigned int maxId = 0;
 					CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);
@@ -220,9 +220,9 @@ namespace Kratos
 					// {
 					// 	if (cornerWallNewNodes < maxOfNewWallNodes)
 					// 	{
-					// 		CornerWallNewPositions.resize(cornerWallNewNodes);
-					// 		CornerWallNewDofs.resize(cornerWallNewNodes);
-					// 		CornerWallNodesIDToInterpolate.resize(cornerWallNewNodes);
+					// 		CornerWallNewPositions.resize(cornerWallNewNodes, false);
+					// 		CornerWallNewDofs.resize(cornerWallNewNodes, false);
+					// 		CornerWallNodesIDToInterpolate.resize(cornerWallNewNodes, false);
 					// 	}
 					// 	CreateAndAddNewNodesInCornerWall(CornerWallNewPositions, CornerWallNodesIDToInterpolate, CornerWallNewDofs, cornerWallNewNodes, maxId);
 					// }
@@ -247,9 +247,9 @@ namespace Kratos
 				int CountNodes = 0;
 
 				NewPositions.resize(ElementsToRefine);
-				BiggestVolumes.resize(ElementsToRefine);
+				BiggestVolumes.resize(ElementsToRefine, false);
 				NodesIDToInterpolate.resize(ElementsToRefine);
-				// NewDofs.resize(ElementsToRefine);
+				// NewDofs.resize(ElementsToRefine, false);
 
 				for (int nn = 0; nn < ElementsToRefine; nn++)
 				{
@@ -279,9 +279,9 @@ namespace Kratos
 				{
 					mrRemesh.Info->RemovedNodes += ElementsToRefine - CountNodes;
 					NewPositions.resize(CountNodes);
-					BiggestVolumes.resize(CountNodes);
+					BiggestVolumes.resize(CountNodes, false);
 					NodesIDToInterpolate.resize(CountNodes);
-					// NewDofs.resize(CountNodes);
+					// NewDofs.resize(CountNodes, false);
 				}
 				unsigned int maxId = 0;
 				CreateAndAddNewNodes(NewPositions, NodesIDToInterpolate, ElementsToRefine, maxId);

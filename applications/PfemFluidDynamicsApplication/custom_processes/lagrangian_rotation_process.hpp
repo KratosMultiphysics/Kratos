@@ -93,7 +93,7 @@ public:
             rotation_axis[2] *= 1.0 / axis_norm;
         }
 
-        midentity_matrix = ZeroMatrix(3, 3);
+        noalias(midentity_matrix) = ZeroMatrix(3, 3);
         midentity_matrix(0, 0) = 1.0;
         midentity_matrix(1, 1) = 1.0;
         midentity_matrix(2, 2) = 1.0;
@@ -106,7 +106,7 @@ public:
             }
         }
 
-        mantisym_axis_matrix = ZeroMatrix(3, 3);
+        noalias(mantisym_axis_matrix) = ZeroMatrix(3, 3);
         mantisym_axis_matrix(0, 1) = -rotation_axis[2];
         mantisym_axis_matrix(0, 2) = rotation_axis[1];
         mantisym_axis_matrix(1, 0) = rotation_axis[2];
