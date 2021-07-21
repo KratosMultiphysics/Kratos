@@ -73,7 +73,7 @@ class TestXMCAlgorithm(unittest.TestCase):
             "poisson_square_2d/problem_settings/poisson_multi-moment_mc.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_asynchronous_poisson_2d_fixedsamples.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_poisson_2d_fixedsamples.json",
-            # "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_asynchronous_adaptive_poisson_2d.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_asynchronous_adaptive_poisson_2d.json",
         ]
 
         for parametersPath in parametersList:
@@ -194,8 +194,8 @@ class TestXMCAlgorithm(unittest.TestCase):
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi_ensemble.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_DAR.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_fixedsamples.json",
-            # "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_adaptivefixednumberlevels_poisson_2d.json",
-            # "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_adaptivefixednumberlevels_poisson_2d.json"
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_adaptivefixednumberlevels_poisson_2d.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_adaptivefixednumberlevels_poisson_2d.json"
         ]
 
 
