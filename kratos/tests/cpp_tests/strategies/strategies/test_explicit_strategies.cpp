@@ -79,7 +79,12 @@ namespace Testing
             EquationIdVectorType& rEquationIdVector,
             const ProcessInfo& rCurrentProcessInfo) const override
         {
-            rEquationIdVector.resize(1);
+            unsigned int local_size = GetGeometry().PointsNumber();
+            rEquationIdVector.resize(local_size);
+            for (unsigned int i=0; i<local_size; i++)
+            {
+                rEquationIdVector[i] = GetGeometry()[i].GetDof(TEMPERATURE).EquationId();
+            }
         }
 
     };
