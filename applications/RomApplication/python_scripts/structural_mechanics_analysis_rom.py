@@ -67,7 +67,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
         super().FinalizeSolutionStep()
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
