@@ -152,7 +152,9 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletAnalysis):
             import matplotlib.pyplot as plt
             normalization_factor = sum(self.histogram) / sum(self.probabilities)
             support_diameter = self.possible_values[-1] - self.possible_values[0]
-            column_width = 0.1 * support_diameter
+
+            min_distance_between_possible_values = min(self.possible_values[i] - self.possible_values[i-1] for i in range(1, len(self.possible_values)))
+            column_width = 0.4 * min_distance_between_possible_values
             plt.bar(self.possible_values - 0.5 * column_width, self.probabilities * normalization_factor, width=column_width, label='desired')
             plt.bar(self.possible_values + 0.5 * column_width, self.histogram, width=column_width,
                     label='obtained' + ' (error = ' + '{:.2e}'.format(self.error_norm) + ')')
