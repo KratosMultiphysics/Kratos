@@ -68,8 +68,6 @@ private:
     DiscreteRandomVariable & operator=(DiscreteRandomVariable const& rOther);
 
     double mRelativeClosenessTolerance = 0.0;
-    double mMean = 0.0;
-    bool mMeanHasAlreadyBeenCalculated=false;
     std::vector<double> mRelativeFrequencies;
     std::vector<double> mPossibleValues;
     std::mt19937 mRandomNumberGenerator;

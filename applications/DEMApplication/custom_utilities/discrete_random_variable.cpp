@@ -50,6 +50,11 @@ namespace Kratos {
 
         mTrapezoidsDiscreteDistribution = std::discrete_distribution<int>(mRelativeFrequencies.begin(), mRelativeFrequencies.end());
 
+        size_t low_index;
+        size_t high_index;
+        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mRelativeFrequencies, low_index, high_index);
+        SetSupport(mPossibleValues[low_index], mPossibleValues[high_index]);
+
         Check();
 
         Normalize();
