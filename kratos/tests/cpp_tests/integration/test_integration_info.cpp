@@ -28,10 +28,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckIntegrationInfo, KratosCoreFastSuite) {
 KRATOS_TEST_CASE_IN_SUITE(CheckIntegrationInfoFlags, KratosCoreFastSuite) {
     IntegrationInfo integration_info(2, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-    KRATOS_CHECK_IS_FALSE(integration_info.IsDefined(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
-    integration_info.Set(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE, false);
-    KRATOS_CHECK(integration_info.IsDefined(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
-    KRATOS_CHECK_IS_FALSE(integration_info.Is(IntegrationFlags::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
+    KRATOS_CHECK_IS_FALSE(integration_info.IsDefined(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
+    integration_info.Set(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE, false);
+    KRATOS_CHECK(integration_info.IsDefined(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
+    KRATOS_CHECK_IS_FALSE(integration_info.Is(IntegrationInfo::DO_NOT_CREATE_TESSELLATION_ON_SLAVE));
 }
 
 }
