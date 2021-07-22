@@ -33,7 +33,7 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class TrussElement3D2N : public Element
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElement3D2N : public Element
     {
     protected:
         //const values
@@ -111,6 +111,8 @@ namespace Kratos
          CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo);
 
         void Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+        void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateOnIntegrationPoints(
             const Variable<double>& rVariable,

@@ -103,7 +103,7 @@ public:
 
     bool success = false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if (mEchoLevel > 0)
       std::cout << " [ Build Boundary on ModelPart [" << mrModelPart.Name() << "] ]" << std::endl;
@@ -114,15 +114,15 @@ public:
     {
       std::cout << "  ERROR:  BOUNDARY BUILD FAILED ModelPart : [" << mrModelPart << "] " << std::endl;
     }
-    else
-    {
-      if (mEchoLevel >= 1)
-      {
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout << " [ Search performed in Time = " << end_time - begin_time << " ]" << std::endl;
-      }
-      //PrintSkin(mrModelPart);
-    }
+    // else
+    // {
+    //   if (mEchoLevel >= 1)
+    //   {
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout << " [ Search performed in Time = " << end_time - begin_time << " ]" << std::endl;
+    //   }
+    //   //PrintSkin(mrModelPart);
+    // }
 
     KRATOS_CATCH(" ")
   }

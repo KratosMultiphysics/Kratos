@@ -1,10 +1,8 @@
-﻿from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
-from KratosMultiphysics.mpi import *
-#import KratosMultiphysics.mpi
+﻿import KratosMultiphysics
 import KratosMultiphysics.TrilinosApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
+from KratosMultiphysics.mpi import DataCommunicatorFactory
 import os
 
 def GetFilePath(fileName):
@@ -12,6 +10,16 @@ def GetFilePath(fileName):
 
 
 class TestLinearSolvers(KratosUnittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        default_data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        cls.data_comm_name = "AllExceptFirst"
+        ranks_sub_comm = [i for i in range(1,default_data_comm.Size())]
+        cls.sub_comm = DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_sub_comm, cls.data_comm_name)
+
+    @classmethod
+    def tearDownClass(cls):
+        KratosMultiphysics.ParallelEnvironment.UnregisterDataCommunicator(cls.data_comm_name)
 
     def _RunParametrized(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )
@@ -20,8 +28,30 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
 
-    def _auxiliary_test_function(self, settings, matrix_name="A.mm", absolute_norm=False):
-        comm = KratosMultiphysics.TrilinosApplication.CreateCommunicator()
+    def _RunParametrizedWithSubComm(self, my_params_string ):
+        all_settings = KratosMultiphysics.Parameters( my_params_string )
+
+        # create a sub communicator, containing all ranks except rank 0
+        default_data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
+        size = default_data_comm.Size()
+        if size < 3:
+            self.skipTest("This test needs at least 3 mpi processes")
+
+        if default_data_comm.Rank() == 0:
+            self.assertFalse(self.sub_comm.IsDefinedOnThisRank())
+        else:
+            self.assertTrue(self.sub_comm.IsDefinedOnThisRank())
+
+        if not self.sub_comm.IsDefinedOnThisRank():
+            # this rank does not participate
+            return
+
+        for i in range(all_settings["test_list"].size()):
+            settings = all_settings["test_list"][i]
+            self._auxiliary_test_function(settings, self.sub_comm)
+
+    def _auxiliary_test_function(self, settings, data_comm=KratosMultiphysics.Testing.GetDefaultDataCommunicator(), matrix_name="A.mm", absolute_norm=False):
+        comm = KratosMultiphysics.TrilinosApplication.CreateEpetraCommunicator(data_comm)
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
@@ -72,7 +102,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         if(settings.Has("tolerance")):
             tolerance = settings["tolerance"].GetDouble()
 
-        nproc = KratosMultiphysics.DataCommunicator.GetDefault().Size()
+        nproc = data_comm.Size()
         target_norm = tolerance*space.TwoNorm(pboriginal.GetReference())*nproc #multiplying by nproc the target tolerance to give some slack. Not really nice :-(
 
         if(achieved_norm > target_norm):
@@ -84,12 +114,13 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         del linear_solver
 
 
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AmesosSolver'), "AmesosSolver was explicitly disabled.")
 class TestAmesosLinearSolvers(TestLinearSolvers):
     def test_amesos_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
             self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -98,13 +129,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_mumps(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
             self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -113,14 +150,20 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
 
     def test_amesos_klu(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
             self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -129,13 +172,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_superludist_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
             self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -143,13 +192,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_mumps_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
             self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -157,13 +212,19 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos_klu_2(self):
         if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
             self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -171,19 +232,21 @@ class TestAmesosLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
 
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
+
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'Amesos2Solver'), "Amesos2Solver is not included in the compilation.")
 class TestAmesos2LinearSolvers(TestLinearSolvers):
-    def setUp(self):
-        if not hasattr(KratosMultiphysics.TrilinosApplication, "Amesos2Solver"):
-            self.skipTest("Amesos2Solver is not available")
-        super().setUp()
-
     def test_amesos2_superludist(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
             self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -192,13 +255,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_mumps(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_mumps") ):
             self.skipTest("amesos2_mumps is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -207,13 +276,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_klu(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_klu2") ):
             self.skipTest("amesos2_klu2 is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -222,13 +297,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_basker(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("basker") ):
             self.skipTest("basker is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -237,13 +318,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_superludist_2(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_superludist") ):
             self.skipTest("amesos2_superludist is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -251,13 +338,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_mumps_2(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_mumps") ):
             self.skipTest("amesos2_mumps is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -265,13 +358,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_klu_2(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("amesos2_klu2") ):
             self.skipTest("amesos2_klu2 is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -279,13 +378,19 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amesos2_basker_2(self):
         if( not KratosMultiphysics.TrilinosApplication.Amesos2Solver.HasSolver("basker") ):
             self.skipTest("basker is not among the available Amesos2 Solvers")
 
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -293,11 +398,18 @@ class TestAmesos2LinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
 
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
+
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'AztecSolver'), "AztecSolver was explicitly disabled.")
 class TestAztecLinearSolvers(TestLinearSolvers):
     def test_aztec_cg(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -335,10 +447,16 @@ class TestAztecLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_aztec_gmres(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -376,11 +494,19 @@ class TestAztecLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
 
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
+
+
+@KratosUnittest.skipUnless(hasattr(KratosMultiphysics.TrilinosApplication, 'MultiLevelSolver'), "MultiLevelSolver was explicitly disabled.")
 class TestMLLinearSolvers(TestLinearSolvers):
     def test_ml_symmetric(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -397,10 +523,16 @@ class TestMLLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_ml_symmetric_scaling(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -417,10 +549,16 @@ class TestMLLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_ml_nonsymmetric(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -437,10 +575,16 @@ class TestMLLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_ml_nonsymmetric_scaling(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -457,11 +601,17 @@ class TestMLLinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self._RunParametrizedWithSubComm(params_string)
 
 class TestAMGCLMPILinearSolvers(TestLinearSolvers):
     def test_amgcl_mpi_solver_cg(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -473,10 +623,17 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstab(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -488,10 +645,17 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_bicgstabl(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -503,10 +667,17 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
+            self._RunParametrizedWithSubComm(params_string)
 
     def test_amgcl_mpi_solver_gmres(self):
-        self._RunParametrized("""
+        params_string = """
             {
                 "test_list" : [
                     {
@@ -518,7 +689,14 @@ class TestAMGCLMPILinearSolvers(TestLinearSolvers):
                     }
                 ]
             }
-            """)
+            """
+
+        with self.subTest('All ranks (MPI_COMM_WORLD)'):
+            self._RunParametrized(params_string)
+
+        with self.subTest('SubComm'):
+            self.skipTest("AMGCL does not yet support SubCommunicators")
+            self._RunParametrizedWithSubComm(params_string)
 
 
 if __name__ == '__main__':

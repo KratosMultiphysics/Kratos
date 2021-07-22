@@ -20,6 +20,15 @@ namespace Kratos {
         this->Check(pProp);
     }
 
+    void DEM_KDEM_soft_torque::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_soft_torque to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
+        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+
+        TransferParametersToProperties(parameters, pProp);
+
+        this->Check(pProp);
+    }
+
     void DEM_KDEM_soft_torque::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
                                                     double equiv_young,
@@ -43,7 +52,7 @@ namespace Kratos {
         const double equivalent_radius = sqrt(calculation_area / Globals::Pi);
         const double Inertia_I = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J = 2.0 * Inertia_I; // This is the polar inertia
-        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coeff = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
 
         ElasticLocalRotationalMoment[0] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[0] / distance;
         ElasticLocalRotationalMoment[1] = -rotational_moment_coeff * equiv_young * Inertia_I * LocalDeltaRotatedAngle[1] / distance;

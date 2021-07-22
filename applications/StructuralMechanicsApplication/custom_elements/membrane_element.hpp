@@ -22,7 +22,7 @@
 namespace Kratos
 {
 
-  class MembraneElement
+  class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MembraneElement
     : public Element
   {
   public:
@@ -146,6 +146,9 @@ namespace Kratos
 
     void Calculate(const Variable<Matrix>& rVariable,
       Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void Calculate(const Variable<double>& rVariable,
+     double& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     void CalculateDampingMatrix(MatrixType& rDampingMatrix,

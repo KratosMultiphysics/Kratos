@@ -1,4 +1,4 @@
-from xmc.distributedEnvironmentFramework import ExaquteTask
+from exaqute import task
 from .types import PowerSumsDict, HStatistics, ListIndex
 from numpy import ceil, log2
 
@@ -57,7 +57,7 @@ def hStatistics(
     return statFun(powerSums, numberOfSamples).tolist()
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def hStatistics_Task(
     component: ListIndex,
     powerSums: PowerSumsDict,
@@ -108,7 +108,7 @@ def hStatisticsMonoPowerSums(
     return hUpper - hLower
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def hStatisticsMonoPowerSums_Task(
     component: ListIndex,
     powerSums: PowerSumsDict,
@@ -137,7 +137,7 @@ def rawMomentOrder1Dimension0(powerSums: PowerSumsDict, numberOfSamples: int) ->
     return powerSums["1"] / numberOfSamples
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def rawMomentOrder1Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -150,7 +150,7 @@ def rawMomentErrorOrder1Dimension0(
     return centralMomentOrder2Dimension0(powerSums, numberOfSamples) / numberOfSamples
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def rawMomentErrorOrder1Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -168,7 +168,7 @@ def centralMomentOrder2Dimension0(
     )
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder2Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -185,7 +185,7 @@ def centralMomentErrorOrder2Dimension0(
     )
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder2Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -206,7 +206,7 @@ def centralMomentOrder3Dimension0(
     return (term1 - term2 + term3) / term4
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder3Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -219,7 +219,7 @@ def centralMomentErrorOrder3Dimension0(
     return _uglyD0O3E(powerSums, numberOfSamples)
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder3Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -253,7 +253,7 @@ def centralMomentOrder4Dimension0(
     return (term1 + term2 + term3 + term4 - term5) / term6
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder4Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -266,7 +266,7 @@ def centralMomentErrorOrder4Dimension0(
     return _uglyD0O4E(powerSums, numberOfSamples)
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder4Dimension0_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -283,7 +283,7 @@ def rawMomentOrder1Dimension1(powerSums: PowerSumsDict, numberOfSamples: int) ->
     return powerSums["01"] / numberOfSamples
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def rawMomentOrder1Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -300,7 +300,7 @@ def rawMomentErrorOrder1Dimension1(
     return partialCentralMoment2 / numberOfSamples
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def rawMomentErrorOrder1Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -319,7 +319,7 @@ def centralMomentOrder2Dimension1(
     )
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder2Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -358,7 +358,7 @@ def centralMomentErrorOrder2Dimension1(
     return (term1 + term2 - term3) / term4
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder2Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -381,7 +381,7 @@ def centralMomentOrder3Dimension1(
     return (-term1 + term2 + term3 - term4 - term5) / term6
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder3Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -394,7 +394,7 @@ def centralMomentErrorOrder3Dimension1(
     return _uglyD1O3E(powerSums, numberOfSamples)
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder3Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -410,7 +410,7 @@ def centralMomentOrder4Dimension1(
     return _uglyD1O4V(powerSums, numberOfSamples)
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentOrder4Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:
@@ -423,7 +423,7 @@ def centralMomentErrorOrder4Dimension1(
     return _uglyD1O4E(powerSums, numberOfSamples)
 
 
-@ExaquteTask()
+@task(keep=True, returns=1)
 def centralMomentErrorOrder4Dimension1_Task(
     powerSums: PowerSumsDict, numberOfSamples: int
 ) -> HStatistics:

@@ -427,18 +427,18 @@ class EigensolverStrategy
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
 
     //setting up the list of the DOFs to be solved
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
-    double end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // double end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     //shaping correctly the system
-    begin_time = OpenMPUtils::GetCurrentTime();
+    // begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem();
-    end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel >= 2)
-      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    // end_time = OpenMPUtils::GetCurrentTime();
+    // if (this->mEchoLevel >= 2)
+    //   KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     KRATOS_CATCH("")
   }
