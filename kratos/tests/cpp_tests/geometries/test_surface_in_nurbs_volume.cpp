@@ -179,7 +179,7 @@ namespace Testing {
         std::vector<double> local_center_ref = {1.0/6.0, 1.0/3.0, 0.0};
         KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), local_center_ref, 1e-10);
 
-        CoordinatesArrayType test_point;
+        CoordinatesArrayType test_point; // Center in Dimension Space
         test_point[0] = 1.0/3.0;
         test_point[1] = 1.0/3.0;
         test_point[2] = 0.0;
@@ -234,9 +234,14 @@ namespace Testing {
         KRATOS_CHECK_EQUAL( p_surface->LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL( surface_in_volume.LocalSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( surface_in_volume.Dimension(), 2 );
+        KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
+
 
         // Check geometrical information
-        CoordinatesArrayType test_point;
+        CoordinatesArrayType test_point; // Center in Dimension Space
         test_point[0] = 0.0;
         test_point[1] = 0.0;
         test_point[2] = 0.0;
@@ -285,7 +290,7 @@ namespace Testing {
 
         double area_ref =  p_quad_global_space->Area();
         auto center_ref = p_quad_global_space->Center();
-        CoordinatesArrayType test_point;
+        CoordinatesArrayType test_point; // Center in Dimension Space
         test_point[0] = 0.0;
         test_point[1] = 0.0;
         test_point[2] = 0.0;
@@ -321,11 +326,31 @@ namespace Testing {
         auto p_nurbs_volume = surface_in_volume.pGetGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX );
         auto p_surface = surface_in_volume.pGetSurface();
 
+        // Check local tangents
+        Matrix local_tangents;
+        BoundedMatrix<double,3,2> local_tangents_ref;
+        local_tangents_ref(0,0) = 1.10963416786212;
+        local_tangents_ref(0,1) = -0.15090726181280;
+        local_tangents_ref(1,0) = 0.81368437741389;
+        local_tangents_ref(1,1) = 0.34503521010352;
+        local_tangents_ref(2,0) = 1.62736875482778;
+        local_tangents_ref(2,1) = 0.69007042020704;
+
+        quad_geometries[0].Calculate( LOCAL_TANGENT_MATRIX, local_tangents);
+        KRATOS_CHECK_EQUAL(local_tangents.size1(), 3);
+        KRATOS_CHECK_EQUAL(local_tangents.size2(), 2);
+        KRATOS_CHECK_MATRIX_NEAR( local_tangents, local_tangents_ref, 1e-10);
+
         // Check dimensions
         KRATOS_CHECK_EQUAL( p_nurbs_volume->LocalSpaceDimension(), 3);
         KRATOS_CHECK_EQUAL( p_surface->LocalSpaceDimension(), 2);
         KRATOS_CHECK_EQUAL( surface_in_volume.LocalSpaceDimension(), 3 );
         KRATOS_CHECK_EQUAL( quad_geometries[0].LocalSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( surface_in_volume.WorkingSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( quad_geometries[0].WorkingSpaceDimension(), 3 );
+        KRATOS_CHECK_EQUAL( surface_in_volume.Dimension(), 2 );
+        KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
+
 
         // Check geometrical information
         auto center_local = surface_in_volume.Center(); // Returns center of underlying surface in local space.

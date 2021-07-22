@@ -19,8 +19,6 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_shape_function_utilities/nurbs_interval.h"
 
-#include "utilities/nurbs_utilities/projection_nurbs_geometry_utilities.h"
-
 namespace Kratos {
 
 template <int TWorkingSpaceDimension, class TVolumeContainerPointType>
@@ -129,7 +127,7 @@ public:
         TVolumeContainerPointType const& ThisPoints) const override
     {
         KRATOS_ERROR << "SurfaceInNurbsVolumeGeometry cannot be created with 'PointsArrayType const& ThisPoints'. "
-            << "'Create' is not allowed as it would not contain the required pointers to the surface and the curve."
+            << "'Create' is not allowed as it would not contain the required pointers to the surface and the nurbs volume."
             << std::endl;
     }
 
@@ -141,7 +139,7 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the BACKGROUND_GEOMETRY_INDEX.
     * @param Index: BACKGROUND_GEOMETRY_INDEX.
-    * @return pointer of geometry, corresponding to the index.
+    * @return PPointer of geometry, corresponding to the index.
     */
     GeometryPointerType pGetGeometryPart(const IndexType Index) override
     {
@@ -154,14 +152,14 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the BACKGROUND_GEOMETRY_INDEX.
     * @param Index: BACKGROUND_GEOMETRY_INDEX.
-    * @return pointer of geometry, corresponding to the index.
+    * @return Pointer of geometry, corresponding to the index.
     */
     const GeometryPointerType pGetGeometryPart(const IndexType Index) const override
     {
         if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsVolume;
 
-        KRATOS_ERROR << "Index " << Index << " not existing in SurfaceInNurbsVolume: "
+        KRATOS_ERROR << "Index " << Index << " not existing in SurfaceInNurbsVolume with ID: "
             << this->Id() << std::endl;
     }
 
@@ -180,7 +178,7 @@ public:
     ///@name Set/ Get functions
     ///@{
 
-    /// Returns the const NurbsSurface::Pointer of this brep.
+    /// Returns the NurbsSurface::Pointer of this brep.
     GeometryPointerType pGetSurface()
     {
         return mpSurface;
@@ -196,13 +194,13 @@ public:
     ///@name Geometrical Informations
     ///@{
 
-    /// Provides the center of the underlying surface
+    /// Provides the center of the underlying surface in local space.
     Point Center() const override
     {
         return mpSurface->Center();
     }
 
-    /// Computes the area of the underlying surface
+    /// Computes the area of the underlying surface in local space.
     double Area() const override
     {
         return mpSurface->Area();
@@ -216,8 +214,7 @@ public:
         const CoordinatesArrayType& rPoint) const override
     {
         std::vector<CoordinatesArrayType> global_space_derivatives(3);
-        this->GlobalSpaceDerivatives(
-            global_space_derivatives, rPoint, 1);
+        this->GlobalSpaceDerivatives( global_space_derivatives, rPoint, 1);
 
         BoundedMatrix<double,3,2> global_tangents;
 
@@ -231,25 +228,24 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* Creates integration points according to the knot intersections
-     * of the underlying nurbs surface.
+    /**
+     * @brief Returns the integration points of the surface.
      * @param result integration points.
-     */
+     **/
     void CreateIntegrationPoints(
         IntegrationPointsArrayType& rIntegrationPoints) const override
     {
         const auto surface_method = mpSurface->GetDefaultIntegrationMethod();
         rIntegrationPoints = mpSurface->IntegrationPoints(surface_method);
-
     }
 
     /**
      * @brief This method creates a list of quadrature point geometries
      *        from a list of integration points.
      *
-     * @param rResultGeometries list of quadrature point geometries.
-     * @param rDummyIntegrationPoints list of integration points.
-     * @param NumberOfShapeFunctionDerivatives the number provided
+     * @param rResultGeometries List of quadrature point geometries.
+     * @param rIntegrationPoints List of integration points.
+     * @param NumberOfShapeFunctionDerivatives The number provided
      *        derivatives of shape functions in the system.
      *
      * @see quadrature_point_geometry.h
@@ -259,7 +255,8 @@ public:
         IndexType NumberOfShapeFunctionDerivatives,
         const IntegrationPointsArrayType& rIntegrationPoints) override
     {
-        // shape function container.
+
+        // Shape function container.
         NurbsVolumeShapeFunction shape_function_container(
             mpNurbsVolume->PolynomialDegreeU(), mpNurbsVolume->PolynomialDegreeV(), mpNurbsVolume->PolynomialDegreeW(),
             NumberOfShapeFunctionDerivatives);
@@ -327,12 +324,10 @@ public:
 
             Matrix jacobian_surface;
             mpSurface->Jacobian(jacobian_surface, rIntegrationPoints[point_index]);
-            BoundedMatrix<double,3,2> local_tangents;
-            local_tangents = jacobian_surface;
 
             rResultGeometries(point_index) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointSurfaceInVolume(
                 data_container, nonzero_control_points,
-                local_tangents, this);
+                jacobian_surface, this);
         }
     }
 
@@ -341,14 +336,13 @@ public:
     ///@name Operation within Global Space
     ///@{
 
-    /*
+    /**
     * @brief This method maps from dimension space to working space.
-    * From Piegl and Tiller, The NURBS Book, Algorithm A3.1/ A4.1
     * @param rResult array_1d<double, 3> with the coordinates in working space
     * @param LocalCoordinates The local coordinates in dimension space
     * @return array_1d<double, 3> with the coordinates in working space
     * @see PointLocalCoordinates
-    */
+    **/
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rLocalCoordinates
@@ -375,15 +369,15 @@ public:
         const SizeType DerivativeOrder) const override
     {
 
-        KRATOS_ERROR_IF( DerivativeOrder > 1 )  << "Surface in Nurbs Volume: Global Space Derivatives are not yet "
-            << "implemented for derivative order > 1." << std::endl;
+        KRATOS_ERROR_IF( DerivativeOrder > 1 )  << "SurfaceInNurbsVolume :: Global Space Derivatives are not yet "
+            << "implemented for derivative orders > 1." << std::endl;
 
         // Check size of output
         if (rGlobalSpaceDerivatives.size() != 3) {
             rGlobalSpaceDerivatives.resize(3);
         }
 
-        // Compute the gradients of the embedded curve in the parametric space of the surface
+        // Map rCoordinates into local space.
         array_1d<double,3> global_coordinates;
         mpSurface->GlobalCoordinates(global_coordinates, rCoordinates);
 
@@ -394,16 +388,14 @@ public:
         rGlobalSpaceDerivatives[0] = global_coordinates;
 
         BoundedMatrix<double,3,3> volume_jacobian;
-        noalias(column(volume_jacobian,0)) =  volume_derivatives[1];
-        noalias(column(volume_jacobian,1)) =  volume_derivatives[2];
-        noalias(column(volume_jacobian,2)) =  volume_derivatives[3];
+        column(volume_jacobian,0) =  volume_derivatives[1];
+        column(volume_jacobian,1) =  volume_derivatives[2];
+        column(volume_jacobian,2) =  volume_derivatives[3];
 
         Matrix jacobian_surface;
         mpSurface->Jacobian(jacobian_surface, rCoordinates);
-        BoundedMatrix<double,3,2> surface_jacobian;
-        surface_jacobian = jacobian_surface;
 
-        BoundedMatrix<double,3,2> global_tangents = prod(volume_jacobian, surface_jacobian);
+        BoundedMatrix<double,3,2> global_tangents = prod(volume_jacobian, jacobian_surface);
         rGlobalSpaceDerivatives[1] = column(global_tangents,0);
         rGlobalSpaceDerivatives[2] = column(global_tangents,1);
     }

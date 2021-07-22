@@ -31,8 +31,7 @@ namespace Kratos
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
  *        This point defines a surface segment described in a underlying volume.
- *        Shape functions and integration types have to be precomputed and are set from
- *        from outside.
+ *        Shape functions and integration types have to be precomputed and are set from outside.
  *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
 template<class TPointType>
@@ -59,9 +58,6 @@ public:
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues;
-    using BaseType::ShapeFunctionsLocalGradients;
-    using BaseType::InverseOfJacobian;
 
     ///@}
     ///@name Life Cycle
@@ -77,7 +73,7 @@ public:
     {
     }
 
-    /// Constructor with points, geometry shape function container, parent
+    /// Constructor with points, geometry shape function container and parent
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
@@ -123,6 +119,7 @@ public:
     {
         KRATOS_ERROR_IF( rInput.size1() != mLocalTangents.size1() || rInput.size2() != mLocalTangents.size2() )
             << "QuadraturePointSurfaceInVolume :: Input Matrix does not have the same size as LocalTangentMatrix. Size must be (3,2)." << std::endl;
+
         if (rVariable == LOCAL_TANGENT_MATRIX) {
             mLocalTangents = rInput;
         }
@@ -145,12 +142,12 @@ public:
     ///@name Normal
     ///@{
 
-    /*
-    * @brief computes the normal of the curve
-    *        laying on the underlying surface.
-    * @param rResult Normal to the curve lying on the surface.
-    * @param IntegrationPointIndex index should be always 0.
-    */
+    /**
+    * @brief Computes the normal of the surface
+    *        lying on the underlying volume.
+    * @param rResult Normal to the surface lying in the volume in global coordinates.
+    * @param IntegrationPointIndex Index should be always 0.
+    **/
     CoordinatesArrayType Normal(
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
@@ -178,17 +175,17 @@ public:
     ///@name Jacobian
     ///@{
 
-    /*
-    * @brief returns the respective surface area of this
-    *        quadrature point.
-    * @param IntegrationPointIndex index should be always 0.
-    */
+    /**
+    * @brief Returns the respective surface area of this
+    *        quadrature point in global space.
+    * @param IntegrationPointIndex Index should be always 0.
+    **/
     double DeterminantOfJacobian(
         IndexType IntegrationPointIndex,
         GeometryData::IntegrationMethod ThisMethod) const override
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
-            << "Trying to access DeterminantOfJacobian of QuadraturePointSurfaceInSurface "
+            << "Trying to access DeterminantOfJacobian of QuadraturePointSurfaceInVolume "
             << "with an integration point index != 0." << std::endl;
 
         Matrix J;
@@ -198,9 +195,10 @@ public:
         return MathUtils<double>::GeneralizedDet( global_tangents );
     }
 
-    /* @brief returns the respective segment length of this
-     *        quadrature point. Length of vector always 1.
-     * @param rResult vector of results of this quadrature point.
+    /**
+     * @brief Returns the determinant of the jacobian at this
+     *        quadrature point.
+     * @param rResult Vector of results.
      */
     Vector& DeterminantOfJacobian(
         Vector& rResult,
@@ -222,7 +220,7 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Quadrature point geometry for a surface in a volume with Id: "
+        buffer << "Quadrature point geometry for a surface in a nurbs volume with Id: "
             << std::to_string(this->Id()) << ", containing: " << std::to_string(this->size()) << " points." << std::endl;
 
         return buffer.str();
@@ -231,7 +229,7 @@ public:
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Quadrature point geometry for a surface in a volume with Id: "
+        rOStream << "Quadrature point geometry for a surface in a nurbs volume with Id: "
             << this->Id() << ", containing: " << this->size() << " points." << std::endl;
     }
 
@@ -242,7 +240,7 @@ public:
     ///@}
 
 private:
-    ///@name Static Member Variables
+    ///@name Member Variables
     ///@{
 
     TangentMatrixType mLocalTangents;
