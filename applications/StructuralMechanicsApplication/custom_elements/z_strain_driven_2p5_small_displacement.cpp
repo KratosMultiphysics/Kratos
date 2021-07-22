@@ -135,7 +135,7 @@ void ZStrainDriven2p5DSmallDisplacement::SetConstitutiveVariables(
 
 void ZStrainDriven2p5DSmallDisplacement::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo
     )
 {

@@ -177,6 +177,7 @@ public:
 
     /**
     * @brief Quering for mesh conformity
+      This function is deprecated and will eventually be removed, hence it is best not to use it
     * returns 1 if all the nodes are conform and 0 otherwise
     */
     virtual int AreMeshesConforming() const

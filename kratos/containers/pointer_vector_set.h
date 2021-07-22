@@ -229,6 +229,17 @@ public:
     {
         return const_iterator( mData.begin() );
     }
+
+    const_iterator cbegin()
+    {
+        return const_iterator(mData.begin());
+    }
+
+    const_iterator cbegin() const
+    {
+        return const_iterator(mData.begin());
+    }
+
     iterator                   end()
     {
         return iterator( mData.end() );
@@ -237,6 +248,17 @@ public:
     {
         return const_iterator( mData.end() );
     }
+
+    const_iterator cend()
+    {
+        return const_iterator(mData.end());
+    }
+
+    const_iterator cend() const
+    {
+        return const_iterator(mData.end());
+    }
+
     reverse_iterator           rbegin()
     {
         return reverse_iterator( mData.rbegin() );
@@ -324,6 +346,8 @@ public:
 
     void swap(PointerVectorSet& rOther)
     {
+        std::swap(mSortedPartSize,rOther.mSortedPartSize);
+        std::swap(mMaxBufferSize,rOther.mMaxBufferSize);
         mData.swap(rOther.mData);
     }
 

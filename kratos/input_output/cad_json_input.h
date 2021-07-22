@@ -30,6 +30,7 @@
 
 #include "geometries/brep_surface.h"
 #include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve.h"
 
 namespace Kratos
 {
@@ -70,7 +71,9 @@ class CadJsonInput : public IO
 
     typedef BrepSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepSurfaceType;
     typedef BrepCurveOnSurface<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveOnSurfaceType;
+    typedef BrepCurve<ContainerNodeType, ContainerEmbeddedNodeType> BrepCurveType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -222,6 +225,8 @@ private:
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
 
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
+
             rModelPart.AddGeometry(p_brep_surface);
         }
         else
@@ -236,6 +241,8 @@ private:
                     p_surface);
 
             SetIdOrName<BrepSurfaceType>(rParameters, p_brep_surface);
+
+            ReadAndAddEmbeddedEdges(p_brep_surface, rParameters, p_surface, rModelPart, EchoLevel);
 
             rModelPart.AddGeometry(p_brep_surface);
         }
@@ -284,9 +291,14 @@ private:
         auto p_trimming_curve(ReadNurbsCurve<2, TEmbeddedNodeType>(
             rParameters["parameter_curve"], rModelPart, EchoLevel));
 
+        KRATOS_ERROR_IF_NOT(rParameters["parameter_curve"].Has("active_range"))
+            << "Missing 'active_range' in parameter_curve, in trimming curve." << std::endl;
+        Vector active_range_vector = rParameters["parameter_curve"]["active_range"].GetVector();
+        NurbsInterval brep_active_range(active_range_vector[0], active_range_vector[1]);
+
         auto p_brep_curve_on_surface
             = Kratos::make_shared<BrepCurveOnSurfaceType>(
-                pNurbsSurface, p_trimming_curve, curve_direction);
+                pNurbsSurface, p_trimming_curve, brep_active_range, curve_direction);
 
         if (rParameters.Has("trim_index")) {
             p_brep_curve_on_surface->SetId(rParameters["trim_index"].GetInt());
@@ -338,6 +350,23 @@ private:
         return std::make_tuple(outer_loops, inner_loops);
     }
 
+    static void ReadAndAddEmbeddedEdges(
+            typename BrepSurfaceType::Pointer pBrepSurface,
+            const Parameters rParameters,
+            typename NurbsSurfaceType::Pointer pNurbsSurface,
+            ModelPart& rModelPart,
+            SizeType EchoLevel = 0)
+    {
+        if (rParameters.Has("embedded_edges")) {
+            if (rParameters["embedded_edges"].size() > 0) {
+                BrepCurveOnSurfaceArrayType embedded_edges(ReadTrimmingCurveVector(
+                    rParameters["embedded_edges"], pNurbsSurface, rModelPart, EchoLevel));
+
+                pBrepSurface->AddEmbeddedEdges(embedded_edges);
+            }
+        }
+    }
+
     ///@}
     ///@name Read in Nurbs Geometries
     ///@{
@@ -371,7 +400,7 @@ private:
         {
             if (rParameters["topology"].size() == 0)
             {
-                KRATOS_ERROR << "BrepCurves are not yet enabled." << std::endl;
+                ReadBrepCurve(rParameters, rModelPart, EchoLevel);
             }
             else if (rParameters["topology"].size() == 1)
             {
@@ -382,6 +411,31 @@ private:
             }
         }
     }
+
+    static void ReadBrepCurve(
+        const Parameters rParameters,
+        ModelPart& rModelPart,
+        SizeType EchoLevel = 0)
+    {
+        KRATOS_ERROR_IF_NOT(HasIdOrName(rParameters))
+            << "Missing 'brep_id' or 'brep_name' in brep curve." << std::endl;
+
+        KRATOS_INFO_IF("ReadBrepCurve", (EchoLevel > 3))
+            << "Reading BrepCurve \"" << GetIdOrName(rParameters) << "\"" << std::endl;
+
+        KRATOS_ERROR_IF_NOT(rParameters.Has("3d_curve"))
+            << "Missing '3d_curve' in brep curve." << std::endl;
+
+        auto p_curve = ReadNurbsCurve<3, TNodeType>(
+            rParameters["3d_curve"], rModelPart, EchoLevel);
+
+        auto p_brep_curve = Kratos::make_shared<BrepCurveType>(p_curve);
+
+        SetIdOrName<BrepCurveType>(rParameters, p_brep_curve);
+
+        rModelPart.AddGeometry(p_brep_curve);
+    }
+
 
     static void ReadBrepEdgeBrepCurveOnSurface(
         const Parameters & rParameters,
@@ -411,8 +465,8 @@ private:
             << rParameters["topology"][0]["trim_index"].GetInt() << std::endl;
 
         bool relative_direction = true;
-        if (rParameters["topology"][0].Has("trim_index")) {
-            relative_direction = rParameters["topology"][0]["trim_index"].GetInt();
+        if (rParameters["topology"][0].Has("relative_direction")) {
+            relative_direction = rParameters["topology"][0]["relative_direction"].GetBool();
         }
         else {
             KRATOS_INFO_IF("ReadBrepEdge", (EchoLevel > 4))
@@ -423,8 +477,9 @@ private:
 
         auto p_nurbs_curve_on_surface = p_brep_curve_on_surface->pGetCurveOnSurface();
 
+        auto brep_nurbs_interval = p_brep_curve_on_surface->DomainInterval();
         auto p_bre_edge_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(
-            p_nurbs_curve_on_surface, relative_direction);
+            p_nurbs_curve_on_surface, brep_nurbs_interval, relative_direction);
 
         SetIdOrName<BrepCurveOnSurfaceType>(rParameters, p_bre_edge_brep_curve_on_surface);
 
@@ -518,13 +573,16 @@ private:
                 NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                     control_points,
                     polynomial_degree,
-                    knot_vector));
+                    knot_vector,
+                    control_point_weights));
         }
-        return Kratos::make_shared<NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-            NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+        typename NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_curve(
+            new NurbsCurveGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 polynomial_degree,
                 knot_vector));
+
+        return p_nurbs_curve;
     }
 
     /* @brief read NurbsSurfaces from the given parameter input.
@@ -594,13 +652,15 @@ private:
                 knot_vector_v,
                 control_point_weights);
         }
-        return Kratos::make_shared<NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>>(
-            NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
+        typename NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>::Pointer p_nurbs_surface(
+            new NurbsSurfaceGeometry<TWorkingSpaceDimension, PointerVector<TThisNodeType>>(
                 control_points,
                 p,
                 q,
                 knot_vector_u,
                 knot_vector_v));
+
+        return p_nurbs_surface;
     }
 
     ///@}
@@ -645,7 +705,7 @@ private:
 
         for (IndexType cp_idx = 0; cp_idx < rParameters.size(); cp_idx++)
         {
-            rControlPoints.push_back(ReadNode(rParameters[cp_idx], rModelPart));
+            rControlPoints.push_back(ReadAndCreateNode(rParameters[cp_idx], rModelPart));
         }
     }
 
@@ -676,7 +736,7 @@ private:
     * Input needs to be a Parameter object:
     * [id, [x, y, z, weight]]
     */
-    static Node<3>::Pointer ReadNode(
+    static Node<3>::Pointer ReadAndCreateNode(
         const Parameters rParameters,
         ModelPart& rModelPart,
         SizeType EchoLevel = 0)

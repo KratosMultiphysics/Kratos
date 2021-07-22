@@ -119,7 +119,7 @@ namespace Kratos
 
 		  if (GetNumberOfAvailableBlocks() == 0) // Time to get blocks from other threads
 		  {
-			  SetLock();
+			  lock();
 			  for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 				  if (GetNumberOfAvailableBlocks(i_thread) != 0) {
 					  SetFirstAvailableBlockIndex(GetFirstAvailableBlockIndex(i_thread));
@@ -127,7 +127,7 @@ namespace Kratos
 					  SetNumberOfAvailableBlocks(0, i_thread);
 					  break;
 				  }
-			  UnSetLock();
+			  unlock();
 		  }
 		  DataType * p_result = GetData() + (GetFirstAvailableBlockIndex() * GetBlockSize(mBlockSizeInBytes));
 		  KRATOS_DEBUG_CHECK(Has(p_result));
@@ -149,14 +149,14 @@ namespace Kratos
 
 		  // Alignment check
 		  KRATOS_DEBUG_CHECK_EQUAL((p_to_release - GetData()) % GetBlockSize(mBlockSizeInBytes), 0);
-		  SetLock();
+		  lock();
 		  *p_to_release = GetFirstAvailableBlockIndex();
 		  SetFirstAvailableBlockIndex(static_cast<SizeType>((p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes)));
 
 		  // Check if there is no truncation error
 		  KRATOS_DEBUG_CHECK_EQUAL(GetFirstAvailableBlockIndex(), double(p_to_release - GetData()) / GetBlockSize(mBlockSizeInBytes));
 		  SetNumberOfAvailableBlocks(GetNumberOfAvailableBlocks() + 1);
-		  UnSetLock();
+		  unlock();
 		  pPointrerToRelease = nullptr;
 
 	  }
@@ -214,14 +214,14 @@ namespace Kratos
 #ifdef _OPENMP
 		  if (mOwnerThread == OpenMPUtils::ThisThread()) // The thread which chunk belongs to
 		  {
-			  SetLock();
+			  lock();
 			  for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 				  if (GetNumberOfAvailableBlocks(i_thread) != 0)
 				  {
-					  UnSetLock();
+					  unlock();
 					  return true;
 				  }
-			  UnSetLock();
+			  unlock();
 		  }
 #endif
 		  return false;
@@ -355,10 +355,10 @@ namespace Kratos
 			KRATOS_DEBUG_CHECK_NOT_EQUAL(mpData, nullptr);
 			// remember that the first n blocks are the FirstAvailableBlockIndex for each n threads
 			SizeType total_number_of_available_blocks = 0;
-			SetLock();
+			lock();
 			for (auto i_thread = 0; i_thread < OpenMPUtils::GetCurrentNumberOfThreads(); i_thread++)
 				total_number_of_available_blocks += (mpData + OpenMPUtils::GetCurrentNumberOfThreads())[i_thread];
-			UnSetLock();
+			unlock();
 			return total_number_of_available_blocks;
 		}
 

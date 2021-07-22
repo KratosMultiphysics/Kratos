@@ -56,7 +56,7 @@ namespace Kratos {
         ApplyInitialConditions();
 
         // Search Neighbors with tolerance (after first repartition process)
-        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT], 1.0);
+        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
         SearchNeighbours();
         MeshRepairOperations();
         SearchNeighbours();
@@ -123,7 +123,7 @@ namespace Kratos {
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
             // Search Neighbours and related operations
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
             SearchNeighbours();
             ComputeNewNeighboursHistoricalData();
 
@@ -171,18 +171,6 @@ namespace Kratos {
         return 0.0;
 
     }//SolveSolutionStep()
-
-    void ContinuumExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        const int time_step = r_process_info[TIME_STEPS];
-        const bool is_time_to_search_neighbours = (time_step + 1) % GetNStepSearch() == 0 && (time_step > 0); //Neighboring search. Every N times.
-
-        if (is_time_to_search_neighbours) {
-            SetSearchRadiiWithFemOnAllParticles(r_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
-            SearchRigidFaceNeighbours();
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-    }
 
     void ContinuumExplicitSolverStrategy::SearchDEMOperations(ModelPart& r_model_part, bool has_mpi) {
 
@@ -301,7 +289,9 @@ namespace Kratos {
 
         if (problem_dimension == 2) {
             minimum_bonds_to_check_if_a_particle_is_skin = 4;
-        } else return; // TODO: IMPLEMENT THIS ALSO IN 3D
+        } else {
+            minimum_bonds_to_check_if_a_particle_is_skin = 5;
+        } //TODO: CHECK THIS 3D IMPLEMENTATION
 
         #pragma omp parallel for
         for (int k = 0; k < (int)pElements.size(); k++) {
@@ -353,6 +343,19 @@ namespace Kratos {
                 mListOfSphericContinuumParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::ComputeNewRigidFaceNeighboursHistoricalData() {
+        KRATOS_TRY
+
+        block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
+            particle->ReorderFEMneighbours();
+        });
+
+
+        BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 
         KRATOS_CATCH("")
     }
@@ -481,7 +484,7 @@ namespace Kratos {
         double current_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
         int maxiteration = 300;
-        double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION];
         const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
         const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
         added_search_distance = 0.0;
@@ -497,7 +500,7 @@ namespace Kratos {
         double tolerance = 0.5;
         double max_factor_between_iterations = 1.02;
         double relative_error = 1000;
-        if(local_coordination_option) {
+        if (local_coordination_option) {
             KRATOS_INFO("DEM")<<"Now iterating for local coordination number..."<<std::endl;
             while (std::abs(relative_error) > tolerance) {
                 if (iteration >= maxiteration) break;
@@ -521,7 +524,7 @@ namespace Kratos {
                         adapted_to_skin_or_not_skin_desired_cn = 0.6*desired_coordination_number;
                     }
 
-                    if(neighbour_elements_size) {
+                    if (neighbour_elements_size) {
                         if (neighbour_elements_size != std::round(adapted_to_skin_or_not_skin_desired_cn)) {
                             mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= std::sqrt(adapted_to_skin_or_not_skin_desired_cn / (double)(neighbour_elements_size));
                         }
@@ -529,15 +532,15 @@ namespace Kratos {
                     else {
                         mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= max_factor_between_iterations;
                     }
-                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor > max_factor_between_iterations * old_amplification) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = max_factor_between_iterations* old_amplification;
-                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor < old_amplification / max_factor_between_iterations) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = old_amplification / max_factor_between_iterations;
+                    if (mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor > max_factor_between_iterations * old_amplification) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = max_factor_between_iterations* old_amplification;
+                    if (mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor < old_amplification / max_factor_between_iterations) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = old_amplification / max_factor_between_iterations;
 
                     const int error_of_this_particle = std::abs(std::round(adapted_to_skin_or_not_skin_desired_cn) - (neighbour_elements_size));
                     total_error[OpenMPUtils::ThisThread()]  += (double)(error_of_this_particle);
                 }
                 double total_absolute_error = 0.0;
                 for (size_t i=0; i<total_error.size();i++) total_absolute_error += total_error[i];
-                relative_error = total_absolute_error/mListOfSphericContinuumParticles.size();
+                relative_error = total_absolute_error / mListOfSphericContinuumParticles.size();
 
                 SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
                 SearchNeighbours();
@@ -546,7 +549,7 @@ namespace Kratos {
             KRATOS_INFO("DEM")<<"Coordination number reached after local operations = "<<current_coordination_number<<std::endl;
         }
 
-        if(global_coordination_option) {
+        if (global_coordination_option) {
             KRATOS_INFO("DEM")<<"Now iterating for global coordination number..."<<std::endl;
             //STAGE 2, Global Coordination Number
             tolerance = 1e-4;
@@ -565,14 +568,14 @@ namespace Kratos {
                 }
                 old_old_amplification = old_amplification;
                 old_amplification = amplification;
-                amplification *= std::pow(desired_coordination_number / current_coordination_number, 1.0/3.0);
+                amplification *= std::pow(desired_coordination_number / current_coordination_number, 0.33333333333333333333333333);
 
-                if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
-                if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
-                if(std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
+                if (amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
+                if (amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
+                if (std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
                     amplification = 0.5 * (amplification + old_amplification);
                 }
-                if ( amplification < 1.0 && !local_coordination_option) {
+                if (amplification < 1.0 && !local_coordination_option) {
                     iteration = maxiteration;
                     break;
                 }
@@ -581,7 +584,7 @@ namespace Kratos {
                 current_coordination_number = ComputeCoordinationNumber(standard_dev);
             }//while
 
-                if (iteration < maxiteration){
+                if (iteration < maxiteration) {
                 KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
                 KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
@@ -595,7 +598,7 @@ namespace Kratos {
             }
         }
 
-        KRATOS_INFO("DEM") <<std::endl;
+        KRATOS_INFO("DEM") << std::endl;
     } //SetCoordinationNumber
 
     double ContinuumExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
@@ -904,21 +907,10 @@ namespace Kratos {
 
         ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
         const ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
-        Vector rhs_cond;
-        std::vector<unsigned int> condition_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pConditions.size(), condition_partition);
 
-        #pragma omp parallel for private (rhs_cond)
-        for (int k = 0; k < mNumberOfThreads; k++) {
-            ConditionsArrayType::iterator it_begin = pConditions.ptr_begin() + condition_partition[k];
-            ConditionsArrayType::iterator it_end = pConditions.ptr_begin() + condition_partition[k + 1];
-
-            for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) {
-                it->FinalizeSolutionStep(r_process_info);
-            }
-        }
-
+        block_for_each(pConditions, [&r_process_info](ModelPart::ConditionType& rCondition){
+            rCondition.FinalizeSolutionStep(r_process_info);
+        });
         KRATOS_CATCH("")
     }
-
 }

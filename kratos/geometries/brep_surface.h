@@ -60,6 +60,7 @@ public:
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
 
+    typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
     typedef DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>> BrepCurveOnSurfaceLoopArrayType;
 
@@ -71,8 +72,6 @@ public:
     typedef typename BaseType::PointsArrayType PointsArrayType;
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
-
-    static constexpr IndexType SURFACE_INDEX = -1;
 
     ///@}
     ///@name Life Cycle
@@ -148,17 +147,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     BrepSurface& operator=( const BrepSurface& rOther )
     {
         BaseType::operator=( rOther );
@@ -169,17 +158,7 @@ public:
         return *this;
     }
 
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType, class TOtherContainerPointEmbeddedType>
     BrepSurface& operator=( BrepSurface<TOtherContainerPointType, TOtherContainerPointEmbeddedType> const & rOther )
     {
@@ -198,35 +177,6 @@ public:
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
         return typename BaseType::Pointer( new BrepSurface( ThisPoints ) );
-    }
-
-    ///@}
-    ///@name Point Access
-    ///@{
-
-    PointType& operator[](const SizeType& i) override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    PointType const& operator[](const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)[i];
-    }
-
-    typename PointType::Pointer& operator()(const SizeType& i) override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    const typename PointType::Pointer& operator()(const SizeType& i) const override
-    {
-        return (*mpNurbsSurface)(i);
-    }
-
-    SizeType size() const override
-    {
-        return mpNurbsSurface->size();
     }
 
     ///@}
@@ -250,13 +200,13 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
-    * @param Index: trim_index or SURFACE_INDEX.
+    *        Surface of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -277,6 +227,12 @@ public:
             }
         }
 
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return mEmbeddedEdgesArray[i];
+        }
+
         KRATOS_ERROR << "Index " << Index << " not existing in BrepSurface: "
             << this->Id() << std::endl;
     }
@@ -289,7 +245,7 @@ public:
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return true;
 
         for (IndexType i = 0; i < mOuterLoopArray.size(); ++i)
@@ -310,7 +266,34 @@ public:
             }
         }
 
+        for (IndexType i = 0; i < mEmbeddedEdgesArray.size(); ++i)
+        {
+            if (mEmbeddedEdgesArray[i]->Id() == Index)
+                return true;
+        }
+
         return false;
+    }
+
+    /// @brief Used to add the embedded edges to the brep surface.
+    void AddEmbeddedEdges(BrepCurveOnSurfaceArrayType EmbeddedEdges)
+    {
+        mEmbeddedEdgesArray = EmbeddedEdges;
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            mpNurbsSurface->Calculate(rVariable, rOutput);
+        }
     }
 
     ///@}
@@ -345,6 +328,53 @@ public:
     ///@}
     ///@name Geometrical Operations
     ///@{
+
+    /// Provides the center of the underlying surface
+    Point Center() const override
+    {
+        return mpNurbsSurface->Center();
+    }
+
+    /**
+    * @brief Calls projection of its nurbs surface.
+    *        Projects a certain point on the geometry, or finds
+    *        the closest point, depending on the provided
+    *        initial guess. The external point does not necessary
+    *        lay on the geometry.
+    *        It shall deal as the interface to the mathematical
+    *        projection function e.g. the Newton-Raphson.
+    *        Thus, the breaking criteria does not necessarily mean
+    *        that it found a point on the surface, if it is really
+    *        the closest if or not. It shows only if the breaking
+    *        criteria, defined by the tolerance is reached.
+    *
+    *        This function requires an initial guess, provided by
+    *        rProjectedPointLocalCoordinates.
+    *        This function can be a very costly operation.
+    *
+    * @param rPointGlobalCoordinates the point to which the
+    *        projection has to be found.
+    * @param rProjectedPointGlobalCoordinates the location of the
+    *        projection in global coordinates.
+    * @param rProjectedPointLocalCoordinates the location of the
+    *        projection in local coordinates.
+    *        The variable is as initial guess!
+    * @param Tolerance accepted of orthogonal error to projection.
+    * @return It is chosen to take an int as output parameter to
+    *         keep more possibilities within the interface.
+    *         0 -> failed
+    *         1 -> converged
+    */
+    int ProjectionPoint(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
+    {
+        return mpNurbsSurface->ProjectionPoint(
+            rPointGlobalCoordinates, rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
+    }
 
     /*
     * @brief This method maps from dimension space to working space.
@@ -381,12 +411,34 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* @brief creates a list of quadrature point geometries
-     *        from a list of integration points on the
-     *        nurbs surface of this geometry.
+    /* @brief calls function of undelying nurbs surface and updates
+     *        the parent to itself.
      *
      * @param rResultGeometries list of quadrature point geometries.
+     * @param NumberOfShapeFunctionDerivatives the number of evaluated
+     *        derivatives of shape functions at the quadrature point geometries.
      * @param rIntegrationPoints list of provided integration points.
+     *
+     * @see quadrature_point_geometry.h
+     */
+    void CreateQuadraturePointGeometries(
+        GeometriesArrayType& rResultGeometries,
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints) override
+    {
+        mpNurbsSurface->CreateQuadraturePointGeometries(
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+
+        for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
+            rResultGeometries(i)->SetGeometryParent(this);
+        }
+    }
+
+    /* @brief calls function of undelying nurbs surface,
+     *        which itself is not implented and thus is calling the
+     *        geometry base class and updates the parent to itself.
+     *
+     * @param rResultGeometries list of quadrature point geometries.
      * @param NumberOfShapeFunctionDerivatives the number of evaluated
      *        derivatives of shape functions at the quadrature point geometries.
      *
@@ -424,6 +476,16 @@ public:
         mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
+    }
+
+    GeometryData::KratosGeometryFamily GetGeometryFamily() const override
+    {
+        return GeometryData::Kratos_Brep;
+    }
+
+    GeometryData::KratosGeometryType GetGeometryType() const override
+    {
+        return GeometryData::Kratos_Brep_Surface;
     }
 
     ///@}
@@ -468,6 +530,8 @@ private:
 
     BrepCurveOnSurfaceLoopArrayType mOuterLoopArray;
     BrepCurveOnSurfaceLoopArrayType mInnerLoopArray;
+
+    BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.

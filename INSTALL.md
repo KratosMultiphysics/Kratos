@@ -17,8 +17,6 @@
   * [Common Flags](#common-flags)
   * [Compilation Performance](#compilation-performance)
   * [MPI-Parallelism](#parallelism)
-  * [External Libraries](#external-libraries)
-    * [Trilinos](#trilinos)
 
 ## Cloning Kratos
 
@@ -151,6 +149,7 @@ Windows
 ```Shell
 ./path_to_kratos/scripts/configure.bat
 ```
+Note: after installing Visual Studio, in some Windows systems the console does not have direct access to the Visual Studio Compiler. In order to make sure the compiler is available, try typing 'cl'. Use this console to compile Kratos if the compiler responds. In case of error, instead of using the standard Windows console, open the Native Tools Command Prompt console and launch the compilation from there.
 
 The example scripts for every system are shown next.
 
@@ -436,22 +435,20 @@ Enables(Default) or Disables the compilation of the embedded python interpreter 
 Enables(Default) or Disables the compilation of the C++ unitary tests for Kratos and Applications.
 
 ### Compilation Performance
-`-DUSE_COTIRE=ON/OFF`
+`-DCMAKE_UNITY_BUILD=ON/OFF`
 
-Enables or Disables(default) the use of [cotire](https://github.com/sakra/cotire) to speedup compilation by using unitary builds.
+Enables or Disables(default) the use of [cmake unity build](https://cmake.org/cmake/help/latest/prop_tgt/UNITY_BUILD.html) to speedup compilation by using unitary builds.
 Please notice that enabling this options can greatly increase the amount of memory needed to compile some targets, specially if combined with -jx.
 
 In order to install and compile with this switch please use:
 
 On Linux
 ```shell
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target all_unity -- -j1 && \
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install/fast -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
 ```
 On Windows
 ```shell
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target all_unity -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
-cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install --  /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
+cmake --build "%KRATOS_BUILD%/%KRATOS_BUILD_TYPE%" --target install -- /property:configuration=%KRATOS_BUILD_TYPE% /p:Platform=x64
 ```
 
 Instead of the regular install target.
@@ -465,36 +462,3 @@ Enables or Disables(default) the modules and code for mpi. This option is needed
 `-DKRATOS_COLORED_OUTPUT=ON/OFF`
 
 Enables colored output of the Logger. If switched on, e.g. warning level messages will be printed in yellow to the terminal. Please notice that colored output is not supported by all terminals.
-
-### External libraries
-#### Trilinos
-From Ubuntu 18.04 onwards, the following command installs the necessary files:
-
-```Shell
-sudo apt-get install trilinos-all-dev
-```
-
-`-DTRILINOS_ROOT=String`
-
-Root directory for Trilinos library.
-
-`-DTRILINOS_INCLUDE_DIR=String`
-
-Not required if `TRILINOS_ROOT` is set. Path to trilinos include dir.
-
-`-DTRILINOS_LIBRARY_DIR=String`
-
-Not required if `TRILINOS_ROOT` is set. Path to trilinos library dir.
-
-`-DTRILINOS_LIBRARY_PREFIX=String`
-Indicates the prefix of the trilinos libraries in case they have:
-```
-libepetra.so          -> No prefix
-libtrilinos_epetra.so -> -DTRILINOS_PREFIX="trilinos_"
-```
-If trilinos was installed using the package manager usually the following lines have to be used:
-```
--DTRILINOS_INCLUDE_DIR="/usr/include/trilinos" \
--DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
--DTRILINOS_LIBRARY_PREFIX="trilinos_" \
-```

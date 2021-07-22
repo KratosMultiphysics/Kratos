@@ -22,6 +22,7 @@
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -736,8 +737,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         // First we assemble the RHS
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            #pragma omp atomic
-            aux_b += rResidualMatrix(i_node, i_var);
+            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
         }
 
         SizeType left_limit = index1_vector[pos_i_id];
@@ -745,8 +745,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         while(pos_i_id != index2_vector[last_pos]) last_pos++;
         double& a_value = values_vector[last_pos];
 
-        #pragma omp atomic
-        a_value += rThisMortarOperators.DOperator(i_node, i_node);
+        AtomicAdd(a_value, rThisMortarOperators.DOperator(i_node, i_node));
     }
 }
 
@@ -764,12 +763,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 {
     // First we assemble the RHS
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const int node_i_id = rSlaveGeometry[i_node].Id();
-        const int pos_i_id = rInverseConectivityDatabase[node_i_id];
+        const SizeType node_i_id = rSlaveGeometry[i_node].Id();
+        const SizeType pos_i_id = rInverseConectivityDatabase[node_i_id];
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            #pragma omp atomic
-            aux_b += rResidualMatrix(i_node, i_var);
+            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
         }
     }
 }
@@ -966,8 +964,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-                #pragma omp atomic
-                residual_norm[i_size] += std::pow(value, 2);
+                AtomicAdd(residual_norm[i_size], std::pow(value, 2));
             }
         }
 
@@ -1239,11 +1236,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             } else {
@@ -1251,11 +1248,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             }
@@ -1274,11 +1271,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
 
                 }
@@ -1287,11 +1284,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
                 }
             }

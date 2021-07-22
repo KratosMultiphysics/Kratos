@@ -474,7 +474,8 @@ public:
         {
             "solver_type" : "MVQN_recursive",
             "w_0"         : 0.825,
-            "buffer_size" : 10
+            "buffer_size" : 10,
+            "interface_block_newton" : false
         }
         )");
 
