@@ -96,12 +96,12 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             only_part = self.model.GetModelPart(only)
             if only_part.NumberOfConditions() == 0:
                 _AddConditionsFromParent(self.model_part, only_part)
-                Logger.PrintWarning("FaceAngleResponse", f"Automatically added {only_part.NumberOfConditions()} conditions to model_part '{only_part.Name}'.")
+                Logger.PrintWarning("FaceAngleResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
         else:
             only_part = self.model_part
 
         if only_part.NumberOfConditions() == 0:
-            raise RuntimeError(f"The model_part '{only_part.Name}' does not have any surface conditions!")
+            raise RuntimeError("The model_part '{}' does not have any surface conditions!".format(only_part.Name))
 
         self.response_function_utility = KSO.FaceAngleResponseFunctionUtility(only_part, self.response_settings)
 
@@ -132,7 +132,7 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
 
     def GetNodalGradient(self, variable):
         if variable != KM.SHAPE_SENSITIVITY:
-            raise RuntimeError(f"GetNodalGradient: No gradient for {variable.Name}!")
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for node in self.model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
