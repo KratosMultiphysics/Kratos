@@ -95,7 +95,7 @@ public:
         array_1d<double, 4>& rBasis);
 
     /**
-     * @brief Evaluates the linear polynomial basis
+     * @brief Evaluates the quadratic polynomial basis
      * This method evaluates the 2D quadratic polynommial basis in one point
      * @param rX Coordinates where the basis is evaluated
      * @param rBasis 2D linear polynomial basis values
@@ -105,7 +105,7 @@ public:
         array_1d<double, 6>& rBasis);
 
     /**
-     * @brief Evaluates the linear polynomial basis
+     * @brief Evaluates the quadratic polynomial basis
      * This method evaluates the 3D quadratic polynommial basis in one point
      * @param rX Coordinates where the basis is evaluated
      * @param rBasis 3D quadratic polynomial basis values
@@ -113,6 +113,46 @@ public:
     static void EvaluatePolynomialBasis(
         const array_1d<double,3>& rX,
         array_1d<double, 10>& rBasis);
+
+    /**
+     * @brief Evaluates the linear polynomial basis derivatives
+     * This method evaluates the 2D linear polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D linear polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 2, 3>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the linear polynomial basis derivatives
+     * This method evaluates the 3D linear polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D linear polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 3, 4>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis derivatives
+     * This method evaluates the 2D quadratic polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 2D quadratic polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 2, 6>& rBasisDerivatives);
+
+    /**
+     * @brief Evaluates the quadratic polynomial basis derivatives
+     * This method evaluates the 3D quadratic polynommial basis derivatives in one point
+     * @param rX Coordinates where the basis is evaluated
+     * @param rBasis 3D quadratic polynomial basis derivatives values
+     */
+    static void EvaluatePolynomialBasisDerivatives(
+        const array_1d<double,3>& rX,
+        BoundedMatrix<double, 3, 10>& rBasisDerivatives);
 
     /**
      * @brief Calculates the MLS shape function values

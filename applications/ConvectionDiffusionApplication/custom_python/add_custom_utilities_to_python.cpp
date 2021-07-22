@@ -27,6 +27,7 @@
 // #include "custom_utilities/bfecc_elemental_convection.h"
 #include "custom_utilities/bfecc_elemental_limiter_convection.h"
 #include "custom_utilities/shifted_boundary_meshless_interface_process.h"
+#include "custom_utilities/gauss_point_error_utility.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -147,6 +148,14 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<ShiftedBoundaryMeshlessInterfaceProcess, ShiftedBoundaryMeshlessInterfaceProcess::Pointer, Process>(m,"ShiftedBoundaryMeshlessInterfaceProcess")
         .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<GaussPointErrorUtility, GaussPointErrorUtility::Pointer>(m,"GaussPointErrorUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("Execute", &GaussPointErrorUtility::Execute)
+        .def("ExecuteGradient", &GaussPointErrorUtility::ExecuteGradient)
+        .def("ExecuteOnConditions", &GaussPointErrorUtility::ExecuteOnConditions)
+        .def("ExecuteOnConditionsSolution", &GaussPointErrorUtility::ExecuteOnConditionsSolution)
     ;
 
 }

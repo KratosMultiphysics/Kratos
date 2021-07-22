@@ -28,6 +28,16 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Construction finished")
 
+    @classmethod
+    def GetDefaultParameters(cls):
+        this_defaults = KratosMultiphysics.Parameters(r"""{
+            "mls_extension_operator_order" : 1,
+            "mls_conforming_basis" : true,
+            "lagrange_multipliers_imposition" : false
+        }""")
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
+        return this_defaults
+
     def AddVariables(self):
         # Add heat transfer required variables
         super().AddVariables()
@@ -35,10 +45,23 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         # Add distance variable to represent the skin
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
+        # Add Lagrange multipliers required variables
+        if self.settings["lagrange_multipliers_imposition"].GetBool():
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER)
+
+    def AddDofs(self):
+        # Add heat transfer DOFs
+        super().AddDofs()
+
+        # Add Lagrange multipliers DOFs
+        if self.settings["lagrange_multipliers_imposition"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.SCALAR_LAGRANGE_MULTIPLIER, self.main_model_part)
+
     def Initialize(self):
-        # Correct the level set
-        #TODO: Use the FluidDynamicsApplication process
-        # tol = 1.0e-10
+        # # Correct the level set
+        # #TODO: Use the FluidDynamicsApplication process
+        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
+        # tol = 1.0e-12
         # for node in self.GetComputingModelPart().Nodes:
         #     dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
         #     if abs(dist) < tol:
@@ -47,6 +70,7 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol)
         #         else:
         #             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
+        # #FIXME: USE THIS FOR THE ZIG-ZAG PLATE TESTS
 
         # Avoid zeros with positive epsilon
         tol = 1.0e-12
@@ -67,6 +91,13 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
         settings = KratosMultiphysics.Parameters("""{}""")
         settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
         settings.AddEmptyValue("boundary_sub_model_part_name").SetString("shifted_boundary")
+        settings.AddEmptyValue("mls_extension_operator_order").SetInt(self.settings["mls_extension_operator_order"].GetInt())
+        settings.AddEmptyValue("mls_conforming_basis").SetBool(self.settings["mls_conforming_basis"].GetBool())
+        if self.settings["lagrange_multipliers_imposition"].GetBool():
+            sbm_interface_condition_name = "LaplacianShiftedBoundaryLagrangeMultipliersCondition"
+        else:
+            sbm_interface_condition_name = "LaplacianShiftedBoundaryCondition"
+        settings.AddEmptyValue("sbm_interface_condition_name").SetString(sbm_interface_condition_name)
         sbm_interface_process = ConvectionDiffusionApplication.ShiftedBoundaryMeshlessInterfaceProcess(self.model, settings)
         sbm_interface_process.Execute()
 
@@ -92,8 +123,6 @@ class ConvectionDiffusionStationaryShiftedBoundarySolver(convection_diffusion_st
                 break
         num_nodes_elements = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_elements)
         element_name = self.settings["element_replace_settings"]["element_name"].GetString()
-
-        print(element_name)
 
         # Element checks
         if num_nodes_elements not in (3,4):
