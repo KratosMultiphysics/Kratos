@@ -74,20 +74,21 @@ public:
 
     /// Default constructor.
     ConvectionDiffusionSettings()
-     {
-		mis_defined_DensityVar=false;
-		mis_defined_DiffusionVar=false;
+    {
+        mis_defined_DensityVar=false;
+        mis_defined_DiffusionVar=false;
 		mis_defined_UnknownVar=false;
 		mis_defined_VolumeSourceVar=false;
 		mis_defined_SurfaceSourceVar=false;
 		mis_defined_ProjectionVar=false;
 		mis_defined_ConvectionVar=false;
+		mis_defined_GradientVar = false;
 		mis_defined_MeshVelocityVar=false;
 		mis_defined_TransferCoefficientVar=false;
 		mis_defined_VelocityVar=false;
 		mis_defined_SpecificHeatVar=false;
         mis_defined_ReactionVar=false;
-	 };
+    };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
         mpDiffusionVar(rOther.mpDiffusionVar),
@@ -96,6 +97,7 @@ public:
         mpSurfaceSourceVar(rOther.mpSurfaceSourceVar),
         mpProjectionVar(rOther. mpProjectionVar),
         mpConvectionVar(rOther.mpConvectionVar),
+        mpGradientVar(rOther.mpGradientVar),
         mpMeshVelocityVar(rOther.mpMeshVelocityVar),
         mpTransferCoefficientVar(rOther.mpTransferCoefficientVar),
         mpVelocityVar(rOther.mpVelocityVar),
@@ -108,6 +110,7 @@ public:
 		mis_defined_SurfaceSourceVar(rOther.mis_defined_SurfaceSourceVar),
 		mis_defined_ProjectionVar(rOther.mis_defined_ProjectionVar),
 		mis_defined_ConvectionVar(rOther.mis_defined_ConvectionVar),
+        mis_defined_GradientVar(rOther.mis_defined_GradientVar),
 		mis_defined_MeshVelocityVar(rOther.mis_defined_MeshVelocityVar),
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
@@ -220,6 +223,20 @@ public:
 		return mis_defined_ConvectionVar;
 	}
 
+    void SetGradientVariable(const Variable<array_1d<double,3> >& rvar)
+    {
+        mpGradientVar = &rvar;
+        mis_defined_GradientVar=true;
+    }
+    const Variable<array_1d<double,3> >& GetGradientVariable() const
+    {
+        return *mpGradientVar;
+    }
+    bool IsDefinedGradientVariable() const
+    {
+        return mis_defined_GradientVar;
+    }
+
     void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpMeshVelocityVar = &rvar;
@@ -308,6 +325,7 @@ public:
         mpSurfaceSourceVar = rOther.mpSurfaceSourceVar;
         mpProjectionVar = rOther.mpProjectionVar;
         mpConvectionVar = rOther.mpConvectionVar;
+        mpGradientVar = rOther.mpGradientVar;
         mpMeshVelocityVar = rOther.mpMeshVelocityVar;
         mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         mpVelocityVar = rOther.mpVelocityVar;
@@ -320,7 +338,8 @@ public:
 		mis_defined_VolumeSourceVar = rOther.mis_defined_VolumeSourceVar;
 		mis_defined_SurfaceSourceVar = rOther.mis_defined_SurfaceSourceVar;
 		mis_defined_ProjectionVar = rOther.mis_defined_ProjectionVar;
-		mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+        mis_defined_ConvectionVar = rOther.mis_defined_ConvectionVar;
+        mis_defined_GradientVar = rOther.mis_defined_GradientVar;
 		mis_defined_MeshVelocityVar = rOther.mis_defined_MeshVelocityVar;
 		mis_defined_TransferCoefficientVar = rOther.mis_defined_TransferCoefficientVar;
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
@@ -376,7 +395,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
@@ -420,6 +438,7 @@ private:
     const Variable<double>* mpSurfaceSourceVar = nullptr;
     const Variable<double>* mpProjectionVar = nullptr;
     const Variable<array_1d<double,3> >* mpConvectionVar = nullptr;
+    const Variable<array_1d<double,3> >* mpGradientVar = nullptr;
     const Variable<array_1d<double,3> >* mpMeshVelocityVar = nullptr;
     const Variable<double>* mpTransferCoefficientVar = nullptr;
     const Variable<array_1d<double,3> >* mpVelocityVar = nullptr;
@@ -432,6 +451,7 @@ private:
     bool mis_defined_SurfaceSourceVar = false;
     bool mis_defined_ProjectionVar = false;
     bool mis_defined_ConvectionVar = false;
+    bool mis_defined_GradientVar = false;
     bool mis_defined_MeshVelocityVar = false;
     bool mis_defined_TransferCoefficientVar = false;
     bool mis_defined_VelocityVar = false;
@@ -459,6 +479,7 @@ private:
         rSerializer.save("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
         rSerializer.save("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
         rSerializer.save("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
+        rSerializer.save("mis_defined_GradientVar",mis_defined_GradientVar);
         rSerializer.save("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
         rSerializer.save("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
         rSerializer.save("mis_defined_VelocityVar",mis_defined_VelocityVar);
@@ -488,6 +509,9 @@ private:
         if (mpConvectionVar != nullptr && mis_defined_ConvectionVar) {
             rSerializer.save("ConvectionVarName",mpConvectionVar);
         }
+        if (mpGradientVar != nullptr && mis_defined_GradientVar) {
+            rSerializer.save("GradientVarName",mpGradientVar);
+        }
         if (mpMeshVelocityVar != nullptr && mis_defined_MeshVelocityVar) {
             rSerializer.save("MeshVelocityVarName",mpMeshVelocityVar);
         }
@@ -515,6 +539,7 @@ private:
         rSerializer.load("mis_defined_SurfaceSourceVar",mis_defined_SurfaceSourceVar);
         rSerializer.load("mis_defined_ProjectionVar",mis_defined_ProjectionVar);
         rSerializer.load("mis_defined_ConvectionVar",mis_defined_ConvectionVar);
+        rSerializer.load("mis_defined_GradientVar",mis_defined_GradientVar);
         rSerializer.load("mis_defined_MeshVelocityVar",mis_defined_MeshVelocityVar);
         rSerializer.load("mis_defined_TransferCoefficientVar",mis_defined_TransferCoefficientVar);
         rSerializer.load("mis_defined_VelocityVar",mis_defined_VelocityVar);
@@ -557,6 +582,11 @@ private:
             std::string convection_var_name;
             rSerializer.load("ConvectionVarName", convection_var_name);
             mpConvectionVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(convection_var_name));
+        }
+        if(mis_defined_GradientVar) {
+            std::string gradient_var_name;
+            rSerializer.load("GradientVarName", gradient_var_name);
+            mpGradientVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(gradient_var_name));
         }
         if(mis_defined_MeshVelocityVar) {
             std::string mesh_velocity_var;

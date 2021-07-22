@@ -13,6 +13,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
 
   # utilities (compiled first because they are used within the element cpps)
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_auxiliary_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_calculation_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_characteristic_numbers_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
@@ -160,3 +161,7 @@ if(${USE_MPI})
   message("Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)
 endif(${USE_MPI})
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosFluidDynamicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFluidDynamicsApplication" PARENT_SCOPE)

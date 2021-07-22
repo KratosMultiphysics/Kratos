@@ -11,7 +11,7 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "dem_wall.h"
-#include "../custom_strategies/schemes/glued_to_wall_scheme.h"
+#include "custom_strategies/schemes/glued_to_wall_scheme.h"
 
 namespace Kratos
 
