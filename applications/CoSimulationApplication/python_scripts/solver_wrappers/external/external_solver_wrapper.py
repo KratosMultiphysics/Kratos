@@ -1,6 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
-import KratosMultiphysics.StructuralMechanicsApplication
+import KratosMultiphysics.StructuralMechanicsApplication # needed for some variables
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_solver_wrapper import CoSimulationSolverWrapper
