@@ -91,3 +91,7 @@ if(${USE_MPI})
   message("Enabling trilinos extension for KratosRANSApplication")
   add_subdirectory(trilinos_extension)
 endif(${USE_MPI})
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRANSCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRANSApplication" PARENT_SCOPE)
