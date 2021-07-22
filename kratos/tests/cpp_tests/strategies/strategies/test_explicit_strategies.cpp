@@ -80,7 +80,7 @@ namespace Testing
             const ProcessInfo& rCurrentProcessInfo) const override
         {
             if (rEquationIdVector.size() != 1) {
-                rEquationIdVector.resize(1)
+                rEquationIdVector.resize(1);
             }
             rEquationIdVector[0] = GetGeometry()[0].GetDof(TEMPERATURE).EquationId();
         }
