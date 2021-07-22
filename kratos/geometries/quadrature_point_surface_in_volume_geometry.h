@@ -128,7 +128,7 @@ public:
     /// Calculate with Matrix
     void Calculate(
         const Variable<Matrix >& rVariable,
-        Matrix& rOutput) const override
+        Matrix& rOutput)
     {
         if (rVariable == LOCAL_TANGENT_MATRIX) {
             if( rOutput.size1() != mLocalTangents.size1() || rOutput.size2() != mLocalTangents.size2() ){
