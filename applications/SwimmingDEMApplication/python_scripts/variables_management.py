@@ -206,7 +206,9 @@ class VariablesManager:
         self.dem_vars += self.dem_printing_vars
         self.dem_vars += self.coupling_dem_vars
         self.dem_vars += [Kratos.BUOYANCY]
+        self.dem_vars += [DEM.IMPACT_WEAR]
         self.dem_vars += [Kratos.VELOCITY_OLD]
+        self.dem_vars += [Kratos.SLIP_VELOCITY]
 
         if self.do_include_history_force:
             self.dem_vars += [Kratos.BASSET_FORCE]
