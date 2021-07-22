@@ -155,11 +155,12 @@ void NormalCheckProcess::Execute()
     #pragma omp parallel for
     for(int i = 0; i < number_of_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
+        it_cond->Set(MARKER);
         const auto& r_geometry = it_cond->GetGeometry();
 
         for (auto& r_node : r_geometry) {
-            if (r_node.Is(MARKER)) {
-                it_cond->Set(MARKER);
+            if (r_node.IsNot(MARKER)) {
+                it_cond->Set(MARKER, false);
                 break;
             }
         }
@@ -208,11 +209,12 @@ void NormalCheckProcess::Execute()
     #pragma omp parallel for
     for(int i = 0; i < number_of_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
+        it_cond->Set(MARKER);
         const auto& r_geometry = it_cond->GetGeometry();
 
         for (auto& r_node : r_geometry) {
-            if (r_node.Is(MARKER)) {
-                it_cond->Set(MARKER);
+            if (r_node.IsNot(MARKER)) {
+                it_cond->Set(MARKER, false);
                 break;
             }
         }
