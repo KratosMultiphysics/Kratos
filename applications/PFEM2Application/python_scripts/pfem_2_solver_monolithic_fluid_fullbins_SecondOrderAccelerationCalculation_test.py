@@ -1,9 +1,8 @@
 from __future__ import print_function
-from KratosMultiphysics import *
+import KratosMultiphysics
 from KratosMultiphysics.PFEM2Application import *
 #from KratosMultiphysics.LinearSolversApplication import *
-from KratosMultiphysics.ConvectionDiffusionApplication import *
-import KratosMultiphysics
+import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 #from KratosMultiphysics.OpenCLApplication import *        #in case you want to use the gpu to solve the system
 from math import sqrt
 from math import fabs
@@ -14,32 +13,30 @@ import math
 
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(PRESSURE)
-    model_part.AddNodalSolutionStepVariable(DISTANCE)
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(YP)
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
-    model_part.AddNodalSolutionStepVariable(RHS)
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(NORMAL)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(ConvectionDiffusionApplication.ACCELERATION_AUX)
+    model_part.AddNodalSolutionStepVariable(ConvectionDiffusionApplication.DELTA_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(ConvectionDiffusionApplication.LUMPED_MASS_VALUE)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PFEM2Application.PROJECTED_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE)
-    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO)
-    model_part.AddNodalSolutionStepVariable(MEAN_SIZE)
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-    model_part.AddNodalSolutionStepVariable(BODY_FORCE)
-    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
 
-    model_part.AddNodalSolutionStepVariable(VISCOSITY_AIR)
-    model_part.AddNodalSolutionStepVariable(VISCOSITY_WATER)
-    model_part.AddNodalSolutionStepVariable(DENSITY_AIR)
-    model_part.AddNodalSolutionStepVariable(DENSITY_WATER)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+
+
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY_AIR)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY_WATER)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY_AIR)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY_WATER)
     
     ########
-    model_part.AddNodalSolutionStepVariable(DENSITY)
-    model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
     ########
 
 
@@ -63,7 +60,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(SCALARPROJECTEDVEL_Z)
     model_part.AddNodalSolutionStepVariable(PRESSURE_N)
     #model_part.AddNodalSolutionStepVariable(DELTA_DISTANCE_NITSCHE)
-    model_part.AddNodalSolutionStepVariable(TEMPERATURE)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
     ########
 
     ########
@@ -82,60 +79,14 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BODY_FORCE_N)
     ########
 
-    #####DEBUGVARIABLES#####
-    model_part.AddNodalSolutionStepVariable(ISFOUNDA)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDB)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4A)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4B)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBA)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBB)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2A)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2B)
-
-    model_part.AddNodalSolutionStepVariable(ISFOUNDAFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDBFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDASECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDBSECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDATHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDBTHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDAFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDBFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4AFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4BFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4ASECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4BSECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4ATHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4BTHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4AFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDRK4BFOURTH)    
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBAFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBBFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBASECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBBSECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBATHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBBTHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBAFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUBBFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2AFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2BFIRST)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2ASECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2BSECOND)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2ATHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2BTHIRD)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2AFOURTH)
-    model_part.AddNodalSolutionStepVariable(ISFOUNDSUB2BFOURTH)
-
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY_FIRST)
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY_SECOND)
-    #####DEBUGVARIABLES#####
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
-        node.AddDof(PRESSURE);
-        node.AddDof(VELOCITY_X);
-        node.AddDof(VELOCITY_Y);
-        node.AddDof(VELOCITY_Z);
-        node.AddDof(DISTANCE);
+        node.AddDof(KratosMultiphysics.PRESSURE);
+        node.AddDof(KratosMultiphysics.VELOCITY_X);
+        node.AddDof(KratosMultiphysics.VELOCITY_Y);
+        node.AddDof(KratosMultiphysics.VELOCITY_Z);
+        node.AddDof(KratosMultiphysics.DISTANCE);
         #node.AddDof(PRESSURE_NITSCHE);
         #node.AddDof(VELOCITY_NITSCHE_X);
         #node.AddDof(VELOCITY_NITSCHE_Y);
@@ -148,7 +99,7 @@ class PFEM2Solver:
     def __init__(self,model_part,domain_size,maximum_nonlin_iterations):
         self.model_part = model_part
 
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+        self.time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
         self.maximum_nonlin_iterations = maximum_nonlin_iterations
         #definition of the solvers
@@ -157,7 +108,7 @@ class PFEM2Solver:
         verbosity = 0
         if (maximum_nonlin_iterations==1):
               verbosity = 1 #if it is a linear problem, we can print more information of the single iteration without filling the screen with too much info.
-        pDiagPrecond = DiagonalPreconditioner()
+        pDiagPrecond = KratosMultiphysics.DiagonalPreconditioner()
         #self.monolithic_linear_solver = BICGSTABSolver(1e-5, 5000,pDiagPrecond) # SkylineLUFactorizationSolver()
         #self.monolithic_linear_solver =  ViennaCLSolver(tol,500,OpenCLPrecision.Double,OpenCLSolverType.CG,OpenCLPreconditionerType.AMG_DAMPED_JACOBI) #
         #self.monolithic_linear_solver=AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver(
@@ -185,7 +136,7 @@ class PFEM2Solver:
         '''
 
 
-        solver_settings = Parameters(
+        solver_settings = KratosMultiphysics.Parameters(
 
           '''{
              "preconditioner_type"            : "amg",
@@ -207,7 +158,7 @@ class PFEM2Solver:
 
 
 
-        solver_settings = Parameters(
+        solver_settings = KratosMultiphysics.Parameters(
 
           '''{
             "solver_type":         "BICGSTABSolver",
@@ -218,7 +169,7 @@ class PFEM2Solver:
           }''')
 
 
-        solver_settings = Parameters(
+        solver_settings = KratosMultiphysics.Parameters(
 
           '''{
             "solver_type":         "bicgstab",
@@ -229,7 +180,7 @@ class PFEM2Solver:
           }''')
 
 
-        solver_settings = Parameters(
+        solver_settings = KratosMultiphysics.Parameters(
 
           '''{
              "preconditioner_type"            : "amg",
@@ -262,18 +213,12 @@ class PFEM2Solver:
         #self.monolithic_linear_solver=SkylineLUFactorizationSolver()
         self.monolithic_linear_solver = linear_solver_factory.ConstructSolver(solver_settings)
 
-        self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver
+        self.conv_criteria = KratosMultiphysics.DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver
         self.conv_criteria.SetEchoLevel(0)
 
         self.domain_size = domain_size
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
-        (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-        (self.neighbour_elements_search).Execute()
         ##calculate normals
-        self.normal_tools = BodyNormalCalculationUtils()
+        self.normal_tools = KratosMultiphysics.BodyNormalCalculationUtils()
 
         self.time = 0.0
         self.timestep = 0.0
@@ -296,7 +241,7 @@ class PFEM2Solver:
         #maximum_number_of_particles= 8*self.domain_size
 
         #self.ExplicitStrategy=PFEM2_Explicit_Strategy(self.model_part,self.domain_size, MoveMeshFlag)
-        self.VariableUtils = VariableUtils()
+        self.VariableUtils = KratosMultiphysics.VariableUtils()
 
         #if self.domain_size==2:
         #     self.moveparticles = MoveParticleUtilityFullBinsPFEM22D(self.model_part,maximum_number_of_particles)
@@ -325,9 +270,9 @@ class PFEM2Solver:
         #(self.addBC).AddThem()
 
         if self.domain_size==2:
-             self.distance_utils = SignedDistanceCalculationUtils2D()
+             self.distance_utils = KratosMultiphysics.SignedDistanceCalculationUtils2D()
         else:
-             self.distance_utils = SignedDistanceCalculationUtils3D()
+             self.distance_utils = KratosMultiphysics.SignedDistanceCalculationUtils3D()
         self.redistance_step = 0
 
         import KratosMultiphysics.PFEM2Application.strategy_python as strategy_python #implicit solver
@@ -347,169 +292,31 @@ class PFEM2Solver:
 
         self.print_times=True
 
-        visc_water=self.model_part.ProcessInfo.GetValue(VISCOSITY_WATER)
-        visc_air=self.model_part.ProcessInfo.GetValue(VISCOSITY_AIR)
-        dens_water=self.model_part.ProcessInfo.GetValue(DENSITY_WATER)
-        dens_air=self.model_part.ProcessInfo.GetValue(DENSITY_AIR)
+        visc_water=self.model_part.ProcessInfo.GetValue(KratosMultiphysics.VISCOSITY_WATER)
+        visc_air=self.model_part.ProcessInfo.GetValue(KratosMultiphysics.VISCOSITY_AIR)
+        dens_water=self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DENSITY_WATER)
+        dens_air=self.model_part.ProcessInfo.GetValue(KratosMultiphysics.DENSITY_AIR)
 
         for node in self.model_part.Nodes:
-              node.SetSolutionStepValue(VISCOSITY_WATER,visc_water)
-              node.SetSolutionStepValue(VISCOSITY_AIR,visc_air)
-              node.SetSolutionStepValue(DENSITY_WATER,dens_water)
-              node.SetSolutionStepValue(DENSITY_AIR,dens_air)
+              node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY_WATER,visc_water)
+              node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY_AIR,visc_air)
+              node.SetSolutionStepValue(KratosMultiphysics.DENSITY_WATER,dens_water)
+              node.SetSolutionStepValue(KratosMultiphysics.DENSITY_AIR,dens_air)
 
     #######################################################################
     def Solve(self):
 
         print("Simulation Time=",self.time)
-        print("first BFECC START")
-        self.ReduceTimeStep()
         #mount the search structure
-        locator = BinBasedFastPointLocator2D(self.model_part)
+        #locator = BinBasedFastPointLocator2D(self.model_part)
+        #locator.UpdateSearchDatabase()
+        locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.model_part)
         locator.UpdateSearchDatabase()
+        
         #construct the utility to move the points
-        bfecc_utility = BFECCConvectionRK42D(locator)
-        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
-
-        
-        print("FIRST")
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            SCALARPROJECTEDVEL_X,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
-
-        levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
-            "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
-        }""")
-        KratosMultiphysics.LevelSetConvectionProcess2D(
-            self.model_part,
-            self.monolithic_linear_solver,
-            levelset_convection_settings).Execute()
-        print("SECOND")
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            SCALARPROJECTEDVEL_Y,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
-
-        levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
-            "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
-        }""")
-        KratosMultiphysics.LevelSetConvectionProcess2D(
-            self.model_part,
-            self.monolithic_linear_solver,
-            levelset_convection_settings).Execute()
-        
-
-        bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
-        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_FIRST,self.model_part.Nodes)
-        
-
-        for node in (self.model_part.Nodes):
-         if node.X>15.49999999:
-          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
-           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
-
-        full_reset=True;
-        bfecc_utility.ResetBoundaryConditions(self.model_part,full_reset)
-        bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
-        print("first BFECC END")
-
-
-        
-        print("Stokes Solve START")
-        self.IncreaseTimeStep()
-        (self.monolithic_solver).Solve() #implicit resolution of the system.
-        for node in (self.model_part.Nodes):
-         if node.X>15.49999999:
-          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
-           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
-        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY,self.model_part.Nodes)
-        bfecc_utility.CopyVectorVarToPreviousTimeStep(VELOCITY,self.model_part.Nodes)
-        print("Stokes Solve END")
-
-
-
-        print("second BFECC START")
-        self.ReduceTimeStep()
-        #mount the search structure
-        locator = BinBasedFastPointLocator2D(self.model_part)
-        locator.UpdateSearchDatabase()
-        #construct the utility to move the points
-        bfecc_utility = BFECCConvectionRK42D(locator)
-        bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
-        
-
-        
-        print("THIRD")
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            SCALARPROJECTEDVEL_X,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
-
-        levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
-            "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
-        }""")
-        KratosMultiphysics.LevelSetConvectionProcess2D(
-            self.model_part,
-            self.monolithic_linear_solver,
-            levelset_convection_settings).Execute()
-        print("FOURTH")
-        KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-            self.model_part,
-            SCALARPROJECTEDVEL_Y,
-            KratosMultiphysics.DISTANCE_GRADIENT,
-            KratosMultiphysics.NODAL_AREA).Execute()
-
-        levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
-            "levelset_convection_variable_name" : "VELOCITY",
-            "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
-            "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
-        }""")
-        KratosMultiphysics.LevelSetConvectionProcess2D(
-            self.model_part,
-            self.monolithic_linear_solver,
-            levelset_convection_settings).Execute()
-
-        bfecc_utility.TransferBFECCToVelocity(self.model_part.Nodes)
-        (self.VariableUtils).CopyVectorVar(VELOCITY,PROJECTED_VELOCITY_SECOND,self.model_part.Nodes)
-
-        for node in (self.model_part.Nodes):
-         if node.X>15.49999999:
-          if (node.GetSolutionStepValue(VELOCITY_X,0)<0.0):
-           node.SetSolutionStepValue(VELOCITY_X,0,0.00000001)
-
-        full_reset=True;
-        bfecc_utility.ResetBoundaryConditions(self.model_part,full_reset)
-        print("second BFECC END")
+        bfecc_utility = ConvectionDiffusionApplication.BFECCConvectionRK42D(locator)
+        bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
+        print("Done")
 
 
          #self.nodaltasks = self.nodaltasks + t11-t9

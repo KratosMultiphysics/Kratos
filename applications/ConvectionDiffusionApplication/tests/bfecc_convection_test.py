@@ -259,4 +259,4 @@ if __name__ == '__main__':
     test = BFECCConvectionTest()
     test.testBFECCConvection()
     # test.testBFECCElementalLimiterConvection()
-    test.testBFECCNodalLimiterConvection()
+    #test.testBFECCNodalLimiterConvection()

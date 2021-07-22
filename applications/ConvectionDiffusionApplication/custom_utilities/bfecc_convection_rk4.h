@@ -598,7 +598,7 @@ public:
                 ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
                 inode->FastGetSolutionStepValue(ACCELERATION_AUX) = ZeroVector(3);
                 inode->FastGetSolutionStepValue(DELTA_ACCELERATION) = ZeroVector(3);
-                inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE) = 0.0;
+                // inode->FastGetSolutionStepValue(LUMPED_MASS_VALUE) = 0.0;
                 
             }
          }
@@ -711,8 +711,8 @@ public:
               dummyN(1, i * TDim + 1) = N[i];
              }
 
-              temp_acc[0] = bdf0 * vg_x + bdf1 * vg_x;
-              temp_acc[1] = bdf0 * vg_y + bdf1 * vg_y;
+              temp_acc[0] = bdf0 * vg_x + bdf1 * vng_x;
+              temp_acc[1] = bdf0 * vg_y + bdf1 * vng_y;
               spatial_acc[0]= vg_x * dvg_xdx + vg_y * dvg_xdy;
               spatial_acc[1]= vg_x * dvg_ydx + vg_y * dvg_ydy;
             //   temp_acc[0]= 0.0;

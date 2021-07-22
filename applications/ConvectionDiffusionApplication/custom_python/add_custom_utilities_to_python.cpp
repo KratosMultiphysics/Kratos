@@ -130,7 +130,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CopyScalarVarToPreviousTimeStep", &BFECCConvectionRK<3>::CopyScalarVarToPreviousTimeStep)
     ;
 
-    py::class_<BFECCConvectionRK4<2> > (m,"BFECCConvectionRK42D").def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
+    py::class_<BFECCConvectionRK4<2> > (m,"BFECCConvectionRK42D")
+    .def(py::init< BinBasedFastPointLocator < 2 >::Pointer >())
     .def("BFECCconvectRK4", &BFECCConvectionRK4<2>::BFECCconvectRK4)
     .def("ResetBoundaryConditions", &BFECCConvectionRK4<2>::ResetBoundaryConditions)
     .def("CalculateAccelerationOnTheMeshSecondOrder", &BFECCConvectionRK4<2>::CalculateAccelerationOnTheMeshSecondOrder)
