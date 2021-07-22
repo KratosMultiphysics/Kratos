@@ -126,7 +126,7 @@ namespace Kratos
             array_1d<double, 3> a_1 = column(J, 0);
             array_1d<double, 3> a_2 = column(J, 1);
 
-            rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1] );
+            rDeterminantOfJacobian[point_number] = norm_2(a_1 * local_tangent[0] + a_2 * local_tangent[1]);
         }
     }
 
