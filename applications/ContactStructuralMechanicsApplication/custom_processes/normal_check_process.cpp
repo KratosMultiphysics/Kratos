@@ -18,6 +18,7 @@
 #include "utilities/variable_utils.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/normal_calculation_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/normal_check_process.h"
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -231,30 +232,24 @@ void NormalCheckProcess::Execute()
     NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
 
     // Reassign flags
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(nodes_marker_backup.size()); ++i) {
-        mrModelPart.pGetNode(nodes_marker_backup[i])->Set(MARKER, true);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(nodes_not_marker_backup.size()); ++i) {
-        mrModelPart.pGetNode(nodes_not_marker_backup[i])->Set(MARKER, false);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(elements_marker_backup.size()); ++i) {
-        mrModelPart.pGetElement(elements_marker_backup[i])->Set(MARKER, true);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(elements_not_marker_backup.size()); ++i) {
-        mrModelPart.pGetElement(elements_not_marker_backup[i])->Set(MARKER, false);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(conditions_marker_backup.size()); ++i) {
-        mrModelPart.pGetCondition(conditions_marker_backup[i])->Set(MARKER, true);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(conditions_not_marker_backup.size()); ++i) {
-        mrModelPart.pGetCondition(conditions_not_marker_backup[i])->Set(MARKER, false);
-    }
+    block_for_each(nodes_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetNode(rId)->Set(MARKER, false);
+    });
+    block_for_each(nodes_not_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetNode(rId)->Set(MARKER, false);
+    });
+    block_for_each(elements_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetElement(rId)->Set(MARKER, false);
+    });
+    block_for_each(elements_not_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetElement(rId)->Set(MARKER, false);
+    });
+    block_for_each(conditions_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetCondition(rId)->Set(MARKER, false);
+    });
+    block_for_each(conditions_not_marker_backup, [&](IndexType& rId) {
+        mrModelPart.pGetCondition(rId)->Set(MARKER, false);
+    });
 
     KRATOS_CATCH("")
 }
