@@ -8,7 +8,7 @@ import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
 
-debug_mode = False
+debug_mode = True
 
 class TestDEMPiecewiseInletAnalysis(dem_analysis.DEMAnalysisStage):
 
@@ -153,11 +153,10 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletAnalysis):
             normalization_factor = sum(self.histogram) / sum(self.probabilities)
             support_diameter = self.possible_values[-1] - self.possible_values[0]
 
-            min_distance_between_possible_values = min(self.min_distance_between_possible_values
-                                                      + self.possible_values[i] - self.possible_values[i-1]
-                                                      for i in range(1, len(self.possible_values)))
+            min_distance_between_possible_values = min(self.possible_values[i] - self.possible_values[i-1]
+                                                       for i in range(1, len(self.possible_values)))
 
-            column_width = 0.4 * min_distance_between_possible_values
+            column_width = 0.4 * max(min_distance_between_possible_values, 0.01 * support_diameter)
             plt.bar(self.possible_values - 0.5 * column_width, self.probabilities * normalization_factor, width=column_width, label='desired')
             plt.bar(self.possible_values + 0.5 * column_width, self.histogram, width=column_width,
                     label='obtained' + ' (error = ' + '{:.2e}'.format(self.error_norm) + ')')
