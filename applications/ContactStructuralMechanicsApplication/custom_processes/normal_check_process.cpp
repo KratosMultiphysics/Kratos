@@ -27,8 +27,11 @@ void NormalCheckProcess::Execute()
 {
     KRATOS_TRY
 
-    // The propoortion of length considered in the normal check
+    // The proportion of length considered in the normal check
     const double length_proportion = mParameters["length_proportion"].GetDouble();
+
+    // The check inside threshold
+    const double check_threshold = mParameters["check_threshold"].GetDouble();
 
     // First we compute the normals
     NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
@@ -141,7 +144,7 @@ void NormalCheckProcess::Execute()
                 r_face.PointLocalCoordinates(aux_coords, r_face.Center());
                 const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
                 aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 5.0e-7)) {
+                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
                     it_elem->Set(MARKER);
                     KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
                 }
@@ -154,7 +157,7 @@ void NormalCheckProcess::Execute()
                 const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
                 aux_perturbed_coords = r_node.Coordinates() + length_proportion * r_geometry.Length() * r_normal;
 
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, 5.0e-7)) {
+                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
                     r_node.SetLock();
                     r_node.Set(MARKER);
                     r_node.UnSetLock();
@@ -239,7 +242,8 @@ const Parameters NormalCheckProcess::GetDefaultParameters() const
 
     const Parameters default_parameters = Parameters(R"(
     {
-        "length_proportion" : 0.1
+        "length_proportion" : 0.1,
+        "check_threshold"   : 5.0e-7
     })" );
 
     return default_parameters;
