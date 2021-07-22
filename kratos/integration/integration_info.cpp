@@ -17,7 +17,12 @@
 
 namespace Kratos
 {
+    ///@name Local Flags
+    ///@{
 
+    KRATOS_CREATE_LOCAL_FLAG(IntegrationFlags, DO_NOT_CREATE_TESSELLATION_ON_SLAVE, 0);
+
+    ///@}
     ///@name Constructors
     ///@{
 

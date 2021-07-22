@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "geometries/geometry_data.h"
 #include "containers/data_value_container.h"
+#include "containers/flags.h"
 
 #include "integration_flags.h"
 
@@ -32,7 +33,7 @@ namespace Kratos
 /* Within this class distinct information of integration can be
  * stored and processed.
  */
-class IntegrationInfo : public IntegrationFlags
+class IntegrationInfo : public Flags
 {
 public:
     ///@name Type Definitions
@@ -46,6 +47,12 @@ public:
 
     /// Integration methods implemented specified within enum.
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    ///@}
+    ///@name Local Flags
+    ///@{
+
+    KRATOS_DEFINE_LOCAL_FLAG(DO_NOT_CREATE_TESSELLATION_ON_SLAVE);
 
     ///@}
     ///@name Type Definitions
