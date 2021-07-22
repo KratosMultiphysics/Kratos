@@ -119,38 +119,41 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
     // Declare auxiliar coordinates
-    CoordinatesArrayType aux_coords, aux_perturbed_coords;
+    CoordinatesArrayType aux_coords;
 
     // Iterate over elements
-    #pragma omp parallel for firstprivate(aux_coords,aux_perturbed_coords)
-    for(int i = 0; i < number_of_elements; ++i) {
-        auto it_elem = it_elem_begin + i;
-        const auto& r_geometry = it_elem->GetGeometry();
+    block_for_each(r_elements_array, aux_coords, [&length_proportion, &check_threshold](Element& rElem, CoordinatesArrayType& aux_coords) {
+        const auto& r_geometry = rElem.GetGeometry();
+        bool check_element = true;
         if (r_geometry.WorkingSpaceDimension() > r_geometry.LocalSpaceDimension()) {
-            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  it_elem->Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
-            continue;
+            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  rElem.Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
+            check_element = false;
         }
-        const GeometryType::GeometriesArrayType& r_boundary = r_geometry.GenerateBoundariesEntities();
-        for (GeometryType& r_face : r_boundary) {
-            for (auto& r_node : r_face) {
-                if (r_node.IsNot(INTERFACE)) {
-                    continue;
-                }
-            }
-            // First check if the elements are inverted
-            r_face.PointLocalCoordinates(aux_coords, r_face.Center());
-            const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
-            aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
-            if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
-                it_elem->Set(MARKER);
+
+        // Only solid elements
+        if (check_element) {
+            const GeometryType::GeometriesArrayType& r_boundary = r_geometry.GenerateBoundariesEntities();
+            for (GeometryType& r_face : r_boundary) {
                 for (auto& r_node : r_face) {
-                    r_node.Set(MARKER);
+                    if (r_node.IsNot(INTERFACE)) {
+                        continue;
+                    }
                 }
-                KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
-                continue; // Element inverted just once
+                // First check if the elements are inverted
+                r_face.PointLocalCoordinates(aux_coords, r_face.Center());
+                const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
+                CoordinatesArrayType aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
+                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
+                    rElem.Set(MARKER);
+                    for (auto& r_node : r_face) {
+                        r_node.Set(MARKER);
+                    }
+                    KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << rElem.Id() << " the corresponding element will be inverted" << std::endl;
+                    continue; // Element inverted just once
+                }
             }
         }
-    }
+    });
 
     // Check conditions
     block_for_each(r_conditions_array, [&](Condition& rCond) {
@@ -180,30 +183,32 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
     // After recompute the normals we check also the conditions
-    #pragma omp parallel for firstprivate(aux_coords,aux_perturbed_coords)
-    for(int i = 0; i < number_of_elements; ++i) {
-        auto it_elem = it_elem_begin + i;
-        const auto& r_geometry = it_elem->GetGeometry();
+    block_for_each(r_elements_array, aux_coords, [&length_proportion, &check_threshold](Element& rElem, CoordinatesArrayType& aux_coords) {
+        const auto& r_geometry = rElem.GetGeometry();
+        bool check_element = true;
         if (r_geometry.WorkingSpaceDimension() > r_geometry.LocalSpaceDimension()) {
-            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  it_elem->Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
-            continue;
+            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  rElem.Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
+            check_element = false;
         }
 
-        // Check nodes resulting normal, so the conditions are inverted
-        for (auto& r_node : r_geometry) {
-            if (r_node.Is(INTERFACE)) {
-                const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
-                aux_perturbed_coords = r_node.Coordinates() + length_proportion * r_geometry.Length() * r_normal;
+        // Only solid elements
+        if (check_element) {
+            // Check nodes resulting normal, so the conditions are inverted
+            for (auto& r_node : r_geometry) {
+                if (r_node.Is(INTERFACE)) {
+                    const array_1d<double, 3>& r_normal = r_node.FastGetSolutionStepValue(NORMAL);
+                    CoordinatesArrayType aux_perturbed_coords = r_node.Coordinates() + length_proportion * r_geometry.Length() * r_normal;
 
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
-                    r_node.SetLock();
-                    r_node.Set(MARKER);
-                    r_node.UnSetLock();
-                    KRATOS_INFO("NormalCheckProcess") << "Normal inverted in node: " << r_node.Id() << " the corresponding condition will be inverted" << std::endl;
+                    if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
+                        r_node.SetLock();
+                        r_node.Set(MARKER);
+                        r_node.UnSetLock();
+                        KRATOS_INFO("NormalCheckProcess") << "Normal inverted in node: " << r_node.Id() << " the corresponding condition will be inverted" << std::endl;
+                    }
                 }
             }
         }
-    }
+    });
 
     // Check conditions
     block_for_each(r_conditions_array, [&](Condition& rCond) {
