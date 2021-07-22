@@ -153,19 +153,17 @@ void NormalCheckProcess::Execute()
     }
 
     // Check conditions
-    #pragma omp parallel for
-    for(int i = 0; i < number_of_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->Set(MARKER);
-        const auto& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        rCond.Set(MARKER);
+        const auto& r_geometry = rCond.GetGeometry();
 
         for (auto& r_node : r_geometry) {
             if (r_node.IsNot(MARKER)) {
-                it_cond->Set(MARKER, false);
+                rCond.Set(MARKER, false);
                 break;
             }
         }
-    }
+    });
 
     // Invert elements
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
@@ -207,19 +205,18 @@ void NormalCheckProcess::Execute()
         }
     }
 
-    #pragma omp parallel for
-    for(int i = 0; i < number_of_conditions; ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->Set(MARKER);
-        const auto& r_geometry = it_cond->GetGeometry();
+    // Check conditions
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        rCond.Set(MARKER);
+        const auto& r_geometry = rCond.GetGeometry();
 
         for (auto& r_node : r_geometry) {
             if (r_node.IsNot(MARKER)) {
-                it_cond->Set(MARKER, false);
+                rCond.Set(MARKER, false);
                 break;
             }
         }
-    }
+    });
 
     // Invert conditions
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>(r_conditions_array, MARKER);
