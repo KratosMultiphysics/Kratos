@@ -277,8 +277,6 @@ public:
 
         // Get integration points from surface
         const SizeType number_of_points = rIntegrationPoints.size();
-        auto surface_method = mpSurface->GetDefaultIntegrationMethod();
-        const IntegrationPointsArrayType& integration_points = mpSurface->IntegrationPoints(surface_method);
 
         // Resize containers.
         if (rResultGeometries.size() != rIntegrationPoints.size() ){
@@ -328,7 +326,7 @@ public:
                 N, shape_function_derivatives);
 
             Matrix jacobian_surface;
-            mpSurface->Jacobian(jacobian_surface, integration_points[point_index]);
+            mpSurface->Jacobian(jacobian_surface, rIntegrationPoints[point_index]);
             BoundedMatrix<double,3,2> local_tangents;
             local_tangents = jacobian_surface;
 
