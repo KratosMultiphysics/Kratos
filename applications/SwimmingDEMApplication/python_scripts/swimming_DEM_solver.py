@@ -183,7 +183,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["custom_dem"]["do_solve_dem"].GetBool()
         self.solve_system = not self.project_parameters["custom_fluid"]["fluid_already_calculated"].GetBool()
-        self.fluid_model_type = self.project_parameter["fluid_parameters"]["solver_settings"]["formulation"]["element_type"].GetString()
+        self.fluid_model_type = self.project_parameters["fluid_parameters"]["solver_settings"]["formulation"]["element_type"].GetString()
 
         self.fluid_step = 0
         self.calculating_fluid_in_current_step = True
