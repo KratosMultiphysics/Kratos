@@ -599,7 +599,7 @@ const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveCon
 
 template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
 const GeometryDimension NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+    1, TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 
