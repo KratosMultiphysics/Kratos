@@ -21,8 +21,6 @@
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
 
-#include "integration_flags.h"
-
 namespace Kratos
 {
 
@@ -102,7 +100,10 @@ public:
     void SetNumberOfIntegrationPointsPerSpan(IndexType DimensionIndex,
         SizeType NumberOfIntegrationPointsPerSpan);
 
-    QuadratureMethod GetQuadratureMethodVector(IndexType DimensionIndex) const;
+    QuadratureMethod GetQuadratureMethodVector(IndexType DimensionIndex) const
+    {
+        return mQuadratureMethodVector[DimensionIndex];
+    }
 
     void SetQuadratureMethodVector(IndexType DimensionIndex,
         QuadratureMethod ThisQuadratureMethod);
@@ -118,7 +119,58 @@ public:
      */
     static IntegrationMethod GetIntegrationMethod(
         SizeType NumberOfIntegrationPointsPerSpan,
-        QuadratureMethod ThisQuadratureMethod);
+        QuadratureMethod ThisQuadratureMethod)
+    {
+        switch (NumberOfIntegrationPointsPerSpan) {
+        case 1:
+            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+                return IntegrationMethod::GI_GAUSS_1;
+            }
+            else {
+                return IntegrationMethod::GI_EXTENDED_GAUSS_1;
+            }
+            break;
+        case 2:
+            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+                return IntegrationMethod::GI_GAUSS_2;
+            }
+            else {
+                return IntegrationMethod::GI_EXTENDED_GAUSS_2;
+            }
+            break;
+        case 3:
+            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+                return IntegrationMethod::GI_GAUSS_3;
+            }
+            else {
+                return IntegrationMethod::GI_EXTENDED_GAUSS_3;
+            }
+            break;
+        case 4:
+            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+                return IntegrationMethod::GI_GAUSS_4;
+            }
+            else {
+                return IntegrationMethod::GI_EXTENDED_GAUSS_4;
+            }
+            break;
+        case 5:
+            if (ThisQuadratureMethod == QuadratureMethod::GAUSS) {
+                return IntegrationMethod::NumberOfIntegrationMethods;
+            }
+            else {
+                return IntegrationMethod::GI_EXTENDED_GAUSS_5;
+            }
+            break;
+        case 0:
+            return IntegrationMethod::NumberOfIntegrationMethods;
+            break;
+        }
+        KRATOS_WARNING("Evaluation of Integration Method")
+            << "Chosen combination of number of points per span and quadrature method does not has a corresponding IntegrationMethod in the KRATOS core."
+            << "NumberOfIntegrationPointsPerSpan: " << NumberOfIntegrationPointsPerSpan << std::endl;
+        return IntegrationMethod::NumberOfIntegrationMethods;
+    }
 
     ///@}
     ///@name Input and output
