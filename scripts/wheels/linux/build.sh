@@ -1,5 +1,5 @@
 #!/bin/bash
-export KRATOS_VERSION="9.0.0.dev1"
+export KRATOS_VERSION="9.0.0.dev2"
 
 cpus=$1
 pythons=$2
