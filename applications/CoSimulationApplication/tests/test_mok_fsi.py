@@ -62,6 +62,19 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__DumpUpdatedCFDSettings()
             self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
 
+    def test_mok_fsi_mvqn_external_structure_remote_controlled(self):
+        self.accelerator_type = "mvqn"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi")
+            ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
+            self.__ManipulateSettings(external_structure=True)
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+            # self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_remote_controlled.py", ext_parameter_file_name])
+
     def __ManipulateSettings(self, external_structure=False):
         self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"].SetString(self.accelerator_type)
         self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]["input_file"].SetString(self.cfd_tes_file_name)
@@ -70,7 +83,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             structure_settings = self.cosim_parameters["solver_settings"]["solvers"]["structure"]
             structure_settings.RemoveValue("solver_wrapper_settings")
 
-            structure_settings["type"].SetString("solver_wrappers.external.external_solver_wrapper")
+            structure_settings["type"].SetString("solver_wrappers.external.remote_controlled_solver_wrapper") ## FIXME
             solver_wrapper_settings = KM.Parameters("""{
                 "import_meshes" : ["Structure.GENERIC_FSI"],
                 "export_data"   : ["load"],
@@ -78,7 +91,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             }""")
             io_settings = KM.Parameters("""{
                 "type" : "kratos_co_sim_io",
-                "echo_level" : 3,
+                "echo_level" : 4,
                 "connect_to" : "ext_structure"
             }""")
             structure_settings.AddValue("solver_wrapper_settings", solver_wrapper_settings)
