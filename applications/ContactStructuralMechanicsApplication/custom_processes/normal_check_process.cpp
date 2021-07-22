@@ -225,6 +225,9 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_nodes_array);
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
+    // We re-compute the normals
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+
     // Reassign flags
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(nodes_marker_backup.size()); ++i) {
@@ -250,9 +253,6 @@ void NormalCheckProcess::Execute()
     for (int i = 0; i < static_cast<int>(conditions_not_marker_backup.size()); ++i) {
         mrModelPart.pGetCondition(conditions_not_marker_backup[i])->Set(MARKER, false);
     }
-
-    // We re-compute the normals
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
 
     KRATOS_CATCH("")
 }
