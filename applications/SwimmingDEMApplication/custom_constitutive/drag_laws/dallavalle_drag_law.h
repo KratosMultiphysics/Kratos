@@ -3,7 +3,7 @@
 
 #if !defined(SDEM_DALLAVALLE_DRAG_LAW_H_INCLUDED)
 #define SDEM_DALLAVALLE_DRAG_LAW_H_INCLUDED
-
+#include <algorithm>
 #include "stokes_drag_law.h"
 
 namespace Kratos {
@@ -37,9 +37,9 @@ namespace Kratos {
 
         double CalculateEquivalentDiameter(SphericParticle* p_particle);
 
-        double GetParticleMassFraction(SphericParticle* p_particle, double particle_density, double particle_radius);
+        double GetParticleMassFraction(SphericParticle* p_particle);
 
-        double CalculateWeightingSum(SphericParticle* p_particle);
+        double CalculateWeightingSum(SphericParticle* p_particle, const double& equivalent_diameter);
 
     private:
 

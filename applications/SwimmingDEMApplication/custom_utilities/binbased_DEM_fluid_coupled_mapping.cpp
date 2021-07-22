@@ -223,7 +223,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
     ModelPart& r_fluid_model_part,
     const double& search_radius,
     const double& shape_factor, // it is the density function's maximum divided by its support's radius
-    bool must_search)
+    bool must_search,
+    bool use_drew_model)
 {
     KRATOS_TRY
 
@@ -269,7 +270,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
             //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
 
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
         }
     }
 
@@ -283,7 +284,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     ModelPart& r_fluid_model_part,
     const double& search_radius,
     const double& shape_factor, // it is the density function's maximum divided by its support's radius
-    bool must_search)
+    bool must_search,
+    bool use_drew_model)
 {
     KRATOS_TRY
 
@@ -327,7 +329,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
         for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
             ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j]);
+            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
         }
 
         // if (mVariables.Is(variable, "FluidTimeFiltered")){ // average current avalue and previous (averaged) value
@@ -1007,16 +1009,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ComputeH
     const ParticleType& particle,
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
-    const VariableData *r_destination_variable)
+    const VariableData *r_destination_variable,
+    bool use_drew_model)
 {
     if (*r_destination_variable == GetBodyForcePerUnitMassVariable()){
         //TransferByAveraging(p_node, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
-        TransferByAveraging(particle, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE);
+        TransferByAveraging(particle, neighbours, weights, GetBodyForcePerUnitMassVariable(), HYDRODYNAMIC_FORCE, use_drew_model);
     }
 
     if (*r_destination_variable == PARTICLE_VEL_FILTERED){
         //TransferByAveraging(p_node, neighbours, weights, TIME_AVERAGED_ARRAY_3, VELOCITY);
-        TransferByAveraging(particle, neighbours, weights, PARTICLE_VEL_FILTERED, VELOCITY);
+        TransferByAveraging(particle, neighbours, weights, PARTICLE_VEL_FILTERED, VELOCITY, use_drew_model);
     }
 }
 
@@ -1432,7 +1435,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
     const ResultNodesContainerType& neighbours,
     const DistanceType& weights,
     const Variable<array_1d<double, 3> >& r_destination_variable,
-    const Variable<array_1d<double, 3> >& r_origin_variable)
+    const Variable<array_1d<double, 3> >& r_origin_variable,
+    bool use_drew_model)
 {
     const Node<3>& node = particle.GetGeometry()[0];
     if (node.IsNot(INSIDE)){
@@ -1446,9 +1450,17 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             const double area = neighbours[i]->FastGetSolutionStepValue(NODAL_AREA);
             const double fluid_density = neighbours[i]->FastGetSolutionStepValue(DENSITY);
-            const double fluid_fraction =  neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            const double fluid_fraction = neighbours[i]->FastGetSolutionStepValue(FLUID_FRACTION);
+            double denominator;
             array_1d<double, 3> contribution;
-            const double denominator = area * fluid_density * fluid_fraction;
+
+            if (use_drew_model) {
+                denominator = area * fluid_density;
+            }
+            else{
+                denominator = area * fluid_density * fluid_fraction;
+            }
+
             if (denominator < 1.0e-15){
                 noalias(contribution) = - weights[i] * origin_data;
             }
