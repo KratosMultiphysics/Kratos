@@ -48,6 +48,12 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///@}
+    ///@name Local Flags
+    ///@{
+
+    KRATOS_DEFINE_LOCAL_FLAG(DO_NOT_CREATE_TESSELLATION_ON_SLAVE);
+
+    ///@}
     ///@name Type Definitions
     ///@{
 
