@@ -29,8 +29,8 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/fluid_dynamics_application_variables.h"
-#include "../FluidDynamicsApplication/custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "fluid_dynamics_application_variables.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "swimming_dem_application_variables.h"
 
 

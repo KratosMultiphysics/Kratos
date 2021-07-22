@@ -150,6 +150,75 @@ namespace Kratos
                     }
                 }
 
+                // Pressure follower loads
+                if (this->Has(PRESSURE_FOLLOWER_LOAD))
+                {
+                    const double pressure_follower_load = this->GetValue(PRESSURE_FOLLOWER_LOAD);
+                    const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(point_number);
+
+                    array_1d<double, 3> normal = r_geometry.Normal(point_number);
+                    normal = normal / norm_2(normal);
+
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        IndexType index = 3 * i;
+                        f[index]     += normal[0] * pressure_follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 1] += normal[1] * pressure_follower_load * r_N(point_number, i) * d_weight;
+                        f[index + 2] += normal[2] * pressure_follower_load * r_N(point_number, i) * d_weight;
+                    }
+
+                    // compute the load stiffness matrix due to the follower load
+                    // a. compute the basis functions and its first derivative
+                    Matrix N = ZeroMatrix(3, mat_size);
+                    Matrix DN_DXi = ZeroMatrix(3, mat_size);
+                    Matrix DN_DEta = ZeroMatrix(3, mat_size);
+
+                    for (IndexType i = 0; i < number_of_nodes; i++)
+                    {
+                        IndexType index = 3 * i;
+
+                        N(0, index) = r_N(point_number, i);
+                        N(1, index + 1) = r_N(point_number, i);
+                        N(2, index + 2) = r_N(point_number, i);
+
+                        DN_DXi(0, index) = r_DN_De(i, 0);
+                        DN_DXi(1, index + 1) = r_DN_De(i, 0);
+                        DN_DXi(2, index + 2) = r_DN_De(i, 0);
+
+                        DN_DEta(0, index) = r_DN_De(i, 1);
+                        DN_DEta(1, index + 1) = r_DN_De(i, 1);
+                        DN_DEta(2, index + 2) = r_DN_De(i, 1);
+                    }
+
+                    // b. get the base vectors a1 and a2
+                    Matrix J;
+                    r_geometry.Jacobian(J, point_number);
+
+                    array_1d<double, 3> a1 = column(J, 0);
+                    array_1d<double, 3> a2 = column(J, 1);
+
+                    // c. formulate the cross product (skew symmetric) matrices a1x and a2x
+                    Matrix a1x = ZeroMatrix(3,3);
+                    Matrix a2x = ZeroMatrix(3,3);
+
+                    a1x(0,1) = -a1[2];
+                    a1x(0,2) = a1[1];
+                    a1x(1,2) = -a1[0];
+                    a1x(1,0) = -a1x(0,1);
+                    a1x(2,0) = -a1x(0,2);
+                    a1x(2,1) = -a1x(1,2);
+
+                    a2x(0,1) = a2[2];
+                    a2x(0,2) = -a2[1];
+                    a2x(1,2) = a2[0];
+                    a2x(1,0) = a2x(0,1);
+                    a2x(2,0) = a2x(0,2);
+                    a2x(2,1) = a2x(1,2);
+
+                    // d. compute the left hand side
+                    noalias(rLeftHandSideMatrix) -= integration_weight * pressure_follower_load * (prod(trans(N), (prod(a2x, DN_DXi) + prod(a1x, DN_DEta))));
+                }
+
                 // Assembly
                 noalias(rRightHandSideVector) += f;
             }

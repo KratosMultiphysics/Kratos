@@ -29,6 +29,7 @@ class WaveSolver(ShallowWaterBaseSolver):
     def _SetProcessInfo(self):
         super()._SetProcessInfo()
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
 
     def _CreateScheme(self):
         order = self.settings["time_integration_order"].GetInt()
@@ -39,6 +40,7 @@ class WaveSolver(ShallowWaterBaseSolver):
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""{
             "time_integration_order"     : 2,
+            "relative_dry_height"        : 0.1,
             "stabilization_factor"       : 0.01
         }""")
         default_settings.AddMissingParameters(super().GetDefaultParameters())
