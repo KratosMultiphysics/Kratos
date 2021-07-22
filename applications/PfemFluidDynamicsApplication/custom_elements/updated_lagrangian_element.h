@@ -694,6 +694,26 @@ namespace Kratos
       }
     }
 
+    void EvaluateGradientDifferenceInPoint(array_1d<double, TDim> &rResult,
+                                           const Kratos::Variable<double> &Var,
+                                           const ShapeFunctionDerivativesType &rDN_DX,
+                                           const double weight)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      const SizeType NumNodes = rGeom.PointsNumber();
+
+      const double &var = (1.0 + weight) * rGeom[0].FastGetSolutionStepValue(Var, 0) - rGeom[0].FastGetSolutionStepValue(Var, 1);
+      for (SizeType d = 0; d < TDim; ++d)
+        rResult[d] = rDN_DX(0, d) * var;
+
+      for (SizeType i = 1; i < NumNodes; i++)
+      {
+        const double &var = (1.0 + weight) * rGeom[i].FastGetSolutionStepValue(Var, 0) - rGeom[i].FastGetSolutionStepValue(Var, 1);
+        for (SizeType d = 0; d < TDim; ++d)
+          rResult[d] += rDN_DX(i, d) * var;
+      }
+    }
+
     void EvaluateDivergenceInPoint(double &rResult,
                                    const Kratos::Variable<array_1d<double, 3>> &Var,
                                    const ShapeFunctionDerivativesType &rDN_DX)
@@ -747,7 +767,7 @@ namespace Kratos
       GeometryType &rGeom = this->GetGeometry();
       double deltaX = rGeom[idB].X() - rGeom[idA].X();
       double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
-      double elementSize = sqrt(deltaX * deltaX + deltaY * deltaY); // this is just to have an idea of the size of the element
+      double elementSize = sqrt(deltaX * deltaX + deltaY * deltaY);
       if (fabs(deltaX) > fabs(deltaY))
       { //to avoid division by zero or small numbers
         NormalVector[0] = -deltaY / deltaX;
@@ -766,6 +786,42 @@ namespace Kratos
       const array_1d<double, 3> MeanPoint = (rGeom[idB].Coordinates() + rGeom[idA].Coordinates()) * 0.5;
       const array_1d<double, 3> DistanceA = rGeom[otherId].Coordinates() - (MeanPoint + NormalVector * elementSize);
       const array_1d<double, 3> DistanceB = rGeom[otherId].Coordinates() - (MeanPoint - NormalVector * elementSize);
+      const double normA = DistanceA[0] * DistanceA[0] + DistanceA[1] * DistanceA[1];
+      const double normB = DistanceB[0] * DistanceB[0] + DistanceB[1] * DistanceB[1];
+      if (normB > normA)
+      {
+        NormalVector *= -1.0;
+      }
+    }
+
+    void GetOutwardsUnitNormalForTwoPoints(array_1d<double, 3> &NormalVector,
+                                           unsigned int idA,
+                                           unsigned int idB,
+                                           unsigned int otherId,
+                                           double &edgeLength)
+    {
+      GeometryType &rGeom = this->GetGeometry();
+      double deltaX = rGeom[idB].X() - rGeom[idA].X();
+      double deltaY = rGeom[idB].Y() - rGeom[idA].Y();
+      edgeLength = sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (fabs(deltaX) > fabs(deltaY))
+      { //to avoid division by zero or small numbers
+        NormalVector[0] = -deltaY / deltaX;
+        NormalVector[1] = 1.0;
+        double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1];
+        NormalVector *= 1.0 / sqrt(normNormal);
+      }
+      else
+      {
+        NormalVector[0] = 1.0;
+        NormalVector[1] = -deltaX / deltaY;
+        double normNormal = NormalVector[0] * NormalVector[0] + NormalVector[1] * NormalVector[1];
+        NormalVector *= 1.0 / sqrt(normNormal);
+      }
+      //to determine if the computed normal outwards or inwards
+      const array_1d<double, 3> MeanPoint = (rGeom[idB].Coordinates() + rGeom[idA].Coordinates()) * 0.5;
+      const array_1d<double, 3> DistanceA = rGeom[otherId].Coordinates() - (MeanPoint + NormalVector * edgeLength);
+      const array_1d<double, 3> DistanceB = rGeom[otherId].Coordinates() - (MeanPoint - NormalVector * edgeLength);
       const double normA = DistanceA[0] * DistanceA[0] + DistanceA[1] * DistanceA[1];
       const double normB = DistanceB[0] * DistanceB[0] + DistanceB[1] * DistanceB[1];
       if (normB > normA)

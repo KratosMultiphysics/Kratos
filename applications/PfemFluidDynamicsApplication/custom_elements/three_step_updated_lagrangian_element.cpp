@@ -155,6 +155,7 @@ namespace Kratos
     const unsigned int NumGauss = GaussWeights.size();
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize, LocalSize);
+    MatrixType ViscousMatrix = ZeroMatrix(LocalSize, LocalSize);
 
     const unsigned int schemeOrder = 2;
     double theta_velocity = 1.0;
@@ -197,17 +198,25 @@ namespace Kratos
 
       // Add RHS contributions to the local system equation
       AddMomentumRHSTerms(rRightHandSideVector, Density, BodyForce, oldPressureContribution, rN, rDN_DX, GaussWeight);
-      //AddExternalForces(rRightHandSideVector, Density, rN, GaussWeight);
+      // AddExternalForces(rRightHandSideVector, Density, rN, GaussWeight);
 
       // Add viscous term
       const double ViscousCoeff = Viscosity * GaussWeight;
       this->AddViscousTerm(rLeftHandSideMatrix, rDN_DX, ViscousCoeff, theta_velocity);
+      
+      this->AddViscousTerm(ViscousMatrix, rDN_DX, ViscousCoeff, 1.0);
     }
 
     // Add residual of previous iteration to RHS
     VectorType VelocityValues = ZeroVector(LocalSize);
     this->GetVelocityValues(VelocityValues, 0);
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, VelocityValues);
+    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, VelocityValues);
+
+    VectorType VelocityValuesTheta = ZeroVector(LocalSize);
+    this->GetVelocityValues(VelocityValuesTheta, 1);
+    VelocityValuesTheta *= (1.0 - theta_velocity);
+    noalias(VelocityValuesTheta) += VelocityValues * theta_velocity;
+    noalias(rRightHandSideVector) -= prod(ViscousMatrix, VelocityValuesTheta);
 
     // Add dynamic term
     const double TimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -360,14 +369,34 @@ namespace Kratos
                                                                   const double Weight)
   {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
     SizeType FirstRow = 0;
 
     array_1d<double, 3> VolumeAcceleration(3, 0.0);
+
     this->EvaluateInPoint(VolumeAcceleration, VOLUME_ACCELERATION, rN);
+
     for (SizeType i = 0; i < NumNodes; ++i)
     {
       if (this->GetGeometry()[i].SolutionStepsDataHas(VOLUME_ACCELERATION))
-      {
+      { // it must be checked once at the begining only
+
+        // // stored body force information for the closed domain test with analytical solution
+        // double posX = (this->GetGeometry()[0].X() + this->GetGeometry()[1].X() + this->GetGeometry()[2].X()) / 3.0;
+        // double posY = (this->GetGeometry()[0].Y() + this->GetGeometry()[1].Y() + this->GetGeometry()[2].Y()) / 3.0;
+        // double coeffX = (12.0 - 24.0 * posY) * pow(posX, 4);
+        // coeffX += (-24.0 + 48.0 * posY) * pow(posX, 3);
+        // coeffX += (-48.0 * posY + 72.0 * pow(posY, 2) - 48.0 * pow(posY, 3) + 12.0) * pow(posX, 2);
+        // coeffX += (-2.0 + 24.0 * posY - 72.0 * pow(posY, 2) + 48.0 * pow(posY, 3)) * posX;
+        // coeffX += 1.0 - 4.0 * posY + 12.0 * pow(posY, 2) - 8.0 * pow(posY, 3);
+        // double coeffY = (8.0 - 48.0 * posY + 48.0 * pow(posY, 2)) * pow(posX, 3);
+        // coeffY += (-12.0 + 72.0 * posY - 72.0 * pow(posY, 2)) * pow(posX, 2);
+        // coeffY += (4.0 - 24.0 * posY + 48.0 * pow(posY, 2) - 48.0 * pow(posY, 3) + 24.0 * pow(posY, 4)) * posX;
+        // coeffY += -12.0 * pow(posY, 2) + 24.0 * pow(posY, 3) - 12.0 * pow(posY, 4);
+        // rRHSVector[FirstRow] += Weight * Density * rN[i] * VolumeAcceleration[0] * coeffX;
+        // rRHSVector[FirstRow + 1] += Weight * Density * rN[i] * VolumeAcceleration[1] * coeffY;
+        ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
         for (SizeType d = 0; d < TDim; ++d)
         {
           // Volume Acceleration

@@ -278,12 +278,16 @@ namespace Kratos
           rCurrentProcessInfo.SetValue(BAD_VELOCITY_CONVERGENCE, false);
           rCurrentProcessInfo.SetValue(BAD_PRESSURE_CONVERGENCE, false);
           converged = true;
+          //double tensilStressSign = -1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
           KRATOS_INFO("ThreeStepVPStrategy") << "V-P strategy converged in " << it + 1 << " iterations." << std::endl;
           break;
         }
         else if (it == (maxNonLinearIterations - 1) && it != 0)
         {
+          //double tensilStressSign = -1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
       }
