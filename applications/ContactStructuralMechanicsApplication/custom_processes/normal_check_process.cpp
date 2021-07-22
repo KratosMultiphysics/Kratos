@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
@@ -133,6 +133,7 @@ void NormalCheckProcess::Execute()
         }
         const GeometryType::GeometriesArrayType& r_boundary = r_geometry.GenerateBoundariesEntities();
         for (GeometryType& r_face : r_boundary) {
+            boundary_face = true;
             for (auto& r_node : r_face) {
                 if (r_node.IsNot(INTERFACE)) {
                     boundary_face = false;
@@ -147,8 +148,26 @@ void NormalCheckProcess::Execute()
                 if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
                     it_elem->Set(MARKER);
                     KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
+                    continue; // Element inverted just once
                 }
             }
+        }
+    }
+
+    // Invert elements
+    MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
+
+    // We re-compute the normals
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+
+    // After recompute the normals we check also the conditions
+    #pragma omp parallel for firstprivate(aux_coords,aux_perturbed_coords)
+    for(int i = 0; i < number_of_elements; ++i) {
+        auto it_elem = it_elem_begin + i;
+        const auto& r_geometry = it_elem->GetGeometry();
+        if (r_geometry.WorkingSpaceDimension() > r_geometry.LocalSpaceDimension()) {
+            KRATOS_INFO("NormalCheckProcess") << "The element: " <<  it_elem->Id() << " is a slender element (beam, shell, membrane...). It will be assumed that the normal is properly oriented" << std::endl;
+            continue;
         }
 
         // Check nodes resulting normal, so the conditions are inverted
@@ -165,12 +184,8 @@ void NormalCheckProcess::Execute()
                 }
             }
         }
-
-        boundary_face = true;
     }
 
-    // Invert elements
-    MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
 
     // Auxiliar boolean
     bool inverted_condition = false;
