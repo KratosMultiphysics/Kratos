@@ -16,7 +16,7 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
     The import of meshes is done once in the beginning
     """
     def __init__(self, settings, model, solver_name):
-        super(ExternalSolverWrapper, self).__init__(settings, model, solver_name)
+        super().__init__(settings, model, solver_name)
 
         settings_defaults = KM.Parameters("""{
             "import_meshes"    : [ ],
@@ -30,7 +30,7 @@ class ExternalSolverWrapper(CoSimulationSolverWrapper):
         model_part_utilities.AllocateHistoricalVariablesFromCouplingDataSettings(self.settings["data"], self.model, self.name)
 
     def Initialize(self):
-        super(ExternalSolverWrapper, self).Initialize()
+        super().Initialize()
 
         for model_part_name in self.settings["solver_wrapper_settings"]["import_meshes"].GetStringArray():
             interface_config = { "model_part_name" : model_part_name }
