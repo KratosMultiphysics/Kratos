@@ -120,10 +120,8 @@ void NormalCheckProcess::Execute()
     // Declare auxiliar coordinates
     CoordinatesArrayType aux_coords, aux_perturbed_coords;
 
-    // Auxiliar boolean
-    bool boundary_face = true;
-
-    #pragma omp parallel for firstprivate(boundary_face,aux_coords,aux_perturbed_coords)
+    // Iterate over elements
+    #pragma omp parallel for firstprivate(aux_coords,aux_perturbed_coords)
     for(int i = 0; i < number_of_elements; ++i) {
         auto it_elem = it_elem_begin + i;
         const auto& r_geometry = it_elem->GetGeometry();
@@ -133,23 +131,19 @@ void NormalCheckProcess::Execute()
         }
         const GeometryType::GeometriesArrayType& r_boundary = r_geometry.GenerateBoundariesEntities();
         for (GeometryType& r_face : r_boundary) {
-            boundary_face = true;
             for (auto& r_node : r_face) {
                 if (r_node.IsNot(INTERFACE)) {
-                    boundary_face = false;
-                    break;
+                    continue;
                 }
             }
-            if (boundary_face) {
-                // First check if the elements are inverted
-                r_face.PointLocalCoordinates(aux_coords, r_face.Center());
-                const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
-                aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
-                if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
-                    it_elem->Set(MARKER);
-                    KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
-                    continue; // Element inverted just once
-                }
+            // First check if the elements are inverted
+            r_face.PointLocalCoordinates(aux_coords, r_face.Center());
+            const array_1d<double, 3> normal = r_face.UnitNormal(aux_coords);
+            aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
+            if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
+                it_elem->Set(MARKER);
+                KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
+                continue; // Element inverted just once
             }
         }
     }
