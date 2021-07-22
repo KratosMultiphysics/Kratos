@@ -527,14 +527,14 @@ def AssembleTestSuites():
             #TALMLargeDisplacementPatchTestTetra,
             #TALMLargeDisplacementPatchTestHexa,
             #TALMMultiLayerContactTest,
-            #TALMSelfContactContactTest, # TODO: Fix this
+            #TALMSelfContactContactTest,
             #TComponentsALMTaylorPatchDynamicTestContact,
             #TComponentsALMMeshMovingMatchingTestContact,
             #TComponentsALMMeshMovingNotMatchingTestContact,
             #TComponentsALMLargeDisplacementPatchTestTetra,
             #TComponentsALMLargeDisplacementPatchTestHexa,
             #TComponentsALMMultiLayerContactTest,
-            #TComponentsALMSelfContactContactTest, # TODO: Fix this
+            #TComponentsALMSelfContactContactTest,
             ##TMultiLayerContactTest,
         #])
     #)
