@@ -6,6 +6,20 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 import time as timer
 
+
+def _AddConditionsFromParent(parent, child):
+    node_ids = set([node.Id for node in child.Nodes])
+    conditions = []
+    for condition in parent.Conditions:
+        all_nodes_found = True
+        for node in condition.GetNodes():
+            if node.Id not in node_ids:
+                all_nodes_found = False
+                break
+        if all_nodes_found:
+            conditions.append(condition.Id)
+    child.AddConditions(conditions)
+
 # ==============================================================================
 class FaceAngleResponseFunction(ResponseFunctionInterface):
     """
@@ -80,8 +94,14 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
         only = self.response_settings["only"].GetString()
         if only != "":
             only_part = self.model.GetModelPart(only)
+            if only_part.NumberOfConditions() == 0:
+                _AddConditionsFromParent(self.model_part, only_part)
+                Logger.PrintWarning("FaceAngleResponse", f"Automatically added {only_part.NumberOfConditions()} conditions to model_part '{only_part.Name}'.")
         else:
             only_part = self.model_part
+
+        if only_part.NumberOfConditions() == 0:
+            raise RuntimeError(f"The model_part '{only_part.Name}' does not have any surface conditions!")
 
         self.response_function_utility = KSO.FaceAngleResponseFunctionUtility(only_part, self.response_settings)
 
@@ -112,7 +132,7 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
 
     def GetNodalGradient(self, variable):
         if variable != KM.SHAPE_SENSITIVITY:
-            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
+            raise RuntimeError(f"GetNodalGradient: No gradient for {variable.Name}!")
         gradient = {}
         for node in self.model_part.Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(variable)
