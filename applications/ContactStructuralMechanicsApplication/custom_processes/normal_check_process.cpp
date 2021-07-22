@@ -142,8 +142,25 @@ void NormalCheckProcess::Execute()
             aux_perturbed_coords = r_face.Center() + length_proportion * r_face.Length() * normal;
             if (r_geometry.IsInside(aux_perturbed_coords, aux_coords, check_threshold)) {
                 it_elem->Set(MARKER);
+                for (auto& r_node : r_face) {
+                    r_node.Set(MARKER);
+                }
                 KRATOS_INFO("NormalCheckProcess") << "Normal inverted in element: " << it_elem->Id() << " the corresponding element will be inverted" << std::endl;
                 continue; // Element inverted just once
+            }
+        }
+    }
+
+    // Check conditions
+    #pragma omp parallel for
+    for(int i = 0; i < number_of_conditions; ++i) {
+        auto it_cond = it_cond_begin + i;
+        const auto& r_geometry = it_cond->GetGeometry();
+
+        for (auto& r_node : r_geometry) {
+            if (r_node.Is(MARKER)) {
+                it_cond->Set(MARKER);
+                break;
             }
         }
     }
@@ -151,8 +168,16 @@ void NormalCheckProcess::Execute()
     // Invert elements
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Element, IndexedObject>>(r_elements_array, MARKER);
 
+    // Invert conditions
+    MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>(r_conditions_array, MARKER);
+
     // We re-compute the normals
     NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+
+    // Reset flags
+    VariableUtils().ResetFlag(MARKER, r_nodes_array);
+    VariableUtils().ResetFlag(MARKER, r_elements_array);
+    VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
     // After recompute the normals we check also the conditions
     #pragma omp parallel for firstprivate(aux_coords,aux_perturbed_coords)
@@ -180,26 +205,17 @@ void NormalCheckProcess::Execute()
         }
     }
 
-
-    // Auxiliar boolean
-    bool inverted_condition = false;
-
-    #pragma omp parallel for firstprivate(inverted_condition)
+    #pragma omp parallel for
     for(int i = 0; i < number_of_conditions; ++i) {
         auto it_cond = it_cond_begin + i;
         const auto& r_geometry = it_cond->GetGeometry();
 
         for (auto& r_node : r_geometry) {
             if (r_node.Is(MARKER)) {
-                inverted_condition = true;
+                it_cond->Set(MARKER);
                 break;
             }
         }
-        if (inverted_condition) {
-            it_cond->Set(MARKER);
-        }
-
-        inverted_condition = false;
     }
 
     // Invert conditions
@@ -207,7 +223,6 @@ void NormalCheckProcess::Execute()
 
     // Reset flags
     VariableUtils().ResetFlag(MARKER, r_nodes_array);
-    VariableUtils().ResetFlag(MARKER, r_elements_array);
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
     // Reassign flags
