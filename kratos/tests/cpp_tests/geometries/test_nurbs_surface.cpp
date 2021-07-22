@@ -152,37 +152,6 @@ namespace Testing {
             points, p, q, knot_u, knot_v);
     }
 
-    NurbsSurfaceGeometry<3, PointerVector<NodeType>> GenerateReferenceNodeSurfaceWithWeightVector() {
-        PointerVector<NodeType> points;
-
-        points.push_back(NodeType::Pointer(new NodeType(1, 0, 5, 0)));
-        points.push_back(NodeType::Pointer(new NodeType(2, 5, 5, 0)));
-        points.push_back(NodeType::Pointer(new NodeType(3, 10, 5, -4)));
-        points.push_back(NodeType::Pointer(new NodeType(4, 0, 0, 0)));
-        points.push_back(NodeType::Pointer(new NodeType(5, 5, 0, 0)));
-        points.push_back(NodeType::Pointer(new NodeType(6, 10, 0, -4)));
-
-        Vector knot_u = ZeroVector(4);
-        knot_u[0] = 0.0;
-        knot_u[1] = 0.0;
-        knot_u[2] = 10.0;
-        knot_u[3] = 10.0;
-        Vector knot_v = ZeroVector(2);
-        knot_v[0] = 0.0;
-        knot_v[1] = 5.0;
-
-        int p = 2;
-        int q = 1;
-
-        Vector weights(6);
-        for (IndexType i = 0; i < 6; i++) {
-            weights[i] = 1.0;
-        }
-
-        return NurbsSurfaceGeometry<3, PointerVector<NodeType>>(
-            points, p, q, knot_u, knot_v, weights);
-    }
-
     NurbsSurfaceGeometry<3, PointerVector<Point>> GenerateReferenceQuarterSphereGeometry()
     {
         NurbsSurfaceGeometry<3, PointerVector<Point>>::PointsArrayType points;
@@ -523,7 +492,7 @@ namespace Testing {
 
     /// Check refinement of nurbs surface in direction u.
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceRefinementU, KratosCoreNurbsGeometriesFastSuite) {
-        auto surface = GenerateReferenceNodeSurfaceWithWeightVector();
+        auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
         std::vector<double> knots_to_insert_u;
@@ -572,7 +541,7 @@ namespace Testing {
 
     /// Check refinement of nurbs surface in direction u.
     KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceRefinementV, KratosCoreNurbsGeometriesFastSuite) {
-        auto surface = GenerateReferenceNodeSurfaceWithWeightVector();
+        auto surface = GenerateReferenceNodeSurface();
 
         // Check general information, input to ouput
         std::vector<double> knots_to_insert_v;
