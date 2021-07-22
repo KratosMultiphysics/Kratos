@@ -3,19 +3,28 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
+# Auxiliary function to check the parallel type at runtime
+#TODO: Delete this once we come up with the final factory-based design
+def _CheckIsDistributed():
+    if KratosMultiphysics.ParallelEnvironment.HasDataCommunicator("World"):
+        world_data_comm = KratosMultiphysics.ParallelEnvironment.GetDataCommunicator("World")
+        return world_data_comm.IsDistributed()
+    else:
+        return False
+
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # If required, import parallel applications and modules
-if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+if _CheckIsDistributed():
     import KratosMultiphysics.mpi as KratosMPI
     import KratosMultiphysics.MetisApplication as KratosMetis
     import KratosMultiphysics.TrilinosApplication as KratosTrilinos
     import KratosMultiphysics.mpi.distributed_import_model_part_utility as distributed_import_model_part_utility
 
 # Importing factories
-if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+if _CheckIsDistributed():
     import KratosMultiphysics.TrilinosApplication.trilinos_linear_solver_factory as linear_solver_factory
 else:
     import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
@@ -238,7 +247,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
         # If MPI distributed, add the PARTITION_INDEX
-        if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+        if _CheckIsDistributed():
             target_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Variables ADDED")
@@ -257,7 +266,7 @@ class ConvectionDiffusionSolver(PythonSolver):
     def ImportModelPart(self):
         """This function imports the ModelPart"""
         if self.solver_imports_model_part:
-            if not KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+            if not _CheckIsDistributed():
                 self._ImportModelPart(self.main_model_part, self.settings["model_import_settings"])
             else:
                 self.distributed_model_part_importer = distributed_import_model_part_utility.DistributedImportModelPartUtility(
@@ -278,7 +287,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._set_and_fill_buffer()
 
         # Create the MPI communicators
-        if KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().IsDistributed():
+        if _CheckIsDistributed():
             self.distributed_model_part_importer.CreateCommunicators()
 
         if (self.settings["echo_level"].GetInt() > 0):
