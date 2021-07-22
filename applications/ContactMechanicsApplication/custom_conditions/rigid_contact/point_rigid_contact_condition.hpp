@@ -279,27 +279,27 @@ public:
     /**
      * Called at the beginning of each iteration
      */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each iteration
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each iteration
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 
     //************* GETTING METHODS
@@ -308,13 +308,13 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo ) override;
+		    const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo ) override;
+			  const ProcessInfo& rCurrentProcessInfo ) const override;
 
     /**
      * Sets on rValues the nodal displacements
@@ -347,7 +347,7 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			      VectorType& rRightHandSideVector,
-			      ProcessInfo& rCurrentProcessInfo ) override;
+			      const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -363,7 +363,7 @@ public:
 			      const std::vector< Variable< MatrixType > >& rLHSVariables,
 			      std::vector< VectorType >& rRightHandSideVectors,
 			      const std::vector< Variable< VectorType > >& rRHSVariables,
-			      ProcessInfo& rCurrentProcessInfo) override;
+			      const ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -372,7 +372,7 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo ) override;
+				const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -384,7 +384,7 @@ public:
      */
     void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 				const std::vector< Variable< VectorType > >& rRHSVariables,
-				ProcessInfo& rCurrentProcessInfo) override;
+				const ProcessInfo& rCurrentProcessInfo);
 
     /**
       * this is called during the assembling process in order
@@ -394,7 +394,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo ) override;
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
       * this is called during the assembling process in order
@@ -404,7 +404,7 @@ public:
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo ) override;
+        const ProcessInfo& rCurrentProcessInfo ) override;
 
 
     /**
@@ -430,7 +430,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
 
     /**
@@ -527,7 +527,7 @@ protected:
      * Calculates the condition contributions
      */
     virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
-					  ProcessInfo& rCurrentProcessInfo);
+					  const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

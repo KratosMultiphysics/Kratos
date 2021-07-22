@@ -91,15 +91,15 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
+      Element::Pointer p_element = model_part.pGetElement(1);
 
-      AssignPotentialsToNormalPerturbationElement(pElement);
+      AssignPotentialsToNormalPerturbationElement(p_element);
 
       // Compute RHS
       Vector RHS = ZeroVector(3);
 
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateRightHandSide(RHS, r_current_process_info);
+      p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
       // Check the RHS values
       std::vector<double> reference{5.5, -5, -0.5};
@@ -116,15 +116,15 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
+      Element::Pointer p_element = model_part.pGetElement(1);
 
-      AssignPotentialsToNormalPerturbationElement(pElement);
+      AssignPotentialsToNormalPerturbationElement(p_element);
 
       // Compute LHS
       Matrix LHS = ZeroMatrix(3,3);
 
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+      p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
       // Check the LHS values
       std::array<double, 9> reference{0.5, -0.5, 0, -0.5, 1, -0.5, 0.0, -0.5, 0.5};
@@ -142,21 +142,21 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
+      Element::Pointer p_element = model_part.pGetElement(1);
 
       BoundedVector<double,3> distances = AssignDistancesToPerturbationElement();
 
-      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-      pElement->GetValue(WAKE) = true;
+      p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+      p_element->GetValue(WAKE) = true;
 
       const std::array<double, 6> potential{1.5348, 2.31532, 3.2874, 4.1642, 6.8254, 5.174};
-      AssignPotentialsToWakePerturbationElement(pElement, distances, potential);
+      AssignPotentialsToWakePerturbationElement(p_element, distances, potential);
 
       // Compute RHS
       Vector RHS = ZeroVector(6);
 
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateRightHandSide(RHS, r_current_process_info);
+      p_element->CalculateRightHandSide(RHS, r_current_process_info);
 
       // Check the RHS values
       std::vector<double> reference{5.39026,2.252080000000001,-1.31174,0.9403400000000008,-7.1563,0.8256999999999999};
@@ -170,21 +170,21 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
+      Element::Pointer p_element = model_part.pGetElement(1);
 
       BoundedVector<double,3> distances = AssignDistancesToPerturbationElement();
 
-      pElement->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
-      pElement->GetValue(WAKE) = true;
+      p_element->GetValue(WAKE_ELEMENTAL_DISTANCES) = distances;
+      p_element->GetValue(WAKE) = true;
 
       const std::array<double, 6> potential{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
-      AssignPotentialsToWakePerturbationElement(pElement, distances, potential);
+      AssignPotentialsToWakePerturbationElement(p_element, distances, potential);
 
       // Compute LHS
       Matrix LHS = ZeroMatrix(6,6);
 
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->CalculateLeftHandSide(LHS, r_current_process_info);
+      p_element->CalculateLeftHandSide(LHS, r_current_process_info);
 
       // Check the LHS values
       std::array<double, 36> reference
@@ -210,20 +210,20 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
+      Element::Pointer p_element = model_part.pGetElement(1);
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->GetDofList(ElementalDofList, r_current_process_info);
+      p_element->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 3; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
+      p_element->EquationIdVector(EquationIdVector, r_current_process_info);
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
@@ -241,26 +241,26 @@ namespace Kratos {
       ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
       GenerateIncompressiblePerturbationElement(model_part);
-      Element::Pointer pElement = model_part.pGetElement(1);
-      pElement->SetValue(WAKE, true);
+      Element::Pointer p_element = model_part.pGetElement(1);
+      p_element->SetValue(WAKE, true);
 
       BoundedVector<double,3> distances = AssignDistancesToPerturbationElement();
-      pElement->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
+      p_element->SetValue(WAKE_ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
-        pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
+        p_element->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
       }
 
       Element::DofsVectorType ElementalDofList;
       const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-      pElement->GetDofList(ElementalDofList, r_current_process_info);
+      p_element->GetDofList(ElementalDofList, r_current_process_info);
 
       for (int i = 0; i < 6; i++)
         ElementalDofList[i]->SetEquationId(i);
 
       Element::EquationIdVectorType EquationIdVector;
-      pElement->EquationIdVector(EquationIdVector, r_current_process_info);
+      p_element->EquationIdVector(EquationIdVector, r_current_process_info);
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {

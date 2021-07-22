@@ -82,6 +82,11 @@ public:
     typedef std::size_t SizeType;
     typedef Geometry<Node < 3 > > GeometryType;
 
+    typedef Vector StrainVectorType;
+    typedef Vector StressVectorType;
+    typedef Matrix VoigtSizeMatrixType;           // Constitutive Matrix
+    typedef Matrix DeformationGradientMatrixType; // Def. gradient tensor
+
     /**
      * Counted pointer of ConstitutiveLaw
      */
@@ -217,24 +222,21 @@ public:
 
       /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
 
-      Flags                mOptions;
-      double               mDeterminantF;
+      Flags                                 mOptions;
+      double                                mDeterminantF;
 
-      Vector*              mpStrainVector;
-      Vector*              mpStressVector;
+      StrainVectorType*                    mpStrainVector;
+      StressVectorType*                    mpStressVector;
 
-      const Vector*        mpShapeFunctionsValues;
-      const Matrix*        mpShapeFunctionsDerivatives;
+      const Vector*                        mpShapeFunctionsValues;
+      const Matrix*                        mpShapeFunctionsDerivatives;
 
-      const Matrix*        mpDeformationGradientF;
-      Matrix*              mpConstitutiveMatrix;
+      const DeformationGradientMatrixType* mpDeformationGradientF;
+      VoigtSizeMatrixType*                 mpConstitutiveMatrix;
 
-      const ProcessInfo*   mpCurrentProcessInfo;
-      const Properties*    mpMaterialProperties;
-      const GeometryType*  mpElementGeometry;
-
-
-
+      const ProcessInfo*                   mpCurrentProcessInfo;
+      const Properties*                    mpMaterialProperties;
+      const GeometryType*                  mpElementGeometry;
 
     public:
 
@@ -394,11 +396,11 @@ public:
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
-      void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
+      void SetDeformationGradientF         (const DeformationGradientMatrixType& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
 
-      void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
-      void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};
-      void SetConstitutiveMatrix           (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
+      void SetStrainVector                 (StrainVectorType& rStrainVector)                       {mpStrainVector=&rStrainVector;};
+      void SetStressVector                 (StressVectorType& rStressVector)                       {mpStressVector=&rStressVector;};
+      void SetConstitutiveMatrix           (VoigtSizeMatrixType& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
@@ -424,24 +426,24 @@ public:
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetShapeFunctionsDerivatives()) << "ShapeFunctionsDerivatives is not set!" << std::endl;
           return *mpShapeFunctionsDerivatives;
       }
-      const Matrix& GetDeformationGradientF()
+      const DeformationGradientMatrixType& GetDeformationGradientF()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetDeformationGradientF()) << "DeformationGradientF is not set!" << std::endl;
           return *mpDeformationGradientF;
       }
 
-      Vector& GetStrainVector()
+      StrainVectorType& GetStrainVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStrainVector()) << "StrainVector is not set!" << std::endl;
           return *mpStrainVector;
       }
-      Vector& GetStressVector()
+      StressVectorType& GetStressVector()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetStressVector()) << "StressVector is not set!" << std::endl;
           return *mpStressVector;
       }
 
-      Matrix& GetConstitutiveMatrix()
+      VoigtSizeMatrixType& GetConstitutiveMatrix()
       {
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetConstitutiveMatrix()) << "ConstitutiveMatrix is not set!" << std::endl;
           return *mpConstitutiveMatrix;
@@ -467,11 +469,11 @@ public:
        * Returns the reference to the value of a specified variable with not constant access
        */
 
-      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
-      Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
-      Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
-      Vector& GetStressVector                  (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
-      Matrix& GetConstitutiveMatrix            (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
+      double& GetDeterminantF                                (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
+      StrainVectorType& GetStrainVector                      (StrainVectorType & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
+      DeformationGradientMatrixType& GetDeformationGradientF (DeformationGradientMatrixType & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
+      StressVectorType& GetStressVector                      (StressVectorType & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
+      VoigtSizeMatrixType& GetConstitutiveMatrix             (VoigtSizeMatrixType & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
 
       /**
        * Returns if the different components has been set
@@ -577,7 +579,8 @@ public:
     /**
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
-    void AddInitialStressVectorContribution(Vector& rStressVector, Parameters& rParameterValues) 
+    template<typename TVectorType>
+    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -588,7 +591,8 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    void AddInitialStrainVectorContribution(Vector& rStrainVector, Parameters& rParameterValues)
+    template<typename TVectorType>
+    void AddInitialStrainVectorContribution(TVectorType& rStrainVector)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -599,7 +603,8 @@ public:
     /**
      * @brief Adds the initial strain vector if it is defined in the InitialState
      */
-    void AddInitialDeformationGradientMatrixContribution(Matrix& rF, Parameters& rParameterValues)
+    template<typename TMatrixType>
+    void AddInitialDeformationGradientMatrixContribution(TMatrixType& rF)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();
@@ -848,6 +853,114 @@ public:
      */
     virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
                           array_1d<double, 6 > & rValue);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a scalar function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * Eg: Assume following function (gauss point evaluated):
+     *      \[
+     *          \nu = \nu_{fluid} + \nu_t = \nu_{fluid} + \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *      \]
+     *
+     *      Then in here we use rFunctionVariable = EFFECTIVE_VISCOSITY
+     *
+     *      Then if we want to take derivatives w.r.t. $\omega$ (i.e. rDerivativeVariable = OMEGA).
+     *      So following steps needs to be used.
+     *
+     *           1. First calculate derivatives w.r.t. omega (rDerivativeVariable = OMEGA)
+     *              using the call:
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega} = \frac{\partial \nu_t}{\partial \omega} = -2\frac{y^2}{\omega^3}\frac{\partial k}{\partial x_i}\frac{\partial \omega}{\partial x_i}
+     *                   \]
+     *           2. Then calculate derivatives w.r.t. omega gradients (rDerivativeVariable = OMEGA_GRADIENT_X)
+     *              using the call: (where OMEGA_GRADIENT is a 3D vector with components)
+     *                   CalculateDerivative(Values, EFFECTIVE_VISCOSITY, OMEGA_GRADIENT_X, output);
+     *              The output will hold the following:
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \nabla\omega_x} = \frac{\partial \nu_t}{\partial \nabla\omega_x} =  \left(\frac{y}{\omega}\right)^2 \frac{\partial k}{\partial x_x}
+     *                   \]
+     *              Once you have these outputs, you can transform it to a nodal derivative (eg: discrete adjoint computation)
+     *              within your element by using the chain rule. [Where $c$ is the node index of the geometry.]
+     *                   \[
+     *                       \frac{\partial \nu}{\partial \omega^c} = \frac{\partial \nu}{\partial \omega}\frac{\partial \omega}{\partial \omega^c} + \frac{\partial \nu}{\partial \nabla\omega_i}\frac{\partial \nabla\omega_i}{\partial \omega^c}
+     *                   \]
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<double>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        double& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Vector function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Vector>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Vector& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a Matrix function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<Matrix>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        Matrix& rOutput);
+
+    /**
+     * @brief Calculates derivatives of a given function
+     *
+     * This method calculates derivative of a array_1d<double, 3> function (denoted by rFunctionVariable) w.r.t.
+     * rDerivativeVariable and stores the output in rOutput. The rDerivativeVariable represents
+     * a gauss point scalar variable only.
+     *
+     * @see double overload of this method for more explanations
+     *
+     * @param rParameterValues      Input for the derivative calculation
+     * @param rFunctionVariable     Variable to identify the function for which derivatives are computed
+     * @param rDerivativeVariable   Scalar derivative variable
+     * @param rOutput               Output having the same type as the rFunctionVariable
+     */
+    virtual void CalculateDerivative(
+        Parameters& rParameterValues,
+        const Variable<array_1d<double, 3>>& rFunctionVariable,
+        const Variable<double>& rDerivativeVariable,
+        array_1d<double, 3>& rOutput);
 
 
      /**

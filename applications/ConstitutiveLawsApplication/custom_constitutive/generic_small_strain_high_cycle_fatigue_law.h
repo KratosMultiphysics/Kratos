@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
@@ -77,7 +79,7 @@ public:
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// Definition of the base class
-    //typedef typename GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+    typedef GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -159,6 +161,13 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * returns whether this constitutive Law has specified variable
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
      * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
@@ -174,6 +183,29 @@ public:
     bool Has(const Variable<int>& rThisVariable) override;
 
     /**
+     * @brief Sets the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<bool>& rThisVariable,
+        const bool& Value,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Sets the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    using ConstitutiveLaw::SetValue;
+    void SetValue(
+        const Variable<int>& rThisVariable,
+        const int& rValue,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Sets the value of a specified variable (double)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
@@ -185,24 +217,14 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Sets the value of a specified variable (integer)
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     */
-    using ConstitutiveLaw::SetValue;
-    void SetValue(
-        const Variable<int>& rThisVariable,
-        const int& rValue);
-
-    /**
-     * @brief Returns the value of a specified variable (double)
+     * returns the value of a specified variable
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
+     * @param rValue output: the value of the specified variable
      */
-    double& GetValue(
-        const Variable<double>& rThisVariable,
-        double& rValue) override;
+    bool& GetValue(
+        const Variable<bool>& rThisVariable,
+        bool& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (integer)
@@ -216,12 +238,26 @@ public:
         int& rValue) override;
 
     /**
-     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     * @brief Returns the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
      */
-    bool RequiresFinalizeMaterialResponse() override
-    {
-        return true;
-    }
+    double& GetValue(
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
+
+    /**
+     * @brief Returns the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (matrix)
@@ -312,45 +348,8 @@ private:
     ///@}
     ///@name Access
     ///@{
-    double GetFatigueReductionFactor() {return mFatigueReductionFactor;}
-    void SetFatigueReductionFactor(const double toFred) {mFatigueReductionFactor = toFred;}
-
-    Vector GetPreviousStresses() {return mPreviousStresses;}
-    void SetPreviousStresses(const Vector toPreviousStresses) {mPreviousStresses = toPreviousStresses;}
-
-    double GetMaxStress() {return mMaxStress;}
-    void SetMaxStress(const double toMaxStress) {mMaxStress = toMaxStress;}
-
-    double GetMinStress() {return mMinStress;}
-    void SetMinStress(const double toMinStress) {mMinStress = toMinStress;}
-
-    double GetPreviousMaxStress() {return mPreviousMaxStress;}
-    void SetPreviousMaxStress(const double toPreviousMaxStress) {mPreviousMaxStress = toPreviousMaxStress;}
-
-    double GetPreviousMinStress() {return mPreviousMinStress;}
-    void SetPreviousMinStress(const double toPreviousMinStress) {mPreviousMinStress = toPreviousMinStress;}
-
-    unsigned int GetNumberOfCyclesGlobal() {return mNumberOfCyclesGlobal;}
-    void SetNumberOfCyclesGlobal(const unsigned int toCyclesGlobal) {mNumberOfCyclesGlobal = toCyclesGlobal;}
-
-    unsigned int GetNumberOfCyclesLocal() {return mNumberOfCyclesLocal;}
-    void SetNumberOfCyclesLocal(const unsigned int toCyclesLocal) {mNumberOfCyclesLocal = toCyclesLocal;}
-
-    double GetFatigueReductionParameter() {return mFatigueReductionParameter;}
-    void SetFatigueReductionParameter(const double toFatigueReductionParameter) {mFatigueReductionParameter = toFatigueReductionParameter;}
-
     Vector GetStressVector() {return mStressVector;}
     void SetStressVector(const Vector toStressVector) {mStressVector = toStressVector;}
-
-    bool GetMaxDetected() {return mMaxDetected;}
-    void SetMaxDetected(const bool toMaxDetected){mMaxDetected = toMaxDetected;}
-
-    bool GetMinDetected() {return mMinDetected;}
-    void SetMinDetected(const bool toMinDetected){mMinDetected = toMinDetected;}
-
-    double GetWohlerStress() {return mWohlerStress;}
-    void SetWohlerStress(const double toWohlerStress) {mWohlerStress = toWohlerStress;}
-
     ///@}
     ///@name Member Variables
     ///@{
@@ -367,6 +366,13 @@ private:
     bool mMaxDetected = false; // Maximum's indicator in the current cycle
     bool mMinDetected = false; // Minimum's indicator in the current cycle
     double mWohlerStress = 1.0; // Normalised Wohler stress required for building the life prediction curves (SN curves)
+    double mThresholdStress = 0.0; // Endurance limit of the fatigue model.
+    double mReversionFactorRelativeError = 0.0; // Relative error of the R = Smin / Smax between cycles inducing recalculation of Nlocal and advanciing process.
+    double mMaxStressRelativeError = 0.0; // Relative error of Smax between cycles inducing recalculation of Nlocal and advanciing process.
+    bool mNewCycleIndicator = false; // New cycle identifier required for the advancing process.
+    double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
 
     ///@}
     ///@name Private Operators
@@ -400,6 +406,13 @@ private:
         rSerializer.save("MaxDetected", mMaxDetected);
         rSerializer.save("MinDetected", mMinDetected);
         rSerializer.save("WohlerStress", mWohlerStress);
+        rSerializer.save("ThresholdStress", mThresholdStress);
+        rSerializer.save("ReversionFactorRelativeError", mReversionFactorRelativeError);
+        rSerializer.save("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.save("NewCycleIndicator", mNewCycleIndicator);
+        rSerializer.save("CyclesToFailure", mCyclesToFailure);
+        rSerializer.save("PreviousCycleTime", mPreviousCycleTime);
+        rSerializer.save("Period", mPeriod);
     }
 
     void load(Serializer &rSerializer) override
@@ -418,6 +431,13 @@ private:
         rSerializer.load("MaxDetected", mMaxDetected);
         rSerializer.load("MinDetected", mMinDetected);
         rSerializer.load("WohlerStress", mWohlerStress);
+        rSerializer.load("ThresholdStress", mThresholdStress);
+        rSerializer.load("ReversionFactorRelativeError", mReversionFactorRelativeError);
+        rSerializer.load("MaxStressRelativeError", mMaxStressRelativeError);
+        rSerializer.load("NewCycleIndicator", mNewCycleIndicator);
+        rSerializer.load("CyclesToFailure", mCyclesToFailure);
+        rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
+        rSerializer.load("Period", mPeriod);
     }
     ///@}
 

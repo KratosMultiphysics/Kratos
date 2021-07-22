@@ -5,6 +5,7 @@ import KratosMultiphysics.FemToDemApplication as KratosFemDem
 # import KratosMultiphysics.FemToDemApplication.MainCouplingFemDem as MainCouplingFemDem
 import main_coupling_for_testing
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
 
 def Wait():
     input("Press Something")
@@ -37,15 +38,11 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             ref = -0.3004937948812539
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 50 is not correct')
-        elif self.FEM_Solution.step == 90:
-            ref = -0.9715544613341046
-            if abs((dy-ref)/ref) > tol:
-                raise ValueError('The computed displacement at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 0.7517771156595967
+            ref = 0.6400295473530965
             if abs((dy-ref)/ref) > tol:
                 raise ValueError('The computed displacement at step = 140 is not correct')
-        
+
         vy = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
         if self.FEM_Solution.step == 20:
             ref = -0.9564750000005906
@@ -55,24 +52,21 @@ class MainCouplingFemDemForTestingSolution(main_coupling_for_testing.MainCouplin
             ref = -2.4279750000009126
             if abs((vy-ref)/ref) > tol:
                 raise ValueError('The computed velocity at step = 50 is not correct')
-        elif self.FEM_Solution.step == 90:
-            ref = -1.933665933874924
-            if abs((vy-ref)/ref) > tol:
-                raise ValueError('The computed velocity at step = 90 is not correct')
         elif self.FEM_Solution.step == 140:
-            ref = 6.0908142795684155
+            ref = 5.61095572433878
             if abs((vy-ref)/ref) > tol:
                 raise ValueError('The computed velocity at step = 140 is not correct')
 
 class TestAnalytics(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
 
     @classmethod
     def free_fall(self):
         model = KratosMultiphysics.Model()
-        MainCouplingFemDemForTestingSolution(model, "small_tests/free_fall_contact/").Run()
+
+        MainCouplingFemDemForTestingSolution(model, os.path.join(os.path.abspath(os.path.dirname(__file__)), "small_tests", "free_fall_contact")).Run()
 
 
 

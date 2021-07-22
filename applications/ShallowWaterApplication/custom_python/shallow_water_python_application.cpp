@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_modelers_to_python.h"
 
 
 namespace Kratos
@@ -45,6 +46,7 @@ namespace Python
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
+    AddCustomModelersToPython(m);
 
     // Adding enums
     py::enum_<Framework>(m, "Framework")
@@ -68,7 +70,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FREE_SURFACE_ELEVATION);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VERTICAL_VELOCITY);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FLOW_RATE);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, FLOW_RATE);
 
     // Physical variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BATHYMETRY);
@@ -78,13 +80,18 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CHEZY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERMEABILITY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ATMOSPHERIC_PRESSURE);
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, WIND);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, WIND);
 
     // Auxiliary variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SHOCK_STABILIZATION_FACTOR);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRY_HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RELATIVE_DRY_HEIGHT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DRY_DISCHARGE_PENALTY);
+
+    // Absorbing boundaries variables
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ABSORBING_DISTANCE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DISSIPATION);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, BOUNDARY_VELOCITY);
 
     // Post-process variables
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TOPOGRAPHY_GRADIENT);

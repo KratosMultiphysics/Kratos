@@ -35,6 +35,12 @@ pybind11_add_module(KratosRomApplication MODULE THIN_LTO ${KRATOS_ROM_APPLICATIO
 target_link_libraries(KratosRomApplication PRIVATE KratosRomApplicationCore)
 set_target_properties(KratosRomApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosRomApplicationCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosRomApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosRomApplication PROPERTIES SUFFIX .pyd)
@@ -65,10 +71,9 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosRomApplicationCore)
-    cotire(KratosRomApplication)
-endif(USE_COTIRE MATCHES ON)
-
 install(TARGETS KratosRomApplicationCore DESTINATION libs )
 install(TARGETS KratosRomApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRomApplicationCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRomApplication" PARENT_SCOPE)

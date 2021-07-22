@@ -1,0 +1,177 @@
+{
+    "tolerances": {
+        "model_tolerance": 0.001
+    },
+    "version_number": 1,
+    "breps": [{
+        "brep_id": 6,
+        "faces": [{
+            "brep_id": 1,
+            "swapped_surface_normal": false,
+            "surface": {
+                "is_trimmed": true,
+                "is_rational": false,
+                "degrees": [2, 2],
+                "knot_vectors": [
+                    [0, 0, 0, 3, 6, 9, 12, 12, 12],
+                    [0, 0, 0, 2, 4, 4, 4]
+                ],
+                "control_points": [
+                    [1, [0, 0, 0, 1]],
+                    [2, [1.5, 0, 0, 1]],
+                    [3, [4.5, 0, 0, 1]],
+                    [4, [7.5, 0, 0, 1]],
+                    [5, [10.5, 0, 0, 1]],
+                    [6, [12, 0, 0, 1]],
+                    [7, [0, 1, 0, 1]],
+                    [8, [1.5, 1, 0, 1]],
+                    [9, [4.5, 1, 0, 1]],
+                    [10, [7.5, 1, 0, 1]],
+                    [11, [10.5, 1, 0, 1]],
+                    [12, [12, 1, 0, 1]],
+                    [13, [0, 3, 0, 1]],
+                    [14, [1.5, 3, 0, 1]],
+                    [15, [4.5, 3, 0, 1]],
+                    [16, [7.5, 3, 0, 1]],
+                    [17, [10.5, 3, 0, 1]],
+                    [18, [12, 3, 0, 1]],
+                    [19, [0, 4, 0, 1]],
+                    [20, [1.5, 4, 0, 1]],
+                    [21, [4.5, 4, 0, 1]],
+                    [22, [7.5, 4, 0, 1]],
+                    [23, [10.5, 4, 0, 1]],
+                    [24, [12, 4, 0, 1]]
+                ]
+            },
+            "boundary_loops": [{
+                "loop_type": "outer",
+                "trimming_curves": [{
+                    "trim_index": 0,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 12, 12],
+                        "active_range": [0, 12],
+                        "control_points": [
+                            [25, [0, 0, 0, 1]],
+                            [26, [12, 0, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 1,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 4, 4],
+                        "active_range": [0, 4],
+                        "control_points": [
+                            [27, [12, 0, 0, 1]],
+                            [28, [12, 4, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 2,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 12, 12],
+                        "active_range": [0, 12],
+                        "control_points": [
+                            [29, [12, 4, 0, 1]],
+                            [30, [0, 4, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 3,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 4, 4],
+                        "active_range": [0, 4],
+                        "control_points": [
+                            [31, [0, 4, 0, 1]],
+                            [32, [0, 0, 0, 1]]
+                        ]
+                    }
+                }]
+            }],
+            "embedded_loops": [],
+            "embedded_edges": [],
+            "embedded_points": []
+        }],
+        "edges": [{
+            "brep_id": 4,
+            "3d_curve": {
+                "degree": 2,
+                "knot_vector": [0, 0, 0, 12, 12, 12],
+                "active_range": [0, 12],
+                "control_points": [
+                    [33, [0, 0, 0, 1]],
+                    [34, [6, 0, 0, 1]],
+                    [35, [12, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 0,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 3,
+            "3d_curve": {
+                "degree": 2,
+                "knot_vector": [0, 0, 0, 4, 4, 4],
+                "active_range": [0, 4],
+                "control_points": [
+                    [36, [12, 0, 0, 1]],
+                    [37, [12, 2, 0, 1]],
+                    [38, [12, 4, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 1,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 5,
+            "3d_curve": {
+                "degree": 2,
+                "knot_vector": [-12, -12, -12, 0, 0, 0],
+                "active_range": [-12, 0],
+                "control_points": [
+                    [39, [12, 4, 0, 1]],
+                    [40, [6, 4, 0, 1]],
+                    [41, [0, 4, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 2,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 2,
+            "3d_curve": {
+                "degree": 2,
+                "knot_vector": [-4, -4, -4, 0, 0, 0],
+                "active_range": [-4, 0],
+                "control_points": [
+                    [42, [0, 4, 0, 1]],
+                    [43, [0, 2, 0, 1]],
+                    [44, [0, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 3,
+                "relative_direction": true
+            }]
+        }],
+        "vertices": []
+    }]
+}
