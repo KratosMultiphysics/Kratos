@@ -76,7 +76,7 @@ namespace Kratos
                     const IndexType nb_per_span_u = rParameters["parameters"]["insert_nb_per_span_u"].GetInt();
 
                     std::vector<double> spans_local_space;
-                    p_nurbs_surface->Spans(spans_local_space, 0);
+                    p_nurbs_surface->SpansLocalSpace(spans_local_space, 0);
 
                     std::vector<double> knots_to_insert_u;
                     for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
@@ -111,7 +111,7 @@ namespace Kratos
                     const IndexType nb_per_span_v = rParameters["parameters"]["insert_nb_per_span_v"].GetInt();
 
                     std::vector<double> spans_local_space;
-                    p_nurbs_surface->Spans(spans_local_space, 1);
+                    p_nurbs_surface->SpansLocalSpace(spans_local_space, 1);
 
                     std::vector<double> knots_to_insert_v;
                     for (IndexType i = 0; i < spans_local_space.size() - 1; ++i) {
