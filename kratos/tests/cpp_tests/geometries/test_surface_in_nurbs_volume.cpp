@@ -173,11 +173,8 @@ namespace Testing {
         KRATOS_CHECK_EQUAL( quad_geometries[0].Dimension(), 2 );
 
         // Check geometrical information
-        double local_area_triangle =  surface_in_volume.Area();
-        KRATOS_CHECK_NEAR( local_area_triangle, 0.5*0.5*0.5, 1e-10);
-
-        std::vector<double> local_center_ref = {1.0/6.0, 1.0/3.0, 0.0};
-        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), local_center_ref, 1e-10);
+        double global_area_triangle =  surface_in_volume.Area();
+        KRATOS_CHECK_NEAR( global_area_triangle, 0.5, 1e-10);
 
         CoordinatesArrayType test_point; // Center in Dimension Space
         test_point[0] = 1.0/3.0;
@@ -188,6 +185,7 @@ namespace Testing {
         global_coord = surface_in_volume.GlobalCoordinates(global_coord, test_point);
         std::vector<double> global_center_ref = {1.0/3.0, 2.0/3.0, 0.0};
         KRATOS_CHECK_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
+        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
 
         std::vector<double> normal_ref = {0, 0, 1};
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
@@ -246,16 +244,14 @@ namespace Testing {
         test_point[1] = 0.0;
         test_point[2] = 0.0;
 
-        double local_area_triangle =  surface_in_volume.Area();
-        KRATOS_CHECK_NEAR( local_area_triangle, sqrt(0.5*0.5 + 0.5*0.5), 1e-10);
-
-        std::vector<double> local_center_ref = {0.25, 0.25, 0.5};
-        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), local_center_ref, 1e-10);
+        double global_area_triangle =  surface_in_volume.Area();
+        KRATOS_CHECK_NEAR( global_area_triangle, std::sqrt(2.0)*2.0, 1e-10);
 
         CoordinatesArrayType global_coord;
         global_coord = surface_in_volume.GlobalCoordinates(global_coord, test_point);
         std::vector<double> global_center_ref = {0.5, 0.5, 1.0};
         KRATOS_CHECK_VECTOR_NEAR( global_coord, global_center_ref, 1e-10);
+        KRATOS_CHECK_VECTOR_NEAR(surface_in_volume.Center(), global_center_ref, 1e-10);
 
         std::vector<double> normal_ref = {0.5, -0.5, 0};
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
@@ -263,7 +259,7 @@ namespace Testing {
 
         // Check integration
         KRATOS_CHECK_EQUAL( quad_geometries.size(), 4);
-        double global_area_triangle = 0.0;
+        global_area_triangle = 0.0;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             global_area_triangle += quad_geometries[i].DeterminantOfJacobian(0, integration_method ) *
                 quad_geometries[i].IntegrationPoints()[0].Weight();
@@ -353,21 +349,21 @@ namespace Testing {
 
 
         // Check geometrical information
-        auto center_local = surface_in_volume.Center(); // Returns center of underlying surface in local space.
-        CoordinatesArrayType center_global;
-        center_global = p_nurbs_cuboid->GlobalCoordinates(center_global, center_local);
-        KRATOS_CHECK_VECTOR_NEAR( center_global, center_ref, 1e-10);
-
+        auto center = surface_in_volume.Center();
+        KRATOS_CHECK_VECTOR_NEAR( center, center_ref, 1e-10);
+        double global_area_triangle = surface_in_volume.Area();
+        KRATOS_CHECK_NEAR(global_area_triangle, area_ref, 1e-10);
 
         // Check integration
         KRATOS_CHECK_EQUAL( quad_geometries.size(), 9);
         auto integration_method = quad_geometries[0].GetDefaultIntegrationMethod();
-        double global_area_triangle = 0.0;
+        global_area_triangle = 0.0;
         for( SizeType i = 0; i < quad_geometries.size(); ++i ){
             global_area_triangle += quad_geometries[i].DeterminantOfJacobian(0, integration_method ) *
                 quad_geometries[i].IntegrationPoints()[0].Weight();
             auto normal = quad_geometries[i].Normal( 0, integration_method);
             auto normal_ref = p_quad_global_space->Normal( quad_geometries[i].IntegrationPoints()[0].Coordinates() );
+            KRATOS_CHECK_VECTOR_NEAR( normal, normal_ref, 1e-10);
 
             double det_J_quad = quad_geometries[i].DeterminantOfJacobian(0, integration_method );
             double det_J = surface_in_volume.DeterminantOfJacobian( quad_geometries[i].IntegrationPoints()[0].Coordinates() );

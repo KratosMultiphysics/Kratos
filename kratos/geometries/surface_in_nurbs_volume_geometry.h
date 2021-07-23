@@ -194,16 +194,29 @@ public:
     ///@name Geometrical Informations
     ///@{
 
-    /// Provides the center of the underlying surface in local space.
+    /// Provides the center of the underlying surface.
     Point Center() const override
     {
-        return mpSurface->Center();
+        Point local_center = mpSurface->Center();
+        Point global_center;
+        mpNurbsVolume->GlobalCoordinates(global_center, local_center);
+
+        return global_center;
     }
 
-    /// Computes the area of the underlying surface in local space.
+    /// Computes the area of the underlying surface.
     double Area() const override
     {
-        return mpSurface->Area();
+        IntegrationPointsArrayType integration_points;
+        CreateIntegrationPoints(integration_points);
+
+        double area = 0.0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            const double determinant_jacobian = DeterminantOfJacobian(integration_points[i]);
+            area += integration_points[i].Weight() * determinant_jacobian;
+        }
+
+        return area;
     }
 
     ///@}
@@ -330,7 +343,6 @@ public:
                 jacobian_surface, this);
         }
     }
-
 
     ///@}
     ///@name Operation within Global Space

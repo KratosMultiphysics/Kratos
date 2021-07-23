@@ -57,6 +57,7 @@ public:
 
     /// using base class functions
     using BaseType::Jacobian;
+    using BaseType::Calculate;
     using BaseType::DeterminantOfJacobian;
 
     ///@}
@@ -69,8 +70,11 @@ public:
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         TangentMatrixType LocalTangents )
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer)
-        , mLocalTangents(LocalTangents)
     {
+        KRATOS_ERROR_IF( mLocalTangents.size1() != LocalTangents.size1() || mLocalTangents.size2() != LocalTangents.size2() )
+            << "QuadraturePointSurfaceInVolumeGeometry :: Dimensions of LocalTangents do not match (3,2). "
+            << "Given Dimensions are: (" << LocalTangents.size1() << "," << LocalTangents.size2() <<"). " << std::endl;
+        mLocalTangents = LocalTangents;
     }
 
     /// Constructor with points, geometry shape function container and parent
@@ -80,8 +84,11 @@ public:
         TangentMatrixType LocalTangents,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, ThisGeometryShapeFunctionContainer, pGeometryParent)
-        , mLocalTangents(LocalTangents)
     {
+        KRATOS_ERROR_IF( mLocalTangents.size1() != LocalTangents.size1() || mLocalTangents.size2() != LocalTangents.size2() )
+            << "QuadraturePointSurfaceInVolumeGeometry :: Dimensions of LocalTangents do not match (3,2). "
+            << "Given Dimensions are: (" << LocalTangents.size1() << "," << LocalTangents.size2() <<"). " << std::endl;
+        mLocalTangents = LocalTangents;
     }
 
     /// Destructor.
@@ -128,7 +135,7 @@ public:
     /// Calculate with Matrix
     void Calculate(
         const Variable<Matrix >& rVariable,
-        Matrix& rOutput)
+        Matrix& rOutput) const override
     {
         if (rVariable == LOCAL_TANGENT_MATRIX) {
             if( rOutput.size1() != mLocalTangents.size1() || rOutput.size2() != mLocalTangents.size2() ){
