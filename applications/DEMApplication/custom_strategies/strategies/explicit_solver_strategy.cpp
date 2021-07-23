@@ -1622,9 +1622,9 @@ namespace Kratos {
     void ExplicitSolverStrategy::SearchRigidFaceNeighbours() {
         KRATOS_TRY
 
-        // if (!mDoSearchNeighbourFEMElements) {
-        //     return;
-        // }
+        if (!mDoSearchNeighbourFEMElements) {
+            return;
+        }
 
         ElementsArrayType& pElements = mpDem_model_part->GetCommunicator().LocalMesh().Elements();
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();
