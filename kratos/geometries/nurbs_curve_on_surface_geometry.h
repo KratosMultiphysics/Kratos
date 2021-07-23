@@ -316,7 +316,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -340,6 +341,17 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        IndexType p = mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
+        return IntegrationInfo(1, p, IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -348,11 +360,9 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
-
         std::vector<double> spans;
         SpansLocalSpace(spans);
 
@@ -377,7 +387,7 @@ public:
         SpansLocalSpace(spans, StartParameter, EndParameter);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
     ///@}
@@ -398,7 +408,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(

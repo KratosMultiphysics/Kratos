@@ -332,7 +332,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -379,6 +380,18 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(1,
+            mPolynomialDegree + 1,
+            IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -386,9 +399,10 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = PolynomialDegree(0) + 1;
+        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
         SpansLocalSpace(spans);
@@ -414,7 +428,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsCurveShapeFunction shape_function_container(
