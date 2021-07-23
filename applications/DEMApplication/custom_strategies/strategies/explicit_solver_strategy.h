@@ -128,8 +128,6 @@ namespace Kratos {
 
             if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
             else mDoSearchNeighbourFEMElements = false;
-            p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourFEMElements);
-
 
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;

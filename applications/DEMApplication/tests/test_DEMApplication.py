@@ -58,7 +58,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
-    #smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
+    smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
