@@ -172,6 +172,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // Auxiliary utilities
     py::class_<FluidAuxiliaryUtilities>(m, "FluidAuxiliaryUtilities")
         .def_static("CalculateFlowRate", &FluidAuxiliaryUtilities::CalculateFlowRate)
+        .def_static("CalculateFlowRatePositiveSkin", &FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin)
         .def_static("CalculateFluidVolume", &FluidAuxiliaryUtilities::CalculateFluidVolume)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)

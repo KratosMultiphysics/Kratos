@@ -123,6 +123,18 @@ public:
     static double CalculateFlowRate(const ModelPart& rModelPart);
 
     /**
+     * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
+     * This method calculates the flow rate throught the positive part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @param rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @return double Flow rate
+     */
+    static double CalculateFlowRatePositiveSkin(
+        const ModelPart& rModelPart,
+        const Flags& rSkinFlag);
+
+    /**
      * @brief Get the Standard Modified Shape Functions Factory object
      * For the given geometry, this methods returns a factory function to create the corresponding
      * standard modified shape functions. The factory returns a unique pointer and expects a
@@ -133,6 +145,16 @@ public:
     static ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry);
 
     ///@}
+private:
+
+    /**
+     * @brief Calculate one condition flow rate
+     * This method calculates the flow rate through the given condition geometry
+     * @param rGeometry Condition geometry
+     * @return double Flow rate
+     */
+    static double CalculateConditionFlowRate(const GeometryType& rGeometry);
+
 };
 
 ///@}

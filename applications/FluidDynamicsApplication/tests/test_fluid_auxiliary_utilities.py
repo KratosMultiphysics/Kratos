@@ -41,6 +41,18 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         fluid_negative_volume = KratosFluid.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(fluid_model_part)
         self.assertAlmostEqual(fluid_negative_volume, level_set_y, 12)
 
+    def testCalculateFlowRatePositiveSkin(self):
+        # Set fluid level set
+        level_set_y = 2.0/3.0
+        fluid_model_part = self.model.GetModelPart("FluidModelPart")
+        for node in fluid_model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.DISTANCE, 0, node.Y - level_set_y)
+
+        # Calculate the fluid negative volume
+        reference_positive_flow_rate = 0.0
+        positive_flow_rate = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(fluid_model_part)
+        self.assertAlmostEqual(positive_flow_rate, reference_positive_flow_rate, 12)
+
     def tearDown(self):
         KratosUtils.DeleteFileIfExisting("Cavity/square5.time")
 
