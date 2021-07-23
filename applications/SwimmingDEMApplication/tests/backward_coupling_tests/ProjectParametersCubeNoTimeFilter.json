@@ -45,7 +45,7 @@
     },
     "custom_dem"              : {
         "do_solve_dem"                     : false,
-        "do_search_neighbours"             : true,
+        "do_search_dem_neighbours"             : true,
         "type_of_dem_inlet"                : "VelocityImposed",
         "translational_integration_scheme" : "Hybrid_Bashforth"
     },

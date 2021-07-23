@@ -14,7 +14,8 @@ class ExplicitStrategy():
         default_settings = Parameters("""
         {
             "strategy" : "sphere_strategy",
-            "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,
             "model_import_settings": {
                 "input_type": "mdpa",
