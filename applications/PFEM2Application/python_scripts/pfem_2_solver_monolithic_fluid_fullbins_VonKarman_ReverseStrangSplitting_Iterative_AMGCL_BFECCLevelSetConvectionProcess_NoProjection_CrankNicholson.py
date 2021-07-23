@@ -379,15 +379,22 @@ class PFEM2Solver:
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.NODAL_AREA).Execute()
 
+        #levelset_convection_settings = KratosMultiphysics.Parameters("""{
+        #    "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+        #    "levelset_convection_variable_name" : "VELOCITY",
+        #    "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+        #    "max_CFL" : 1.0,
+        #    "max_substeps" : 0,
+        #    "levelset_splitting" : false,
+        #    "eulerian_error_compensation" : true,
+        #    "cross_wind_stabilization_factor" : 0.7
+        #}""")
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             self.model_part,
@@ -400,15 +407,22 @@ class PFEM2Solver:
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.NODAL_AREA).Execute()
 
+        #levelset_convection_settings = KratosMultiphysics.Parameters("""{
+        #    "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+        #    "levelset_convection_variable_name" : "VELOCITY",
+        #    "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+        #    "max_CFL" : 1.0,
+        #    "max_substeps" : 0,
+        #    "levelset_splitting" : false,
+        #    "eulerian_error_compensation" : true,
+        #    "cross_wind_stabilization_factor" : 0.7
+        #}""")
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             self.model_part,
@@ -463,15 +477,22 @@ class PFEM2Solver:
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.NODAL_AREA).Execute()
 
+         #levelset_convection_settings = KratosMultiphysics.Parameters("""{
+        #    "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+        #    "levelset_convection_variable_name" : "VELOCITY",
+        #    "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+        #    "max_CFL" : 1.0,
+        #    "max_substeps" : 0,
+        #    "levelset_splitting" : false,
+        #    "eulerian_error_compensation" : true,
+        #    "cross_wind_stabilization_factor" : 0.7
+        #}""")
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
             "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             self.model_part,
@@ -484,15 +505,22 @@ class PFEM2Solver:
             KratosMultiphysics.DISTANCE_GRADIENT,
             KratosMultiphysics.NODAL_AREA).Execute()
 
+         #levelset_convection_settings = KratosMultiphysics.Parameters("""{
+        #    "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
+        #    "levelset_convection_variable_name" : "VELOCITY",
+        #    "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
+        #    "max_CFL" : 1.0,
+        #    "max_substeps" : 0,
+        #    "levelset_splitting" : false,
+        #    "eulerian_error_compensation" : true,
+        #    "cross_wind_stabilization_factor" : 0.7
+        #}""")
         levelset_convection_settings = KratosMultiphysics.Parameters("""{
-            "levelset_variable_name" : "SCALARPROJECTEDVEL_Y",
+            "levelset_variable_name" : "SCALARPROJECTEDVEL_X",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
-            "max_CFL" : 1.0,
-            "max_substeps" : 0,
-            "levelset_splitting" : false,
             "eulerian_error_compensation" : true,
-            "cross_wind_stabilization_factor" : 0.7
+            "element_type" : "levelset_convection_supg"
         }""")
         KratosMultiphysics.LevelSetConvectionProcess2D(
             self.model_part,
