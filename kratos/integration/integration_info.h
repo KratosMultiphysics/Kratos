@@ -31,7 +31,7 @@ namespace Kratos
 /* Within this class distinct information of integration can be
  * stored and processed.
  */
-class IntegrationInfo : public Flags
+class KRATOS_API(KRATOS_CORE) IntegrationInfo : public Flags
 {
 public:
     ///@name Type Definitions
