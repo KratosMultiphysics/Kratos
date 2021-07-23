@@ -519,7 +519,7 @@ namespace Testing {
 
         NurbsSurfaceRefinementUtilities::KnotRefinementU(surface, knots_to_insert_u_2,
             PointsRefined, KnotsURefined, WeightsRefined);
-        surface.SetInternals(PointsRefined,
+            surface.SetInternals(PointsRefined,
             surface.PolynomialDegreeU(), surface.PolynomialDegreeV(),
             KnotsURefined, surface.KnotsV(),
             WeightsRefined);
@@ -531,7 +531,8 @@ namespace Testing {
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        surface.CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info({ 3,2 }, { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+        surface.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 30);
         double area = 0;
@@ -569,7 +570,8 @@ namespace Testing {
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        surface.CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info({ 3,2 }, { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+        surface.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 24);
         double area = 0;
