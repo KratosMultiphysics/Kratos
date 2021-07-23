@@ -137,7 +137,8 @@ int UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void UPwBaseElement<TDim,TNumNodes>::
+    Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwBaseElement::Initialize()") << this->Id() << std::endl;
@@ -207,6 +208,33 @@ void UPwBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCurrentProce
     KRATOS_CATCH( "" )
 
     // KRATOS_INFO("1-UPwBaseElement::Initialize()") << std::endl;
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+void UPwBaseElement<TDim,TNumNodes>::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
+
+    // erasing stress vectors
+    for (unsigned int i=0; i < mStressVector.size(); ++i)
+    {
+        mStressVector[i].clear();
+    }
+    mStressVector.clear();
+
+    for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
+    {
+        mStateVariablesFinalized[i].clear();
+    }
+    mStateVariablesFinalized.clear();
+
+
+    KRATOS_CATCH( "" )
+
+    // KRATOS_INFO("1-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
 }
 
 //----------------------------------------------------------------------------------------

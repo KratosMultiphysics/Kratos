@@ -90,6 +90,7 @@ class ApplyExcavationProcess : public Process
                 {
                     ModelPart::ElementsContainerType::iterator it = el_begin + k;
                     it->Set(ACTIVE, false);
+                    it->ResetConstitutiveLaw();
                 }
 
                 // Same nodes for both computing model part

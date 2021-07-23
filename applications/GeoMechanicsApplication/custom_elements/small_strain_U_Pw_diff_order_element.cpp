@@ -228,7 +228,6 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
           mStressVector[i].resize(VoigtSize);
           std::fill(mStressVector[i].begin(), mStressVector[i].end(), 0.0);
        }
-        mStressVectorFinalized = mStressVector;
     }
 
     if ( mStateVariablesFinalized.size() != IntegrationPoints.size() )
@@ -252,6 +251,32 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Initialize()") << std::endl;
 
     KRATOS_CATCH( "" )
+}
+
+
+//----------------------------------------------------------------------------------------
+void SmallStrainUPwDiffOrderElement::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()") << std::endl;
+
+    // erasing stress vectors
+    for (unsigned int i=0; i < mStressVector.size(); ++i)
+    {
+        mStressVector[i].clear();
+    }
+    mStressVector.clear();
+
+    for (unsigned int i=0; i < mStateVariablesFinalized.size(); ++i)
+    {
+        mStateVariablesFinalized[i].clear();
+    }
+    mStateVariablesFinalized.clear();
+
+    KRATOS_CATCH( "" )
+
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -762,8 +787,6 @@ void SmallStrainUPwDiffOrderElement::
 
     //Assign pressure values to the intermediate nodes for post-processing
     if (!IgnoreUndrained) AssignPressureToIntermediateNodes();
-
-    mStressVectorFinalized = mStressVector;
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 

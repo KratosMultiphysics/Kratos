@@ -79,6 +79,8 @@ public:
     void GetDofList(DofsVectorType& rElementalDofList, 
                     const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void ResetConstitutiveLaw() override;
+
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

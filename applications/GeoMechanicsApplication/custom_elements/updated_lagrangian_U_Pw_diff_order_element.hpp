@@ -73,7 +73,6 @@ public:
     typedef std::size_t SizeType;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStressVector;
-    using SmallStrainUPwDiffOrderElement::mStressVectorFinalized;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;

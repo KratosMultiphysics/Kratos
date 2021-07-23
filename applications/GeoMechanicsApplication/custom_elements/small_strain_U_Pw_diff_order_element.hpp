@@ -75,6 +75,8 @@ public:
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void ResetConstitutiveLaw() override;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -216,7 +218,6 @@ protected:
 
     GeometryType::Pointer  mpPressureGeometry;
     std::vector<Vector> mStressVector;
-    std::vector<Vector> mStressVectorFinalized;
     std::vector<Vector> mStateVariablesFinalized;
     bool mIsInitialised = false;
 

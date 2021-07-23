@@ -153,8 +153,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     mF0Computed = true;
 
-    mStressVectorFinalized = mStressVector;
-
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     KRATOS_CATCH( "" );
