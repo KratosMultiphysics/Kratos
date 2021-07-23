@@ -322,7 +322,7 @@ public:
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
