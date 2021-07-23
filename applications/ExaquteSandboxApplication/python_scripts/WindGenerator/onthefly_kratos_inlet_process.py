@@ -38,6 +38,7 @@ from KratosMultiphysics.ExaquteSandboxApplication.WindGenerator.GenerateWind imp
 from KratosMultiphysics import IsDistributedRun
 if IsDistributedRun():
     import KratosMultiphysics.mpi as KratosMPI
+    import KratosMultiphysics.MappingApplication
 
 ##DONE: added support for power law
 ##DONE: read all mean profile parameters from json file
