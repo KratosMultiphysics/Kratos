@@ -307,6 +307,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 
 		mCalcData.CharacteristicLength = InitialCharacteristicLength;
 		mCalcData.TensionYieldModel = rMaterialProperties.Has(TENSION_YIELD_MODEL) ? rMaterialProperties[TENSION_YIELD_MODEL] : 0;
+		mCalcData.IsSFRC = rMaterialProperties.Has(IS_STEEL_FIBRE_REINFORCED_CONCRETE) ? rMaterialProperties[IS_STEEL_FIBRE_REINFORCED_CONCRETE] : 0;
 
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
@@ -806,6 +807,8 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	// Get material properties
 	const double young_modulus = data.YoungModulus;
 	const double yield_tension = data.YieldStressTension;
+	bool is_steel_fibre_reinforced = false;
+	if (data.IsSFRC == 1) is_steel_fibre_reinforced = true;
 
 	// This is the assumption of compression softening transferring over to tension as well
 	if (DamageParameterCompressionSoftening > DamageParameterTensionSoftening)
@@ -842,15 +845,32 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 		if (eq_strain > yield_tension / data.YoungModulus)
 		{
 			// We are in the softening zone
-			const double trial_softening_stress = yield_tension * std::exp(damage_parameter * (1.0 - eq_tensile_stress / yield_tension));
-			const double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
-			if (trial_softening_stress < current_limit_softening_stress)
+			if (is_steel_fibre_reinforced)
 			{
-				// We are softening more
-				const double new_damage_softening = 1.0 - trial_softening_stress / yield_tension;
-				if (new_damage_softening > DamageParameterTensionSoftening) DamageParameterTensionSoftening = new_damage_softening;
-				else KRATOS_ERROR << "Tension softening damage tried to decrease\n";
-				if (DamageParameterTensionSoftening > 0.95) DamageParameterTensionSoftening = 1.0;
+				const double failure_strain = (fracture_energy_tension / characteristic_length + yield_tension * yield_tension / young_modulus) / yield_tension;
+				if (failure_strain < yield_tension / young_modulus) {
+					std::stringstream ss;
+					ss << "Perfect plastic tensile failure strain less than onset of plasticity strain!"  << std::endl;
+					std::cout << ss.str();
+					exit(-1);
+				}
+				double trial_damage = (eq_strain - yield_tension / young_modulus) / (failure_strain - yield_tension / young_modulus);
+				trial_damage = std::min(1.0, trial_damage);
+				trial_damage = std::max(0.0, trial_damage);
+				if (trial_damage > DamageParameterTensionSoftening) DamageParameterTensionSoftening = trial_damage;
+			}
+			else
+			{
+				const double trial_softening_stress = yield_tension * std::exp(damage_parameter * (1.0 - eq_tensile_stress / yield_tension));
+				const double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+				if (trial_softening_stress < current_limit_softening_stress)
+				{
+					// We are softening more
+					const double new_damage_softening = 1.0 - trial_softening_stress / yield_tension;
+					if (new_damage_softening > DamageParameterTensionSoftening) DamageParameterTensionSoftening = new_damage_softening;
+					else KRATOS_ERROR << "Tension softening damage tried to decrease\n";
+					if (DamageParameterTensionSoftening > 0.95) DamageParameterTensionSoftening = 1.0;
+				}
 			}
 		}
 	}
@@ -862,7 +882,9 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	}
 	else
 	{
-		const double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+		double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
+		if (is_steel_fibre_reinforced && DamageParameterTensionSoftening < 0.95) current_limit_softening_stress = yield_tension;
+
 		const double damaged_stress = eq_strain / TensionMaxHistoricalStrain * current_limit_softening_stress;
 		rDamage = 1.0 - damaged_stress / eq_tensile_stress;
 	}
@@ -1100,9 +1122,10 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateMaterialResponseInternal(
 		const double trial_stress_magnitude = std::sqrt(inner_prod(data.EffectiveStressVector, data.EffectiveStressVector));
 		const Vector trial_stress_normalised = data.EffectiveStressVector / trial_stress_magnitude;
 		const double macaulay_temp = MACAULAY(inner_prod(trial_stress_normalised, mStrainDelta));
-		if (macaulay_temp > 1e-9)
+		double return_lamda = 1.0 - b_minus / trial_stress_magnitude * data.YoungModulus * macaulay_temp;
+		if (return_lamda <= 0.0 || return_lamda >= 1.0) return_lamda = -1.0;
+		if (macaulay_temp > 1e-9 && return_lamda > 0.0)
 		{
-			const double return_lamda = 1.0 - b_minus / trial_stress_magnitude * data.YoungModulus * macaulay_temp;
 			if (return_lamda < -1e-9 || return_lamda > (1.0+1e-9))
 			{
 				KRATOS_INFO("MPM masonry law") << "Masonry plasticity parameter return_lamda has invalid value!"

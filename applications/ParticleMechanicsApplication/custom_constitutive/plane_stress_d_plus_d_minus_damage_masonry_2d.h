@@ -106,6 +106,7 @@ public:
 		// Misc
 		double CharacteristicLength;						double DeltaTime;
 		int TensionYieldModel;								double StrainRate;
+		int IsSFRC = 0;
 
 	};
 
