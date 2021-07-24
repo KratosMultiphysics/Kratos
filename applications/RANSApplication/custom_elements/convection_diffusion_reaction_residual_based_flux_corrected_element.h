@@ -74,6 +74,8 @@ public:
     using CurrentElementType =
         ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNodes, TConvectionDiffusionReactionData>;
 
+    using ArrayD = array_1d<double, TDim>;   // added for Chimera_RANS: mesh_velocity datatype
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ConvectionDiffusionReactionResidualBasedFluxCorrectedElement
