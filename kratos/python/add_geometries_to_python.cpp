@@ -118,7 +118,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     typedef NodeType::Pointer pNodeType;
     typedef Geometry<NodeType > GeometryType;
 
-    py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
+    py::class_<GeometryType, GeometryType::Pointer >(m, "Geometry")
     .def(py::init<>())
     .def(py::init< IndexType >())
     .def(py::init< std::string >())
@@ -133,21 +133,29 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("IsIdSelfAssigned", IsIdSelfAssigned1)
     .def_static("GenerateId", &GeometryType::GenerateId)
     // Dimension access
-    .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
-    .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
+    .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
+    .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
     .def("Dimension", &GeometryType::Dimension)
-    .def("DomainSize",&GeometryType::DomainSize)
-    .def("EdgesNumber",&GeometryType::EdgesNumber)
-    .def("PointsNumber",&GeometryType::PointsNumber)
-    .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
-    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
+    .def("DomainSize", &GeometryType::DomainSize)
+    .def("EdgesNumber", &GeometryType::EdgesNumber)
+    .def("PointsNumber", &GeometryType::PointsNumber)
+    .def("PointsNumberInDirection", &GeometryType::PointsNumberInDirection)
+    .def("PolynomialDegree", &GeometryType::PolynomialDegree)
+    // Geometry Parts
+    .def("GetGeometryPart", [](GeometryType& self, IndexType Index)
+        { return(self.GetGeometryPart(Index)); })
+    .def_property_readonly_static("BACKGROUND_GEOMETRY_INDEX", [](py::object)
+        { return GeometryType::BACKGROUND_GEOMETRY_INDEX; })
     // Integration
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })
     // Quadrature points
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
-        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+        {
+            IntegrationInfo integration_info = self.GetDefaultIntegrationInfo();
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info));
+        })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
         { 
@@ -156,7 +164,8 @@ void  AddGeometriesToPython(pybind11::module& m)
                 IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
                 integration_points[i] = point_tmp;
             }
-            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
+            IntegrationInfo integration_info = self.GetDefaultIntegrationInfo();
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points, integration_info)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();

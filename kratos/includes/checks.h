@@ -61,14 +61,14 @@ KRATOS_ERROR_IF_NOT(a.size() == b.size())                                  \
 << std::endl                                                               \
 << "First argument has size " << a.size() << ", "                          \
 << "second argument has size " << b.size() << "." << std::endl;            \
-for (std::size_t i = 0; i < a.size(); i++) {                               \
-   KRATOS_ERROR_IF( std::abs(a[i] - b[i]) > tolerance )                    \
+for (std::size_t _i = 0; _i < a.size(); _i++) {                               \
+   KRATOS_ERROR_IF( std::abs(a[_i] - b[_i]) > tolerance )                    \
    << "Check failed because vector " << #a << " with values" << std::endl  \
    << a << std::endl                                                       \
    << "Is not near vector " << #b << " with values" << std::endl           \
    << b << std::endl                                                       \
-   << "Mismatch found in component " << i << ":" << std::endl              \
-   << a[i] << " not near " << b[i]                                         \
+   << "Mismatch found in component " << _i << ":" << std::endl              \
+   << a[_i] << " not near " << b[_i]                                         \
    << " within tolerance " << tolerance << "." << std::endl;               \
 }                                                                          \
 }
@@ -78,24 +78,24 @@ KRATOS_ERROR_IF_NOT(a.size() == b.size())                                      \
 << std::endl                                                                   \
 << "First argument has size " << a.size() << ", "                              \
 << "second argument has size " << b.size() << "." << std::endl;                \
-for (std::size_t i = 0; i < a.size(); i++) {                                   \
-    if (std::abs(b[i]) > std::numeric_limits<double>::epsilon()) {             \
-       KRATOS_ERROR_IF( std::abs((a[i] - b[i])/b[i]) > tolerance )             \
+for (std::size_t _i = 0; _i < a.size(); _i++) {                                   \
+    if (std::abs(b[_i]) > std::numeric_limits<double>::epsilon()) {             \
+       KRATOS_ERROR_IF( std::abs((a[_i] - b[_i])/b[_i]) > tolerance )             \
        << "Check failed because vector " << #a << " with values" << std::endl  \
        << a << std::endl                                                       \
        << "Is not near vector " << #b << " with values" << std::endl           \
        << b << std::endl                                                       \
-       << "Mismatch found in component " << i << ":" << std::endl              \
-       << a[i] << " not near " << b[i]                                         \
+       << "Mismatch found in component " << _i << ":" << std::endl              \
+       << a[_i] << " not near " << b[_i]                                         \
        << " within relative tolerance " << tolerance << "." << std::endl;      \
     } else {                                                                   \
-       KRATOS_ERROR_IF( std::abs(a[i] - b[i]) > tolerance )                    \
+       KRATOS_ERROR_IF( std::abs(a[_i] - b[_i]) > tolerance )                    \
        << "Check failed because vector " << #a << " with values" << std::endl  \
        << a << std::endl                                                       \
        << "Is not near vector " << #b << " with values" << std::endl           \
        << b << std::endl                                                       \
-       << "Mismatch found in component " << i << ":" << std::endl              \
-       << a[i] << " not near " << b[i]                                         \
+       << "Mismatch found in component " << _i << ":" << std::endl              \
+       << a[_i] << " not near " << b[_i]                                         \
        << " within tolerance " << tolerance << "." << std::endl;               \
     }                                                                          \
 }                                                                              \
@@ -109,15 +109,15 @@ KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) && (a.size2() == b.size2()))       
 << "First argument has dimensions (" << a.size1() << "," << a.size2() << "), "   \
 << "second argument has dimensions (" << b.size1() << "," << b.size2() << ")."   \
 << std::endl;                                                                    \
-for (std::size_t i = 0; i < a.size1(); i++) {                                    \
-    for (std::size_t j = 0; j < a.size2(); j++) {                                \
-       KRATOS_ERROR_IF( std::abs(a(i,j) - b(i,j)) > tolerance )                  \
+for (std::size_t _i = 0; _i < a.size1(); _i++) {                                    \
+    for (std::size_t _j = 0; _j < a.size2(); _j++) {                                \
+       KRATOS_ERROR_IF( std::abs(a(_i,_j) - b(_i,_j)) > tolerance )                  \
        << "Check failed because matrix " << #a << " with values" << std::endl    \
        << a << std::endl                                                         \
        << "Is not near matrix " << #b << " with values" << std::endl             \
        << b << std::endl                                                         \
-       << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
-       << a(i,j) << " not near " << b(i,j)                                       \
+       << "Mismatch found in component (" << _i << "," << _j << "): " << std::endl \
+       << a(_i,_j) << " not near " << b(_i,_j)                                       \
        << " within tolerance " << tolerance << "." << std::endl;                 \
     }                                                                            \
 }                                                                                \
@@ -129,25 +129,25 @@ KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) && (a.size2() == b.size2()))       
 << "First argument has dimensions (" << a.size1() << "," << a.size2() << "), "       \
 << "second argument has dimensions (" << b.size1() << "," << b.size2() << ")."       \
 << std::endl;                                                                        \
-for (std::size_t i = 0; i < a.size1(); i++) {                                        \
-    for (std::size_t j = 0; j < a.size2(); j++) {                                    \
-        if (std::abs(b(i,j)) > std::numeric_limits<double>::epsilon()) {             \
-           KRATOS_ERROR_IF( std::abs((a(i,j) - b(i,j))/b(i,j)) > tolerance )         \
+for (std::size_t _i = 0; _i < a.size1(); _i++) {                                        \
+    for (std::size_t _j = 0; _j < a.size2(); _j++) {                                    \
+        if (std::abs(b(_i,_j)) > std::numeric_limits<double>::epsilon()) {             \
+           KRATOS_ERROR_IF( std::abs((a(_i,_j) - b(_i,_j))/b(_i,_j)) > tolerance )         \
            << "Check failed because matrix " << #a << " with values" << std::endl    \
            << a << std::endl                                                         \
            << "Is not near matrix " << #b << " with values" << std::endl             \
            << b << std::endl                                                         \
-           << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
-           << a(i,j) << " not near " << b(i,j)                                       \
+           << "Mismatch found in component (" << _i << "," << _j << "): " << std::endl \
+           << a(_i,_j) << " not near " << b(_i,_j)                                       \
            << " within relative tolerance " << tolerance << "." << std::endl;        \
         } else {                                                                     \
-           KRATOS_ERROR_IF( std::abs(a(i,j) - b(i,j)) > tolerance )                  \
+           KRATOS_ERROR_IF( std::abs(a(_i,_j) - b(_i,_j)) > tolerance )                  \
            << "Check failed because matrix " << #a << " with values" << std::endl    \
            << a << std::endl                                                         \
            << "Is not near matrix " << #b << " with values" << std::endl             \
            << b << std::endl                                                         \
-           << "Mismatch found in component (" << i << "," << j << "): " << std::endl \
-           << a(i,j) << " not near " << b(i,j)                                       \
+           << "Mismatch found in component (" << _i << "," << _j << "): " << std::endl \
+           << a(_i,_j) << " not near " << b(_i,_j)                                       \
            << " within tolerance " << tolerance << "." << std::endl;                 \
     }                                                                                \
 }                                                                                    \

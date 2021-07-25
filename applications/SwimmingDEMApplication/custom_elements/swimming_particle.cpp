@@ -10,7 +10,7 @@
 #include "includes/kratos_flags.h"
 #include "swimming_DEM_application.h"
 #include "swimming_particle.h"
-#include "../applications/DEMApplication/custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
 {

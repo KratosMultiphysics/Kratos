@@ -489,7 +489,7 @@ private:
             const double& r_rho = rNode.FastGetSolutionStepValue(DENSITY);
             const double& r_tot_ener = rNode.FastGetSolutionStepValue(TOTAL_ENERGY);
             rVelocity = r_mom / r_rho;
-            const double temp = (r_tot_ener / r_rho + 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;
+            const double temp = (r_tot_ener / r_rho - 0.5 * inner_prod(rVelocity, rVelocity)) / c_v;
             const double sound_velocity = std::sqrt(gamma * R * temp);
             rNode.FastGetSolutionStepValue(VELOCITY) = rVelocity;
             rNode.FastGetSolutionStepValue(TEMPERATURE) = temp;

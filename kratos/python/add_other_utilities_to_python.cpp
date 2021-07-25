@@ -502,6 +502,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     .def(py::init<Model&>())
     .def(py::init<Parameters, Model&>())
     .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    .def("AssignMaterialToProperty",&ReadMaterialsUtility::AssignMaterialToProperty)
+    .def("AssignVariablesToProperty",&ReadMaterialsUtility::AssignVariablesToProperty)
+    .def("AssignTablesToProperty",&ReadMaterialsUtility::AssignTablesToProperty)
+    .def("AssignConstitutiveLawToProperty",&ReadMaterialsUtility::AssignConstitutiveLawToProperty)
     ;
 
     //activation utilities

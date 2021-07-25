@@ -56,7 +56,7 @@ namespace Kratos {
         ApplyInitialConditions();
 
         // Search Neighbors with tolerance (after first repartition process)
-        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT], 1.0);
+        SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
         SearchNeighbours();
         MeshRepairOperations();
         SearchNeighbours();
@@ -123,7 +123,7 @@ namespace Kratos {
             RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
             // Search Neighbours and related operations
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
+            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);
             SearchNeighbours();
             ComputeNewNeighboursHistoricalData();
 
@@ -484,7 +484,7 @@ namespace Kratos {
         double current_coordination_number = ComputeCoordinationNumber(standard_dev);
         int iteration = 0;
         int maxiteration = 300;
-        double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
+        double& added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION];
         const bool local_coordination_option = r_process_info[LOCAL_COORDINATION_NUMBER_OPTION];
         const bool global_coordination_option = r_process_info[GLOBAL_COORDINATION_NUMBER_OPTION];
         added_search_distance = 0.0;
@@ -500,7 +500,7 @@ namespace Kratos {
         double tolerance = 0.5;
         double max_factor_between_iterations = 1.02;
         double relative_error = 1000;
-        if(local_coordination_option) {
+        if (local_coordination_option) {
             KRATOS_INFO("DEM")<<"Now iterating for local coordination number..."<<std::endl;
             while (std::abs(relative_error) > tolerance) {
                 if (iteration >= maxiteration) break;
@@ -524,7 +524,7 @@ namespace Kratos {
                         adapted_to_skin_or_not_skin_desired_cn = 0.6*desired_coordination_number;
                     }
 
-                    if(neighbour_elements_size) {
+                    if (neighbour_elements_size) {
                         if (neighbour_elements_size != std::round(adapted_to_skin_or_not_skin_desired_cn)) {
                             mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= std::sqrt(adapted_to_skin_or_not_skin_desired_cn / (double)(neighbour_elements_size));
                         }
@@ -532,15 +532,15 @@ namespace Kratos {
                     else {
                         mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor *= max_factor_between_iterations;
                     }
-                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor > max_factor_between_iterations * old_amplification) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = max_factor_between_iterations* old_amplification;
-                    if(mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor < old_amplification / max_factor_between_iterations) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = old_amplification / max_factor_between_iterations;
+                    if (mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor > max_factor_between_iterations * old_amplification) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = max_factor_between_iterations* old_amplification;
+                    if (mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor < old_amplification / max_factor_between_iterations) mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor = old_amplification / max_factor_between_iterations;
 
                     const int error_of_this_particle = std::abs(std::round(adapted_to_skin_or_not_skin_desired_cn) - (neighbour_elements_size));
                     total_error[OpenMPUtils::ThisThread()]  += (double)(error_of_this_particle);
                 }
                 double total_absolute_error = 0.0;
                 for (size_t i=0; i<total_error.size();i++) total_absolute_error += total_error[i];
-                relative_error = total_absolute_error/mListOfSphericContinuumParticles.size();
+                relative_error = total_absolute_error / mListOfSphericContinuumParticles.size();
 
                 SetSearchRadiiOnAllParticles(r_model_part, added_search_distance, 1.0);
                 SearchNeighbours();
@@ -549,7 +549,7 @@ namespace Kratos {
             KRATOS_INFO("DEM")<<"Coordination number reached after local operations = "<<current_coordination_number<<std::endl;
         }
 
-        if(global_coordination_option) {
+        if (global_coordination_option) {
             KRATOS_INFO("DEM")<<"Now iterating for global coordination number..."<<std::endl;
             //STAGE 2, Global Coordination Number
             tolerance = 1e-4;
@@ -568,14 +568,14 @@ namespace Kratos {
                 }
                 old_old_amplification = old_amplification;
                 old_amplification = amplification;
-                amplification *= std::pow(desired_coordination_number / current_coordination_number, 1.0/3.0);
+                amplification *= std::pow(desired_coordination_number / current_coordination_number, 0.33333333333333333333333333);
 
-                if(amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
-                if(amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
-                if(std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
+                if (amplification > max_factor_between_iterations * old_amplification) amplification = max_factor_between_iterations* old_amplification;
+                if (amplification < old_amplification / max_factor_between_iterations) amplification = old_amplification / max_factor_between_iterations;
+                if (std::abs(amplification - old_amplification) >= std::abs(old_amplification - old_old_amplification) - std::numeric_limits<double>::epsilon()) {
                     amplification = 0.5 * (amplification + old_amplification);
                 }
-                if ( amplification < 1.0 && !local_coordination_option) {
+                if (amplification < 1.0 && !local_coordination_option) {
                     iteration = maxiteration;
                     break;
                 }
@@ -584,7 +584,7 @@ namespace Kratos {
                 current_coordination_number = ComputeCoordinationNumber(standard_dev);
             }//while
 
-                if (iteration < maxiteration){
+                if (iteration < maxiteration) {
                 KRATOS_INFO("DEM") << "The iterative procedure converged after " << iteration << " iterations, to value " << current_coordination_number << " using a global amplification of radius of " << amplification << ". " << "\n" << std::endl;
                 KRATOS_INFO("DEM") << "Standard deviation for achieved coordination number is " << standard_dev << ". " << "\n" << std::endl;
                 //KRATOS_INFO("DEM") << "This means that most particles (about 68% of the total particles, assuming a normal distribution) have a coordination number within " <<  standard_dev << " contacts of the mean (" << current_coordination_number-standard_dev << "–" << current_coordination_number+standard_dev << " contacts). " << "\n" << std::endl;
@@ -598,7 +598,7 @@ namespace Kratos {
             }
         }
 
-        KRATOS_INFO("DEM") <<std::endl;
+        KRATOS_INFO("DEM") << std::endl;
     } //SetCoordinationNumber
 
     double ContinuumExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {

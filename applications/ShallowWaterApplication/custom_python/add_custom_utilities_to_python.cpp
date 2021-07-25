@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 
 namespace Kratos
@@ -31,6 +32,11 @@ namespace Kratos
 
 namespace Python
 {
+  typedef ModelPart::NodesContainerType NodesContainerType;
+
+  typedef ModelPart::ElementsContainerType ElementsContainerType;
+
+  typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
   void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
@@ -62,10 +68,9 @@ namespace Python
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
-        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::NodesContainerType>)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ElementsContainerType>)
-        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ModelPart::ConditionsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<NodesContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ElementsContainerType>)
+        .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ConditionsContainerType>)
         .def("NormalizeVector", &ShallowWaterUtilities::NormalizeVector)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<double>&>)
         .def("CopyVariableToPreviousTimeStep", &ShallowWaterUtilities::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>&>)
@@ -77,6 +82,8 @@ namespace Python
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
+        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ConditionsContainerType>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
@@ -110,6 +117,14 @@ namespace Python
         .def("ResetBoundaryConditions", &BFECCConvectionUtility<2>::ResetBoundaryConditions<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<double>>)
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
+        ;
+
+    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Check", &MoveMeshUtility::Check)
+        .def("Initialize", &MoveMeshUtility::Initialize)
+        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
+        .def("MapResults", &MoveMeshUtility::MapResults)
         ;
 
   }
