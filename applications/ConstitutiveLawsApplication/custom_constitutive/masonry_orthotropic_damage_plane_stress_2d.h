@@ -247,9 +247,34 @@ namespace Kratos
             const GeometryType& rElementGeometry,
             const Vector& rShapeFunctionsValues) override;
 
+        void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->CalculateMaterialResponseCauchy(rValues);
+        }
+        void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->CalculateMaterialResponseCauchy(rValues);
+        }
+        void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->CalculateMaterialResponseCauchy(rValues);
+        }
+
         /// material response in terms of Cauchy stresses and constitutive tensor
         void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
+        void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->FinalizeMaterialResponseCauchy(rValues);
+        }
+        void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->FinalizeMaterialResponseCauchy(rValues);
+        }
+        void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override
+        {
+            this->FinalizeMaterialResponseCauchy(rValues);
+        }
         /// material response in terms of Cauchy stresses and constitutive tensor
         void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
 
