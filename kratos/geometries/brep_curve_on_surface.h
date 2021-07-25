@@ -322,9 +322,9 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        mpCurveOnSurface->Spans(rSpans,
+        mpCurveOnSurface->SpansLocalSpace(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
@@ -461,7 +461,7 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
