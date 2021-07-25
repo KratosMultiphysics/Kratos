@@ -988,7 +988,8 @@ namespace Kratos
 
     template<class TSparseSpace, class TDenseSpace>
     void FetiDynamicCouplingUtilities<TSparseSpace, TDenseSpace>::DeformMPMGrid(ModelPart& rGridMP,
-        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, bool rotateGrid, const bool is_explicit)
+        ModelPart& rGridInterfaceMP, const double radTotalDef, const double radNoDef, bool rotateGrid,
+        const bool is_only_use_interface_deformation, const bool is_explicit)
     {
         KRATOS_TRY
 
@@ -1082,7 +1083,7 @@ namespace Kratos
                             {
                                 array_1d<double, 3> disp = rNode.FastGetSolutionStepValue(DISPLACEMENT);
                                 double rotation_angle = theta;
-                                if (rNode.IsNot(ACTIVE)) disp = interface_average_displacement;
+                                if (rNode.IsNot(ACTIVE) || is_only_use_interface_deformation) disp = interface_average_displacement;
                                 else if (is_explicit)
                                 {
                                     double mass_ratio = explicit_average_interface_nodal_mass / rNode.FastGetSolutionStepValue(NODAL_MASS);

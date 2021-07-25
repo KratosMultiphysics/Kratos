@@ -81,7 +81,7 @@ namespace Kratos
 
         void DeformMPMGrid(ModelPart& rGridMP, ModelPart& rGridInterfaceMP,
             const double radTotalDef, const double radNoDef, bool rotateGrid,
-            const bool is_explicit);
+            const bool is_only_use_interface_deformation, const bool is_explicit);
 
     private:
         ModelPart& mrOriginInterfaceModelPart;
