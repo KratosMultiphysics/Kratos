@@ -373,9 +373,6 @@ private:
     // Transformed curvilinear derivatives into cartesian derivatives/
     std::vector<Matrix> m_cart_deriv;
 
-    /// The vector containing the constitutive laws for all integration points.
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
     //The St. Venant Kirchhoff 5P Material Tangent
     BoundedMatrix<double, 8, 8> mC;
 
@@ -391,9 +388,6 @@ private:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
-
-    /// Initialize Operations
-    void InitializeMaterial();
 
     std::pair< Shell5pElement::KinematicVariables, Shell5pElement::VariationVariables>
         CalculateKinematics(const IndexType IntegrationPointIndex) const;
@@ -428,13 +422,8 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     );
 
-
-
-
-
     /// Helper
     void CalculateSVKMaterialTangent();
-
 
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const;
@@ -455,7 +444,6 @@ private:
         rSerializer.save("reference_TransShear", reference_TransShear);
         rSerializer.save("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
-        rSerializer.save("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     void load(Serializer& rSerializer) final
@@ -465,7 +453,6 @@ private:
         rSerializer.load("reference_TransShear", reference_TransShear);
         rSerializer.load("dA_vector", m_dA_vector);
         rSerializer.save("cart_deriv", m_cart_deriv);
-        rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
 
     ///@}

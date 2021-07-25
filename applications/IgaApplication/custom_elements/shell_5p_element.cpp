@@ -52,28 +52,10 @@ namespace Kratos
             reference_Curvature[point_number] = kinematic_variables.curvature;
             reference_TransShear[point_number] = kinematic_variables.transShear;
         }
-        InitializeMaterial();
-        KRATOS_CATCH("")
-    }
 
-    void Shell5pElement::InitializeMaterial()
-    {
-        KRATOS_TRY
-            const GeometryType& r_geometry = GetGeometry();
-        const Properties& r_properties = GetProperties();
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
-
-        //Constitutive Law initialisation
-        mConstitutiveLawVector.resize(r_number_of_integration_points);
-
-        std::fill(mConstitutiveLawVector.begin(), mConstitutiveLawVector.end(), GetProperties()[CONSTITUTIVE_LAW]->Clone());
-
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, row(m_N, point_number));
-
+        // Initialize Material
         CalculateSVKMaterialTangent();
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -199,8 +181,8 @@ namespace Kratos
         rKin.dtd1 = prod(rVar.P, rKin.dtd1);
         rKin.dtd2 = prod(rVar.P, rKin.dtd2);
 
-        rKin.metricChange[0] = inner_prod(rKin.A1, rKin.dud1) + 0.5 * std::sqrt(norm_2(rKin.dud1));
-        rKin.metricChange[1] = inner_prod(rKin.A2, rKin.dud2) + 0.5 * std::sqrt(norm_2(rKin.dud2));
+        rKin.metricChange[0] = inner_prod(rKin.A1, rKin.dud1) + 0.5 * norm_2_square(rKin.dud1);
+        rKin.metricChange[1] = inner_prod(rKin.A2, rKin.dud2) + 0.5 * norm_2_square(rKin.dud2);
         rKin.metricChange[2] = inner_prod(rKin.a1, rKin.a2);
 
         rKin.curvature[0] = inner_prod(rKin.a1, rKin.dtd1);
