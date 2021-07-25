@@ -112,15 +112,38 @@ namespace Kratos {
     }
 
     double DEM_Inlet::SetDistributionMeanRadius(ModelPart& mp) {
-        double mean_radius = mp[RADIUS];
+        double mean_radius = 0.0;
+
+        if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+            mean_radius = mInletsRandomVariables[mp.Name()]->GetMean();
+        }
+
+        else {
+            mean_radius = mp[RADIUS];
+        }
+
         return mean_radius;
     }
 
     double DEM_Inlet::SetMaxDistributionRadius(ModelPart& mp) {
+        return 1.5 * GetMaxRadius(mp);
+    }
 
-        double max_radius = 1.5 * mp[RADIUS];
+    double DEM_Inlet::GetMaxRadius(ModelPart& mp){
+        double max_radius = 0.0;
+
+        if (mp[PROBABILITY_DISTRIBUTION] == "piecewise_linear" || mp[PROBABILITY_DISTRIBUTION] == "discrete"){
+            const array_1d<double, 2>& support = mInletsRandomVariables[mp.Name()]->GetSupport();
+            max_radius = support[1];
+        }
+
+        else {
+            max_radius = mp[RADIUS];
+        }
+
         return max_radius;
     }
+
 
     void DEM_Inlet::InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator, const bool using_strategy_for_continuum) {
 
@@ -153,15 +176,6 @@ namespace Kratos {
             ModelPart& mp = *mListOfSubModelParts[i];
 
             CheckSubModelPart(mp);
-
-            double max_radius = SetMaxDistributionRadius(mp);
-
-            if (!mp[MINIMUM_RADIUS]) {
-                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
-            }
-            if (!mp[MAXIMUM_RADIUS]) {
-                mp[MAXIMUM_RADIUS] = max_radius;
-            }
 
             int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
@@ -210,6 +224,15 @@ namespace Kratos {
                 else {
                     KRATOS_ERROR << "Unknown DEM inlet random variable: " << mp[PROBABILITY_DISTRIBUTION] << ".";
                 }
+            }
+
+            double max_radius = SetMaxDistributionRadius(mp);
+
+            if (!mp[MINIMUM_RADIUS]) {
+                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+            }
+            if (!mp[MAXIMUM_RADIUS]) {
+                mp[MAXIMUM_RADIUS] = max_radius;
             }
 
             Element::Pointer dummy_element_pointer;
