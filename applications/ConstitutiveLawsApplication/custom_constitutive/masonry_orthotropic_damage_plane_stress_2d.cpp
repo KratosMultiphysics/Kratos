@@ -369,9 +369,9 @@ namespace Kratos
         DirectionalMaterialProperties& rProjectedProperties)
     {
         const double material_length_1 = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyTension /
-            (rMaterialProperties1.YieldStressTension * rMaterialProperties1.YieldStressTension);
+            pow(rMaterialProperties1.YieldStressTension, 2);
         const double material_length_2 = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyTension /
-            (rMaterialProperties2.YieldStressTension * rMaterialProperties2.YieldStressTension);
+            pow(rMaterialProperties2.YieldStressTension, 2);
 
         const double material_length_projected = sqrt(1 / (
             (1 / pow(material_length_1, 2)) * pow(cos(AngleToDamage), 2)
@@ -388,9 +388,9 @@ namespace Kratos
         DirectionalMaterialProperties& rProjectedProperties)
     {
         const double material_length_1 = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyCompression /
-            (rMaterialProperties1.YieldStressCompression * rMaterialProperties1.YieldStressCompression);
+            pow(rMaterialProperties1.YieldStressCompression, 2);
         const double material_length_2 = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyCompression /
-            (rMaterialProperties2.YieldStressCompression * rMaterialProperties2.YieldStressCompression);
+            pow(rMaterialProperties2.YieldStressCompression, 2);
 
         const double material_length_projected = sqrt(1 / (
             (1 / pow(material_length_1, 2)) * pow(cos(AngleToDamage), 2)
