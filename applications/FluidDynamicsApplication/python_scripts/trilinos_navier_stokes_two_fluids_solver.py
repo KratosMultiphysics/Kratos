@@ -25,11 +25,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             self._bfecc_convection = False
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
 
-        if not self._reinitialization_type == None:
-            if not self._reinitialization_type == "variational":
-                self._reinitialization_type == "variational"
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Only variational redistancing is implemented in MPI. Switching to it.")
-
         if not self._distance_smoothing == None:
             if self._distance_smoothing:
                 self._distance_smoothing = False
@@ -157,24 +152,36 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         return level_set_convection_process
 
     def _CreateDistanceReinitializationProcess(self):
-        # Construct the variational distance calculation process
-        maximum_iterations = 2 #TODO: Make this user-definable
-        redistancing_linear_solver = self._GetRedistancingLinearSolver()
-        computing_model_part = self.GetComputingModelPart()
-        epetra_communicator = self._GetEpetraCommunicator()
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
-                epetra_communicator,
-                computing_model_part,
-                redistancing_linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        else:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
-                epetra_communicator,
-                computing_model_part,
-                redistancing_linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        if (self._reinitialization_type == "variational"):
+            # Construct the variational distance calculation process
+            maximum_iterations = 2 #TODO: Make this user-definable
+            redistancing_linear_solver = self._GetRedistancingLinearSolver()
+            computing_model_part = self.GetComputingModelPart()
+            epetra_communicator = self._GetEpetraCommunicator()
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
+                    epetra_communicator,
+                    computing_model_part,
+                    redistancing_linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+            else:
+                distance_reinitialization_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
+                    epetra_communicator,
+                    computing_model_part,
+                    redistancing_linear_solver,
+                    maximum_iterations,
+                    KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-        return variational_distance_process
+        elif (self._reinitialization_type == "parallel"):
+            if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
+            else:
+                distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
+
+        elif (self._reinitialization_type == "none"):
+                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")
+        else:
+            raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
+
+        return distance_reinitialization_process

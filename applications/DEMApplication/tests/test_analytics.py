@@ -5,8 +5,8 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
-
 import KratosMultiphysics.kratos_utilities as kratos_utils
+
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -46,6 +46,10 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
                     expected_value = 16.29633
                     self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
@@ -58,11 +62,11 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
             self.CheckTotalNumberOfCrossingParticles()
 
-        self.FaceAnalyzerClass.RemoveOldFile()
+        self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -71,6 +75,10 @@ class GhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DE
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('1/n_accum')
             self.assertEqual(n_accum_h5[-1], -4)
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
@@ -84,13 +92,13 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def RunAnalytics(self, time, is_time_to_print=True):
         self.MakeAnalyticsMeasurements()
         if is_time_to_print:  # or IsCountStep()
-            self.FaceAnalyzerClass.CreateNewFile()
-            self.FaceAnalyzerClass.UpdateDataBases(time)
+            self.SurfacesAnalyzerClass.CreateNewFile()
+            self.SurfacesAnalyzerClass.UpdateDataBases(time)
 
             if sp[Kratos.IDENTIFIER] == 'DEM-wall2':
                 self.CheckTotalNumberOfCrossingParticles()
 
-            self.FaceAnalyzerClass.RemoveOldFile()
+            self.SurfacesAnalyzerClass.RemoveOldFile()
 
     def CheckTotalNumberOfCrossingParticles(self):
         import h5py
@@ -99,6 +107,11 @@ class MultiGhostsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
             input_data = h5py.File(self.main_path+'/flux_data.hdf5','r')
             n_accum_h5 = input_data.get('2/n_accum')
             self.assertEqual(n_accum_h5[-1], -4)
+
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
 
 class TestAnalytics(KratosUnittest.TestCase):
 
@@ -131,12 +144,9 @@ class TestAnalytics(KratosUnittest.TestCase):
     #     CreateAndRunStageInSelectedNumberOfOpenMPThreads(MultiGhostsTestSolution, model, parameters_file_name, 1)
 
     def tearDown(self):
-        file_to_remove = os.path.join("analytics_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         file_to_remove = os.path.join("analytics_tests_files", "flux_data_new.hdf5")
         kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
         os.chdir(this_working_dir_backup)
-
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)

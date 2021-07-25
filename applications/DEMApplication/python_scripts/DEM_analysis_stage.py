@@ -81,7 +81,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
-        self.SetAnalyticParticleWatcher()
         self.PreUtilities = PreUtilities()
         self.aux = AuxiliaryUtilities()
 
@@ -140,17 +139,18 @@ class DEMAnalysisStage(AnalysisStage):
 
         return False
 
-    def SetAnalyticParticleWatcher(self):
-        self.particle_watcher = AnalyticParticleWatcher()
+    def SetAnalyticWatchers(self):
+        self.SurfacesAnalyzerClass = analytic_data_procedures.SurfacesAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
-        # is this being used? TODO
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
+        if self.post_normal_impact_velocity_option:
+            self.ParticlesAnalyzerClass = analytic_data_procedures.ParticlesAnalyzerClass(self.analytic_model_part)
 
-    def SetAnalyticFaceWatcher(self):
-        self.FaceAnalyzerClass = analytic_data_procedures.FaceAnalyzerClass(self.rigid_face_model_part.SubModelParts, self.main_path)
 
     def MakeAnalyticsMeasurements(self):
-        self.FaceAnalyzerClass.MakeAnalyticsMeasurements()
+        self.SurfacesAnalyzerClass.MakeAnalyticsMeasurements()
+
+        if self.post_normal_impact_velocity_option:
+            self.ParticlesAnalyzerClass.MakeAnalyticsMeasurements()
 
     def SetFinalTime(self):
         self.end_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -249,13 +249,14 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.ReadModelParts()
 
-        self.SetAnalyticFaceWatcher()
-
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
                 self.post_normal_impact_velocity_option = True
                 self.FillAnalyticSubModelParts()
+
+        self.SetAnalyticWatchers()
+
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -449,10 +450,15 @@ class DEMAnalysisStage(AnalysisStage):
                 cluster_file_name = submp[CLUSTER_FILE_NAME]
                 submp[CLUSTER_FILE_NAME] = os.path.join(self.main_path, cluster_file_name)
 
-    def RunAnalytics(self, time, is_time_to_print=True):
+    def RunAnalytics(self, time):
         self.MakeAnalyticsMeasurements()
-        if is_time_to_print:
-            self.FaceAnalyzerClass.MakeAnalyticsPipeLine(time)
+        if self.IsTimeToPrintPostProcess():
+            self.SurfacesAnalyzerClass.MakeAnalyticsPipeLine(time)
+
+        if self.post_normal_impact_velocity_option and self.IsTimeToPrintPostProcess():
+            self.ParticlesAnalyzerClass.SetNodalMaxImpactVelocities()
+            self.ParticlesAnalyzerClass.SetNodalMaxFaceImpactVelocities()
+
 
     def IsTimeToPrintPostProcess(self):
         return self.do_print_results_option and self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self._GetSolver().dt
@@ -512,14 +518,9 @@ class DEMAnalysisStage(AnalysisStage):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
         #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
+        self.RunAnalytics(self.time)
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -539,21 +540,6 @@ class DEMAnalysisStage(AnalysisStage):
         for output_process in self._GetListOfOutputProcesses():
             if output_process.IsOutputStep():
                 output_process.PrintOutput()
-
-    def AfterSolveOperations(self):
-        message = 'Warning!'
-        message += '\nFunction \'AfterSolveOperations\' is deprecated.'
-        message += '\nIt will be removed after 10/31/2019.\n'
-        Logger.PrintWarning("DEM_analysis_stage.py", message)
-        if self.post_normal_impact_velocity_option:
-            self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess():
-                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
-
-        #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
-
 
     def BreakSolutionStepsLoop(self):
         return False
@@ -580,12 +566,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
 
-        self.AdditionalFinalizeOperations()
-
         self.CleanUpOperations()
-
-    def AdditionalFinalizeOperations(self):
-        pass
 
     def __SafeDeleteModelParts(self):
         self.model.DeleteModelPart(self.cluster_model_part.Name)

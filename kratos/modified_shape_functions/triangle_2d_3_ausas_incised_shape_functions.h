@@ -118,6 +118,10 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void SetPositiveSideCondensationMatrix(Matrix& rPosSideCondMatrix) override;
+
+    void SetNegativeSideCondensationMatrix(Matrix& rNegSideCondMatrix) override;
+
     /**
     * Returns the intersection points and extrapolated intersection points condensation matrix for
     * positive side Ausas shape functions for incised elements.
@@ -132,7 +136,7 @@ protected:
         Matrix& rPosSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges) override;
+        const std::vector<int>& rSplitEdges);
 
     /**
     * Returns the intersection points and extrapolated intersection points condensation matrix for
@@ -148,7 +152,7 @@ protected:
         Matrix& rNegSideCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
-        const std::vector<int>& rSplitEdges) override;
+        const std::vector<int>& rSplitEdges);
 
     ///@}
     ///@name Protected  Access

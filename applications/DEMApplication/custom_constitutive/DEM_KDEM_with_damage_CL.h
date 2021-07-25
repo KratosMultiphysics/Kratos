@@ -63,6 +63,7 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
+            double ViscoDampingLocalContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
             double LocalRelVel[3],
@@ -79,11 +80,23 @@ namespace Kratos {
             bool& sliding,
             const ProcessInfo& r_process_info) override;
 
+        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                    SphericContinuumParticle* neighbor,
+                                                    double equiv_young,
+                                                    double distance,
+                                                    double calculation_area,
+                                                    double LocalCoordSystem[3][3],
+                                                    double ElasticLocalRotationalMoment[3],
+                                                    double ViscoLocalRotationalMoment[3],
+                                                    double equiv_poisson,
+                                                    double indentation) override;
+
         void FindMaximumValueOfNormalAndTangentialDamageComponents();
 
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
-        const double mDamageThresholdTolerance = 0.99;
+        double mDamageMoment = 0.0;
+        const double mDamageThresholdTolerance = 0.9999;
 
     private:
 

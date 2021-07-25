@@ -259,7 +259,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self._GetDistanceReinitializationProcess().Execute()
             elif (self._reinitialization_type == "parallel"):
                 adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.NumberOfElements()) # this parameter is essential
+                layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
                 max_distance = 1.0 # use this parameter to define the redistancing range
                 # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
                 self._GetDistanceReinitializationProcess().CalculateDistances(
@@ -505,12 +505,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         elif (self._reinitialization_type == "parallel"):
             if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-                locator = KratosMultiphysics.BinBasedFastPointLocator2D(self.main_model_part)
-                locator.UpdateSearchDatabase()
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator2D()
             else:
-                locator = KratosMultiphysics.BinBasedFastPointLocator3D(self.main_model_part)
-                locator.UpdateSearchDatabase()
                 distance_reinitialization_process = KratosMultiphysics.ParallelDistanceCalculator3D()
         elif (self._reinitialization_type == "none"):
                 KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing is turned off.")

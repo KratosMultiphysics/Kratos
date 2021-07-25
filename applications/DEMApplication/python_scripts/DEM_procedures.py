@@ -160,15 +160,26 @@ class GranulometryUtils():
         self.voids_volume = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
 
+        self.PrintCurrentData()
+
     def PrintCurrentData(self):
 
-        Logger.Print("number_of_spheres: ", self.number_of_spheres, label="")
-        Logger.Print("solid volume: ", self.solid_volume, label="")
-        Logger.Print("voids volume: ", self.voids_volume, label="")
-        Logger.Print("global porosity: ", self.global_porosity, label="")
-        Logger.Print("D50: ", self.d_50, label="")
-        Logger.Print("spheres per area unit: ", self.spheres_per_area, label="")
+        Logger.Print("number_of_spheres:", self.number_of_spheres, label="")
+        Logger.Print("solid volume:", self.solid_volume, label="")
+        Logger.Print("voids volume:", self.voids_volume, label="")
+        Logger.Print("global porosity:", self.global_porosity, label="")
+        Logger.Print("D50:", self.d_50, label="")
+        Logger.Print("spheres per area unit:", self.spheres_per_area, label="")
+        Logger.Print("")
 
+        granul_file = open('granulometry_data.txt', 'w')
+        granul_file.write("Number of spheres: " + str(self.number_of_spheres) + '\n')
+        granul_file.write("Solid volume: " + str(self.solid_volume) + '\n')
+        granul_file.write("Voids volume: " + str(self.voids_volume) + '\n')
+        granul_file.write("Global porosity: " + str(self.global_porosity) + '\n')
+        granul_file.write("D50: " + str(self.d_50) + '\n')
+        granul_file.write("Spheres per area unit: " + str(self.spheres_per_area) + '\n')
+        granul_file.close()
 
 class PostUtils():
 

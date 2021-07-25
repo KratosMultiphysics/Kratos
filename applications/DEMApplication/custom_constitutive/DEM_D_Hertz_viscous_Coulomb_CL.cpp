@@ -83,15 +83,7 @@ namespace Kratos {
             normal_contact_force = 0.0;
             ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
         }
-        /* //COATING
-        array_1d<double, 3> other_vel = ZeroVector(3);
-        if (element2->IsNot(DEMFlags::BELONGS_TO_A_CLUSTER)) {
-            other_vel = element2->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-            element2->GetGeometry()[0].Set(TO_ERASE); // This line applies only for coating simulations
-        }
-        double other_vel_module = sqrt(other_vel[0] * other_vel[0] + other_vel[1] * other_vel[1] + other_vel[2] * other_vel[2]);
-        element1->GetGeometry()[0].FastGetSolutionStepValue(SPRAYED_MATERIAL) += 0.00001 * other_vel_module;
-        */
+
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
 

@@ -6,8 +6,6 @@ import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -41,6 +39,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             Logger.PrintInfo("upper bound:",restitution_coefficient*tolerance)
             Logger.PrintInfo("lower bound:",restitution_coefficient/tolerance)
             self.assertAlmostEqual(self.coeff, restitution_coefficient, delta=tolerance)
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
 
@@ -90,6 +89,7 @@ class DEM3D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
+        properties[DEM.FRICTION_DECAY] = 500.0
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 1.0
         self.coeff = 1.0963606640305437
@@ -119,6 +119,7 @@ class DEM3D_RestitutionTestSolution_2(DEM3D_RestitutionTestSolution):
         properties[KratosMultiphysics.POISSON_RATIO] = 0.23
         properties[DEM.STATIC_FRICTION] = 0.0
         properties[DEM.DYNAMIC_FRICTION] = 0.0
+        properties[DEM.FRICTION_DECAY] = 500.0
         properties[DEM.PARTICLE_COHESION] = 0.0
         properties[DEM.COEFFICIENT_OF_RESTITUTION] = 0.5
         self.coeff = 0.5472000544114178
@@ -148,21 +149,15 @@ class TestDEM3DRestitution(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
     @classmethod
     def test_DEM3D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM3D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = KratosMultiphysics.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM3D_RestitutionTestSolution_2, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
-    def tearDown(self):
-        file_to_remove = os.path.join("DEM3D_restitution_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        file_to_remove = os.path.join("DEM3D_restitution_tests_files", "flux_data_new.hdf5")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-        os.chdir(this_working_dir_backup)
 
 
 if __name__ == "__main__":

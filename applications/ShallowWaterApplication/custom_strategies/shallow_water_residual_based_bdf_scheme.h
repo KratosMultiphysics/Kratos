@@ -176,8 +176,7 @@ public:
         const std::array<const Variable<double>*, 3> var_components = {&MOMENTUM_X, &MOMENTUM_Y, &HEIGHT};
         const std::array<const Variable<double>*, 3> accel_components = {&ACCELERATION_X, &ACCELERATION_Y, &VERTICAL_VELOCITY};
 
-        #pragma omp parallel for
-        for (int i = 0;  i < num_nodes; ++i) {
+        IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t i){
             auto it_node = it_node_begin + i;
 
             for (std::size_t j = 0; j < 3; ++j)
@@ -191,7 +190,7 @@ public:
             }
 
             UpdateFirstDerivative(it_node);
-        }
+        });
 
         KRATOS_CATCH("ShallowWaterResidualBasedBDFScheme.Predict");
     }

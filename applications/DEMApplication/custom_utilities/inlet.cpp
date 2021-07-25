@@ -128,12 +128,17 @@ namespace Kratos {
         std::sort(mListOfSubModelParts.begin(), mListOfSubModelParts.end(), SortSubModelPartsByName);
 
         for(int i=0; i<(int)mListOfSubModelParts.size(); i++) {
+
             ModelPart& mp = *mListOfSubModelParts[i];
 
-
             CheckSubModelPart(mp);
-            mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
-            mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+
+            if (!mp[MINIMUM_RADIUS]) {
+                mp[MINIMUM_RADIUS] = 0.5 * mp[RADIUS];
+            }
+            if (!mp[MAXIMUM_RADIUS]) {
+                mp[MAXIMUM_RADIUS] = 1.5 * mp[RADIUS];
+            }
 
             int mesh_size = mp.NumberOfNodes();
             if (!mesh_size) continue;
@@ -201,8 +206,6 @@ namespace Kratos {
         ///DIMENSION
         int dimension = r_process_info[DOMAIN_SIZE];
 
-        std::vector<unsigned int> ElementPartition;
-        OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
         typedef ElementsArrayType::iterator ElementIterator;
         // This vector collects the ids of the particles that have been dettached
         // so that their id can be removed from the mOriginInletSubmodelPartIndexes map
@@ -310,43 +313,35 @@ namespace Kratos {
 
     void DEM_Inlet::CheckDistanceAndSetFlag(ModelPart& r_modelpart)
     {
-            std::vector<unsigned int> ElementPartition;
-            OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_modelpart.GetCommunicator().LocalMesh().Elements().size(), ElementPartition);
-            typedef ElementsArrayType::iterator ElementIterator;
-            #pragma omp parallel
-            {
-            #pragma omp for
-            for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
-                ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
-            if (elem_it->Is(BLOCKED)) continue;
+        ElementsArrayType& rElements = r_modelpart.GetCommunicator().LocalMesh().Elements();
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            if (rElement.Is(BLOCKED)) return;
+            SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(rElement);
 
-                SphericParticle& spheric_particle = dynamic_cast<SphericParticle&>(*elem_it);
-
-            if (!(*(spheric_particle.mpInlet))[DENSE_INLET]) continue;
+            if (!(*(spheric_particle.mpInlet))[DENSE_INLET]) return;
                 Node<3>& node = spheric_particle.GetGeometry()[0];
 
-            if (!node.Is(DEMFlags::CUMULATIVE_ZONE)) continue;
+            if (!node.Is(DEMFlags::CUMULATIVE_ZONE)) return;
 
             const array_1d<double,3>& inlet_velocity = (*(spheric_particle.mpInlet))[VELOCITY];
-                const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);
-                const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;
+            const double inlet_velocity_magnitude = DEM_MODULUS_3(inlet_velocity);
+            const array_1d<double, 3> unitary_inlet_velocity =  inlet_velocity/inlet_velocity_magnitude;
 
-                const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
-                const array_1d<double,3>& coordinates = node.Coordinates();
-                const array_1d<double,3> distance = coordinates - initial_coordinates;
+            const array_1d<double,3>& initial_coordinates = node.GetInitialPosition();
+            const array_1d<double,3>& coordinates = node.Coordinates();
+            const array_1d<double,3> distance = coordinates - initial_coordinates;
             const double reference_distance = 15.0 * (*(spheric_particle.mpInlet))[RADIUS];
 
-                /// Projection over injection axis
-                const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
+            /// Projection over injection axis
+            const double projected_distance = DEM_INNER_PRODUCT_3(distance, unitary_inlet_velocity);
 
             if (projected_distance > reference_distance) {
                     node.Set(DEMFlags::CUMULATIVE_ZONE, false);
                     spheric_particle.Set(DEMFlags::CUMULATIVE_ZONE, false);
-
-                }
             }
-            }
+        });
     }
+
 
     void DEM_Inlet::RemoveInjectionConditions(Element& element, int dimension)
     {
@@ -385,8 +380,6 @@ namespace Kratos {
 
         ///DIMENSION
         int dimension = r_process_info[DOMAIN_SIZE];
-
-        std::vector<unsigned int> ElementPartition;
         typedef ElementsArrayType::iterator ElementIterator;
         std::vector<int> ids_to_remove;
 
@@ -444,7 +437,7 @@ namespace Kratos {
                 mOriginInletSubmodelPartIndexes.erase(ids_to_remove[i]);
             }
         }
-    }
+        }
     } //DettachClusters
 
     bool DEM_Inlet::OneNeighbourInjectorIsInjecting(const Element::Pointer& element) {
