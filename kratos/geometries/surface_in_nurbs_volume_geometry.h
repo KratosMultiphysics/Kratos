@@ -260,7 +260,7 @@ public:
         IntegrationInfo& rIntegrationInfo) const override
     {
         const auto surface_method = mpSurface->GetDefaultIntegrationMethod();
-        rIntegrationPoints = mpSurface->IntegrationPoints(surface_method, rIntegrationInfo);
+        rIntegrationPoints = mpSurface->IntegrationPoints(surface_method);
     }
 
     /**
