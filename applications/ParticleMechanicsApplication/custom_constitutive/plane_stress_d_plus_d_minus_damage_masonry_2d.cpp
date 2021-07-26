@@ -593,7 +593,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	if (data.IsSFRC)
 	{
 		const double k1 = 0.25 + 0.16 * data.srfc_fraction;
-		data.YieldStressTension = k1 * std::sqrt(props[YIELD_STRESS_COMPRESSION]) * dif_tension;
+		data.YieldStressTension = k1 * std::sqrt(props[YIELD_STRESS_COMPRESSION]/1e6) * 1e6 * dif_tension;
 		const double fracture_energy_factor = 19.953 + data.srfc_fraction * 3.213;
 		data.FractureEnergyTension = props[FRACTURE_ENERGY_TENSION] * dif_tension * fracture_energy_factor;
 	}
@@ -905,7 +905,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	else
 	{
 		double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
-		if (is_steel_fibre_reinforced && DamageParameterTensionSoftening < 0.95) current_limit_softening_stress = residual_strength;
+		if (is_steel_fibre_reinforced && DamageParameterTensionSoftening > 1e-6 && DamageParameterTensionSoftening < 0.95) current_limit_softening_stress = residual_strength;
 
 		const double damaged_stress = eq_strain / TensionMaxHistoricalStrain * current_limit_softening_stress;
 		rDamage = 1.0 - damaged_stress / eq_tensile_stress;
