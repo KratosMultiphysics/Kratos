@@ -394,8 +394,11 @@ namespace Kratos {
                             }
                             for (size_t i = 0; i < mps_to_move.size(); ++i)
                             {
-                                r_contact_mp.AddElement(r_concrete_mp.pGetElement(mps_to_move[i]));
-                                r_concrete_mp.RemoveElement(mps_to_move[i]);
+                                //r_contact_mp.AddElement(r_concrete_mp.pGetElement(mps_to_move[i]));
+                                //r_concrete_mp.RemoveElement(mps_to_move[i]);
+
+                                r_concrete_mp.GetElement(mps_to_move[i]).GetGeometry().clear();
+                                r_concrete_mp.RemoveElementFromAllLevels(mps_to_move[i]);
                             }
                         }
 
