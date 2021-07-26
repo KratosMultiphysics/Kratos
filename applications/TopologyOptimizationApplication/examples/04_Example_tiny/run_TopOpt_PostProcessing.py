@@ -44,7 +44,7 @@ gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_p
                                                     "gidpost_flags": {
                                                         "GiDPostMode": "GiD_PostBinary",
                                                         "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                        "WriteConditionsFlag": "WriteElementsOnly",
+                                                        "WriteConditionsFlag": "WriteConditions",
                                                         "MultiFileFlag": "SingleFile"
                                                     },
                                                     "file_label": "time",
@@ -52,7 +52,7 @@ gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_p
                                                     "output_interval": 1.0,
                                                     "flush_after_output": false,
                                                     "body_output": true,
-                                                    "node_output": false,
+                                                    "node_output": true,
                                                     "skin_output": false,
                                                     "plane_output": [],
                                                     "nodal_results": [],
@@ -93,7 +93,7 @@ gid_io_2 = GiDOutputProcess(extracted_surface_model_part, "extracted_surface_mod
                                                     "output_interval": 1.0,
                                                     "flush_after_output": false,
                                                     "body_output": true,
-                                                    "node_output": false,
+                                                    "node_output": true,
                                                     "skin_output": false,
                                                     "plane_output": [],
                                                     "nodal_results": [],
@@ -109,7 +109,7 @@ gid_io_2 = GiDOutputProcess(extracted_surface_model_part, "extracted_surface_mod
 
 
 gid_io_2.ExecuteInitialize()
-gid_io_2.ExecuteBeforeSolutionLoop()
+#gid_io_2.ExecuteBeforeSolutionLoop()
 gid_io_2.ExecuteInitializeSolutionStep()
 gid_io_2.PrintOutput()
 gid_io_2.ExecuteFinalizeSolutionStep()
