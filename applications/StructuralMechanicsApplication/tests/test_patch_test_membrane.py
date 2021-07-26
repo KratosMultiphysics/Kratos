@@ -362,7 +362,6 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
 
 
     def test_membrane_cauchy_stress_and_local_axis(self):
-        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("Structure")
