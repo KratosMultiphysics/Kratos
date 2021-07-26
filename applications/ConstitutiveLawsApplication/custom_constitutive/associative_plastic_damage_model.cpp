@@ -67,7 +67,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateMaterialResponse
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -122,7 +122,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::FinalizeMaterialResponseC
     // We get the strain vector
     Vector& r_strain_vector = rValues.GetStrainVector();
 
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::
         CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {

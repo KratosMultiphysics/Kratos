@@ -1,15 +1,15 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:     BSD License
-//  license:      structural_mechanics_application/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
-//  Main authors: Klaus B. Sautter
-//                Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
-//
+
 
 #if !defined(KRATOS_GEO_CR_BEAM_ELEMENT_2D2N_H_INCLUDED )
 #define  KRATOS_GEO_CR_BEAM_ELEMENT_2D2N_H_INCLUDED
@@ -23,6 +23,7 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
+#include "../StructuralMechanicsApplication/custom_elements/cr_beam_element_2D2N.hpp"
 
 namespace Kratos
 {
@@ -30,28 +31,18 @@ namespace Kratos
  * @class GeoCrBeamElement2D2N
  *
  * @brief This is a 2D-2node beam element with 2 translational dofs and 1 rotational dof per node
+ *        based on the same element in Structural Mechanics, modified to consider reset displacements
  *
- * @author Klaus B Sautter
+ * @author Vahid Galavi
  */
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElement2D2N : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCrBeamElement2D2N : public CrBeamElement2D2N
 {
-protected:
-    //const values
-    static constexpr int msNumberOfNodes = 2;
-    static constexpr int msDimension = 2;
-    static constexpr unsigned int msLocalSize = 3;
-    static constexpr unsigned int msElementSize = msLocalSize * 2;
-
-    Vector mInternalGlobalForces = ZeroVector(msElementSize);
-    Vector mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
-    Vector mInternalGlobalForcesFinalizedPrevious= ZeroVector(msElementSize);
-
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCrBeamElement2D2N);
 
 
-    typedef Element BaseType;
+    typedef CrBeamElement2D2N BaseType;
     typedef BaseType::GeometryType GeometryType;
     typedef BaseType::NodesArrayType NodesArrayType;
     typedef BaseType::PropertiesType PropertiesType;
@@ -78,11 +69,9 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-    ) const override;
+    Element::Pointer Create( IndexType NewId,
+                             GeometryType::Pointer pGeom,
+                             PropertiesType::Pointer pProperties ) const override;
 
     /**
      * @brief Creates a new element
@@ -91,45 +80,15 @@ public:
      * @param pProperties The pointer to property
      * @return The pointer to the created element
      */
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties
-    ) const override;
-
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void GetDofList(
-        DofsVectorType& rElementalDofList,
-        const ProcessInfo& rCurrentProcessInfo) const override;
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo ) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo ) override;
-
-    void GetValuesVector(
-        Vector& rValues,
-        int Step = 0) const override;
-
-    void GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step = 0) const override;
-
-    void GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step = 0) const override;
-
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -140,133 +99,6 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /////////////////////////////////////////////////
-    ///////////// CUSTOM FUNCTIONS --->>
-    /////////////////////////////////////////////////
-
-    /**
-     * @brief This function calculates shear modulus from user input values
-     */
-    double CalculateShearModulus() const;
-
-
-    /**
-     * @brief This function calculates reduction values in case of shear-deformable structures
-     * @param I The second moment of area
-     * @param A_eff The shear-effective area
-     */
-    double CalculatePsi(const double I, const double A_eff) const;
-
-    /**
-     * @brief This function calculates the initial angle
-     */
-    double CalculateInitialElementAngle() const;
-
-    /**
-     * @brief This function calculates the current angle
-     */
-    double CalculateDeformedElementAngle();
-
-    /**
-     * @brief This function calculates self-weight forces
-     */
-    BoundedVector<double,msElementSize> CalculateBodyForces() const;
-
-    /**
-     * @brief This function calculates nodal moments due to self-weight
-     * @param ForceInput The self-weight line load vector
-     * @param rRightHandSideVector The right hand side of the problem
-     * @param GeometryLength The element length
-     */
-    void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
-        const BoundedVector<double,3> ForceInput,
-        BoundedVector<double,msElementSize>& rRightHandSideVector,
-        const double GeometryLength)const ;
-
-    IntegrationMethod GetIntegrationMethod() const override;
-
-    /**
-     * @brief This function calculates a transformation matrix from deformation modes to real deformations
-     */
-    BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS() const;
-
-    /**
-     * @brief This function calculates the current length
-     */
-    virtual double CalculateLength() const;
-
-    /**
-     * @brief This function calculates the elastic part of the total stiffness matrix
-     */
-    BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat() const;
-
-    /**
-     * @brief This function calculates the geometric part of the total stiffness matrix
-     */
-    BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo() const;
-
-    /**
-     * @brief This function calculates the co-rotating part of the total stiffness matrix
-     */
-    BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr() const;
-
-    /**
-     * @brief This function assembles the total stiffness matrix
-     */
-    BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total() const;
-
-
-    /**
-     * @brief This function globalizes matrices
-     * @param A The matrix to be globalized
-     */
-    void GlobalizeMatrix(Matrix& A);
-
-    /**
-     * @brief This function globalizes vectors
-     * @param A The vector to be globalized
-     */
-    void GlobalizeVector(Vector& A);
-
-    /**
-     * @brief This function calculates the modulus to 2 PI to keep the rotation angle between 0 and 2PI
-     * @param A The current angle
-     */
-    double Modulus2Pi(double A) const;
-
-    /**
-     * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
-     */
-    virtual BoundedMatrix<double,msElementSize,msElementSize> CreateRotationMatrix();
-
-
-    /**
-     * @brief This function calculates the deformation parameters
-     */
-    BoundedVector<double,msLocalSize> CalculateDeformationParameters();
-
-    /**
-     * @brief This function calculates the internal forces w.r.t. the deformation parameters
-     */
-    BoundedVector<double,msLocalSize> CalculateInternalStresses_DeformationModes();
-
-    /**
-     * @brief This function calculates the "real" internal forces in a local reference frame
-     */
-    BoundedVector<double,msElementSize> ReturnElementForces_Local();
-
-
     /**
      * @brief This function calculates the element contributions to an explicit time integration
      */
@@ -275,20 +107,18 @@ public:
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+protected:
+    Vector mInternalGlobalForcesFinalized = ZeroVector(msElementSize);
+    Vector mInternalGlobalForcesFinalizedPrevious= ZeroVector(msElementSize);
+
 
 private:
-
-    // stores the deformation modes
-    BoundedVector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
-
     // stores the globalized internal forces for calculation of the residual
     bool mIsInitialization = false;
-
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
-
 };
 
 }

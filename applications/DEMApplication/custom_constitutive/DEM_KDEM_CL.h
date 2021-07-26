@@ -9,6 +9,9 @@
 namespace Kratos {
 
     class KRATOS_API(DEM_APPLICATION) DEM_KDEM : public DEMContinuumConstitutiveLaw {
+
+        typedef DEMContinuumConstitutiveLaw BaseClassType;
+        
     public:
 
         KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM);
@@ -16,7 +19,9 @@ namespace Kratos {
         DEM_KDEM() {
         }
 
-        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
+        void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override; //deprecated
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override;
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
         void Check(Properties::Pointer pProp) const override;
 
         ~DEM_KDEM() {
@@ -67,7 +72,6 @@ namespace Kratos {
                             double LocalRelVel[3],
                             double ViscoDampingLocalContactForce[3]) override;
 
-
         void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
@@ -80,8 +84,10 @@ namespace Kratos {
                 int time_steps,
             const ProcessInfo& r_process_info) override;
 
-        double GetContactSigmaMax(SphericContinuumParticle* element);
+        double GetContactSigmaMax();
 
+        virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
+            
         void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                 double LocalElasticContactForce[3],
                 double LocalElasticExtraContactForce[3],
@@ -111,7 +117,6 @@ namespace Kratos {
                                                     SphericContinuumParticle* element1,
                                                     SphericContinuumParticle* element2);
 
-
         void CalculateViscoDamping(double LocalRelVel[3],
                                 double ViscoDampingLocalContactForce[3],
                                 double indentation,
@@ -119,7 +124,6 @@ namespace Kratos {
                                 double equiv_visco_damp_coeff_tangential,
                                 bool& sliding,
                                 int failure_id) override;
-
 
         virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
                                                     SphericContinuumParticle* neighbor,
@@ -139,7 +143,7 @@ namespace Kratos {
                                     SphericContinuumParticle* element2, const ProcessInfo& r_process_info, const int i_neighbor_count, const double indentation) override;
 
     protected:
-
+    
         virtual double GetTauZero(SphericContinuumParticle* element1);
 
         virtual double GetInternalFricc(SphericContinuumParticle* element1);
@@ -157,7 +161,6 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DEMContinuumConstitutiveLaw)
                     //rSerializer.load("MyMemberName",myMember);
         }
-
     };
 
 } /* namespace Kratos.*/

@@ -5,6 +5,7 @@ import KratosMultiphysics.mpi as KratosMPI                          # MPI-python
 # Import applications
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+import KratosMultiphysics.FluidDynamicsApplication.TrilinosExtension as KratosTrilinosFluid
 from KratosMultiphysics.TrilinosApplication import trilinos_linear_solver_factory
 
 # Import serial two fluid solver
@@ -18,17 +19,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
 
     def __init__(self, model, custom_settings):
         super().__init__(model,custom_settings)
-
-        # Avoid using features that are not available in MPI yet
-        self._bfecc_convection = self.settings["bfecc_convection"].GetBool()
-        if self._bfecc_convection:
-            self._bfecc_convection = False
-            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "BFECC is not implemented in MPI yet. Switching to standard level set convection.")
-
-        if not self._distance_smoothing == None:
-            if self._distance_smoothing:
-                self._distance_smoothing = False
-                KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Distance smoothing is not implemented in MPI yet. Deactivating it.")
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__,"Construction of NavierStokesMPITwoFluidsSolver finished.")
 
@@ -134,7 +124,6 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
         levelset_linear_solver = self._GetLevelsetLinearSolver()
         computing_model_part = self.GetComputingModelPart()
         epetra_communicator = self._GetEpetraCommunicator()
-
         levelset_convection_settings = self.settings["levelset_convection_settings"]
         if domain_size == 2:
             level_set_convection_process = KratosTrilinos.TrilinosLevelSetConvectionProcess2D(
@@ -185,3 +174,20 @@ class NavierStokesMPITwoFluidsSolver(NavierStokesTwoFluidsSolver):
             raise Exception("Please use a valid distance reinitialization type or set it as \'none\'. Valid types are: \'variational\' and \'parallel\'.")
 
         return distance_reinitialization_process
+
+    def _CreateDistanceSmoothingProcess(self):
+        # construct the distance smoothing process
+        linear_solver = self._GetSmoothingLinearSolver()
+        epetra_communicator = self._GetEpetraCommunicator()
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess2D(
+                epetra_communicator,
+                self.main_model_part,
+                linear_solver)
+        else:
+            distance_smoothing_process = KratosTrilinosFluid.TrilinosDistanceSmoothingProcess3D(
+                epetra_communicator,
+                self.main_model_part,
+                linear_solver)
+
+        return distance_smoothing_process

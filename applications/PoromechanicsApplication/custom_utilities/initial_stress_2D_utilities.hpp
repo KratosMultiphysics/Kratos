@@ -24,6 +24,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -99,7 +100,7 @@ public:
         this->WriteLinearElements(initial_stresses_mdpa,rCurrentModelPart);
 
         this->CalculateNodalStresses(rCurrentModelPart);
-        Matrix InitialStressTensor(2,2);
+        Matrix InitialStressTensor(3,3);
         initial_stresses_mdpa << "Begin NodalData INITIAL_STRESS_TENSOR" << std::endl;
         // #pragma omp parallel for
         for(int i = 0; i < NNodes; i++) {
@@ -273,7 +274,7 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X and Y limits of the current geometry
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);
@@ -361,9 +362,9 @@ private:
             ModelPart::NodesContainerType::iterator it_node = node_begin + i;
             it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
             Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-            if(rNodalStress.size1() != 2) // Dimension
-                rNodalStress.resize(2,2,false);
-            noalias(rNodalStress) = ZeroMatrix(2,2);
+            if(rNodalStress.size1() != 3)
+                rNodalStress.resize(3,3,false);
+            noalias(rNodalStress) = ZeroMatrix(3,3);
         }
 
         // Calculate and Extrapolate Stresses
@@ -385,9 +386,9 @@ private:
             {
                 const double InvNodalArea = 1.0/NodalArea;
                 Matrix& rNodalStress = it_node->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                for(unsigned int i = 0; i<2; i++) // Dimension
+                for(unsigned int i = 0; i<3; i++) // Dimension
                 {
-                    for(unsigned int j = 0; j<2; j++)
+                    for(unsigned int j = 0; j<3; j++)
                     {
                         rNodalStress(i,j) *= InvNodalArea;
                     }

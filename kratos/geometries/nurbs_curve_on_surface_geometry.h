@@ -63,8 +63,6 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
-
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -172,7 +170,7 @@ public:
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
@@ -181,13 +179,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is
-    *        SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == SURFACE_INDEX;
+        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
     }
 
     ///@}
@@ -245,22 +243,22 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         auto interval = mpNurbsCurve->DomainInterval();
-        this->Spans(rSpans, interval.GetT0(), interval.GetT1());
+        this->SpansLocalSpace(rSpans, interval.GetT0(), interval.GetT1());
     }
 
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
      * @return vector of interval limitations.
      */
-    void Spans(std::vector<double>& rSpans,
+    void SpansLocalSpace(std::vector<double>& rSpans,
         double Start, double End) const
     {
         std::vector<double> surface_spans_u;
         std::vector<double> surface_spans_v;
-        mpNurbsSurface->Spans(surface_spans_u, 0);
-        mpNurbsSurface->Spans(surface_spans_v, 1);
+        mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
+        mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
 
         CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
             rSpans,
@@ -318,7 +316,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -342,6 +341,17 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        IndexType p = mpNurbsSurface->PolynomialDegreeU() + mpNurbsSurface->PolynomialDegreeV() + 1;
+        return IntegrationInfo(1, p, IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -350,16 +360,14 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = mpNurbsSurface->PolynomialDegreeU()
-            + mpNurbsSurface->PolynomialDegreeV() + 1;
-
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
     ///@}
@@ -380,7 +388,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(
@@ -601,7 +610,7 @@ const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveCon
 
 template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
 const GeometryDimension NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+    1, TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 

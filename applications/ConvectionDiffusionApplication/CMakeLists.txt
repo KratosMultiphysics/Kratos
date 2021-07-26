@@ -87,3 +87,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install Targets
 install(TARGETS KratosConvectionDiffusionCore DESTINATION libs )
 install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosConvectionDiffusionCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosConvectionDiffusionApplication" PARENT_SCOPE)
