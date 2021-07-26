@@ -208,7 +208,8 @@ public:
     double Area() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = this->GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double area = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -238,6 +239,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Quadrature Point Geometries
     ///@{
 
@@ -246,7 +257,8 @@ public:
      * @param result integration points.
      **/
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const auto surface_method = mpSurface->GetDefaultIntegrationMethod();
         rIntegrationPoints = mpSurface->IntegrationPoints(surface_method);
@@ -266,7 +278,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
 
         // Shape function container.
