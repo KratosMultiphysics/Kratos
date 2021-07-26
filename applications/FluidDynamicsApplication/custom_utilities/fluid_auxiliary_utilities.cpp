@@ -209,15 +209,13 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
         const auto& r_parent_cond_begin = r_cond_begin->GetValue(NEIGHBOUR_ELEMENTS)[0];
         auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_parent_cond_begin.GetGeometry());
 
-        std::size_t n_cond = r_communicator.LocalMesh().Conditions().size();
         std::size_t n_dim = rModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-
-        for (std::size_t i_cond = 0; i_cond < n_cond; ++i_cond) {
-            auto it_cond = r_communicator.LocalMesh().ConditionsBegin() + i_cond;
+        flow_rate = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Conditions(), [&](Condition& rCondition){
             // Check if the condition is to be added to the flow contribution
-            if (it_cond->Is(rSkinFlag)) {
+            double cond_flow_rate = 0.0;
+            if (rCondition.Is(rSkinFlag)) {
                 // Get geometry data
-                const auto& r_geom = it_cond->GetGeometry();
+                const auto& r_geom = rCondition.GetGeometry();
                 const std::size_t n_nodes = r_geom.PointsNumber();
 
                 // Set up distances vector
@@ -227,10 +225,10 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                 }
                 // Check if the condition is in the positive subdomain or intersected
                 if (IsPositive(distances)) {
-                    flow_rate += CalculateConditionFlowRate(r_geom);
+                    cond_flow_rate = CalculateConditionFlowRate(r_geom);
                 } else if (IsSplit(distances)){
                     // Get the current condition parent
-                    const auto& r_parent_element = it_cond->GetValue(NEIGHBOUR_ELEMENTS)[0];
+                    const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
                     const auto& r_parent_geom = r_parent_element.GetGeometry();
 
                     // Get the corresponding face id of the current condition
@@ -281,16 +279,18 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                         i_N = row(n_pos_N, i_gauss);
                         i_normal = normals_vect[i_gauss];
                         const double i_normal_norm = norm_2(i_normal);
-                        KRATOS_WARNING_IF("CalculateFlowRatePositiveSkin", i_normal_norm < 1.0e-12) << "Condition " << it_cond->Id() << " normal close to zero." << std::endl;
+                        KRATOS_WARNING_IF("CalculateFlowRatePositiveSkin", i_normal_norm < 1.0e-12) << "Condition " << rCondition.Id() << " normal close to zero." << std::endl;
                         i_normal /= i_normal_norm;
                         for (std::size_t i_parent_node = 0; i_parent_node < n_nodes_parent; ++i_parent_node) {
                             noalias(aux_vel) += i_N[i_parent_node] * r_parent_geom[i_parent_node].FastGetSolutionStepValue(VELOCITY);
                         }
-                        flow_rate += w_vect[i_gauss] * inner_prod(aux_vel, i_normal);
+                        cond_flow_rate += w_vect[i_gauss] * inner_prod(aux_vel, i_normal);
                     }
                 }
             }
-        }
+
+            return cond_flow_rate;
+        });
     }
 
     // Synchronize among processors
