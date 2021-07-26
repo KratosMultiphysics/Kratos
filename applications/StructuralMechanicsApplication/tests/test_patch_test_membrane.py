@@ -361,6 +361,155 @@ class StaticPatchTestMembrane(BasePatchTestMembrane):
         self.assertAlmostEqual(mp.Nodes[3].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.15072065295319598,4)
 
 
+    def test_membrane_cauchy_stress_and_local_axis(self):
+        self.skipTestIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("Structure")
+        mp.SetBufferSize(2)
+        mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
+        self._add_variables(mp)
+
+        # add properties and subproperties
+        thickness = 1.2
+        height = 1.3
+        length = 12.0
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,500.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.00)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,thickness)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,7850.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw())
+
+        # create nodes
+        mp.CreateNewNode(1,   0.0000000000,   height,   0.0000000000)
+        mp.CreateNewNode(2,   0.0000000000,   0.0000000000,   0.0000000000)
+        mp.CreateNewNode(3,   length,   height,   0.0000000000)
+        mp.CreateNewNode(4,   length,   0.0000000000,   0.0000000000)
+
+
+        # add dofs
+        self._add_dofs(mp)
+
+        # create element
+        element_name = "MembraneElement3D4N"
+        mp.CreateNewElement(element_name, 1, [4, 3, 1, 2], mp.GetProperties()[1])
+
+        # create & apply dirichlet bcs
+        bcs_dirichlet_all = mp.CreateSubModelPart("BoundaryCondtionsDirichletAll")
+        bcs_dirichlet_all.AddNodes([1,2])
+
+        bcs_dirichlet_mv = mp.CreateSubModelPart("BoundaryCondtionsDirichletMove")
+        bcs_dirichlet_mv.AddNodes([3,4])
+
+        self._apply_dirichlet_BCs(bcs_dirichlet_all)
+        self._apply_dirichlet_BCs(bcs_dirichlet_mv,fix_type='YZ')
+
+        # create & apply neumann bcs
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[3],mp.GetProperties()[1])
+        mp.CreateNewCondition("PointLoadCondition3D1N",2,[4],mp.GetProperties()[1])
+
+        bcs_neumann = mp.CreateSubModelPart("BoundaryCondtionsNeumann")
+        bcs_neumann.AddNodes([3,4])
+        bcs_neumann.AddConditions([1,2])
+        point_load = 5.0
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.POINT_LOAD_X, point_load, bcs_neumann.Nodes)
+
+        ## 1.) with local axis calculated from element (dependent on node numbering)
+        cauchy_stress_analytical = point_load * len(bcs_neumann.Nodes) / (thickness*height)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        det_F_inv = length / (length+disp_x_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], 0.0)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical)
+                self.assertAlmostEqual(cauchy[i][2], 0.0)
+
+                self.assertAlmostEqual(pk2[i][0], 0.0)
+                self.assertAlmostEqual(pk2[i][1], cauchy_stress_analytical*det_F_inv)
+                self.assertAlmostEqual(pk2[i][2], 0.0)
+
+
+        ## 2.) with local mat_axis = 1,0,0
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [1,0,0],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        det_F_inv = length / (length+disp_x_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical)
+                self.assertAlmostEqual(cauchy[i][1], 0.0)
+                self.assertAlmostEqual(cauchy[i][2], 0.0)
+
+                self.assertAlmostEqual(pk2[i][0], cauchy_stress_analytical*det_F_inv)
+                self.assertAlmostEqual(pk2[i][1], 0.0)
+                self.assertAlmostEqual(pk2[i][2], 0.0)
+
+
+
+        ## 3.) with local mat_axis = 1,1,0  -> rotate stress state by 45°
+        cauchy_stress_analytical /= 2.0
+
+        projection_settings = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"  : "Structure",
+            "projection_type"  : "planar",
+            "global_direction" : [1,1,0],
+            "variable_name"    : "LOCAL_MATERIAL_AXIS_1"
+        }
+        """)
+        StructuralMechanicsApplication.ProjectVectorOnSurfaceUtility.Execute(mp, projection_settings)
+
+        # solve
+        self._solve_static(mp)
+
+
+        disp_x_i = mp.Nodes[4].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
+        det_F_inv = length / (length+disp_x_i)
+
+        for element_i in mp.Elements:
+            pk2 = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR,mp.ProcessInfo)
+            cauchy = element_i.CalculateOnIntegrationPoints(KratosMultiphysics.CAUCHY_STRESS_VECTOR,mp.ProcessInfo)
+
+            # check results
+            for i in range(4):
+                self.assertAlmostEqual(cauchy[i][0], cauchy_stress_analytical)
+                self.assertAlmostEqual(cauchy[i][1], cauchy_stress_analytical)
+                self.assertAlmostEqual(abs(cauchy[i][2]), cauchy_stress_analytical)
+
+                self.assertAlmostEqual(pk2[i][0], cauchy_stress_analytical*det_F_inv)
+                self.assertAlmostEqual(pk2[i][1], cauchy_stress_analytical*det_F_inv)
+                self.assertAlmostEqual(abs(pk2[i][2]), cauchy_stress_analytical*det_F_inv)
+
+
 class DynamicPatchTestMembrane(BasePatchTestMembrane):
 
     def test_membrane_3d3n_dynamic(self):

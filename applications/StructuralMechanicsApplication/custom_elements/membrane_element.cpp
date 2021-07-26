@@ -828,7 +828,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
 
         Vector stress = ZeroVector(3);
+        Vector stress_ref_cs = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
+        array_1d<Vector,2> current_contravariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
         array_1d<Vector,2> reference_contravariant_base_vectors;
 
@@ -837,7 +839,9 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix covariant_metric_current = ZeroMatrix(3);
         Matrix covariant_metric_reference = ZeroMatrix(3);
         Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_current = ZeroMatrix(3);
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
+        Matrix inplane_transformation_matrix_material_inverse = ZeroMatrix(3);
 
         Matrix deformation_gradient = ZeroMatrix(2);
         double det_deformation_gradient = 0.0;
@@ -858,26 +862,52 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             CovariantMetric(covariant_metric_current,current_covariant_base_vectors);
             CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
             ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+            ContravariantMetric(contravariant_metric_current,covariant_metric_current);
 
             ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+            ContraVariantBaseVectors(current_contravariant_base_vectors,contravariant_metric_current,current_covariant_base_vectors);
 
             TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
 
-            InPlaneTransformationMatrix(inplane_transformation_matrix_material,transformed_base_vectors,reference_contravariant_base_vectors);
+
+            InPlaneTransformationMatrix(inplane_transformation_matrix_material,
+                transformed_base_vectors,reference_contravariant_base_vectors);
 
             Matrix material_tangent_modulus = ZeroMatrix(dimension);
             MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
                 transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
                 rCurrentProcessInfo);
 
+
+
+
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
-            Matrix stress_matrix = MathUtils<double>::StressVectorToTensor(stress);
+            Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
+
+            // transform stresses to original bases
+            Matrix stress_matrix = ZeroMatrix(2);
+            for (SizeType i=0;i<2;++i){
+                for (SizeType j=0;j<2;++j){
+                    stress_matrix += outer_prod(transformed_base_vectors[i],transformed_base_vectors[j]) * stress_matrix_local_cs(i,j);
+                }
+            }
+
+            // calculate cauchy (this needs to be done in the original base)
             Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
             Matrix temp_stress_matrix_2 = prod(temp_stress_matrix,trans(deformation_gradient));
             Matrix cauchy_stress_matrix = temp_stress_matrix_2 / det_deformation_gradient;
-            stress = MathUtils<double>::StressTensorToVector(cauchy_stress_matrix,3);
+
+
+            // transform stresses to local orthogonal base
+            Matrix local_stress = ZeroMatrix(2);
+            for (SizeType i=0;i<2;++i){
+                for (SizeType j=0;j<2;++j){
+                    local_stress(i,j) = inner_prod(transformed_base_vectors[i],prod(cauchy_stress_matrix,transformed_base_vectors[j]));
+                }
+            }
+            stress = MathUtils<double>::StressTensorToVector(local_stress,3);
 
 
             if (rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
@@ -900,6 +930,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
      const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
 {
+    // attention: this is not in the local orthonogal coordinate system
     rDeformationGradient = ZeroMatrix(2);
     for (SizeType i=0;i<2;++i){
         rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
@@ -922,84 +953,42 @@ void MembraneElement::CalculateOnIntegrationPoints(
         rOutput.resize(write_points_number);
     }
 
-    if (rVariable == LOCAL_AXIS_1) {
-        array_1d<Vector,2> base_vectors_current_cov;
+    if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
+
         const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
         const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
 
-        Vector base_1 = ZeroVector(3);
-        Vector base_2 = ZeroVector(3);
+        bool which_axis = 0;
+        if (rVariable == LOCAL_AXIS_2) which_axis = 1;
+        else if (rVariable == LOCAL_AXIS_3) which_axis = 2;
+
+        array_1d<Vector,2> reference_covariant_base_vectors;
+        array_1d<Vector,2> reference_contravariant_base_vectors;
+        Matrix covariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_reference = ZeroMatrix(3);
+        Matrix contravariant_metric_current = ZeroMatrix(3);
+        array_1d<Vector,2> transformed_base_vectors;
+
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-            const double integration_weight_i = r_integration_points[point_number].Weight();
+
+            if (rOutput[point_number].size() != 3) {
+                rOutput[point_number].resize(3);
+            }
+
+            // getting information for integration
             const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
-            base_1 += base_vectors_current_cov[0]*integration_weight_i;
-            base_2 += base_vectors_current_cov[1]*integration_weight_i;
-        }
 
+            CovariantBaseVectors(reference_covariant_base_vectors,shape_functions_gradients_i,ConfigurationType::Reference);
+            CovariantMetric(covariant_metric_reference,reference_covariant_base_vectors);
+            ContravariantMetric(contravariant_metric_reference,covariant_metric_reference);
+            ContraVariantBaseVectors(reference_contravariant_base_vectors,contravariant_metric_reference,reference_covariant_base_vectors);
+            TransformBaseVectors(transformed_base_vectors,reference_contravariant_base_vectors);
 
-        array_1d<Vector,2> base_vectors_integrated;
-        base_vectors_integrated[0] = base_1;
-        base_vectors_integrated[1] = base_2;
-
-        array_1d<Vector,2> base_vectors_integrated_transformed;
-        TransformBaseVectors(base_vectors_integrated_transformed,base_vectors_integrated);
-
-        for (SizeType i =0; i<3; ++i) {
-            rOutput[0][i] = base_vectors_integrated_transformed[0][i]; // write integrated basevector to 1st GP
-        }
-
-    } else if (rVariable == LOCAL_AXIS_2) {
-        array_1d<Vector,2> base_vectors_current_cov;
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
-
-        Vector base_1 = ZeroVector(3);
-        Vector base_2 = ZeroVector(3);
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-            const double integration_weight_i = r_integration_points[point_number].Weight();
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
-            base_1 += base_vectors_current_cov[0]*integration_weight_i;
-            base_2 += base_vectors_current_cov[1]*integration_weight_i;
-        }
-
-        array_1d<Vector,2> base_vectors_integrated;
-        base_vectors_integrated[0] = base_1;
-        base_vectors_integrated[1] = base_2;
-
-        array_1d<Vector,2> base_vectors_integrated_transformed;
-        TransformBaseVectors(base_vectors_integrated_transformed,base_vectors_integrated);
-
-        for (SizeType i =0; i<3; ++i) {
-            rOutput[0][i] = base_vectors_integrated_transformed[1][i]; // write integrated basevector to 1st GP
-        }
-
-
-    } else if (rVariable == LOCAL_AXIS_3) {
-        array_1d<Vector,2> base_vectors_current_cov;
-        const GeometryType::ShapeFunctionsGradientsType& r_shape_functions_gradients = GetGeometry().ShapeFunctionsLocalGradients(integration_method);
-        const GeometryType::IntegrationPointsArrayType& r_integration_points = GetGeometry().IntegrationPoints(integration_method);
-
-        Vector base_1 = ZeroVector(3);
-        Vector base_2 = ZeroVector(3);
-        Vector base_3 = ZeroVector(3);
-        for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
-            const double integration_weight_i = r_integration_points[point_number].Weight();
-            const Matrix& shape_functions_gradients_i = r_shape_functions_gradients[point_number];
-            CovariantBaseVectors(base_vectors_current_cov,shape_functions_gradients_i,ConfigurationType::Reference);
-            base_1 += base_vectors_current_cov[0]*integration_weight_i;
-            base_2 += base_vectors_current_cov[1]*integration_weight_i;
-        }
-
-        MathUtils<double>::CrossProduct(base_3, base_1, base_2);
-        base_3 /= MathUtils<double>::Norm(base_3);
-
-        for (SizeType i =0; i<3; ++i) {
-            rOutput[0][i] = base_3[i]; // write integrated basevector to 1st GP
+            for (SizeType i =0; i<3; ++i) {
+                rOutput[point_number][i] = transformed_base_vectors[which_axis][i]; // write integrated basevector to 1st GP
+            }
         }
     }
-
 
     KRATOS_CATCH("")
 }
