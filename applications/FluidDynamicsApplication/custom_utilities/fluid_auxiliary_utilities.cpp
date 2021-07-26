@@ -55,7 +55,13 @@ bool FluidAuxiliaryUtilities::IsPositive(const Vector &rElementDistancesVector)
 
 bool FluidAuxiliaryUtilities::IsNegative(const Vector &rElementDistancesVector)
 {
-    return !IsPositive(rElementDistancesVector);
+    std::size_t n_neg (0);
+    const std::size_t pts_number = rElementDistancesVector.size();
+    for (std::size_t i_node = 0; i_node < pts_number; ++i_node){
+        if (rElementDistancesVector[i_node] < 0.0)
+            n_neg++;
+    }
+    return (n_neg == pts_number) ? true : false;
 }
 
 double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
@@ -194,6 +200,21 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
     const ModelPart& rModelPart,
     const Flags& rSkinFlag)
 {
+    return CalculateFlowRateAuxiliary<true>(rModelPart, rSkinFlag);
+}
+
+double FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(
+    const ModelPart& rModelPart,
+    const Flags& rSkinFlag)
+{
+    return CalculateFlowRateAuxiliary<false>(rModelPart, rSkinFlag);
+}
+
+template<bool IsPositiveSubdomain>
+double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
+    const ModelPart& rModelPart,
+    const Flags& rSkinFlag)
+{
     // Check that there are conditions and distance variable in the nodal database
     KRATOS_ERROR_IF(rModelPart.GetCommunicator().GlobalNumberOfConditions() == 0) << "There are no conditions in the provided model part. Flow rate cannot be computed." << std::endl;
     const auto& r_communicator = rModelPart.GetCommunicator();
@@ -224,7 +245,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                     distances(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                 }
                 // Check if the condition is in the positive subdomain or intersected
-                if (IsPositive(distances)) {
+                if (CheckNonSplitConditionSubdomain<IsPositiveSubdomain>(distances)) {
                     cond_flow_rate = CalculateConditionFlowRate(r_geom);
                 } else if (IsSplit(distances)){
                     // Get the current condition parent
@@ -261,13 +282,10 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                     }
                     auto p_mod_sh_func = mod_sh_func_factory(r_parent_element.pGetGeometry(), parent_distances);
 
-                    Matrix n_pos_N;
-                    ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
                     Vector w_vect;
-                    //TODO: Use a method without gradients when we implement it
-                    p_mod_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(n_pos_N, n_pos_DN_DX, w_vect, face_id, GeometryData::GI_GAUSS_2);
+                    Matrix N_container;
                     std::vector<Vector> normals_vect;
-                    p_mod_sh_func->ComputePositiveExteriorFaceAreaNormals(normals_vect, face_id, GeometryData::GI_GAUSS_2);
+                    CalculateSplitConditionGeometryData<IsPositiveSubdomain>(p_mod_sh_func, face_id, N_container, normals_vect, w_vect);
 
                     // Interpolate the flow rate in the positive subdomain
                     Vector i_normal(n_dim);
@@ -276,7 +294,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                     const std::size_t n_gauss = w_vect.size();
                     for (std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
                         aux_vel = ZeroVector(0);
-                        i_N = row(n_pos_N, i_gauss);
+                        i_N = row(N_container, i_gauss);
                         i_normal = normals_vect[i_gauss];
                         const double i_normal_norm = norm_2(i_normal);
                         KRATOS_WARNING_IF("CalculateFlowRatePositiveSkin", i_normal_norm < 1.0e-12) << "Condition " << rCondition.Id() << " normal close to zero." << std::endl;
@@ -330,6 +348,46 @@ double FluidAuxiliaryUtilities::CalculateConditionFlowRate(const GeometryType& r
         KRATOS_WARNING("CalculateFlowRate") << "Condition area is close to zero. Flow rate not considered." << std::endl;
     }
     return condition_flow_rate;
+}
+
+template<>
+bool FluidAuxiliaryUtilities::CheckNonSplitConditionSubdomain<true>(const Vector &rElementDistancesVector)
+{
+    return IsPositive(rElementDistancesVector);
+}
+
+template<>
+bool FluidAuxiliaryUtilities::CheckNonSplitConditionSubdomain<false>(const Vector &rElementDistancesVector)
+{
+    return IsNegative(rElementDistancesVector);
+}
+
+template<>
+void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<true>(
+    const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
+    const std::size_t FaceId,
+    Matrix& rShapeFunctions,
+    std::vector<Vector>& rNormals,
+    Vector& rWeights)
+{
+    //TODO: Use a method without gradients when we implement it
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
+    rpModShapeFunc->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::GI_GAUSS_2);
+    rpModShapeFunc->ComputePositiveExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::GI_GAUSS_2);
+}
+
+template<>
+void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
+    const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
+    const std::size_t FaceId,
+    Matrix& rShapeFunctions,
+    std::vector<Vector>& rNormals,
+    Vector& rWeights)
+{
+    //TODO: Use a method without gradients when we implement it
+    ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
+    rpModShapeFunc->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(rShapeFunctions, n_pos_DN_DX, rWeights, FaceId, GeometryData::GI_GAUSS_2);
+    rpModShapeFunc->ComputeNegativeExteriorFaceAreaNormals(rNormals, FaceId, GeometryData::GI_GAUSS_2);
 }
 
 } // namespace Kratos
