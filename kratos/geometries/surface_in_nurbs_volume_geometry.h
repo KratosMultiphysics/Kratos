@@ -246,10 +246,11 @@ public:
      * @param result integration points.
      **/
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const auto surface_method = mpSurface->GetDefaultIntegrationMethod();
-        rIntegrationPoints = mpSurface->IntegrationPoints(surface_method);
+        rIntegrationPoints = mpSurface->IntegrationPoints(surface_method, rIntegrationInfo);
     }
 
     /**
@@ -266,7 +267,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
 
         // Shape function container.
