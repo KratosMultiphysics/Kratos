@@ -37,7 +37,7 @@ namespace Kratos
 /** This class implements the flags needed in the MappingApplication.
 * Some of them are exposed to Python
 */
-class KRATOS_API(MAPPING_APPLICATION) MapperFlags
+class KRATOS_API(KRATOS_CORE) MapperFlags
 {
 public:
     ///@name Type Definitions

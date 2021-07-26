@@ -17,8 +17,8 @@
         "Inlet_inlet": {
             "inlet_name" : "Inlet_inlet",
             "random_variable_settings" : {
-                "possible_values" : [0.001, 0.002, 0.003, 0.004, 0.005],
-                "relative_frequencies" : [1, 3, 4, 2, 1],
+                "possible_values" : [0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008],
+                "relative_frequencies" : [0, 0, 1, 3, 4, 2, 1, 0],
                 "do_use_seed" : false,
                 "seed" : 1,
                 "relative_closeness_tolerance" : 1e-6
