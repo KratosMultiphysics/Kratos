@@ -11,9 +11,11 @@ class ExplicitStrategy():
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
         self.solver_settings = DEM_parameters["solver_settings"]
 
+        #TODO: 07/07/2021 do_search_neighbours flag is deprecated. Keep for backward compatibility
         default_settings = Parameters("""
         {
             "strategy" : "sphere_strategy",
+            "do_search_neighbours" : true,
             "do_search_dem_neighbours" : true,
             "do_search_fem_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,

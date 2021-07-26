@@ -171,6 +171,7 @@ def GetDefaultInputParameters():
 
         "custom_dem" : {
             "do_solve_dem" : true,
+            "do_search_neighbours" : true,
             "do_search_dem_neighbours" : true,
             "do_search_fem_neighbours" : true,
             "type_of_dem_inlet" : "VelocityImposed",
