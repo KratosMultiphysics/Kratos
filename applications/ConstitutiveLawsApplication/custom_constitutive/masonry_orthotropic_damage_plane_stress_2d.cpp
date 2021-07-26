@@ -435,9 +435,9 @@ namespace Kratos
         array_1d<double, 3>& rEffectiveTensionStressVector,
         array_1d<double, 3>& rEffectiveCompressionStressVector)
     {
-        ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+        AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
             rPrincipalStressVector, rEffectiveStressVector);
-        ConstitutiveLawUtilities<3>::SpectralDecomposition(
+        AdvancedConstitutiveLawUtilities<3>::SpectralDecomposition(
             rEffectiveStressVector, rEffectiveTensionStressVector, rEffectiveCompressionStressVector);
     } 
 
@@ -779,9 +779,9 @@ namespace Kratos
         Vector& rPredictiveStressVector,
         CalculationData& data)
     {
-        ConstitutiveLawUtilities<3>::SpectralDecomposition(
+        AdvancedConstitutiveLawUtilities<3>::SpectralDecomposition(
             data.EffectiveStressVector, data.EffectiveTensionStressVector, data.EffectiveCompressionStressVector);
-        ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+        AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
             data.PrincipalStressVector, data.EffectiveStressVector);
         this->ConstructProjectionTensors(
             data.EffectiveStressVector,
@@ -798,7 +798,7 @@ namespace Kratos
         array_1d<double, 3> effective_compression_stress_mapped_isotropic = prod(transformation_matrices.TransformationMatrixCompression, data.EffectiveCompressionStressVector);
         array_1d<double, 2> principal_stresses_mapped_isotropic;
         array_1d<double, 3> effective_stress_mapped_isotropic = effective_tension_stress_mapped_isotropic + effective_compression_stress_mapped_isotropic;
-        ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+        AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
             principal_stresses_mapped_isotropic, effective_stress_mapped_isotropic);
 
         double angle_to_damage = CalculateDamageAngle(effective_stress_mapped_isotropic);
