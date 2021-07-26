@@ -208,7 +208,8 @@ public:
     double Area() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = this->GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double area = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
