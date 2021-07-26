@@ -308,6 +308,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeMaterial(
 		mCalcData.CharacteristicLength = InitialCharacteristicLength;
 		mCalcData.TensionYieldModel = rMaterialProperties.Has(TENSION_YIELD_MODEL) ? rMaterialProperties[TENSION_YIELD_MODEL] : 0;
 		mCalcData.IsSFRC = rMaterialProperties.Has(IS_STEEL_FIBRE_REINFORCED_CONCRETE) ? rMaterialProperties[IS_STEEL_FIBRE_REINFORCED_CONCRETE] : 0;
+		mCalcData.srfc_fraction = 2.0;
 
 		// Begin IMPLEX Integration - Only if switched on
 		if (rMaterialProperties[INTEGRATION_IMPLEX] != 0){
@@ -589,8 +590,18 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	this->CalculateElasticityMatrix(data);
 
 	// Tension Damage Properties
-	data.YieldStressTension 		= props[YIELD_STRESS_TENSION]* dif_tension;
-	data.FractureEnergyTension 		= props[FRACTURE_ENERGY_TENSION]* dif_tension;
+	if (data.IsSFRC)
+	{
+		const double k1 = 0.25 + 0.16 * data.srfc_fraction;
+		data.YieldStressTension = k1 * std::sqrt(props[YIELD_STRESS_COMPRESSION]) * dif_tension;
+		const double fracture_energy_factor = 19.953 + data.srfc_fraction * 3.213;
+		data.FractureEnergyTension = props[FRACTURE_ENERGY_TENSION] * dif_tension * fracture_energy_factor;
+	}
+	else
+	{
+		data.YieldStressTension 		= props[YIELD_STRESS_TENSION]* dif_tension;
+		data.FractureEnergyTension 		= props[FRACTURE_ENERGY_TENSION]* dif_tension;
+	}
 
 	// Compression Damage Properties
 	data.DamageOnsetStressCompression 	= props[DAMAGE_ONSET_STRESS_COMPRESSION] * dif_compression;
@@ -809,6 +820,17 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	const double yield_tension = data.YieldStressTension;
 	bool is_steel_fibre_reinforced = false;
 	if (data.IsSFRC == 1) is_steel_fibre_reinforced = true;
+	double residual_strength = yield_tension; // for sfrc
+
+	if (is_steel_fibre_reinforced)
+	{
+		const double fibre_length = 30; //mm
+		const double fibre_length_to_diameter_ratio = 60; //0.5mm diameter
+		const double k1 = 0.25 + 0.16 * data.srfc_fraction;
+		const double k2 = (-0.001 * data.srfc_fraction * data.srfc_fraction + 0.0038 * data.srfc_fraction) *
+			fibre_length_to_diameter_ratio * (std::pow(fibre_length, 0.2));
+		residual_strength = yield_tension / k1 * k2;
+	}
 
 	// This is the assumption of compression softening transferring over to tension as well
 	if (DamageParameterCompressionSoftening > DamageParameterTensionSoftening)
@@ -847,7 +869,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 			// We are in the softening zone
 			if (is_steel_fibre_reinforced)
 			{
-				const double failure_strain = (fracture_energy_tension / characteristic_length + yield_tension * yield_tension / young_modulus) / yield_tension;
+				const double failure_strain = (fracture_energy_tension / characteristic_length + residual_strength * yield_tension / young_modulus) / residual_strength;
 				if (failure_strain < yield_tension / young_modulus) {
 					std::stringstream ss;
 					ss << "Perfect plastic tensile failure strain less than onset of plasticity strain!"  << std::endl;
@@ -883,7 +905,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 	else
 	{
 		double current_limit_softening_stress = (1.0 - DamageParameterTensionSoftening) * yield_tension;
-		if (is_steel_fibre_reinforced && DamageParameterTensionSoftening < 0.95) current_limit_softening_stress = yield_tension;
+		if (is_steel_fibre_reinforced && DamageParameterTensionSoftening < 0.95) current_limit_softening_stress = residual_strength;
 
 		const double damaged_stress = eq_strain / TensionMaxHistoricalStrain * current_limit_softening_stress;
 		rDamage = 1.0 - damaged_stress / eq_tensile_stress;
