@@ -59,7 +59,7 @@ gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_p
                                                     "nodal_nonhistorical_results": [],
                                                     "nodal_flags_results": [],
                                                     "elemental_conditional_flags_results": [],
-                                                    "gauss_point_results": [],
+                                                    "gauss_point_results": ["X_PHYS"],
                                                     "additional_list_files": []
                                                 },
                                                 "point_data_configuration": []
@@ -100,7 +100,7 @@ gid_io_2 = GiDOutputProcess(extracted_surface_model_part, "extracted_surface_mod
                                                     "nodal_nonhistorical_results": [],
                                                     "nodal_flags_results": [],
                                                     "elemental_conditional_flags_results": [],
-                                                    "gauss_point_results": [],
+                                                    "gauss_point_results": ["X_PHYS"],
                                                     "additional_list_files": []
                                                 },
                                                 "point_data_configuration": []
@@ -123,7 +123,7 @@ smoothed_surface_model_part = current_model.CreateModelPart("smoothed_surface_mo
 TopologySmoothingUtilities().SmoothMesh(extracted_surface_model_part, smoothing_relaxation_factor, smoothing_iterations)
 
 # Write smoothed mesh
-gid_io_3 = GiDOutputProcess("smoothed_surface_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)
-gid_io_3.initialize_results(extracted_surface_model_part)
-gid_io_3.write_results(1, extracted_surface_model_part, nodal_results, gauss_points_results)
-gid_io_3.finalize_results()
+#gid_io_3 = GiDOutputProcess("smoothed_surface_model_part", VolumeOutput, GiDPostMode, GiDMultiFileFlag, GiDWriteMeshFlag, GiDWriteConditionsFlag)
+#gid_io_3.initialize_results(extracted_surface_model_part)
+#gid_io_3.write_results(1, extracted_surface_model_part, nodal_results, gauss_points_results)
+#gid_io_3.finalize_results()
