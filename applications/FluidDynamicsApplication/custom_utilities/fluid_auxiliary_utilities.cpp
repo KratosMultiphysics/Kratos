@@ -206,14 +206,16 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
     if (r_communicator.LocalMesh().NumberOfConditions() != 0) {
         // Create the modified shape functions factory with the first condition parent as prototype
         const auto& r_cond_begin = r_communicator.LocalMesh().ConditionsBegin();
-        const auto p_parent_cond_begin = r_cond_begin->GetValue(NEIGHBOUR_ELEMENTS)
-        auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(p_parent_cond_begin->GetGeometry());
+        const auto& r_parent_cond_begin = r_cond_begin->GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_parent_cond_begin.GetGeometry());
 
         std::size_t n_cond = r_communicator.LocalMesh().Conditions().size();
+        std::size_t n_dim = rModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
+
         for (std::size_t i_cond = 0; i_cond < n_cond; ++i_cond) {
             auto it_cond = r_communicator.LocalMesh().ConditionsBegin() + i_cond;
             // Check if the condition is to be added to the flow contribution
-            it_cond->Is(rSkinFlag) {
+            if (it_cond->Is(rSkinFlag)) {
                 // Get geometry data
                 const auto& r_geom = it_cond->GetGeometry();
                 const std::size_t n_nodes = r_geom.PointsNumber();
@@ -226,23 +228,22 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
 
                 // Check if the condition is in the positive subdomain or intersected
                 if (IsPositive(distances)) {
-                    const auto& r_geom = rCondition.GetGeometry();
                     flow_rate += CalculateConditionFlowRate(r_geom);
                 } else if (IsSplit(distances)){
                     // Get the current condition parent
-                    const auto& p_parent_element = it_cond->GetValue(NEIGHBOUR_ELEMENTS);
-                    const auto& r_parent_geom = p_parent_element->GetGeometry();
+                    const auto& r_parent_element = it_cond->GetValue(NEIGHBOUR_ELEMENTS)[0];
+                    const auto& r_parent_geom = r_parent_element.GetGeometry();
 
                     // Get the corresponding face id of the current condition
                     const std::size_t n_parent_faces = r_parent_geom.FacesNumber();
-                    DenseMatrix<double> nodes_in_faces(n_parent_faces, n_parent_faces);
+                    DenseMatrix<unsigned int> nodes_in_faces(n_parent_faces, n_parent_faces);
                     r_parent_geom.NodesInFaces(nodes_in_faces);
                     std::size_t face_id;
                     for (std::size_t i_face = 0; i_face < n_parent_faces; ++i_face) {
                         std::size_t match_nodes = 0;
                         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                             std::size_t parent_local_id = nodes_in_faces(i_node + 1, i_face);
-                            for (std::size_t j_node = 0; j_node < n_node; ++j_node) {
+                            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
                                 if (r_geom[j_node].Id() == r_parent_geom[parent_local_id].Id()) {
                                     match_nodes++;
                                     break;
@@ -261,17 +262,30 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                     for (std::size_t i_node = 0; i_node < n_nodes_parent; ++i_node) {
                         parent_distances(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                     }
-                    auto p_mod_sh_func = mod_sh_func_factory(r_parent_geom, parent_distances);
+                    auto p_mod_sh_func = mod_sh_func_factory(r_parent_element.pGetGeometry(), parent_distances);
 
                     Matrix n_pos_N;
                     ModifiedShapeFunctions::ShapeFunctionsGradientsType n_pos_DN_DX;
                     Vector w_vect;
-                    p_mod_sh_func.ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(n_pos_N, n_pos_DN_DX, w_vect, face_id, GeometryData::GI_GAUSS_2);
+                    //TODO: Use a method without gradients when we implement it
+                    p_mod_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(n_pos_N, n_pos_DN_DX, w_vect, face_id, GeometryData::GI_GAUSS_2);
                     std::vector<Vector> normals_vect;
-                    p_mod_sh_func.ComputePositiveExteriorFaceAreaNormals(normals_vect, face_id, GeometryData::GI_GAUSS_2);
+                    p_mod_sh_func->ComputePositiveExteriorFaceAreaNormals(normals_vect, face_id, GeometryData::GI_GAUSS_2);
 
                     // Interpolate the flow rate in the positive subdomain
-
+                    Vector i_normal(n_dim);
+                    Vector i_N(n_nodes_parent);
+                    array_1d<double,3> aux_vel;
+                    const std::size_t n_gauss = w_vect.size();
+                    for (std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+                        aux_vel = ZeroVector(0);
+                        i_N = row(n_pos_N, i_gauss);
+                        i_normal = normals_vect[i_gauss];
+                        for (std::size_t i_parent_node = 0; i_parent_node < n_nodes_parent; ++i_parent_node) {
+                            noalias(aux_vel) += i_N[i_parent_node] * r_parent_geom[i_parent_node].FastGetSolutionStepValue(VELOCITY);
+                        }
+                        flow_rate += w_vect[i_gauss] * inner_prod(aux_vel, i_normal);
+                    }
                 }
             }
         }
@@ -301,17 +315,17 @@ double FluidAuxiliaryUtilities::CalculateConditionFlowRate(const GeometryType& r
 {
     // Calculate the condition area normal
     GeometryType::CoordinatesArrayType point_local;
-    r_geom.PointLocalCoordinates(point_local, r_geom.Center()) ;
-    const array_1d<double,3> area_normal = r_geom.Normal(point_local);
+    rGeometry.PointLocalCoordinates(point_local, rGeometry.Center()) ;
+    const array_1d<double,3> area_normal = rGeometry.Normal(point_local);
     // Check condition area and calculate the condition average flow rate
     double condition_flow_rate = 0.0;
     if (norm_2(area_normal) > std::numeric_limits<double>::epsilon()) {
-        for (auto& r_node : r_geom) {
+        for (auto& r_node : rGeometry) {
             condition_flow_rate += MathUtils<double>::Dot(r_node.FastGetSolutionStepValue(VELOCITY), area_normal);
         }
-        condition_flow_rate /= static_cast<double>(r_geom.PointsNumber());
+        condition_flow_rate /= static_cast<double>(rGeometry.PointsNumber());
     } else {
-        KRATOS_WARNING("CalculateFlowRate") << "Condition " << rCondition.Id() << " area is close to zero. Flow rate not considered." << std::endl;
+        KRATOS_WARNING("CalculateFlowRate") << "Condition area is close to zero. Flow rate not considered." << std::endl;
     }
     return condition_flow_rate;
 }
