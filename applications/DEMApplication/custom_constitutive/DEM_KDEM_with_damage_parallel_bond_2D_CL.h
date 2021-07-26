@@ -22,7 +22,6 @@ namespace Kratos {
 
         void CalculateContactArea(double radius, double other_radius, double& calculation_area) override;
 
-
     private:
 
         friend class Serializer;

@@ -233,7 +233,7 @@ namespace Kratos {
                 element2,
                 i_neighbour_count,
                 time_steps,
-            r_process_info);
+                r_process_info);
 
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                                    equiv_visco_damp_coeff_tangential,

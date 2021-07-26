@@ -116,6 +116,22 @@ class DEMAnalysisStage(AnalysisStage):
 
         super().__init__(model, self.DEM_parameters)
 
+    def AddSkinManually(self):
+
+        d = 0.02
+        D = 0.98
+
+        for element in self.spheres_model_part.Elements:
+
+            element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
+            
+            node = element.GetNode(0)
+            x = node.X
+            y = node.Y
+
+            if x > D or y > D or x < d or y < d:
+                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
         self.rigid_face_model_part = self.model.CreateModelPart("RigidFacePart")
@@ -255,6 +271,8 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.ReadModelParts()
 
+        #self.AddSkinManually()
+
         self.SetMaterials()
 
         self.post_normal_impact_velocity_option = False
@@ -264,7 +282,6 @@ class DEMAnalysisStage(AnalysisStage):
                 self.FillAnalyticSubModelParts()
 
         self.SetAnalyticWatchers()
-
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.dem_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -490,7 +507,7 @@ class DEMAnalysisStage(AnalysisStage):
         #### GiD IO ##########################################
         if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time, additional_time)
-            self.PrintAdditionalInfo(self.time, additional_time)
+            #self.PrintAdditionalInfo(self.time, additional_time)
             self.time_old_print = self.time
 
     def PrintAdditionalInfo(self, time, additional_time):
@@ -524,6 +541,23 @@ class DEMAnalysisStage(AnalysisStage):
             radial_normal_and_smoothed_reaction_stresses_file.write(str(node.Id) + " " + str(node.X) + " " + str(node.Y) + " " + str(node.Z) + " " + str(total_radial_normal_stress_value) + " " + str(total_smoothed_reaction_stress_value) + " " + str(displ_norm) + " " + str(vel_norm) + '\n')
 
         radial_normal_and_smoothed_reaction_stresses_file.close()
+
+        total_average_target_radial_normal_stress = 0.0
+        total_forces_modulus = 0.0
+
+        for node in self.rigid_face_model_part.Nodes:
+
+            total_radial_normal_stress_value = node.GetValue(KratosMultiphysics.DEMApplication.RADIAL_NORMAL_STRESS_COMPONENT)
+            nodal_area = node.GetSolutionStepValue(DEM_NODAL_AREA)
+            total_average_target_radial_normal_stress += nodal_area * total_radial_normal_stress_value
+
+        for element in self.spheres_model_part.Elements:
+
+            total_force_X = element.GetNode(0).GetSolutionStepValue(EXTERNAL_APPLIED_FORCE_X)
+            total_force_Y = element.GetNode(0).GetSolutionStepValue(EXTERNAL_APPLIED_FORCE_Y)
+            total_force_Z = element.GetNode(0).GetSolutionStepValue(EXTERNAL_APPLIED_FORCE_Z)
+            forces_modulus = math.sqrt(total_force_X * total_force_X + total_force_Y * total_force_Y + total_force_Z * total_force_Z)
+            total_forces_modulus += forces_modulus
 
     def SolverSolve(self):
         self._GetSolver().SolveSolutionStep()

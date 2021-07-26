@@ -130,7 +130,6 @@ namespace Kratos {
         
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
         const double damping_gamma = properties_of_this_contact[DAMPING_GAMMA];
-        KRATOS_WATCH(damping_gamma)
         const double friction_coeff = properties_of_this_contact[STATIC_FRICTION];
         const double viscous_damping_coeff     = 2.0 * damping_gamma * sqrt(equiv_mass * kn);
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);
