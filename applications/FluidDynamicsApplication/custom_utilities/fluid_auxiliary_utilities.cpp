@@ -225,7 +225,6 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
                     distances(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                 }
-
                 // Check if the condition is in the positive subdomain or intersected
                 if (IsPositive(distances)) {
                     flow_rate += CalculateConditionFlowRate(r_geom);
@@ -260,7 +259,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                     const std::size_t n_nodes_parent = r_parent_geom.PointsNumber();
                     Vector parent_distances(n_nodes_parent);
                     for (std::size_t i_node = 0; i_node < n_nodes_parent; ++i_node) {
-                        parent_distances(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+                        parent_distances(i_node) = r_parent_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                     }
                     auto p_mod_sh_func = mod_sh_func_factory(r_parent_element.pGetGeometry(), parent_distances);
 
@@ -281,6 +280,9 @@ double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
                         aux_vel = ZeroVector(0);
                         i_N = row(n_pos_N, i_gauss);
                         i_normal = normals_vect[i_gauss];
+                        const double i_normal_norm = norm_2(i_normal);
+                        KRATOS_WARNING_IF("CalculateFlowRatePositiveSkin", i_normal_norm < 1.0e-12) << "Condition " << it_cond->Id() << " normal close to zero." << std::endl;
+                        i_normal /= i_normal_norm;
                         for (std::size_t i_parent_node = 0; i_parent_node < n_nodes_parent; ++i_parent_node) {
                             noalias(aux_vel) += i_N[i_parent_node] * r_parent_geom[i_parent_node].FastGetSolutionStepValue(VELOCITY);
                         }

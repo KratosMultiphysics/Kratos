@@ -46,12 +46,38 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         level_set_y = 2.0/3.0
         fluid_model_part = self.model.GetModelPart("FluidModelPart")
         for node in fluid_model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.VELOCITY, 0, [1.0,0.0,0.0])
             node.SetSolutionStepValue(Kratos.DISTANCE, 0, node.Y - level_set_y)
 
-        # Calculate the fluid negative volume
-        reference_positive_flow_rate = 0.0
-        positive_flow_rate = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(fluid_model_part)
-        self.assertAlmostEqual(positive_flow_rate, reference_positive_flow_rate, 12)
+        # Call the tetrahedral mesh orientation process to calculate the normals and neighbours
+        tmoc = Kratos.TetrahedralMeshOrientationCheck
+        throw_errors = False
+        flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        Kratos.TetrahedralMeshOrientationCheck(fluid_model_part, throw_errors, flags).Execute()
+
+        # Calculate the left wall flow
+        ref_positive_flow_rate_left = -1.0/3.0
+        left_skin_model_part = self.model.GetModelPart("FluidModelPart.NoSlip2D_left_wall")
+        for cond in left_skin_model_part.Conditions:
+            cond.Set(Kratos.INLET, True)
+        positive_flow_rate_left = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(left_skin_model_part, Kratos.INLET)
+        self.assertAlmostEqual(positive_flow_rate_left, ref_positive_flow_rate_left, 12)
+
+        # Calculate the right wall flow
+        ref_positive_flow_rate_right = 1.0/3.0
+        right_skin_model_part = self.model.GetModelPart("FluidModelPart.NoSlip2D_right_wall")
+        for cond in right_skin_model_part.Conditions:
+            cond.Set(Kratos.OUTLET, True)
+        positive_flow_rate_right = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(right_skin_model_part, Kratos.OUTLET)
+        self.assertAlmostEqual(positive_flow_rate_right, ref_positive_flow_rate_right, 12)
+
+        # Calculate the top wall flow
+        ref_positive_flow_rate_top = 0.0
+        top_skin_model_part = self.model.GetModelPart("FluidModelPart.NoSlip2D_top_wall")
+        for cond in top_skin_model_part.Conditions:
+            cond.Set(Kratos.BOUNDARY, True)
+        positive_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(top_skin_model_part, Kratos.BOUNDARY)
+        self.assertAlmostEqual(positive_flow_rate_top, ref_positive_flow_rate_top, 12)
 
     def tearDown(self):
         KratosUtils.DeleteFileIfExisting("Cavity/square5.time")
