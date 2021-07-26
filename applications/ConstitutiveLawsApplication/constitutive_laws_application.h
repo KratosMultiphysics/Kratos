@@ -44,8 +44,8 @@
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_implex_3d.h"
-
-#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_isotropic_plasticity_factory.h"
+#include "custom_constitutive/small_strain_kinematic_plasticity_factory.h"
 #include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 #include "custom_constitutive/generic_small_strain_kinematic_plasticity.h"
 #include "custom_constitutive/finite_strain_isotropic_plasticity_factory.h"
