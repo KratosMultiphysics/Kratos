@@ -122,11 +122,11 @@ namespace Kratos
                     }
 
                     PointerVector<NodeType> PointsRefined;
-                    Vector KnotsURefined;
+                    Vector KnotsVRefined;
                     Vector WeightsRefined;
 
-                    NurbsSurfaceRefinementUtilities::KnotRefinementU(*(p_nurbs_surface.get()), knots_to_insert_v,
-                        PointsRefined, KnotsURefined, WeightsRefined);
+                    NurbsSurfaceRefinementUtilities::KnotRefinementV(*(p_nurbs_surface.get()), knots_to_insert_v,
+                        PointsRefined, KnotsVRefined, WeightsRefined);
 
                     // Recreate nodes in model part to ensure correct assignment of dofs
                     IndexType node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
@@ -139,7 +139,7 @@ namespace Kratos
 
                     p_nurbs_surface->SetInternals(PointsRefined,
                         p_nurbs_surface->PolynomialDegreeU(), p_nurbs_surface->PolynomialDegreeV(),
-                        KnotsURefined, p_nurbs_surface->KnotsV(),
+                        p_nurbs_surface->KnotsU(), KnotsVRefined,
                         WeightsRefined);
                 }
             }
