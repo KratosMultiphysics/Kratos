@@ -181,8 +181,8 @@ namespace Kratos
         rKin.dtd1 = prod(rVar.P, rKin.dtd1);
         rKin.dtd2 = prod(rVar.P, rKin.dtd2);
 
-        rKin.metricChange[0] = inner_prod(rKin.A1, rKin.dud1) + 0.5 * norm_2_square(rKin.dud1);
-        rKin.metricChange[1] = inner_prod(rKin.A2, rKin.dud2) + 0.5 * norm_2_square(rKin.dud2);
+        rKin.metricChange[0] = inner_prod(rKin.A1, rKin.dud1) + 0.5 * inner_prod(rKin.dud1, rKin.dud1);
+        rKin.metricChange[1] = inner_prod(rKin.A2, rKin.dud2) + 0.5 * inner_prod(rKin.dud2, rKin.dud2);
         rKin.metricChange[2] = inner_prod(rKin.a1, rKin.a2);
 
         rKin.curvature[0] = inner_prod(rKin.a1, rKin.dtd1);
