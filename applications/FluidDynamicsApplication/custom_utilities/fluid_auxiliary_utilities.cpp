@@ -231,7 +231,8 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
         auto mod_sh_func_factory = GetStandardModifiedShapeFunctionsFactory(r_parent_cond_begin.GetGeometry());
 
         std::size_t n_dim = rModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        flow_rate = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Conditions(), [&](Condition& rCondition){
+        Vector nodal_distances(r_cond_begin->GetGeometry().PointsNumber());
+        flow_rate = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Conditions(), nodal_distances, [&](Condition& rCondition, Vector& rNodalDistancesTLS){
             // Check if the condition is to be added to the flow contribution
             double cond_flow_rate = 0.0;
             if (rCondition.Is(rSkinFlag)) {
@@ -240,14 +241,13 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                 const std::size_t n_nodes = r_geom.PointsNumber();
 
                 // Set up distances vector
-                Vector distances(n_nodes);
                 for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                    distances(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+                    rNodalDistancesTLS(i_node) = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
                 }
                 // Check if the condition is in the positive subdomain or intersected
-                if (CheckNonSplitConditionSubdomain<IsPositiveSubdomain>(distances)) {
+                if (CheckNonSplitConditionSubdomain<IsPositiveSubdomain>(rNodalDistancesTLS)) {
                     cond_flow_rate = CalculateConditionFlowRate(r_geom);
-                } else if (IsSplit(distances)){
+                } else if (IsSplit(rNodalDistancesTLS)){
                     // Get the current condition parent
                     const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
                     const auto& r_parent_geom = r_parent_element.GetGeometry();
