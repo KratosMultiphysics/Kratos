@@ -50,9 +50,9 @@ with open(optimization_log_filename, 'r') as csvfile:
 
 os.chdir(original_directory)
 
-
-kratos_utilities.DeleteFileIfExisting("current_design.mdpa")
-kratos_utilities.DeleteFileIfExisting("current_design.time")
+for file_name in os.listdir(original_directory):
+    if file_name.startswith("current_design"):
+        kratos_utilities.DeleteFileIfExisting(os.path.join(original_directory, file_name))
 kratos_utilities.DeleteDirectoryIfExisting(output_directory)
 
 # =======================================================================================================
