@@ -238,6 +238,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Quadrature Point Geometries
     ///@{
 
