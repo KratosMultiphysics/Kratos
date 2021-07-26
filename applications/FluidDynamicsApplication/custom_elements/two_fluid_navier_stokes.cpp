@@ -1228,31 +1228,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
 
     // Mass correction term
     double volume_error_ratio = 0.0;
-    // if (rData.IsCut()) {
-    //     double d = 0.0;
-    //     const auto& r_geom = GetGeometry();
-    //     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-    //         d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-    //     }
-    //     if (d < 0.0) {
-    //         volume_error_ratio = -rData.VolumeError / dt;
-    //     } else {
-    //         volume_error_ratio = rData.VolumeError / dt;
-    //     }
-    // }
-
-    double d = 0.0;
-    const auto& r_geom = GetGeometry();
     if (rData.IsCut()) {
-    for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-        d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
     }
-    if (d < 0.0) {
-        volume_error_ratio = -rData.VolumeError / dt;
-    } else {
-        volume_error_ratio = rData.VolumeError / dt;
-    }
-    }
+
     auto &rhs = rData.rhs;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
@@ -1332,31 +1312,11 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
 
     // Mass correction term
     double volume_error_ratio = 0.0;
-    // if (rData.IsCut()) {
-    //     double d = 0.0;
-    //     const auto& r_geom = GetGeometry();
-    //     for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-    //         d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-    //     }
-    //     if (d < 0.0) {
-    //         volume_error_ratio = -rData.VolumeError / dt;
-    //     } else {
-    //         volume_error_ratio = rData.VolumeError / dt;
-    //     }
-    // }
-
-    double d = 0.0;
-    const auto& r_geom = GetGeometry();
     if (rData.IsCut()) {
-    for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-        d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
     }
-    if (d < 0.0) {
-        volume_error_ratio = -rData.VolumeError / dt;
-    } else {
-        volume_error_ratio = rData.VolumeError / dt;
-    }
-    }
+
     auto &rhs = rData.rhs;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
@@ -1454,19 +1414,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     //energy_check_cut elements
-    double volume_error_ratio = 0.0;
+
     // Mass correction term
-     double d = 0.0;
-    const auto& r_geom = GetGeometry();
+        double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-    for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-        d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-    }
-    if (d < 0.0) {
-        volume_error_ratio = -rData.VolumeError / dt;
-    } else {
-        volume_error_ratio = rData.VolumeError / dt;
-    }
+        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
     }
 
     auto &V = rData.V;
@@ -1630,19 +1583,12 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     constexpr double stab_c2 = 2.0;
     //energy_check_cut elements
 
-    double volume_error_ratio = 0.0;
+
     // Mass correction term
-    double d = 0.0;
-    const auto& r_geom = GetGeometry();
+    double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-    for (std::size_t i_node = 0; i_node < 3; ++i_node) {
-        d += N[i_node] * r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
-    }
-    if (d < 0.0) {
-        volume_error_ratio = -rData.VolumeError / dt;
-    } else {
-        volume_error_ratio = rData.VolumeError / dt;
-    }
+        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        volume_error_ratio = volume_error / dt;
     }
 
     auto &V = rData.V;
@@ -2060,10 +2006,8 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         } else{
             enr_pos_interp(i, i) = 1.0;
             negative_density = rData.NodalDensity[i];
-            negative_viscosity = rData.NodalDynamicViscosity[i];
         }
     }
-
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesPos = rInterfaceShapeDerivatives;
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesNeg = rInterfaceShapeDerivatives;
 

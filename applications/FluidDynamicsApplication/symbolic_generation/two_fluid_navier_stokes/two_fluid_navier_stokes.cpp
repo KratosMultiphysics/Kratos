@@ -2006,10 +2006,8 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         } else{
             enr_pos_interp(i, i) = 1.0;
             negative_density = rData.NodalDensity[i];
-            negative_viscosity = rData.NodalDynamicViscosity[i];
         }
     }
-
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesPos = rInterfaceShapeDerivatives;
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesNeg = rInterfaceShapeDerivatives;
 

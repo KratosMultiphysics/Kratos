@@ -263,7 +263,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             volume_error = (self.water_volume_after_transport -  self.initial_system_volume)/ self.initial_system_volume
             self.volume_error_to_check_before_adding_source_term= self.water_volume_after_transport - self.initial_system_volume
             print(volume_error)
-            
+            # self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = 0
             self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = volume_error
             print(self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR])
 
@@ -302,6 +302,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #Calculate water volume after adding source term 
             added_source_term= abs(self.water_volume_after_transport -  self.initial_system_volume)
             volume_after= KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            print(volume_after)
+            print(self.initial_system_volume)
             new_error=abs(volume_after-self.initial_system_volume)
             filename = 'error_mass_source_conservation.txt'
             if os.path.exists(filename):
@@ -310,7 +312,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 append_write = 'w' # make a new file if not
             Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             highscore = open(filename,append_write)
-            highscore.write(str(Time)+' '+str(new_error) +' '+str(added_source_term) +' '+'\n')
+            highscore.write(str(Time)+' '+str(volume_after) +' '+str(new_error)+' '+'\n')
             highscore.close()
 
     def __PerformLevelSetConvection(self):

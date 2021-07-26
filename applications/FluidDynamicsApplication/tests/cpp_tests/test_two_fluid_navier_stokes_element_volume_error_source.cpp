@@ -41,7 +41,7 @@ namespace Kratos {
 	    /** Checks the TwoFluidNavierStokes2D3N element.
 	     * Checks the LHS and RHS computation
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NError, FluidDynamicsApplicationFastSuite)
 		{
 
 			Model current_model;
@@ -63,7 +63,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
 			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
@@ -122,25 +122,30 @@ namespace Kratos {
 			const auto& r_process_info = modelPart.GetProcessInfo();
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+			
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+			
 
-			KRATOS_CHECK_NEAR(RHS(0), -42.7046891129577 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(1), 29.7564894413919 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -0.201073848010045 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(3), 90.0671583920051 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(4), 94.9469995432758 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(5), 0.06718133685987 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(6), 75.7625307209528 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(7), 146.546511015332 , 1e-7);
-			KRATOS_CHECK_NEAR(RHS(8), -0.0161074888498255 , 1e-7);
+			KRATOS_CHECK_NEAR(RHS(0),5726.11532439, 1e-7);
+			
+			KRATOS_CHECK_NEAR(RHS(1),3306.70144012, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2),-28.5925842818, 1e-7);
+
+			
+			KRATOS_CHECK_NEAR(RHS(3),-5842.91825503, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4),918.807742518, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5),-15.9819989975, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6),239.927930637, 1e-7);
+			
+			KRATOS_CHECK_NEAR(RHS(7),-3954.25918264, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8),-5.57541672072, 1e-7);
 	    }
 
 	    // /** Checks the TwoFluidNavierStokes3D4N element
 	    //  * Checks the LHS and RHS for a cut element
 	    //  */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesCut3D4N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesCut3D4NError, FluidDynamicsApplicationFastSuite)
 		{
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -165,7 +170,7 @@ namespace Kratos {
 			bdf_coefs[1] = -2.0/delta_time;
 			bdf_coefs[2] = 0.5*delta_time;
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
@@ -220,32 +225,33 @@ namespace Kratos {
 			const auto& r_process_info = modelPart.GetProcessInfo();
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-			KRATOS_CHECK_NEAR(RHS(0), -118.03889688, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(1), 14.78243843, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(2), -213.62425998, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(3), -0.05448084, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(4), 22.78371861, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(5), 27.42496766, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(6), -403.33194690, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(7), 0.15778148, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(8), 60.36872332, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(9), 15.21517182, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(10), -419.85282231, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(11), 0.00659561, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(12), 80.61562161, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(13), 37.68158875, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(14), -453.71180415, 1e-7);
-			KRATOS_CHECK_NEAR(RHS(15), -0.20989625, 1e-7);
+			std::cout << std::setprecision(12) << std::endl;
+        	
+			KRATOS_CHECK_NEAR(RHS(0), 3782.5533335, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(1), 2744.97890633, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(2), 3686.9679704, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(3), -5.52594881831, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(4), -3777.85819668, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(5), 237.470888418, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(6), -453.676393258, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(7), -4.00642325692, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(8), 10.2704695093, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(9), -3395.0486301, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(10), -469.951076124, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(11), -2.86019359732, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(12), 30.7635603322, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(13), 507.703002014, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(14), -4253.86133435, 1e-7);
+			KRATOS_CHECK_NEAR(RHS(15), -4.37410099412, 1e-7);
 
 		}
 
 		// /** Checks the TwoFluidNavierStokes3D4N element
 	    //  * Checks the LHS and RHS for a cut element with surface tension
 	    //  */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesSurfaceTension3D4N, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesSurfaceTension3D4NError, FluidDynamicsApplicationFastSuite)
 		{
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -271,7 +277,7 @@ namespace Kratos {
 			bdf_coefs[1] = -2.0/delta_time;
 			bdf_coefs[2] = 0.5*delta_time;
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
@@ -341,29 +347,15 @@ namespace Kratos {
 
 			// Compute RHS and LHS
 			Vector RHS = ZeroVector(16);
-			Vector reference_RHS = ZeroVector(16);
+			// Vector reference_RHS = ZeroVector(16);
 			Matrix LHS = ZeroMatrix(16,16);
 
 			const auto& r_process_info = modelPart.GetProcessInfo();
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
-			reference_RHS[0] = -268.0132371599088;
-			reference_RHS[1] = -4.182094107233524;
-			reference_RHS[2]= -81.37622307441862;
-			reference_RHS[3]= -0.07197384163023302;
-			reference_RHS[4]= 56.05809670322434;
-			reference_RHS[5]= 29.90992150360854;
-			reference_RHS[6]= -428.7769671958163;
-			reference_RHS[7]= 0.3700935081503087;
-			reference_RHS[8]= 107.9781032300646;
-			reference_RHS[9]= 26.13414971317491;
-			reference_RHS[10]= -466.3175681317652;
-			reference_RHS[11]= 0.02197384163086232;
-			reference_RHS[12]= 149.4562038932866;
-			reference_RHS[13]= 43.24218955711688;
-			reference_RHS[14]= -514.3000749313327;
-			reference_RHS[15]= -0.420093508150938;
+			
+			std::vector<double> reference_RHS={1468.51135447,1731.8246519,1655.14836857,-4.23925165364,-1680.44100233,30.0086758782,-428.789713499,-3.7965731585,107.965356931,-1710.19233411,-466.330314436,-4.1440816797,149.443457595,43.4631729998,-2250.79917397,-4.58676017483};
+	
 
 			// Check the RHS values (the RHS is computed as the LHS x previous_solution,
 			// hence, it is assumed that if the RHS is correct, the LHS is correct as well)
@@ -374,7 +366,7 @@ namespace Kratos {
         // /** Checks the TwoFluidNavierStokes3D4N element
         //  * Checks the LHS and RHS for a negative element (distance <= 0.0)
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesNegativeSide3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesNegativeSide3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -399,7 +391,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0 / delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
@@ -452,12 +444,16 @@ namespace Kratos {
             Matrix LHS = ZeroMatrix(16, 16);
 
 			const auto& r_process_info = modelPart.GetProcessInfo();
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+			std::cout << std::setprecision(12) << std::endl;
+        	
+			// std::vector<double>reference_RHS=
+			// KRATOS_CHECK_NEAR(RHS, reference_RHS, 1e-7);
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
+            
             KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
             KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
             KRATOS_CHECK_NEAR(RHS(3), 0.67475711, 1e-7);
@@ -479,7 +475,7 @@ namespace Kratos {
         // /** Checks the TwoFluidNavierStokes3D4N element
         //  * Checks the LHS and RHS for a positive element (distance > 0.0)
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesPositiveSide3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesPositiveSide3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -494,7 +490,7 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(VELOCITY);
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
             // Process info creation
             double delta_time = 0.1;
             modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
@@ -562,6 +558,8 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+			std::cout << std::setprecision(12) << std::endl;
+        	
             KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
             KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
             KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
@@ -584,7 +582,7 @@ namespace Kratos {
 		/** Checks the TwoFluidNavierStokes2D3N element in a hydrostatic case.
 	     *  Checks the computation of the RHS
 	     */
-	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostatic, FluidDynamicsApplicationFastSuite)
+	    KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostaticError, FluidDynamicsApplicationFastSuite)
 		{
 
 			Model current_model;
@@ -606,7 +604,7 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
 			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
 			bdf_coefs[1] = -2.0/delta_time;
@@ -685,25 +683,27 @@ namespace Kratos {
 			const auto& r_process_info = modelPart.GetProcessInfo();
 			pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
 			pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+	
 			double det;
 			MathUtils<double>::InvertMatrix(LHS, LHS, det);
 
 			const Vector solVec = prod(LHS, RHS);
-
+			std::cout << std::setprecision(12) << std::endl;
+        	
 			// The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
 			// If the "standard" pressure shape functions are used, the results do not hold.
-			KRATOS_CHECK_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
-			KRATOS_CHECK_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
-			KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
+			
+			KRATOS_CHECK_NEAR(RHS(0), 0.0, 1e-7);					// U_x at node 1
+			KRATOS_CHECK_NEAR(RHS(1), -16.8712929357, 1e-7); 		// U_y at node 1
+			KRATOS_CHECK_NEAR(RHS(2), -49.9251724039, 1e-7);		// P   at node 1
 
-			KRATOS_CHECK_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
-			KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
-			KRATOS_CHECK_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
+			KRATOS_CHECK_NEAR(RHS(3), 6.87129293568, 1e-7);			// U_x at node 2
+			KRATOS_CHECK_NEAR(RHS(4), -0.628707064317, 1e-7);		// U_y at node 2
+			KRATOS_CHECK_NEAR(RHS(5), -91.7173802614, 1e-7);		// P   at node 2
 
-			KRATOS_CHECK_NEAR(RHS(6), -7.5, 1e-7);		// U_x at node 3
-			KRATOS_CHECK_NEAR(RHS(7), -7.5, 1e-7);		// U_y at node 3
-			KRATOS_CHECK_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
+			KRATOS_CHECK_NEAR(RHS(6), -6.87129293568, 1e-7);		// U_x at node 3
+			KRATOS_CHECK_NEAR(RHS(7), -7.5, 1e-7);					// U_y at node 3
+			KRATOS_CHECK_NEAR(RHS(8), -58.3574473346, 1e-7);		// P   at node 3
 	    }
 
 
@@ -713,7 +713,7 @@ namespace Kratos {
 	     *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition2D2N wall condition
 		 *  Checks the computation of the RHS for components in tangential direction
 	     */
-		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostaticBehr, FluidDynamicsApplicationFastSuite){
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostaticBehrError, FluidDynamicsApplicationFastSuite){
 
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -742,7 +742,7 @@ namespace Kratos {
 			bdf_coefs[1] = -2.0/delta_time;
 			bdf_coefs[2] = 0.5*delta_time;
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
@@ -891,7 +891,7 @@ namespace Kratos {
 	     *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition3D3N wall condition
 		 *  Checks the computation of the RHS for components in tangential direction
 	     */
-		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NHydrostaticBehr, FluidDynamicsApplicationFastSuite){
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NHydrostaticBehrError, FluidDynamicsApplicationFastSuite){
 
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -908,7 +908,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Process info creation
             double delta_time = 0.01;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.0);
@@ -1143,7 +1143,7 @@ namespace Kratos {
 	     *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition2D2N wall condition
 		 *  Checks the computation of the RHS for components in tangential direction
 	     */
-		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NStressBehr, FluidDynamicsApplicationFastSuite){
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NStressBehrError, FluidDynamicsApplicationFastSuite){
 
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -1160,7 +1160,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Process info creation
             double delta_time = 0.01;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.0);
@@ -1331,7 +1331,7 @@ namespace Kratos {
         }
 
 
-        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesDarcy3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesDarcy3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -1356,7 +1356,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0 / delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
@@ -1413,29 +1413,17 @@ namespace Kratos {
 			const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
-
+			std::cout << std::setprecision(15) << std::endl;
+        	KRATOS_WATCH(RHS)
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), -360.57321744, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 2619.39216544, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -5247.41813009, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), -0.01350784, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), -14179.95249508, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -9696.16776115, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -9395.42009461, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.01633464, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), -7384.92278497, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -11448.68747715, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -12293.47961658, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), -0.03635048, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), -7158.51524850, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -9705.23040138, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -16430.46196053, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.03380704, 1e-7);
+			std::vector<double> reference_RHS={730175.811877723,715001.218110495,725288.966965075,-5.48497973617956,-664450.272255381,-427038.177460733,243532.457039366,-4.18053676774838,-180247.845757387,-1104103.45797843,-185156.402588999,-2.90314099097277,245770.342866944,-426787.923826101,-666699.800739353,-4.19800917176596};
+
+           	KRATOS_CHECK_VECTOR_NEAR(RHS, reference_RHS, 1e-7)
 
         }
 
-		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NNavierSlip, FluidDynamicsApplicationFastSuite){
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NNavierSlipError, FluidDynamicsApplicationFastSuite){
 
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -1459,12 +1447,13 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(EXTERNAL_PRESSURE, 0.0);
 			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
 			bdf_coefs[1] = -2.0/delta_time;
 			bdf_coefs[2] = 0.5*delta_time;
 			modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Set the element properties
 			Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
 			pElemProp->SetValue(DENSITY, 1000.0);
@@ -1619,7 +1608,7 @@ namespace Kratos {
         }
 
 
-		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NNavierSlip, FluidDynamicsApplicationFastSuite){
+		KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NNavierSlipError, FluidDynamicsApplicationFastSuite){
 
 			Model current_model;
 			ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -1636,7 +1625,7 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-
+			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
 			// Process info creation
             double delta_time = 0.01;
 			modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.0);

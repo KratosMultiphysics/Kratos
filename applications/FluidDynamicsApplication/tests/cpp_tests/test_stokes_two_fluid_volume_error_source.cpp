@@ -27,7 +27,7 @@ namespace Kratos {
         typedef ModelPart::IndexType									 IndexType;
         typedef ModelPart::NodeIterator					          NodeIteratorType;
 
-        void PrepareModelPart(ModelPart& modelPart)
+        void PrepareModelPartError(ModelPart& modelPart)
         {
             modelPart.SetBufferSize(3);
             
@@ -46,7 +46,7 @@ namespace Kratos {
             double delta_time = 0.1;
             modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
             modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 10.0);
             Vector bdf_coefs(3);
             bdf_coefs[0] = 3.0 / (2.0*delta_time);
             bdf_coefs[1] = -2.0 / delta_time;
@@ -101,11 +101,11 @@ namespace Kratos {
         // /** Checks the StokesTwoFluid3D4N element
         //  * Checks the LHS and RHS for a cut element
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidCut3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidCut3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            PrepareModelPart(modelPart);
+            PrepareModelPartError(modelPart);
             
             auto pElement = modelPart.pGetElement(1);
 
@@ -126,17 +126,18 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+            KRATOS_WATCH(RHS)
             KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
         //  * Checks the LHS and RHS for a negative element (distance <= 0.0)
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidNegativeSide3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidNegativeSide3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            PrepareModelPart(modelPart);
+            PrepareModelPartError(modelPart);
             
             auto pElement = modelPart.pGetElement(1);
 
@@ -156,18 +157,19 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             std::vector<double> theoretical_rhs = {14.8262,27.1782, 39.1214, -2.04821e+06, 17.2867, 29.6168, 41.549, 411458,19.7418, 32.0938, 44.015, 685764, 22.2078, 34.5488, 46.492, 950986};
+            KRATOS_WATCH(RHS)
             KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 10.0);
         }
 
         // /** Checks the StokesTwoFluid3D4N element
         //  * Checks the LHS and RHS for a positive element (distance > 0.0)
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidPositiveSide3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementStokesTwoFluidPositiveSide3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
             
-            PrepareModelPart(modelPart);
+            PrepareModelPartError(modelPart);
             
             auto pElement = modelPart.pGetElement(1);
 
@@ -187,6 +189,7 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             std::vector<double> theoretical_rhs = {0.039501,0.0600744,-0.328102,7026.02,0.0117953,0.0213953,-0.377754,411.433,0.0115203,0.0211214,-0.378029,685.739,0.0112459,0.0208464,-0.378303,-8123.29}; // namespace Testing
+            KRATOS_WATCH(RHS)
             KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1e-2);
         }
     }
