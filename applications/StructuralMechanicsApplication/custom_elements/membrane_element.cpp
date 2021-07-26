@@ -843,7 +843,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
         Matrix inplane_transformation_matrix_material_inverse = ZeroMatrix(3);
 
-        Matrix deformation_gradient = ZeroMatrix(2);
+        Matrix deformation_gradient = ZeroMatrix(3);
         double det_deformation_gradient = 0.0;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
@@ -879,20 +879,19 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                 rCurrentProcessInfo);
 
 
-
-
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
 
 
             Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
 
             // transform stresses to original bases
-            Matrix stress_matrix = ZeroMatrix(2);
+            Matrix stress_matrix = ZeroMatrix(3);
             for (SizeType i=0;i<2;++i){
                 for (SizeType j=0;j<2;++j){
                     stress_matrix += outer_prod(transformed_base_vectors[i],transformed_base_vectors[j]) * stress_matrix_local_cs(i,j);
                 }
             }
+
 
             // calculate cauchy (this needs to be done in the original base)
             Matrix temp_stress_matrix = prod(deformation_gradient,stress_matrix);
@@ -931,11 +930,28 @@ void MembraneElement::DeformationGradient(Matrix& rDeformationGradient, double& 
      const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase)
 {
     // attention: this is not in the local orthonogal coordinate system
-    rDeformationGradient = ZeroMatrix(2);
+
+    // calculate out of plane local vectors (membrane has no thickness change so g3 and G3 are normalized)
+    Vector current_cov_3 = ZeroVector(3);
+    current_cov_3 = MathUtils<double>::CrossProduct(rCurrentCovariantBase[0],rCurrentCovariantBase[1]);
+    current_cov_3 /= MathUtils<double>::Norm3(current_cov_3);
+
+    Vector reference_contra_3 = ZeroVector(3);
+    reference_contra_3 = MathUtils<double>::CrossProduct(rReferenceContraVariantBase[0],rReferenceContraVariantBase[1]);
+    reference_contra_3 /= MathUtils<double>::Norm3(reference_contra_3);
+
+    // calculate deformation gradient
+    rDeformationGradient = ZeroMatrix(3);
     for (SizeType i=0;i<2;++i){
         rDeformationGradient += outer_prod(rCurrentCovariantBase[i],rReferenceContraVariantBase[i]);
     }
-    rDetDeformationGradient = (rDeformationGradient(0,0)*rDeformationGradient(1,1)) - (rDeformationGradient(0,1)*rDeformationGradient(1,0));
+
+    // add contribution of out of plane base vectors
+    rDeformationGradient += outer_prod(current_cov_3,reference_contra_3);
+
+
+    // calculate det(F)
+    rDetDeformationGradient = MathUtils<double>::Det(rDeformationGradient);
 }
 
 void MembraneElement::CalculateOnIntegrationPoints(
