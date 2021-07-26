@@ -196,21 +196,31 @@ double FluidAuxiliaryUtilities::CalculateFlowRate(const ModelPart& rModelPart)
     return flow_rate;
 }
 
+double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(const ModelPart& rModelPart)
+{
+    return CalculateFlowRateAuxiliary<true, false>(rModelPart);
+}
+
+double FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(const ModelPart& rModelPart)
+{
+    return CalculateFlowRateAuxiliary<false, false>(rModelPart);
+}
+
 double FluidAuxiliaryUtilities::CalculateFlowRatePositiveSkin(
     const ModelPart& rModelPart,
     const Flags& rSkinFlag)
 {
-    return CalculateFlowRateAuxiliary<true>(rModelPart, rSkinFlag);
+    return CalculateFlowRateAuxiliary<true, true>(rModelPart, rSkinFlag);
 }
 
 double FluidAuxiliaryUtilities::CalculateFlowRateNegativeSkin(
     const ModelPart& rModelPart,
     const Flags& rSkinFlag)
 {
-    return CalculateFlowRateAuxiliary<false>(rModelPart, rSkinFlag);
+    return CalculateFlowRateAuxiliary<false, true>(rModelPart, rSkinFlag);
 }
 
-template<bool IsPositiveSubdomain>
+template<bool IsPositiveSubdomain, bool CheckConditionFlag>
 double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
     const ModelPart& rModelPart,
     const Flags& rSkinFlag)
@@ -235,7 +245,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
         flow_rate = block_for_each<SumReduction<double>>(r_communicator.LocalMesh().Conditions(), nodal_distances, [&](Condition& rCondition, Vector& rNodalDistancesTLS){
             // Check if the condition is to be added to the flow contribution
             double cond_flow_rate = 0.0;
-            if (rCondition.Is(rSkinFlag)) {
+            if (CheckConditionFlagAuxiliary<CheckConditionFlag>(rCondition, rSkinFlag)) {
                 // Get geometry data
                 const auto& r_geom = rCondition.GetGeometry();
                 const std::size_t n_nodes = r_geom.PointsNumber();
@@ -348,6 +358,22 @@ double FluidAuxiliaryUtilities::CalculateConditionFlowRate(const GeometryType& r
         KRATOS_WARNING("CalculateFlowRate") << "Condition area is close to zero. Flow rate not considered." << std::endl;
     }
     return condition_flow_rate;
+}
+
+template<>
+bool FluidAuxiliaryUtilities::CheckConditionFlagAuxiliary<true>(
+    const Condition& rCondition,
+    const Flags& rSkinFlag)
+{
+    return rCondition.Is(rSkinFlag);
+}
+
+template<>
+bool FluidAuxiliaryUtilities::CheckConditionFlagAuxiliary<false>(
+    const Condition& rCondition,
+    const Flags& rSkinFlag)
+{
+    return true;
 }
 
 template<>

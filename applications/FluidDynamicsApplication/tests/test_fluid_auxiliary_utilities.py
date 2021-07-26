@@ -71,12 +71,10 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         positive_flow_rate_right = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(right_skin_model_part, Kratos.OUTLET)
         self.assertAlmostEqual(positive_flow_rate_right, ref_positive_flow_rate_right, 12)
 
-        # Calculate the top wall flow
+        # Calculate the top wall flow (without flag)
         ref_positive_flow_rate_top = 0.0
         top_skin_model_part = self.model.GetModelPart("FluidModelPart.NoSlip2D_top_wall")
-        for cond in top_skin_model_part.Conditions:
-            cond.Set(Kratos.BOUNDARY, True)
-        positive_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(top_skin_model_part, Kratos.BOUNDARY)
+        positive_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRatePositiveSkin(top_skin_model_part)
         self.assertAlmostEqual(positive_flow_rate_top, ref_positive_flow_rate_top, 12)
 
     def testCalculateFlowRateNegativeSkin(self):
@@ -109,12 +107,10 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         negative_flow_rate_right = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(right_skin_model_part, Kratos.OUTLET)
         self.assertAlmostEqual(negative_flow_rate_right, ref_negative_flow_rate_right, 12)
 
-        # Calculate the top wall flow
+        # Calculate the top wall flow (without flag)
         ref_negative_flow_rate_top = 0.0
         top_skin_model_part = self.model.GetModelPart("FluidModelPart.NoSlip2D_top_wall")
-        for cond in top_skin_model_part.Conditions:
-            cond.Set(Kratos.BOUNDARY, True)
-        negative_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(top_skin_model_part, Kratos.BOUNDARY)
+        negative_flow_rate_top = KratosFluid.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(top_skin_model_part)
         self.assertAlmostEqual(negative_flow_rate_top, ref_negative_flow_rate_top, 12)
 
     def tearDown(self):

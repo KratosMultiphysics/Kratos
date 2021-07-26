@@ -127,6 +127,24 @@ public:
      * This method calculates the flow rate throught the positive part of given model part conditions
      * It is assumed that only linear elements are employed for the discretization of velocity field
      * @param rModelPart The model part to calculate the flow rate
+     * @return double Flow rate
+     */
+    static double CalculateFlowRatePositiveSkin(const ModelPart& rModelPart);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
+     * This method calculates the flow rate throught the negative part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @return double Flow rate
+     */
+    static double CalculateFlowRateNegativeSkin(const ModelPart& rModelPart);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
+     * This method calculates the flow rate throught the positive part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @return double Flow rate
      */
@@ -176,9 +194,23 @@ private:
      * @param rSkinFlag Flag that marks the conditions to be included in the calculation
      * @return double Flow rate
      */
-    template<bool IsPositiveSubdomain>
+    template<bool IsPositiveSubdomain, bool CheckConditionFlag>
     static double CalculateFlowRateAuxiliary(
         const ModelPart& rModelPart,
+        const Flags& rSkinFlag = Flags());
+
+    /**
+     * @brief
+     *
+     * @tparam CheckConditionFlag
+     * @param rCondition
+     * @param rSkinFlag
+     * @return true
+     * @return false
+     */
+    template<bool CheckConditionFlag>
+    static bool CheckConditionFlagAuxiliary(
+        const Condition& rCondition,
         const Flags& rSkinFlag);
 
     /**
