@@ -14,7 +14,8 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class DEM3D_SearchFlagTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
-    ''' Test definition:
+    '''
+    Test definition:
     Two particles are created in two different locations and assigned velocities in order to make them collide. A FEM surface is also created between the two particles. With boths search flags set to FALSE, the test expect no collision between particles or against the middle wall.
     '''
 
