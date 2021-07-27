@@ -123,7 +123,7 @@ namespace Kratos {
             mpSpSearch = pSpSearch;
 
             //Also checks old flag name for backward compatibility issues.
-            if(mParameters["do_search_dem_neighbours"].GetBool() && mParameters["do_search_neighbours"].GetBool()) {
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
                 mDoSearchNeighbourElements = true;
             } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
