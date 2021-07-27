@@ -61,6 +61,13 @@ void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& model_part_
             r_node.FastGetSolutionStepValue(FORCE) += (elem_force/static_cast<double>(num_nodes)) ;
         }
     });
+
+    auto total_elemental_force = VariableUtils().SumElementVectorVariable(FORCE, model_part_interface);
+    array_1d<double, 3> total_nodal_forces = VariableUtils().SumHistoricalVariable<array_1d<double, 3> >(FORCE, model_part_interface);
+
+    std::cout<< "Total Force values on the given interface (Elemental Calculation)= " << total_elemental_force << std::endl;
+    std::cout<< "Total Force values on the given interface (Nodal Calculation)= " << total_nodal_forces << std::endl;
+
     //model_part_interface.GetCommunicator().AssembleCurrentData(FORCE);
 }
 
