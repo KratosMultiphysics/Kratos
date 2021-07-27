@@ -61,7 +61,7 @@ bool FluidAuxiliaryUtilities::IsNegative(const Vector &rElementDistancesVector)
         if (rElementDistancesVector[i_node] < 0.0)
             n_neg++;
     }
-    return (n_neg == pts_number) ? true : false;
+    return n_neg == pts_number;
 }
 
 double FluidAuxiliaryUtilities::CalculateFluidVolume(const ModelPart& rModelPart)
