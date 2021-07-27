@@ -135,8 +135,6 @@ public:
 
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
@@ -247,8 +245,6 @@ private:
                                    const BoundedVector<double, NumNodes>& rWake_rhs,
                                    const ElementalData<NumNodes, Dim>& rData,
                                    unsigned int& rRow) const;
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Serialization

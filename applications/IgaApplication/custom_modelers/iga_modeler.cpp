@@ -132,8 +132,9 @@ namespace Kratos
         for (SizeType i = 0; i < rGeometryList.size(); ++i)
         {
             GeometriesArrayType geometries;
+            IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
             rGeometryList[i].CreateQuadraturePointGeometries(
-                geometries, shape_function_derivatives_order);
+                geometries, shape_function_derivatives_order, integration_info);
 
             KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 1)
                 << geometries.size() << " quadrature point geometries have been created." << std::endl;
@@ -297,7 +298,7 @@ namespace Kratos
             //                  -1->All nodes in this dimension
             Vector local_coordinates = rParameters["local_parameters"].GetVector();
 
-            auto p_background_geometry = geom.pGetGeometryPart(BrepSurface<PointerVector<Node<3>>>::SURFACE_INDEX);
+            auto p_background_geometry = geom.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
             if (rGeometryType == "GeometryCurveNodes") {
                 KRATOS_DEBUG_ERROR_IF(geom.Dimension() != 1) << "Geometry #" << geom.Id()

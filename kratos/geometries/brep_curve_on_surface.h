@@ -74,7 +74,6 @@ public:
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
     typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
     static constexpr IndexType CURVE_ON_SURFACE_INDEX = std::numeric_limits<IndexType>::max() - 2;
 
     ///@}
@@ -222,14 +221,14 @@ public:
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
     *        Possible indices are:
-    *        SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @param Index: SURFACE_INDEX, EMBEDDED_CURVE_INDEX or CURVE_ON_SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
-            return mpCurveOnSurface->pGetGeometryPart(SURFACE_INDEX);
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
+            return mpCurveOnSurface->pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
 
         if (Index == CURVE_ON_SURFACE_INDEX)
             return mpCurveOnSurface;
@@ -240,13 +239,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is either
-    *        SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX or CURVE_ON_SURFACE_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX or CURVE_ON_SURFACE_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX or CURVE_ON_SURFACE_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return (Index == SURFACE_INDEX || Index == CURVE_ON_SURFACE_INDEX);
+        return (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX || Index == CURVE_ON_SURFACE_INDEX);
     }
 
     ///@}
@@ -323,9 +322,9 @@ public:
      * @param vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
-        mpCurveOnSurface->Spans(rSpans,
+        mpCurveOnSurface->SpansLocalSpace(rSpans,
             mCurveNurbsInterval.GetT0(), mCurveNurbsInterval.GetT1());
     }
 
@@ -429,7 +428,8 @@ public:
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -440,6 +440,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpCurveOnSurface->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -447,15 +457,14 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = mpCurveOnSurface->PolynomialDegree(0) + 1;
-
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
     ///@}
@@ -475,10 +484,12 @@ public:
      */
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives) override
+        IndexType NumberOfShapeFunctionDerivatives,
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpCurveOnSurface->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);

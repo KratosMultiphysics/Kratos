@@ -65,6 +65,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
+            "acceleration_limitation": true,
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false
@@ -141,6 +142,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._distance_smoothing = self.settings["distance_smoothing"].GetBool()
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
+
+        self._apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.

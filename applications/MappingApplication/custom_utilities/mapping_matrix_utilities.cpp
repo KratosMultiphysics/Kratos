@@ -20,7 +20,7 @@
 
 // Project includes
 #include "mapping_matrix_utilities.h"
-#include "custom_utilities/mapper_define.h"
+#include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos {

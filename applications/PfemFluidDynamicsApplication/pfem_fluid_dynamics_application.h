@@ -40,9 +40,13 @@
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
 #include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_FIC_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
+#include "custom_elements/updated_lagrangian_element.h"
 #include "custom_elements/two_step_updated_lagrangian_element.h"
+#include "custom_elements/three_step_updated_lagrangian_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -265,12 +269,20 @@ private:
   const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3Dquadratic;
 
   /// 2D two step v-p fluid element
-  const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2D;
-  const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement2Dquadratic;
 
   /// 3D two step v-p fluid element
-  const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3D;
-  const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidFicElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidFicElement3Dquadratic;
+
+  /// 2D two step v-p fluid element
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement2Dquadratic;
+
+  /// 3D two step v-p fluid element
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3D;
+  const TwoStepUpdatedLagrangianVPImplicitFluidPspgElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidPspgElement3Dquadratic;
 
   /// 2D two step v-p fluid DEMcoupling element
   const TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement2D;
@@ -288,6 +300,14 @@ private:
   const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D;
   const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic;
 
+  /// 2D v-p  element
+  const UpdatedLagrangianElement<2> mUpdatedLagrangianElement2D;
+  const UpdatedLagrangianElement<2> mUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D v-p  element
+  const UpdatedLagrangianElement<3> mUpdatedLagrangianElement3D;
+  const UpdatedLagrangianElement<3> mUpdatedLagrangianElement3Dquadratic;
+
   /// 2D two step v-p  element
   const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2D;
   const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2Dquadratic;
@@ -295,6 +315,14 @@ private:
   /// 3D two step v-p  element
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
   const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
+
+  /// 2D three step v-p  element
+  const ThreeStepUpdatedLagrangianElement<2> mThreeStepUpdatedLagrangianElement2D;
+  const ThreeStepUpdatedLagrangianElement<2> mThreeStepUpdatedLagrangianElement2Dquadratic;
+
+  /// 3D three step v-p  element
+  const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3D;
+  const ThreeStepUpdatedLagrangianElement<3> mThreeStepUpdatedLagrangianElement3Dquadratic;
 
   // Fluid constitutive laws
   const Bingham2DLaw mBingham2DLaw;

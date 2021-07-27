@@ -36,6 +36,7 @@
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
 #include "custom_conditions/wave_condition.h"
+#include "custom_modelers/mesh_moving_modeler.h"
 
 
 namespace Kratos
@@ -95,8 +96,6 @@ namespace Kratos
 
         virtual void Register() override;
 
-
-
         ///@}
         ///@name Access
         ///@{
@@ -147,43 +146,6 @@ namespace Kratos
 
         ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
     private:
         ///@name Static Member Variables
         ///@{
@@ -208,6 +170,8 @@ namespace Kratos
         const NothingCondition<2> mNothingCondition2D2N;
         const WaveCondition<2> mWaveCondition2D2N;
 
+        // Modelers
+        const MeshMovingModeler mMeshMovingModeler;
 
         ///@}
         ///@name Private Operators
