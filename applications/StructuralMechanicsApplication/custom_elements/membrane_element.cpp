@@ -828,7 +828,6 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
     }  else if (rVariable==CAUCHY_STRESS_VECTOR || rVariable==PRINCIPAL_CAUCHY_STRESS_VECTOR){
 
         Vector stress = ZeroVector(3);
-        Vector stress_ref_cs = ZeroVector(3);
         array_1d<Vector,2> current_covariant_base_vectors;
         array_1d<Vector,2> current_contravariant_base_vectors;
         array_1d<Vector,2> reference_covariant_base_vectors;
@@ -841,7 +840,6 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
         Matrix contravariant_metric_reference = ZeroMatrix(3);
         Matrix contravariant_metric_current = ZeroMatrix(3);
         Matrix inplane_transformation_matrix_material = ZeroMatrix(3);
-        Matrix inplane_transformation_matrix_material_inverse = ZeroMatrix(3);
 
         Matrix deformation_gradient = ZeroMatrix(3);
         double det_deformation_gradient = 0.0;
@@ -982,7 +980,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
         array_1d<Vector,2> reference_contravariant_base_vectors;
         Matrix covariant_metric_reference = ZeroMatrix(3);
         Matrix contravariant_metric_reference = ZeroMatrix(3);
-        Matrix contravariant_metric_current = ZeroMatrix(3);
         array_1d<Vector,2> transformed_base_vectors;
 
         for (SizeType point_number = 0; point_number < r_integration_points.size(); ++point_number){
