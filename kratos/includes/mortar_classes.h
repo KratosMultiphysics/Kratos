@@ -1013,7 +1013,7 @@ private:
 };  // Class DerivativeData
 
 /**
- * @class DerivativeDataFrictional
+ * @class DerivativeDataFrictional // TODO
  * @ingroup KratosCore
  * @brief This class is a derived class of DerivativeData
  * @details Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
@@ -1414,7 +1414,7 @@ private:
 }; // Class MortarOperator
 
 /**
- * @class MortarOperatorWithDerivatives
+ * @class MortarOperatorWithDerivatives // TODO
  * @ingroup KratosCore
  * @brief  This class derives from the MortarOperator class and it includes the derived operators.
  * @details The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives. Popp thesis page 102 and following
