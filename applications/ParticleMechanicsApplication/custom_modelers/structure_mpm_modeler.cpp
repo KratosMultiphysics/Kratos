@@ -139,7 +139,8 @@ namespace Kratos
         }
 
         // We fix the interface nodes so they can receive the prescribed displacements from FEM.
-        FixMPMDestInterfaceNodes(mpm_coupling_nodes);
+        // not needed for penalty?!?!
+        // FixMPMDestInterfaceNodes(mpm_coupling_nodes);
 
         std::vector<GeometryPointerType>& p_quads_origin = (mIsOriginMpm) ? quads_mpm : quads_structure;
         std::vector<GeometryPointerType>& p_quads_dest = (mIsOriginMpm) ? quads_structure : quads_mpm;
@@ -152,10 +153,15 @@ namespace Kratos
                 condition_id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(p_quads_origin[i], p_quads_dest[i])));
         }
         KRATOS_WATCH("2222222222222HEeeeeeeeeeeeeeeeeeeeeeeeeeeeeeLLO")
+        
+        ModelPart& material_model_model_part = (p_model_mpm->HasModelPart("MPM_Material"))
+            ? p_model_mpm->GetModelPart("MPM_Material")
+            : p_model_mpm->CreateModelPart("MPM_Material");
+
         auto mpm_material_model_part_name = "Coupling_Interface";
-        ModelPart& mpm_support_mp = p_model_mpm->HasModelPart(mpm_material_model_part_name)
-        ? p_model_mpm->GetModelPart(mpm_material_model_part_name)
-        : p_model_mpm->CreateModelPart(mpm_material_model_part_name);
+        ModelPart& mpm_support_mp = material_model_model_part.HasSubModelPart(mpm_material_model_part_name)
+        ? material_model_model_part.GetSubModelPart(mpm_material_model_part_name)
+        : material_model_model_part.CreateSubModelPart(mpm_material_model_part_name);
         // TO DO Check id properties
         Properties::Pointer p_properties = coupling_model_part.GetRootModelPart().CreateNewProperties(10000);
         const Condition& new_condition = KratosComponents<Condition>::Get("MPMParticlePenaltyCouplingInterfaceCondition2D3N");
@@ -166,8 +172,12 @@ namespace Kratos
             ProcessInfo process_info = ProcessInfo();
             
             std::vector<double> mpc_penalty_factor(1);
-            mpc_penalty_factor[0]=0.0;
+            std::vector<array_1d<double, 3>> mpc_xg = { ZeroVector(3) };
+            mpc_penalty_factor[0]=10000.0;
             p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+            p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
+            p_condition->Initialize(process_info);
+            p_condition->InitializeSolutionStep(process_info);
             
             // Setting particle condition's initial condition
             // p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
@@ -193,6 +203,7 @@ namespace Kratos
 
     void StructureMpmModeler::UpdateGeometryModel()
     {
+        KRATOS_WATCH("NEXT STEP")
         // The FEM coupling quad points naturally deform with the FEM domain and track the interface correctly.
         // The MPM coupling quad points need to be updated with the FEM quad point locations.
 
@@ -235,7 +246,8 @@ namespace Kratos
              << "The MPM model has no model part 'coupling_nodes', which should have been created in the structure_mpm_modeler setupGeometry";
 
         // Unfix interface nodes of previous timestep (just mpm, since the fem nodes stay the same),
-        ReleaseMPMDestInterfaceNodes(mpm_coupling_nodes);
+        // ReleaseMPMDestInterfaceNodes(mpm_coupling_nodes);
+        
 
         // Set all mpm interface nodal forces to be zero
         if (mIsOriginMpm && mParameters["is_gauss_seidel"].GetBool()) {
