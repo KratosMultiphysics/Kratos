@@ -30,9 +30,9 @@ namespace Kratos {
     void DEM_KDEM_with_damage_parallel_bond_Hertz_2D::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
         KRATOS_TRY
-        double radius_sum = radius + other_radius; // Also radius_sum = radius * other_radius / radius_sum;
-        double equiv_radius = 0.5 * radius_sum;
-        calculation_area = Globals::Pi * equiv_radius * 1.0; // This last 1.0 is simply the unitary thickness of 2D, in meters.
+        double radius_sum = radius + other_radius;
+        double equiv_radius = radius * other_radius / radius_sum; //double equiv_radius = 0.5 * radius_sum;
+        calculation_area = 2.0 * equiv_radius * 1.0; // This last 1.0 is simply the unitary thickness of 2D, in meters.
         KRATOS_CATCH("")
     }
 
