@@ -32,6 +32,7 @@ namespace Kratos {
 
         void InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta = 0.0) override;
 
+        double CalculateNormalForce(const double indentation) override;
 
     private:
 

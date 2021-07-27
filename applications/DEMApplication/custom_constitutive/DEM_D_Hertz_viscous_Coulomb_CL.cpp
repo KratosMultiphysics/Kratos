@@ -298,7 +298,6 @@ namespace Kratos {
         ViscoDampingLocalContactForce[0] = - tangential_damping_coefficient * LocalRelVel[0];
         ViscoDampingLocalContactForce[1] = - tangential_damping_coefficient * LocalRelVel[1];
         ViscoDampingLocalContactForce[2] = - normal_damping_coefficient     * LocalRelVel[2];
-
     }
 
     double DEM_D_Hertz_viscous_Coulomb::CalculateNormalForce(const double indentation) {

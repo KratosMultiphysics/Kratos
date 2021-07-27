@@ -16,7 +16,6 @@ namespace Kratos {
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-
     void DEM_D_Linear_viscous_Coulomb2D::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
 
         //Get equivalent Young's Modulus

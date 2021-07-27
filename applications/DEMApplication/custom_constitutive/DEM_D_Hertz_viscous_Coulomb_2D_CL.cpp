@@ -28,10 +28,9 @@ namespace Kratos {
         //const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-        //Normal and Tangent elastic constants
-        mKn = 0.7854 * equiv_young;           //KRATOS_M_PI_4 = 0.7854
-        //mKt = 4.0 * equiv_shear * mKn / equiv_young;
-        mKt = mKn * ((1-my_poisson)/(1-0.5*my_poisson)) ;
+        mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
+
+        mKt = mKn * (1.0 - my_poisson) / (1.0 - 0.5 * my_poisson);
     }
 
     void DEM_D_Hertz_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
@@ -46,8 +45,15 @@ namespace Kratos {
         const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson) / my_shear_modulus + (2.0 - walls_poisson) / walls_shear_modulus);
 
-        mKn = 0.7854 * equiv_young;     //KRATOS_M_PI_4 = 0.7854
+        const double element_radius = element->GetRadius();
+
+        mKn = 2.0 * element_radius * equiv_young;
+        
         mKt = 4.0 * equiv_shear * mKn / equiv_young;
+    }
+
+    double DEM_D_Hertz_viscous_Coulomb2D::CalculateNormalForce(const double indentation) {
+        return mKn * indentation;
     }
 
 } // namespace Kratos
