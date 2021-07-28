@@ -70,10 +70,13 @@ MPMParticlePenaltyCouplingInterfaceCondition::~MPMParticlePenaltyCouplingInterfa
 
 void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    // Prepare variables
+    GeneralVariables Variables;
     if (Is(INTERFACE))
     {
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
+        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
         // At the beginning of NonLinearIteration, REACTION has to be reset to zero
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -84,6 +87,23 @@ void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(
         }
 
         mReactionIsAdded = false;
+
+        
+        // Mortar mapping: Get displacement from nodes of background grid
+
+        m_imposed_displacement[0]=0.0;
+        m_imposed_displacement[1]=0.0;
+        m_imposed_displacement[2]=0.0;
+        // Calculating shape function
+        MPMShapeFunctionPointValues(Variables.N);
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            m_imposed_displacement[0] += Variables.N[i] * r_geometry[i].FastGetSolutionStepValue(IMPOSED_DISPLACEMENT_X);
+            m_imposed_displacement[1] += Variables.N[i] * r_geometry[i].FastGetSolutionStepValue(IMPOSED_DISPLACEMENT_Y);
+            m_imposed_displacement[2] += Variables.N[i] * r_geometry[i].FastGetSolutionStepValue(IMPOSED_DISPLACEMENT_Z);
+            
+        }
+        KRATOS_WATCH(m_imposed_displacement)
     }
 }
 
@@ -134,7 +154,6 @@ void MPMParticlePenaltyCouplingInterfaceCondition::CalculateAll(
     MPMParticlePenaltyDirichletCondition::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                                                         rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
                                                         CalculateResidualVectorFlag);
-
     // Append penalty force at the nodes
     if (Is(INTERFACE) && !mReactionIsAdded)
     {
