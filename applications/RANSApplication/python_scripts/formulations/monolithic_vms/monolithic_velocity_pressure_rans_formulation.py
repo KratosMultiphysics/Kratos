@@ -367,6 +367,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         # set start time and end time
         primal_parameters["problem_data"]["start_time"].SetDouble(start_time)
         primal_parameters["problem_data"]["end_time"].SetDouble(end_time)
+        primal_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(current_dt)
 
         # solve primal problem
         from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
