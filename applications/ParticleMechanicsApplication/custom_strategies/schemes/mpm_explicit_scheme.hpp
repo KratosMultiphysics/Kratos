@@ -370,7 +370,7 @@ namespace Kratos {
                         ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
 
                         // Dodgy hack to transfer completely failed concrete particles to water MP
-
+                        /*
                         if (rModelPart.HasSubModelPart("Parts_column") && contact_release_mp_name == "Parts_water")
                         {
                             ModelPart& r_concrete_mp = rModelPart.GetSubModelPart("Parts_column");
@@ -401,6 +401,7 @@ namespace Kratos {
                                 r_concrete_mp.RemoveElementFromAllLevels(mps_to_move[i]);
                             }
                         }
+                        */
 
                         CleanAndDetermineAuxMassContactReleaseModelPart(r_contact_mp);
 
