@@ -2650,12 +2650,12 @@ public:
     *          1 -> inside
     *          2 -> on the boundary
     */
-    virtual int ClosestPointLocalSpace(
+    virtual int ClosestPointLocalToLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ClosestPointLocalSpace from base class."
+        KRATOS_ERROR << "Calling ClosestPointLocalToLocalSpace from base class."
             << " Please check the definition of derived class. "
             << *this << std::endl;
         return 0;
