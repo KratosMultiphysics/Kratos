@@ -333,7 +333,7 @@ public:
      *         inside -> 1
      *         outside -> 0
      */
-    int ClosestPointLocalSpace(
+    int ClosestPointLocalToLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
