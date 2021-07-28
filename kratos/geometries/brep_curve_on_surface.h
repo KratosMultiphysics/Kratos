@@ -369,11 +369,11 @@ public:
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection: 
-     *         on boundary -> 2 - meaning that it is equal to start or end point.
      *         inside -> 1
      *         outside -> 0
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
      */
-    int ClosestPointLocalSpace(
+    int ClosestPointLocalToLocalSpace(
         CoordinatesArrayType& rPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
