@@ -325,18 +325,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.05*9.81
+            gravity = TimeStep*DT/0.02*9.81
             if gravity > 9.81:
                 gravity = 9.81
 
             tilting_angle = 0.0
 
             if gravity == 9.81:
-                tilting_angle = (TimeStep*DT - 0.1)/1.0*(90.0/180.0)*math.pi
+                tilting_angle = (TimeStep*DT - 0.02)/0.09*(90.0/180.0)*math.pi
                 if tilting_angle < 0.0:
                     tilting_angle = 0.0
-                elif tilting_angle > (90.0/180.0)*math.pi:
-                    tilting_angle = (90.0/180.0)*math.pi
+                elif tilting_angle > (10.0/180.0)*math.pi:
+                    tilting_angle = (10.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
@@ -355,7 +355,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = int(2000/100000*self.main_model_part.NumberOfElements())
+                layers = int(4000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,

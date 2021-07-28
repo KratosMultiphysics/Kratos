@@ -3967,15 +3967,44 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const unsigned int NumNodes = rIntShapeFunctions.size2();
     const unsigned int NumDim = rIntNormalsNeg[0].size();
 
+    double positive_density = 0.0;
+    double negative_density = 0.0;
+    double positive_viscosity = 0.0;
+    double negative_viscosity = 0.0;
+
+    for (unsigned int i = 0; i < NumNodes; i++){
+        if (rData.Distance[i] > 0.0){
+            positive_density = rData.NodalDensity[i];
+            positive_viscosity = rData.NodalDynamicViscosity[i];
+        } else /* if (rData.Distance[i] < 0.0) */{
+            negative_density = rData.NodalDensity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
+        }
+    }
+
     VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
+    MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
 
     for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
-        for (unsigned int j = 0; j < NumNodes; j++){
+        double u_dot_n = 0.0;
+        for (unsigned int i = 0; i < NumNodes; i++){
             for (unsigned int dim = 0; dim < NumDim; dim++){
-                rhs[ j*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,j);
+                rhs[ i*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
+
+                u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
+            }
+        }
+        for (unsigned int i = 0; i < NumNodes; i++){
+            for (unsigned int j = 0; j < NumNodes; j++){
+                for (unsigned int dim = 0; dim < NumDim; dim++){
+                    lhs_acc_correction( i*(NumDim+1) + dim, j*(NumDim+1) + dim) +=
+                        rIntShapeFunctions(intgp,i)*rIntShapeFunctions(intgp,j)*u_dot_n*rIntWeights(intgp);
+                }
             }
         }
     }
+
+    lhs_acc_correction = -(negative_density - positive_density)*lhs_acc_correction;
 
     GeometryType::Pointer p_geom = this->pGetGeometry();
 
@@ -4004,20 +4033,20 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             }
         }
 
-        double positive_density = 0.0;
-        double negative_density = 0.0;
-        double positive_viscosity = 0.0;
-        double negative_viscosity = 0.0;
+        // double positive_density = 0.0;
+        // double negative_density = 0.0;
+        // double positive_viscosity = 0.0;
+        // double negative_viscosity = 0.0;
 
-        for (unsigned int i = 0; i < NumNodes; i++){
-            if (rData.Distance[i] > 0.0){
-                positive_density = rData.NodalDensity[i];
-                positive_viscosity = rData.NodalDynamicViscosity[i];
-            } else /* if (rData.Distance[i] < 0.0) */{
-                negative_density = rData.NodalDensity[i];
-                negative_viscosity = rData.NodalDynamicViscosity[i];
-            }
-        }
+        // for (unsigned int i = 0; i < NumNodes; i++){
+        //     if (rData.Distance[i] > 0.0){
+        //         positive_density = rData.NodalDensity[i];
+        //         positive_viscosity = rData.NodalDynamicViscosity[i];
+        //     } else /* if (rData.Distance[i] < 0.0) */{
+        //         negative_density = rData.NodalDensity[i];
+        //         negative_viscosity = rData.NodalDynamicViscosity[i];
+        //     }
+        // }
         const double effective_density = 0.5*(positive_density + negative_density);
         const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
         //const double element_size = ElementSizeCalculator<3,4>::AverageElementSize(*p_geom);
@@ -4133,11 +4162,11 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             contact_angle_micro += (rCLWeights[i_cl])[clgp]*contact_angle_micro_gp;
         }
 
-        noalias(rLHS) += lhs_dissipation;
+        noalias(rLHS) += lhs_dissipation + lhs_acc_correction;
         rhs -= prod(lhs_dissipation,tempU);
 
-        contact_angle_macro /= weight_sum;
-        this->SetValue(CONTACT_ANGLE, contact_angle_macro*180.0/PI);
+        // contact_angle_macro /= weight_sum;
+        // this->SetValue(CONTACT_ANGLE, contact_angle_macro*180.0/PI);
 
         contact_angle_micro /= weight_sum;
         this->SetValue(CONTACT_ANGLE_MICRO, contact_angle_micro*180.0/PI);
