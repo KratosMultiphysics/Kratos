@@ -1,23 +1,23 @@
-#if !defined(DEM_D_LINEAR_HIGHSTIFFNESS_CL_H_INCLUDED)
-#define DEM_D_LINEAR_HIGHSTIFFNESS_CL_H_INCLUDED
+#if !defined(DEM_D_LINEAR_HIGHSTIFFNESS_2D_CL_H_INCLUDED)
+#define DEM_D_LINEAR_HIGHSTIFFNESS_2D_CL_H_INCLUDED
 
 #include <string>
 #include <iostream>
-#include "DEM_D_Linear_viscous_Coulomb_CL.h"
+#include "DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 
 namespace Kratos {
 
     class SphericParticle;
 
-    class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_HighStiffness : public DEM_D_Linear_viscous_Coulomb {
+    class KRATOS_API(DEM_APPLICATION) DEM_D_Linear_HighStiffness_2D : public DEM_D_Linear_viscous_Coulomb2D {
 
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_HighStiffness);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_D_Linear_HighStiffness_2D);
 
-        DEM_D_Linear_HighStiffness() {}
+        DEM_D_Linear_HighStiffness_2D() {}
 
-        ~DEM_D_Linear_HighStiffness() {}
+        ~DEM_D_Linear_HighStiffness_2D() {}
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
@@ -29,4 +29,4 @@ namespace Kratos {
     };
 
 } /* namespace Kratos.*/
-#endif /* DEM_D_LINEAR_HIGHSTIFFNESS_CL_H_INCLUDED  defined */
+#endif /* DEM_D_LINEAR_HIGHSTIFFNESS_2D_CL_H_INCLUDED  defined */

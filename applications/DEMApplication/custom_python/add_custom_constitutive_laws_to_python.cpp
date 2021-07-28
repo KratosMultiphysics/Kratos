@@ -25,6 +25,7 @@
 #include "custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_confined_CL.h"
 #include "custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
+#include "custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.h"
 
 #include "custom_constitutive/DEM_Dempack_CL.h"
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
@@ -134,6 +135,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_Linear_HighStiffness_2D, DEM_D_Linear_HighStiffness_2D::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness_2D")
         .def(py::init<>())
         ;
 
