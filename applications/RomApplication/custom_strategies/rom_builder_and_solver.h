@@ -104,9 +104,9 @@ public:
         mpLinearSystemSolver = pNewLinearSystemSolver;
 
         mNodalVariablesNames = ThisParameters["nodal_unknowns"].GetStringArray();
-
+        mNumberOfClusters = (ThisParameters["number_of_rom_dofs"]).size();
         mNodalDofs = mNodalVariablesNames.size();
-        for (u_int i=0;i<(ThisParameters["number_of_rom_dofs"]).size(); i++){
+        for (u_int i=0;i<mNumberOfClusters; i++){
             mRomDofsVector.push_back(ThisParameters["number_of_rom_dofs"][i].GetInt());
         }
 
@@ -157,6 +157,13 @@ public:
         set_type dof_global_set;
         dof_global_set.reserve(number_of_elements * 20);
 
+        // creating a dummy vector for imposing to the elements when running a simple ROM simulation. It used
+        // to be a scalar when having a single basis
+        Vector dummy_HROM = ZeroVector(mNumberOfClusters);  // declaring vector
+        //filling matrix manually, there might be a better way (although it's small)
+        for(int i=0; i<mNumberOfClusters; i++){
+            dummy_HROM(i) = 1;
+        }
 
         if (mHromSimulation == false && mTimeStep == 0){
             int number_of_hrom_elements=0;
@@ -179,7 +186,7 @@ public:
                         number_of_hrom_elements++;
                     }
                     else
-                        it_elem->SetValue(HROM_WEIGHT, 1.0);
+                        it_elem->SetValue(HROM_WEIGHT, dummy_HROM);
                     // Gets list of Dof involved on every element
                     pScheme->GetDofList(*it_elem, dof_list, r_current_process_info);
                     dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -200,7 +207,7 @@ public:
                         number_of_hrom_elements++;
                     }
                     else
-                        it_cond->SetValue(HROM_WEIGHT, 1.0);
+                        it_cond->SetValue(HROM_WEIGHT, dummy_HROM);
                     // Gets list of Dof involved on every element
                     pScheme->GetDofList(*it_cond, dof_list, r_current_process_info);
                     dofs_tmp_set.insert(dof_list.begin(), dof_list.end());
@@ -545,7 +552,7 @@ public:
                         aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                    double h_rom_weight = it_el->GetValue(HROM_WEIGHT);
+                    double h_rom_weight = it_el->GetValue(HROM_WEIGHT)(this->GetCurrentCluster());
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
                 }
@@ -572,7 +579,7 @@ public:
                         aux.resize(dofs.size(), mRomDofs,false);
                     GetPhiElemental(PhiElemental, dofs, geom);
                     noalias(aux) = prod(LHS_Contribution, PhiElemental);
-                    double h_rom_weight = it->GetValue(HROM_WEIGHT);
+                    double h_rom_weight = it->GetValue(HROM_WEIGHT)(this->GetCurrentCluster());
                     noalias(tempA) += prod(trans(PhiElemental), aux) * h_rom_weight;
                     noalias(tempb) += prod(trans(PhiElemental), RHS_Contribution) * h_rom_weight;
                 }
@@ -729,6 +736,7 @@ protected:
     Vector Deltaq;
     int just_a_counter = 0;
     Vector CurrentFullDimensionalVector;
+    int mNumberOfClusters;
 
 
     /*@} */

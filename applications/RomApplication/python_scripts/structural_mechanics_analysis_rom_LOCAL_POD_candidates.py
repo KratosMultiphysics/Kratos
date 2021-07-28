@@ -110,18 +110,44 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
         super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                for i in range(len(self.time_step_residual_matrix_container)):
-                    np.save(f'ResidualProjectedOnBasis{i}', self._ObtainBasis(self.time_step_residual_matrix_container[i]))
+                z_i = []
+                w_i = []
+                z = None
+                number_bases =len(self.time_step_residual_matrix_container)
+                for i in range(number_bases):
+                    #TODO implement here the construction of the single set of elements and multiple bases
+                    basis_i = self._ObtainBasis(self.time_step_residual_matrix_container[i])
+                    self.hyper_reduction_element_selector.SetUp(basis_i.T, z)
+                    self.hyper_reduction_element_selector.Initialize()
+                    self.hyper_reduction_element_selector.Calculate()
+                    w_i.append(np.squeeze(self.hyper_reduction_element_selector.w))
+                    z_i.append(np.squeeze(self.hyper_reduction_element_selector.z))
+                    if z is None:
+                        z = z_i[i]
+                    else:
+                        z = np.union1d(z,z_i[i])
+                    print(z)
+
+                WeightsMatrix = np.zeros(( np.size(z) ,number_bases))
+
+                for i in range(number_bases):
+                    for j in range(len(z_i[i])):
+                        index = np.where( z ==   z_i[i][j] )
+                        if np.array([0]) == index[0]:
+                            WeightsMatrix[index[0] , i] = w_i[i][j]
+                        elif not index[0]:
+                            pass
+                        else:
+                            WeightsMatrix[index[0] , i] = w_i[i][j]
 
 
-                # OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
-                # ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                # LeftSingularVectorsOfResidualProjected = self._ObtainBasis()
-                # self. hyper_reduction_element_selector.SetUp(LeftSingularVectorsOfResidualProjected, OriginalNumberOfElements, ModelPartName)
-                # self.hyper_reduction_element_selector.Run()
-                # for cluster_number in range(self.Number_Of_Clusters):
-                #     self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container[cluster_number], OriginalNumberOfElements, ModelPartName, cluster_number)
-                #     self.hyper_reduction_element_selector.Run()
+                np.save('WeightsMatrix.npy',WeightsMatrix )
+                np.save('Elementsvector.npy', z)
+
+                OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
+                ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
+                self.hyper_reduction_element_selector.WriteSelectedElements(OriginalNumberOfElements, ModelPartName,z)
+
 
 
     def _ObtainBasis(self, a_list):

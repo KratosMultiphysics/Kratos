@@ -41,11 +41,9 @@ class EmpiricalCubatureMethod():
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, LeftSingularVectorsOfResidualProjected, InitialCandidatesSet = None, OriginalNumberOfElements=None, ModelPartName=None, MaximumMumberUnsuccesfulIterations = 10):
+    def SetUp(self, LeftSingularVectorsOfResidualProjected, InitialCandidatesSet = None, MaximumMumberUnsuccesfulIterations = 10):
         #super().SetUp()
         self.G = LeftSingularVectorsOfResidualProjected
-        self.OriginalNumberOfElements = OriginalNumberOfElements
-        self.ModelPartName = ModelPartName
         self.y = InitialCandidatesSet
         self.MaximumMumberUnsuccesfulIterations = MaximumMumberUnsuccesfulIterations
         self.b = np.sum(self.G, axis = 1 )
@@ -60,9 +58,10 @@ class EmpiricalCubatureMethod():
         self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
+        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
         if self.y is None:
             self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-            GnormNOONE = np.sqrt(sum(np.multiply(self.G[:-1,:], self.G[:-1,:]), 0))
+
             if self.Filter_tolerance > 0:
                 TOL_REMOVE = self.Filter_tolerance * normB
                 rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
@@ -100,8 +99,6 @@ class EmpiricalCubatureMethod():
             if k==1:
                 self.w = np.linalg.lstsq(self.G[:, [i]], self.b)[0]
                 H = 1/(self.G[:,i] @ self.G[:,i].T)
-                if  self.UnsuccesfulIterations >  self.MaximumMumberUnsuccesfulIterations:
-                    self.y = np.unique(self.y, self.y_complement)
             else:
                 H, self.w = self._UpdateWeightsInverse(self.G[:,self.z],H,self.G[:,i],self.w)
 
@@ -121,6 +118,10 @@ class EmpiricalCubatureMethod():
                 H = self._MultiUpdateInverseHermitian(H, indexes_neg_weight)
                 self.w = H @ (self.G[:, self.z].T @ self.b)
                 self.w = self.w.reshape(len(self.w),1)
+
+                if  self.UnsuccesfulIterations >  self.MaximumMumberUnsuccesfulIterations:
+                    self.y = np.union1d(self.y, self.y_complement) #np.unique(self.y, self.y_complement)
+                    print('expanding set to include the complement...')
 
             if np.size(self.z) > MaximumLengthZ :
                 self.UnsuccesfulIterations = 0
@@ -212,25 +213,22 @@ class EmpiricalCubatureMethod():
     """
     Method to write a json file containing the selected elements and corresponding weights
     """
-    def WriteSelectedElements(self):
-        w = np.squeeze(self.w)
+    def WriteSelectedElements(self, OriginalNumberOfElements, ModelPartName, ElementsVector):
+
+        #here the Elments_and_weights should also be created
+        #TODO substitute completely the ElementsAndWeights.json
+        self.OriginalNumberOfElements = OriginalNumberOfElements
+        self.ModelPartName = ModelPartName
         ### Saving Elements and conditions
         ElementsAndWeights = {}
         ElementsAndWeights["Elements"] = {}
         ElementsAndWeights["Conditions"] = {}
-        #Only one element found !
-        if type(self.z)==np.int64 or type(self.z)==np.int32:
-            if self.z <= self.OriginalNumberOfElements-1:
-                ElementsAndWeights["Elements"][int(self.z)] = (float(w))
+        dummy_weight = 777
+        for j in range (0,len(self.z)):
+            if self.z[j] <= self.OriginalNumberOfElements-1:
+                ElementsAndWeights["Elements"][int(ElementsVector[j])] = (float(dummy_weight))
             else:
-                ElementsAndWeights["Conditions"][int(self.z)-self.OriginalNumberOfElements] = (float(w))
-        #Many elements found
-        else:
-            for j in range (0,len(self.z)):
-                if self.z[j] <= self.OriginalNumberOfElements-1:
-                    ElementsAndWeights["Elements"][int(self.z[j])] = (float(w[j]))
-                else:
-                    ElementsAndWeights["Conditions"][int(self.z[j])-self.OriginalNumberOfElements] = (float(w[j]))
+                ElementsAndWeights["Conditions"][int(ElementsVector[j])-self.OriginalNumberOfElements] = (float(dummy_weight))
 
         with open('ElementsAndWeights.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
