@@ -62,6 +62,18 @@ namespace Kratos
             }
         }
 
+        // If we have no stress make normal MP
+        std::vector<Vector> mp_cauchy (1);
+        rMasterMaterialPoint.CalculateOnIntegrationPoints(MP_CAUCHY_STRESS_VECTOR, mp_cauchy, rBackgroundGridModelPart.GetProcessInfo());
+        if (norm_2_square(mp_cauchy[0])< 1e-12)
+        {
+            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                pQuadraturePointGeometry, rLocalCoords,
+                rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
+                rParentGeom);
+            return;
+        }
+
 
         const SizeType working_dim = rParentGeom.WorkingSpaceDimension();
         const double pqmpm_min_fraction = (rBackgroundGridModelPart.GetProcessInfo().Has(PQMPM_SUBPOINT_MIN_VOLUME_FRACTION))
