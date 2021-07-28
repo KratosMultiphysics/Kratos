@@ -338,7 +338,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        return mpNurbsCurve->ClosestPointLocalSpace(rPointLocalCoordinates, Tolerance);
+        return mpNurbsCurve->ClosestPointLocalToLocalSpace(rPointLocalCoordinates, Tolerance);
     }
 
 
