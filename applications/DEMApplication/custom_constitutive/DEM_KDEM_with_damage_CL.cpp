@@ -228,11 +228,11 @@ namespace Kratos {
         double kt_updated = (1.0 - mDamageTangential) * kt_el;
 
         if (!failure_type) {
-            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0]; // 0: first tangential
-            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1]; // 1: second tangential
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_updated * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_updated * LocalDeltDisp[1];
         } else {
-            LocalElasticContactForce[0] = OldLocalElasticContactForce[0];
-            LocalElasticContactForce[1] = OldLocalElasticContactForce[1];
+            LocalElasticContactForce[0] = OldLocalElasticContactForce[0] - kt_el * LocalDeltDisp[0];
+            LocalElasticContactForce[1] = OldLocalElasticContactForce[1] - kt_el * LocalDeltDisp[1];
         }
 
         double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
