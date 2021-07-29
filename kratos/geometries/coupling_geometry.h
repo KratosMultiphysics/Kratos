@@ -342,7 +342,7 @@ public:
 
         if (this->Dimension() == 1) {
             std::vector<double> intersection_master_spans;
-            std::vector<double> intersection_master_spans_on_master_spans;
+            std::vector<double> all_span_intersections_in_master_local_space;
 
             mpGeometries[0]->SpansLocalSpace(intersection_master_spans);
             CurveTessellation<PointerVector<TPointType>> curve_tessellation;
@@ -374,11 +374,11 @@ public:
                         << " larger than model tolerance: " << model_tolerance << std::endl;
 
                     // If success == 0, it is considered that the projection is on one of the boundaries.
-                    intersection_master_spans_on_master_spans.push_back(local_coords_master[0]);
+                    all_span_intersections_in_master_local_space.push_back(local_coords_master[0]);
                 }
             }
             std::vector<double> all_intersections;
-            MergeSpans(all_intersections, intersection_master_spans, intersection_master_spans_on_master_spans);
+            MergeSpans(all_intersections, intersection_master_spans, all_span_intersections_in_master_local_space);
 
             IntegrationPointUtilities::CreateIntegrationPoints1D(rIntegrationPoints, all_intersections, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
         }
