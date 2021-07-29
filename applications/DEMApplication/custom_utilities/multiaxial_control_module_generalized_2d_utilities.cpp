@@ -830,7 +830,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
                     double nodal_smoothed_nodal_velocity = (1.0 - mVelocityAlpha) * -1.0 * mMaxNodalVelocityForMultiDofs + mVelocityAlpha * it->GetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY);
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, nodal_smoothed_nodal_velocity);
                 }
-                else if(nodal_delta_target_stress < 0.0 && nodal_reaction_stress > 0.0) {
+                else {
                     double nodal_velocity_estimated = nodal_delta_target_stress * mCompressionLengthForMultiDofs / mNormOfInitiallyEstimatedStiffness / mCMDeltaTime; //TODO: norm_stiffness?
                     if (std::abs(nodal_velocity_estimated) > mMaxNodalVelocityForMultiDofs) {
                         nodal_velocity_estimated *= mMaxNodalVelocityForMultiDofs / std::abs(nodal_velocity_estimated);
@@ -838,9 +838,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
                     double nodal_smoothed_nodal_velocity = (1.0 - mVelocityAlpha) * nodal_velocity_estimated + mVelocityAlpha * it->GetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY);
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, nodal_smoothed_nodal_velocity);
                 }
-                else {
+                /*else {
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, 0.0);
-                }
+                }*/
             }
         }
     }

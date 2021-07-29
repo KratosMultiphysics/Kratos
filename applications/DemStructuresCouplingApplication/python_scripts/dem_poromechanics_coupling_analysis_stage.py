@@ -8,6 +8,7 @@ import KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis
 import KratosMultiphysics.DemStructuresCouplingApplication as DemStructuresCouplingApplication
 from sp_2d_rigid_fem_algorithm import DEMAnalysisStage2DSpRigidFem
 import os
+import math
 
 class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage.AnalysisStage):
     def __init__(self, model, parameters):
@@ -19,7 +20,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
 
-        self.number_of_DEM_steps_between_steadiness_checks = 10
+        self.number_of_DEM_steps_between_steadiness_checks = 25
         self.stationarity_measuring_tolerance = 5e-3
 
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
@@ -69,7 +70,61 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
                 self.dem_solution._GetSolver().Predict()
                 self.dem_solution._GetSolver().SolveSolutionStep()
                 self.dem_solution.FinalizeSolutionStep()
-                self.dem_solution.OutputSolutionStep(self.poromechanics_solution.time)
+                self.AdditionalDEMOperationsToFinalizeDEMSolutionStep()
+                self.dem_solution.OutputSolutionStep()
+
+    def AdditionalDEMOperationsToFinalizeDEMSolutionStep(self):
+
+        if self.dem_solution.IsTimeToPrintPostProcess():
+
+            filename = 'radial_normal_and_smoothed_reaction_stresses_values_' + str(self.dem_solution.time) + '.txt'
+
+            try:
+                os.remove(filename)
+            except OSError:
+                pass
+
+            radial_normal_and_smoothed_reaction_stresses_file = open(filename, 'a')
+
+            average_ratio = 0.0
+
+            for node in self.dem_solution.rigid_face_model_part.Nodes:
+                total_radial_normal_stress_value = node.GetValue(DEM.RADIAL_NORMAL_STRESS_COMPONENT)
+                A =  node.GetValue(DEM.SMOOTHED_REACTION_STRESS_X)
+                B =  node.GetValue(DEM.SMOOTHED_REACTION_STRESS_Y)
+                C =  node.GetValue(DEM.SMOOTHED_REACTION_STRESS_Z)
+                total_smoothed_reaction_stress_value = math.sqrt(A*A + B*B + C*C)
+                if abs(total_radial_normal_stress_value) > 0.0:
+                    this_node_applied_stress_ratio = -total_smoothed_reaction_stress_value / total_radial_normal_stress_value
+                else:
+                    this_node_applied_stress_ratio = 0.0
+                average_ratio += this_node_applied_stress_ratio
+                displ = node.GetSolutionStepValue(Kratos.DISPLACEMENT)
+                displ_norm = math.sqrt(displ[0]*displ[0]+displ[1]*displ[1]+displ[2]*displ[2])
+                vel = node.GetSolutionStepValue(Kratos.VELOCITY)
+                vel_norm = math.sqrt(vel[0]*vel[0]+vel[1]*vel[1]+vel[2]*vel[2])
+                radial_normal_and_smoothed_reaction_stresses_file.write(str(node.Id) + " " + str(node.X) + " " + str(node.Y) + " " + str(node.Z) + " " + str(total_radial_normal_stress_value) + " " + str(total_smoothed_reaction_stress_value) + " " + str(displ_norm) + " " + str(vel_norm) + '\n')
+
+            radial_normal_and_smoothed_reaction_stresses_file.close()
+            average_ratio = average_ratio / self.dem_solution.rigid_face_model_part.NumberOfNodes()
+            self.dem_solution.KratosPrintInfo("-------- Averaged loading ratio (average quotient current stress/ target stress) is  " + str(average_ratio) + " ------------ \n")
+
+            total_average_target_radial_normal_stress = 0.0
+            total_forces_modulus = 0.0
+
+            for node in self.dem_solution.rigid_face_model_part.Nodes:
+
+                total_radial_normal_stress_value = node.GetValue(DEM.RADIAL_NORMAL_STRESS_COMPONENT)
+                nodal_area = node.GetSolutionStepValue(DEM.DEM_NODAL_AREA)
+                total_average_target_radial_normal_stress += nodal_area * total_radial_normal_stress_value
+
+            for element in self.dem_solution.spheres_model_part.Elements:
+
+                total_force_X = element.GetNode(0).GetSolutionStepValue(Kratos.EXTERNAL_APPLIED_FORCE_X)
+                total_force_Y = element.GetNode(0).GetSolutionStepValue(Kratos.EXTERNAL_APPLIED_FORCE_Y)
+                total_force_Z = element.GetNode(0).GetSolutionStepValue(Kratos.EXTERNAL_APPLIED_FORCE_Z)
+                forces_modulus = math.sqrt(total_force_X * total_force_X + total_force_Y * total_force_Y + total_force_Z * total_force_Z)
+                total_forces_modulus += forces_modulus
 
     def DEMSolutionIsSteady(self):
 
@@ -79,23 +134,23 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
             self.DEM_steps_counter = 0
 
-            print("\n************************************ DEM stationarity will now be checked...\n", flush=True)
+            print("\n*** DEM stationarity will now be checked...", flush=True)
 
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_X is larger than the desired maximum...\n", flush=True)
+                print("  F_X is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_Y is larger than the desired maximum...\n", flush=True)
+                print("  F_Y is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
             if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
-                print("\n************************************ F_Z is larger than the desired maximum...\n", flush=True)
+                print("  F_Z is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
 
             if self.stationarity_checking_is_activated:
-                print("\n************************************ DEM solution is steady...!\n", flush=True)
+                print("\n  ********** DEM solution is steady! ********** \n", flush=True)
                 with open('poro_solution_time_vs_dem_time_vs_dems_steps.txt', 'a') as time_and_steps_file:
                     time_and_steps_file.write(str(self.poromechanics_solution.time) + " " + str(self.dem_solution.time) + " " + str(self.dem_time_steps_per_fem_time_step) + '\n')
                 return True
