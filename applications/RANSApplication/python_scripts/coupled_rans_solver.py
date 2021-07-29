@@ -276,6 +276,9 @@ class CoupledRANSSolver(PythonSolver):
             number_of_solving_variables = len(self.formulation.GetSolvingVariables())
             Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, Kratos.Vector(number_of_solving_variables, 0.0), self.main_model_part.Nodes)
 
+        # communicate to HDF5 application to write the modified mesh in hdf5
+        self.main_model_part.ProcessInfo[Kratos.AUX_MESH_VAR] = 1.0
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, self.formulation.GetInfo())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
@@ -359,6 +362,9 @@ class CoupledRANSSolver(PythonSolver):
             mdpa_path = Path("refined_mdpas")
             mdpa_path.mkdir(exist_ok=True)
             Kratos.ModelPartIO(str(mdpa_path / "refined_step_{:d}".format(self.main_model_part.ProcessInfo[Kratos.STEP])), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
+            # communicate to HDF5 application to write the modified mesh in hdf5
+            self.main_model_part.ProcessInfo[Kratos.AUX_MESH_VAR] = 1.0
 
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 

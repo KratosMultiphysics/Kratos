@@ -192,6 +192,16 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    auto& r_process_info = rModelPart.GetProcessInfo();
+
+    if (r_process_info.Has(AUX_MESH_VAR)) {
+        if (r_process_info[AUX_MESH_VAR] == 1.0) {
+            r_process_info[AUX_MESH_VAR] = 0.0;
+        } else {
+            return;
+        }
+    }
+
     BuiltinTimer timer;
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
