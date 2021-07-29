@@ -345,8 +345,8 @@ public:
             std::vector<double> all_span_intersections_in_master_local_space;
 
             mpGeometries[0]->SpansLocalSpace(intersection_master_spans);
-            CurveTessellation<PointerVector<TPointType>> curve_tessellation;
-            curve_tessellation.Tessellate(
+            CurveTessellation<PointerVector<TPointType>> curve_tessellation_master;
+            curve_tessellation_master.Tessellate(
                 *(mpGeometries[0].get()),
                 intersection_master_spans,
                 1e-2, mpGeometries[0]->PolynomialDegree(0), false);
@@ -363,7 +363,7 @@ public:
                     local_coords_slave[0] = intersection_slave_spans[j];
                     mpGeometries[i]->GlobalCoordinates(
                         global_coords, local_coords_slave);
-                    curve_tessellation.GetClosestPoint(
+                    curve_tessellation_master.GetClosestPoint(
                         global_coords, global_coords_master, local_coords_master);
                     int success = mpGeometries[0]->ProjectionPoint(
                         global_coords, global_coords_master, local_coords_master);
