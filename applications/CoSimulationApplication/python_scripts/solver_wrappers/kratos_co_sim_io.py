@@ -87,8 +87,6 @@ class KratosCoSimIO(CoSimulationIO):
             if settings:
                 info.SetInfo("settings", CoSimIO.InfoFromParameters(settings))
 
-            print("exporting info for control signal:", info, data_config)
-
             CoSimIO.ExportInfo(info)
 
         elif data_type == "repeat_time_step":
