@@ -46,9 +46,9 @@ namespace Kratos
     }
     case 5:
     {
-      //CalculateStandardFSPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      CalculateStandardFSPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       //CalculatePSPGPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-      CalculateFSplusPSPGPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      //CalculateFSplusPSPGPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       //CalculateFICPressureSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
       break;
     }
