@@ -936,8 +936,8 @@ namespace Kratos
         {
             v_n[TDim * i] = (GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
             v_n[TDim * i + 1] = (GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));
-            a_n[TDim * i] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X, 1));
-            a_n[TDim * i + 1] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y, 1));
+            a_n[TDim * i] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_X, 1));
+            a_n[TDim * i + 1] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_Y, 1));
             arhs[TDim * i] = bdf1 * v_n(TDim * i);
             arhs[TDim * i + 1] = bdf1 * v_n(TDim * i + 1);
             arhs2[0] += N[i] * arhs[TDim * i];
@@ -951,7 +951,7 @@ namespace Kratos
             if (TDim == 3)
             {
                 v_n[TDim * i + 2] = (GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z, 1));
-                a_n[TDim * i + 3] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Z, 1));
+                a_n[TDim * i + 3] = (GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_Z, 1));
                 body_force_vector[TDim * i + 2] = f(i, 2);
                 body_force_vector_n[TDim * i + 2] = f_n(i, 2);
                 arhs[TDim * i + 2] = bdf1 * v_n(TDim * i + 2);

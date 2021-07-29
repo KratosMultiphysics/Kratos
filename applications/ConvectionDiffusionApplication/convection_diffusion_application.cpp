@@ -100,6 +100,7 @@ void KratosConvectionDiffusionApplication::Register() {
     /////////
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_ACCELERATION)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(ACCELERATION_AUX)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_AUX)
     /////////
 
     // Registering elements and conditions here

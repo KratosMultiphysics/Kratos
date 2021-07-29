@@ -63,6 +63,8 @@ public:
     {
         KRATOS_TRY
         const double dt = rModelPart.GetProcessInfo()[DELTA_TIME];
+        KRATOS_WATCH(dt);
+        
 
         //do movement
         Vector N(TDim + 1);
@@ -578,6 +580,7 @@ public:
          const double bdf1 = BDFVector[1];
          const double bdf2 = BDFVector[2];
          const double rho = rModelPart.GetProcessInfo()[DENSITY];
+         KRATOS_WATCH(bdf0);
          
          ModelPart::ElementsContainerType::iterator ielementsbegin = rModelPart.ElementsBegin();
          ModelPart::NodesContainerType::iterator inodebegin = rModelPart.NodesBegin();
@@ -677,8 +680,8 @@ public:
               v[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y));
               a[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_X));
               a[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_AUX_Y));
-              v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1));
-              v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1));   
+              v_n[TDim * i] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_AUX_X, 1));
+              v_n[TDim * i + 1] = (ielement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_AUX_Y, 1));   
              }
            
 
@@ -804,8 +807,8 @@ public:
          }
          KRATOS_CATCH("")
         }
-        
-        void TransferOldVelocityToOldBFECC(ModelPart::NodesContainerType &rNodes)
+
+        void CopyAccComponentXToWatPrAcc(ModelPart::NodesContainerType &rNodes)
         {
         KRATOS_TRY
         ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
@@ -823,10 +826,86 @@ public:
             for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
             {
                 ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION) = inode->GetSolutionStepValue(ACCELERATION_AUX_X,1);
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+    void CopyAccComponentYToWatPrAcc(ModelPart::NodesContainerType &rNodes)
+        {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->GetSolutionStepValue(WATER_PRESSURE_ACCELERATION) = inode->GetSolutionStepValue(ACCELERATION_AUX_Y,1);
+            }
+        }
+        KRATOS_CATCH("")
+    }
+        
+        void TransferOldVelocityToOldBFECC(ModelPart::NodesContainerType &rNodes)
+        {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+        
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
                 inode->GetSolutionStepValue(SCALARPROJECTEDVEL_X,1) = inode->GetSolutionStepValue(VELOCITY_X,1);
                 inode->GetSolutionStepValue(SCALARPROJECTEDVEL_Y,1) = inode->GetSolutionStepValue(VELOCITY_Y,1);
                 if (TDim == 3)
                  inode->GetSolutionStepValue(SCALARPROJECTEDVEL_Z,1) = inode->GetSolutionStepValue(VELOCITY_Z,1);
+            }
+        }
+        KRATOS_CATCH("")
+    }
+
+        void TransferOldVelocityToOldVelocityAux(ModelPart::NodesContainerType &rNodes)
+        {
+        KRATOS_TRY
+        ModelPart::NodesContainerType::iterator inodebegin = rNodes.begin();
+        vector<unsigned int> node_partition;
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+        OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
+
+        #pragma omp parallel for
+        for (int kkk = 0; kkk < number_of_threads; kkk++)
+        {
+            for (unsigned int ii = node_partition[kkk]; ii < node_partition[kkk + 1]; ii++)
+            {
+                ModelPart::NodesContainerType::iterator inode = inodebegin + ii;
+                inode->GetSolutionStepValue(VELOCITY_AUX_X,1) = inode->GetSolutionStepValue(VELOCITY_X,1);
+                inode->GetSolutionStepValue(VELOCITY_AUX_Y,1) = inode->GetSolutionStepValue(VELOCITY_Y,1);
+                if (TDim == 3)
+                 inode->GetSolutionStepValue(VELOCITY_AUX_Z,1) = inode->GetSolutionStepValue(VELOCITY_Z,1);
             }
         }
         KRATOS_CATCH("")

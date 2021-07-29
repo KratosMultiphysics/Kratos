@@ -140,6 +140,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("TransferVelocityToBFECC", &BFECCConvectionRK4<2>::TransferVelocityToBFECC)
     .def("TransferOldVelocityToOldBFECC", &BFECCConvectionRK4<2>::TransferOldVelocityToOldBFECC)
     .def("TransferOldVelocityToBFECC", &BFECCConvectionRK4<2>::TransferOldVelocityToBFECC)
+    .def("CopyAccComponentXToWatPrAcc", &BFECCConvectionRK4<2>::CopyAccComponentXToWatPrAcc)
+    .def("CopyAccComponentYToWatPrAcc", &BFECCConvectionRK4<2>::CopyAccComponentYToWatPrAcc)
+    .def("TransferOldVelocityToOldVelocityAux", &BFECCConvectionRK4<2>::TransferOldVelocityToOldVelocityAux)
     ;
 
     py::class_<BFECCConvectionRK4<3> > (m,"BFECCConvectionRK43D").def(py::init< BinBasedFastPointLocator < 3 >::Pointer >())
@@ -151,6 +154,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("TransferVelocityToBFECC", &BFECCConvectionRK4<3>::TransferVelocityToBFECC)
     .def("TransferOldVelocityToOldBFECC", &BFECCConvectionRK4<3>::TransferOldVelocityToOldBFECC)
     .def("TransferOldVelocityToBFECC", &BFECCConvectionRK4<3>::TransferOldVelocityToBFECC)
+    .def("CopyAccComponentXToWatPrAcc", &BFECCConvectionRK4<3>::CopyAccComponentXToWatPrAcc)
+    .def("CopyAccComponentYToWatPrAcc", &BFECCConvectionRK4<3>::CopyAccComponentYToWatPrAcc)
+    .def("TransferOldVelocityToOldVelocityAux", &BFECCConvectionRK4<3>::TransferOldVelocityToOldVelocityAux)
     ;  
 
     py::class_< MoveParticleUtilityScalarTransport<2> > (m,"MoveParticleUtilityScalarTransport2D").def(py::init<ModelPart& , int >())

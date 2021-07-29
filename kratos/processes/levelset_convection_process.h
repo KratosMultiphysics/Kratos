@@ -176,6 +176,7 @@ public:
         // Save the variables to be employed so that they can be restored after the solution
         const auto& r_previous_var = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->GetUnknownVariable();
         const double previous_delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+        KRATOS_WATCH(previous_delta_time);
 
         // Save current level set value and current and previous step velocity values
         IndexPartition<int>(mpDistanceModelPart->NumberOfNodes()).for_each(
