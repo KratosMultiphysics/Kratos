@@ -238,7 +238,7 @@ namespace Kratos
 
       this->SetBlockedAndIsolatedFlags();
 
-      this->FreePressure();
+      //this->FreePressure();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
@@ -250,7 +250,7 @@ namespace Kratos
         if (it == 0)
         {
           mpMomentumStrategy->InitializeSolutionStep();
-          this->FixPressure();
+          //this->FixPressure();
         }
         else
         {
@@ -512,6 +512,7 @@ namespace Kratos
 
       continuityConvergence = CheckPressureIncrementConvergence(NormDp);
 
+      //  continuityConvergence = true;
       if (!continuityConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Continuity equation did not reach the convergence tolerance." << std::endl;
 
@@ -784,6 +785,7 @@ namespace Kratos
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
+        //     if (it_node->Is(RIGID) && (it_node->X() < 0.001 || it_node->X() > 0.999)) // for closed domain case with analytical solution
         if (it_node->Is(FREE_SURFACE))
         {
           it_node->FastGetSolutionStepValue(PRESSURE) = 0;
@@ -800,10 +802,6 @@ namespace Kratos
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         it_node->Free(PRESSURE);
-        // if (it_node->Is(FREE_SURFACE))
-        // {
-        //   it_node->Free(PRESSURE);
-        // }
       }
     }
 

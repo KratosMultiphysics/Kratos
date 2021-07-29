@@ -207,10 +207,6 @@ namespace Kratos
                                       VectorType &rRightHandSideVector,
                                       const ProcessInfo &rCurrentProcessInfo);
 
-    void CalculateLocalPressureSystem(MatrixType &rLeftHandSideMatrix,
-                                      VectorType &rRightHandSideVector,
-                                      const ProcessInfo &rCurrentProcessInfo);
-
     void CalculateLastVelocitySystem(MatrixType &rLeftHandSideMatrix,
                                      VectorType &rRightHandSideVector,
                                      const ProcessInfo &rCurrentProcessInfo);
@@ -376,13 +372,27 @@ namespace Kratos
                                                  VectorType &rRightHandSideVector,
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculatePSPGLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                   VectorType &rRightHandSideVector,
-                                                   const ProcessInfo &rCurrentProcessInfo);
+    void CalculateStandardFSPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                           VectorType &rRightHandSideVector,
+                                           const ProcessInfo &rCurrentProcessInfo);
 
-    void CalculateFICLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                  VectorType &rRightHandSideVector,
-                                                  const ProcessInfo &rCurrentProcessInfo);
+    // void CalculatePSPGPressureSystem(MatrixType &rLeftHandSideMatrix,
+    //                                  VectorType &rRightHandSideVector,
+    //                                  const ProcessInfo &rCurrentProcessInfo);
+
+    void CalculateFSplusPSPGPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                           VectorType &rRightHandSideVector,
+                                           const ProcessInfo &rCurrentProcessInfo);
+
+    // void CalculateFICPressureSystem(MatrixType &rLeftHandSideMatrix,
+    //                                 VectorType &rRightHandSideVector,
+    //                                 const ProcessInfo &rCurrentProcessInfo);
+
+    void ComputeBoundaryTermsForPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                               VectorType &rRightHandSideVector,
+                                               const ShapeFunctionsType &rN,
+                                               const double lagMultiplier);
+
     void CalculateTauPSPG(double &TauOne,
                           double ElemSize,
                           const double Density,
@@ -405,12 +415,8 @@ namespace Kratos
                                          const ShapeFunctionsType &rN,
                                          const SizeType i);
 
-    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                               const double Weight) override;
-
-    virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
-                                                     VectorType &rRightHandSideVector,
-                                                     const ProcessInfo &rCurrentProcessInfo) override{};
+    void ComputeLumpedMatrixForPressure(MatrixType &BulkMatrix,
+                                        const double Weight);
 
     virtual double GetThetaMomentum() override
     {
