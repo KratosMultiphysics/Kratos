@@ -83,10 +83,9 @@ class KratosCoSimIO(CoSimulationIO):
             info.SetString("connection_name", self.connection_name)
             info.SetString("identifier", "run_control")
             info.SetString("control_signal", data_config["control_signal"])
-            the_identifier = data_config.get("identifier", "")
-            print("the_identifier", the_identifier)
-            if the_identifier != "":
-                info.SetString("the_identifier", the_identifier)
+            settings = data_config.get("settings")
+            if settings:
+                info.SetInfo("settings", CoSimIO.InfoFromParameters(settings))
 
             print("exporting info for control signal:", info, data_config)
 
