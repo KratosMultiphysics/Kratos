@@ -57,34 +57,56 @@ class RemoteControlledSolverWrapper(CoSimulationSolverWrapper):
 
     def AdvanceInTime(self, current_time):
         # self.__CheckExternalSolverProcess() # TODO check why this is blocking
-        self.__SendControlSignal("AdvanceInTime")
+
+        settings = KM.Parameters("""{}""")
+        settings.AddEmptyValue("current_time").SetDouble(current_time)
+        self.__SendControlSignal("AdvanceInTime", settings)
+
+        # TODO here one could import back the new time from the solver
         return 0.0
-        # data_config = {
-        #     "type"       : "time",
-        #     "time"     : current_time
-        # }
-        # self.ExportData(data_config)
-        # self.ImportData(data_config)
-        # return 100.0 #data_config["time"]
+
+    def Predict(self):
+        super().Predict()
+        self.__SendControlSignal("Predict")
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
         self.__SendControlSignal("InitializeSolutionStep")
 
     def SolveSolutionStep(self):
+        for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ExportData(data_config)
+
         super().SolveSolutionStep()
-        self.__SendControlSignal("InitializeSolutionStep")
+        self.__SendControlSignal("SolveSolutionStep")
+
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        self.__SendControlSignal("InitializeSolutionStep")
+        self.__SendControlSignal("FinalizeSolutionStep")
+
+    def OutputSolutionStep(self):
+        super().OutputSolutionStep()
+        self.__SendControlSignal("OutputSolutionStep")
 
     def Finalize(self):
         self.__SendControlSignal("exit")
         super().Finalize() # this also does the disconnect
 
     def ImportCouplingInterface(self, interface_config):
-        self.__SendControlSignal("ExportMesh", interface_config["model_part_name"]) # TODO this can also be geometry at some point
+        settings = KM.Parameters("""{}""")
+        settings.AddEmptyValue("identifier").SetString(interface_config["model_part_name"])
+        self.__SendControlSignal("ExportMesh", settings) # TODO this can also be geometry at some point
         super().ImportCouplingInterface(interface_config)
 
     def ExportCouplingInterface(self, interface_config):
@@ -93,26 +115,29 @@ class RemoteControlledSolverWrapper(CoSimulationSolverWrapper):
 
     def ImportData(self, data_config):
         # CoSim imports, the external solver exports
-        self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ExportData, data_config["interface_data"].name)
+        settings = KM.Parameters("""{}""")
+        settings.AddEmptyValue("identifier").SetString(data_config["interface_data"].name)
+        self.__SendControlSignal("ExportData", settings)
         super().ImportData(data_config)
 
-    # def ExportData(self, data_config):
-    #     if self.controlling_external_solver:
-    #         if data_config["type"] == "coupling_interface_data":
-    #             # CoSim exports, the external solver imports
-    #             self.__SendControlSignal(KratosCoSim.CoSimIO.ControlSignal.ImportData, data_config["interface_data"].name)
-    #         elif data_config["type"] == "convergence_signal":
-    #             return # we control the ext solver, no need for sending a convergence signal
-    #     super().ExportData(data_config)
+    def ExportData(self, data_config):
+        if data_config["type"] == "coupling_interface_data":
+            # CoSim exports, the external solver imports
+            settings = KM.Parameters("""{}""")
+            settings.AddEmptyValue("identifier").SetString(data_config["interface_data"].name)
+            self.__SendControlSignal("ImportData", settings)
+        elif data_config["type"] == "repeat_time_step":
+            return # we control the ext solver, no need for sending a repeat_time_step signal
+        super().ExportData(data_config)
 
     def _GetIOType(self):
         return "kratos_co_sim_io"
 
-    def __SendControlSignal(self, signal, identifier=""):
+    def __SendControlSignal(self, signal, settings=None):
         data_config = {
             "type"           : "control_signal",
             "control_signal" : signal,
-            "identifier"     : identifier
+            "settings"       : settings
         }
         self.ExportData(data_config)
 

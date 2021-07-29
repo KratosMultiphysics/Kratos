@@ -5,6 +5,8 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 from KratosMultiphysics.CoSimulationApplication import CoSimIO
 
+from itertools import chain
+
 class StructuralMechanicsAnalysisRemoteControlled(StructuralMechanicsAnalysis):
     '''Main script for structural mechanics remote controlled with CoSimIO'''
 
@@ -19,8 +21,6 @@ class StructuralMechanicsAnalysisRemoteControlled(StructuralMechanicsAnalysis):
 
     def Initialize(self):
         super().Initialize()
-        self.co_sim_settings = self.project_parameters["co_sim_settings"]
-        self.is_strong_coupling = self.co_sim_settings["is_strong_coupling"].GetBool()
 
         connection_settings = CoSimIO.InfoFromParameters(self.project_parameters["co_sim_settings"]["io_settings"])
 
@@ -29,36 +29,76 @@ class StructuralMechanicsAnalysisRemoteControlled(StructuralMechanicsAnalysis):
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")
 
+        ## specifying which fields belong to which identifier when im-/exporting data
+        self.data_comm_settings = {}
+        for field_settings in chain(self.project_parameters["co_sim_settings"]["communication_settings"]["export_fields"],self.project_parameters["co_sim_settings"]["communication_settings"]["import_fields"]):
+            identifier = field_settings["identifier"].GetString()
+            model_part_name = field_settings["model_part_name"].GetString()
+            model_part = self.model[model_part_name]
+            variable_name = field_settings["variable_name"].GetString()
+            variable = KM.KratosGlobals.GetVariable(variable_name)
+            self.data_comm_settings[identifier] = {
+                "model_part" : model_part,
+                "variable" : variable
+            }
+
         # declaring in place the functions that are registered by the CoSimIO
         def _ImportData(info):
-            raise NotImplementedError
+            identifier = info.GetString("identifier")
+            model_part = self.data_comm_settings[identifier]["model_part"]
+            variable   = self.data_comm_settings[identifier]["variable"]
+
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", identifier)
+            CoSimIO.ImportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+            return CoSimIO.Info()
+
         def _ExportData(info):
-            raise NotImplementedError
+            identifier = info.GetString("identifier")
+            model_part = self.data_comm_settings[identifier]["model_part"]
+            variable   = self.data_comm_settings[identifier]["variable"]
+
+            info = CoSimIO.Info()
+            info.SetString("connection_name", self.connection_name)
+            info.SetString("identifier", identifier)
+            CoSimIO.ExportData(info, model_part, variable, CoSimIO.DataLocation.NodeHistorical)
+            return CoSimIO.Info()
+
         def _ExportMesh(info):
+            model_part_name = info.GetString("identifier")
+
             export_info = CoSimIO.Info()
             export_info.SetString("connection_name", self.connection_name)
             export_info.SetString("identifier", model_part_name.replace(".", "-"))
 
-            CoSimIO.ExportMesh(info, self.model[model_part_name])
+            CoSimIO.ExportMesh(export_info, self.model[model_part_name])
+            return CoSimIO.Info()
 
         def _AdvanceInTime(info):
             current_time = info.GetDouble("current_time")
             self.time = self._GetSolver().AdvanceInTime(current_time)
+            return CoSimIO.Info()
 
         def _InitializeSolutionStep(info):
             self.InitializeSolutionStep()
+            return CoSimIO.Info()
 
         def _Predict(info):
             self._GetSolver().Predict()
+            return CoSimIO.Info()
 
         def _SolveSolutionStep(info):
             self._GetSolver().SolveSolutionStep()
+            return CoSimIO.Info()
 
         def _FinalizeSolutionStep(info):
             self.FinalizeSolutionStep()
+            return CoSimIO.Info()
 
         def _OutputSolutionStep(info):
             self.OutputSolutionStep()
+            return CoSimIO.Info()
 
         register_info = CoSimIO.Info()
         register_info.SetString("connection_name", self.connection_name)
