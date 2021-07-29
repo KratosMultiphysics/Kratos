@@ -2678,6 +2678,29 @@ public:
     }
 
     /**
+    * @brief Checks if given local coordinates are within this geometry.
+    *        If not, the closest local coordinate within this geometry is found.
+    * @param rPointLocalCoordinates the point to which the
+    *        closest point has to be found.
+    *
+    * @param Tolerance accepted orthogonal error.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int ClosestPointLocalToLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ClosestPointLocalToLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
+    }
+
+    /**
     * @brief Computes the distance between an point in
     *        global coordinates and the closest point
     *        of this geometry.
