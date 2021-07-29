@@ -47,7 +47,8 @@ namespace Kratos
             SparseSpaceType::SetToZero(NTN);
 
             PointerVector<Geometry<Node<3>>> quad_points;
-            r_geometry.CreateQuadraturePointGeometries(quad_points, 3);
+            IntegrationInfo integration_info = r_geometry.GetDefaultIntegrationInfo();
+            r_geometry.CreateQuadraturePointGeometries(quad_points, 3, integration_info);
             for (IndexType iP = 0; iP < quad_points.size(); ++iP)
             {
                 const Matrix& r_N = quad_points[iP].ShapeFunctionsValues();
