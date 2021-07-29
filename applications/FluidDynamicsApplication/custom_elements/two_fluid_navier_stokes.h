@@ -531,7 +531,12 @@ private:
 
     void AddSurfaceTensionContribution(
         const TElementData& rData,
-        ModifiedShapeFunctions::Pointer pModifiedShapeFunctions,
+        MatrixType& rInterfaceShapeFunction,
+        MatrixType& rEnrInterfaceShapeFunctionPos,
+        MatrixType& rEnrInterfaceShapeFunctionNeg,
+        GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivatives,
+        Vector& rInterfaceWeights,
+        std::vector<Vector>& rInterfaceNormalsNeg,
         Matrix &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         const MatrixType &rHtot,
