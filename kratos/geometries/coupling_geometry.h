@@ -527,7 +527,7 @@ public:
         std::sort(std::begin(rResultSpans), std::end(rResultSpans));
 
         auto last = std::unique(std::begin(rResultSpans), std::end(rResultSpans),
-            [=](double a, double b) { return b - a < Tolerance; });
+            [Tolerance](double a, double b) { return b - a < Tolerance; });
 
         auto nb_unique = std::distance(std::begin(rResultSpans), last);
 
