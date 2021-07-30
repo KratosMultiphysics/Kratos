@@ -56,7 +56,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
-            self.__ManipulateCSMSettings("solver_wrappers.external.external_solver_wrapper")
+            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.external_solver_wrapper")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
@@ -69,7 +69,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
-            self.__ManipulateCSMSettings("solver_wrappers.external.remote_controlled_solver_wrapper")
+            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.remote_controlled_solver_wrapper")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
@@ -83,7 +83,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         with open("fsi_mok/ProjectParametersCFD.json",'r') as parameter_file:
             self.cfd_parameters = KM.Parameters(parameter_file.read())
 
-    def __ManipulateCSMSettings(self, solver_wrapper_name):
+    def __ManipulateCSMSettingsToRunExternally(self, solver_wrapper_name):
         structure_settings = self.cosim_parameters["solver_settings"]["solvers"]["structure"]
         structure_settings.RemoveValue("solver_wrapper_settings")
 
