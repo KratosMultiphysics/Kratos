@@ -238,7 +238,7 @@ namespace Kratos
 
       this->SetBlockedAndIsolatedFlags();
 
-      this->FreePressure();
+      // this->FreePressure();
 
       for (unsigned int it = 0; it < maxNonLinearIterations; ++it)
       {
@@ -250,7 +250,7 @@ namespace Kratos
         if (it == 0)
         {
           mpMomentumStrategy->InitializeSolutionStep();
-          this->FixPressure();
+          // this->FixPressure();
         }
         else
         {
