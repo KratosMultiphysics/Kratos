@@ -175,3 +175,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosPoromechanicsCore DESTINATION libs )
 install(TARGETS KratosPoromechanicsApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosPoromechanicsCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosPoromechanicsApplication" PARENT_SCOPE)

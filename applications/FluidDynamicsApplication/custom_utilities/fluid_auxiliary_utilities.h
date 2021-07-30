@@ -123,6 +123,48 @@ public:
     static double CalculateFlowRate(const ModelPart& rModelPart);
 
     /**
+     * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
+     * This method calculates the flow rate throught the positive part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @return double Flow rate
+     */
+    static double CalculateFlowRatePositiveSkin(const ModelPart& rModelPart);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
+     * This method calculates the flow rate throught the negative part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @return double Flow rate
+     */
+    static double CalculateFlowRateNegativeSkin(const ModelPart& rModelPart);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions (positive subdomain)
+     * This method calculates the flow rate throught the positive part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @param rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @return double Flow rate
+     */
+    static double CalculateFlowRatePositiveSkin(
+        const ModelPart& rModelPart,
+        const Flags& rSkinFlag);
+
+    /**
+     * @brief Calculate the flow rate through the given model part conditions (negative subdomain)
+     * This method calculates the flow rate throught the negative part of given model part conditions
+     * It is assumed that only linear elements are employed for the discretization of velocity field
+     * @param rModelPart The model part to calculate the flow rate
+     * @param rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @return double Flow rate
+     */
+    static double CalculateFlowRateNegativeSkin(
+        const ModelPart& rModelPart,
+        const Flags& rSkinFlag);
+
+    /**
      * @brief Get the Standard Modified Shape Functions Factory object
      * For the given geometry, this methods returns a factory function to create the corresponding
      * standard modified shape functions. The factory returns a unique pointer and expects a
@@ -133,6 +175,75 @@ public:
     static ModifiedShapeFunctionsFactoryType GetStandardModifiedShapeFunctionsFactory(const GeometryType& rGeometry);
 
     ///@}
+private:
+
+    /**
+     * @brief Calculate one condition flow rate
+     * This method calculates the flow rate through the given condition geometry
+     * @param rGeometry Condition geometry
+     * @return double Flow rate
+     */
+    static double CalculateConditionFlowRate(const GeometryType& rGeometry);
+
+    /**
+     * @brief Auxiliary function to bypass the positive and negative standard methods
+     * This auxiliary function shouldn't be called from outside and serves to
+     * avoid the reimplementation for positive and negative subdomains
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @param rModelPart The model part to calculate the flow rate
+     * @param rSkinFlag Flag that marks the conditions to be included in the calculation
+     * @return double Flow rate
+     */
+    template<bool IsPositiveSubdomain, bool CheckConditionFlag>
+    static double CalculateFlowRateAuxiliary(
+        const ModelPart& rModelPart,
+        const Flags& rSkinFlag = Flags());
+
+    /**
+     * @brief
+     *
+     * @tparam CheckConditionFlag
+     * @param rCondition
+     * @param rSkinFlag
+     * @return true
+     * @return false
+     */
+    template<bool CheckConditionFlag>
+    static bool CheckConditionFlagAuxiliary(
+        const Condition& rCondition,
+        const Flags& rSkinFlag);
+
+    /**
+     * @brief Auxiliary function to bypass the positive and negative subdomain check
+     * This auxiliary function shouldn't be called from outside and serves to
+     * standarize the implementation of the methods that check for an either positive or negative subdomain
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @param rElementDistancesVector Vector containing the distance values at each node
+     * @return true If agrees the template argument
+     * @return false If not agrees the template argument
+     */
+    template<bool IsPositiveSubdomain>
+    static inline bool CheckNonSplitConditionSubdomain(const Vector &rElementDistancesVector);
+
+    /**
+     * @brief Auxiliary function to bypass the calculation of modified shape functions
+     * This auxiliary function shouldn't be called from outside and serves to
+     * avoid checking for positive and negative methods of the modified shape functions
+     * @tparam IsPositiveSubdomain Positive for positive subdomain and viceversa
+     * @param rpModShapeFunc Pointer to the modified shape functions utility of the condition parent
+     * @param FaceId Parent geometry face id corresponding the condition of interest
+     * @param rShapeFunctions Matrix container to store the computed shape functions
+     * @param rNormals Vector containing the outwards normals to the face of interest
+     * @param rWeights Vector containing the face of interest weights
+     */
+    template<bool IsPositiveSubdomain>
+    static void CalculateSplitConditionGeometryData(
+        const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
+        const std::size_t FaceId,
+        Matrix& rShapeFunctions,
+        std::vector<Vector>& rNormals,
+        Vector& rWeights);
+
 };
 
 ///@}
