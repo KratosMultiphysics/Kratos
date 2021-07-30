@@ -3995,7 +3995,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
                 // u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
             }
-            u_dot_n += rIntShapeFunctions(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_AUX2)*(rIntNormalsNeg[intgp])[dim];
+            u_dot_n += rIntShapeFunctions(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_AUX2);
         }
         u_dot_n /= rData.DeltaTime;
 
