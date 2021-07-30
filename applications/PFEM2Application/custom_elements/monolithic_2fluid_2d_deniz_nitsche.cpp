@@ -891,13 +891,14 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double, TDim *(TDim + 1), (TDim + 1)> Kvp = ZeroMatrix(TDim * (TDim + 1), (TDim + 1));                  //Kvp matrix
         boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim *(TDim + 1)> Kpv = ZeroMatrix(TDim + 1, TDim * (TDim + 1));                    //Kpv matrix
         boost::numeric::ublas::bounded_matrix<double, (TDim + 1), (TDim + 1)> Kpp = ZeroMatrix(TDim + 1, TDim + 1);                                   //Kpp matrix
+        boost::numeric::ublas::bounded_matrix<double, (TDim * (TDim + 1)), (TDim * (TDim + 1))> Mc = ZeroMatrix((TDim * (TDim + 1)), TDim * (TDim + 1)); // Mc Matrix
         array_1d<double, TDim *(TDim + 1)> rv = ZeroVector(TDim * (TDim + 1));
         array_1d<double, (TDim + 1)> rp = ZeroVector((TDim + 1));
         array_1d<double, (TDim * (TDim + 1))> div_vec = ZeroVector(TDim * (TDim + 1)); //div_vec vector
 
         const bool momentumstabilize = false;
         const bool dynamicsubgridstabilize = false;
-        const bool acceleratedparticles = false;
+        const bool acceleratedparticles = true;
         //get constitutive matrix
         const Matrix &C = data.C;
         //get density
@@ -1122,14 +1123,29 @@ namespace Kratos
             rp += rho * tau * (1.0 / dt) * prod(DN, utilde_n);
         }
 
+        // if (acceleratedparticles)
+        // { 
+        //  for (int i = 0; i < (TDim + 1); i++)
+        //  {
+        //     for (int k = 0; k < TDim; k++)
+        //     {
+        //         rv[i * TDim + k] -= N[i] * a_n_on_gauss_point[k];
+        //     }
+        //  }
+        // }
+
+        // if (acceleratedparticles)
+        // { 
+        //  Mc= prod(trans(dummyN),dummyN);
+        //  rv -= prod(Mc,a_n)
+        // }
+
         if (acceleratedparticles)
         { 
-         for (int i = 0; i < (TDim + 1); i++)
+         for (unsigned int i = 0; i < (TDim + 1); i++)
          {
-            for (int k = 0; k < TDim; k++)
-            {
-                rv[i * TDim + k] -= N[i] * a_n_on_gauss_point[k];
-            }
+            rv(i * TDim) -= N(i) * a_n(i * TDim);
+            rv(i * TDim + 1) -= N(i) * a_n(i * TDim + 1);
          }
         }
 

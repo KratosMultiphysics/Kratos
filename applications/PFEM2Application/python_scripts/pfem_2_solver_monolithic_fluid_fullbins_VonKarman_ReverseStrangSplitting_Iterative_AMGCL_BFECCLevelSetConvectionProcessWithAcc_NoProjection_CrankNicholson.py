@@ -270,12 +270,6 @@ class PFEM2Solver:
         self.conv_criteria.SetEchoLevel(0)
 
         self.domain_size = domain_size
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
-        (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
-        (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
 
@@ -378,7 +372,7 @@ class PFEM2Solver:
 
         
         print("FIRST")
-        #bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
+        bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_X,
@@ -407,7 +401,7 @@ class PFEM2Solver:
             self.monolithic_linear_solver,
             levelset_convection_settings).Execute()
         print("SECOND")
-        #bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
+        bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_Y,
@@ -475,10 +469,9 @@ class PFEM2Solver:
         bfecc_utility = BFECCConvectionRK42D(locator)
         bfecc_utility.TransferOldVelocityToBFECC(self.model_part.Nodes)
         
-
         
         print("THIRD")
-        #bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
+        bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_X,
@@ -507,7 +500,7 @@ class PFEM2Solver:
             self.monolithic_linear_solver,
             levelset_convection_settings).Execute()
         print("FOURTH")
-        #bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
+        bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_Y,
@@ -549,7 +542,8 @@ class PFEM2Solver:
         print("second BFECC END")
         
         self.IncreaseTimeStep()
-        bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
+        bfecc_utility.CalculateAccelerationOnTheMeshFirstOrder(self.model_part)
+        #bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
 
 
          #self.nodaltasks = self.nodaltasks + t11-t9
