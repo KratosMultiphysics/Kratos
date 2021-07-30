@@ -2603,7 +2603,7 @@ public:
      * @return int 0 -> failed
      *             1 -> converged
      */
-    virtual int ProjectionPoinGlobalToLocalSpace(
+    virtual int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectionPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
