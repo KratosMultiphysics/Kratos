@@ -112,7 +112,7 @@ std::string MassConservationCorrection::ExecuteInTimeStep(){
 
     double shift_for_correction = 0.0;
     // check if it is time for a correction (if wished for)
-    if ( inter_area > 10e-7){
+    if ( inter_area > 10e-12){
         // if water is missing, a shift into negative direction increases the water volume
         shift_for_correction = - water_volume_error / inter_area;
         ShiftDistanceField( shift_for_correction );
@@ -420,6 +420,8 @@ void MassConservationCorrection::ShiftDistanceField( double deltaDist ){
 
         if (curvature < 1.0e8 && curvature > -1.0e8){
             i_node->FastGetSolutionStepValue( DISTANCE ) += (curvature/mean_curvature)*deltaDist;
+
+            KRATOS_WATCH("HERE")
         }
     }
 }

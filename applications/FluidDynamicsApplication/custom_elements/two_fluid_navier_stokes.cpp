@@ -3967,6 +3967,8 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const unsigned int NumNodes = rIntShapeFunctions.size2();
     const unsigned int NumDim = rIntNormalsNeg[0].size();
 
+    GeometryType::Pointer p_geom = this->pGetGeometry();
+
     double positive_density = 0.0;
     double negative_density = 0.0;
     double positive_viscosity = 0.0;
@@ -3991,9 +3993,12 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             for (unsigned int dim = 0; dim < NumDim; dim++){
                 rhs[ i*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
 
-                u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
+                // u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
             }
+            u_dot_n += rIntShapeFunctions(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_AUX2)*(rIntNormalsNeg[intgp])[dim];
         }
+        u_dot_n /= rData.DeltaTime;
+
         for (unsigned int i = 0; i < NumNodes; i++){
             for (unsigned int j = 0; j < NumNodes; j++){
                 for (unsigned int dim = 0; dim < NumDim; dim++){
@@ -4004,9 +4009,10 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         }
     }
 
-    lhs_acc_correction = -(negative_density - positive_density)*lhs_acc_correction;
+    lhs_acc_correction = /* - */(negative_density - positive_density)*lhs_acc_correction;
 
-    GeometryType::Pointer p_geom = this->pGetGeometry();
+    //KRATOS_WATCH(negative_density - positive_density);
+    //KRATOS_WATCH(lhs_acc_correction);
 
     for (unsigned int i_cl = 0; i_cl < rCLWeights.size(); i_cl++){
         MatrixType lhs_dissipation = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));

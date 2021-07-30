@@ -640,6 +640,7 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
         //if (i_node->GetValue(IS_STRUCTURE) == 0.0){
             i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
+            i_node->StepValue( DISTANCE_AUX2, -deltaDist);
         //}
     }
 }
