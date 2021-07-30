@@ -31,6 +31,7 @@
 #include "containers/data_value_container.h"
 #include "utilities/math_utils.h"
 #include "input_output/logger.h"
+#include "integration/integration_info.h"
 
 namespace Kratos
 {
@@ -1904,6 +1905,30 @@ public:
     }
 
     ///@}
+    ///@name Spans
+    ///@{
+
+    /* @brief Provides spans in local paramater coordinates of the geometry
+     *        according to its direction from LocalDirectionIndex.
+     *        For NurbsSurface this is equivalent to the knot vector per direction,
+     *        whereby NurbsCurve also provide its knot vector.
+     *        Linear geometries shall provide the delimiters, which might be -1 and 1
+     *        in standard cases.
+     *        Qudartic geometries, may provide additionally the middle point.
+     *
+     * @param resulting vector of span intervals.
+     * @param LocalDirectionIndex of chosen direction, for curves always 0.
+     */
+    virtual void SpansLocalSpace(
+        std::vector<double>& rSpans,
+        IndexType LocalDirectionIndex = 0) const
+    {
+        KRATOS_ERROR <<
+            "Calling SpansLocalSpace of geometry base class. Please check derived definitions. "
+            << *this << std::endl;
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
 
@@ -1929,6 +1954,12 @@ public:
     IntegrationMethod GetDefaultIntegrationMethod() const
     {
         return mpGeometryData->DefaultIntegrationMethod();
+    }
+
+    /// Provides the default integration per geometry.
+    virtual IntegrationInfo GetDefaultIntegrationInfo() const
+    {
+        return IntegrationInfo(LocalSpaceDimension(), GetDefaultIntegrationMethod());
     }
 
     /** This method is to know if this geometry is symmetric or
@@ -2222,11 +2253,15 @@ public:
      * @return integration points.
      */
     virtual void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const
     {
-        KRATOS_ERROR << "Calling CreateIntegrationPoints from geometry base class."
-            << " Please check the definition of derived class. "
-            << *this << std::endl;
+        IntegrationMethod integration_method = rIntegrationInfo.GetIntegrationMethod(0);
+        for (IndexType i = 1; i < LocalSpaceDimension(); ++i) {
+            KRATOS_ERROR_IF(integration_method != rIntegrationInfo.GetIntegrationMethod(i))
+                << "Default creation of integration points only valid if integration method is not varying per direction." << std::endl;
+        }
+        rIntegrationPoints = IntegrationPoints(integration_method);
     }
 
     ///@}
@@ -2246,7 +2281,8 @@ public:
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints)
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo)
     {
         KRATOS_ERROR << "Calling CreateQuadraturePointGeometries from geometry base class."
             << " Please check the definition of derived class. "
@@ -2265,15 +2301,17 @@ public:
      */
     virtual void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
-        IndexType NumberOfShapeFunctionDerivatives)
+        IndexType NumberOfShapeFunctionDerivatives,
+        IntegrationInfo& rIntegrationInfo)
     {
         IntegrationPointsArrayType IntegrationPoints;
-        CreateIntegrationPoints(IntegrationPoints);
+        CreateIntegrationPoints(IntegrationPoints, rIntegrationInfo);
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
             NumberOfShapeFunctionDerivatives,
-            IntegrationPoints);
+            IntegrationPoints,
+            rIntegrationInfo);
     }
 
     ///@}
@@ -2637,6 +2675,29 @@ public:
             global_coordinates,
             rClosestPointLocalCoordinates,
             Tolerance);
+    }
+
+    /**
+    * @brief Checks if given local coordinates are within this geometry.
+    *        If not, the closest local coordinate within this geometry is found.
+    * @param rPointLocalCoordinates the point to which the
+    *        closest point has to be found.
+    *
+    * @param Tolerance accepted orthogonal error.
+    * @return -1 -> failed
+    *          0 -> outside
+    *          1 -> inside
+    *          2 -> on the boundary
+    */
+    virtual int ClosestPointLocalToLocalSpace(
+        CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ClosestPointLocalToLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
     }
 
     /**
