@@ -7,9 +7,9 @@ from KratosMultiphysics.NeuralNetworkApplication.scaling_process import ScalingP
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return NormalizationSoftZeroOneProcess(settings["parameters"])
+    return NormalizationStandardProcess(settings["parameters"])
 
-class NormalizationSoftZeroOneProcess(PreprocessingProcess):
+class NormalizationStandardProcess(PreprocessingProcess):
 
     def __init__(self, settings):
         super().__init__(settings)
@@ -17,7 +17,6 @@ class NormalizationSoftZeroOneProcess(PreprocessingProcess):
 
         Keyword arguments:
         self -- It signifies an instance of a class.
-        model -- the container of the different model parts.
         settings -- Kratos parameters containing process settings.
         """
 
@@ -25,13 +24,13 @@ class NormalizationSoftZeroOneProcess(PreprocessingProcess):
         try:
             self.log_denominator = settings["log_denominator"].GetString()
         except RuntimeError:
-            self.log_denominator = "normalization_soft_zero_one"
-
-        # Set the centering
+            self.log_denominator = "normalization"
+        
+        # Centering
         if settings.Has("center"):
             self.center = settings["center"].GetString()
         else:
-            self.center = "min"
+            self.center = "mean"
         centering_parameters = KM.Parameters()
         centering_parameters.AddEmptyValue("center")
         centering_parameters["center"].SetString(self.center)
@@ -51,11 +50,11 @@ class NormalizationSoftZeroOneProcess(PreprocessingProcess):
         centering_parameters["log_denominator"].SetString(self.log_denominator + 'center')
         self.center_process = CenteringProcess(centering_parameters)
 
-        # Set the scaling
+        # Scaling
         if settings.Has("scale"):
             self.scale = settings["scale"].GetString()
         else:
-            self.scale = "soft_minmax"
+            self.scale = "std"
         scaling_parameters = KM.Parameters()
         scaling_parameters.AddEmptyValue("scale")
         scaling_parameters["scale"].SetString(self.scale)
@@ -75,24 +74,17 @@ class NormalizationSoftZeroOneProcess(PreprocessingProcess):
         scaling_parameters["log_denominator"].SetString(self.log_denominator + 'scaling')
         self.scale_process = ScalingProcess(scaling_parameters)
         
-        # Recenter for avoiding the 0
-        self.center = 'soft_minmax'
-        centering_parameters["center"].SetString(self.center)
-        centering_parameters["log_denominator"].SetString(self.log_denominator + 'recenter')
-        self.center_correction_process = CenteringProcess(centering_parameters)
-
     def Preprocess(self, data_in, data_out):
         
         [data_in , data_out] = self.center_process.Preprocess(data_in, data_out)
         [data_in , data_out] = self.scale_process.Preprocess(data_in, data_out)
-        [data_in , data_out] = self.center_correction_process.Preprocess(data_in, data_out)
 
         return [data_in, data_out]
     
     def Invert(self, data_in, data_out):
         
-        [data_in , data_out] = self.center_correction_process.Invert(data_in, data_out)
         [data_in , data_out] = self.scale_process.Invert(data_in, data_out)
         [data_in , data_out] = self.center_process.Invert(data_in, data_out)
 
         return [data_in, data_out]
+

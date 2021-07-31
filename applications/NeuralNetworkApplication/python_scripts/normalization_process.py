@@ -1,7 +1,9 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
-from KratosMultiphysics.NeuralNetworkApplication.centering_process import CenteringProcess
-from KratosMultiphysics.NeuralNetworkApplication.scaling_process import ScalingProcess
+from KratosMultiphysics.NeuralNetworkApplication.normalization_standard_process import NormalizationStandardProcess
+from KratosMultiphysics.NeuralNetworkApplication.normalization_zero_one_process import NormalizationZeroOneProcess
+from KratosMultiphysics.NeuralNetworkApplication.normalization_minus_one_one_process import NormalizationMinusOneOneProcess
+from KratosMultiphysics.NeuralNetworkApplication.normalization_soft_zero_one_process import NormalizationSoftZeroOneProcess
 
 
 def Factory(settings):
@@ -22,69 +24,64 @@ class NormalizationProcess(PreprocessingProcess):
 
         self.objective = settings["objective"].GetString()
         try:
+            self.normalization_type = settings["normalization_type"].GetString()
+        except RuntimeError:
+            self.normalization_type = "standard"
+        try:
             self.log_denominator = settings["log_denominator"].GetString()
         except RuntimeError:
             self.log_denominator = "normalization"
         
+        normalization_parameters = KM.Parameters()
+        normalization_parameters.AddEmptyValue("objective")
+        normalization_parameters["objective"].SetString(self.objective)
+        try:
+            normalization_parameters.AddEmptyValue("input_log_name")
+            normalization_parameters["input_log_name"].SetString(self.input_log_name)
+            normalization_parameters.AddEmptyValue("output_log_name")
+            normalization_parameters["output_log_name"].SetString(self.output_log_name)
+        except AttributeError:
+            normalization_parameters.RemoveValue("input_log_name")
+            normalization_parameters.RemoveValue("output_log_name")
+        normalization_parameters.AddEmptyValue("load_from_log")
+        normalization_parameters["load_from_log"].SetBool(self.load_from_log)
+        normalization_parameters.AddEmptyValue("log_denominator")
+        normalization_parameters["log_denominator"].SetString(self.log_denominator)
+
         # Centering
         if settings.Has("center"):
             self.center = settings["center"].GetString()
-        else:
-            self.center = "mean"
-        centering_parameters = KM.Parameters()
-        centering_parameters.AddEmptyValue("center")
-        centering_parameters["center"].SetString(self.center)
-        centering_parameters.AddEmptyValue("objective")
-        centering_parameters["objective"].SetString(self.objective)
-        try:
-            centering_parameters.AddEmptyValue("input_log_name")
-            centering_parameters["input_log_name"].SetString(self.input_log_name)
-            centering_parameters.AddEmptyValue("output_log_name")
-            centering_parameters["output_log_name"].SetString(self.output_log_name)
-        except AttributeError:
-            centering_parameters.RemoveValue("input_log_name")
-            centering_parameters.RemoveValue("output_log_name")
-        centering_parameters.AddEmptyValue("load_from_log")
-        centering_parameters["load_from_log"].SetBool(self.load_from_log)
-        centering_parameters.AddEmptyValue("log_denominator")
-        centering_parameters["log_denominator"].SetString(self.log_denominator + 'center')
-        self.center_process = CenteringProcess(centering_parameters)
-
-        # Scaling
+            normalization_parameters.AddEmptyValue("center")
+            normalization_parameters["center"].SetString(self.center)
+        # Centering
         if settings.Has("scale"):
             self.scale = settings["scale"].GetString()
-        else:
-            self.scale = "std"
-        scaling_parameters = KM.Parameters()
-        scaling_parameters.AddEmptyValue("scale")
-        scaling_parameters["scale"].SetString(self.scale)
-        scaling_parameters.AddEmptyValue("objective")
-        scaling_parameters["objective"].SetString(self.objective)
-        try:
-            scaling_parameters.AddEmptyValue("input_log_name")
-            scaling_parameters["input_log_name"].SetString(self.input_log_name)
-            scaling_parameters.AddEmptyValue("output_log_name")
-            scaling_parameters["output_log_name"].SetString(self.output_log_name)
-        except AttributeError:
-            scaling_parameters.RemoveValue("input_log_name")
-            scaling_parameters.RemoveValue("output_log_name")
-        scaling_parameters.AddEmptyValue("load_from_log")
-        scaling_parameters["load_from_log"].SetBool(self.load_from_log)
-        scaling_parameters.AddEmptyValue("log_denominator")
-        scaling_parameters["log_denominator"].SetString(self.log_denominator + 'scaling')
-        self.scale_process = ScalingProcess(scaling_parameters)
+            normalization_parameters.AddEmptyValue("scale")
+            normalization_parameters["scale"].SetString(self.scale)
+            
+        # Select normalization type
+        switcher = {
+            'standard': NormalizationStandardProcess,
+            'zero_one': NormalizationZeroOneProcess,
+            'minus_one_one': NormalizationMinusOneOneProcess,
+            'soft_zero_one': NormalizationSoftZeroOneProcess
+        }
+        
+        def __GetNormalization(norm_type, parameters):
+            norm = switcher.get(norm_type, NormalizationStandardProcess)
+            return norm(parameters)
+
+        self.normalization_process = __GetNormalization(self.normalization_type, normalization_parameters)
         
     def Preprocess(self, data_in, data_out):
         
-        [data_in , data_out] = self.center_process.Preprocess(data_in, data_out)
-        [data_in , data_out] = self.scale_process.Preprocess(data_in, data_out)
+        [data_in , data_out] = self.normalization_process.Preprocess(data_in, data_out)
 
         return [data_in, data_out]
     
     def Invert(self, data_in, data_out):
         
-        [data_in , data_out] = self.scale_process.Invert(data_in, data_out)
-        [data_in , data_out] = self.center_process.Invert(data_in, data_out)
+        [data_in , data_out] = self.normalization_process.Invert(data_in, data_out)
 
         return [data_in, data_out]
 
