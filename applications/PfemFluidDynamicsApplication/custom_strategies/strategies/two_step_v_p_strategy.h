@@ -272,6 +272,9 @@ namespace Kratos
         }
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
+
+          //double tensilStressSign = 1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
 
