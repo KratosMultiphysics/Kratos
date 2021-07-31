@@ -25,6 +25,10 @@ namespace Kratos
     KRATOS_TRY;
 
     ThreeStepSecondOrderUpdatedLagrangianElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
     return Element::Pointer(new ThreeStepSecondOrderUpdatedLagrangianElement(NewElement));
 
     KRATOS_CATCH("");
@@ -52,7 +56,7 @@ namespace Kratos
 
     default:
     {
-      KRATOS_THROW_ERROR(std::logic_error, "Unexpected value for THREE_STEP_UPDATED_LAGRANGIAN_V_P_ELEMENT index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
+      KRATOS_THROW_ERROR(std::logic_error, "Unexpected value for THREE_STEP_SECOND_ORDER_UPDATED_LAGRANGIAN_ELEMENT index: ", rCurrentProcessInfo[FRACTIONAL_STEP]);
     }
     }
 
