@@ -100,6 +100,10 @@ namespace Kratos
             double YieldStressShearTension;
             double YieldStressShearCompression;
 
+            double ShearCompressionReductor;
+
+            double BiaxialCompressionMultiplier;
+
             double CharacteristicLength;
 
             DirectionalMaterialProperties(
@@ -120,6 +124,11 @@ namespace Kratos
                   BezierControllerC3(rProperties[BEZIER_CONTROLLER_C3]),
                   YieldStressShearTension(rProperties[YIELD_STRESS_SHEAR_TENSION]),
                   YieldStressShearCompression(rProperties[YIELD_STRESS_SHEAR_COMPRESSION]),
+                  BiaxialCompressionMultiplier(rProperties[BIAXIAL_COMPRESSION_MULTIPLIER]),
+                  ShearCompressionReductor(rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
+                      ? std::min(std::max(rProperties[SHEAR_COMPRESSION_REDUCTOR], 1.0), 0.0)
+                      : 0.16
+                  ),
                   CharacteristicLength(CharacteristicLength)
             {
             }
@@ -141,6 +150,8 @@ namespace Kratos
                   BezierControllerC3(rOther.BezierControllerC3),
                   YieldStressShearTension(rOther.YieldStressShearTension),
                   YieldStressShearCompression(rOther.YieldStressShearCompression),
+                  ShearCompressionReductor(rOther.ShearCompressionReductor),
+                  BiaxialCompressionMultiplier(rOther.BiaxialCompressionMultiplier),
                   CharacteristicLength(rOther.CharacteristicLength)
             {
             }
@@ -149,9 +160,6 @@ namespace Kratos
         struct CalculationData {
             DirectionalMaterialProperties MaterialProperties1;
             DirectionalMaterialProperties MaterialProperties2;
-
-            double BiaxialCompressionMultiplier;
-            double ShearCompressionReductor;
 
             // Effective Stress Data
             array_1d<double, 3> EffectiveStressVectorOrthotropic;

@@ -208,10 +208,11 @@ namespace Kratos
         const GeometryType& rGeometry,
         const ProcessInfo& rCurrentProcessInfo)
     {
-        KRATOS_TRY
-        if (rProperties.NumberOfSubproperties() != SizeType(2))
-            KRATOS_THROW_ERROR(std::logic_error,
-                "MasonryOrthotropicDamagePlaneStress2DLaw requires 2 sub properties.", "");
+        KRATOS_TRY;
+
+        KRATOS_ERROR_IF(rProperties.NumberOfSubproperties() != SizeType(2))
+            << "MasonryOrthotropicDamagePlaneStress2DLaw requires 2 sub properties.";
+
         // ELASTIC PARAMETERS
         CheckOrthotropicParameter(*rProperties.GetSubProperties().begin());
         CheckOrthotropicParameter(*(rProperties.GetSubProperties().begin() + 1));
@@ -224,42 +225,27 @@ namespace Kratos
     int MasonryOrthotropicDamagePlaneStress2DLaw::CheckOrthotropicParameter(
         const Properties& rProperties)
     {
-        if (!rProperties.Has(YOUNG_MODULUS))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YOUNG_MODULUS", "");
-        if (!rProperties.Has(POISSON_RATIO))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: POISSON_RATIO", "");
-        if (!rProperties.Has(SHEAR_MODULUS))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: SHEAR_MODULUS", "");
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YOUNG_MODULUS)) << "Missing variable: YOUNG_MODULUS";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(POISSON_RATIO)) << "Missing variable: POISSON_RATIO";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(SHEAR_MODULUS)) << "Missing variable: SHEAR_MODULUS";
         // TENSION
-        if (!rProperties.Has(YIELD_STRESS_TENSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_TENSION", "");
-        if (!rProperties.Has(FRACTURE_ENERGY_TENSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_TENSION", "");
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YIELD_STRESS_TENSION)) << "Missing variable: YIELD_STRESS_TENSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(FRACTURE_ENERGY_TENSION)) << "Missing variable: FRACTURE_ENERGY_TENSION";
         // COMPRESSION
-        if (!rProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: DAMAGE_ONSET_STRESS_COMPRESSION", "");
-        if (!rProperties.Has(YIELD_STRESS_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_COMPRESSION", "");
-        if (!rProperties.Has(YIELD_STRAIN_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRAIN_COMPRESSION", "");
-        if (!rProperties.Has(RESIDUAL_STRESS_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: RESIDUAL_STRESS_COMPRESSION", "");
-        if (!rProperties.Has(FRACTURE_ENERGY_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: FRACTURE_ENERGY_COMPRESSION", "");
-        if (!rProperties.Has(BEZIER_CONTROLLER_C1))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C1", "");
-        if (!rProperties.Has(BEZIER_CONTROLLER_C2))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C2", "");
-        if (!rProperties.Has(BEZIER_CONTROLLER_C3))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BEZIER_CONTROLLER_C3", "");
-        // BIAXIAL
-        if (!rProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER", "");
+        KRATOS_ERROR_IF_NOT(rProperties.Has(DAMAGE_ONSET_STRESS_COMPRESSION)) << "Missing variable: DAMAGE_ONSET_STRESS_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YIELD_STRESS_COMPRESSION)) << "Missing variable: YIELD_STRESS_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YIELD_STRAIN_COMPRESSION)) << "Missing variable: YIELD_STRAIN_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(RESIDUAL_STRESS_COMPRESSION)) << "Missing variable: RESIDUAL_STRESS_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(FRACTURE_ENERGY_COMPRESSION)) << "Missing variable: FRACTURE_ENERGY_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(BEZIER_CONTROLLER_C1)) << "Missing variable: BEZIER_CONTROLLER_C1";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(BEZIER_CONTROLLER_C2)) << "Missing variable: BEZIER_CONTROLLER_C2";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(BEZIER_CONTROLLER_C3)) << "Missing variable: BEZIER_CONTROLLER_C3";
         // SHEAR
-        if (!rProperties.Has(YIELD_STRESS_SHEAR_TENSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_SHEAR_TENSION", "");
-        if (!rProperties.Has(YIELD_STRESS_SHEAR_COMPRESSION))
-            KRATOS_THROW_ERROR(std::logic_error, "Missing variable: YIELD_STRESS_SHEAR_COMPRESSION", "");
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YIELD_STRESS_SHEAR_TENSION)) << "Missing variable: YIELD_STRESS_SHEAR_TENSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(YIELD_STRESS_SHEAR_COMPRESSION)) << "Missing variable: YIELD_STRESS_SHEAR_COMPRESSION";
+        KRATOS_ERROR_IF_NOT(rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)) << "Missing variable: SHEAR_COMPRESSION_REDUCTOR";
+        // BIAXIAL
+        KRATOS_ERROR_IF_NOT(rProperties.Has(BIAXIAL_COMPRESSION_MULTIPLIER)) << "Missing variable: BIAXIAL_COMPRESSION_MULTIPLIER";
 
         return 0;
     }
@@ -282,13 +268,6 @@ namespace Kratos
             *(rProperties.GetSubProperties().begin() + 1));
 
         CalculationData data(MaterialProperties1, MaterialProperties2);
-
-        // Biaxial
-        data.BiaxialCompressionMultiplier = rProperties[BIAXIAL_COMPRESSION_MULTIPLIER];
-        data.ShearCompressionReductor = rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
-            ? rProperties[SHEAR_COMPRESSION_REDUCTOR]
-            : 0.16;
-        data.ShearCompressionReductor = std::min(std::max(data.ShearCompressionReductor, 0.0), 1.0);
 
         // Misc
         data.DeltaTime = rProcessInfo[DELTA_TIME];
@@ -553,8 +532,8 @@ namespace Kratos
                 // Lubliner Yield Criteria 
                 const double yield_compression = rMaterialProperties.YieldStressCompression;
                 const double yield_tension = rMaterialProperties.YieldStressTension;
-                const double alpha = (data.BiaxialCompressionMultiplier - 1.0) /
-                    (2.0 * data.BiaxialCompressionMultiplier - 1.0);
+                const double alpha = (rMaterialProperties.BiaxialCompressionMultiplier - 1.0) /
+                    (2.0 * rMaterialProperties.BiaxialCompressionMultiplier - 1.0);
                 double I1, J2;
                 array_1d<double, 3> deviator = ZeroVector(3);
 
@@ -586,8 +565,8 @@ namespace Kratos
         if (rPrincipalStressVector(1) < 0.0) {
             const double yield_compression = rMaterialProperties.YieldStressCompression;
             const double yield_tension = rMaterialProperties.YieldStressTension;
-            const double alpha = (data.BiaxialCompressionMultiplier - 1.0) /
-                (2.0 * data.BiaxialCompressionMultiplier - 1.0);
+            const double alpha = (rMaterialProperties.BiaxialCompressionMultiplier - 1.0) /
+                (2.0 * rMaterialProperties.BiaxialCompressionMultiplier - 1.0);
             double I1, J2;
             array_1d<double, 3> deviator = ZeroVector(3);
 
@@ -598,7 +577,7 @@ namespace Kratos
             const double smax = std::max(std::max(rPrincipalStressVector(0), rPrincipalStressVector(1)), 0.0);
 
             UniaxialStressCompression = 1.0 / (1.0 - alpha) * (alpha * I1 + std::sqrt(3.0 * J2) +
-                data.ShearCompressionReductor * beta * smax);
+                rMaterialProperties.ShearCompressionReductor * beta * smax);
         }
     }
     /***********************************************************************************/
