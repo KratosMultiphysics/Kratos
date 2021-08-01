@@ -187,7 +187,7 @@ void SteadyStatePwElement<TDim,TNumNodes>::
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
     // KRATOS_INFO("1-SteadyStatePwElement::CalculateAll()") << std::endl;
@@ -212,7 +212,7 @@ void SteadyStatePwElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyStatePwElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-SteadyStatePwElement::CalculateAndAddRHS()") << std::endl;

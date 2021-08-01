@@ -136,75 +136,75 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::
-    UpdateElementalVariableStressVector(ElementVariables& rVariables, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << PointNumber << std::endl;
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainElement<TDim,TNumNodes>::
+//     UpdateElementalVariableStressVector(ElementVariables& rVariables, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     // KRATOS_INFO("0-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << PointNumber << std::endl;
 
-    for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
-    {
-        rVariables.StressVector(i) = mStressVector[PointNumber][i];
-    }
+//     // for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
+//     // {
+//     //     rVariables.StressVector(i) = mStressVector[PointNumber][i];
+//     // }
 
-    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
+//     // KRATOS_INFO("1-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    KRATOS_CATCH("");
-}
+//     KRATOS_CATCH("");
+// }
 
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::
-    UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
+// //----------------------------------------------------------------------------------------
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainElement<TDim,TNumNodes>::
+//     UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     // KRATOS_INFO("0-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < StressVector.size(); ++i)
-    {
-        StressVector(i) = mStressVector[PointNumber][i];
-    }
-    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
+//     for (unsigned int i=0; i < StressVector.size(); ++i)
+//     {
+//         StressVector(i) = mStressVector[PointNumber][i];
+//     }
+//     // KRATOS_INFO("1-UPwSmallStrainElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::
-    UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
-
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = rVariables.StressVector(i);
-    }
-
-    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
-
-    KRATOS_CATCH("");
-}
+//     KRATOS_CATCH("");
+// }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainElement<TDim,TNumNodes>::
-    UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainElement<TDim,TNumNodes>::
+//     UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     // KRATOS_INFO("0-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = StressVector(i);
-    }
+//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
+//     {
+//         mStressVector[PointNumber][i] = rVariables.StressVector(i);
+//     }
 
-    // KRATOS_INFO("1-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+//     // KRATOS_INFO("1-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
 
-    KRATOS_CATCH("");
-}
+//     KRATOS_CATCH("");
+// }
+
+//----------------------------------------------------------------------------------------
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainElement<TDim,TNumNodes>::
+//     UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     // KRATOS_INFO("0-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+
+//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
+//     {
+//         mStressVector[PointNumber][i] = StressVector(i);
+//     }
+
+//     // KRATOS_INFO("1-UPwSmallStrainElement::UpdateStressVector()") << std::endl;
+
+//     KRATOS_CATCH("");
+// }
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -245,7 +245,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Initialize constitutive law
-        this->UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
         // Initialize retention law
@@ -368,9 +369,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Compute Stress
-        this->UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        this->UpdateStressVector(Variables, GPoint);
+        // this->UpdateStressVector(Variables, GPoint);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::InitializeNonLinearIteration()") << std::endl;
@@ -420,7 +422,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     if (rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
 
-        Matrix StressContainer(NumGPoints, Variables.StressVector.size());
+        Matrix StressContainer(NumGPoints, mStressVector[0].size());
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -434,7 +436,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, GPoint);
+            // this->UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -443,9 +446,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             // retention law
             mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
 
-            this->SaveGPStress(StressContainer, Variables.StressVector, GPoint);
+            this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer, Variables.StressVector.size());
+        this->ExtrapolateGPValues(StressContainer, mStressVector[0].size());
     }
     else
     {
@@ -462,7 +465,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            this->UpdateElementalVariableStressVector(Variables, GPoint);
+            // this->UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -616,12 +620,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            this->UpdateElementalVariableStressVector(Variables, GPoint);
+            // this->UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            this->UpdateStressVector(Variables, GPoint);
+            // this->UpdateStressVector(Variables, GPoint);
 
             ComparisonUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMises(Variables.StressVector);
+            rOutput[GPoint] = EquivalentStress.CalculateVonMises(mStressVector[GPoint]);
         }
     }
     else if (rVariable == DEGREE_OF_SATURATION ||
@@ -864,12 +869,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            this->UpdateElementalVariableStressVector(Variables, GPoint);
+            // this->UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            this->UpdateStressVector(Variables, GPoint);
+            // this->UpdateStressVector(Variables, GPoint);
 
             rOutput[GPoint].resize(StressTensorSize, StressTensorSize, false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(Variables.StressVector);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(mStressVector[GPoint]);
         }
     }
     else if (rVariable == TOTAL_STRESS_TENSOR)
@@ -895,7 +901,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
         if (TDim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D;
 
-        Vector VoigtVector(Variables.StressVector.size());
+        Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
 
         for (unsigned int i=0; i < StressTensorSize; ++i) VoigtVector[i] = 1.0;
@@ -904,6 +910,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             rOutput.resize(NumGPoints);
 
         const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
+        Vector TotalStressVector(mStressVector[0].size());
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -918,22 +926,24 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            this->UpdateElementalVariableStressVector(Variables, GPoint);
+            // this->UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            this->UpdateStressVector(Variables, GPoint);
+            // this->UpdateStressVector(Variables, GPoint);
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
-            noalias(Variables.StressVector) +=  PORE_PRESSURE_SIGN_FACTOR
-                                              * Variables.BiotCoefficient
-                                              * Variables.BishopCoefficient
-                                              * Variables.FluidPressure
-                                              * VoigtVector; 
+            noalias(TotalStressVector) = mStressVector[GPoint];
+            noalias(TotalStressVector) += PORE_PRESSURE_SIGN_FACTOR
+                                         * Variables.BiotCoefficient
+                                         * Variables.BishopCoefficient
+                                         * Variables.FluidPressure
+                                         * VoigtVector; 
 
             rOutput[GPoint].resize( StressTensorSize, StressTensorSize, false );
-            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(Variables.StressVector);
+            rOutput[GPoint] = MathUtils<double>::StressVectorToTensor(TotalStressVector);
         }
     }
     else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR)
@@ -1050,7 +1060,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor
-        this->UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
@@ -1190,9 +1201,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
 
         //Compute constitutive tensor and stresses
-        this->UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(Variables, GPoint);
+        // UpdateStressVector(Variables, GPoint);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1207,7 +1219,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateAll()") << std::endl;
@@ -1317,18 +1329,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.detF = 1.0;
 
     //General Variables
-    unsigned int VoigtSizeStress;
     unsigned int VoigtSize;
-    if (TDim > 2)
-    {
-        VoigtSize = VOIGT_SIZE_3D;
-        VoigtSizeStress = VOIGT_SIZE_3D;
-    }
-    else
-    {
-        VoigtSize       = VOIGT_SIZE_2D_PLANE_STRESS;
-        VoigtSizeStress = VOIGT_SIZE_2D_PLANE_STRAIN;
-    }
+    VoigtSize = (TDim > 2 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
 
     rVariables.VoigtVector.resize(VoigtSize);
     noalias(rVariables.VoigtVector) = ZeroVector(VoigtSize);
@@ -1353,7 +1355,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
     //Constitutive Law parameters
     rVariables.StrainVector.resize(VoigtSize,false);
-    rVariables.StressVector.resize(VoigtSizeStress,false);
+
+    // unsigned int VoigtSizeStress;
+    // VoigtSizeStress = (TDim > 2 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    // rVariables.StressVector.resize(VoigtSizeStress,false);
+
     rVariables.ConstitutiveMatrix.resize(VoigtSize,VoigtSize,false);
 
     //Auxiliary variables
@@ -1580,12 +1586,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                       ElementVariables& rVariables,
+                       unsigned int GPoint)
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateAndAddRHS()") << std::endl;
 
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
@@ -1609,14 +1617,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
     CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector,
-                                   ElementVariables& rVariables )
+                                   ElementVariables& rVariables,
+                                   unsigned int GPoint )
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateAndAddStiffnessForce()") << std::endl;
 
     if ( TDim > 2 )
     {
-        noalias(rVariables.UVector) = -1.0 * prod(trans(rVariables.B),rVariables.StressVector)
+        noalias(rVariables.UVector) = -1.0 * prod(trans(rVariables.B), mStressVector[GPoint])
                                            * rVariables.IntegrationCoefficient;
     }
     else
@@ -1625,16 +1634,16 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         Vector StressVector;
         StressVector.resize(VoigtSize);
 
-        StressVector[INDEX_2D_PLANE_STRESS_XX] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_XX);
-        StressVector[INDEX_2D_PLANE_STRESS_YY] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_YY);
-        StressVector[INDEX_2D_PLANE_STRESS_XY] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_XY);
+        StressVector[INDEX_2D_PLANE_STRESS_XX] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XX);
+        StressVector[INDEX_2D_PLANE_STRESS_YY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_YY);
+        StressVector[INDEX_2D_PLANE_STRESS_XY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XY);
 
         noalias(rVariables.UVector) = -1.0 * prod(trans(rVariables.B), StressVector)
                                            * rVariables.IntegrationCoefficient;
     }
 
     //Distribute stiffness block vector into elemental vector
-    GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
+    GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, rVariables.UVector);
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateAndAddStiffnessForce()") << std::endl;
 
@@ -2068,7 +2077,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetConstitutiveParameters") << std::endl;
 
     rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
-    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
+    // rConstitutiveParameters.SetStressVector(rVariables.StressVector);
     rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
     rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);

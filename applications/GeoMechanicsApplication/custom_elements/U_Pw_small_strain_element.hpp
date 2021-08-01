@@ -163,7 +163,7 @@ protected:
 
         ///Constitutive Law parameters
         Vector StrainVector;
-        Vector StressVector;
+        // Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
@@ -256,9 +256,13 @@ protected:
                                              BoundedMatrix<double,TNumNodes,TNumNodes> &PMatrix,
                                              const ElementVariables &rVariables) const;
 
-    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables);
+    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector,
+                                    ElementVariables &rVariables,
+                                    unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessForce(VectorType &rRightHandSideVector,
+                                       ElementVariables& rVariables,
+                                       unsigned int GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType &rRightHandSideVector, ElementVariables &rVariables);
 
@@ -287,10 +291,10 @@ protected:
                                         const ElementVariables &rVariables) const;
 
 
-    void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
-    void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
-    void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
-    void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
+    // void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
+    // void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
+    // void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
+    // void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
 
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
     double CalculateBiotCoefficient( const ElementVariables &rVariables,

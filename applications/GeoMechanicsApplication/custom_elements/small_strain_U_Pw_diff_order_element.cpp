@@ -316,7 +316,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        UpdateElementalVariableStressVector(Variables, PointNumber);
+        // UpdateElementalVariableStressVector(Variables, PointNumber);
+        ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
         // retention law
@@ -772,7 +773,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        UpdateElementalVariableStressVector(Variables, PointNumber);
+        // UpdateElementalVariableStressVector(Variables, PointNumber);
+        ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[PointNumber] = 
             mConstitutiveLawVector[PointNumber]->GetValue( STATE_VARIABLES,
@@ -1069,12 +1071,13 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, PointNumber);
+            // UpdateElementalVariableStressVector(Variables, PointNumber);
+            ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(Variables, PointNumber);
+            // UpdateStressVector(Variables, PointNumber);
 
             ComparisonUtilities EquivalentStress;
-            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
+            rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(mStressVector[PointNumber]);
         }
     }
     else if (rVariable == DEGREE_OF_SATURATION ||
@@ -1234,14 +1237,15 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, PointNumber);
+            // UpdateElementalVariableStressVector(Variables, PointNumber);
+            ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(Variables, PointNumber);
+            // UpdateStressVector(Variables, PointNumber);
 
-            if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
-                rOutput[PointNumber].resize( Variables.StressVector.size(), false );
+            if ( rOutput[PointNumber].size() != mStressVector[PointNumber].size() )
+                rOutput[PointNumber].resize( mStressVector[PointNumber].size(), false );
 
-            rOutput[PointNumber] = Variables.StressVector;
+            rOutput[PointNumber] = mStressVector[PointNumber];
         }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
@@ -1279,7 +1283,7 @@ void SmallStrainUPwDiffOrderElement::
 
         const PropertiesType& Prop = this->GetProperties();
 
-        unsigned int VoigtSize = Variables.StressVector.size();
+        unsigned int VoigtSize = mStressVector[0].size();
         Vector VoigtVector = ZeroVector(VoigtSize);
 
         for (unsigned int i=0; i < rGeom.WorkingSpaceDimension(); ++i) VoigtVector[i] = 1.0;
@@ -1288,6 +1292,8 @@ void SmallStrainUPwDiffOrderElement::
         RetentionLaw::Parameters RetentionParameters(rGeom, GetProperties(), rCurrentProcessInfo);
 
         const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
+        Vector TotalStressVector(mStressVector[0].size());
 
         //Loop over integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1302,24 +1308,26 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, PointNumber);
+            // UpdateElementalVariableStressVector(Variables, PointNumber);
+            ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(Variables, PointNumber);
+            // UpdateStressVector(Variables, PointNumber);
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
             this->CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
-            noalias(Variables.StressVector) +=  PORE_PRESSURE_SIGN_FACTOR
+            noalias(TotalStressVector) = mStressVector[PointNumber];
+            noalias(TotalStressVector) +=  PORE_PRESSURE_SIGN_FACTOR
                                               * Variables.BiotCoefficient
                                               * Variables.BishopCoefficient
                                               * Variables.FluidPressure
                                               * VoigtVector;
 
-            if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
-                rOutput[PointNumber].resize( Variables.StressVector.size(), false );
+            if ( rOutput[PointNumber].size() != TotalStressVector.size() )
+                rOutput[PointNumber].resize( TotalStressVector.size(), false );
 
-            rOutput[PointNumber] = Variables.StressVector;
+            rOutput[PointNumber] = TotalStressVector;
         }
     }
     else
@@ -1334,41 +1342,41 @@ void SmallStrainUPwDiffOrderElement::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::
-    UpdateElementalVariableStressVector( ElementVariables& rVariables,
-                                         unsigned int PointNumber)
-{
-    KRATOS_TRY
-    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
+// void SmallStrainUPwDiffOrderElement::
+//     UpdateElementalVariableStressVector( ElementVariables& rVariables,
+//                                          unsigned int PointNumber)
+// {
+//     KRATOS_TRY
+//     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
-    {
-        rVariables.StressVector(i) = mStressVector[PointNumber][i];
-    }
+//     for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
+//     {
+//         rVariables.StressVector(i) = mStressVector[PointNumber][i];
+//     }
 
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
+//     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    KRATOS_CATCH( "" )
+//     KRATOS_CATCH( "" )
 
-}
+// }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::
-    UpdateStressVector(const ElementVariables& rVariables,
-                       unsigned int PointNumber)
-{
-    KRATOS_TRY
-    //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
+// void SmallStrainUPwDiffOrderElement::
+//     UpdateStressVector(const ElementVariables& rVariables,
+//                        unsigned int PointNumber)
+// {
+//     KRATOS_TRY
+//     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = rVariables.StressVector(i);
-    }
-    //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
+//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
+//     {
+//         mStressVector[PointNumber][i] = rVariables.StressVector(i);
+//     }
+//     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
 
-    KRATOS_CATCH( "" )
+//     KRATOS_CATCH( "" )
 
-}
+// }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
@@ -1490,9 +1498,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        UpdateElementalVariableStressVector(Variables, PointNumber);
+        // UpdateElementalVariableStressVector(Variables, PointNumber);
+        ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(Variables, PointNumber);
+        // UpdateStressVector(Variables, PointNumber);
 
         CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1507,7 +1516,7 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag) this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag) this->CalculateAndAddRHS(rRightHandSideVector, Variables, PointNumber);
     }
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAll") << std::endl;
@@ -1550,9 +1559,10 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        UpdateElementalVariableStressVector(Variables, PointNumber);
+        // UpdateElementalVariableStressVector(Variables, PointNumber);
+        ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(Variables, PointNumber);
+        // UpdateStressVector(Variables, PointNumber);
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
@@ -1637,8 +1647,8 @@ void SmallStrainUPwDiffOrderElement::
     (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
 
     // stress has a different size than the strain vector
-    if ( Dim == 2 ) voigtsize = VOIGT_SIZE_2D_PLANE_STRAIN;
-    (rVariables.StressVector).resize(voigtsize,false);
+    // if ( Dim == 2 ) voigtsize = VOIGT_SIZE_2D_PLANE_STRAIN;
+    // (rVariables.StressVector).resize(voigtsize,false);
 
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF = 1.0;
@@ -1947,7 +1957,7 @@ void SmallStrainUPwDiffOrderElement::
 
     rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
     rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
+    // rConstitutiveParameters.SetStressVector(rVariables.StressVector);
 
     //Needed parameters for consistency with the general constitutive law
     rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.DNu_DX);
@@ -2180,12 +2190,13 @@ void SmallStrainUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateAndAddRHS( VectorType& rRightHandSideVector, 
-                        ElementVariables& rVariables )
+                        ElementVariables& rVariables,
+                        unsigned int GPoint )
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddRHS") << std::endl;
 
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
@@ -2208,7 +2219,8 @@ void SmallStrainUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector, 
-                                   ElementVariables& rVariables )
+                                   ElementVariables& rVariables,
+                                   unsigned int GPoint )
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce") << std::endl;
@@ -2220,7 +2232,7 @@ void SmallStrainUPwDiffOrderElement::
 
     if ( Dim == 3 )
     {
-        StiffnessForce = prod(trans(rVariables.B), rVariables.StressVector) * rVariables.IntegrationCoefficient;
+        StiffnessForce = prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
     }
     else
     {
@@ -2228,9 +2240,9 @@ void SmallStrainUPwDiffOrderElement::
         Vector StressVector;
         StressVector.resize(VoigtSize);
 
-        StressVector[INDEX_2D_PLANE_STRESS_XX] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_XX);
-        StressVector[INDEX_2D_PLANE_STRESS_YY] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_YY);
-        StressVector[INDEX_2D_PLANE_STRESS_XY] = rVariables.StressVector(INDEX_2D_PLANE_STRAIN_XY);
+        StressVector[INDEX_2D_PLANE_STRESS_XX] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XX);
+        StressVector[INDEX_2D_PLANE_STRESS_YY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_YY);
+        StressVector[INDEX_2D_PLANE_STRESS_XY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XY);
 
         StiffnessForce = prod(trans(rVariables.B), StressVector) * rVariables.IntegrationCoefficient;
     }

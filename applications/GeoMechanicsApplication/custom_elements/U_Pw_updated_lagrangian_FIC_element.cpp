@@ -114,7 +114,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     if (rCurrentProcessInfo[NODAL_SMOOTHING] == true)
     {
 
-        Matrix StressContainer(NumGPoints, Variables.StressVector.size());
+        Matrix StressContainer(NumGPoints, mStressVector[0].size());
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -128,18 +128,19 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, GPoint);
+            // UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
                                                           mStateVariablesFinalized[GPoint] );
 
-            this->SaveGPStress(StressContainer, Variables.StressVector, GPoint);
+            this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);
 
             // Update the element internal variables
             this->UpdateHistoricalDatabase(Variables, GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer,Variables.StressVector.size());
+        this->ExtrapolateGPValues(StressContainer, mStressVector[0].size());
     }
     else
     {
@@ -156,7 +157,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(Variables, GPoint);
+            // UpdateElementalVariableStressVector(Variables, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -244,9 +246,10 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables,Variables);
 
         //Compute constitutive tensor and stresses
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
+        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -271,7 +274,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
+                this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables, GPoint );
         }
 
         if (CalculateResidualVectorFlag)
@@ -290,7 +293,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
                                                    IntegrationPoints[GPoint].Weight() );
 
             //Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
         }
     }
@@ -304,11 +307,12 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                             ElementVariables& rVariables )
+                                             ElementVariables& rVariables,
+                                             unsigned int GPoint )
 {
     KRATOS_TRY
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( mStressVector[GPoint] );
     Matrix ReducedKgMatrix = prod( rVariables.GradNpT,
                                    rVariables.IntegrationCoefficient *
                                    Matrix( prod( StressTensor, trans(rVariables.GradNpT) ) ) ); //to be optimized

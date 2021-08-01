@@ -175,7 +175,7 @@ protected:
         double IntegrationCoefficient;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
-        Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pw*delta_ij
+        // Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pw*delta_ij
 
         //Variables needed for consistency with the general constitutive law
         double detF;
@@ -248,9 +248,9 @@ protected:
                                                       const IndexType& PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
 
-    void UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber);
+    // void UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber);
 
-    void UpdateStressVector(const ElementVariables& rVariables, unsigned int PointNumber);
+    // void UpdateStressVector(const ElementVariables& rVariables, unsigned int PointNumber);
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
@@ -267,9 +267,13 @@ protected:
 
     void CalculateAndAddPermeabilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                            ElementVariables& rVariables,
+                            unsigned int GPoint);
 
-    void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
+                                       ElementVariables& rVariables,
+                                       unsigned int GPoint);
 
     void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 

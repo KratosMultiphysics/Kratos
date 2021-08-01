@@ -123,7 +123,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
 
         //Create constitutive law parameters:
         Vector StrainVector(TDim);
-        Vector StressVectorDynamic(TDim);
+        // Vector StressVectorDynamic(TDim);
         Matrix ConstitutiveMatrix(TDim,TDim);
         Vector Np(TNumNodes);
         Matrix GradNpT(TNumNodes,TDim);
@@ -133,7 +133,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVectorDynamic);
+        // ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
         ConstitutiveParameters.SetShapeFunctionsValues(Np);
         ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -154,12 +154,13 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(Np) = row(NContainer,GPoint);
 
             //compute constitutive tensor and/or stresses
-            UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
+            // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            noalias(LocalStressVector) = StressVectorDynamic;
+            noalias(LocalStressVector) = mStressVector[GPoint];
 
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
     }
     else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
@@ -433,9 +434,10 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                                                     Variables.JointWidth );
 
         //Compute constitutive tensor and stresses
-        UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateStressVector(Variables, GPoint);
+        // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse( Variables,
                                           RetentionParameters,
@@ -452,7 +454,7 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
     KRATOS_CATCH( "" )

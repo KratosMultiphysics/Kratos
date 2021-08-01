@@ -253,7 +253,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Create constitutive law parameters:
     Vector StrainVector(TDim);
-    Vector StressVector(TDim);
+    // Vector StressVector(TDim);
     Matrix ConstitutiveMatrix(TDim,TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
@@ -261,7 +261,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStressVector(StressVector);
+    // ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
     ConstitutiveParameters.SetShapeFunctionsValues(Np);
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -286,7 +286,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         noalias(StrainVector) = prod(RotationMatrix,RelDispVector);
 
         // Initilize constitutive law
-        UpdateElementalVariableStressVector(StressVector, GPoint);
+        // this->UpdateElementalVariableStressVector(StressVector, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
         // Initialize retention law
@@ -322,7 +323,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Create constitutive law parameters:
     Vector StrainVector(TDim);
-    Vector StressVector(TDim);
+    // Vector StressVector(TDim);
     Matrix ConstitutiveMatrix(TDim,TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
@@ -330,7 +331,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    ConstitutiveParameters.SetStressVector(StressVector);
+    // ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
     ConstitutiveParameters.SetShapeFunctionsValues(Np);
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -365,11 +366,12 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         noalias(Np) = row(NContainer, GPoint);
 
         //compute constitutive tensor and/or stresses
-        UpdateElementalVariableStressVector(StressVector, GPoint);
+        // UpdateElementalVariableStressVector(StressVector, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(StressVector, GPoint);
+        // UpdateStressVector(StressVector, GPoint);
 
-        ModifyInactiveElementStress(JointWidth, StressVector);
+        ModifyInactiveElementStress(JointWidth, mStressVector[GPoint]);
 
         mStateVariablesFinalized[GPoint] =
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -419,78 +421,78 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_CATCH( "" )
 }
 
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    UpdateElementalVariableStressVector(InterfaceElementVariables &rVariables, 
-                                        const unsigned int &PointNumber)
-{
-    KRATOS_TRY
-    //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
+// //----------------------------------------------------------------------------------------
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+//     UpdateElementalVariableStressVector(InterfaceElementVariables &rVariables, 
+//                                         const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY
+//     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
-    {
-        rVariables.StressVector(i) = mStressVector[PointNumber][i];
-    }
+//     for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
+//     {
+//         rVariables.StressVector(i) = mStressVector[PointNumber][i];
+//     }
 
-    //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
+//     //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    KRATOS_CATCH( "" )
-}
+//     KRATOS_CATCH( "" )
+// }
 
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
- UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
+// //----------------------------------------------------------------------------------------
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+//  UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < StressVector.size(); ++i)
-    {
-        StressVector(i) = mStressVector[PointNumber][i];
-    }
+//     for (unsigned int i=0; i < StressVector.size(); ++i)
+//     {
+//         StressVector(i) = mStressVector[PointNumber][i];
+//     }
 
-    //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
+//     //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateElementalVariableStressVector()") << std::endl;
 
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    UpdateStressVector(const InterfaceElementVariables &rVariables, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
-
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = rVariables.StressVector(i);
-    }
-
-    //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
-
-    KRATOS_CATCH( "" )
-}
+//     KRATOS_CATCH( "" )
+// }
 
 //----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber)
-{
-    KRATOS_TRY;
-    //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+//     UpdateStressVector(const InterfaceElementVariables &rVariables, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
 
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = StressVector(i);
-    }
+//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
+//     {
+//         mStressVector[PointNumber][i] = rVariables.StressVector(i);
+//     }
 
-    //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
+//     //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
 
-    KRATOS_CATCH( "" )
-}
+//     KRATOS_CATCH( "" )
+// }
+
+//----------------------------------------------------------------------------------------
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
+//     UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber)
+// {
+//     KRATOS_TRY;
+//     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
+
+//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
+//     {
+//         mStressVector[PointNumber][i] = StressVector(i);
+//     }
+
+//     //KRATOS_INFO("1-UPwSmallStrainInterfaceElement::UpdateStressVector()") << std::endl;
+
+//     KRATOS_CATCH( "" )
+// }
 
 //----------------------------------------------------------------------------------------
 template< >
@@ -962,7 +964,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         //Create constitutive law parameters:
         Vector StrainVector(TDim);
-        Vector StressVectorDynamic(TDim);
+        // Vector StressVectorDynamic(TDim);
         Matrix ConstitutiveMatrix(TDim,TDim);
         Vector Np(TNumNodes);
         Matrix GradNpT(TNumNodes,TDim);
@@ -972,7 +974,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        ConstitutiveParameters.SetStressVector(StressVectorDynamic);
+        // ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
         ConstitutiveParameters.SetShapeFunctionsValues(Np);
         ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -997,15 +999,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             noalias(Np) = row(NContainer,GPoint);
 
             //compute constitutive tensor and/or stresses
-            UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
+            // UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
+            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            UpdateStressVector(StressVectorDynamic, GPoint);
+            // UpdateStressVector(StressVectorDynamic, GPoint);
 
-            ModifyInactiveElementStress(JointWidth, StressVectorDynamic);
+            ModifyInactiveElementStress(JointWidth, mStressVector[GPoint]);
 
-            noalias(LocalStressVector) = StressVectorDynamic;
+            noalias(LocalStressVector) = mStressVector[GPoint];
 
-            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
+            GeoElementUtilities::FillArray1dOutput(rOutput[GPoint], LocalStressVector);
         }
     }
     else if (rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
@@ -1379,7 +1382,8 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                          GPoint);
 
         //Compute constitutive tensor
-        UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
@@ -1485,12 +1489,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                                                            Transversal_Permeability );
 
         //Compute constitutive tensor and stresses
-        UpdateElementalVariableStressVector(Variables, GPoint);
+        // this->UpdateElementalVariableStressVector(Variables, GPoint);
+
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-        UpdateStressVector(Variables, GPoint);
+        // UpdateStressVector(Variables, GPoint);
 
-        ModifyInactiveElementStress(Variables.JointWidth, Variables.StressVector);
+        ModifyInactiveElementStress(Variables.JointWidth, mStressVector[GPoint]);
 
         CalculateRetentionResponse( Variables,
                                     RetentionParameters,
@@ -1507,7 +1513,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
         //Contributions to the right hand side
-        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+        if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
 
     }
 
@@ -1559,7 +1565,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     //Variables computed at each GP
     //Constitutive Law parameters
     rVariables.StrainVector.resize(TDim,false);
-    rVariables.StressVector.resize(TDim,false);
+    // rVariables.StressVector.resize(TDim,false);
     rVariables.ConstitutiveMatrix.resize(TDim,TDim,false);
     rVariables.Np.resize(TNumNodes,false);
     rVariables.GradNpT.resize(TNumNodes,TDim,false);
@@ -1593,7 +1599,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetConstitutiveParameters") << std::endl;
 
     rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
-    rConstitutiveParameters.SetStressVector(rVariables.StressVector);
+    // rConstitutiveParameters.SetStressVector(rVariables.StressVector);
     rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rConstitutiveParameters.SetShapeFunctionsValues(rVariables.Np);
     rConstitutiveParameters.SetShapeFunctionsDerivatives(rVariables.GradNpT);
@@ -2125,12 +2131,14 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                       InterfaceElementVariables& rVariables,
+                       unsigned int GPoint)
 {
     KRATOS_TRY;
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddRHS()") << std::endl;
 
-    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     this->CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
@@ -2152,14 +2160,16 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
-    CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector, InterfaceElementVariables& rVariables)
+    CalculateAndAddStiffnessForce(VectorType& rRightHandSideVector,
+                                  InterfaceElementVariables& rVariables,
+                                  unsigned int GPoint)
 {
     KRATOS_TRY;
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateAndAddStiffnessForce()") << std::endl;
 
     noalias(rVariables.UDimMatrix) = prod(trans(rVariables.Nu),trans(rVariables.RotationMatrix));
 
-    noalias(rVariables.UVector) = -1.0 * prod(rVariables.UDimMatrix, rVariables.StressVector)
+    noalias(rVariables.UVector) = -1.0 * prod(rVariables.UDimMatrix, mStressVector[GPoint])
                                        * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
