@@ -120,11 +120,11 @@ class ScalingProcess(PreprocessingProcess):
         input_log = ImportDictionaryFromText(self.input_log_name)
         output_log = ImportDictionaryFromText(self.output_log_name)
 
-        if self.objective == "input":
+        if self.objective == "input" or self.objective == "predict_input":
             data_in = data_in * input_log.get(self.log_denominator)
-        if self.objective == "output":
+        if self.objective == "output" or self.objective == "predict_output":
             data_out = data_out * output_log.get(self.log_denominator)
-        if self.objective == "all":
+        if self.objective == "all" or self.objective == "predict_all":
             data_in = data_in * input_log.get(self.log_denominator)
             data_out = data_out * output_log.get(self.log_denominator)
 
