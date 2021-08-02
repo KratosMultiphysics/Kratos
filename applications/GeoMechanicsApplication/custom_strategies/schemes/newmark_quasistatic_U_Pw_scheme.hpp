@@ -290,7 +290,7 @@ public:
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             }
 
-            BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
             // Compute smoothed nodal variables
             #pragma omp parallel for
@@ -327,7 +327,47 @@ public:
         }
         else
         {
-            BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    //------------------------------------------------------------------------------------------
+    void FinalizeSolutionStepActiveEntities(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        int NElems = static_cast<int>(r_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeSolutionStep(CurrentProcessInfo);
+            }
+        }
+
+        int NCons = static_cast<int>(r_model_part.Conditions().size());
+        ModelPart::ConditionsContainerType::iterator con_begin = r_model_part.ConditionsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NCons; i++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")

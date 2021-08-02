@@ -100,7 +100,7 @@ public:
     {
         KRATOS_TRY
 
-        BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+        FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }
