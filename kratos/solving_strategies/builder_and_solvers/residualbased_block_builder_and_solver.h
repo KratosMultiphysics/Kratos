@@ -1033,7 +1033,7 @@ public:
 
             const std::size_t col_begin = Arow_indices[Index];
             const std::size_t col_end = Arow_indices[Index + 1];
-            
+
             for (std::size_t j = col_begin; j < col_end; ++j) {
                 if(Avalues[j] != 0.0) {
                     empty = false;
@@ -1553,23 +1553,23 @@ protected:
 
         Element::EquationIdVectorType ids(3, 0);
 
-        block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIds){
-            pScheme->EquationId(rElem, rIds, CurrentProcessInfo);
-            for (std::size_t i = 0; i < rIds.size(); i++) {
-                lock_array[rIds[i]].lock();
-                auto& row_indices = indices[rIds[i]];
-                row_indices.insert(rIds.begin(), rIds.end());
-                lock_array[rIds[i]].unlock();
+        block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
+            pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
+            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+                lock_array[rIdsTLS[i]].lock();
+                auto& row_indices = indices[rIdsTLS[i]];
+                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+                lock_array[rIdsTLS[i]].unlock();
             }
         });
 
-        block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIds){
-            pScheme->EquationId(rCond, rIds, CurrentProcessInfo);
-            for (std::size_t i = 0; i < rIds.size(); i++) {
-                lock_array[rIds[i]].lock();
-                auto& row_indices = indices[rIds[i]];
-                row_indices.insert(rIds.begin(), rIds.end());
-                lock_array[rIds[i]].unlock();
+        block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIdsTLS){
+            pScheme->EquationId(rCond, rIdsTLS, CurrentProcessInfo);
+            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+                lock_array[rIdsTLS[i]].lock();
+                auto& row_indices = indices[rIdsTLS[i]];
+                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+                lock_array[rIdsTLS[i]].unlock();
             }
         });
 
