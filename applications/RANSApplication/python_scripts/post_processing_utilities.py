@@ -91,6 +91,18 @@ def CalculateConditionNeighboursAndNormals(model_part):
     flags = (tmoc.COMPUTE_NODAL_NORMALS) | (tmoc.COMPUTE_CONDITION_NORMALS) | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
     Kratos.TetrahedralMeshOrientationCheck(model_part, throw_errors, flags).Execute()
 
+def GetHDF5File(hdf5_file_name, file_access_mode):
+    if (KratosHDF5 is None):
+        raise Exception("Please compile and install the HDF5 application first.")
+
+    hdf5_file_settings = Kratos.Parameters("""{
+        "file_name"       : "",
+        "file_access_mode": "read_only"
+    }""")
+    hdf5_file_settings["file_name"].SetString(hdf5_file_name)
+    hdf5_file_settings["file_access_mode"].SetString(file_access_mode)
+    return KratosHDF5.HDF5FileSerial(hdf5_file_settings)
+
 def GetHDF5FileForReading(hdf5_file_name):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
