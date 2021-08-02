@@ -117,9 +117,10 @@ void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
-                                                Vector& rStressVector,
-                                                ConstitutiveLaw::Parameters& rValues)
+void GeoLinearElasticPlaneStrain2DLaw::
+    CalculatePK2Stress(const Vector& rStrainVector,
+                       Vector& rStressVector,
+                       ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
 

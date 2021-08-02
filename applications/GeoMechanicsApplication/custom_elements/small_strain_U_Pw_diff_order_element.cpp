@@ -1110,6 +1110,56 @@ void SmallStrainUPwDiffOrderElement::
             if (rVariable == RELATIVE_PERMEABILITY )   rOutput[PointNumber] = mRetentionLawVector[PointNumber]->CalculateRelativePermeability(RetentionParameters);
         }
     }
+    else if (rVariable == HYDRAULIC_HEAD)
+    {
+        const double NumericalLimit = std::numeric_limits<double>::epsilon();
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+
+        //Defining the shape functions, the jacobian and the shape functions local gradients Containers
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        const SizeType NumUNodes = rGeom.PointsNumber();
+
+        //Defining necessary variables
+        Vector NodalHydraulicHead = ZeroVector(NumUNodes);
+        for (unsigned int node=0; node < NumUNodes; ++node)
+        {
+            Vector NodeVolumeAcceleration(3);
+            noalias(NodeVolumeAcceleration) = Geom[node].FastGetSolutionStepValue(VOLUME_ACCELERATION, 0);
+            const double g = norm_2(NodeVolumeAcceleration);
+            if (g > NumericalLimit)
+            {
+                const double FluidWeight = g * Prop[DENSITY_WATER];
+
+                Vector NodeCoordinates(3);
+                noalias(NodeCoordinates) = Geom[node].Coordinates();
+                Vector NodeVolumeAccelerationUnitVector(3);
+                noalias(NodeVolumeAccelerationUnitVector) = NodeVolumeAcceleration / g;
+
+                const double WaterPressure = Geom[node].FastGetSolutionStepValue(WATER_PRESSURE);
+                NodalHydraulicHead[node] =- inner_prod(NodeCoordinates, NodeVolumeAccelerationUnitVector)
+                                          - PORE_PRESSURE_SIGN_FACTOR  * WaterPressure / FluidWeight;
+            }
+            else
+            {
+                NodalHydraulicHead[node] = 0.0;
+            }
+        }
+
+        if ( rOutput.size() != NumGPoints )
+            rOutput.resize(NumGPoints);
+
+        //Loop over integration points
+        for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
+        {
+            double HydraulicHead = 0.0;
+            for (unsigned int node = 0; node < NumUNodes; ++node)
+                HydraulicHead += NContainer(GPoint, node) * NodalHydraulicHead[node];
+
+            rOutput[GPoint] = HydraulicHead;
+        }
+    }
     else
     {
         for ( unsigned int i = 0; i < integration_points_number; i++ )
