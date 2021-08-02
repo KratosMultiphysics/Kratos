@@ -1576,12 +1576,10 @@ protected:
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
             struct TLS
             {
-                Element::EquationIdVectorType master_ids;
-                Element::EquationIdVectorType slave_ids;
+                Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
+                Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
             };
             TLS tls;
-            tls.slave_ids.resize(3,0);
-            tls.master_ids.resize(3,0);
 
             block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
                 rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
