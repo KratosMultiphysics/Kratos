@@ -350,7 +350,7 @@ public:
             CurveTessellation<PointerVector<TPointType>> curve_tessellation_master;
             curve_tessellation_master.Tessellate(
                 *(mpGeometries[0].get()),
-                intersection_master_spans,
+                master_span_intersections_in_master_local_space,
                 1e-2, mpGeometries[0]->PolynomialDegree(0), false);
 
             CoordinatesArrayType global_coords_span_intersection_on_slave = ZeroVector(3);
@@ -372,7 +372,7 @@ public:
                         global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
                     KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords_span_intersection_on_slave - global_coords_master) > model_tolerance))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
-                        << global_coords << ", and global coordinates on master: "
+                        << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
                         << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
                         << " larger than model tolerance: " << model_tolerance << std::endl;
 
