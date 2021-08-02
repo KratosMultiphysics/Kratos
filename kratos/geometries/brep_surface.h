@@ -365,6 +365,7 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
