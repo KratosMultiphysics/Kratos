@@ -117,7 +117,7 @@ namespace Kratos
                             KnotsURefined, p_nurbs_surface->KnotsV(),
                             WeightsRefined);
                     } else {
-                        KRATOS_INFO("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                             << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
                             << " by inserting knots in u, however insert_nb_per_span_u is set to 0." << std::endl;
                     }
@@ -167,7 +167,7 @@ namespace Kratos
                         WeightsRefined);
                     }
                     else {
-                        KRATOS_INFO("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
+                        KRATOS_INFO_IF("::[RefinementModeler]::ApplyRefinement", mEchoLevel > 1)
                             << "Trying to refine nurbs surface #" << p_nurbs_surface->Id()
                             << " by inserting knots in v, however insert_nb_per_span_v is set to 0." << std::endl;
                     }
