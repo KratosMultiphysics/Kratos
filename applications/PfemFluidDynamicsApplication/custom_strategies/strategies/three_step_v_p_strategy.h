@@ -483,7 +483,7 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveFirstVelocitySystem(double NormV)
+    bool SolveFirstVelocitySystem(double &NormV)
     {
       std::cout << "1. SolveFirstVelocitySystem " << std::endl;
 
@@ -494,7 +494,7 @@ namespace Kratos
       NormDv = mpMomentumStrategy->Solve();
 
       // Check convergence
-      momentumConvergence = this->CheckVelocityIncrementConvergence(NormDv, NormV);
+      momentumConvergence = this->CheckVelocityIncrementConvergence(NormDv, &NormV);
 
       if (!momentumConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
@@ -669,22 +669,26 @@ namespace Kratos
       }
     }
 
-    bool CheckVelocityIncrementConvergence(const double NormDv, double NormV)
+    bool CheckVelocityIncrementConvergence(const double NormDv, double &NormV)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
 
       NormV = 0.00;
       double errorNormDv = 0;
+      double temp_norm = NormV;
 
-#pragma omp parallel for reduction(+:NormV)
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto it_node = rModelPart.NodesBegin() + i_node;
-            const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int d = 0; d < 3; ++d) {
-                NormV += r_vel[d] * r_vel[d];
-            }
+#pragma omp parallel for reduction(+ : temp_norm)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < 3; ++d)
+        {
+          temp_norm += r_vel[d] * r_vel[d];
         }
+      }
+      NormV = temp_norm;
       NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
       NormV = sqrt(NormV);
 
@@ -716,14 +720,17 @@ namespace Kratos
       const int n_nodes = rModelPart.NumberOfNodes();
 
       double NormV = 0.00;
-#pragma omp parallel for reduction(+:NormV)
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto it_node = rModelPart.NodesBegin() + i_node;
-            const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int d = 0; d < 3; ++d) {
-                NormV += r_vel[d] * r_vel[d];
-            }
+#pragma omp parallel for reduction(+ \
+                                   : NormV)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const auto &r_vel = it_node->FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int d = 0; d < 3; ++d)
+        {
+          NormV += r_vel[d] * r_vel[d];
         }
+      }
       NormV = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormV);
       NormV = sqrt(NormV);
 
@@ -738,12 +745,14 @@ namespace Kratos
       double NormP = 0.00;
       double errorNormDp = 0;
 
-#pragma omp parallel for reduction(+:NormP)
-        for (int i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto it_node = rModelPart.NodesBegin() + i_node;
-            const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
-            NormP += Pr * Pr;
-        }
+#pragma omp parallel for reduction(+ \
+                                   : NormP)
+      for (int i_node = 0; i_node < n_nodes; ++i_node)
+      {
+        const auto it_node = rModelPart.NodesBegin() + i_node;
+        const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
+        NormP += Pr * Pr;
+      }
       NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
       NormP = sqrt(NormP);
 
@@ -795,7 +804,6 @@ namespace Kratos
         it_node->Free(PRESSURE);
       }
     }
-
 
     ///@}
     ///@name Protected  Access
