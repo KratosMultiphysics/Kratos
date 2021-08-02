@@ -494,7 +494,7 @@ namespace Kratos
       NormDv = mpMomentumStrategy->Solve();
 
       // Check convergence
-      momentumConvergence = this->CheckVelocityIncrementConvergence(NormDv, &NormV);
+      momentumConvergence = this->CheckVelocityIncrementConvergence(NormDv, NormV);
 
       if (!momentumConvergence && BaseType::GetEchoLevel() > 0)
         std::cout << "Momentum equations did not reach the convergence tolerance." << std::endl;
