@@ -23,7 +23,7 @@
 #define HEAVISIDE(X) ( X >= 0.0 ? 1.0 : 0.0)
 #define MACAULAY(X)  ( X >= 0.0 ? X : 0.0)
 //#define PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
-#define PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
+//#define PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
 
 namespace Kratos
 {
@@ -311,8 +311,7 @@ namespace Kratos
         }
         else return 0;
 
-        const double angle = acos(inner_prod(local_stress_1, local_coordinate_1)/(norm_2(local_stress_1)));
-        return angle;
+        return acos(inner_prod(local_stress_1, local_coordinate_1)/(norm_2(local_stress_1)));
 
     }
     /***********************************************************************************/
@@ -341,42 +340,34 @@ namespace Kratos
     }
     /***********************************************************************************/
     /***********************************************************************************/
-    void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateProjectedFractureEnergyTension(
+    void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateProjectedIsotropicMaterial(
         const DirectionalMaterialProperties& rMaterialProperties1,
         const DirectionalMaterialProperties& rMaterialProperties2,
         double AngleToDamage,
         DirectionalMaterialProperties& rProjectedProperties)
     {
-        const double material_length_1 = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyTension /
+        const double material_length_1_tension = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyTension /
             pow(rMaterialProperties1.YieldStressTension, 2);
-        const double material_length_2 = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyTension /
+        const double material_length_2_tension = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyTension /
             pow(rMaterialProperties2.YieldStressTension, 2);
 
-        const double material_length_projected = sqrt(1 / (
-            (1 / pow(material_length_1, 2)) * pow(cos(AngleToDamage), 2)
-            + (1 / pow(material_length_2, 2)) * pow(sin(AngleToDamage), 2)));
+        const double material_length_projected_tension = sqrt(1 / (
+            (1 / pow(material_length_1_tension, 2)) * pow(cos(AngleToDamage), 2)
+            + (1 / pow(material_length_2_tension, 2)) * pow(sin(AngleToDamage), 2)));
 
-        rProjectedProperties.FractureEnergyTension = (pow(rProjectedProperties.YieldStressTension, 2) / (2 * rProjectedProperties.E)) * material_length_projected; 
-    }
-    /***********************************************************************************/
-    /***********************************************************************************/
-    void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateProjectedFractureEnergyCompression(
-        const DirectionalMaterialProperties& rMaterialProperties1,
-        const DirectionalMaterialProperties& rMaterialProperties2,
-        double AngleToDamage,
-        DirectionalMaterialProperties& rProjectedProperties)
-    {
-        const double material_length_1 = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyCompression /
+        rProjectedProperties.FractureEnergyTension = (pow(rProjectedProperties.YieldStressTension, 2) / (2 * rProjectedProperties.E)) * material_length_projected_tension;
+
+        const double material_length_1_compression = 2.0 * rMaterialProperties1.E * rMaterialProperties1.FractureEnergyCompression /
             pow(rMaterialProperties1.YieldStressCompression, 2);
-        const double material_length_2 = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyCompression /
+        const double material_length_2_compression = 2.0 * rMaterialProperties2.E * rMaterialProperties2.FractureEnergyCompression /
             pow(rMaterialProperties2.YieldStressCompression, 2);
 
-        const double material_length_projected = sqrt(1 / (
-            (1 / pow(material_length_1, 2)) * pow(cos(AngleToDamage), 2)
-            + (1 / pow(material_length_2, 2)) * pow(sin(AngleToDamage), 2)));
+        const double material_length_projected_compression = sqrt(1 / (
+            (1 / pow(material_length_1_compression, 2)) * pow(cos(AngleToDamage), 2)
+            + (1 / pow(material_length_2_compression, 2)) * pow(sin(AngleToDamage), 2)));
 
         // Fracture Energy
-        rProjectedProperties.FractureEnergyCompression = (pow(rProjectedProperties.YieldStressCompression, 2) / (2 * rProjectedProperties.E)) * material_length_projected;
+        rProjectedProperties.FractureEnergyCompression = (pow(rProjectedProperties.YieldStressCompression, 2) / (2 * rProjectedProperties.E)) * material_length_projected_compression;
 
         // Elastic Limit Stress Compression
         rProjectedProperties.ElasticLimitStressCompression = (rProjectedProperties.YieldStressCompression / rMaterialProperties1.YieldStressCompression)
@@ -402,8 +393,17 @@ namespace Kratos
         rProjectedProperties.BezierControllerC2 = rMaterialProperties1.BezierControllerC2 * pow(cos(AngleToDamage), 2) +
             rMaterialProperties2.BezierControllerC2 * pow(sin(AngleToDamage), 2);
 
+        // C3
         rProjectedProperties.BezierControllerC3 = rMaterialProperties1.BezierControllerC3 * pow(cos(AngleToDamage), 2) +
             rMaterialProperties2.BezierControllerC3 * pow(sin(AngleToDamage), 2);
+
+        // ShearCompressionReductor
+        rProjectedProperties.ShearCompressionReductor = rMaterialProperties1.ShearCompressionReductor * pow(cos(AngleToDamage), 2) +
+            rMaterialProperties2.ShearCompressionReductor * pow(sin(AngleToDamage), 2);
+
+        // ShearCompressionReductor
+        rProjectedProperties.BiaxialCompressionMultiplier = rMaterialProperties1.BiaxialCompressionMultiplier * pow(cos(AngleToDamage), 2) +
+            rMaterialProperties2.BiaxialCompressionMultiplier * pow(sin(AngleToDamage), 2);
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -783,16 +783,15 @@ namespace Kratos
         double angle_to_damage = CalculateDamageAngle(effective_stress_mapped_isotropic);
 
         DirectionalMaterialProperties projected_material(data.MaterialProperties1);
-        CalculateProjectedFractureEnergyTension(
-            data.MaterialProperties1, data.MaterialProperties2,
-            angle_to_damage, projected_material);
-        CalculateProjectedFractureEnergyCompression(
+        CalculateProjectedIsotropicMaterial(
             data.MaterialProperties1, data.MaterialProperties2,
             angle_to_damage, projected_material);
 
         // compute the equivalent stress measures
-        this->CalculateEquivalentStressTension(data, projected_material, effective_stress_mapped_isotropic, principal_stresses_mapped_isotropic, mUniaxialStressTension);
-        this->CalculateEquivalentStressCompression(data, projected_material, effective_stress_mapped_isotropic, principal_stresses_mapped_isotropic, mUniaxialStressCompression);
+        this->CalculateEquivalentStressTension(data,
+            projected_material, effective_stress_mapped_isotropic, principal_stresses_mapped_isotropic, mUniaxialStressTension);
+        this->CalculateEquivalentStressCompression(data,
+            projected_material, effective_stress_mapped_isotropic, principal_stresses_mapped_isotropic, mUniaxialStressCompression);
 
         if (mUniaxialStressTension > mThresholdTension)
             mThresholdTension = mUniaxialStressTension;

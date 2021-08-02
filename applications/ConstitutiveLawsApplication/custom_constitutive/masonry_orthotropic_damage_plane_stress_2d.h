@@ -124,11 +124,11 @@ namespace Kratos
                   BezierControllerC3(rProperties[BEZIER_CONTROLLER_C3]),
                   YieldStressShearTension(rProperties[YIELD_STRESS_SHEAR_TENSION]),
                   YieldStressShearCompression(rProperties[YIELD_STRESS_SHEAR_COMPRESSION]),
-                  BiaxialCompressionMultiplier(rProperties[BIAXIAL_COMPRESSION_MULTIPLIER]),
                   ShearCompressionReductor(rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
                       ? std::min(std::max(rProperties[SHEAR_COMPRESSION_REDUCTOR], 1.0), 0.0)
                       : 0.16
                   ),
+                  BiaxialCompressionMultiplier(rProperties[BIAXIAL_COMPRESSION_MULTIPLIER]),
                   CharacteristicLength(CharacteristicLength)
             {
             }
@@ -361,7 +361,10 @@ namespace Kratos
             const DirectionalMaterialProperties& rMaterialProperties2,
             TransformationMatrices& rTransformationMatrices);
 
-        void CalculateProjectedFractureEnergyTension(
+        /**
+        * @brief Maps all paramether in the projected orthotropic space.
+        */
+        void CalculateProjectedIsotropicMaterial(
             const DirectionalMaterialProperties& rMaterialProperties1,
             const DirectionalMaterialProperties& rMaterialProperties2,
             double AngleToDamage,
@@ -397,12 +400,6 @@ namespace Kratos
             const array_1d<double, 3> rEffectiveStressVector,
             const array_1d<double, 2> rPrincipalStressVector,
             double& UniaxialStressTension) const;
-
-        void CalculateProjectedFractureEnergyCompression(
-            const DirectionalMaterialProperties& rMaterialProperties1,
-            const DirectionalMaterialProperties& rMaterialProperties2,
-            double AngleToDamage,
-            DirectionalMaterialProperties& rProjectedProperties);
 
         /**
         * @brief This method computes the equivalent stress in Compression
