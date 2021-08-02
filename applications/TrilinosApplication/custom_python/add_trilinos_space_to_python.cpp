@@ -24,6 +24,7 @@
 #include "custom_python/trilinos_pointer_wrapper.h"
 #include "custom_python/add_trilinos_space_to_python.h"
 #include "includes/model_part.h"
+#include "mpi/includes/mpi_data_communicator.h"
 
 // Teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
@@ -140,7 +141,17 @@ void UnaliasedAdd(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::Vecto
 
 Epetra_MpiComm CreateCommunicator()
 {
+    KRATOS_WARNING("Trilinos") << "\"CreateCommunicator\" is deprecated, please use \"CreateEpetraCommunicator\" instead" << std::endl;
     Epetra_MpiComm comm(MPI_COMM_WORLD);
+    return comm;
+}
+//************************************************************************************************
+
+Epetra_MpiComm CreateEpetraCommunicator(const DataCommunicator& rDataCommunicator)
+{
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Only distributed DataCommunicators can be used!" << std::endl;
+    auto raw_mpi_comm = MPIDataCommunicator::GetMPICommunicator(rDataCommunicator);
+    Epetra_MpiComm comm(raw_mpi_comm);
     return comm;
 }
 
@@ -184,8 +195,8 @@ void SetValue(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorTyp
     dummy.SetValue(x,i,value);
 }
 
-Vector GatherValues(TrilinosSparseSpaceType& dummy, 
-                  TrilinosSparseSpaceType::VectorType& x, 
+Vector GatherValues(TrilinosSparseSpaceType& dummy,
+                  TrilinosSparseSpaceType::VectorType& x,
                   const std::vector<int>& IndexArray
                   )
 {
@@ -307,6 +318,7 @@ void  AddBasicOperations(pybind11::module& m)
     ;
 
     m.def("CreateCommunicator", CreateCommunicator);
+    m.def("CreateEpetraCommunicator", CreateEpetraCommunicator);
     m.def("ErrorCleaner", ErrorCleaner);
 
     //********************************************************************

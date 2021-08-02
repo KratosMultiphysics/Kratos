@@ -176,6 +176,41 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNode, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(found_id, node_id_to_be_found);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorNodeCurrentConfiguration, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("ForTest");
+
+    const double tolerance = 1e-10;
+
+    // Create point that's in the right place
+    // in the current configuration (but not the initial one)
+    const int node_id_to_be_found = 517;
+    const double coord_x = 11.258;
+    const double coord_y = -789.2368;
+    const double coord_z = 0.863;
+    auto p_current_node = model_part.CreateNewNode( node_id_to_be_found,
+                                                    0.0, 0.0, 0.0 );
+    p_current_node->Coordinates() = array_1d<double,3>( 3, { coord_x, coord_y, coord_z + tolerance/10.0 } );
+
+    // Create point that's in the right place
+    // in the initial configuration (but not the current one)
+    auto p_initial_node = model_part.CreateNewNode( node_id_to_be_found + 1,
+                                                    coord_x, coord_y, coord_z );
+    p_initial_node->Coordinates() = array_1d<double,3>( 3, {0.0, 0.0, 0.0} );
+
+    // Perform and check search
+    BruteForcePointLocator point_locator( model_part );
+
+    Point query_point(coord_x, coord_y, coord_z);
+
+    const int found_id = point_locator.FindNode( query_point,
+                                                 Globals::Configuration::Current,
+                                                 tolerance );
+
+    KRATOS_CHECK_EQUAL( found_id, node_id_to_be_found );
+}
+
 KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorQuadrilateralCondition, KratosCoreFastSuite)
 {
     Model current_model;

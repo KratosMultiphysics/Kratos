@@ -27,7 +27,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -313,10 +313,14 @@ public:
     {
         KRATOS_TRY
 
-        auto& r_nodes_array = GetModelPart().Nodes();
-        VariableUtils().UpdateCurrentPosition(r_nodes_array);
+        KRATOS_ERROR_IF_NOT(GetModelPart().HasNodalSolutionStepVariable(DISPLACEMENT_X)) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
-        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() > 0) << "Mesh moved." << std::endl;
+        block_for_each(GetModelPart().Nodes(), [](Node<3>& rNode){
+            noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
+            noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
+        });
+
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() != 0) << " MESH MOVED " << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -392,7 +396,7 @@ public:
         })");
         return default_parameters;
     }
-  
+
     /**
      * @brief Returns the name of the class as used in the settings (snake_case format)
      * @return The name of the class

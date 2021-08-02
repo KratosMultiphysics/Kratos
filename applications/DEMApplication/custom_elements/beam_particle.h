@@ -9,8 +9,8 @@
 #include <string>
 #include <iostream>
 #include "spheric_continuum_particle.h"
-#include "../custom_constitutive/DEM_continuum_constitutive_law.h"
-#include "../custom_constitutive/DEM_beam_constitutive_law.h"
+#include "custom_constitutive/DEM_continuum_constitutive_law.h"
+#include "custom_constitutive/DEM_beam_constitutive_law.h"
 
 namespace Kratos {
 
@@ -19,7 +19,7 @@ namespace Kratos {
         public:
 
         /// Pointer definition of BeamParticle
-        KRATOS_CLASS_POINTER_DEFINITION(BeamParticle);
+        KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(BeamParticle);
 
         typedef SphericContinuumParticle BaseType;
         typedef BaseType::ParticleDataBuffer BaseBufferType;

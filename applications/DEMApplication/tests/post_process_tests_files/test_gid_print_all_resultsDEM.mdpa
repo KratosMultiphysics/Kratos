@@ -1,0 +1,59 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Nodes
+    5   0.1000000000   0.0000000000   0.1000000000
+    6   0.0333333333   0.0000000000   0.1666666667
+    8  -0.0333333333   0.0000000000   0.2333333333
+    9  -0.1000000000   0.0000000000   0.3000000000
+End Nodes
+
+
+Begin Elements SphericContinuumParticle3D// GUI group identifier: bonded_spheres
+        9          1     5
+       10          1     6
+       11          1     8
+       12          1     9
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: bonded_spheres
+          5 0       0.05
+          6 0       0.05
+          8 0       0.05
+          9 0       0.05
+End NodalData
+
+Begin NodalData COHESIVE_GROUP // GUI group identifier: bonded_spheres
+          5 0 1
+          6 0 1
+          8 0 1
+          9 0 1
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+          5 0 1
+          6 0 1
+          8 0 1
+          9 0 1
+End NodalData
+
+Begin SubModelPart PartsCont_bonded_spheres // Group bonded_spheres // Subtree PartsCont
+    Begin SubModelPartNodes
+            5
+            6
+            8
+            9
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            9
+           10
+           11
+           12
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

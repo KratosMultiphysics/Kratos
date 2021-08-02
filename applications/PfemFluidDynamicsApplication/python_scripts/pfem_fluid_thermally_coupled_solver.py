@@ -60,7 +60,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "compute_contact_forces": false,
                 "block_builder": false,
                 "component_wise": false,
-                "predictor_corrector": true,
+                "predictor_corrector": true,         
                 "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
@@ -212,6 +212,9 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
         pfem_is_converged = self.fluid_solver.SolveSolutionStep()
         KratosPfemFluid.SetMeshVelocityForThermalCouplingProcess(self.fluid_solver.main_model_part).Execute()
+        KratosPfemFluid.SetMaterialPropertiesForThermalCouplingProcess(self.fluid_solver.main_model_part,self.thermal_solver.main_model_part).Execute()
+        KM.Logger.Print("\nSolution of convection-diffusion at t=" + "{:.3f}".format(self.fluid_solver.main_model_part.ProcessInfo[KM.TIME]) + "s", label="")
+        KM.Logger.Flush()
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
         return (pfem_is_converged and thermal_is_converged)
 
@@ -221,9 +224,19 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
     def PrepareModelPart(self):
         self.CloneThermalModelPart()
-        self.thermal_solver.PrepareModelPart()
+        self.PrepareThermalModelPart()
         self.fluid_solver.PrepareModelPart()
 
+    def PrepareThermalModelPart(self):
+        # Thermal model part is being prepared here instead of calling its application
+        # because there is a small change needed in that function (self.thermal_solver.PrepareModelPart())
+        if not self.thermal_solver.is_restarted():
+            self.thermal_solver._execute_after_reading()
+            KM.ReplaceElementsAndConditionsProcess(self.thermal_solver.main_model_part,self.thermal_solver._get_element_condition_replace_settings()).Execute()
+            self.thermal_solver._set_and_fill_buffer()
+        if (self.thermal_solver.settings["echo_level"].GetInt() > 0):
+            KM.Logger.PrintInfo(self.thermal_solver.model)
+        KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
     def AddMaterialVariables(self):
 
@@ -332,8 +345,5 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
-
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.THETA_MOMENTUM)
 
 

@@ -93,20 +93,31 @@ namespace Testing
             Matrix strain_mat = 0.5*(prod(trans(F),F)-IdentityMatrix(3,3));
             std::vector<double> reference_strain = {strain_mat(0,0), strain_mat(1,1), 2.0*strain_mat(0,1)};
 
-            // Also the stress can be computed analytically as
+            // Also the stress can be computed analytically as (PK2 stress)
             Vector reference_stress(3);
             reference_stress[0] = c1 * reference_strain[0] + c2 * reference_strain[1];
             reference_stress[1] = c2 * reference_strain[0] + c1 * reference_strain[1];
             reference_stress[2] = c3 * reference_strain[2];
+
+            const double reference_von_mises_pk2 = std::sqrt( 
+                                             reference_stress[0]*reference_stress[0] 
+                                             + reference_stress[1]*reference_stress[1]
+                                             - reference_stress[0]*reference_stress[1]
+                                             + 3.0*reference_stress[2]*reference_stress[2]
+                                            );
 
             std::vector<Vector> output_strains(1);
             p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
 
             std::vector<Vector> output_stress(1);
             p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
-            
+
+            std::vector<double> output_von_mises(1);
+            p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+
             KRATOS_CHECK_VECTOR_EQUAL(output_strains[0], reference_strain);
             KRATOS_CHECK_VECTOR_EQUAL(output_stress[0], reference_stress);
+            KRATOS_CHECK_NEAR((output_von_mises[0]-reference_von_mises_pk2)/reference_von_mises_pk2, 0.0,1e-14);
         }
     }
 }

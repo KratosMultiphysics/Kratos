@@ -249,7 +249,7 @@ namespace Kratos {
         virtual void SearchRigidFaceNeighbours();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);
+        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
@@ -272,12 +272,10 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        std::vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
-        std::vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
         virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
@@ -297,14 +295,12 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        std::vector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
-        std::vector<unsigned int> mConditionPartition;
         ModelPart *mpFem_model_part;
         ModelPart *mpDem_model_part;
         ModelPart *mpInlet_model_part;

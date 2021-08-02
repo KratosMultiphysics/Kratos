@@ -1,7 +1,7 @@
 from collections import Counter
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
-@ExaquteTask(global_estimators=INOUT,batch_estimators=IN,global_cost_estimator=INOUT,batch_cost_estimator=IN)
+@task(keep=True, global_estimators=INOUT,batch_estimators=IN,global_cost_estimator=INOUT,batch_cost_estimator=IN)
 def updateGlobalMomentEstimator_Task(global_estimators,batch_estimators,global_cost_estimator,batch_cost_estimator,batch):
     """
     Method updating global estimators with local batch estimators. Power sums and number of realizations are updated.
@@ -38,12 +38,12 @@ def updateGlobalMomentEstimator_Task(global_estimators,batch_estimators,global_c
                 for order in range (global_estimators[qoi_index].powerSumsOrder()):
                     for i in range (0,len(global_estimators[qoi_index].powerSums[order])):
                         global_estimators[qoi_index].powerSums[order][i] = global_estimators[qoi_index].powerSums[order][i] + batch_estimators[qoi_index].powerSums[order][i]
-            elif global_estimators[qoi_index].__class__.__name__ in ["MultiMomentEstimator"]:
+            elif (global_estimators[qoi_index].__class__.__name__ in ["MultiMomentEstimator"]) or (global_estimators[qoi_index].__class__.__name__ in ["MultiCombinedMomentEstimator"] and batch_estimators[qoi_index]._indexSetDimension == 0):
                 gE = Counter(global_estimators[qoi_index]._powerSums)
                 bE = Counter(batch_estimators[qoi_index]._powerSums)
                 gE.update(bE)
                 global_estimators[qoi_index]._powerSums = gE
-            elif global_estimators[qoi_index].__class__.__name__ in ["MultiCombinedMomentEstimator"]:
+            elif global_estimators[qoi_index].__class__.__name__ in ["MultiCombinedMomentEstimator"] and batch_estimators[qoi_index]._indexSetDimension > 0:
                 # prepare dictionaries for updating and update them
                 gEU = Counter(global_estimators[qoi_index]._powerSums["upper"])
                 bEU = Counter(batch_estimators[qoi_index]._powerSums["upper"])

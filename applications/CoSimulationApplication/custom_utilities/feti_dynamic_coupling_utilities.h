@@ -111,6 +111,7 @@ namespace Kratos
         bool mIsImplicitDestination;
         const Parameters mParameters;
         bool mIsLinear = false;
+        SolverIndex mLagrangeDefinedOn = SolverIndex::Destination;
 
         IndexType mSubTimestepIndex = 1;
         IndexType mTimestepRatio;

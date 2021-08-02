@@ -233,16 +233,6 @@ int NavierStokesWallCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrent
         return Check;
     }
     else {
-        // Check that all required variables have been registered
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY)
-        KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE)
-        KRATOS_CHECK_VARIABLE_KEY(DENSITY)
-        KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY)
-        KRATOS_CHECK_VARIABLE_KEY(EXTERNAL_PRESSURE)
-        KRATOS_CHECK_VARIABLE_KEY(SLIP_LENGTH)
-
         // Checks on nodes
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)

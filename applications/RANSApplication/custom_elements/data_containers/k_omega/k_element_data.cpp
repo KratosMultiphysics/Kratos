@@ -23,6 +23,7 @@
 
 // Application includes
 #include "custom_elements/data_containers/k_epsilon/element_data_utilities.h"
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -50,7 +51,6 @@ void KElementData<TDim>::Check(
     for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
         const auto& r_node = rGeometry[i_node];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(KINEMATIC_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_VISCOSITY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_KINETIC_ENERGY_RATE, r_node);
@@ -69,6 +69,7 @@ void KElementData<TDim>::CalculateConstants(
 {
     mSigmaK = rCurrentProcessInfo[TURBULENT_KINETIC_ENERGY_SIGMA];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
+    mDensity = this->GetProperties().GetValue(DENSITY);
 }
 
 template <unsigned int TDim>
@@ -81,11 +82,17 @@ void KElementData<TDim>::CalculateGaussPointData(
 
     using namespace RansCalculationUtilities;
 
-    EvaluateInPoint(this->GetGeometry(), rShapeFunctions, Step,
-                    std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
-                    std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
-                    std::tie(mKinematicViscosity, KINEMATIC_VISCOSITY),
-                    std::tie(mEffectiveVelocity, VELOCITY));
+    auto& cl_parameters = this->GetConstitutiveLawParameters();
+    cl_parameters.SetShapeFunctionsValues(rShapeFunctions);
+
+    this->GetConstitutiveLaw().CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, mKinematicViscosity);
+    mKinematicViscosity /= mDensity;
+
+    FluidCalculationUtilities::EvaluateInPoint(
+        this->GetGeometry(), rShapeFunctions, Step,
+        std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
+        std::tie(mTurbulentKinematicViscosity, TURBULENT_VISCOSITY),
+        std::tie(mEffectiveVelocity, VELOCITY));
 
     mVelocityDivergence =
         GetDivergence(this->GetGeometry(), VELOCITY, rShapeFunctionDerivatives);

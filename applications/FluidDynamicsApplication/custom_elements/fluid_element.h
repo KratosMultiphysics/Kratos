@@ -291,25 +291,30 @@ public:
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 3>> const& rVariable,
-                                     std::vector<array_1d<double, 3>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 3>> const& rVariable,
+        std::vector<array_1d<double, 3>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                     std::vector<double>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<double> const& rVariable,
+        std::vector<double>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                     std::vector<array_1d<double, 6>>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<array_1d<double, 6>> const& rVariable,
+        std::vector<array_1d<double, 6>>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                     std::vector<Vector>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Vector> const& rVariable,
+        std::vector<Vector>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                     std::vector<Matrix>& rValues,
-                                     ProcessInfo const& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        Variable<Matrix> const& rVariable,
+        std::vector<Matrix>& rValues,
+        ProcessInfo const& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -377,6 +382,17 @@ protected:
     virtual array_1d<double, 3> GetAtCoordinate(
         const typename TElementData::NodalVectorData& rValues,
         const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual BoundedMatrix<double, TElementData::Dim, TElementData::Dim> GetAtCoordinate(
+        const typename TElementData::NodalTensorData &rValues,
+        const typename TElementData::ShapeFunctionsType &rN) const;
 
     /// Get information from TElementData at a given point.
     /** This function serves as a wrapper so that the element does not need to

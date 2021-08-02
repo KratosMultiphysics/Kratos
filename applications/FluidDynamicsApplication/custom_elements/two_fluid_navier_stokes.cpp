@@ -222,8 +222,6 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
-    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
-
     return 0;
 
     KRATOS_CATCH("");
@@ -1957,8 +1955,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <>
@@ -1966,8 +1963,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <class TElementData>
@@ -2294,7 +2290,7 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 
 
 template <class TElementData>
-void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(
+void TwoFluidNavierStokes<TElementData>::CalculateOnIntegrationPoints(
     const Variable<double> &rVariable,
     std::vector<double> &rValues,
     const ProcessInfo &rCurrentProcessInfo )

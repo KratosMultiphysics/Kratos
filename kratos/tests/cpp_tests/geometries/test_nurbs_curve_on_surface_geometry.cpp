@@ -408,7 +408,7 @@ typedef Node<3> NodeType;
 
         std::vector<double> spans;
 
-        curve_on_surface.Spans(spans);
+        curve_on_surface.SpansLocalSpace(spans);
 
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
@@ -429,7 +429,7 @@ typedef Node<3> NodeType;
 
         std::vector<double> spans;
 
-        curve_on_surface.Spans(spans);
+        curve_on_surface.SpansLocalSpace(spans);
 
         // Test size
         KRATOS_CHECK_EQUAL(spans.size(), 5);
@@ -452,7 +452,8 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve_on_surface.CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = curve_on_surface.GetDefaultIntegrationInfo();
+        curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(integration_points.size(), 20);
         double length = 0;
@@ -470,10 +471,11 @@ typedef Node<3> NodeType;
 
         // Check general information, input to ouput
         typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
-        curve_on_surface.CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = curve_on_surface.GetDefaultIntegrationInfo();
+        curve_on_surface.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<Point>::GeometriesArrayType quadrature_points;
-        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points);
+        curve_on_surface.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 20);
         double length_parameter_space = 0;
@@ -495,6 +497,12 @@ typedef Node<3> NodeType;
         curve_on_surface.GlobalCoordinates(global_coords, local_coords);
 
         KRATOS_CHECK_VECTOR_NEAR(quadrature_points[2].Center(), global_coords, TOLERANCE);
+
+        // Check local tangent access
+        array_1d<double, 3> local_tangent;
+        std::vector<double> local_reference = {0.162409, -0.487862, 0.0};
+        quadrature_points[2].Calculate(LOCAL_TANGENT, local_tangent);
+        KRATOS_CHECK_VECTOR_NEAR(local_tangent, local_reference, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -5,7 +5,7 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro

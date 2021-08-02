@@ -23,11 +23,11 @@
 namespace Kratos {
 namespace Testing {
 
-typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormSparseMatrix, KratosCoreFastSuite)
 {
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+
     const std::size_t size = 10;
     SparseSpaceType::MatrixType mat(size, size);
 
@@ -43,6 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormSparseMatrix, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
 {
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     const std::size_t size = 10;
     LocalSpaceType::MatrixType mat(size, size, 0.0);
 
@@ -54,8 +55,8 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
         if (i+1<mat.size2()) {mat(i,i+1) = 2.336;}
     }
 
-    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, SparseSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(16.216110045260546, LocalSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_CHECK_NEAR(31.131, LocalSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 } // namespace Testing

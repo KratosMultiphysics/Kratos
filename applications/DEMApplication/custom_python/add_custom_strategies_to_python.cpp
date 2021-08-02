@@ -120,6 +120,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")
+        .def("ComputeCoordinationNumber", &ContinuumExplicitSolverStrategy::ComputeCoordinationNumber)
         .def(py::init< ExplicitSolverSettings&, double, int, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
 

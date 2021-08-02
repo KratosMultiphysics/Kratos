@@ -40,6 +40,7 @@ KRATOS_API(RANS_APPLICATION) ModelPart& CreateTestModelPart(
     const std::string& rConditionName,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
     const std::function<void(ModelPart::NodeType&)>& rAddDofsFunction,
+    const std::function<void(Properties&)>& rSetProperties,
     const int BufferSize = 2);
 
 KRATOS_API(RANS_APPLICATION) ModelPart& CreateScalarVariableTestModelPart(
@@ -47,6 +48,7 @@ KRATOS_API(RANS_APPLICATION) ModelPart& CreateScalarVariableTestModelPart(
     const std::string& rElementName,
     const std::string& rConditionName,
     const std::function<void(ModelPart& rModelPart)>& rAddNodalSolutionStepVariablesFuncion,
+    const std::function<void(Properties&)>& rSetProperties,
     const Variable<double>& rDofVariable,
     const int BufferSize = 2,
     const bool DoInitializeElements = true,

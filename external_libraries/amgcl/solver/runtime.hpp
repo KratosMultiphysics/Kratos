@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,8 @@ THE SOFTWARE.
 #include <amgcl/solver/lgmres.hpp>
 #include <amgcl/solver/fgmres.hpp>
 #include <amgcl/solver/idrs.hpp>
+#include <amgcl/solver/richardson.hpp>
+#include <amgcl/solver/preonly.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 
 namespace amgcl {
@@ -62,7 +64,9 @@ enum type {
     gmres,      ///< GMRES
     lgmres,     ///< LGMRES
     fgmres,     ///< FGMRES
-    idrs        ///< IDR(s)
+    idrs,       ///< IDR(s)
+    richardson, ///< Richardson iteration
+    preonly     ///< Only apply preconditioner once
 };
 
 inline std::ostream& operator<<(std::ostream &os, type s)
@@ -82,6 +86,10 @@ inline std::ostream& operator<<(std::ostream &os, type s)
             return os << "fgmres";
         case idrs:
             return os << "idrs";
+        case richardson:
+            return os << "richardson";
+        case preonly:
+            return os << "preonly";
         default:
             return os << "???";
     }
@@ -106,9 +114,13 @@ inline std::istream& operator>>(std::istream &in, type &s)
         s = fgmres;
     else if (val == "idrs")
         s = idrs;
+    else if (val == "richardson")
+        s = richardson;
+    else if (val == "preonly")
+        s = preonly;
     else
         throw std::invalid_argument("Invalid solver value. Valid choices are: "
-                "cg, bicgstab, bicgstabl, gmres, lgmres, fgmres, idrs.");
+                "cg, bicgstab, bicgstabl, gmres, lgmres, fgmres, idrs, richardson, preonly.");
 
     return in;
 }
@@ -149,6 +161,8 @@ struct wrapper {
             AMGCL_RUNTIME_SOLVER(lgmres);
             AMGCL_RUNTIME_SOLVER(fgmres);
             AMGCL_RUNTIME_SOLVER(idrs);
+            AMGCL_RUNTIME_SOLVER(richardson);
+            AMGCL_RUNTIME_SOLVER(preonly);
 
 #undef AMGCL_RUNTIME_SOLVER
 
@@ -172,6 +186,8 @@ struct wrapper {
             AMGCL_RUNTIME_SOLVER(lgmres);
             AMGCL_RUNTIME_SOLVER(fgmres);
             AMGCL_RUNTIME_SOLVER(idrs);
+            AMGCL_RUNTIME_SOLVER(richardson);
+            AMGCL_RUNTIME_SOLVER(preonly);
 
 #undef AMGCL_RUNTIME_SOLVER
         }
@@ -194,6 +210,8 @@ struct wrapper {
             AMGCL_RUNTIME_SOLVER(lgmres);
             AMGCL_RUNTIME_SOLVER(fgmres);
             AMGCL_RUNTIME_SOLVER(idrs);
+            AMGCL_RUNTIME_SOLVER(richardson);
+            AMGCL_RUNTIME_SOLVER(preonly);
 
 #undef AMGCL_RUNTIME_SOLVER
 
@@ -223,6 +241,8 @@ struct wrapper {
             AMGCL_RUNTIME_SOLVER(lgmres);
             AMGCL_RUNTIME_SOLVER(fgmres);
             AMGCL_RUNTIME_SOLVER(idrs);
+            AMGCL_RUNTIME_SOLVER(richardson);
+            AMGCL_RUNTIME_SOLVER(preonly);
 
 #undef AMGCL_RUNTIME_SOLVER
 
@@ -245,6 +265,8 @@ struct wrapper {
             AMGCL_RUNTIME_SOLVER(lgmres);
             AMGCL_RUNTIME_SOLVER(fgmres);
             AMGCL_RUNTIME_SOLVER(idrs);
+            AMGCL_RUNTIME_SOLVER(richardson);
+            AMGCL_RUNTIME_SOLVER(preonly);
 
 #undef AMGCL_RUNTIME_SOLVER
 

@@ -26,6 +26,7 @@
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/builder_and_solvers/explicit_builder.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -170,9 +171,7 @@ public:
     void Initialize() override
     {
         // Initialize elements, conditions and constraints
-        InitializeContainer(BaseType::GetModelPart().Elements());
-        InitializeContainer(BaseType::GetModelPart().Conditions());
-        InitializeContainer(BaseType::GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeAllEntities(GetModelPart());
 
         // Set the explicit DOFs rebuild level
         if (mRebuildLevel != 0) {
@@ -207,9 +206,7 @@ public:
     void InitializeSolutionStep() override
     {
         // InitializeSolutionStep elements, conditions and constraints
-        InitializeSolutionStepContainer(BaseType::GetModelPart().Elements());
-        InitializeSolutionStepContainer(BaseType::GetModelPart().Conditions());
-        InitializeSolutionStepContainer(BaseType::GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeSolutionStepAllEntities(GetModelPart());
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilder->InitializeSolutionStep(BaseType::GetModelPart());
@@ -222,9 +219,7 @@ public:
     void FinalizeSolutionStep() override
     {
         // FinalizeSolutionStep elements, conditions and constraints
-        FinalizeSolutionStepContainer(BaseType::GetModelPart().Elements());
-        FinalizeSolutionStepContainer(BaseType::GetModelPart().Conditions());
-        FinalizeSolutionStepContainer(BaseType::GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(GetModelPart());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
         mpExplicitBuilder->FinalizeSolutionStep(BaseType::GetModelPart());
@@ -237,9 +232,7 @@ public:
     bool SolveSolutionStep() override
     {
         // Call the initialize non-linear iteration
-        InitializeNonLinearIterationContainer(BaseType::GetModelPart().Elements());
-        InitializeNonLinearIterationContainer(BaseType::GetModelPart().Conditions());
-        InitializeNonLinearIterationContainer(BaseType::GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(GetModelPart());
 
         // Apply constraints
         if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0) {
@@ -255,9 +248,7 @@ public:
         }
 
         // Call the finalize non-linear iteration
-        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().Elements());
-        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().Conditions());
-        FinalizeNonLinearIterationContainer(BaseType::GetModelPart().MasterSlaveConstraints());
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(GetModelPart());
 
         return true;
     }
@@ -433,6 +424,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<ClassType>> msPrototypes;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -461,86 +454,6 @@ private:
                 auto &r_value = rDof.GetSolutionStepValue();
                 r_value = 0.0;
             }
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the Initialize()
-     * For a given container, this calls the Initialize() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.Initialize(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the InitializeSolutionStep()
-     * For a given container, this calls the InitializeSolutionStep() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeSolutionStepContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeSolutionStep(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the InitializeNonLinearIteration()
-     * For a given container, this calls the InitializeNonLinearIteration() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void InitializeNonLinearIterationContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.InitializeNonLinearIteration(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the FinalizeNonLinearIteration()
-     * For a given container, this calls the FinalizeNonLinearIteration() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void FinalizeNonLinearIterationContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeNonLinearIteration(r_process_info);}
-        );
-    }
-
-    /**
-     * @brief Auxiliary call to the FinalizeSolutionStep()
-     * For a given container, this calls the FinalizeSolutionStep() method
-     * @tparam TContainerType Container type template (e.g. elements, conditions, ...)
-     * @param rContainer Reference to the container
-     */
-    template <class TContainerType>
-    void FinalizeSolutionStepContainer(TContainerType &rContainer)
-    {
-        const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
-        block_for_each(
-            rContainer,
-            [&](typename TContainerType::value_type& rEntity){rEntity.FinalizeSolutionStep(r_process_info);}
         );
     }
 

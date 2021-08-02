@@ -253,26 +253,6 @@ public:
         int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
         if(ErrorCode != 0) return ErrorCode;
 
-        // Check that all required variables have been registered
-        if(MOMENTUM.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"MOMENTUM Key is 0. Check if the application was correctly registered.","");
-        if(TOTAL_ENERGY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"TOTAL_ENERGY Key is 0. Check if the application was correctly registered.","");
-        if(DENSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DENSITY Key is 0. Check if the application was correctly registered.","");
-        if(DYNAMIC_VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.","");
-        if(KINEMATIC_VISCOSITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"KINEMATIC_VISCOSITY Key is 0. Check if the application was correctly registered.","");
-        if(CONDUCTIVITY.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"CONDUCTIVITY Key is 0. Check if the application was correctly registered.","");
-        if(SPECIFIC_HEAT.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"SPECIFIC_HEAT Key is 0. Check if the application was correctly registered.","");
-        if(HEAT_CAPACITY_RATIO.Key() == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument,"HEAT_CAPACITY_RATIO Key is 0. Check if the application was correctly registered.","");
-
-
-
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
         {

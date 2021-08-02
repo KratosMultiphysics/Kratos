@@ -171,6 +171,8 @@ public:
 	{
         // ********** Prediction phase **********
 
+        KRATOS_INFO("Ramm's Arc Length Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
+
         KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
         // Initialize variables
@@ -461,23 +463,6 @@ protected:
     double mLambda, mLambda_old; /// Loading factor
     double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
     double mDLambdaStep; /// Delta lambda of the current step
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    int Check() override
-    {
-        KRATOS_TRY
-
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_LAMBDA);
-        KRATOS_CHECK_VARIABLE_KEY(ARC_LENGTH_RADIUS_FACTOR);
-
-        return ierr;
-
-        KRATOS_CATCH( "" )
-    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

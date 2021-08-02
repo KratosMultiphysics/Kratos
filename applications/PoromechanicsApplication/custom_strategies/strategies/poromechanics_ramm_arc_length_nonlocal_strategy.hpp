@@ -158,6 +158,8 @@ public:
 	{
         // ********** Prediction phase **********
 
+        KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
+
         KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
         // Initialize variables

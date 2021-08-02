@@ -1,0 +1,74 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+End Properties
+
+Begin Properties 3
+End Properties
+
+Begin Nodes
+    2   0.5000000000  -0.5000000000   0.4000000000
+   12  -0.5000000000   0.5000000000   0.4000000000
+End Nodes
+
+
+Begin SubModelPart Inlet_Inlet_of_particles // Group Inlet_of_particles // Subtree Inlet
+    Begin SubModelPartData
+        RIGID_BODY_MOTION 0
+        //TABLE_VELOCITY_COMPONENT 0
+        IDENTIFIER Inlet_Inlet_of_particles
+        INJECTOR_ELEMENT_TYPE SphericContinuumParticle3D
+        ELEMENT_TYPE SphericContinuumParticle3D
+        CONTAINS_CLUSTERS 0
+        VELOCITY [3] (1.0, 0.0, 0.0)
+        MAX_RAND_DEVIATION_ANGLE 0.01745329251994
+        INLET_NUMBER_OF_PARTICLES 200.0
+        IMPOSED_MASS_FLOW_OPTION 0
+        INLET_START_TIME 0.0
+        INLET_STOP_TIME 100.0
+        RADIUS 0.05
+        PROBABILITY_DISTRIBUTION normal
+        STANDARD_DEVIATION 0.0
+    End SubModelPartData
+    Begin SubModelPartNodes
+        12
+    End SubModelPartNodes
+  End SubModelPart
+
+        Begin Table 0 TIME VELOCITY
+        0.0  0.0
+        1.0  0.0
+        End Table
+
+Begin SubModelPart Inlet_Inlet_of_clusters // Group Inlet_of_clusters // Subtree Inlet
+    Begin SubModelPartData
+        RIGID_BODY_MOTION 0
+        //TABLE_VELOCITY_COMPONENT 0
+        CLUSTER_FILE_NAME ringcluster3D.clu
+        IDENTIFIER Inlet_Inlet_of_clusters
+        INJECTOR_ELEMENT_TYPE SphericContinuumParticle3D
+        ELEMENT_TYPE Cluster3D
+        CONTAINS_CLUSTERS 1
+        VELOCITY [3] (-1.0, 0.0, 0.0)
+        MAX_RAND_DEVIATION_ANGLE 0.01745329251994
+        INLET_NUMBER_OF_PARTICLES 200.0
+        IMPOSED_MASS_FLOW_OPTION 0
+        INLET_START_TIME 0.0
+        INLET_STOP_TIME 100.0
+        RADIUS 0.1
+        PROBABILITY_DISTRIBUTION normal
+        STANDARD_DEVIATION 0.0
+        RANDOM_ORIENTATION 1
+    End SubModelPartData
+    Begin SubModelPartNodes
+         2
+    End SubModelPartNodes
+  End SubModelPart
+
+        Begin Table 0 TIME VELOCITY
+        0.0  0.0
+        1.0  0.0
+        End Table
+

@@ -59,16 +59,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "../DEMApplication/custom_strategies/strategies/explicit_solver_strategy.h"
-#include "../FluidDynamicsApplication/custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulentDEMCoupled.h"
-#include "../FluidDynamicsApplication/custom_strategies/schemes/bdf2_turbulent_scheme.h"
+#include "custom_strategies/schemes/bdf2_turbulent_scheme.h"
 #include "custom_strategies/strategies/bdf2_turbulent_schemeDEMCoupled.h"
 #include "custom_strategies/strategies/adams_bashforth_strategy.h"
 #include "custom_strategies/strategies/residualbased_derivative_recovery_strategy.h"
 
 //schemes
-#include "../DEMApplication/custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "add_custom_utilities_to_python.h"
 #include "custom_strategies/schemes/hybrid_bashforth_scheme.h"

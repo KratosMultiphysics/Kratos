@@ -54,11 +54,6 @@ std::string BinghamTemperatureDependent3DLaw::Info() const { return "BinghamTemp
 int BinghamTemperatureDependent3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
                         const ProcessInfo& rCurrentProcessInfo) {
 
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_SHEAR);
-    KRATOS_CHECK_VARIABLE_KEY(ADAPTIVE_EXPONENT);
-    KRATOS_CHECK_VARIABLE_KEY(BULK_MODULUS);
-
     if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0) {
         KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for BinghamTemperatureDependent3DLaw: "
                      << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;

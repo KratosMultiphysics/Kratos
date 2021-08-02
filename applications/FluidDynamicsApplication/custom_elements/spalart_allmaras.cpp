@@ -25,22 +25,7 @@ int SpalartAllmaras::Check(const ProcessInfo &rCurrentProcessInfo) const
     int ErrorCode = Kratos::Element::Check(rCurrentProcessInfo);
     if(ErrorCode != 0) return ErrorCode;
 
-    // Check that all required variables have been registered
-    if(VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VELOCITY Key is 0. Check if the application was correctly registered.","");
-    if(MESH_VELOCITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MESH_VELOCITY Key is 0. Check if the application was correctly registered.","");
-    if(VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(MOLECULAR_VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"MOLECULAR_VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(TURBULENT_VISCOSITY.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"TURBULENT_VISCOSITY Key is 0. Check if the application was correctly registered.","");
-    if(TEMP_CONV_PROJ.Key() == 0)
-        KRATOS_THROW_ERROR(std::invalid_argument,"TEMP_CONV_PROJ Key is 0. Check if the application was correctly registered.","");
-
     // Checks on nodes
-
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
@@ -273,7 +258,7 @@ void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, c
     this->CalculateLocalSystem(TempMatrix,rRightHandSideVector,rCurrentProcessInfo);
 }
 
-void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const 
+void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -285,7 +270,7 @@ void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, const Proces
 }
 
 
-void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const 
+void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
@@ -296,7 +281,7 @@ void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, c
         rResult[i] = GetGeometry()[i].GetDof(TURBULENT_VISCOSITY).EquationId();
 }
 
-void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step) const 
+void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step) const
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 

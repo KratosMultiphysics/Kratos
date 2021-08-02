@@ -1,19 +1,19 @@
 import warnings
 import numpy as np
-from xmc.distributedEnvironmentFramework import (
-    ExaquteTask,
+from exaqute import (
+    task,
     Type,
     Depth,
     COLLECTION_IN,
     INOUT,
 )
-from xmc.momentEstimator import (
+from xmc.tools import flatten
+from .types import (
     PowerSumsDict,
     SampleArray,
     PowerSumsDictUL,
     CombinedSampleArray,
 )
-from xmc.tools import flatten
 from typing import Union
 
 
@@ -81,7 +81,7 @@ def updatedPowerSums(powerSums: PowerSumsDict, samples: SampleArray) -> PowerSum
     return powerSums
 
 
-@ExaquteTask(
+@task(keep=True, returns=1,
     samples={Type: COLLECTION_IN, Depth: 3},
     powerSums=INOUT,
 )
@@ -212,7 +212,7 @@ def addPowerSumsAndCounter(
 
 
 # The depth value is necessary here
-@ExaquteTask(psDict=INOUT, psArray={Type: COLLECTION_IN, Depth: 4})
+@task(keep=True, returns=2, psDict=INOUT, psArray={Type: COLLECTION_IN, Depth: 4})
 def addPowerSumsAndCounter_Task(
     psDict: Union[PowerSumsDict, PowerSumsDictUL],
     counter: int,

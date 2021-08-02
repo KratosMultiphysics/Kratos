@@ -27,14 +27,15 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
         self.execute_test_eigen_with_different_dofs(use_block_builder=False)
 
     def execute_test_eigen_with_different_dofs(self, use_block_builder):
-        with open(GetFilePath("eigen_test/Eigen_different_dofs_parameters.json"),'r') as parameter_file:
-            parameters = KM.Parameters(parameter_file.read())
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            with open(GetFilePath("eigen_test/Eigen_different_dofs_parameters.json"),'r') as parameter_file:
+                parameters = KM.Parameters(parameter_file.read())
 
-        parameters["solver_settings"]["block_builder"].SetBool(use_block_builder)
+            parameters["solver_settings"]["block_builder"].SetBool(use_block_builder)
 
-        model = KM.Model()
-        StructuralMechanicsAnalysis(model, parameters).Run()
-        self.__CheckEigenSolution(model["Structure"])
+            model = KM.Model()
+            StructuralMechanicsAnalysis(model, parameters).Run()
+            self.__CheckEigenSolution(model["Structure"])
 
     def __CheckEigenSolution(self, model_part):
         exp_eigen_values = KM.Vector([2.3779548, 2.465771262])

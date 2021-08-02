@@ -33,15 +33,13 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Velocity, VELOCITY, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Velocity, VELOCITY, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Velocity_OldStep1, VELOCITY, rElement.GetGeometry(), 1);
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
         const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-        KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
         }
@@ -57,15 +55,13 @@ public:
 
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
-        this->FillFromNodalData(Pressure, PRESSURE, rElement.GetGeometry());
+        this->FillFromHistoricalNodalData(Pressure, PRESSURE, rElement.GetGeometry());
         this->FillFromHistoricalNodalData(
             Pressure_OldStep1, PRESSURE, rElement.GetGeometry(), 1);
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
         const Geometry<Node<3> >& r_geometry = rElement.GetGeometry();
-        KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-
         for (unsigned int i = 0; i < 3; i++) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
         }
@@ -84,7 +80,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(C_SMAGORINSKY);
         return 0;
     }
 };
@@ -100,7 +95,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(KINEMATIC_VISCOSITY);
         return 0;
     }
 };
@@ -117,8 +111,6 @@ public:
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
-        KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
-        KRATOS_CHECK_VARIABLE_KEY(OSS_SWITCH);
         return 0;
     }
 };
