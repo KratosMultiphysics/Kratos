@@ -42,7 +42,7 @@ namespace Kratos
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)
                 eqID[inodes] = r_geometry[inodes].GetId();
 
-            DenseMatrix<double> NTN = ZeroMatrix(number_of_control_points, number_of_control_points); //inital guess how much non-zero are there
+            CompressedMatrix NTN = ZeroMatrix(number_of_control_points, number_of_control_points); //inital guess how much non-zero are there
             Matrix directorAtIntgrationPoints{ ZeroMatrix(number_of_control_points, 3) };
 
             PointerVector<Geometry<Node<3>>> quad_points;
