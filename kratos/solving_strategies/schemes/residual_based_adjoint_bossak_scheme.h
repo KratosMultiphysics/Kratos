@@ -564,10 +564,10 @@ protected:
 
         auto& r_tls = mStabilizationTLS[k];
 
-        const auto& r_properties = rCurrentElement.GetProperties();
-        const double mu = r_properties[DYNAMIC_VISCOSITY];
-        const double rho = r_properties[DENSITY];
-        const double nu = mu / rho;
+        // const auto& r_properties = rCurrentElement.GetProperties();
+        // const double mu = r_properties[DYNAMIC_VISCOSITY];
+        // const double rho = r_properties[DENSITY];
+        // const double nu = mu / rho;
 
         rCurrentElement.Calculate(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES,
                                   r_tls.StabilizationPrimalSteadyMatrix,
@@ -583,34 +583,34 @@ protected:
             r_tls.DiffusionMatrix.resize(number_of_nodes, number_of_nodes, false);
         }
 
-        this->CalculateGeometryData(r_geometry, rCurrentElement.GetIntegrationMethod(),
-                                    r_tls.Ws, r_tls.Ns, r_tls.dNdXs);
-        const int number_of_gauss_points = r_tls.Ws.size();
+        // this->CalculateGeometryData(r_geometry, rCurrentElement.GetIntegrationMethod(),
+        //                             r_tls.Ws, r_tls.Ns, r_tls.dNdXs);
+        // const int number_of_gauss_points = r_tls.Ws.size();
 
-        const int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
+        // const int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
 
-        // compute velocity gradient
-        BoundedMatrix<double, 3, 3> velocity_gradient = ZeroMatrix(3, 3);
-        for (int g = 0; g < number_of_gauss_points; ++g) {
-            const auto& N = row(r_tls.Ns, g);
-            const auto& dNdX = r_tls.dNdXs[g];
+        // // compute velocity gradient
+        // BoundedMatrix<double, 3, 3> velocity_gradient = ZeroMatrix(3, 3);
+        // for (int g = 0; g < number_of_gauss_points; ++g) {
+        //     const auto& N = row(r_tls.Ns, g);
+        //     const auto& dNdX = r_tls.dNdXs[g];
 
-            for (int i = 0; i < number_of_nodes; ++i) {
-                const auto& r_nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
-                for (int j = 0; j < domain_size; ++j) {
-                    for (int k = 0; k < domain_size; ++k) {
-                        velocity_gradient(j, k) += r_nodal_velocity[j] * dNdX(i, k);
-                    }
-                }
-            }
-        }
+        //     for (int i = 0; i < number_of_nodes; ++i) {
+        //         const auto& r_nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        //         for (int j = 0; j < domain_size; ++j) {
+        //             for (int k = 0; k < domain_size; ++k) {
+        //                 velocity_gradient(j, k) += r_nodal_velocity[j] * dNdX(i, k);
+        //             }
+        //         }
+        //     }
+        // }
 
-        velocity_gradient /= number_of_gauss_points;
+        // velocity_gradient /= number_of_gauss_points;
 
-        const double scaling = norm_frobenius(velocity_gradient) * std::pow(mStabilizationLengthScale, 2) / nu;
+        // const double scaling = norm_frobenius(velocity_gradient) * std::pow(mStabilizationLengthScale, 2) / nu;
 
         noalias(r_tls.DiffusionMatrix) = rCurrentElement.GetValue(PRIMAL_STEADY_RESIDUAL_FIRST_DERIVATIVES);
-        r_tls.DiffusionMatrix *= scaling;
+        r_tls.DiffusionMatrix *= mStabilizationLengthScale;
 
         double artificial_diffusion_coeff = 0.0;
         for (int eq = 0; eq < number_of_equations; ++eq) {
@@ -638,7 +638,8 @@ protected:
             }
         }
 
-        rCurrentElement.SetValue(ADJOINT_STABILIZATION_COEFFICIENT, artificial_diffusion_coeff * scaling);
+        // rCurrentElement.SetValue(ADJOINT_STABILIZATION_COEFFICIENT, artificial_diffusion_coeff * scaling);
+        rCurrentElement.SetValue(ADJOINT_STABILIZATION_COEFFICIENT, artificial_diffusion_coeff * mStabilizationLengthScale);
 
         KRATOS_CATCH("");
     }
