@@ -117,7 +117,6 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void InitializeSolutionStep(
         ModelPart& r_model_part,
         TSystemMatrixType& A,
@@ -138,8 +137,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeSolutionStep(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -148,15 +150,17 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeSolutionStep(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void Predict(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -185,8 +189,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> InitializeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -195,8 +202,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> InitializeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> InitializeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
@@ -220,8 +230,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NElems; i++)
         {
-            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
-            itElem -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         int NCons = static_cast<int>(r_model_part.Conditions().size());
@@ -230,8 +243,11 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < NCons; i++)
         {
-            ModelPart::ConditionsContainerType::iterator itCond = con_begin + i;
-            itCond -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
@@ -479,8 +495,14 @@ protected:
     double mDeltaTime;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    NewmarkQuasistaticUPwScheme() : Scheme<TSparseSpace,TDenseSpace>()
+    {
+        mBeta = 0.25;
+        mGamma = 0.5;
+        mTheta = 0.5;
+    }
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
+    virtual inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
     {
         KRATOS_TRY
 
@@ -503,14 +525,20 @@ protected:
             const array_1d<double,3>& PreviousAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
 
-            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            noalias(CurrentAcceleration) =  (  DeltaDisplacement
+                                             - mDeltaTime*PreviousVelocity 
+                                             - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration )
+                                          / (mBeta*mDeltaTime*mDeltaTime);
+
+            noalias(CurrentVelocity) =  PreviousVelocity
+                                      + (1.0-mGamma)*mDeltaTime*PreviousAcceleration
+                                      + mGamma*mDeltaTime*CurrentAcceleration;
 
             double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
             DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const double& PreviousDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            CurrentDtPressure = 1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            CurrentDtPressure = (DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure) / (mTheta*mDeltaTime);
         }
 
         KRATOS_CATCH( "" )
