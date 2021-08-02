@@ -84,7 +84,7 @@ public:
         ctrl_info.Set("identifier", "run_control");
 
         while(true) {
-            auto info = ImportInfo(ctrl_info);
+            Info info = ImportInfo(ctrl_info);
             const std::string control_signal = info.Get<std::string>("control_signal");
             CheckIfNameIsValid(control_signal);
             if (control_signal == "exit") {
@@ -100,8 +100,8 @@ public:
                     err_msg << "\n    end" << std::endl;
                     CO_SIM_IO_ERROR << err_msg.str();
                 }
-                Info info;
-                it_fct->second(info);
+                it_fct->second(info.Get<Info>("settings", Info{})); // pass settings if specified
+
             }
         }
         return Info(); // TODO use this
