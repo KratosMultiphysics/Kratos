@@ -90,7 +90,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         if self.objectives.size() > 1:
             raise RuntimeError("Gradient projection algorithm only supports one objective function!")
         if self.constraints.size() == 0:
-            raise RuntimeError("Gradient projection algorithm requires definition of at least one constraint!")
+            KM.Logger.PrintWarning("ShapeOpt", "Gradient projection algorithm should be used with at least one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -229,6 +229,22 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             s = nabla_f * (-1.0)
             s *= self.step_size / s.norm_inf()
 
+            if self.local_variable_damping:
+                # local damping of zig-zagging variables - inspired by the moving asymptotes for each variable in MMA
+                ds = np.zeros(len(self.local_damping_factors))
+                for i, _ in enumerate(self.local_damping_factors):
+                    ds[i] = s[i]
+                _factor = np.ones(ds.size)
+                sign = np.multiply(ds, np.array(self.old_ds))
+                _factor[np.where(sign>0)] = 1.2
+                _factor[np.where(sign<0)] = 0.7
+                new_factors = np.multiply(np.array(self.local_damping_factors), _factor)
+                new_factors = np.minimum(new_factors, np.ones(ds.size)*1.0)
+                new_factors = np.maximum(new_factors, np.ones(ds.size)*0.01)
+                new_factors = new_factors.tolist()
+                self.old_ds = ds.tolist()
+                KM.Logger.PrintInfo("ShapeOpt", f"Local damping factors: min: {min(self.local_damping_factors)}, max: {max(self.local_damping_factors)}, mean: {np.mean(self.local_damping_factors)}")
+            
             for i, f in enumerate(self.local_damping_factors):
                 s[i] *= f
 
@@ -237,6 +253,9 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, self.local_damping_factors, KSO.LOCAL_DAMPING)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s, KSO.CONTROL_POINT_UPDATE)
 
+            if self.local_variable_damping:
+                self.local_damping_factors = np.array(new_factors).tolist()
+                
             return
 
         nabla_f *= self.step_size / nabla_f.norm_inf()
