@@ -123,7 +123,6 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
-        // UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] = 
@@ -201,10 +200,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor and stresses
-        // UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 

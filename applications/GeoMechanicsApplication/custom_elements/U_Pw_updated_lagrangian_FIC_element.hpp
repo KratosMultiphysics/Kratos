@@ -82,7 +82,6 @@ public:
     using UPwSmallStrainFICElement<TDim,TNumNodes>::CalculateShearModulus;
 
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
-    // using UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
     typedef typename UPwSmallStrainFICElement<TDim,TNumNodes>::FICElementVariables FICElementVariables;

@@ -290,12 +290,6 @@ protected:
                                         array_1d<double,TNumNodes> &PVector,
                                         const ElementVariables &rVariables) const;
 
-
-    // void UpdateElementalVariableStressVector(ElementVariables &rVariables, const unsigned int &PointNumber);
-    // void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
-    // void UpdateStressVector(const ElementVariables &rVariables, const unsigned int &PointNumber);
-    // void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
-
     double CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const;
     double CalculateBiotCoefficient( const ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient) const;

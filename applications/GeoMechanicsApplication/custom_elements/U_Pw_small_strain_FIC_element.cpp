@@ -133,7 +133,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         this->SaveGPConstitutiveTensor( ConstitutiveTensorContainer,
@@ -195,7 +194,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Compute ConstitutiveTensor
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -496,10 +494,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables,Variables);
 
         //Compute constitutive tensor and stresses
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 

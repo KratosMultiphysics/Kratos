@@ -154,7 +154,6 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
             noalias(Np) = row(NContainer,GPoint);
 
             //compute constitutive tensor and/or stresses
-            // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(StressVectorDynamic, GPoint);
             ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -434,10 +433,8 @@ void UPwSmallStrainLinkInterfaceElement<TDim,TNumNodes>::
                                                                     Variables.JointWidth );
 
         //Compute constitutive tensor and stresses
-        // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse( Variables,
                                           RetentionParameters,

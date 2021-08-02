@@ -273,14 +273,6 @@ protected:
 
     void InterpolateOutputDoubles( std::vector<double>& rOutput, const std::vector<double>& GPValues );
 
-    // void UpdateElementalVariableStressVector(InterfaceElementVariables &rVariables, const unsigned int &PointNumber);
-
-    // void UpdateElementalVariableStressVector(Vector &StressVector, const unsigned int &PointNumber);
-
-    // void UpdateStressVector(const InterfaceElementVariables &rVariables, const unsigned int &PointNumber);
-
-    // void UpdateStressVector(const Vector &StressVector, const unsigned int &PointNumber);
-
     template< class TValueType >
     void InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues );
 

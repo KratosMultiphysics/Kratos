@@ -316,7 +316,6 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        // UpdateElementalVariableStressVector(Variables, PointNumber);
         ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
@@ -773,7 +772,6 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        // UpdateElementalVariableStressVector(Variables, PointNumber);
         ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[PointNumber] = 
@@ -1071,10 +1069,8 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            // UpdateElementalVariableStressVector(Variables, PointNumber);
             ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            // UpdateStressVector(Variables, PointNumber);
 
             ComparisonUtilities EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(mStressVector[PointNumber]);
@@ -1287,10 +1283,8 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            // UpdateElementalVariableStressVector(Variables, PointNumber);
             ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            // UpdateStressVector(Variables, PointNumber);
 
             if ( rOutput[PointNumber].size() != mStressVector[PointNumber].size() )
                 rOutput[PointNumber].resize( mStressVector[PointNumber].size(), false );
@@ -1358,10 +1352,8 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            // UpdateElementalVariableStressVector(Variables, PointNumber);
             ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-            // UpdateStressVector(Variables, PointNumber);
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
 
@@ -1390,43 +1382,6 @@ void SmallStrainUPwDiffOrderElement::
 
     KRATOS_CATCH( "" )
 }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// void SmallStrainUPwDiffOrderElement::
-//     UpdateElementalVariableStressVector( ElementVariables& rVariables,
-//                                          unsigned int PointNumber)
-// {
-//     KRATOS_TRY
-//     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
-
-//     for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
-//     {
-//         rVariables.StressVector(i) = mStressVector[PointNumber][i];
-//     }
-
-//     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateElementalVariableStressVector()") << std::endl;
-
-//     KRATOS_CATCH( "" )
-
-// }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// void SmallStrainUPwDiffOrderElement::
-//     UpdateStressVector(const ElementVariables& rVariables,
-//                        unsigned int PointNumber)
-// {
-//     KRATOS_TRY
-//     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
-
-//     for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-//     {
-//         mStressVector[PointNumber][i] = rVariables.StressVector(i);
-//     }
-//     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::UpdateStressVector()") << std::endl;
-
-//     KRATOS_CATCH( "" )
-
-// }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
@@ -1548,10 +1503,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        // UpdateElementalVariableStressVector(Variables, PointNumber);
         ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UpdateStressVector(Variables, PointNumber);
 
         CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1609,10 +1562,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        // UpdateElementalVariableStressVector(Variables, PointNumber);
         ConstitutiveParameters.SetStressVector(mStressVector[PointNumber]);
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UpdateStressVector(Variables, PointNumber);
 
         //calculating weighting coefficient for integration
         this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,

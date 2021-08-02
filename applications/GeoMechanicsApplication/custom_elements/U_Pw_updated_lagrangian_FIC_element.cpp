@@ -128,7 +128,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            // UpdateElementalVariableStressVector(Variables, GPoint);
             ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
@@ -157,7 +156,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            // UpdateElementalVariableStressVector(Variables, GPoint);
             ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
@@ -246,10 +244,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables,Variables);
 
         //Compute constitutive tensor and stresses
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        // UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
