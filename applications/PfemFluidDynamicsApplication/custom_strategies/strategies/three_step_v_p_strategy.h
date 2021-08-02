@@ -483,7 +483,7 @@ namespace Kratos
      * @param rCurrentProcessInfo ProcessInfo instance from the fluid ModelPart. Must contain DELTA_TIME variables.
      */
 
-    bool SolveFirstVelocitySystem(double &NormV)
+    bool SolveFirstVelocitySystem(double NormV)
     {
       std::cout << "1. SolveFirstVelocitySystem " << std::endl;
 
@@ -669,7 +669,7 @@ namespace Kratos
       }
     }
 
-    bool CheckVelocityIncrementConvergence(const double NormDv, double &NormV)
+    bool CheckVelocityIncrementConvergence(const double NormDv, double NormV)
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const int n_nodes = rModelPart.NumberOfNodes();
