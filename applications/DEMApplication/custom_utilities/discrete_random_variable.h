@@ -16,7 +16,6 @@
 #include "DEM_application_variables.h"
 #include "includes/model_part.h"
 #include "random_variable.h"
-#include <numeric>
 
 namespace Kratos {
 
