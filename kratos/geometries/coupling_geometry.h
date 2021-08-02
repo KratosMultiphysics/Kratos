@@ -353,6 +353,7 @@ public:
                 master_span_intersections_in_master_local_space,
                 1e-2, mpGeometries[0]->PolynomialDegree(0), false);
 
+            CoordinatesArrayType local_coords_span_intersection_on_slave = ZeroVector(3);
             CoordinatesArrayType global_coords_span_intersection_on_slave = ZeroVector(3);
             CoordinatesArrayType local_coords_master = ZeroVector(3);
             CoordinatesArrayType global_coords_master;
@@ -361,9 +362,10 @@ public:
                 mpGeometries[i]->SpansLocalSpace(intersection_slave_spans);
 
                 for (IndexType j = 0; j < intersection_slave_spans.size(); ++j) {
+                    local_coords_span_intersection_on_slave[0] = intersection_slave_spans[j];
                     // Get global coordinates of span intersection on slave.
                     mpGeometries[i]->GlobalCoordinates(
-                        global_coords_span_intersection_on_slave, intersection_slave_spans[j]);
+                        global_coords_span_intersection_on_slave, local_coords_span_intersection_on_slave);
                     // Get initial guess for projection on master curve.
                     curve_tessellation_master.GetClosestPoint(
                         global_coords_span_intersection_on_slave, global_coords_master, local_coords_master);
