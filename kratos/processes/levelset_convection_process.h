@@ -466,7 +466,7 @@ protected:
 
         mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
         mpDistanceModelPart->SetBufferSize(base_buffer_size);
-        for(auto i_properties = rBaseModelPart.PropertiesBegin() ; i_properties != rBaseModelPart.PropertiesEnd() ; i_properties++){
+        for(auto i_properties = rBaseModelPart.PropertiesBegin() ; i_properties != rBaseModelPart.PropertiesEnd() ; ++i_properties){
             mpDistanceModelPart->AddProperties(*(i_properties).base(),0);
         }
         mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
