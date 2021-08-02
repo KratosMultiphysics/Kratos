@@ -28,6 +28,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -154,7 +155,7 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename ClassType::Pointer Create(
+    virtual typename ClassType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters) const
     {

@@ -156,9 +156,9 @@ public:
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    virtual typename ClassType::Pointer Create(
+    typename BaseType::Pointer Create(
         ModelPart& rModelPart,
-        Parameters ThisParameters) const
+        Parameters ThisParameters) const override
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
@@ -212,7 +212,7 @@ public:
 
         return default_parameters;
     }
-  
+
     /**
      * @brief This method returns the LHS matrix
      * @return The LHS matrix

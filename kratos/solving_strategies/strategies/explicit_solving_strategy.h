@@ -149,10 +149,10 @@ public:
      * @param rModelPart The model part to be computed
      * @param ThisParameters The configuration parameters
      */
-    virtual typename ClassType::Pointer Create(
+    typename BaseType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
-        ) const
+        ) const override
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
@@ -171,7 +171,7 @@ public:
     void Initialize() override
     {
         // Initialize elements, conditions and constraints
-        EntitiesUtilities::InitializeAllEntities(GetModelPart());
+        EntitiesUtilities::InitializeAllEntities(BaseType::GetModelPart());
 
         // Set the explicit DOFs rebuild level
         if (mRebuildLevel != 0) {
@@ -206,7 +206,7 @@ public:
     void InitializeSolutionStep() override
     {
         // InitializeSolutionStep elements, conditions and constraints
-        EntitiesUtilities::InitializeSolutionStepAllEntities(GetModelPart());
+        EntitiesUtilities::InitializeSolutionStepAllEntities(BaseType::GetModelPart());
 
         // Call the builder and solver initialize solution step
         mpExplicitBuilder->InitializeSolutionStep(BaseType::GetModelPart());
@@ -219,7 +219,7 @@ public:
     void FinalizeSolutionStep() override
     {
         // FinalizeSolutionStep elements, conditions and constraints
-        EntitiesUtilities::FinalizeSolutionStepAllEntities(GetModelPart());
+        EntitiesUtilities::FinalizeSolutionStepAllEntities(BaseType::GetModelPart());
 
         // Call the builder and solver finalize solution step (the reactions are computed in here)
         mpExplicitBuilder->FinalizeSolutionStep(BaseType::GetModelPart());
@@ -232,7 +232,7 @@ public:
     bool SolveSolutionStep() override
     {
         // Call the initialize non-linear iteration
-        EntitiesUtilities::InitializeNonLinearIterationAllEntities(GetModelPart());
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(BaseType::GetModelPart());
 
         // Apply constraints
         if(BaseType::GetModelPart().MasterSlaveConstraints().size() != 0) {
@@ -248,7 +248,7 @@ public:
         }
 
         // Call the finalize non-linear iteration
-        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(GetModelPart());
+        EntitiesUtilities::FinalizeNonLinearIterationAllEntities(BaseType::GetModelPart());
 
         return true;
     }
