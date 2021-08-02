@@ -819,7 +819,7 @@ namespace Kratos
       return false;
     }
 
-    virtual bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double &NormP)
+    virtual bool CheckPressureConvergence(const double NormDp, double &errorNormDp, double NormP)
     {
       return false;
     }
