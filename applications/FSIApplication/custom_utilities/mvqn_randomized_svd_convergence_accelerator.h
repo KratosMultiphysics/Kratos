@@ -451,7 +451,7 @@ private:
     {
         // Initialize auxiliary variables
         bool is_number_of_modes_limited = false;
-        const std::size_t min_extra_modes = 10;
+        const std::size_t min_extra_modes = 2;
         const std::size_t aux_extra_modes = std::ceil(0.2 * mUserNumberOfModes);
         mNumberOfExtraModes = min_extra_modes > aux_extra_modes ? min_extra_modes : aux_extra_modes;
 
