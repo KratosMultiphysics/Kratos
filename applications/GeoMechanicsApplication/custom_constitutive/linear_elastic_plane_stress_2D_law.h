@@ -1,17 +1,17 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:         BSD License
-//                   license: structural_mechanics_application/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_GEO_LINEAR_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_GEO_LINEAR_PLANE_STRESS_LAW_H_INCLUDED
+#if !defined (KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED)
+#define  KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED
 
 // System includes
 
@@ -41,13 +41,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class LinearPlaneStress2DLaw
- * @ingroup StructuralMechanicsApplication
+ * @class GeoLinearElasticPlaneStress2DLaw
+ * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane stress cases
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearPlaneStress2DLaw 
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStress2DLaw 
     : public ElasticIsotropicK03DLaw
 {
 public:
@@ -73,8 +73,8 @@ public:
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
     
-    /// Counted pointer of LinearPlaneStress2DLaw
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStress2DLaw );
+    /// Counted pointer of GeoLinearElasticPlaneStress2DLaw
+    KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStress2DLaw );
 
     ///@name Life Cycle
     ///@{
@@ -82,20 +82,20 @@ public:
     /**
      * Default constructor.
      */
-    LinearPlaneStress2DLaw();
+    GeoLinearElasticPlaneStress2DLaw();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    LinearPlaneStress2DLaw (const LinearPlaneStress2DLaw& rOther);
+    GeoLinearElasticPlaneStress2DLaw (const GeoLinearElasticPlaneStress2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~LinearPlaneStress2DLaw() override;
+    ~GeoLinearElasticPlaneStress2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -240,6 +240,6 @@ private:
     }
 
 
-}; // Class LinearPlaneStress2DLaw
+}; // Class GeoLinearElasticPlaneStress2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_GEO_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined
+#endif // KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED  defined

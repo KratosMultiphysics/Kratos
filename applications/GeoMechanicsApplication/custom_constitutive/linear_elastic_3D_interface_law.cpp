@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_strain_2D_law.h"
+#include "custom_constitutive/linear_elastic_3D_interface_law.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -26,34 +26,36 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 /***********************************************************************************/
 
-    LinearPlaneStrain2DLaw::    LinearPlaneStrain2DLaw()
-    : LinearPlaneStrainK0Law()
+LinearElastic3DInterfaceLaw::
+    LinearElastic3DInterfaceLaw()
+    : LinearElastic2DInterfaceLaw()
 {
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 /***********************************************************************************/
 
-LinearPlaneStrain2DLaw::
-    LinearPlaneStrain2DLaw(const LinearPlaneStrain2DLaw& rOther): LinearPlaneStrainK0Law(rOther) {}
+LinearElastic3DInterfaceLaw::
+    LinearElastic3DInterfaceLaw(const LinearElastic3DInterfaceLaw& rOther)
+    : LinearElastic2DInterfaceLaw(rOther) {}
 
 //********************************CLONE***********************************************
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer LinearPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer LinearElastic3DInterfaceLaw::Clone() const
 {
-    return Kratos::make_shared<    LinearPlaneStrain2DLaw>(*this);
+    return Kratos::make_shared< LinearElastic3DInterfaceLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-    LinearPlaneStrain2DLaw::~LinearPlaneStrain2DLaw() {}
+    LinearElastic3DInterfaceLaw::~LinearElastic3DInterfaceLaw() {}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool&     LinearPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& LinearElastic3DInterfaceLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
@@ -66,7 +68,7 @@ bool&     LinearPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, 
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 /***********************************************************************************/
 
-void LinearPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void LinearElastic3DInterfaceLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
     rFeatures.mOptions.Set( PLANE_STRAIN_LAW);
@@ -88,38 +90,33 @@ void LinearPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-// void     LinearPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
-// {
-//     KRATOS_TRY;
+void LinearElastic3DInterfaceLaw::
+    CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+{
+    KRATOS_TRY;
 
-//     const Properties& r_material_properties = rValues.GetMaterialProperties();
-//     const double E = r_material_properties[YOUNG_MODULUS];
-//     const double NU = r_material_properties[POISSON_RATIO];
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
-//     this->CheckClearElasticMatrix(C);
+    this->CheckClearElasticMatrix(C);
 
-//     const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-//     const double c1 = (1.00 - NU)*c0;
-//     const double c2 = c0 * NU;
-//     const double c3 = (0.5 - NU)*c0;
+    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
 
-//     C(0, 0) = c1;
-//     C(0, 1) = c2;
+    C(INDEX_3D_INTERFACE_ZZ, INDEX_3D_INTERFACE_ZZ) = (1.00 - NU)*c0;
+    C(INDEX_3D_INTERFACE_XZ, INDEX_3D_INTERFACE_XZ) = (0.5 - NU)*c0;
+    C(INDEX_3D_INTERFACE_YZ, INDEX_3D_INTERFACE_YZ) = (0.5 - NU)*c0;
 
-//     C(1, 0) = c2;
-//     C(1, 1) = c1;
-
-//     C(2, 2) = c3;
-
-//     KRATOS_CATCH("");
-// }
+    KRATOS_CATCH("");
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void LinearPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
-                                                Vector& rStressVector,
-                                                ConstitutiveLaw::Parameters& rValues)
+void LinearElastic3DInterfaceLaw::
+    CalculatePK2Stress(const Vector& rStrainVector,
+                       Vector& rStressVector,
+                       ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
 
@@ -129,13 +126,11 @@ void LinearPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
 
     const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
     const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
     const double c3 = (0.5 - NU)*c0;
 
-    rStressVector[INDEX_2D_PLANE_STRAIN_XX] = c1 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_YY] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c1 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_XY] = c3 * rStrainVector[INDEX_2D_PLANE_STRESS_XY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
+    rStressVector[INDEX_3D_INTERFACE_XZ] = c3 * rStrainVector[INDEX_3D_INTERFACE_XZ];
+    rStressVector[INDEX_3D_INTERFACE_YZ] = c3 * rStrainVector[INDEX_3D_INTERFACE_YZ];
+    rStressVector[INDEX_3D_INTERFACE_ZZ] = c1 * rStrainVector[INDEX_3D_INTERFACE_ZZ];
 
     KRATOS_CATCH("");
 }

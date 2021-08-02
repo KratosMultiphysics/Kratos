@@ -10,15 +10,15 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_ELASTIC_3D_INTERFACE_LAW_GEO_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_3D_INTERFACE_LAW_GEO_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
+#include "custom_constitutive/linear_elastic_2D_interface_law.h"
 
 namespace Kratos
 {
@@ -42,14 +42,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearPlaneStrainK0Law
- * @ingroup StructuralMechanicsApplication
+ * @class LinearElastic3DInterfaceLaw
+ * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearPlaneStrainK0Law
-    : public ElasticIsotropicK03DLaw
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic3DInterfaceLaw
+    : public LinearElastic2DInterfaceLaw
 {
 public:
     ///@name Type Definitions
@@ -59,23 +59,16 @@ public:
     typedef ConstitutiveLaw       CLBaseType;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef ElasticIsotropicK03DLaw      BaseType;
+    typedef LinearElastic2DInterfaceLaw      BaseType;
 
     /// The size type definition
     typedef std::size_t             SizeType;
 
     /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_2D;
+    static constexpr SizeType Dimension = N_DIM_3D;
 
-    /// Static definition of the VoigtSize
-    // for the time being
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
-
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSizePlaneStress = VOIGT_SIZE_2D_PLANE_STRESS;
-
-    /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrainK0Law );
+    /// Counted pointer of LinearElastic2DInterfaceLaw
+    KRATOS_CLASS_POINTER_DEFINITION( LinearElastic3DInterfaceLaw );
 
     ///@name Life Cycle
     ///@{
@@ -83,7 +76,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearPlaneStrainK0Law();
+    LinearElastic3DInterfaceLaw();
 
     /**
      * @brief The clone operation
@@ -93,13 +86,13 @@ public:
     /**
      * Copy constructor.
      */
-    LinearPlaneStrainK0Law (const LinearPlaneStrainK0Law& rOther);
+    LinearElastic3DInterfaceLaw (const LinearElastic3DInterfaceLaw& rOther);
 
 
     /**
      * @brief Destructor.
      */
-    ~LinearPlaneStrainK0Law() override;
+    ~LinearElastic3DInterfaceLaw() override;
 
     ///@}
     ///@name Operators
@@ -122,7 +115,7 @@ public:
     SizeType WorkingSpaceDimension() override
     {
         return Dimension;
-    };
+    }
 
     /**
      * @brief Voigt tensor size:
@@ -130,7 +123,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return VoigtSizePlaneStress;
+        return VOIGT_SIZE_3D_INTERFACE;
     }
 
     ///@}
@@ -176,11 +169,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     * @param rValues Parameters of the constitutive law
-     */
+    // /**
+    //  * @brief It calculates the constitutive matrix C
+    //  * @param C The constitutive matrix
+    //  * @param rValues Parameters of the constitutive law
+    //  */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
@@ -193,12 +186,12 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
-    /**
-     * @brief It calculates the strain vector
-     * @param rValues The internal values of the law
-     * @param rStrainVector The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
+    // /**
+    //  * @brief It calculates the strain vector
+    //  * @param rValues The internal values of the law
+    //  * @param rStrainVector The strain vector in Voigt notation
+    //  */
+    // void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
@@ -232,18 +225,18 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
     }
 
     // stress vector indices
-    const int VOIGT_INDEX_XX = 0;
-    const int VOIGT_INDEX_YY = 1;
+    // const int VOIGT_INDEX_XX = 0;
+    // const int VOIGT_INDEX_YY = 1;
 
-}; // Class LinearPlaneStrainK0Law
+}; // Class LinearElastic2DInterfaceLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
