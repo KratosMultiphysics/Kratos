@@ -133,7 +133,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         //set gauss points variables to constitutivelaw parameters
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
         this->SaveGPConstitutiveTensor( ConstitutiveTensorContainer,
                                         Variables.ConstitutiveMatrix,
@@ -194,7 +194,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         // Compute ConstitutiveTensor
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         // Compute DtStress
@@ -466,6 +466,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), CurrentProcessInfo);
 
+    const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
+
     //Loop over integration points
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -492,9 +494,8 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->CalculateShapeFunctionsSecondOrderGradients(FICVariables,Variables);
 
         //Compute constitutive tensor and stresses
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UPwSmallStrainElement<TDim,TNumNodes>::UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -502,8 +503,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         FICVariables.ShearModulus = CalculateShearModulus(Variables.ConstitutiveMatrix);
 
         // calculate Bulk modulus from stiffness matrix
-        const double BulkModulus = CalculateBulkModulus(Variables.ConstitutiveMatrix);
-        this->InitializeBiotCoefficients(Variables, BulkModulus);
+        this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
@@ -520,7 +520,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
         }
     }

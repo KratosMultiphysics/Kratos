@@ -103,11 +103,11 @@ void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
 
-    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
