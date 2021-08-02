@@ -184,12 +184,15 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                 double positive_density = 1.0;
                 double negative_density = 1000.0;
 
+                GeometryType::Pointer p_geom = this->pGetGeometry();
+
                 for (unsigned int intgp = 0; intgp < int_gauss_pts_weights.size(); ++intgp){
                     double u_dot_n = 0.0;
                     for (unsigned int i = 0; i < NumNodes; i++){
-                        for (unsigned int dim = 0; dim < NumNodes-1; dim++){
+                        u_dot_n += int_shape_function(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_DIFFERENCE);
+                        /* for (unsigned int dim = 0; dim < NumNodes-1; dim++){
                             u_dot_n += int_shape_function(intgp,i)*data.Velocity(i,dim)*(int_normals_neg[intgp])[dim];
-                        }
+                        } */
 
                         if (data.Distance[i] > 0.0){
                             positive_density = data.NodalDensity[i];
@@ -197,6 +200,9 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                             negative_density = data.NodalDensity[i];
                         }
                     }
+
+                    u_dot_n /= data.DeltaTime;
+
                     for (unsigned int i = 0; i < NumNodes; i++){
                         for (unsigned int j = 0; j < NumNodes; j++){
                             for (unsigned int dim = 0; dim < NumNodes-1; dim++){
@@ -207,7 +213,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     }
                 }
 
-                noalias(rLeftHandSideMatrix) -= (negative_density - positive_density)*lhs_acc_correction;
+                noalias(rLeftHandSideMatrix) += (negative_density - positive_density)*lhs_acc_correction;
 
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
 
