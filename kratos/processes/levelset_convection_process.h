@@ -278,7 +278,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
-            "new_model_part_name" : "",
+            "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
