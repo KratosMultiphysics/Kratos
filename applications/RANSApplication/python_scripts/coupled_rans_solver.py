@@ -87,8 +87,19 @@ class CoupledRANSSolver(PythonSolver):
         else:
             self.ramp_up_interval = None
 
-        self.automatic_mesh_refinement_step = 0
-        self.reform_dofs_dict = {}
+        self.perform_adaptive_mesh_refinement = False
+        if (custom_settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
+            self.perform_adaptive_mesh_refinement = True
+            self.adaptive_mesh_refinement_based_on_response_function_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
+            self.adaptive_mesh_refinement_interval_utility = Kratos.IntervalUtility(self.adaptive_mesh_refinement_based_on_response_function_settings)
+            self.adaptive_mesh_refinement_based_on_response_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"])
+
+            # create the folder structure
+            self.amr_output_path = Path(self.adaptive_mesh_refinement_based_on_response_function_settings["output_path"].GetString())
+
+            self.automatic_mesh_refinement_step = 0
+            self.reform_dofs_dict = {}
+            self.mesh_indication_variable = Kratos.KratosGlobals.GetVariable(self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_change_indication_variable_name"].GetString())
 
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
@@ -132,10 +143,11 @@ class CoupledRANSSolver(PythonSolver):
             "constants": {},
             "adaptive_mesh_refinement_based_on_response_function": false,
             "adaptive_mesh_refinement_based_on_response_function_settings": {
-                "time_range"                             : [0.0, 1e+30],
-                "step_interval"                          : 50,
-                "output_model_part_name"                 : "adapted_mesh",
-                "re_calculate_time_step_after_refinement": false,
+                "interval"                               : [0.0, 1e+30],
+                "execute_every_nth_step"                 : 50,
+                "mesh_change_indication_variable_name"   : "AUX_MESH_VAR",
+                "output_path"                            : "adaptive_mesh_refinement",
+                "re_calculate_time_step_after_refinement": true,
                 "time_step_re_calculation_settings": {
                     "desired_maximum_cfl_number": 10.0,
                     "minimum_time_step"         : 1e-5,
@@ -272,15 +284,15 @@ class CoupledRANSSolver(PythonSolver):
         RansVariableUtilities.AssignBoundaryFlagsToGeometries(self.main_model_part)
         self.formulation.Initialize()
 
-        if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
+        if (self.perform_adaptive_mesh_refinement):
             number_of_solving_variables = len(self.formulation.GetSolvingVariables())
             Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.RESPONSE_FUNCTION_INTERPOLATION_ERROR, Kratos.Vector(number_of_solving_variables, 0.0), self.main_model_part.Nodes)
 
-        # communicate to HDF5 application to write the modified mesh in hdf5
-        self.main_model_part.ProcessInfo[Kratos.AUX_MESH_VAR] = 1.0
+            # communicate to application to write the modified meshes
+            self.main_model_part.ProcessInfo.SetValue(self.mesh_indication_variable, 1.0)
 
-        CoupledRANSSolver._ExecuteRecursively(self.formulation,
-            lambda x : self.reform_dofs_dict.__setitem__(x, x.GetStrategy().GetReformDofSetAtEachStepFlag()) if x.GetStrategy() is not None else None)
+            CoupledRANSSolver._ExecuteRecursively(self.formulation,
+                lambda x : self.reform_dofs_dict.__setitem__(x, x.GetStrategy().GetReformDofSetAtEachStepFlag()) if x.GetStrategy() is not None else None)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, self.formulation.GetInfo())
 
@@ -299,8 +311,9 @@ class CoupledRANSSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self.formulation.InitializeSolutionStep()
 
-        CoupledRANSSolver._ExecuteRecursively(self.formulation,
-            lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(self.reform_dofs_dict[x]) if x.GetStrategy() is not None else None)
+        if (self.perform_adaptive_mesh_refinement):
+            CoupledRANSSolver._ExecuteRecursively(self.formulation,
+                lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(self.reform_dofs_dict[x]) if x.GetStrategy() is not None else None)
 
     def Predict(self):
         self.formulation.Predict()
@@ -317,19 +330,6 @@ class CoupledRANSSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.formulation.FinalizeSolutionStep()
-
-        if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
-            adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
-            adaptive_mesh_refinement_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"])
-            automatic_mesh_refinement_time_range = adaptive_mesh_refinement_settings["time_range"].GetVector()
-
-            current_time = self.main_model_part.ProcessInfo[Kratos.TIME]
-            if (current_time >= automatic_mesh_refinement_time_range[0] and current_time <= automatic_mesh_refinement_time_range[1]):
-                if (self.automatic_mesh_refinement_step % adaptive_mesh_refinement_settings["step_interval"].GetInt() == 0):
-                    Kratos.ModelPartIO(adaptive_mesh_refinement_settings["output_model_part_name"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
-                    self.formulation.ComputeTransientResponseFunctionInterpolationError(adaptive_mesh_refinement_settings["response_function_interpolation_error_computation_settings"].Clone())
-                    self._PerformAdaptiveMeshRefinement()
-                self.automatic_mesh_refinement_step += 1
 
     def Finalize(self):
         self.formulation.Finalize()
@@ -357,6 +357,27 @@ class CoupledRANSSolver(PythonSolver):
                 return self.is_converged
         else:
             return False
+
+    def CheckAndExecuteAdaptiveMeshRefinement(self):
+        if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
+            adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
+            adaptive_mesh_refinement_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"])
+
+            if (self.adaptive_mesh_refinement_interval_utility.IsInInterval(self.main_model_part.ProcessInfo[Kratos.TIME])):
+                if (self.automatic_mesh_refinement_step % self.adaptive_mesh_refinement_based_on_response_function_settings["execute_every_nth_step"].GetInt() == 0):
+                    self.formulation.ComputeTransientResponseFunctionInterpolationError(
+                        adaptive_mesh_refinement_settings["response_function_interpolation_error_computation_settings"].Clone(),
+                        self.amr_output_path,
+                        self.settings["model_import_settings"])
+                    self._PerformAdaptiveMeshRefinement()
+
+                    # communicate to applications to write the modified mesh
+                    self.main_model_part.ProcessInfo[self.mesh_indication_variable] = 1.0
+                else:
+                    # communicate to applications to not to write the modified mesh
+                    self.main_model_part.ProcessInfo[self.mesh_indication_variable] = 0.0
+
+                self.automatic_mesh_refinement_step += 1
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
@@ -505,18 +526,11 @@ class CoupledRANSSolver(PythonSolver):
             max_cfl, _ = KratosStats.SpatialMethods.NonHistorical.Elements.NormMethods.Max(self.main_model_part, Kratos.CFL_NUMBER, "value")
 
             # now calculate the new time step
-            desired_cfl_number_after_refinement = time_step_re_calculation_settings["desired_maximum_cfl_number"].GetDouble()
-            new_time_step = min(time_step_re_calculation_settings["maximum_time_step"].GetDouble(), max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble()))
-            self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
-
-        # store the mdpa for post processing
-        mdpa_path = Path("refined_mdpas")
-        mdpa_path.mkdir(exist_ok=True)
-        Kratos.ModelPartIO(str(mdpa_path / "refined_step_{:d}".format(self.main_model_part.ProcessInfo[Kratos.STEP])), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
-
-        # communicate to HDF5 application to write the modified mesh in hdf5
-        self.main_model_part.ProcessInfo[Kratos.AUX_MESH_VAR] = 1.0
+            if (max_cfl > 0.0):
+                desired_cfl_number_after_refinement = time_step_re_calculation_settings["desired_maximum_cfl_number"].GetDouble()
+                new_time_step = min(time_step_re_calculation_settings["maximum_time_step"].GetDouble(), max(self._ComputeDeltaTime() * desired_cfl_number_after_refinement / max_cfl, time_step_re_calculation_settings["minimum_time_step"].GetDouble()))
+                self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
 

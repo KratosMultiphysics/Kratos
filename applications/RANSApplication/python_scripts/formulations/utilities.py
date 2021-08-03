@@ -1,3 +1,4 @@
+import os
 from importlib import import_module
 from pathlib import Path
 
@@ -361,4 +362,16 @@ def SolveProblem(analysis_class_type, kratos_parameters, execution_prefix):
     Kratos.Logger.PrintInfo("SolvePrimalProblem", "Solved primal evaluation at {}.".format(execution_prefix + ".json"))
 
     return model, primal_simulation
+
+class ExecutionScope:
+    def __init__(self, execution_path):
+        self.currentPath = Path.cwd()
+        self.scope = Path(execution_path)
+
+    def __enter__(self):
+        self.scope.mkdir(parents=True, exist_ok=True)
+        os.chdir(str(self.scope))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.chdir(self.currentPath)
 

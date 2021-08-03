@@ -11,6 +11,10 @@ class RANSAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         super().__init__(model, parameters)
 
+    def InitializeSolutionStep(self):
+        self._GetSolver().CheckAndExecuteAdaptiveMeshRefinement()
+        super().InitializeSolutionStep()
+
     def _CreateSolver(self):
         return CoupledRANSSolver(self.model, self.project_parameters["solver_settings"])
 

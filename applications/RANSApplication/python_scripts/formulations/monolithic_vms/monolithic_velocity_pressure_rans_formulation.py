@@ -17,6 +17,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateRans
 from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateNormalsOnConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
+from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -330,12 +331,11 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         else:
             return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
 
-    def ComputeTransientResponseFunctionInterpolationError(self, settings):
+    def ComputeTransientResponseFunctionInterpolationError(self, settings, amr_output_path, model_import_settings):
         # in here we need to calculate response function interpolation error
         default_settings = Kratos.Parameters("""{
             "primal_transient_project_parameters_file_name" : "PLEASE_SPECIFY_TRANSIENT_PRIMAL_PROJECT_PARAMETERS_FILE",
             "adjoint_transient_project_parameters_file_name": "PLEASE_SPECIFY_TRANSIENT_ADJOINT_PROJECT_PARAMETERS_FILE",
-            "logs_path"                                     : "logs",
             "number_of_transient_steps_to_consider"         : 50
         }""")
 
@@ -348,9 +348,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         current_step = process_info[Kratos.STEP]
         current_dt   = process_info[Kratos.DELTA_TIME]
 
-        log_path = Path(settings["logs_path"].GetString())
-        log_path.mkdir(exist_ok=True, parents=True)
-        execution_prefix = str(log_path / "response_function_interpolation_error_evaluation_step_{:d}".format(current_step))
+        execution_path = Path(amr_output_path) / "step_{:d}".format(current_step)
+        execution_path.mkdir(exist_ok=True, parents=True)
 
         # run the forward primal solution for user defined steps in the transient problem
         # while calculating time averaged quantities
@@ -361,7 +360,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving forward primal solution for transient response function interpolation error calculation...")
 
         # open primal parameters json file
-        with open(settings["primal_transient_project_parameters_file_name"].GetString(), "r") as file_input:
+        primal_transient_project_parameters_file_name = settings["primal_transient_project_parameters_file_name"].GetString()
+        with open(primal_transient_project_parameters_file_name, "r") as file_input:
             primal_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
 
         # set start time and end time
@@ -370,31 +370,35 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         primal_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(current_dt)
 
         # solve primal problem
-        from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
-        primal_model, primal_simulation = SolveProblem(RANSAnalysis, primal_parameters, execution_prefix + "_primal")
+        with ExecutionScope(execution_path):
+            from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
+            # write existing model part
+            Kratos.ModelPartIO(primal_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.GetBaseModelPart())
+            primal_model, primal_simulation = SolveProblem(RANSAnalysis, primal_parameters, primal_transient_project_parameters_file_name[:-5])
 
-        # copy time averaged quantities from the primal_simulation
-        time_averaged_variable_data = [
-            ("TIME_AVERAGED_{:s}".format(var.Name()), False, "TIME_AVERAGED_{:s}".format(var.Name()), False) for var in self.GetSolvingVariables()
-        ]
-        KratosRANS.RansVariableDataTransferProcess(
-            primal_model,
-            current_model,
-            primal_simulation._GetSolver().GetComputingModelPart().FullName(),
-            current_model_part.FullName(),
-            ["execute"],
-            time_averaged_variable_data,
-            self.echo_level).Execute()
+            # copy time averaged quantities from the primal_simulation
+            time_averaged_variable_data = [
+                ("TIME_AVERAGED_{:s}".format(var.Name()), False, "TIME_AVERAGED_{:s}".format(var.Name()), False) for var in self.GetSolvingVariables()
+            ]
+            KratosRANS.RansVariableDataTransferProcess(
+                primal_model,
+                current_model,
+                primal_simulation._GetSolver().GetComputingModelPart().FullName(),
+                current_model_part.FullName(),
+                ["execute"],
+                time_averaged_variable_data,
+                self.echo_level).Execute()
 
-        # free the memory consumed by primal analysis
-        del primal_simulation
-        del primal_model
+            # free the memory consumed by primal analysis
+            del primal_simulation
+            del primal_model
 
         # now run the backward adjoint steady problem
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Solving adjoint solution for transient response function interpolation error calculation...")
 
         # open adjoint parameters json file
-        with open(settings["adjoint_transient_project_parameters_file_name"].GetString(), "r") as file_input:
+        adjoint_transient_project_parameters_file_name = settings["adjoint_transient_project_parameters_file_name"].GetString()
+        with open(adjoint_transient_project_parameters_file_name, "r") as file_input:
             adjoint_parameters = Kratos.Parameters(file_input.read().replace("<error_computation_step>", str(current_step)))
 
         # set start time and end time
@@ -402,21 +406,22 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         adjoint_parameters["problem_data"]["end_time"].SetDouble(end_time)
 
         # solve adjoint problem
-        from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
-        adjoint_model, adjoint_simulation = SolveProblem(AdjointRANSAnalysis, adjoint_parameters, execution_prefix + "_adjoint")
+        with ExecutionScope(execution_path):
+            from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
+            adjoint_model, adjoint_simulation = SolveProblem(AdjointRANSAnalysis, adjoint_parameters, adjoint_transient_project_parameters_file_name[:-5])
 
-        # now transfer RESPONSE_FUNCTION_INTERPOLATION_ERROR data to the current model part
-        KratosRANS.RansVariableDataTransferProcess(
-            adjoint_model,
-            current_model,
-            adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
-            current_model_part.FullName(),
-            ["execute"],
-            [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False)],
-            self.echo_level).Execute()
+            # now transfer RESPONSE_FUNCTION_INTERPOLATION_ERROR data to the current model part
+            KratosRANS.RansVariableDataTransferProcess(
+                adjoint_model,
+                current_model,
+                adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
+                current_model_part.FullName(),
+                ["execute"],
+                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False)],
+                self.echo_level).Execute()
 
-        # free the memory consumed by primal analysis
-        del adjoint_simulation
-        del adjoint_model
+            # free the memory consumed by primal analysis
+            del adjoint_simulation
+            del adjoint_model
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed response based interpolation errors for adaptive mesh refinement.")
