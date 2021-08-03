@@ -693,10 +693,9 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeData
 {
 public:
@@ -884,49 +883,6 @@ public:
         noalias(X2) = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(MasterGeometry, false, step);
     }
 
-    /**
-     * @brief This method retrives a non normal variation version of the current instance
-     * @return A non normal variation version of the current instance
-     */
-    DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
-    {
-        DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> aux;
-
-        /// The penalty parameter
-        noalias(aux.PenaltyParameter) = PenaltyParameter;
-        /// The scale factor
-        aux.ScaleFactor = ScaleFactor;
-
-        /// The normals of the nodes
-        noalias(aux.NormalSlave) = NormalSlave;
-        noalias(aux.NormalMaster) = NormalMaster;
-
-        /// Displacements and original coordinates
-        noalias(aux.X1) = X1;
-        noalias(aux.u1) = u1;
-        noalias(aux.X2) = X2;
-        noalias(aux.u2) = u2;
-
-        /// Jacobian derivatives
-        aux.DeltaDetjSlave = DeltaDetjSlave;
-
-        /// Dual shape function derivatives
-        aux.DeltaPhi = DeltaPhi;
-        
-        /// Shape function derivatives
-        aux.DeltaN1 = DeltaN1;
-        aux.DeltaN2 = DeltaN2;
-
-        /// Normal derivatives
-        aux.DeltaNormalSlave = DeltaNormalSlave;
-        aux.DeltaNormalMaster = DeltaNormalMaster;
-
-        /// Integration cell vertex derivatives
-        aux.DeltaCellVertex = DeltaCellVertex;
-
-        return aux;
-    }
-
     ///@}
     ///@name Access
     ///@{
@@ -1062,19 +1018,18 @@ private:
  * @author Vicente Mataix Ferrandiz
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
 class DerivativeDataFrictional
-    : public DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>
+    : public DerivativeData<TDim, TNumNodes, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// The base class type
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> BaseClassType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster> BaseClassType;
 
     /// The bounded matrix employed class
     typedef BoundedMatrix<double, TNumNodes, TDim> GeometryDoFMatrixSlaveType;
@@ -1141,56 +1096,6 @@ public:
         BaseClassType::UpdateMasterPair(MasterGeometry, rCurrentProcessInfo);
 
         noalias(u2old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 2);
-    }
-
-    /**
-     * @brief This method retrives a non normal variation version of the current instance
-     * @return A non normal variation version of the current instance
-     */
-    DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
-    {
-        DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> aux;
-
-        /// The penalty parameter
-        noalias(aux.PenaltyParameter) = this->PenaltyParameter;
-        /// The scale factor
-        aux.ScaleFactor = this->ScaleFactor;
-
-        /// The normals of the nodes
-        noalias(aux.NormalSlave) = this->NormalSlave;
-        noalias(aux.NormalMaster) = this->NormalMaster;
-
-        /// Displacements and original coordinates
-        noalias(aux.X1) = this->X1;
-        noalias(aux.u1) = this->u1;
-        noalias(aux.X2) = this->X2;
-        noalias(aux.u2) = this->u2;
-
-        /// Jacobian derivatives
-        aux.DeltaDetjSlave = this->DeltaDetjSlave;
-
-        /// Dual shape function derivatives
-        aux.DeltaPhi = this->DeltaPhi;
-        
-        /// Shape function derivatives
-        aux.DeltaN1 = this->DeltaN1;
-        aux.DeltaN2 = this->DeltaN2;
-
-        /// Normal derivatives
-        aux.DeltaNormalSlave = this->DeltaNormalSlave;
-        aux.DeltaNormalMaster = this->DeltaNormalMaster;
-
-        /// Integration cell vertex derivatives
-        aux.DeltaCellVertex = this->DeltaCellVertex;
-
-        /// The ALM parameters
-        aux.TangentFactor = TangentFactor;
-
-        /// Displacements and velocities
-        noalias(aux.u1old) = u1old;
-        noalias(aux.u2old) = u2old;
-
-        return aux;
     }
 
     ///@}
@@ -1514,10 +1419,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class MortarOperatorWithDerivatives
     : public MortarOperator<TNumNodes, TNumNodesMaster>
 {
@@ -1529,9 +1433,9 @@ public:
 
     typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                                   KinematicVariables;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
@@ -1657,25 +1561,6 @@ public:
                 }
             }
         }
-    }
-
-    /**
-     * @brief This method retrives a non normal variation version of the current instance
-     * @return A non normal variation version of the current instance
-     */
-    MortarOperatorWithDerivatives<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
-    {
-        MortarOperatorWithDerivatives<TDim, TNumNodes, false, TNumNodesMaster> aux;
-        
-        /// Mortar condition matrices - DOperator and MOperator
-        noalias(aux.DOperator) = this->DOperator;
-        noalias(aux.MOperator) = this->MOperator;
-
-        // D and M directional derivatives
-        aux.DeltaDOperator = DeltaDOperator;
-        aux.DeltaMOperator = DeltaMOperator;
-
-        return aux;
     }
 
     /**
@@ -2034,10 +1919,9 @@ private:
  * @tparam TDim The dimension of work
  * @tparam TNumNodes The number of nodes of the slave
  * @tparam TFrictional If the problem is frictional or not
- * @tparam TNormalVariation If the normal variation is considered
  * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
 class DualLagrangeMultiplierOperatorsWithDerivatives
     : public DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>
 {
@@ -2049,9 +1933,9 @@ public:
 
     typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>          KinematicVariablesType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster> DerivativeDataFrictionalType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataFrictionalType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>        DerivativeFrictionalessDataType;
+    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                          DerivativeFrictionalessDataType;
 
     typedef typename std::conditional<TFrictional, DerivativeDataFrictionalType, DerivativeFrictionalessDataType>::type DerivativeDataType;
 
