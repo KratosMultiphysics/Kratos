@@ -1,7 +1,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
-from math import pi, sqrt, sinh
+from math import pi, sqrt
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -60,11 +60,6 @@ class WaveGeneratorProcess(KM.Process):
         gravity = self.model_part.ProcessInfo[KM.GRAVITY_Z]
         wave_velocity = sqrt(depth * gravity)
         velocity_amplitude = wave_amplitude * wave_velocity / depth
-        k = 2 * pi / self.wave_period / wave_velocity
-        velocity_amplitude2 = wave_amplitude * (2*k*depth + sinh(2*k*depth)) / (4*sinh(k*depth)**2)
-
-        print('velocity_amplitude  : ', velocity_amplitude)
-        print('velocity_amplitude2 : ', velocity_amplitude2)
 
         # Creation of the parameters for the c++ process
         free_surface_parameters = KM.Parameters("""{}""")
