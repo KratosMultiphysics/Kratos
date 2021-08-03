@@ -103,7 +103,7 @@ public:
         KRATOS_TRY
 
         const int row_size_guess = (TDim == 2 ? 15 : 40);
-        auto p_builder_and_solver = Kratos::make_shared< TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(
+        BaseType::mpBuilderAndSolver = Kratos::make_shared< TrilinosBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(
             mrEpetraCommunicator,
             row_size_guess,
             pLinearSolver);
@@ -286,7 +286,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void InitializeConvectionStrategy(BuilderSolverPointerType pBuilderAndSolver)
+    void InitializeConvectionStrategy(BuilderSolverPointerType pBuilderAndSolver) override
     {
         KRATOS_TRY
 
