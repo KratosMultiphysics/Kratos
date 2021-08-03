@@ -22,6 +22,7 @@
 #include "custom_utilities/two_step_v_p_settings.h"
 #include "custom_utilities/postprocess_utilities.h"
 #include "custom_utilities/pfem_fluid_gid_io.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 namespace Kratos
 {
@@ -42,6 +43,10 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
                       MultiFileFlag,
                       WriteDeformedMeshFlag,
                       WriteConditionsFlag>());
+    
+    py::class_<MoveMeshUtility, MoveMeshUtility::Pointer>(m, "MoveMeshUtility")
+        .def(py::init<>())
+        .def("MovePfemMesh", &MoveMeshUtility::MovePfemMesh);
 }
 
 } // namespace Python.
