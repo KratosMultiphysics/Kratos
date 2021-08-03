@@ -888,7 +888,7 @@ public:
      * @brief This method retrives a non normal variation version of the current instance
      * @return A non normal variation version of the current instance
      */
-    DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivation()
+    DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
     {
         DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> aux;
 
@@ -1147,7 +1147,7 @@ public:
      * @brief This method retrives a non normal variation version of the current instance
      * @return A non normal variation version of the current instance
      */
-    DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivation()
+    DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
     {
         DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> aux;
 
