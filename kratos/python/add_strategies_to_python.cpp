@@ -548,52 +548,50 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
             //********************************************************************
-            
+
             //strategy base class
             typedef SolvingStrategy< SparseSpaceType, LocalSpaceType > BaseSolvingStrategyType;
             py::class_< BaseSolvingStrategyType, typename BaseSolvingStrategyType::Pointer >(m,"BaseSolvingStrategy")
-                    .def(py::init<ModelPart&, Parameters >() )
-                    .def(py::init < ModelPart&, bool >())
-                    .def("Create", &BaseSolvingStrategyType::Create)
-                    .def("Predict", &BaseSolvingStrategyType::Predict)
-                    .def("Initialize", &BaseSolvingStrategyType::Initialize)
-                    .def("Solve", &BaseSolvingStrategyType::Solve)
-                    .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
-                    .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
-                    .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
-                    .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
-                    .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
-                    .def("MoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
-                    .def("GetMoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
-                    .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
-                    .def("Clear", &BaseSolvingStrategyType::Clear)
-                    .def("Check", &BaseSolvingStrategyType::Check)
-                    .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
-                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
-                    .def("GetModelPart", [](BaseSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
-                    .def("Info", &BaseSolvingStrategyType::Info)
-                    ;
+                .def(py::init<ModelPart&, Parameters >() )
+                .def(py::init < ModelPart&, bool >())
+                .def("Create", &BaseSolvingStrategyType::Create)
+                .def("Predict", &BaseSolvingStrategyType::Predict)
+                .def("Initialize", &BaseSolvingStrategyType::Initialize)
+                .def("Solve", &BaseSolvingStrategyType::Solve)
+                .def("IsConverged", &BaseSolvingStrategyType::IsConverged)
+                .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData)
+                .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel)
+                .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel)
+                .def("SetRebuildLevel", &ImplicitSolvingStrategyType::SetRebuildLevel)
+                .def("GetRebuildLevel", &ImplicitSolvingStrategyType::GetRebuildLevel)
+                .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag)
+                .def("MoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
+                .def("GetMoveMeshFlag", &BaseSolvingStrategyType::GetMoveMeshFlag)
+                .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
+                .def("Clear", &BaseSolvingStrategyType::Clear)
+                .def("Check", &BaseSolvingStrategyType::Check)
+                .def("GetDefaultParameters",&BaseSolvingStrategyType::GetDefaultParameters)
+                .def("GetSystemMatrix", &ImplicitSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
+                .def("GetSystemVector", &ImplicitSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
+                .def("GetSolutionVector", &ImplicitSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
+                .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                .def("GetModelPart", [](BaseSolvingStrategyType& self) -> ModelPart& { return self.GetModelPart(); })
+                .def("Info", &BaseSolvingStrategyType::Info)
+                ;
 
             //implicit strategy base class
             typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ImplicitSolvingStrategyType;
             py::class_<ImplicitSolvingStrategyType, typename ImplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m,"ImplicitSolvingStrategy")
                 .def(py::init<ModelPart&, Parameters >() )
                 .def(py::init < ModelPart&, bool >())
-                .def("SetRebuildLevel", &ImplicitSolvingStrategyType::SetRebuildLevel)
-                .def("GetRebuildLevel", &ImplicitSolvingStrategyType::GetRebuildLevel)
-                .def("GetSystemMatrix", &ImplicitSolvingStrategyType::GetSystemMatrix, py::return_value_policy::reference_internal)
-                .def("GetSystemVector", &ImplicitSolvingStrategyType::GetSystemVector, py::return_value_policy::reference_internal)
-                .def("GetSolutionVector", &ImplicitSolvingStrategyType::GetSolutionVector, py::return_value_policy::reference_internal)
                 ;
 
             typedef ExplicitSolvingStrategy< SparseSpaceType, LocalSpaceType > BaseExplicitSolvingStrategyType;
             py::class_<BaseExplicitSolvingStrategyType, typename BaseExplicitSolvingStrategyType::Pointer, BaseSolvingStrategyType>(m, "ExplicitSolvingStrategy")
                 .def(py::init<ModelPart &, bool, int>())
                 .def(py::init<ModelPart&, typename ExplicitBuilderType::Pointer, bool, int>())
-                .def("SetRebuildLevel", &BaseExplicitSolvingStrategyType::SetRebuildLevel)
-                .def("GetRebuildLevel", &BaseExplicitSolvingStrategyType::GetRebuildLevel)
                 ;
 
             typedef ExplicitSolvingStrategyRungeKutta4< SparseSpaceType, LocalSpaceType > ExplicitSolvingStrategyRungeKutta4Type;

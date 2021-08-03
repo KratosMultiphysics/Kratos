@@ -173,7 +173,7 @@ public:
      * 2 -> build StiffnessMatrix at each iteration
      * }
      */
-    virtual void SetRebuildLevel(int Level)
+    void SetRebuildLevel(int Level) override
     {
         mRebuildLevel = Level;
         mStiffnessMatrixIsBuilt = false;
@@ -189,7 +189,7 @@ public:
      * }
      * @return The build level
      */
-    virtual int GetRebuildLevel()
+    int GetRebuildLevel() const override
     {
         return mRebuildLevel;
     }
@@ -211,45 +211,6 @@ public:
         default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
 
         return default_parameters;
-    }
-
-    /**
-     * @brief This method returns the LHS matrix
-     * @return The LHS matrix
-     */
-    virtual TSystemMatrixType& GetSystemMatrix()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "GetSystemMatrix not implemented in base ImplicitSolvingStrategy" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This method returns the RHS vector
-     * @return The RHS vector
-     */
-    virtual TSystemVectorType& GetSystemVector()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "GetSystemVector not implemented in base ImplicitSolvingStrategy" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This method returns the solution vector
-     * @return The Dx vector
-     */
-    virtual TSystemVectorType& GetSolutionVector()
-    {
-        KRATOS_TRY
-
-        KRATOS_ERROR << "GetSolutionVector not implemented in base ImplicitSolvingStrategy" << std::endl;
-
-        KRATOS_CATCH("");
     }
 
     /**

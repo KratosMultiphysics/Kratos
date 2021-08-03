@@ -10,7 +10,6 @@
 //  Main authors:    Riccardo Rossi
 //                   Ruben Zorrilla
 //
-//
 
 #if !defined(KRATOS_SOLVING_STRATEGY)
 #define KRATOS_SOLVING_STRATEGY
@@ -307,6 +306,28 @@ public:
     }
 
     /**
+     * @brief Set the Rebuild Level value
+     * This functions sets the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @param Level Level of rebuild
+     */
+    virtual void SetRebuildLevel(int Level)
+    {
+        KRATOS_ERROR << "Accessing the strategy base class \'SetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
+    /**
+     * @brief Get the Rebuild Level value
+     * This function returns the rebuild level of the strategy
+     * It is only intended to be used in implicit strategies
+     * @return int Rebuild Level value
+     */
+    virtual int GetRebuildLevel() const
+    {
+        KRATOS_ERROR << "Accessing the strategy base class \'GetRebuildLevel\'. Please implement it in your derived class." << std::endl;
+    }
+
+    /**
      * @brief This function is designed to move the mesh
      * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
      */
@@ -396,6 +417,45 @@ public:
             "echo_level"                   : 1
         })");
         return default_parameters;
+    }
+
+    /**
+     * @brief This method returns the LHS matrix
+     * @return The LHS matrix
+     */
+    virtual TSystemMatrixType& GetSystemMatrix()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSystemMatrix\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
+     */
+    virtual TSystemVectorType& GetSystemVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSystemVector\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    virtual TSystemVectorType& GetSolutionVector()
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR << "\'GetSolutionVector\' not implemented in base \'SolvingStrategy\'" << std::endl;
+
+        KRATOS_CATCH("");
     }
 
     /**

@@ -262,7 +262,7 @@ public:
      * 1 -> Set up the DOF set at the beginning of each solution step
      * }
      */
-    void SetRebuildLevel(int Level)
+    void SetRebuildLevel(int Level) override
     {
         mRebuildLevel = Level;
     }
@@ -276,7 +276,7 @@ public:
      * }
      * @return The build level
      */
-    int GetRebuildLevel() const
+    int GetRebuildLevel() const override
     {
         return mRebuildLevel;
     }
@@ -398,7 +398,7 @@ protected:
      * @brief This method assigns settings to member variables
      * @param ThisParameters Parameters that are assigned to the member variables
      */
-    virtual void AssignSettings(const Parameters ThisParameters) override
+    void AssignSettings(const Parameters ThisParameters) override
     {
         // Add base strategy settings
         BaseType::AssignSettings(ThisParameters);
