@@ -57,8 +57,8 @@ void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& model_part_
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
 
         for (auto& r_node : rElement.GetGeometry().Points()){
-            //AtomicAdd( noalias(r_node.FastGetSolutionStepValue(FORCE)), (elem_force/static_cast<double>(num_nodes)) );
-            r_node.FastGetSolutionStepValue(FORCE) += (elem_force/static_cast<double>(num_nodes)) ;
+            AtomicAddVector( r_node.FastGetSolutionStepValue(FORCE), (elem_force / static_cast<double>(num_nodes)) );
+            //r_node.FastGetSolutionStepValue(FORCE) += (elem_force/static_cast<double>(num_nodes)) ;
         }
     });
 
