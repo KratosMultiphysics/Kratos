@@ -1506,7 +1506,7 @@ private:
 }; // Class MortarOperator
 
 /**
- * @class MortarOperatorWithDerivatives // TODO
+ * @class MortarOperatorWithDerivatives
  * @ingroup KratosCore
  * @brief  This class derives from the MortarOperator class and it includes the derived operators.
  * @details The derived operators are defined in each DoF of each domain, which means TNumNodes x TDim x 2 derivatives definitions in order to compute all the necessary derivatives. Popp thesis page 102 and following
@@ -1644,7 +1644,6 @@ public:
                 BaseClassType::MOperator(i_node, j_node) += det_j_slave * rIntegrationWeight * phi * n2;
 
                 for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
-
                     DeltaMOperator[i](i_node, j_node) += delta_det_j_slave[i] * rIntegrationWeight * phi* n2
                                                        + det_j_slave * rIntegrationWeight * delta_phi[i][i_node] * n2
                                                        + det_j_slave * rIntegrationWeight * phi* delta_n2[i][j_node];
@@ -1658,6 +1657,25 @@ public:
                 }
             }
         }
+    }
+
+    /**
+     * @brief This method retrives a non normal variation version of the current instance
+     * @return A non normal variation version of the current instance
+     */
+    MortarOperatorWithDerivatives<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivationInstance()
+    {
+        MortarOperatorWithDerivatives<TDim, TNumNodes, false, TNumNodesMaster> aux;
+        
+        /// Mortar condition matrices - DOperator and MOperator
+        noalias(aux.DOperator) = this->DOperator;
+        noalias(aux.MOperator) = this->MOperator;
+
+        // D and M directional derivatives
+        aux.DeltaDOperator = DeltaDOperator;
+        aux.DeltaMOperator = DeltaMOperator;
+
+        return aux;
     }
 
     /**
