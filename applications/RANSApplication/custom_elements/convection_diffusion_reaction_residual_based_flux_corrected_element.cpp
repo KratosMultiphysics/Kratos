@@ -105,8 +105,9 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
             std::tie(mesh_velocity, MESH_VELOCITY));
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
+        // const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        // const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
+        const auto& velocity = r_current_data.GetEffectiveVelocity();
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();
