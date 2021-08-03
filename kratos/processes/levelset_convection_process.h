@@ -104,8 +104,7 @@ public:
             rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
             pLinearSolver,
             ThisParameters)
-    {
-    }
+    {}
 
     /**
      * @brief Construct a new Level Set Convection Process object
@@ -118,9 +117,9 @@ public:
         ModelPart& rBaseModelPart,
         typename TLinearSolver::Pointer pLinearSolver,
         Parameters ThisParameters)
-        : mrBaseModelPart(rBaseModelPart),
-          mrModel(rBaseModelPart.GetModel()),
-          mLevelSetConvectionSettings(ThisParameters)
+        : LevelSetConvectionProcess(
+            rBaseModelPart,
+            ThisParameters)
     {
         KRATOS_TRY
 
