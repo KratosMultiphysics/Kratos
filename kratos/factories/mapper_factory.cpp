@@ -19,7 +19,7 @@
 
 // Project includes
 #include "mapper_factory.h"
-#include "mapper_define.h"
+#include "mappers/mapper_define.h"
 
 
 namespace Kratos {

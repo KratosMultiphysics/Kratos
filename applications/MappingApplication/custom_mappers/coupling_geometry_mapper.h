@@ -19,9 +19,8 @@
 // External includes
 
 // Project includes
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 #include "custom_utilities/mapping_intersection_utilities.h"

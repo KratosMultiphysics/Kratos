@@ -27,7 +27,7 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 
 
 namespace Kratos
