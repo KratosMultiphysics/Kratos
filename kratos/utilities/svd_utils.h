@@ -177,7 +177,7 @@ public:
     {
         const SizeType m = InputMatrix.size1();
         const SizeType n = InputMatrix.size2();
-    	KRATOS_ERROR_IF(m != n) << "Current Jacobi implementation only works with square matrices" << std::endl;
+        KRATOS_ERROR_IF(m != n) << "Current Jacobi implementation only works with square matrices. Use \'LinearSolversApplication\' decompositions instead." << std::endl;
 
         if(SMatrix.size1() != m || SMatrix.size2() != n) {
             SMatrix.resize(m, n, false);
