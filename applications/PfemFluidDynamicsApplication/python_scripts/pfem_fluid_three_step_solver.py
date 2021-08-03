@@ -16,7 +16,7 @@ class PfemFluidThreeStepSolver(BaseSolver.PfemFluidSolver):
 
         super(PfemFluidThreeStepSolver,self).__init__(model, parameters)
 
-        print("Construction of 2-step Pfem Fluid Three Step Solver finished.")
+        print("Construction of 3-step Pfem Fluid Three Step Solver finished.")
 
     @classmethod
     def GetDefaultParameters(cls):

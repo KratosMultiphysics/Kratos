@@ -23,8 +23,12 @@ namespace Kratos
   Element::Pointer ThreeStepFirstOrderUpdatedLagrangianElement<TDim>::Clone(IndexType NewId, NodesArrayType const &rThisNodes) const
   {
     KRATOS_TRY;
-
+    
     ThreeStepFirstOrderUpdatedLagrangianElement NewElement(NewId, this->GetGeometry().Create(rThisNodes), this->pGetProperties());
+
+    NewElement.SetData(this->GetData());
+    NewElement.SetFlags(this->GetFlags());
+
     return Element::Pointer(new ThreeStepFirstOrderUpdatedLagrangianElement(NewElement));
 
     KRATOS_CATCH("");
