@@ -107,7 +107,6 @@ public:
             mrEpetraCommunicator,
             row_size_guess,
             pLinearSolver);
-        InitializeConvectionStrategy(p_builder_and_solver);
 
         KRATOS_CATCH("")
     }
