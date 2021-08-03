@@ -780,7 +780,6 @@ public:
     ///@name Operators
     ///@{
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -883,6 +882,49 @@ public:
                       MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 0)
                     - MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 1);
         noalias(X2) = MortarUtilities::GetCoordinates<TDim,TNumNodesMaster>(MasterGeometry, false, step);
+    }
+
+    /**
+     * @brief This method retrives a non normal variation version of the current instance
+     * @return A non normal variation version of the current instance
+     */
+    DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivation()
+    {
+        DerivativeData<TDim, TNumNodes, false, TNumNodesMaster> aux;
+
+        /// The penalty parameter
+        noalias(aux.PenaltyParameter) = PenaltyParameter;
+        /// The scale factor
+        aux.ScaleFactor = ScaleFactor;
+
+        /// The normals of the nodes
+        noalias(aux.NormalSlave) = NormalSlave;
+        noalias(aux.NormalMaster) = NormalMaster;
+
+        /// Displacements and original coordinates
+        noalias(aux.X1) = X1;
+        noalias(aux.u1) = u1;
+        noalias(aux.X2) = X2;
+        noalias(aux.u2) = u2;
+
+        /// Jacobian derivatives
+        aux.DeltaDetjSlave = DeltaDetjSlave;
+
+        /// Dual shape function derivatives
+        aux.DeltaPhi = DeltaPhi;
+        
+        /// Shape function derivatives
+        aux.DeltaN1 = DeltaN1;
+        aux.DeltaN2 = DeltaN2;
+
+        /// Normal derivatives
+        aux.DeltaNormalSlave = DeltaNormalSlave;
+        aux.DeltaNormalMaster = DeltaNormalMaster;
+
+        /// Integration cell vertex derivatives
+        aux.DeltaCellVertex = DeltaCellVertex;
+
+        return aux;
     }
 
     ///@}
@@ -1013,7 +1055,7 @@ private:
 };  // Class DerivativeData
 
 /**
- * @class DerivativeDataFrictional // TODO
+ * @class DerivativeDataFrictional
  * @ingroup KratosCore
  * @brief This class is a derived class of DerivativeData
  * @details Includes additionally the derivatives necessary to compute the directional derivatives for the frictional conditions
@@ -1099,6 +1141,56 @@ public:
         BaseClassType::UpdateMasterPair(MasterGeometry, rCurrentProcessInfo);
 
         noalias(u2old) = MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 1) - MortarUtilities::GetVariableMatrix<TDim,TNumNodesMaster>(MasterGeometry, DISPLACEMENT, 2);
+    }
+
+    /**
+     * @brief This method retrives a non normal variation version of the current instance
+     * @return A non normal variation version of the current instance
+     */
+    DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> RetrieveNonNormalDerivation()
+    {
+        DerivativeDataFrictional<TDim, TNumNodes, false, TNumNodesMaster> aux;
+
+        /// The penalty parameter
+        noalias(aux.PenaltyParameter) = this->PenaltyParameter;
+        /// The scale factor
+        aux.ScaleFactor = this->ScaleFactor;
+
+        /// The normals of the nodes
+        noalias(aux.NormalSlave) = this->NormalSlave;
+        noalias(aux.NormalMaster) = this->NormalMaster;
+
+        /// Displacements and original coordinates
+        noalias(aux.X1) = this->X1;
+        noalias(aux.u1) = this->u1;
+        noalias(aux.X2) = this->X2;
+        noalias(aux.u2) = this->u2;
+
+        /// Jacobian derivatives
+        aux.DeltaDetjSlave = this->DeltaDetjSlave;
+
+        /// Dual shape function derivatives
+        aux.DeltaPhi = this->DeltaPhi;
+        
+        /// Shape function derivatives
+        aux.DeltaN1 = this->DeltaN1;
+        aux.DeltaN2 = this->DeltaN2;
+
+        /// Normal derivatives
+        aux.DeltaNormalSlave = this->DeltaNormalSlave;
+        aux.DeltaNormalMaster = this->DeltaNormalMaster;
+
+        /// Integration cell vertex derivatives
+        aux.DeltaCellVertex = this->DeltaCellVertex;
+
+        /// The ALM parameters
+        aux.TangentFactor = TangentFactor;
+
+        /// Displacements and velocities
+        noalias(aux.u1old) = u1old;
+        noalias(aux.u2old) = u2old;
+
+        return aux;
     }
 
     ///@}
