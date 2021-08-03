@@ -808,10 +808,10 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        if (ThisParameters["new_model_part_name"].GetString() == "") {
+        if (ThisParameters["convection_model_part_name"].GetString() == "") {
             mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
         } else {
-            mAuxModelPartName = ThisParameters["new_model_part_name"].GetString();
+            mAuxModelPartName = ThisParameters["convection_model_part_name"].GetString();
         }
 
         // Limiter related settings
