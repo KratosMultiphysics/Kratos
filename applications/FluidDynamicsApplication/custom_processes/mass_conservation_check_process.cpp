@@ -78,7 +78,9 @@ std::string MassConservationCheckProcess::Initialize(){
     double inter_area = 0.0;
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
 
-    ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
+    double pos_kinetic_energy = 0.0;
+    double neg_kinetic_energy = 0.0;
+    ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area, pos_kinetic_energy, neg_kinetic_energy );
 
     this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);
     this->mInitialNegativeVolume = r_comm.SumAll(neg_vol);
@@ -111,7 +113,9 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double inter_area = 0;
-    ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
+    double pos_kinetic_energy = 0.0;
+    double neg_kinetic_energy = 0.0;
+    ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area, pos_kinetic_energy, neg_kinetic_energy );
     //KRATOS_INFO("Inlet:") << INLET << std::endl;
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     //KRATOS_INFO("Outlet:") << OUTLET << std::endl;
@@ -121,8 +125,8 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     
     // computing global quantities via MPI communication
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
-    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet, net_inflow};
-    std::vector<double> remote_sum{0, 0, 0, 0, 0, 0};
+    std::vector<double> local_data{pos_vol, neg_vol, inter_area, net_inflow_inlet, net_inflow_outlet, net_inflow, pos_kinetic_energy, neg_kinetic_energy};
+    std::vector<double> remote_sum{0, 0, 0, 0, 0, 0, 0, 0};
     r_comm.SumAll(local_data, remote_sum);
 
     pos_vol = remote_sum[0];
@@ -131,6 +135,8 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     net_inflow_inlet = remote_sum[3];
     net_inflow_outlet = remote_sum[4];
     net_inflow = remote_sum[5];
+    pos_kinetic_energy = remote_sum[6];
+    neg_kinetic_energy = remote_sum[7];
 
     // making a "time step forwards" and updating the
     const double current_time = mrModelPart.GetProcessInfo()[TIME];
@@ -154,11 +160,14 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
         ShiftDistanceField( shift_for_correction );
     }
 
+    const double energy = 1.0*pos_kinetic_energy + 1000.0*neg_kinetic_energy + 1.0*inter_area;
+
     // assembly of the log message
     std::ostringstream oss;
     //oss.precision(std::numeric_limits<double>::digits10);
     oss << std::scientific << neg_vol << "\t\t" << pos_vol << "\t\t" << water_volume_error 
         << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow/* net_inflow_outlet */ << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\n";
+    oss << std::scientific << energy << "\n";
     std::string add_string = oss.str();
 
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";
@@ -175,12 +184,14 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
 
 
-void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea ){
+void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea, double& positiveKineticEtoRho, double& negativeKineticEtoRho ){
 
     // initalisation (necessary because no reduction for type reference)
     double pos_vol = 0.0;
     double neg_vol = 0.0;
     double int_area = 0.0;
+    double pos_kinetic_energy_to_rho = 0.0;
+    double neg_kinetic_energy_to_rho = 0.0;
 
     #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
@@ -259,6 +270,11 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             for ( unsigned int i = 0; i < w_gauss_pos_side.size(); i++){
                 pos_vol += w_gauss_pos_side[i];
+                Vector vel = ZeroVector(rGeom.PointsNumber() - 1);
+                for (unsigned int j = 0; j < rGeom.PointsNumber(); j++){
+                    vel += shape_functions(i, j)*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                pos_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*w_gauss_pos_side[i];
             }
 
             // Call the negative side modified shape functions calculator
@@ -271,6 +287,11 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 neg_vol += w_gauss_neg_side[i];
+                Vector vel = ZeroVector(rGeom.PointsNumber() - 1);
+                for (unsigned int j = 0; j < rGeom.PointsNumber(); j++){
+                    vel += shape_functions(i, j)*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                neg_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*w_gauss_pos_side[i];
             }
 
             // Concerning their area, the positive and negative side of the interface are equal

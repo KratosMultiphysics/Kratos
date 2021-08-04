@@ -231,7 +231,7 @@ private:
      * @param negativeVolume "Water" volume
      * @param interfaceArea Area of the two fluid interface
      */
-    void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea );
+    void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea, double& positiveKineticEtoRho, double& negativeKineticEtoRho );
 
     /**
      * @brief Computation of normal (non-unit) vector on a line
