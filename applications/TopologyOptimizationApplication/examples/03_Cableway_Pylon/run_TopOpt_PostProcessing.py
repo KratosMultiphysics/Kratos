@@ -28,16 +28,14 @@ GiDMultiFileFlag = "Single"
 current_model = km.Model()
 optimized_model_part = current_model.CreateModelPart("optimized_model_part")
 optimized_model_part.AddNodalSolutionStepVariable(km.NORMAL)
-restart_file_name = "Small_Cantilever_Restart_File_84"  #/home/philipp/opt/kratos/applications/TopologyOptimizationApplication/examples/03_Cableway_pylon/
+restart_file_name = "CablewayPylon_Restart_File_100"  #/home/philipp/opt/kratos/applications/TopologyOptimizationApplication/examples/03_Cableway_pylon/
 model_part_io = km.ModelPartIO(restart_file_name)
 model_part_io.ReadModelPart(optimized_model_part)
 
 # Extract volume
 threshold = 0.2
-extracted_volume_model_part = current_model.CreateModelPart(
-    "extracted_volume_model_part")
-TopologyExtractorUtilities().ExtractVolumeMesh(
-    optimized_model_part, threshold, extracted_volume_model_part)
+extracted_volume_model_part = current_model.CreateModelPart("extracted_volume_model_part")
+TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extracted_volume_model_part)
 
 # Write extracted volume
 gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_part",

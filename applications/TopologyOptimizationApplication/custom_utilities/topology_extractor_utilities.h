@@ -158,7 +158,7 @@ public:
 			}
 		}
 
-		// finding the "orphan" NODES (NODES that are not belonging to a ELEMENT) and deleting them
+		// finding the "orphan" NODES (NODES that are not belonging to a ELEMENT) and t
 		std::unordered_set<std::size_t> index_ok_nodes;
 		for (auto& r_elem : rExtractedModelPart.Elements()) {
 			for (auto& r_node : r_elem.GetGeometry()) {
@@ -172,7 +172,7 @@ public:
 			}
 		}
 
-		// Remove NODES
+		// Remove elements
 		rExtractedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
 		// Renumber nodes in extracted volume mesh (to start from 1)
@@ -281,8 +281,10 @@ public:
 		{	
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
 			if(it->second == 1)
+			{
 				// If skin face is a triangle store triangle in with its original orientation in new skin model part
 				if(it->first.size()==3)
+				{	
 					// Getting original order is important to properly reproduce skin face including its normal orientation
 					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
 
