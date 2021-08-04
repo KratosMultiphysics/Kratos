@@ -312,8 +312,6 @@ private:
     const UPwSmallStrainElement<3,20> mUPwSmallStrainElement3D20N;
     const UPwSmallStrainElement<3,27> mUPwSmallStrainElement3D27N;
 
-
-
     // small strain drained elements:
     const DrainedUPwSmallStrainElement<2,3> mDrainedUPwSmallStrainElement2D3N;
     const DrainedUPwSmallStrainElement<2,4> mDrainedUPwSmallStrainElement2D4N;

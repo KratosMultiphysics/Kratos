@@ -45,7 +45,9 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     const PropertiesType& Prop = this->GetProperties();
 
     if (this->Id() < 1)
-        KRATOS_THROW_ERROR(std::logic_error, "Element found with Id 0 or negative","")
+        KRATOS_ERROR << "Element found with Id 0 or negative, element: "
+                     << this->Id()
+                     << std::endl;
 
     // Verify generic variables
     int ierr = UPwBaseElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
@@ -53,7 +55,9 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     // Verify specific properties
     if ( Prop.Has( MINIMUM_JOINT_WIDTH ) == false || Prop[MINIMUM_JOINT_WIDTH] <= 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"MINIMUM_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element"
+                     << this->Id()
+                     << std::endl;
     
     // Verify specific properties
     bool IgnoreUndrained = false;
@@ -63,18 +67,27 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     if (!IgnoreUndrained)
     {
         if ( Prop.Has( TRANSVERSAL_PERMEABILITY ) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"TRANSVERSAL_PERMEABILITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined or has an invalid value at element"
+                        << this->Id()
+                        << std::endl;
 
         if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] <= 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element"
+                        << this->Id()
+                        << std::endl;
 
         if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] <= 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element"
+                        << this->Id()
+                        << std::endl;
     }
 
     // Verify the constitutive law
     if ( Prop.Has( CONSTITUTIVE_LAW ) == false )
-        KRATOS_THROW_ERROR( std::invalid_argument, "CONSTITUTIVE_LAW has Key zero or is not defined at element ", this->Id() )
+        KRATOS_ERROR << "CONSTITUTIVE_LAW has Key zero or is not defined at element "
+                     << this->Id()
+                     << std::endl;
+
     if ( Prop[CONSTITUTIVE_LAW] != NULL )
     {
         // Verify compatibility of the element with the constitutive law
@@ -87,13 +100,17 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                 correct_strain_measure = true;
         }
         if ( correct_strain_measure == false )
-            KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the element type", " StrainMeasure_Infinitesimal " );
+            KRATOS_ERROR << "constitutive law is not compatible with the element type StrainMeasure_Infinitesimal "
+                         << this->Id()
+                         << std::endl;
 
         // Check constitutive law
         ierr = Prop[CONSTITUTIVE_LAW]->Check( Prop, this->GetGeometry(), rCurrentProcessInfo );
     }
     else
-        KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element ", this->Id() )
+        KRATOS_ERROR << "A constitutive law needs to be specified for the element "
+                     << this->Id()
+                     << std::endl;
 
 
     const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -253,7 +270,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Create constitutive law parameters:
     Vector StrainVector(TDim);
-    // Vector StressVector(TDim);
     Matrix ConstitutiveMatrix(TDim,TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
@@ -261,7 +277,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    // ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
     ConstitutiveParameters.SetShapeFunctionsValues(Np);
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -322,7 +337,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Create constitutive law parameters:
     Vector StrainVector(TDim);
-    // Vector StressVector(TDim);
     Matrix ConstitutiveMatrix(TDim,TDim);
     Vector Np(TNumNodes);
     Matrix GradNpT(TNumNodes,TDim);
@@ -330,7 +344,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     double detF = 1.0;
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,rCurrentProcessInfo);
     ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-    // ConstitutiveParameters.SetStressVector(StressVector);
     ConstitutiveParameters.SetStrainVector(StrainVector);
     ConstitutiveParameters.SetShapeFunctionsValues(Np);
     ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -888,7 +901,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         //Create constitutive law parameters:
         Vector StrainVector(TDim);
-        // Vector StressVectorDynamic(TDim);
         Matrix ConstitutiveMatrix(TDim,TDim);
         Vector Np(TNumNodes);
         Matrix GradNpT(TNumNodes,TDim);
@@ -898,7 +910,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveParameters.SetConstitutiveMatrix(ConstitutiveMatrix);
-        // ConstitutiveParameters.SetStressVector(StressVectorDynamic);
         ConstitutiveParameters.SetStrainVector(StrainVector);
         ConstitutiveParameters.SetShapeFunctionsValues(Np);
         ConstitutiveParameters.SetShapeFunctionsDerivatives(GradNpT);
@@ -1482,7 +1493,6 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     //Variables computed at each GP
     //Constitutive Law parameters
     rVariables.StrainVector.resize(TDim,false);
-    // rVariables.StressVector.resize(TDim,false);
     rVariables.ConstitutiveMatrix.resize(TDim,TDim,false);
     rVariables.Np.resize(TNumNodes,false);
     rVariables.GradNpT.resize(TNumNodes,TDim,false);
@@ -2399,7 +2409,9 @@ void UPwSmallStrainInterfaceElement<2,4>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=4)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 4 " );
+        KRATOS_ERROR << "size of rOutput must be 4 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
@@ -2427,7 +2439,9 @@ void UPwSmallStrainInterfaceElement<3,6>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=6)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 6 " );
+        KRATOS_ERROR << "size of rOutput must be 6 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
@@ -2464,7 +2478,9 @@ void UPwSmallStrainInterfaceElement<3,8>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=8)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 8 " );
+        KRATOS_ERROR << "size of rOutput must be 8 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
@@ -2508,7 +2524,9 @@ void UPwSmallStrainInterfaceElement<2,4>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=4)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 4 " );
+        KRATOS_ERROR << "size of rOutput must be 4 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
@@ -2537,7 +2555,9 @@ void UPwSmallStrainInterfaceElement<3,6>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,6>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=6)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 6 " );
+        KRATOS_ERROR << "size of rOutput must be 6 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points
@@ -2576,7 +2596,9 @@ void UPwSmallStrainInterfaceElement<3,8>::
     //KRATOS_INFO("0-UPwSmallStrainInterfaceElement<3,8>::InterpolateOutputDoubles()") << std::endl;
 #ifdef KRATOS_DEBUG
     if (rOutput.size()!=8)
-        KRATOS_THROW_ERROR( std::logic_error, "size of rOutput must be", " 8 " );
+        KRATOS_ERROR << "size of rOutput must be 8 "
+                     << this->Id()
+                     << std::endl;
 #endif
 
     //Interpolation of computed values at Lobatto GP to the standard GiD gauss points

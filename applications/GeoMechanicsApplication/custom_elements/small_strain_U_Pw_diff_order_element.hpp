@@ -175,7 +175,6 @@ protected:
         double IntegrationCoefficient;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
-        // Vector StressVector; //It is the "Effective Stress Vector": sigma'_ij = sigma_ij + alpha*pw*delta_ij
 
         //Variables needed for consistency with the general constitutive law
         double detF;
@@ -247,10 +246,6 @@ protected:
                                                       Matrix& DN_DX,
                                                       const IndexType& PointNumber,
                                                       IntegrationMethod ThisIntegrationMethod) const;
-
-    // void UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber);
-
-    // void UpdateStressVector(const ElementVariables& rVariables, unsigned int PointNumber);
 
     void SetConstitutiveParameters(ElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);

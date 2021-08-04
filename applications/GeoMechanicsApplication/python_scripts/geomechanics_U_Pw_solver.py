@@ -16,11 +16,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
-        super(UPwSolver,self).__init__(model, custom_settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
+        super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Construction of Solver finished.")
 
@@ -102,7 +98,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def PrepareModelPart(self):

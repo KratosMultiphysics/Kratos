@@ -163,7 +163,6 @@ protected:
 
         ///Constitutive Law parameters
         Vector StrainVector;
-        // Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;

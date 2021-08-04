@@ -68,33 +68,61 @@ public:
         for (ModelPart::NodesContainerType::const_iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
         {
             if(it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
+                KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "VELOCITY variable is not allocated for node ", it->Id() )
+                KRATOS_ERROR << "VELOCITY variable is not allocated for node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() )
+                KRATOS_ERROR << "ACCELERATION variable is not allocated for node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "WATER_PRESSURE variable is not allocated for node ", it->Id() )
+                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DT_WATER_PRESSURE variable is not allocated for node ", it->Id() )
+                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
+                             << it->Id()
+                             << std::endl;
 
             if(it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
+                KRATOS_ERROR << "missing DISPLACEMENT_X dof on node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
+                KRATOS_ERROR << "missing DISPLACEMENT_Y dof on node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
+                KRATOS_ERROR << "missing DISPLACEMENT_Z dof on node "
+                             << it->Id()
+                             << std::endl;
+
             if(it->HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing WATER_PRESSURE dof on node ",it->Id() )
+                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
+                             << it->Id()
+                             << std::endl;
         }
 
         //check for minimum value of the buffer index.
         if (r_model_part.GetBufferSize() < 2)
-            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is"
+                         << r_model_part.GetBufferSize()
+                         << std::endl;
 
         // Check beta, gamma and theta
         if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"Some of the scheme variables: beta, gamma or theta has an invalid value ", "" )
+            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value"
+                         << std::endl;
 
         return 0;
 
@@ -290,7 +318,7 @@ public:
                 itNode->FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
             }
 
-            BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
             // Compute smoothed nodal variables
             #pragma omp parallel for
@@ -327,7 +355,47 @@ public:
         }
         else
         {
-            BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+            FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    //------------------------------------------------------------------------------------------
+    void FinalizeSolutionStepActiveEntities(
+        ModelPart& r_model_part,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+        int NElems = static_cast<int>(r_model_part.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator it = el_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeSolutionStep(CurrentProcessInfo);
+            }
+        }
+
+        int NCons = static_cast<int>(r_model_part.Conditions().size());
+        ModelPart::ConditionsContainerType::iterator con_begin = r_model_part.ConditionsBegin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < NCons; i++)
+        {
+            ModelPart::ConditionsContainerType::iterator it = con_begin + i;
+            const bool entity_is_active = (it->IsDefined(ACTIVE)) ? it->Is(ACTIVE) : true;
+            if (entity_is_active) {
+                it -> FinalizeSolutionStep(CurrentProcessInfo);
+            }
         }
 
         KRATOS_CATCH("")
