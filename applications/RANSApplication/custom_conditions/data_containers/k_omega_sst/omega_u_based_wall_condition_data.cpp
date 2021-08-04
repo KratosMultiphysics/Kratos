@@ -56,8 +56,8 @@ void OmegaUBasedWallConditionData::Check(
         << "WALL_SMOOTHNESS_BETA is not found in condition properties [ Condition.Id() = "
         << rCondition.Id() << ", Properties.Id() = " << r_properties.Id() << " ].\n";
 
-    KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
-        << "DISTANCE is not found in condition with id " << rCondition.Id() << ".\n";
+    KRATOS_ERROR_IF_NOT(r_geometry.Has(WALL_DISTANCE))
+        << "WALL_DISTANCE is not found in condition with id " << rCondition.Id() << ".\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -85,7 +85,7 @@ void OmegaUBasedWallConditionData::CalculateConstants(
     mCmu25 = std::pow(mBetaStar, 0.25);
     mBeta = this->GetConditionProperties()[WALL_SMOOTHNESS_BETA];
 
-    mWallHeight = this->GetGeometry().GetValue(DISTANCE);
+    mWallHeight = this->GetGeometry().GetValue(WALL_DISTANCE);
 
     KRATOS_CATCH("");
 }

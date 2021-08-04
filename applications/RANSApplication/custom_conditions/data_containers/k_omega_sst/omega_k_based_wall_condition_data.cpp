@@ -52,8 +52,8 @@ void OmegaKBasedWallConditionData::Check(
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(WALL_CORRECTION_FACTOR))
         << "WALL_CORRECTION_FACTOR is not found in process info.\n";
 
-    KRATOS_ERROR_IF_NOT(r_geometry.Has(DISTANCE))
-        << "DISTANCE is not found in condition with id " << rCondition.Id() << ".\n";
+    KRATOS_ERROR_IF_NOT(r_geometry.Has(WALL_DISTANCE))
+        << "WALL_DISTANCE is not found in condition with id " << rCondition.Id() << ".\n";
 
     for (int i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -79,7 +79,7 @@ void OmegaKBasedWallConditionData::CalculateConstants(
     mWallCorrectionFactor = rCurrentProcessInfo[WALL_CORRECTION_FACTOR];
     mCmu25 = std::pow(mBetaStar, 0.25);
 
-    mWallHeight = this->GetGeometry().GetValue(DISTANCE);
+    mWallHeight = this->GetGeometry().GetValue(WALL_DISTANCE);
 
     KRATOS_CATCH("");
 }

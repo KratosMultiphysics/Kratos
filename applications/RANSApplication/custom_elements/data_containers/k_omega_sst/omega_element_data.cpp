@@ -75,7 +75,7 @@ void OmegaElementData<TDim>::Check(
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_2, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(RANS_AUXILIARY_VARIABLE_2, r_node);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(WALL_DISTANCE, r_node);
 
         KRATOS_ERROR_IF_NOT(r_node.Has(TURBULENT_KINETIC_ENERGY))
             << "TURBULENT_KINETIC_ENERGY is not found in non-historical data "
@@ -124,7 +124,7 @@ void OmegaElementData<TDim>::CalculateGaussPointData(
         this->GetGeometry(), rShapeFunctions, Step,
         std::tie(mTurbulentKineticEnergy, TURBULENT_KINETIC_ENERGY),
         std::tie(mTurbulentSpecificEnergyDissipationRate, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-        std::tie(mWallDistance, DISTANCE),
+        std::tie(mWallDistance, WALL_DISTANCE),
         std::tie(mEffectiveVelocity, VELOCITY));
 
     KRATOS_ERROR_IF(mWallDistance < 0.0) << "Wall distance is negative at " << r_geometry;

@@ -46,7 +46,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
                 "max_levels"                       : 100,
                 "max_distance"                     : 1e+30,
                 "echo_level"                       : 0,
-                "distance_variable_name"           : "DISTANCE",
+                "distance_variable_name"           : "WALL_DISTANCE",
                 "nodal_area_variable_name"         : "NODAL_AREA",
                 "re_calculate_at_each_time_step"   : false
             },
@@ -82,6 +82,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.RANS_AUXILIARY_VARIABLE_2)
 
 	    # additional variables required for wall distance calculation
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.WALL_DISTANCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
 

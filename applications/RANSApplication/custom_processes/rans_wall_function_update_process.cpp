@@ -135,7 +135,7 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
-        const double wall_height = rCondition.GetValue(DISTANCE);
+        const double wall_height = rCondition.GetValue(WALL_DISTANCE);
 
         double tke;
         array_1d<double, 3> wall_velocity;

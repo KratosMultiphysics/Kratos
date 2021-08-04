@@ -23,6 +23,7 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
+        cls.model_part.AddNodalSolutionStepVariable(KratosRANS.WALL_DISTANCE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
@@ -328,7 +329,7 @@ class CustomProcessTest(UnitTest.TestCase):
             }
         ]''')
 
-        test_variables = ["DISTANCE"]
+        test_variables = ["WALL_DISTANCE"]
         test_model_part_name = "FluidModelPart"
         test_file_name = "wall_distance_calculation_test_output"
         CustomProcessTest._AddJsonCheckProcess(settings, test_variables, test_model_part_name, test_file_name)

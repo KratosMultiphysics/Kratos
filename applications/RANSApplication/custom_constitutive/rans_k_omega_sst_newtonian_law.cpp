@@ -149,7 +149,7 @@ double RansKOmegaSSTNewtonianLaw<TDim, TPrimalBaseType>::CalculateTurbulentVisco
         rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues(),
         std::tie(tke, TURBULENT_KINETIC_ENERGY),
         std::tie(omega, TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE),
-        std::tie(y, DISTANCE)
+        std::tie(y, WALL_DISTANCE)
     );
 
     BoundedMatrix<double, TDim, TDim> velocity_gradient;

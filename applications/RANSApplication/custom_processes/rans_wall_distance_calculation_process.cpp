@@ -261,7 +261,7 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
             "max_levels"                       : 100,
             "max_distance"                     : 1e+30,
             "echo_level"                       : 0,
-            "distance_variable_name"           : "DISTANCE",
+            "distance_variable_name"           : "WALL_DISTANCE",
             "nodal_area_variable_name"         : "NODAL_AREA",
             "re_calculate_at_each_time_step"   : false
         })");

@@ -342,7 +342,7 @@ public:
 
             this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
 
-            this->SetValue(DISTANCE, mWallHeight);
+            this->SetValue(WALL_DISTANCE, mWallHeight);
 
             KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
         }
