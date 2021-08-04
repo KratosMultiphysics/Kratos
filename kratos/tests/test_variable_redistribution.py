@@ -1,20 +1,13 @@
 from KratosMultiphysics import *
-try:
-    from KratosMultiphysics.FSIApplication import *
-    have_fsi = True
-except ImportError:
-    have_fsi = False
-
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 import KratosMultiphysics.testing.utilities as TestingUtilities
 
-@UnitTest.skipUnless(have_fsi,"Missing required application: FSIApplication")
 class VariableRedistributionTest(UnitTest.TestCase):
 
     def setUp(self):
         self.input_file = "redistribution_test"
-        self.work_folder = "auxiliar_files_for_python_unittest/RedistributionTest"
+        self.work_folder = "auxiliar_files_for_python_unittest/variable_redistribution_utility"
 
         self.domain_size = 3
         self.redistribution_iterations = 100
@@ -184,15 +177,15 @@ class VariableRedistributionTest(UnitTest.TestCase):
                 node.Set(INTERFACE,True)
                 set_reference(node,reference_variable)
 
-        self.GenerateInterface()
-
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             reference_variable,
             intermediate_variable)
 
         VariableRedistributionUtility.DistributePointValues(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             intermediate_variable,
             result_variable,
             self.redistribution_tolerance,
@@ -204,9 +197,9 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.FinalizeOutput()
 
         if KratosGlobals.Kernel.HasDoubleVariable(reference_variable.Name()):
-            self.CheckDoubleResults(self.interface_model_part, reference_variable,result_variable)
+            self.CheckDoubleResults(self.model_part, reference_variable,result_variable)
         elif KratosGlobals.Kernel.HasArrayVariable(reference_variable.Name()):
-            self.CheckArrayResults(self.interface_model_part, reference_variable,result_variable)
+            self.CheckArrayResults(self.model_part, reference_variable,result_variable)
         else:
             self.fail("Failing due to incorrect test definition: Wrong variable type")
 
@@ -219,10 +212,9 @@ class VariableRedistributionTest(UnitTest.TestCase):
             node.Set(INTERFACE,True)
             node.SetSolutionStepValue(PRESSURE,1.0)
 
-        self.GenerateInterface()
-
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
-            self.interface_model_part,
+            self.model_part,
+            self.model_part.Conditions,
             PRESSURE,
             TEMPERATURE)
 
@@ -237,13 +229,13 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.PrintOutput()
             self.FinalizeOutput()
 
-        self.CheckDoubleResults(self.interface_model_part, TEMPERATURE, NODAL_PAUX)
-
+        self.CheckDoubleResults(self.model_part, TEMPERATURE, NODAL_PAUX)
 
     def SetUpProblem(self):
         with UnitTest.WorkFolderScope(self.work_folder,__file__):
             current_model = Model()
-            self.model_part = current_model.CreateModelPart("Model")
+            self.model_part = current_model.CreateModelPart("Interface")
+
             self.model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
             self.model_part.AddNodalSolutionStepVariable(PRESSURE)
             self.model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
@@ -253,17 +245,9 @@ class VariableRedistributionTest(UnitTest.TestCase):
             self.model_part.AddNodalSolutionStepVariable(ACCELERATION)
 
             self.model_part.ProcessInfo[DOMAIN_SIZE] = self.domain_size
-            TestingUtilities.ReadModelPart(self.input_file, self.model_part)
-
             self.model_part.SetBufferSize(1)
 
-    def GenerateInterface(self):
-        current_model = Model()
-        self.interface_model_part = current_model.CreateModelPart("Interface")
-
-        interface_model_part_generator = InterfacePreprocess()
-        interface_model_part_generator.GenerateTriangleInterfacePart(self.model_part,self.interface_model_part)
-
+            TestingUtilities.ReadModelPart(self.input_file, self.model_part)
 
     def CheckDoubleResults(self, model_part, reference_variable,result_variable):
         for node in model_part.Nodes:
@@ -304,16 +288,5 @@ class VariableRedistributionTest(UnitTest.TestCase):
         self.gid_io.WriteNodalResults(VORTICITY,self.model_part.Nodes,label,0)
         self.gid_io.WriteNodalResults(ACCELERATION,self.model_part.Nodes,label,0)
 
-
 if __name__ == '__main__':
-    test = VariableRedistributionTest()
-    test.setUp()
-    test.print_output = True
-    test.testLinearFunction()
-    test.testSharpCorners()
-    test.testVector()
-    test.testQuadratic()
-    test.testNodalArea()
-    test.test_quad_elements_quadratic_scalar_field()
-    test.test_quad_elements_quadratic_vector_field_non_historical()
-    test.tearDown()
+    UnitTest.main()
