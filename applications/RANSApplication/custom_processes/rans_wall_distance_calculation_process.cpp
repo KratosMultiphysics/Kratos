@@ -257,7 +257,7 @@ const Parameters RansWallDistanceCalculationProcess::GetDefaultParameters() cons
     const auto default_parameters = Parameters(R"(
         {
             "main_model_part_name"             : "PLEASE_SPECIFY_MAIN_MODEL_PART_NAME",
-            "wall_model_part_name"             : "PLEASE_SPECIFY_WALL_MODEL_PART_NAME",
+            "wall_model_part_name"             : "ALL_WALL_MODEL_PART",
             "max_levels"                       : 100,
             "max_distance"                     : 1e+30,
             "echo_level"                       : 0,
