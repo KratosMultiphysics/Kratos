@@ -9,6 +9,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import Iga test factory tests
 from iga_test_factory import SinglePatchTest as SinglePatchTest
+# Truss tests - python based
+from truss_element_tests import TrussElementTests as TTrussElementTests
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -26,7 +28,7 @@ from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTes
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
 from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
-# Coupling C_0 tests
+# Coupling/C_0 tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
 from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCouplingNitscheShell3pTest
@@ -36,7 +38,7 @@ from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPa
 # Rotation/G_1 coupling tests
 from iga_test_factory import TwoPatchCantileverCouplingPenaltyTest as TwoPatchCantileverCouplingPenaltyTest
 from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as TwoPatchCantileverRefinedCouplingPenaltyTest
-# Nurbs Geometry tests
+# Nurbs Volume tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
@@ -59,6 +61,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         # Single patch test - checks iga essentials
         SinglePatchTest,
+        # Truss tests
+        TTrussElementTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
