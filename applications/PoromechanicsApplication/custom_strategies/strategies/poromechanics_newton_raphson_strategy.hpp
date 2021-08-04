@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -240,7 +241,7 @@ protected:
     {
         double ReferenceDofsNorm = 0.0;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

@@ -63,8 +63,6 @@ public:
     using BaseType::pGetPoint;
     using BaseType::GetPoint;
 
-    static constexpr IndexType SURFACE_INDEX = std::numeric_limits<IndexType>::max();
-
     /// Counted pointer of NurbsCurveOnSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsCurveOnSurfaceGeometry);
 
@@ -172,7 +170,7 @@ public:
     */
     const GeometryPointer pGetGeometryPart(const IndexType Index) const override
     {
-        if (Index == SURFACE_INDEX)
+        if (Index == GeometryType::BACKGROUND_GEOMETRY_INDEX)
             return mpNurbsSurface;
 
         KRATOS_ERROR << "Index " << Index << " not existing in NurbsCurveOnSurface: "
@@ -181,13 +179,13 @@ public:
 
     /**
     * @brief This function is used to check if the index is
-    *        SURFACE_INDEX.
+    *        GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index of the geometry part.
-    * @return true if SURFACE_INDEX.
+    * @return true if GeometryType::BACKGROUND_GEOMETRY_INDEX.
     */
     bool HasGeometryPart(const IndexType Index) const override
     {
-        return Index == SURFACE_INDEX;
+        return Index == GeometryType::BACKGROUND_GEOMETRY_INDEX;
     }
 
     ///@}
@@ -303,6 +301,45 @@ public:
             *this,
             20, Tolerance);
     }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
+    int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->ClosestPointLocalToLocalSpace(rPointLocalCoordinates, rClosestPointLocalCoordinates, Tolerance);
+    }
+
 
     ///@}
     ///@name Geometrical Informations
@@ -612,7 +649,7 @@ const GeometryData NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveCon
 
 template<int TWorkingSpaceDimension, class TCurveContainerPointType, class TSurfaceContainerPointType>
 const GeometryDimension NurbsCurveOnSurfaceGeometry<TWorkingSpaceDimension, TCurveContainerPointType, TSurfaceContainerPointType>::msGeometryDimension(
-    1, TWorkingSpaceDimension, 1);
+    1, TWorkingSpaceDimension, 2);
 
 } // namespace Kratos
 

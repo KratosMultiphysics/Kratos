@@ -22,6 +22,10 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell Hierarchic
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# Weak support tests
+from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
+from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
+from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTes
 # Coupling tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
@@ -29,7 +33,6 @@ from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCoupl
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPatchRefinedCouplingNitscheMembraneTest
-
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
@@ -62,13 +65,13 @@ def AssembleTestSuites():
         # 5p Shell Director
         #ScordelisRoofShell5pTest,
         TTestModelers,
-        TTestNurbsVolumeElements,
-        # Coupling tests
+        # Weak support tests
+        SinglePatchRefinedSupportPenaltyTest,
+        SinglePatchRefinedSupportLagrangeTest        # Coupling tests
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest
-        ]))
+        TwoPatchRefinedCouplingLagrangeMembraneTest        ]))
 
     if has_linear_solvers_application:
         from KratosMultiphysics import LinearSolversApplication
@@ -80,7 +83,6 @@ def AssembleTestSuites():
                 ]))
         else:
             print("FEAST not available in LinearSolversApplication")
-
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([

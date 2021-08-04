@@ -1,5 +1,6 @@
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics import Mapper, MapperFactory # for backward compatibility
 from KratosMappingApplication import *
 application = KratosMappingApplication()
 application_name = "KratosMappingApplication"

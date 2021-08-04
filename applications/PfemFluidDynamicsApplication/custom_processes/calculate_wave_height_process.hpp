@@ -91,7 +91,7 @@ namespace Kratos
       if (time - mPreviousPlotTime > mTimeInterval || step == 1) {
         // We loop over the nodes...
         const auto it_node_begin = mrModelPart.NodesBegin();
-        const int num_threads = OpenMPUtils::GetNumThreads();
+        const int num_threads = ParallelUtilities::GetNumThreads();
         std::vector<double> max_vector(num_threads, -1.0);
 
         #pragma omp parallel for
@@ -197,10 +197,10 @@ namespace Kratos
     double mPlaneCoordinates;
     double mHeightReference;
     double mTolerance;
+    std::string mOutputFileName;
     double mTimeInterval;
     double mPreviousPlotTime = 0.0;
 
-    std::string mOutputFileName;
 
     ///@}
     ///@name Private Operations

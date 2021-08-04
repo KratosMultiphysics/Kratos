@@ -17,7 +17,6 @@
 
 
 // Project includes
-#include "shallow_water_application_variables.h"
 #include "shallow_water_utilities.h"
 
 
@@ -146,60 +145,14 @@ void ShallowWaterUtilities::IdentifySolidBoundary(ModelPart& rSkinModelPart, dou
     });
 }
 
-void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double Thickness)
+void ShallowWaterUtilities::IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
-        rNode.Set(WetFlag, (height > Thickness));
+        rNode.Set(WetFlag, false);
     });
 
-    block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        int method = 1;
-
-        auto& geom = rElement.GetGeometry();
-
-        bool is_wet = geom[0].Is(WetFlag);
-        bool is_shoreline = false;
-        for (size_t j = 1; j < geom.size(); ++j)
-        {
-            if (geom[j].Is(WetFlag) != is_wet)
-                is_shoreline = true;
-        }
-
-        if (!is_shoreline)
-        {
-            rElement.Set(WetFlag, is_wet);
-        }
-        else
-        {
-            if (method == 0) {
-                rElement.Set(WetFlag, false);
-            }
-            else if (method == 1) {
-                rElement.Set(WetFlag, true);
-            }
-            else if (method == 2) {
-                double height_acc = 0.0;
-                for (auto& node : geom)
-                {
-                    height_acc += node.FastGetSolutionStepValue(VELOCITY_Z);
-                }
-                rElement.Set(WetFlag, (height_acc > 0.0));
-            }
-        }
-    });
-}
-
-void ShallowWaterUtilities::ResetDryDomain(ModelPart& rModelPart, double Thickness)
-{
-    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-        double& height = rNode.FastGetSolutionStepValue(HEIGHT);
-        if (height < Thickness)
-        {
-            height = 0.5 * Thickness;
-            noalias(rNode.FastGetSolutionStepValue(MOMENTUM)) = ZeroVector(3);
-        }
-    });
+    IdentifyWetEntities(rModelPart.Elements(), WetFlag, RelativeDryHeight);
+    IdentifyWetEntities(rModelPart.Conditions(), WetFlag, RelativeDryHeight);
 }
 
 void ShallowWaterUtilities::NormalizeVector(ModelPart& rModelPart, Variable<array_1d<double,3>>& rVariable)
@@ -317,5 +270,28 @@ double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<do
 {
     return rNode.GetValue(rVariable);
 }
+
+template<>
+array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ConditionsContainerType>(
+    const double Density,
+    const double Gravity,
+    const double Height,
+    const double Area,
+    const array_1d<double,3>& rNormal)
+{
+    return 0.5 * Density * Gravity * Height * Height * Area * rNormal;
+}
+
+template<>
+array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ElementsContainerType>(
+    const double Density,
+    const double Gravity,
+    const double Height,
+    const double Area,
+    const array_1d<double,3>& rNormal)
+{
+    return -Density * Gravity * Height * Area * rNormal;
+}
+
 
 }  // namespace Kratos.

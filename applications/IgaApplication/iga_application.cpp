@@ -42,6 +42,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportNitscheCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -71,8 +73,10 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("CouplingNitscheCondition", mCouplingNitscheCondition)
     KRATOS_REGISTER_CONDITION("SupportPenaltyCondition", mSupportPenaltyCondition)
     KRATOS_REGISTER_CONDITION("SupportLagrangeCondition", mSupportLagrangeCondition)
+    KRATOS_REGISTER_CONDITION("SupportNitscheCondition", mSupportNitscheCondition)
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
+    KRATOS_REGISTER_MODELER("RefinementModeler", mRefinementModeler);
     KRATOS_REGISTER_MODELER("NurbsGeometryModeler", mNurbsGeometryModeler);
 
     // VARIABLES
@@ -106,6 +110,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_LOAD)
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEAD_LOAD)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_FOLLOWER_LOAD)
 
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PK2_STRESS)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(CAUCHY_STRESS)

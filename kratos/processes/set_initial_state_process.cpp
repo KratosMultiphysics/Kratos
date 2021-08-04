@@ -124,9 +124,6 @@ namespace Kratos
     void SetInitialStateProcess<TDim>::ExecuteInitializeSolutionStep()
     {
         KRATOS_TRY
-        const auto it_elem_begin = mrModelPart.ElementsBegin();
-        const auto& r_integration_points = it_elem_begin->GetGeometry().
-            IntegrationPoints(it_elem_begin->GetIntegrationMethod());
 
         Vector aux_initial_strain = mInitialStrain;
         Vector aux_initial_stress = mInitialStress;
@@ -152,6 +149,7 @@ namespace Kratos
 
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector;
             r_element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector, mrModelPart.GetProcessInfo());
+            const auto& r_integration_points = r_element.GetGeometry().IntegrationPoints(r_element.GetIntegrationMethod());
 
             if (requires_unique_initial_state) {
                 InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);

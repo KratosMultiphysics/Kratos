@@ -43,7 +43,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
                     "number_of_eigenvalues" : 1,
                     "subspace_size"         : 1
             },
-            "number_of_couplings" : 1
+            "number_of_conditions" : 1
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -58,7 +58,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         self.process = IGA.NitscheStabilizationModelPartProcess(self.model_part_condition)
         self.process.ExecuteInitialize()
 
-        self.model_part = self.model.GetModelPart("IgaModelPart").GetSubModelPart("Nitsche_Stabilization_Coupling_" + self.params["model_part_condition_name"].GetString()[-1])
+        self.model_part = self.model.GetModelPart("IgaModelPart").GetSubModelPart("Nitsche_Stabilization_" + self.params["model_part_condition_name"].GetString()[13:])
 
         # Define the eigenvalue size for FEAST solver
         eigenvalue_nitsche_stabilization_size = self.model_part.ProcessInfo.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_SIZE)
@@ -78,7 +78,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
 
         # Compute the Nitsche stabilization factor
         eigenvalue_nitsche_stabilization_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
-        nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_couplings"].GetInt()
+        nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
 
         # Set the Nitsche stabilization factor
         for prop in self.model_part_condition.Properties:

@@ -20,6 +20,9 @@ except ImportError:
         have_pickle_module = False
         pickle_message = "No pickle module found"
 
+# Import copy
+import copy
+
 # input string with ugly formatting
 json_string = """
 {
@@ -461,6 +464,43 @@ class TestParameters(KratosUnittest.TestCase):
 
         self.assertFalse(kp.Has("int_value"))
         self.assertFalse(kp.Has("level1"))
+
+    def test_copy_deepcopy(self):
+        kp = Parameters(json_string)
+
+        # Copy values
+        kp_copy1 = kp.__copy__()
+        kp_copy2 = copy.copy(kp)
+        kp_deepcopy1 = kp.__deepcopy__()
+        kp_deepcopy2 = copy.deepcopy(kp)
+
+        # Check is the same
+        self.assertTrue(kp.Has("int_value"))
+        self.assertTrue(kp.Has("level1"))
+        self.assertTrue(kp_copy1.Has("int_value"))
+        self.assertTrue(kp_copy1.Has("level1"))
+        self.assertTrue(kp_copy2.Has("int_value"))
+        self.assertTrue(kp_copy2.Has("level1"))
+        self.assertTrue(kp_deepcopy1.Has("int_value"))
+        self.assertTrue(kp_deepcopy1.Has("level1"))
+        self.assertTrue(kp_deepcopy2.Has("int_value"))
+        self.assertTrue(kp_deepcopy2.Has("level1"))
+
+        # Remove values
+        kp.RemoveValue("int_value")
+        kp.RemoveValue("level1")
+
+        # Check the deep copies is the same
+        self.assertFalse(kp.Has("int_value"))
+        self.assertFalse(kp.Has("level1"))
+        self.assertFalse(kp_copy1.Has("int_value"))
+        self.assertFalse(kp_copy1.Has("level1"))
+        self.assertFalse(kp_copy2.Has("int_value"))
+        self.assertFalse(kp_copy2.Has("level1"))
+        self.assertTrue(kp_deepcopy1.Has("int_value"))
+        self.assertTrue(kp_deepcopy1.Has("level1"))
+        self.assertTrue(kp_deepcopy2.Has("int_value"))
+        self.assertTrue(kp_deepcopy2.Has("level1"))
 
     def test_is_methods(self):
         # This method checks all the "IsXXX" Methods

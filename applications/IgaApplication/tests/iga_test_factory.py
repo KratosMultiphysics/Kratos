@@ -70,6 +70,15 @@ class Shell5pHierarchicNonLinearThickBeamTest(IgaTestFactory):
 class ScordelisRoofShell5pTest(IgaTestFactory):
     file_name = "scordelis_roof_test/scordelis_roof_shell_5p"
 
+# Weak support
+class SinglePatchRefinedSupportPenaltyTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_penalty"
+
+class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_lagrange"
+
+class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
+    file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
 # Coupling
 class TwoPatchCouplingPenaltyShell3pTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p"
@@ -88,6 +97,5 @@ class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
 
 class TwoPatchRefinedCouplingNitscheMembraneTest(IgaTestFactory):
     file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_nitsche_membrane"
-
 if __name__ == '__main__':
     KratosUnittest.main()
