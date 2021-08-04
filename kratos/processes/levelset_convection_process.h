@@ -193,13 +193,13 @@ public:
     {
         KRATOS_TRY;
 
+        if (!mProcessIsInitialized) {
+            ExecuteInitialize();
+        }
+
         // Fill the auxiliary convection model part if not done yet
         if(mDistancePartIsInitialized == false){
             ReGenerateConvectionModelPart(mrBaseModelPart);
-        }
-
-        if (!mProcessIsInitialized) {
-            ExecuteInitialize();
         }
 
         // Evaluate steps needed to achieve target max_cfl
