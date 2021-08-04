@@ -158,18 +158,22 @@ public:
 			}
 		}
 
-		// Erase free nodes
-		std::cout<<"  Erasing free nodes and re-numbering kept nodes" <<std::endl;
-		FindGlobalNodalNeighboursProcess nodal_finder = FindGlobalNodalNeighboursProcess(r_comm,rExtractedModelPart,10);
-		nodal_finder.Execute();
-
-		for(NodesContainerType::iterator node_i=rExtractedModelPart.NodesBegin(); node_i!=rExtractedModelPart.NodesEnd(); node_i++)
-		{
-			GlobalPointersVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
-			if(ng_elem.size()==0)
-				node_i->Set(TO_ERASE,true);
+		// finding the "orphan" NODES (NODES that are not belonging to a ELEMENT) and deleting them
+		std::unordered_set<std::size_t> index_ok_nodes;
+		for (auto& r_elem : rExtractedModelPart.Elements()) {
+			for (auto& r_node : r_elem.GetGeometry()) {
+				index_ok_nodes.insert(r_node.Id());
+			}
 		}
-		(NodeEraseProcess(rExtractedModelPart)).Execute();
+		// Set flags in nodes
+		for (auto& r_node : rExtractedModelPart.Nodes()) {
+			if (index_ok_nodes.find(r_node.Id()) == index_ok_nodes.end()) {
+				r_node.Set(TO_ERASE);
+			}
+		}
+
+		// Remove NODES
+		rExtractedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
 		// Renumber nodes in extracted volume mesh (to start from 1)
 		unsigned int new_id = 1;
