@@ -67,7 +67,7 @@
             	"eigen_system_settings" : {
                 	"solver_type"       	: "feast"
             	},
-            "number_of_couplings" : 1
+            "number_of_conditions" : 1
             }
         }],
         "dirichlet_process_list": [{
