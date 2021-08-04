@@ -69,6 +69,10 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def(py::init<const std::string&>())
     .def(py::init<std::ifstream&>())
     .def(py::init<Parameters const&>())
+    .def("__copy__", [](const Parameters& self) {auto a = Kratos::make_shared<Parameters>(self); return a;})
+    .def("__copy__", [](const Parameters& self, py::object memo) {auto a = Kratos::make_shared<Parameters>(self); return a;}) // used for the copy module
+    .def("__deepcopy__", [](const Parameters& self) {auto a = Kratos::make_shared<Parameters>(); Parameters& r_a = *a;r_a = self; return a;})
+    .def("__deepcopy__", [](const Parameters& self, py::object memo) {auto a = Kratos::make_shared<Parameters>(); Parameters& r_a = *a;r_a = self; return a;}) // used for the copy module
     .def("WriteJsonString", &Parameters::WriteJsonString)
     .def("PrettyPrintJsonString", &Parameters::PrettyPrintJsonString)
     .def("Has", &Parameters::Has)

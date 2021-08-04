@@ -46,6 +46,7 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/surface_in_nurbs_volume_geometry.h"
 
 namespace Kratos
 {
@@ -152,16 +153,20 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
-        { return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives)); })
+        {
+            IntegrationInfo integration_info = self.GetDefaultIntegrationInfo();
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_info));
+        })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
-        { 
+        {
             IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
             for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
                 IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
                 integration_points[i] = point_tmp;
             }
-            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points)); })
+            IntegrationInfo integration_info = self.GetDefaultIntegrationInfo();
+            return(self.CreateQuadraturePointGeometries(rResultGeometries, NumberOfShapeFunctionDerivatives, integration_points, integration_info)); })
     // Normal
     .def("Normal", [](GeometryType& self)
         { const auto& r_type = self.GetGeometryType();
@@ -343,6 +348,10 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPoints", &NurbsCurveGeometry<2, NodeContainerType>::NumberOfNonzeroControlPoints)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
+        ;
+
+    py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
+        .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
         ;
 
 }
