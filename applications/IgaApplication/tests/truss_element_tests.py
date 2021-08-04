@@ -37,10 +37,10 @@ class TrussElementTests(KratosUnittest.TestCase):
         quadrature_point_geometries = KM.GeometriesVector()
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
-        id = 1
-        for i in range(0, len(quadrature_point_geometries)):
-            model_part.CreateNewElement('TrussElement', id, quadrature_point_geometries[i], truss_properties)
-            id += 1
+        element_id = 1
+        for quadrature_point_geometry in quadrature_point_geometries:
+            model_part.CreateNewElement('TrussElement', element_id, quadrature_point_geometry, truss_properties)
+            element_id += 1
 
         # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
@@ -57,7 +57,7 @@ class TrussElementTests(KratosUnittest.TestCase):
 
         # apply neumann conditions
         prop = model_part.GetProperties()[2]
-        condition = model_part.CreateNewCondition('PointLoadCondition3D1N', 2, [node_2.Id], prop)
+        model_part.CreateNewCondition('PointLoadCondition3D1N', 2, [node_2.Id], prop)
         node_2.SetSolutionStepValue(SMA.POINT_LOAD_X, 1000)
 
         # setup solver
