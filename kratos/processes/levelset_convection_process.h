@@ -278,6 +278,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
             "levelset_gradient_variable_name" : "DISTANCE_GRADIENT",
@@ -465,7 +466,9 @@ protected:
 
         mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
         mpDistanceModelPart->SetBufferSize(base_buffer_size);
-        mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        for(auto it_properties = rBaseModelPart.PropertiesBegin() ; it_properties != rBaseModelPart.PropertiesEnd() ; ++it_properties){
+            mpDistanceModelPart->AddProperties(*(it_properties).base());
+        }
         mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
 
         // Assigning the nodes to the new model part
@@ -805,7 +808,11 @@ private:
         mMaxAllowedCFL = ThisParameters["max_CFL"].GetDouble();
         mpLevelSetVar = &KratosComponents<Variable<double>>::Get(ThisParameters["levelset_variable_name"].GetString());
         mpConvectVar = &KratosComponents<Variable<array_1d<double,3>>>::Get(ThisParameters["levelset_convection_variable_name"].GetString());
-        mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+        if (ThisParameters["convection_model_part_name"].GetString() == "") {
+            mAuxModelPartName = mrBaseModelPart.Name() + "_DistanceConvectionPart";
+        } else {
+            mAuxModelPartName = ThisParameters["convection_model_part_name"].GetString();
+        }
 
         // Limiter related settings
         mpLevelSetGradientVar = (mIsBfecc || mElementRequiresLevelSetGradient) ? &(KratosComponents<Variable<array_1d<double, 3>>>::Get(ThisParameters["levelset_gradient_variable_name"].GetString())) : nullptr;
