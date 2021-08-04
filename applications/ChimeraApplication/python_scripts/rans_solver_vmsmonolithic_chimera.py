@@ -11,8 +11,8 @@ from KratosMultiphysics.ChimeraApplication import chimera_setup_utils
 from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return RansSolverMonolithicChimera(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return RansSolverMonolithicChimera(model, custom_settings)
 
 
 class RansSolverMonolithicChimera(CoupledRANSSolver):
