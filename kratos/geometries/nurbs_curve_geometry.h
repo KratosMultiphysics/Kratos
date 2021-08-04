@@ -298,7 +298,77 @@ public:
     }
 
     ///@}
-    ///@name Projection Point
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         outside -> 0
+     *         inside -> 1
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = std::min(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == min_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = std::max(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == max_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}    ///@name Projection Point
     ///@{
 
     /* Makes projection of rPointGlobalCoordinates to
@@ -324,8 +394,7 @@ public:
             20, Tolerance);
     }
 
-    ///@}
-    ///@name Geometrical Informations
+    ///@}    ///@name Geometrical Informations
     ///@{
 
     /// Computes the length of a nurbs curve
