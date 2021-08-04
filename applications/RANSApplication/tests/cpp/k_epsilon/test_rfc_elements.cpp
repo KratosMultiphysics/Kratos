@@ -95,9 +95,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateLocalSystem, KratosRansF
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] =  1.3683751126911059e+02;
-    ref_RHS[1] =  2.0361255947150408e+02;
-    ref_RHS[2] =  2.7182628795069837e+02;
+    ref_RHS[0] =  9.7426017638758822e+01;
+    ref_RHS[1] =  2.0692430709289798e+02;
+    ref_RHS[2] =  3.0546840203724616e+02;
     ref_LHS = ZeroMatrix(3, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
@@ -117,9 +117,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonKRFC2D3N_CalculateRightHandSide, KratosRan
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] =  1.3683751126911059e+02;
-    ref_RHS[1] =  2.0361255947150408e+02;
-    ref_RHS[2] =  2.7182628795069837e+02;
+    ref_RHS[0] =  9.7426017638758822e+01;
+    ref_RHS[1] =  2.0692430709289798e+02;
+    ref_RHS[2] =  3.0546840203724616e+02;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
@@ -242,9 +242,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateLocalSystem, Krato
         LHS, RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] =  3.7256256225743468e+03;
-    ref_RHS[1] =  3.1813985378960701e+03;
-    ref_RHS[2] =  4.3155889280294377e+03;
+    ref_RHS[0] =  1.8476354722650105e+03;
+    ref_RHS[1] =  3.1056111289150413e+03;
+    ref_RHS[2] =  5.3482107264965489e+03;
     ref_LHS = ZeroMatrix(3, 3);
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
@@ -264,9 +264,9 @@ KRATOS_TEST_CASE_IN_SUITE(RansKEpsilonEpsilonRFC2D3N_CalculateRightHandSide, Kra
         RHS, static_cast<const ProcessInfo&>(r_model_part.GetProcessInfo()));
 
     // setting reference values
-    ref_RHS[0] =  3.7256256225743468e+03;
-    ref_RHS[1] =  3.1813985378960701e+03;
-    ref_RHS[2] =  4.3155889280294377e+03;
+    ref_RHS[0] =  1.8476354722650105e+03;
+    ref_RHS[1] =  3.1056111289150413e+03;
+    ref_RHS[2] =  5.3482107264965489e+03;
 
     KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
