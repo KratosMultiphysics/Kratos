@@ -28,13 +28,16 @@ from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTes
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
 from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
-# Coupling tests
+# Coupling/C_0 tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
 from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCouplingNitscheShell3pTest
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPatchRefinedCouplingNitscheMembraneTest
+# Rotation/G_1 coupling tests
+from iga_test_factory import TwoPatchCantileverCouplingPenaltyTest as TwoPatchCantileverCouplingPenaltyTest
+from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as TwoPatchCantileverRefinedCouplingPenaltyTest
 # Nurbs Volume tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
@@ -76,6 +79,9 @@ def AssembleTestSuites():
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
         TwoPatchRefinedCouplingLagrangeMembraneTest,
+        # Rotation/G_1 coupling tests
+        TwoPatchCantileverCouplingPenaltyTest,
+        TwoPatchCantileverRefinedCouplingPenaltyTest,
         # Volumes
         TTestNurbsVolumeElements,
         # Modelers
