@@ -67,7 +67,8 @@ def AssembleTestSuites():
         TTestModelers,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
-        SinglePatchRefinedSupportLagrangeTest        # Coupling tests
+        SinglePatchRefinedSupportLagrangeTest,
+        # Coupling tests
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
@@ -83,6 +84,7 @@ def AssembleTestSuites():
                 ]))
         else:
             print("FEAST not available in LinearSolversApplication")
+
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
