@@ -38,8 +38,8 @@ class TrussElementTests(KratosUnittest.TestCase):
         curve.CreateQuadraturePointGeometries(quadrature_point_geometries, 2)
 
         element_id = 1
-        for quadrature_point_geometry in quadrature_point_geometries:
-            model_part.CreateNewElement('TrussElement', element_id, quadrature_point_geometry, truss_properties)
+        for i in range(0, len(quadrature_point_geometries)):
+            model_part.CreateNewElement('TrussElement', element_id, quadrature_point_geometries[i], truss_properties)
             element_id += 1
 
         # add dofs
