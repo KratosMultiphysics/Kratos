@@ -83,7 +83,7 @@ def AssembleTestSuites():
         if LinearSolversApplication.HasFEAST():
             smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
                 # Weak support Nitsche test
-                SinglePatchRefinedSupportNitscheTest
+                SinglePatchRefinedSupportNitscheTest,
                 # Coupling Nitsche tests
                 TwoPatchCouplingNitscheShell3pTest,
                 TwoPatchRefinedCouplingNitscheMembraneTest
