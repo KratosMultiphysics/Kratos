@@ -20,12 +20,12 @@ from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
 from iga_test_factory import Shell5pHierarchicLinearThickBeamTest as TShell5pHierarchicLinearThickBeamTest
 from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHierarchicLinearScordelisTest
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
-# 5p Shell Hierarchic
+# 5p Shell
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
-from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTes
+from iga_test_factory import SinglePatchRefinedSupportNitscheTest as SinglePatchRefinedSupportNitscheTest
 # Coupling tests
 from iga_test_factory import TwoPatchCouplingPenaltyShell3pTest as TwoPatchCouplingPenaltyShell3pTest
 from iga_test_factory import TwoPatchCouplingLagrangeShell3pTest as TwoPatchCouplingLagrangeShell3pTest
@@ -33,10 +33,10 @@ from iga_test_factory import TwoPatchCouplingNitscheShell3pTest as TwoPatchCoupl
 from iga_test_factory import TwoPatchRefinedCouplingPenaltyMembraneTest as TwoPatchRefinedCouplingPenaltyMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingLagrangeMembraneTest as TwoPatchRefinedCouplingLagrangeMembraneTest
 from iga_test_factory import TwoPatchRefinedCouplingNitscheMembraneTest as TwoPatchRefinedCouplingNitscheMembraneTest
-# Modelers tests
-from test_modelers import TestModelers as TTestModelers
 # Nurbs Geometry tests
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
+# Modelers tests
+from test_modelers import TestModelers as TTestModelers
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -54,7 +54,7 @@ def AssembleTestSuites():
 
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
-        # Import test
+        # Single patch test - checks iga essentials
         SinglePatchTest,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
@@ -63,8 +63,7 @@ def AssembleTestSuites():
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
         # 5p Shell Director
-        #ScordelisRoofShell5pTest,
-        TTestModelers,
+        # ScordelisRoofShell5pTest, -- commented as it contains heap error in ubuntu/CI
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,
@@ -72,7 +71,12 @@ def AssembleTestSuites():
         TwoPatchCouplingPenaltyShell3pTest,
         TwoPatchCouplingLagrangeShell3pTest,
         TwoPatchRefinedCouplingPenaltyMembraneTest,
-        TwoPatchRefinedCouplingLagrangeMembraneTest        ]))
+        TwoPatchRefinedCouplingLagrangeMembraneTest,
+        # Volumes
+        TTestNurbsVolumeElements,
+        # Modelers
+        TTestModelers
+    ]))
 
     if has_linear_solvers_application:
         from KratosMultiphysics import LinearSolversApplication
