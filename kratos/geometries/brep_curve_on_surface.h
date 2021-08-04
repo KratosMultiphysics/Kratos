@@ -329,6 +329,78 @@ public:
     }
 
     ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         inside -> 1
+     *         outside -> 0
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = mCurveNurbsInterval.MinParameter();
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - min_parameter) < Tolerance) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = mCurveNurbsInterval.MaxParameter();
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}
     ///@name Projection
     ///@{
 
@@ -381,7 +453,7 @@ public:
      {
         return mpCurveOnSurface->GlobalCoordinates(rResult, rLocalCoordinates);
     }
-    
+
     /**
     * @brief This method maps from local space to global/working space and computes the
     *        number of derivatives at the underlying nurbs curve on surface
@@ -464,7 +536,8 @@ public:
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));    }
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+    }
 
     ///@}
     ///@name Quadrature Point Geometries
