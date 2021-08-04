@@ -79,6 +79,23 @@ class SinglePatchRefinedSupportLagrangeTest(IgaTestFactory):
 
 class SinglePatchRefinedSupportNitscheTest(IgaTestFactory):
     file_name = "weak_support_tests/single_patch_refined_test/single_patch_refined_test_nitsche"
+# Coupling
+class TwoPatchCouplingPenaltyShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_penalty_shell_3p"
 
+class TwoPatchCouplingLagrangeShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_lagrange_shell_3p"
+
+class TwoPatchCouplingNitscheShell3pTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_test/two_patch_test_nitsche_shell_3p"
+
+class TwoPatchRefinedCouplingPenaltyMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_penalty_membrane"
+
+class TwoPatchRefinedCouplingLagrangeMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_lagrange_membrane"
+
+class TwoPatchRefinedCouplingNitscheMembraneTest(IgaTestFactory):
+    file_name = "coupling_condition_tests/two_patch_refined_test/two_patch_refined_test_nitsche_membrane"
 if __name__ == '__main__':
     KratosUnittest.main()
