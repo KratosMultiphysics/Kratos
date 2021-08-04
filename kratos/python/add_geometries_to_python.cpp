@@ -46,6 +46,7 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/surface_in_nurbs_volume_geometry.h"
 
 namespace Kratos
 {
@@ -118,7 +119,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     typedef NodeType::Pointer pNodeType;
     typedef Geometry<NodeType > GeometryType;
 
-    py::class_<GeometryType, GeometryType::Pointer >(m,"Geometry")
+    py::class_<GeometryType, GeometryType::Pointer >(m, "Geometry")
     .def(py::init<>())
     .def(py::init< IndexType >())
     .def(py::init< std::string >())
@@ -133,14 +134,19 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("IsIdSelfAssigned", IsIdSelfAssigned1)
     .def_static("GenerateId", &GeometryType::GenerateId)
     // Dimension access
-    .def("WorkingSpaceDimension",&GeometryType::WorkingSpaceDimension)
-    .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
+    .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
+    .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
     .def("Dimension", &GeometryType::Dimension)
-    .def("DomainSize",&GeometryType::DomainSize)
-    .def("EdgesNumber",&GeometryType::EdgesNumber)
-    .def("PointsNumber",&GeometryType::PointsNumber)
-    .def("PointsNumberInDirection",&GeometryType::PointsNumberInDirection)
-    .def("PolynomialDegree",&GeometryType::PolynomialDegree)
+    .def("DomainSize", &GeometryType::DomainSize)
+    .def("EdgesNumber", &GeometryType::EdgesNumber)
+    .def("PointsNumber", &GeometryType::PointsNumber)
+    .def("PointsNumberInDirection", &GeometryType::PointsNumberInDirection)
+    .def("PolynomialDegree", &GeometryType::PolynomialDegree)
+    // Geometry Parts
+    .def("GetGeometryPart", [](GeometryType& self, IndexType Index)
+        { return(self.GetGeometryPart(Index)); })
+    .def_property_readonly_static("BACKGROUND_GEOMETRY_INDEX", [](py::object)
+        { return GeometryType::BACKGROUND_GEOMETRY_INDEX; })
     // Integration
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })
@@ -153,7 +159,7 @@ void  AddGeometriesToPython(pybind11::module& m)
         })
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives, std::vector<std::array<double,4>>& rIntegrationPoints)
-        { 
+        {
             IntegrationPointsArrayType integration_points(rIntegrationPoints.size());
             for( IndexType i = 0; i < rIntegrationPoints.size(); ++i){
                 IntegrationPoint<3> point_tmp(rIntegrationPoints[i][0],rIntegrationPoints[i][1],rIntegrationPoints[i][2],rIntegrationPoints[i][3]);
@@ -342,6 +348,10 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("NumberOfControlPoints", &NurbsCurveGeometry<2, NodeContainerType>::NumberOfNonzeroControlPoints)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
+        ;
+
+    py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
+        .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
         ;
 
 }

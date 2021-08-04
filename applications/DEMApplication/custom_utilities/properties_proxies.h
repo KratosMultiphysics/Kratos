@@ -10,13 +10,8 @@
 #include <string>
 #include <iostream>
 
-// External includes
 // Project includes
 #include "includes/model_part.h"
-
-//#include "../kratos/includes/define.h"
-//#include "../custom_elements/discrete_element.h"
-//#include "../DEM_application_variables.h"
 
 namespace Kratos {
 
@@ -45,7 +40,7 @@ namespace Kratos {
 
         int     GetParticleMaterial();
         int*    pGetParticleMaterial();
-        void    SetParticleMaterialFromProperties(int* particle_material);       
+        void    SetParticleMaterialFromProperties(int* particle_material);
 
         PropertiesProxy operator= (PropertiesProxy props);
 

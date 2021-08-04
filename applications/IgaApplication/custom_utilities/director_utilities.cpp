@@ -33,8 +33,10 @@ namespace Kratos
     {
         Vector brep_ids = mParameters["brep_ids"].GetVector();
         for (IndexType i = 0; i < brep_ids.size(); ++i) {
-
-            auto& r_geometry = mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]);
+            // Check if geometry does have own dofs or require dependency to the geometry dofs.
+            auto& r_geometry = (mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]).size() > 0)
+                ? mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i])
+                : mrModelPart.GetRootModelPart().GetGeometry((IndexType)brep_ids[i]).GetGeometryPart(Geometry<Node<3>>::BACKGROUND_GEOMETRY_INDEX);
             size_t number_of_control_points = r_geometry.size();
             std::vector<IndexType> eqID(number_of_control_points);
             for (IndexType inodes = 0; inodes < number_of_control_points; ++inodes)

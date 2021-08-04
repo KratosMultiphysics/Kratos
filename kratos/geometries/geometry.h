@@ -112,7 +112,6 @@ public:
         QUADRATURE_ON_NODES
     };
 
-
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
@@ -217,6 +216,8 @@ public:
     typedef typename PointsArrayType::ptr_iterator ptr_iterator;
     typedef typename PointsArrayType::ptr_const_iterator ptr_const_iterator;
     typedef typename PointsArrayType::difference_type difference_type;
+
+    static constexpr IndexType BACKGROUND_GEOMETRY_INDEX = std::numeric_limits<IndexType>::max();
 
     ///@}
     ///@name Life Cycle
@@ -2560,6 +2561,60 @@ public:
     }
 
     /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Local coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    virtual int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPointLocalToLocalSpace within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
+     * @brief Projects a point onto the geometry
+     * Projects a certain point on the geometry, or finds the closest point, depending on the provided initial guess.
+     * The external point does not necessary lay on the geometry.
+     * It shall deal as the interface to the mathematical projection function e.g. the Newton-Raphson.
+     * Thus, the breaking criteria does not necessarily mean that it found a point on the surface, if it is really
+     * the closest if or not.
+     * It shows only if the breaking criteria, defined by the tolerance is reached.
+     * This function requires an initial guess, provided by rProjectionPointLocalCoordinates.
+     * This function can be a very costly operation.
+     * @param rPointLocalCoordinates Global coordinates of the point to be projected
+     * @param rProjectionPointLocalCoordinates Projection point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 0 -> failed
+     *             1 -> converged
+     */
+    virtual int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
+            << " Please check the definition within derived class. "
+            << *this << std::endl;
+    }
+
+    /**
     * @brief Returns all coordinates of the closest point on
     *        the geometry given to an arbitrary point in global coordinates.
     *        The basic concept is to first do a projection towards
@@ -2674,6 +2729,52 @@ public:
             global_coordinates,
             rClosestPointLocalCoordinates,
             Tolerance);
+    }
+
+    /**
+     * @brief Calculates the closes point projection
+     * This method calculates the closest point projection of a point in local space coordinates
+     * @param rPointLocalCoordinates Input local coordinates
+     * @param rClosestPointLocalCoordinates Closest point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 1 -> failed
+     *             0 -> outside
+     *             1 -> inside
+     *             2 -> on the boundary
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ClosestPointLocalToLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
+    }
+
+    /**
+     * @brief Calculates the closes point projection
+     * This method calculates the closest point projection of a point in global space coordinates
+     * @param rPointLocalCoordinates Input global coordinates
+     * @param rClosestPointLocalCoordinates Closest point local coordinates. This should be initialized with the initial guess
+     * @param Tolerance Accepted orthogonal error
+     * @return int 1 -> failed
+     *             0 -> outside
+     *             1 -> inside
+     *             2 -> on the boundary
+     */
+    virtual int ClosestPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const
+    {
+        KRATOS_ERROR << "Calling ClosestPointGlobalToLocalSpace from base class."
+            << " Please check the definition of derived class. "
+            << *this << std::endl;
+        return 0;
     }
 
     /**

@@ -119,7 +119,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
                 msg += "Default \"refinementStrategy\" is \"reading_from_file\". "
                 msg += "Running with {} instead. ".format(self.refinement_strategy)
                 msg += "This implies that \"refinementParametersPath\" is required for running, and it will not be used."
-                print(msg)
+                warnings.warn(msg, RuntimeWarning)
             self.solverWrapperIndex.append(0)
 
         if (self.solverWrapperIndex[0] >= 0): # for index < 0 not needed
@@ -175,6 +175,7 @@ class KratosSolverWrapper(sw.SolverWrapper):
             aux_qoi_array = []
             # loop over contributions (by default only one)
             for contribution_counter in range (0,self.number_contributions_per_instance):
+                # store current contribution
                 self.current_local_contribution = contribution_counter
                 # if multiple ensembles, append a seed to the random variable list
                 # for example, this seed is used to generate different initial conditions
@@ -189,8 +190,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
                     qoi,time_for_qoi = self.executeInstanceReadingFromFile(random_variable)
                 # append components to aux array
                 aux_qoi_array.append(qoi)
-            # delete COMPSs future objects no longer needed
-            delete_object(random_variable)
+                # delete COMPSs future objects no longer needed
+                delete_object(random_variable)
 
             # postprocess components
             if self.number_contributions_per_instance > 1:

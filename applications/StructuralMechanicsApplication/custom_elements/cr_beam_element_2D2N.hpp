@@ -43,6 +43,13 @@ protected:
     static constexpr unsigned int msLocalSize = 3;
     static constexpr unsigned int msElementSize = msLocalSize * 2;
 
+    // stores the deformation modes
+    BoundedVector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
+
+
+    // stores the globalized internal forces for calculation of the residual
+    Vector mInternalGlobalForces = ZeroVector(msElementSize);
+
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrBeamElement2D2N);
 
@@ -267,13 +274,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-
-    // stores the deformation modes
-    BoundedVector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
-
-    // stores the globalized internal forces for calculation of the residual
-    Vector mInternalGlobalForces = ZeroVector(msElementSize);
-
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

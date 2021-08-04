@@ -9,48 +9,48 @@
 #include "includes/define_python.h"
 
 // Hydrodynamic Laws
-#include "../custom_constitutive/hydrodynamic_interaction_law.h"
-#include "../custom_constitutive/power_law_hydrodynamic_interaction_law.h"
+#include "custom_constitutive/hydrodynamic_interaction_law.h"
+#include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 
 // Buoyancy Laws
-#include "../custom_constitutive/buoyancy_laws/buoyancy_law.h"
-#include "../custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.h"
+#include "custom_constitutive/buoyancy_laws/buoyancy_law.h"
+#include "custom_constitutive/buoyancy_laws/archimedes_buoyancy_law.h"
 
 // Drag laws
-#include "../custom_constitutive/drag_laws/drag_law.h"
-#include "../custom_constitutive/drag_laws/stokes_drag_law.h"
-#include "../custom_constitutive/drag_laws/beetstra_drag_law.h"
-#include "../custom_constitutive/drag_laws/schiller_and_naumann_drag_law.h"
-#include "../custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.h"
-#include "../custom_constitutive/drag_laws/ganser_drag_law.h"
-#include "../custom_constitutive/drag_laws/shah_drag_law.h"
-#include "../custom_constitutive/drag_laws/newton_drag_law.h"
+#include "custom_constitutive/drag_laws/drag_law.h"
+#include "custom_constitutive/drag_laws/stokes_drag_law.h"
+#include "custom_constitutive/drag_laws/beetstra_drag_law.h"
+#include "custom_constitutive/drag_laws/schiller_and_naumann_drag_law.h"
+#include "custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.h"
+#include "custom_constitutive/drag_laws/ganser_drag_law.h"
+#include "custom_constitutive/drag_laws/shah_drag_law.h"
+#include "custom_constitutive/drag_laws/newton_drag_law.h"
 
 // Inviscid force laws
-#include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
-#include "../custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
-#include "../custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.h"
+#include "custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
+#include "custom_constitutive/inviscid_force_laws/auton_hunt_prudhomme_inviscid_force_law.h"
+#include "custom_constitutive/inviscid_force_laws/zuber_inviscid_force_law.h"
 
 // History force laws
-#include "../custom_constitutive/history_force_laws/history_force_law.h"
-#include "../custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
+#include "custom_constitutive/history_force_laws/history_force_law.h"
+#include "custom_constitutive/history_force_laws/boussinesq_basset_history_force_law.h"
 
 // Vorticity-induced lift laws
-#include "../custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
-#include "../custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.h"
-#include "../custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.h"
-#include "../custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.h"
+#include "custom_constitutive/vorticity_induced_lift_laws/vorticity_induced_lift_law.h"
+#include "custom_constitutive/vorticity_induced_lift_laws/el_samni_lift_law.h"
+#include "custom_constitutive/vorticity_induced_lift_laws/saffman_lift_law.h"
+#include "custom_constitutive/vorticity_induced_lift_laws/mei_lift_law.h"
 
 // Rotation-induced lift laws
-#include "../custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
-#include "../custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.h"
-#include "../custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.h"
-#include "../custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.h"
+#include "custom_constitutive/rotation_induced_lift_laws/rotation_induced_lift_law.h"
+#include "custom_constitutive/rotation_induced_lift_laws/rubinow_and_keller_lift_law.h"
+#include "custom_constitutive/rotation_induced_lift_laws/oesterle_dinh_lift_law.h"
+#include "custom_constitutive/rotation_induced_lift_laws/loth_rotation_induced_lift_law.h"
 
 // Steady viscous torque laws
-#include "../custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.h"
-#include "../custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.h"
-#include "../custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.h"
+#include "custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.h"
+#include "custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.h"
+#include "custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.h"
 
 namespace Kratos {
 namespace Python {
