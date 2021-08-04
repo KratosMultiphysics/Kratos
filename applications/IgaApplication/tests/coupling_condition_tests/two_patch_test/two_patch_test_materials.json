@@ -11,7 +11,8 @@
             "Variables": {
                 "THICKNESS": 0.1,
                 "YOUNG_MODULUS": 200000,
-                "POISSON_RATIO": 0.0
+                "POISSON_RATIO": 0.0,
+                "PRESTRESS": [0.0, 0.0, 0.0]
             },
             "Tables": {}
         }
