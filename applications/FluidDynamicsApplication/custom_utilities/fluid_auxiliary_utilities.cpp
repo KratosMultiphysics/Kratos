@@ -303,7 +303,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     array_1d<double,3> aux_vel;
                     const std::size_t n_gauss = w_vect.size();
                     for (std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-                        aux_vel = ZeroVector(0);
+                        aux_vel = ZeroVector(3);
                         i_N = row(N_container, i_gauss);
                         i_normal = normals_vect[i_gauss];
                         const double i_normal_norm = norm_2(i_normal);
