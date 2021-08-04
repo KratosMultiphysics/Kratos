@@ -22,7 +22,7 @@ Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     NodesArrayType const& ThisNodes,
                                                     PropertiesType::Pointer pProperties) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     return Element::Pointer( new UPwBaseElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -34,7 +34,7 @@ Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     GeometryType::Pointer pGeom,
                                                     PropertiesType::Pointer pProperties) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     return Element::Pointer( new UPwBaseElement( NewId, pGeom, pProperties ) );
 }
@@ -59,66 +59,73 @@ int UPwBaseElement<TDim,TNumNodes>::
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
         if ( Geom[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable DISPLACEMENT on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( VELOCITY ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable VELOCITY on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable VELOCITY on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( ACCELERATION ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable ACCELERATION on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable ACCELERATION on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
 
         if ( Geom[i].HasDofFor( DISPLACEMENT_X ) == false ||
              Geom[i].HasDofFor( DISPLACEMENT_Y ) == false ||
              Geom[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing one of the dofs for the variable DISPLACEMENT on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing the dof for the variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
 
     // Verify properties
     if ( Prop.Has( DENSITY_SOLID ) == false || Prop[DENSITY_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "DENSITY_SOLID has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
+
     if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY_WATER has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "DENSITY_WATER has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( YOUNG_MODULUS ) == false )
     {
         if ( Prop.Has( UDSM_NAME ) == false )
         {
-          KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or is not defined at element", this->Id() )
+            KRATOS_ERROR << "YOUNG_MODULUS has Key zero or is not defined at element" << this->Id() << std::endl;
         }
     } 
     else
     {
         if ( Prop[YOUNG_MODULUS] <= 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "YOUNG_MODULUS has an invalid value at element" << this->Id() << std::endl;
     }
 
     if ( Prop.Has( POISSON_RATIO ) == false )
     {
         if ( Prop.Has( UDSM_NAME ) == false )
         {
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero or is not defined at element", this->Id() )
+            KRATOS_ERROR << "POISSON_RATIO has Key zero or is not defined at element" << this->Id() << std::endl;
         } 
     }
     else
     {
         const double& PoissonRatio = Prop[POISSON_RATIO];
         if ( PoissonRatio < 0.0 || PoissonRatio >= 0.5 )
-            KRATOS_THROW_ERROR( std::invalid_argument,"POISSON_RATIO has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "POISSON_RATIO has an invalid value at element" << this->Id() << std::endl;
     }
 
     if ( Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element", this->Id() )
-    if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"POROSITY has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "BULK_MODULUS_SOLID has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
+    if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
+        KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
     if ( TDim == 2 )
     {
@@ -126,7 +133,7 @@ int UPwBaseElement<TDim,TNumNodes>::
         for (unsigned int i=0; i<TNumNodes; i++)
         {
             if (Geom[i].Z() != 0.0)
-                KRATOS_THROW_ERROR( std::logic_error," Node with non-zero Z coordinate found. Id: ", Geom[i].Id() )
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
     }
 
@@ -392,7 +399,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR( std::logic_error, "undefined dimension in EquationIdVector... illegal operation!!", "" )
+        KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal operation!!" << this->Id() << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -406,7 +413,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateMassMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -647,7 +654,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateMaterialStiffnessMatrix method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateMaterialStiffnessMatrix method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -664,7 +671,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateAll method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateAll method for a particular element ... illegal operation!!" << this->Id() << std::endl;
 
     KRATOS_CATCH( "" )
 }

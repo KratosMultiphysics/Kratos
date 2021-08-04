@@ -234,35 +234,34 @@ int TransientPwElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )
+        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     for ( unsigned int i = 0; i < TNumNodes; i++ )
     {
         if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas( DT_WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing variable DT_WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable DT_WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false )
-            KRATOS_THROW_ERROR(std::invalid_argument,"missing VOLUME_ACCELERATION variable on node ", Geom[i].Id() );
+            KRATOS_ERROR << "missing variable VOLUME_ACCELERATION on node " << Geom[i].Id() << std::endl;
+
         if ( Geom[i].HasDofFor( WATER_PRESSURE ) == false )
-            KRATOS_THROW_ERROR( std::invalid_argument, "missing the dof for the variable WATER_PRESSURE on node ", Geom[i].Id() )
+            KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
     }
 
     // Verify ProcessInfo variables
 
     // Verify properties
     if ( Prop.Has( DENSITY_WATER ) == false || Prop[DENSITY_WATER] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-            "DENSITY_WATER does not exist in the material properties or has an invalid value at element", this->Id() )
-
+        KRATOS_ERROR << "DENSITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( BULK_MODULUS_SOLID ) == false || Prop[BULK_MODULUS_SOLID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-            "BULK_MODULUS_SOLID does not exist in the material properties or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-            "POROSITY does not exist in the material properties or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
 
     if ( TDim == 2 )
@@ -271,54 +270,39 @@ int TransientPwElement<TDim,TNumNodes>::
         for (unsigned int i=0; i<TNumNodes; i++)
         {
             if (Geom[i].Z() != 0.0)
-                KRATOS_THROW_ERROR( std::logic_error," Node with non-zero Z coordinate found. Id: ", Geom[i].Id() )
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
     }
 
     // Verify specific properties
     if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "BULK_MODULUS_FLUID does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "BULK_MODULUS_FLUID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_YY does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
     if (!Prop.Has( BIOT_COEFFICIENT ))
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "BIOT_COEFFICIENT does not exist in the material properties in element",
-                            this->Id() )
+        KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material properties in element" << this->Id() << std::endl;
 
     if (TDim > 2)
     {
         if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_YZ does not exist in the material properties or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element", this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
     }
 
 

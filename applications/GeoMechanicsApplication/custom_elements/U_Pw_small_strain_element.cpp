@@ -52,7 +52,7 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )
+        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     // Verify specific properties
     bool IgnoreUndrained = false;
@@ -62,42 +62,30 @@ int UPwSmallStrainElement<TDim,TNumNodes>::
     if (!IgnoreUndrained)
     {
         if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element",
-                                this->Id() )
+            KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( DYNAMIC_VISCOSITY ) == false || Prop[DYNAMIC_VISCOSITY] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element",
-                                this->Id() )
+            KRATOS_ERROR << "DYNAMIC_VISCOSITY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element",
-                                this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_XX has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( PERMEABILITY_YY ) == false || Prop[PERMEABILITY_YY] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element",
-                                this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_YY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
         if ( Prop.Has( PERMEABILITY_XY ) == false || Prop[PERMEABILITY_XY] < 0.0 )
-            KRATOS_THROW_ERROR( std::invalid_argument,
-                                "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element",
-                                this->Id() )
+            KRATOS_ERROR << "PERMEABILITY_XY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
+
         if (TDim > 2)
         {
             if ( Prop.Has( PERMEABILITY_ZZ ) == false || Prop[PERMEABILITY_ZZ] < 0.0 )
-                KRATOS_THROW_ERROR( std::invalid_argument,
-                                    "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+                KRATOS_ERROR << "PERMEABILITY_ZZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
             if ( Prop.Has( PERMEABILITY_YZ ) == false || Prop[PERMEABILITY_YZ] < 0.0 )
-                KRATOS_THROW_ERROR( std::invalid_argument,
-                                    "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element", this->Id() )
+                KRATOS_ERROR << "PERMEABILITY_YZ has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
             if ( Prop.Has( PERMEABILITY_ZX ) == false || Prop[PERMEABILITY_ZX] < 0.0 )
-                KRATOS_THROW_ERROR( std::invalid_argument,
-                                    "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element", this->Id() )
+                KRATOS_ERROR << "PERMEABILITY_ZX has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
         }
     }
 
@@ -2057,7 +2045,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "undefined number of nodes in CalculateExtrapolationMatrix ... TNumNodes:", TNumNodes )
+    KRATOS_ERROR << "undefined number of nodes in CalculateExtrapolationMatrix ... TNumNodes:" 
+                 << TNumNodes
+                 << " element: "
+                 << this->Id()
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }

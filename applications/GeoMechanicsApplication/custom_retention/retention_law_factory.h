@@ -60,7 +60,9 @@ public:
             if (RetentionLawName == "SaturatedBelowPhreaticLevelLaw")
                 return make_unique<SaturatedBelowPhreaticLevelLaw>();
 
-            KRATOS_THROW_ERROR( std::invalid_argument, "Undefined RETENTION_LAW!!", RetentionLawName )
+            KRATOS_ERROR << "Undefined RETENTION_LAW! "
+                         << RetentionLawName
+                         << std::endl;
 
             return nullptr;
          }

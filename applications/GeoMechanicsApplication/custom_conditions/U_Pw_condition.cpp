@@ -63,7 +63,8 @@ void UPwCondition<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR(std::logic_error, "undefined dimension in U_Pw_condition!!", "" );
+        std::string ErrorMessage = "undefined dimension in U_Pw_condition!!";
+        KRATOS_ERROR << ErrorMessage << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -233,7 +234,8 @@ void UPwCondition<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    KRATOS_THROW_ERROR(std::logic_error,"UPwCondition::CalculateLeftHandSide not implemented","");
+    std::string ErrorMessage = "UPwCondition::CalculateLeftHandSide is not implemented";
+    KRATOS_ERROR << ErrorMessage << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -298,7 +300,8 @@ void UPwCondition<TDim,TNumNodes>::
     }
     else
     {
-        KRATOS_THROW_ERROR(std::logic_error, "undefined dimension in U_Pw_condition!!", "" );
+        std::string ErrorMessage = "Undefined dimension in U_Pw_condition!!";
+        KRATOS_ERROR << ErrorMessage << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -450,7 +453,8 @@ void UPwCondition<TDim,TNumNodes>::
 {    
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateRHS method for a particular condition ... illegal operation!!", "" )
+    std::string ErrorMessage = "calling the default CalculateRHS method for a particular condition ... illegal operation!!";
+    KRATOS_ERROR << ErrorMessage << std::endl;
 
     KRATOS_CATCH( "" )
 }
