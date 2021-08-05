@@ -86,6 +86,8 @@ class SIMPMethod:
             element_i.SetValue(PENAL, config.penalty)
             element_i.SetValue(X_PHYS, config.initial_volume_fraction)
             element_i.SetValue(X_PHYS_OLD, config.initial_volume_fraction)
+            element_i.SetValue(X_PHYS_OLD_1, config.initial_volume_fraction)
+            element_i.SetValue(X_PHYS_OLD_2, config.initial_volume_fraction)
             element_i.SetValue(E_0, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
             element_i.SetValue(YOUNG_MODULUS, opt_model_part.Properties[config.simp_property].GetValue(YOUNG_MODULUS))
 
@@ -125,6 +127,8 @@ class SIMPMethod:
 
         elif(self.config.optimization_algorithm == "MMA_algorithm"):
            self.start_mma_algorithm()
+
+
         else:
             raise TypeError("Specified optimization_algorithm not implemented!")
 
@@ -177,6 +181,7 @@ class SIMPMethod:
                 print("  No restart file will be done during the simulation")
         else:
             print("  No restart file will be done during the simulation")
+         
 
         # Start optimization loop
         for opt_itr in range(1,self.config.max_opt_iterations+1):
@@ -185,7 +190,6 @@ class SIMPMethod:
             print("\n> ==============================================================================================")
             print("> Starting optimization iteration ",opt_itr)
             print("> ==============================================================================================\n")
-
 
             # Start measuring time needed for current optimization step
             start_time = time.time()
@@ -348,6 +352,7 @@ class SIMPMethod:
                 print("  No restart file will be done during the simulation")
         else:
             print("  No restart file will be done during the simulation")
+        
 
         # Start optimization loop
         for opt_itr in range(1,self.config.max_opt_iterations+1):
@@ -382,7 +387,7 @@ class SIMPMethod:
             self.filter_utils.ApplyFilterSensitivity(self.config.filter_type , self.config.filter_kernel )
 
 
-            print("\n No valid Updating algorithm used!")
+            print("\n::[Update Densities with MMA]::")
             self.design_update_utils.UpdateDensitiesUsingMMAMethod( self.config.optimization_algorithm,
                                                 self.config.initial_volume_fraction,
                                                 opt_itr)
@@ -406,7 +411,7 @@ class SIMPMethod:
             if opt_itr == 1:
                 Obj_Function_initial = Obj_Function
 
-            if opt_itr > 1:
+            elif opt_itr > 1:
                 Obj_Function_relative_change = (Obj_Function - Obj_Function_old) / Obj_Function_initial
                 print("  Relative Obj. Function change =", math.ceil((Obj_Function_relative_change*100)*10000)/10000, "%" )
 
@@ -450,7 +455,7 @@ class SIMPMethod:
                     break
 
                 # Check for relative tolerance
-                if(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
+                elif(abs(Obj_Function_relative_change)<self.config.relative_tolerance):
                     end_time = time.time()
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
@@ -460,6 +465,8 @@ class SIMPMethod:
 
             # Set X_PHYS_OLD, DCDX_OLD and DCDX_OLD_2  to update the value for the next simulation's "change percentage"
             for element_i in self.opt_model_part.Elements:
+                element_i.SetValue(X_PHYS_OLD_2, element_i.GetValue(X_PHYS_OLD_1))
+                element_i.SetValue(X_PHYS_OLD_1, element_i.GetValue(X_PHYS_OLD))
                 element_i.SetValue(X_PHYS_OLD, element_i.GetValue(X_PHYS))
                 element_i.SetValue(DCDX_OLD_2, element_i.GetValue(DCDX_OLD))
                 element_i.SetValue(DCDX_OLD, element_i.GetValue(DCDX))

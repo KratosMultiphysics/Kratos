@@ -117,10 +117,10 @@ public:
 			double q = 1;
 			if (greyscale == 1)
 			{
-				if (OptItr < 15)
+				if (OptItr < 10)
 					q = 1;
 				else
-					q = std::min(qmax, 1.01*q);
+					q = std::min(qmax, 1.1*q);
 
 				std::cout << "  Grey Scale Filter activated, q = " << q << std::endl;
 			}
@@ -244,12 +244,17 @@ public:
 
 			double *x = new double[nn];
 			double *df = new double[nn];
+			double *xold1 = new double[nn];
+			double *xold2 = new double[nn];
 			double *g = new double[mm];
 			double *dg = new double[nn*mm];
 			double *xmin = new double[nn];
 			double *xmax = new double[nn];
+			double *low = new double[nn];
+			double *upp = new double[nn];
 			double vol_summ = 0;
 			double vol_frac_iteration = 0;
+			int iter = OptItr;
 			
 
 
@@ -257,8 +262,12 @@ public:
 			{	
 				
 				double xval = element_i->GetValue(X_PHYS);
-				double dfdx = element_i->GetValue(DCDX);
+				double xold_1 = element_i->GetValue(X_PHYS_OLD_1);
+				double xold_2 = element_i->GetValue(X_PHYS_OLD_2);
+				double dfdx = (element_i->GetValue(DCDX));
 				double dgdx = (element_i->GetValue(DVDX));   /// gilt nur für regelmäßige Vernetzung!!!
+				double upper_boundary = element_i->GetValue(UPP);
+				double lower_boundary = element_i->GetValue(LOW);
 				double Xmin = 0;
 				double Xmax = 1;
 				vol_summ = vol_summ + xval;
@@ -269,6 +278,10 @@ public:
 				dg[iteration] = dgdx;
 				xmax[iteration] = Xmax;
 				xmin[iteration] = Xmin; 
+				xold1[iteration] = xold_1;
+				xold2[iteration] = xold_2;
+				upp[iteration] = upper_boundary;
+				low[iteration] = lower_boundary;
 				iteration = iteration + 1;
 			}
 			
@@ -281,18 +294,18 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration - volfrac*nn;
-		 	if (OptItr==1)
+			g[0] = vol_frac_iteration/nn - volfrac;
+		/* 	if (OptItr==1)
 			{
-				g[0]=100000000000;
+				g[0]=10000000000000;
 			}
 			if (g[0] > 0)
 			{
-				g[0]=100000000000;
-			} 
-	
+				g[0]= 100000000000;
+			}
+	 */
 			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
-			std::cout << "  vol_frac_iteration "<< vol_frac_iteration << std::endl;
+			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
 			std::cout << "  constrain value "<< g[0] << std::endl;
 
 
@@ -308,7 +321,7 @@ public:
 			}
 
 			
-			mma->Update(x,df,g,dg,xmin,xmax);
+			mma->Update(x,df,g,dg,xmin,xmax,xold1,xold2, iter, low, upp);
 
 
 			int jiter = 0;
@@ -317,6 +330,8 @@ public:
 					elem_i!=mrModelPart.ElementsEnd(); elem_i++)
 				{	
 				elem_i->SetValue(X_PHYS, x[jiter]);
+				elem_i->SetValue(UPP, upp[jiter]);
+				elem_i->SetValue(LOW, low[jiter]);
 				jiter= jiter +1;
 				}
 

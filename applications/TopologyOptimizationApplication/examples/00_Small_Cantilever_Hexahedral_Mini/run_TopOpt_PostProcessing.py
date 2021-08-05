@@ -160,4 +160,4 @@ gid_io_3.PrintOutput()
 gid_io_3.ExecuteFinalizeSolutionStep()
 gid_io_3.ExecuteFinalize()
 
-IOUtilities().WriteSurfaceAsSTLFile("smoothed_design_21.stl",extracted_surface_model_part)
+IOUtilities().WriteSurfaceAsSTLFile("smoothed_design_00_Cantilever.stl",extracted_surface_model_part)

@@ -45,7 +45,7 @@ optimization_algorithm = "MMA_algorithm" #"MMA_algorithm"  #"oc_algorithm" für 
     
 # General convergence criterions
 max_opt_iterations = 100
-relative_tolerance = 0.001      
+relative_tolerance = 0.0001      
 increasing_obj     = 0 # Stops the optimization when objective function value is increasing
 # options: Activated=1, Deactivated=0
 
