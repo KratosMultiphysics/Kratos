@@ -51,7 +51,7 @@ namespace Kratos {
         ElementsArrayType& pElements = r_spheres_modelPart.Elements();
         bool verdict = true;
 
-        #pragma omp parallel for
+        //#pragma omp parallel for //TODO: commented out. It doesnt compile in hpc0 `because of the 'break'
         for (int k = 0; k < (int)pElements.size(); k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
