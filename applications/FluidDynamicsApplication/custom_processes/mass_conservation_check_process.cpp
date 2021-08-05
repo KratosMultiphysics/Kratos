@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
+#include "utilities/geometry_utilities.h"
 #include "processes/find_nodal_h_process.h"
 #include "custom_utilities/fluid_element_utilities.h"
 #include "includes/deprecated_variables.h" //For IS_STRUCTURED
@@ -160,14 +161,13 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
         ShiftDistanceField( shift_for_correction );
     }
 
-    const double energy = 1.0*pos_kinetic_energy + 1000.0*neg_kinetic_energy + 1.0*inter_area;
+    const double energy = 1.0*pos_kinetic_energy + 1000.0*neg_kinetic_energy + 1.0e2*inter_area;
 
     // assembly of the log message
     std::ostringstream oss;
     //oss.precision(std::numeric_limits<double>::digits10);
     oss << std::scientific << neg_vol << "\t\t" << pos_vol << "\t\t" << water_volume_error 
-        << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow/* net_inflow_outlet */ << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\n";
-    oss << std::scientific << energy << "\n";
+        << "\t\t" << net_inflow_inlet << "\t\t" << net_inflow/* net_inflow_outlet */ << "\t\t" << inter_area << "\t\t" << shift_for_correction << "\t\t" << energy << "\n";
     std::string add_string = oss.str();
 
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";
@@ -193,7 +193,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
     double pos_kinetic_energy_to_rho = 0.0;
     double neg_kinetic_energy_to_rho = 0.0;
 
-    #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area)
+    #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area, pos_kinetic_energy_to_rho, neg_kinetic_energy_to_rho)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
         // iteration over all elements
         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
@@ -202,6 +202,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
 
         auto& rGeom = it_elem->GetGeometry();
+        const unsigned int num_nodes = rGeom.PointsNumber();
+        const unsigned int num_dim = num_nodes - 1;
         unsigned int pt_count_pos = 0;
         unsigned int pt_count_neg = 0;
 
@@ -214,13 +216,57 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             }
         }
 
-        if ( pt_count_pos == rGeom.PointsNumber() ){
+        if ( pt_count_pos == num_nodes ){
             // all nodes are positive (pointer is necessary to maintain polymorphism of DomainSize())
             pos_vol += it_elem->pGetGeometry()->DomainSize();
+            if ( num_nodes == 3 ){
+                BoundedMatrix<double,3,2> DN_DX;  // Gradients matrix 
+                array_1d<double,3> N; //dimension = number of nodes . Position of the gauss point 
+                double area;
+                GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int i = 0; i < num_nodes; i++){
+                    vel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                pos_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*area;
+            } else if ( num_nodes == 4 ){
+                BoundedMatrix<double,4,3> DN_DX;  // Gradients matrix 
+                array_1d<double,4> N; //dimension = number of nodes . Position of the gauss point 
+                double area;
+                GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int i = 0; i < num_nodes; i++){
+                    vel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                pos_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*area;
+                //KRATOS_WATCH(0.5*inner_prod(vel,vel)*area)
+            }
         }
-        else if ( pt_count_neg == rGeom.PointsNumber() ){
+        else if ( pt_count_neg == num_nodes ){
             // all nodes are negative (pointer is necessary to maintain polymorphism of DomainSize())
             neg_vol += it_elem->pGetGeometry()->DomainSize();
+            if ( num_nodes == 3 ){
+                BoundedMatrix<double,3,2> DN_DX;  // Gradients matrix 
+                array_1d<double,3> N; //dimension = number of nodes . Position of the gauss point 
+                double area;
+                GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int i = 0; i < num_nodes; i++){
+                    vel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                neg_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*area;
+            } else if ( num_nodes == 4 ){
+                BoundedMatrix<double,4,3> DN_DX;  // Gradients matrix 
+                array_1d<double,4> N; //dimension = number of nodes . Position of the gauss point 
+                double area;
+                GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int i = 0; i < num_nodes; i++){
+                    vel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                }
+                neg_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*area;
+                //KRATOS_WATCH(0.5*inner_prod(vel,vel)*area)
+            }
         }
         else if ( 0 < pt_count_neg && 0 < pt_count_pos ){
             // element is cut by the surface (splitting)
@@ -229,8 +275,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             Vector w_gauss_neg_side(3, 0.0);
             Vector w_gauss_interface(3, 0.0);
 
-            Vector Distance( rGeom.PointsNumber(), 0.0 );
-            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
+            Vector Distance( num_nodes, 0.0 );
+            for (unsigned int i = 0; i < num_nodes; i++){
                 // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
                 /* if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
                     it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
@@ -251,9 +297,9 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             //KRATOS_INFO("MassConservationProcess") << "About to construct the ModifiedShapeFunctions" << std::endl;
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
+            if ( num_nodes == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
             }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
+            else if ( num_nodes == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
             }            
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; 
             }
@@ -270,9 +316,9 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             for ( unsigned int i = 0; i < w_gauss_pos_side.size(); i++){
                 pos_vol += w_gauss_pos_side[i];
-                Vector vel = ZeroVector(rGeom.PointsNumber() - 1);
-                for (unsigned int j = 0; j < rGeom.PointsNumber(); j++){
-                    vel += shape_functions(i, j)*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int j = 0; j < num_nodes; j++){
+                    vel += shape_functions(i, j)*rGeom[j].FastGetSolutionStepValue(VELOCITY);
                 }
                 pos_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*w_gauss_pos_side[i];
             }
@@ -287,9 +333,9 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             for ( unsigned int i = 0; i < w_gauss_neg_side.size(); i++){
                 neg_vol += w_gauss_neg_side[i];
-                Vector vel = ZeroVector(rGeom.PointsNumber() - 1);
-                for (unsigned int j = 0; j < rGeom.PointsNumber(); j++){
-                    vel += shape_functions(i, j)*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                Vector vel = ZeroVector(num_dim);
+                for (unsigned int j = 0; j < num_nodes; j++){
+                    vel += shape_functions(i, j)*rGeom[j].FastGetSolutionStepValue(VELOCITY);
                 }
                 neg_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*w_gauss_pos_side[i];
             }
@@ -310,6 +356,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
     positiveVolume = pos_vol;
     negativeVolume = neg_vol;
     interfaceArea = int_area;
+    positiveKineticEtoRho = pos_kinetic_energy_to_rho;
+    negativeKineticEtoRho = neg_kinetic_energy_to_rho;
 }
 
 
