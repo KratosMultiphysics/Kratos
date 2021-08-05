@@ -22,6 +22,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
         self.number_of_DEM_steps_between_steadiness_checks = 25
         self.stationarity_measuring_tolerance = 5e-3
+        self.ignore_isolated_particles = True
 
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
         file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
@@ -136,15 +137,15 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
 
             print("\n*** DEM stationarity will now be checked...", flush=True)
 
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance):
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_X, self.stationarity_measuring_tolerance, self.ignore_isolated_particles):
                 print("  F_X is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance):
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Y, self.stationarity_measuring_tolerance, self.ignore_isolated_particles):
                 print("  F_Y is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
-            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance):
+            if not DEM.StationarityChecker().CheckIfVariableIsNullInModelPart(self.dem_solution.spheres_model_part, Kratos.TOTAL_FORCES_Z, self.stationarity_measuring_tolerance, self.ignore_isolated_particles):
                 print("  F_Z is larger than the desired maximum\n", flush=True)
                 self.stationarity_checking_is_activated = True
                 return False
