@@ -503,7 +503,7 @@ namespace Kratos
       return false;
     }
 
-    void ComputeErrorL2Norm()
+    void ComputeErrorL2Norm(double tensilStressSign) //tensilStressSign = 1.0 for FIC, tensilStressSign = -1.0 for FS
     {
       ModelPart &rModelPart = BaseType::GetModelPart();
       const ProcessInfo &rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -579,7 +579,7 @@ namespace Kratos
           const long double posY = bariPosY;
           long double expectedVelocityX = pow(posX, 2) * (1.0 - posX) * (1.0 - posX) * (2.0 * posY - 6.0 * pow(posY, 2) + 4.0 * pow(posY, 3));
           long double expectedVelocityY = -pow(posY, 2) * (1.0 - posY) * (1.0 - posY) * (2.0 * posX - 6.0 * pow(posX, 2) + 4.0 * pow(posX, 3));
-          long double expectedPressure = -posX * (1.0 - posX);
+          long double expectedPressure = -tensilStressSign * posX * (1.0 - posX);
 
           eleErrorL2VelocityX = elementalVelocityX - expectedVelocityX;
           eleErrorL2VelocityY = elementalVelocityY - expectedVelocityY;
