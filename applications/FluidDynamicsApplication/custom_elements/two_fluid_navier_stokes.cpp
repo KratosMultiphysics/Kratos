@@ -4010,6 +4010,15 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     }
 
     lhs_acc_correction = /* - */(negative_density - positive_density)*lhs_acc_correction;
+    noalias(rLHS) += lhs_acc_correction;
+
+    Vector tempU = ZeroVector(NumNodes*(NumDim+1)); // Only velocity
+    for (unsigned int i = 0; i < NumNodes; i++){
+        for (unsigned int dimi = 0; dimi < NumDim; dimi++){
+            tempU[i*(NumDim+1) + dimi] = rData.Velocity(i,dimi);
+        }
+    }
+    rhs -= prod(lhs_acc_correction, tempU);
 
     //KRATOS_WATCH(negative_density - positive_density);
     //KRATOS_WATCH(lhs_acc_correction);
@@ -4031,13 +4040,6 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             normal_avg += rIntWeights(intgp)*rIntNormalsNeg[intgp];
         }
         normal_avg /= norm_2(normal_avg);
-
-        Vector tempU = ZeroVector(NumNodes*(NumDim+1)); // Only velocity
-        for (unsigned int i = 0; i < NumNodes; i++){
-            for (unsigned int dimi = 0; dimi < NumDim; dimi++){
-                tempU[i*(NumDim+1) + dimi] = rData.Velocity(i,dimi);
-            }
-        }
 
         // double positive_density = 0.0;
         // double negative_density = 0.0;
@@ -4168,8 +4170,8 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             contact_angle_micro += (rCLWeights[i_cl])[clgp]*contact_angle_micro_gp;
         }
 
-        noalias(rLHS) += lhs_dissipation + lhs_acc_correction;
-        rhs -= prod(lhs_dissipation + lhs_acc_correction,tempU);
+        noalias(rLHS) += lhs_dissipation;
+        rhs -= prod(lhs_dissipation,tempU);
 
         // contact_angle_macro /= weight_sum;
         // this->SetValue(CONTACT_ANGLE, contact_angle_macro*180.0/PI);
