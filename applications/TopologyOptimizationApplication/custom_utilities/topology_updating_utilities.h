@@ -294,7 +294,7 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration/nn - volfrac;
+			g[0] = vol_frac_iteration - volfrac*nn;
 		/* 	if (OptItr==1)
 			{
 				g[0]=10000000000000;
