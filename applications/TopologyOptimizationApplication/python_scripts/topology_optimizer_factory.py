@@ -186,6 +186,7 @@ class SIMPMethod:
             print("> Starting optimization iteration ",opt_itr)
             print("> ==============================================================================================\n")
 
+
             # Start measuring time needed for current optimization step
             start_time = time.time()
 
