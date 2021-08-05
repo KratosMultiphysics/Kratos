@@ -245,7 +245,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
             self.assertAlmostEqual(reference[2], result[2], delta=self.check_tolerance)
 
     def _PrintOutput(self):
-        gid_output_settings = KratosMultiphysics.Parameters("""{
+        gid_output_settings = KratosMultiphysics.Parameters(r'''{
             "Parameters" : {
                 "model_part_name" : "Interface",
                 "output_name" : "test_variable_redistribution",
@@ -261,7 +261,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
                     }
                 }
             }
-        }""")
+        }''')
         gid_output_process = KratosMultiphysics.gid_output_process.Factory(gid_output_settings ,self.current_model)
         gid_output_process.ExecuteInitialize()
         gid_output_process.ExecuteBeforeSolutionLoop()
