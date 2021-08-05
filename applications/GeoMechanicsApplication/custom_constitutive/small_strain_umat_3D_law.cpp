@@ -250,8 +250,7 @@ bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
    return loadUMATLinux(rMaterialProperties);
 #endif
 
-   std::string ErrorMessage = "loadUMAT is not supported yet for Mac OS applications";
-   KRATOS_ERROR << ErrorMessage << std::endl;
+   KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
 
    return isLoaded;
 
