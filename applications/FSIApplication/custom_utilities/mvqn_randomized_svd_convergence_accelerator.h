@@ -101,28 +101,9 @@ public:
         ConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mUserNumberOfModes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
         mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
+        mMinRandSVDExtraModes = ConvAcceleratorParameters["min_rand_svd_extra_modes"].GetInt();
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
         BaseType::SetCutOffTolerance(ConvAcceleratorParameters["cut_off_tol"].GetDouble());
-    }
-
-    /**
-     * @brief Construct a new MVQNRandomizedSVDConvergenceAccelerator object
-     * Multivector Quasi-Newton convergence accelerator with randomized SVD jacobian constructor
-     * This constructor is intended to be used to set the subdomain MVQN pointers with the IBQN equations
-     * @param pDenseSVD Pointer to the dense SVD utility instance
-     * @param JacobianModes Number of modes to be kept in the randomization of the Jacobian
-     * @param CutOffTolerance Tolerance for the new observation data cut off (relative to the maximum residual observation matrix eigenvalue)
-     */
-    explicit MVQNRandomizedSVDConvergenceAccelerator(
-        DenseSVDPointerType pDenseSVD,
-        const unsigned int JacobianModes,
-        const double CutOffTolerance,
-        const bool LimitModesToIterations)
-    : BaseType(CutOffTolerance)
-    , mUserNumberOfModes(JacobianModes)
-    , mLimitModesToIterations(LimitModesToIterations)
-    , mpDenseSVD(pDenseSVD)
-    {
     }
 
     /**
@@ -130,7 +111,7 @@ public:
      */
 
     // Required to build the IBQN-MVQN
-    MVQNRandomizedSVDConvergenceAccelerator(const MVQNRandomizedSVDConvergenceAccelerator& rOther);
+    MVQNRandomizedSVDConvergenceAccelerator(const MVQNRandomizedSVDConvergenceAccelerator& rOther) = default;
 
     /**
      * Destructor.
@@ -185,7 +166,8 @@ public:
             "w_0"                       : 0.825,
             "cut_off_tol"               : 1e-8,
             "interface_block_newton"    : false,
-            "limit_modes_to_iterations" : false
+            "limit_modes_to_iterations" : false,
+            "min_rand_svd_extra_modes"  : 10
         })");
 
         return mvqn_randomized_svd_default_parameters;
@@ -214,6 +196,34 @@ public:
 
     ///@}
 protected:
+    ///@name Protected  Life Cycle
+    ///@{
+
+    /**
+     * @brief Construct a new MVQNRandomizedSVDConvergenceAccelerator object
+     * Multivector Quasi-Newton convergence accelerator with randomized SVD jacobian constructor
+     * This constructor is intended to be used to set the subdomain MVQN pointers with the IBQN equations
+     * @param pDenseSVD Pointer to the dense SVD utility instance
+     * @param JacobianModes Number of modes to be kept in the randomization of the Jacobian
+     * @param CutOffTolerance Tolerance for the new observation data cut off (relative to the maximum residual observation matrix eigenvalue)
+     * @param LimitModesToIterations If true limits the randomized SVD decomposition to the current number of iterations
+     * @param MinRandSVDExtraModes Minimum number of extra modes to be used in the randomized SVD decomposition
+     */
+    explicit MVQNRandomizedSVDConvergenceAccelerator(
+        DenseSVDPointerType pDenseSVD,
+        const unsigned int JacobianModes,
+        const double CutOffTolerance,
+        const bool LimitModesToIterations,
+        const unsigned int MinRandSVDExtraModes)
+    : BaseType(CutOffTolerance)
+    , mUserNumberOfModes(JacobianModes)
+    , mMinRandSVDExtraModes(MinRandSVDExtraModes)
+    , mLimitModesToIterations(LimitModesToIterations)
+    , mpDenseSVD(pDenseSVD)
+    {
+    }
+
+    ///@}
     ///@name Protected  Operations
     ///@{
 
@@ -280,43 +290,6 @@ protected:
             }
         }
     }
-
-    // void UpdateCurrentJacobianMatrix() override
-    // {
-    //     // Compute the current inverse Jacobian approximation
-    //     MatrixType aux_M;
-    //     CalculateAuxiliaryMatrixM(aux_M);
-    //     const SizeType n_dofs = BaseType::GetProblemSize();
-    //     MatrixPointerType p_aux_jac_k1 = MatrixPointerType(new MatrixType(n_dofs, n_dofs));
-    //     auto& r_aux_jac = *p_aux_jac_k1;
-    //     const auto& r_W = *(BaseType::pGetSolutionObservationMatrix());
-    //     r_aux_jac = prod(r_W, aux_M);
-
-    //     if (mpOldJacQU != nullptr && mpOldJacSigmaV != nullptr) {
-    //         const auto& r_A = *mpOldJacQU;
-    //         const auto& r_B = *mpOldJacSigmaV;
-    //         const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
-    //         MatrixType A_B = prod(r_A, r_B);
-    //         MatrixType V_M = prod(r_V, aux_M);
-    //         MatrixType A_B_V_M = prod(A_B, V_M);
-
-    //         if (!BaseType::IsUsedInBlockNewtonEquations()) {
-    //             for (SizeType i = 0; i < n_dofs; ++i) {
-    //                 for (SizeType j = 0; j < n_dofs; ++j) {
-    //                     r_aux_jac(i,j) += A_B(i,j) - A_B_V_M(i,j) + V_M(i,j);
-    //                 }
-    //             }
-    //         } else {
-    //             for (SizeType i = 0; i < n_dofs; ++i) {
-    //                 for (SizeType j = 0; j < n_dofs; ++j) {
-    //                     r_aux_jac(i,j) += A_B(i,j) - A_B_V_M(i,j);
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     BaseType::SetInverseJacobianApproximation(p_aux_jac_k1);
-    // }
 
     void CalculateInverseJacobianSVD()
     {
@@ -431,6 +404,7 @@ private:
     SizeType mSeed = 0; // Seed to be used in the random matrix generation (to be updated at each step)
     SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
     SizeType mNumberOfExtraModes; // Number of extra modes used in the randomization
+    SizeType mMinRandSVDExtraModes; // Minimum number of extra modes used in the randomization
     SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD
     bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
@@ -451,9 +425,8 @@ private:
     {
         // Initialize auxiliary variables
         bool is_number_of_modes_limited = false;
-        const std::size_t min_extra_modes = 2;
         const std::size_t aux_extra_modes = std::ceil(0.2 * mUserNumberOfModes);
-        mNumberOfExtraModes = min_extra_modes > aux_extra_modes ? min_extra_modes : aux_extra_modes;
+        mNumberOfExtraModes = mMinRandSVDExtraModes > aux_extra_modes ? mMinRandSVDExtraModes : aux_extra_modes;
 
         // Check if the user-defined number of modes exceeds the iteration number
         // Note that we check it with the current number of observations rather than using the iteration counter

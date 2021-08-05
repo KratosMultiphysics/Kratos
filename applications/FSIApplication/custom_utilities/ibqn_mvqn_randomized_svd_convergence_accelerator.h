@@ -97,12 +97,10 @@ public:
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
 
         // Set the subdomains MVQN randomized SVD convergence accelerator pointers
-        // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
-        const double cut_off_tol = ConvAcceleratorParameters["cut_off_tol"].GetDouble();
-        const unsigned int jacobian_modes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
-        const bool limit_modes_to_iterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
-        MVQNPointerType p_convergence_accelerator_left = Kratos::make_unique<MVQNType>(pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations);
-        MVQNPointerType p_convergence_accelerator_right = Kratos::make_unique<MVQNType>(pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations);
+        MVQNPointerType p_convergence_accelerator_left = CreateMVQNPointer(pDenseSVD, ConvAcceleratorParameters);
+        MVQNPointerType p_convergence_accelerator_right = CreateMVQNPointer(pDenseSVD, ConvAcceleratorParameters);
+
+        // Assign the convergence accelerator pointers
         BaseType::SetLeftConvergenceAcceleratorPointer(p_convergence_accelerator_left);
         BaseType::SetRightConvergenceAcceleratorPointer(p_convergence_accelerator_right);
     }
@@ -133,7 +131,8 @@ public:
             "jacobian_modes"            : 10,
             "w_0"                       : 0.825,
             "cut_off_tol"               : 1e-8,
-            "limit_modes_to_iterations" : true
+            "limit_modes_to_iterations" : true,
+            "min_rand_svd_extra_modes"  : 10
         })");
 
         return ibqn_mvqn_default_parameters;
@@ -343,6 +342,42 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    static MVQNPointerType CreateMVQNPointer(
+        DenseSVDPointerType pDenseSVD,
+        const Parameters ConvAcceleratorParameters)
+    {
+        // Set the subdomains MVQN randomized SVD convergence accelerator pointers
+        // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
+        const double cut_off_tol = ConvAcceleratorParameters["cut_off_tol"].GetDouble();
+        const unsigned int jacobian_modes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
+        const bool limit_modes_to_iterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
+        const unsigned int min_rand_svd_extra_modes = ConvAcceleratorParameters["min_rand_svd_extra_modes"].GetInt();
+
+        // Auxiliary struct to enable the std::make_unique access to access the protected constructor of the randomized SVD
+        // Hence, the pointer is created through the prublic constructor of the auxiliary class, which derives from the class of interest
+        // At the same time, the auxiliary public constructor calls the protected constructor of interest
+        // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
+        struct make_unique_enabler : public MVQNType {
+            make_unique_enabler(
+                DenseSVDPointerType pDenseSVD,
+                const unsigned int JacobianModes,
+                const double CutOffTolerance,
+                const bool LimitModesToIterations,
+                const unsigned int MinRandSVDExtraModes)
+            : MVQNType(
+                pDenseSVD,
+                JacobianModes,
+                CutOffTolerance,
+                LimitModesToIterations,
+                MinRandSVDExtraModes)
+            {}
+        };
+
+        // Create and return the convergence accelerator pointer
+        MVQNPointerType p_convergence_accelerator = Kratos::make_unique<make_unique_enabler>(pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations, min_rand_svd_extra_modes);
+        return p_convergence_accelerator;
+    }
 
     /**
      * @brief Calculates the auxiliary matrix C
