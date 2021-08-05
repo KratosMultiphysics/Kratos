@@ -29,14 +29,14 @@
 #include "geometries/geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 
-#include "utilities/nurbs_curve_tessellation.h"
+#include "utilities/tessellation_utilities/curve_tessellation.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(NurbsCurveTessellation3D,
+KRATOS_TEST_CASE_IN_SUITE(CurveTessellationNurbsCurve3D,
                           KratosCoreNurbsGeometriesFastSuite)
 {
     // Control Points
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(NurbsCurveTessellation3D,
         p,
         knot_vector);
 
-    const auto tessellation = NurbsCurveTessellation<2, PointerVector<Point>>::ComputeTessellation(
+    const auto tessellation = CurveTessellation<PointerVector<Point>>::ComputeTessellation(
         geometry,
         geometry.PolynomialDegree(0),
         geometry.DomainInterval(),
