@@ -45,13 +45,11 @@ namespace Kratos {
 
         KRATOS_ERROR_IF(!r_spheres_modelPart.HasNodalSolutionStepVariable(r_var)) << "Variable " << r_var.Name() << " is not added to the nodes of the ModelPart. Steadiness cannot be assessed with this variable" << std::endl;
 
-        const size_t number_of_nodes = r_spheres_modelPart.Nodes().size();
-
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         ElementsArrayType& pElements = r_spheres_modelPart.Elements();
         bool verdict = true;
 
-        //#pragma omp parallel for //TODO: commented out. It doesnt compile in hpc0 `because of the 'break'
+        //#pragma omp parallel for //TODO: commented out. It doesn't compile in hpc0 because of the 'break'
         for (int k = 0; k < (int)pElements.size(); k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
