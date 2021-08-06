@@ -56,7 +56,7 @@ Condition::Pointer ThermalCouplingCondition<TDim,TNumNodes>::Create(
     NodesArrayType const& ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<ThermalCouplingCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<ThermalCouplingCondition<TDim,TNumNodes>>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template<std::size_t TDim, std::size_t TNumNodes>
@@ -65,7 +65,7 @@ Condition::Pointer ThermalCouplingCondition<TDim,TNumNodes>::Create(
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<ThermalCouplingCondition>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<ThermalCouplingCondition<TDim,TNumNodes>>(NewId, pGeom, pProperties);
 }
 
 template<std::size_t TDim, std::size_t TNumNodes>
@@ -184,6 +184,19 @@ void ThermalCouplingCondition<TDim,TNumNodes>::CalculateRightHandSide(
 
     // Fill the LHS matrix
     FillRightHandSideVector(transfer_coefficient*nodal_weight, r_unknown_var, rRightHandSideVector);
+
+    KRATOS_CATCH("")
+}
+
+template<std::size_t TDim, std::size_t TNumNodes>
+int ThermalCouplingCondition<TDim,TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
+{
+    KRATOS_TRY
+
+    // Note that we intentionally avoid calling the base class to skip the geometry domain size check
+    KRATOS_ERROR_IF( this->Id() < 1 ) << "Condition found with Id " << this->Id() << std::endl;
+
+    return 0;
 
     KRATOS_CATCH("")
 }

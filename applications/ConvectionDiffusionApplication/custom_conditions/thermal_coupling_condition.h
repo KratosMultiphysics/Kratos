@@ -98,6 +98,8 @@ public:
         DofsVectorType& rConditionDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
 
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
     ///@}
     ///@name Input and output
     ///@{
