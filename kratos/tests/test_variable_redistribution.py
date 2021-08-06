@@ -15,7 +15,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
         self.redistribution_tolerance = 1e-8
 
         self.check_tolerance = 1e-6
-        self.print_output = True
+        self.print_output = False
 
         self.mapped_function = None
 
