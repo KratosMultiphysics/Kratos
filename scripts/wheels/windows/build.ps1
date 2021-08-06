@@ -82,7 +82,9 @@ foreach ($python in $pythons){
     $applications = Get-ChildItem "$($kratosRoot)\scripts\wheels\windows\applications"
 
     foreach($app in $applications) {
+        Write-Host "Start build for $($app)"
         create_application_wheel $pythonPath $app
+        Write-Host "Finished build for $($app)"
     }
 
     Write-Host "Finished wheel construction for python $($python)"
