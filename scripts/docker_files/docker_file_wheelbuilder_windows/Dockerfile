@@ -40,37 +40,37 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source//boost_1_76_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
 
-#Install python 3.5
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
-    mkdir c:\python\35; \
-    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
-    c:\python\35\python.exe -m pip install --upgrade pip; \
-    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
-
-#Install python 3.6
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
-    mkdir c:\python\36; \
-    Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
-    c:\python\36\python.exe -m pip install --upgrade pip; \
-    c:\python\36\python.exe -m pip install --upgrade setuptools wheel
-
-
-#Install python 3.7
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile c:\temp\python37.exe; \
-    mkdir c:\python\37; \
-    Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
-    c:\python\37\python.exe -m pip install --upgrade pip; \
-    c:\python\37\python.exe -m pip install --upgrade setuptools wheel
+##Install python 3.5
+#RUN powershell.exe -Command \
+#    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+#    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
+#    mkdir c:\python\35; \
+#    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
+#    c:\python\35\python.exe -m pip install --upgrade pip; \
+#    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
+#
+##Install python 3.6
+#RUN powershell.exe -Command \
+#    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+#    wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
+#    mkdir c:\python\36; \
+#    Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
+#    c:\python\36\python.exe -m pip install --upgrade pip; \
+#    c:\python\36\python.exe -m pip install --upgrade setuptools wheel
+#
+#
+##Install python 3.7
+#RUN powershell.exe -Command \
+#    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+#    wget https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile c:\temp\python37.exe; \
+#    mkdir c:\python\37; \
+#    Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
+#    c:\python\37\python.exe -m pip install --upgrade pip; \
+#    c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.8
 RUN powershell.exe -Command \
@@ -81,14 +81,14 @@ RUN powershell.exe -Command \
     c:\python\38\python.exe -m pip install --upgrade pip; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
-#Install python 3.9
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
-    mkdir c:\python\39; \
-    Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
-    c:\python\39\python.exe -m pip install --upgrade pip; \
-    c:\python\39\python.exe -m pip install --upgrade setuptools wheel
+##Install python 3.9
+#RUN powershell.exe -Command \
+#    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+#    wget https://www.python.org/ftp/python/3.9.0/python-3.9.0-amd64.exe -OutFile c:\temp\python39.exe; \
+#    mkdir c:\python\39; \
+#    Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
+#    c:\python\39\python.exe -m pip install --upgrade pip; \
+#    c:\python\39\python.exe -m pip install --upgrade setuptools wheel
 
 #Downloand blas/lapack
 RUN powershell.exe -Command \
@@ -101,7 +101,7 @@ RUN powershell.exe -Command \
 ENV CMAKE c:\\cmake\\cmake-3.14.1-win64-x64\\bin\\cmake.exe
 ENV SEVEN_ZIP c:\\7zip\\7z.exe
 ENV VCVARS  \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"
-ENV BOOST c:\\boost\\boost_1_71_0
+ENV BOOST c:\\boost\\boost_1_76_0
 ENV BLAS c:\\libs\\libblas.lib
 ENV LAPACK c:\\libs\\liblapack.lib
 ENV PYTHONROOT c:\\python
@@ -110,4 +110,3 @@ COPY start.ps1 c:\\scripts\\start.ps1
 
 # Default to PowerShell if no other command specified.
 ENTRYPOINT ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass", "-Command", "c:\\scripts\\start.ps1"]
-
