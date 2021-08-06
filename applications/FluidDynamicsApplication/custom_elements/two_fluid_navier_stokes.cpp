@@ -93,8 +93,8 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
         const double zeta = 5.0e-1;//1.0;//0.7;//
         const double surface_tension_coefficient = 0.072;//0.0426;//0.0311;//0.072;// //0.1; //0.0322; // //Surface tension coefficient, TODO: get from properties
 
-        const double theta_advancing = 149.0*PI/180.0;
-        const double theta_receding = 115.0*PI/180.0;
+        const double theta_advancing = 129.78*PI/180.0;//149.0*PI/180.0;
+        const double theta_receding = 129.78*PI/180.0;//115.0*PI/180.0;
         //const double theta_static = 117*PI/180.0;
         // const double contact_line_coefficient = surface_tension_coefficient*std::cos(theta_static);
         ////const double contact_line_coefficient = -0.4539905*surface_tension_coefficient;///* 0.5299192642332 */-0.25881904510252076*surface_tension_coefficient;//0.779337965*surface_tension_coefficient;//
