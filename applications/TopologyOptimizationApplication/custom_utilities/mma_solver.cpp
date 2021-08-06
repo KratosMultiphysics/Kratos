@@ -21,18 +21,11 @@ namespace Kratos
 
 
 MMASolver::MMASolver(int nn, int mm, double ai, double ci, double di)
-/* :albefa(0.1),
-move(0.1),
-raa0(0.00001),
-epsimin(std::sqrt(n + m) * 1e-9),
-xmamieps(1.0e-5) */
 
 
 : nano(nn)
 , m(mm)
-///, iter(0)
 , xmamieps(1.0e-5)
-//, epsimin(1e-7)
 , epsimin(std::sqrt(nano + m) * 1e-9)
 , raa0(0.00001)
 , move(0.5)
@@ -46,8 +39,6 @@ xmamieps(1.0e-5) */
 , y(m)
 , lam(m)
 , mu(m), s(2 * m)
-///, low(nano)
-///, upp(nano)
 , alpha(nano)
 , beta(nano)
 , p0(nano)
@@ -56,8 +47,6 @@ xmamieps(1.0e-5) */
 , qij(nano * m), b(m)
 , grad(m)
 , hess(m * m)
-///, xold1(nano)
-///, xold2(nano) 
     
     {
     }

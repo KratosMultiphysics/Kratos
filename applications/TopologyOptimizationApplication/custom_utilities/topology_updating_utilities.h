@@ -206,21 +206,8 @@ public:
 		KRATOS_CATCH("");
 
 	}
-/* 	int InitializeMMA()
-	{
-		KRATOS_TRY;
-		int nnn = mrModelPart.NumberOfElements();
-		int mmm = 1; /// constraints
 
-		MMASolver *mma = new MMASolver(nnn,mmm);
-		return mma;
-		
-		KRATOS_CATCH("");
-
-
-	} */
-
-
+/// MMA as a optimization Algorithm
 
 	void UpdateDensitiesUsingMMAMethod( char update_type[], double volfrac,  double OptItr)
 	{
@@ -236,12 +223,11 @@ public:
 			int mm = 1; /// constraints
 
 
-
+			// number of iterations while running through the elements calling their properties
 			int iteration = 0; 
 
-			Vector xold;
-			xold.resize(mrModelPart.NumberOfElements());
-
+			// constructing vectors for the density of the given iteration, of the iteration before and the iteration before that
+			// additionally the sensitivities and constraints are saved to pass them on to the MMA optimization algorithm
 			double *x = new double[nn];
 			double *df = new double[nn];
 			double *xold1 = new double[nn];
@@ -254,10 +240,12 @@ public:
 			double *upp = new double[nn];
 			double vol_summ = 0;
 			double vol_frac_iteration = 0;
+
+			// Number of iterations of the optimization process. Important for MMA optimization algorithm
 			int iter = OptItr;
 			
 
-
+			//get the information from the element and save them in the new vectors
 			for( ModelPart::ElementsContainerType::iterator element_i = mrModelPart.ElementsBegin(); element_i!= mrModelPart.ElementsEnd(); element_i++ )
 			{	
 				
@@ -265,7 +253,7 @@ public:
 				double xold_1 = element_i->GetValue(X_PHYS_OLD_1);
 				double xold_2 = element_i->GetValue(X_PHYS_OLD_2);
 				double dfdx = (element_i->GetValue(DCDX));
-				double dgdx = (element_i->GetValue(DVDX));   /// gilt nur für regelmäßige Vernetzung!!!
+				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
 				double upper_boundary = element_i->GetValue(UPP);
 				double lower_boundary = element_i->GetValue(LOW);
 				double Xmin = 0;
@@ -294,16 +282,16 @@ public:
 
 			g[0] = 0;
 			vol_frac_iteration = vol_summ;
-			g[0] = vol_frac_iteration - volfrac*nn;
-		/* 	if (OptItr==1)
+			g[0] = vol_frac_iteration/nn - volfrac;
+/* 		 	if (OptItr==1)
 			{
 				g[0]=10000000000000;
 			}
 			if (g[0] > 0)
 			{
 				g[0]= 100000000000;
-			}
-	 */
+			} */
+	 
 			std::cout << "  vol_frac_limit "<< volfrac << std::endl;
 			std::cout << "  vol_frac_iteration"<< vol_frac_iteration << std::endl;
 			std::cout << "  constrain value "<< g[0] << std::endl;
@@ -340,14 +328,6 @@ public:
 			// Printing of results
 			clock_t end = clock();
 			std::cout << "  Updating of values performed               [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
-
- /* 		delete[] x;
-			delete[] df;
-			delete[] g;
-			delete[] dg;
-			delete[] xmin;
-			delete[] xmax;  */
-		/* 	delete mma;  */
 		}
 		else 
 		{
