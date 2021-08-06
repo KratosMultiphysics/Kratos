@@ -272,8 +272,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     const double gamma = 0.072;//0.0426;//0.0311;//
     const double micro_length_scale = 1.0e-9;
 
-    const double theta_advancing = 129.78*PI/180.0;//149.0*PI/180.0;
-    const double theta_receding = 129.78*PI/180.0;//115.0*PI/180.0;
+    const double theta_advancing = 149.0*PI/180.0;//129.78*PI/180.0;
+    const double theta_receding = 115.0*PI/180.0//;129.78*PI/180.0;
     // const double cos_theta_s = -0.4539905;///* 0.5299192642332 */-0.25881904510252076;//0.779337965;//
     // const double theta_s = std::acos(cos_theta_s);
 
