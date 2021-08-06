@@ -383,7 +383,8 @@ namespace Kratos
 
         // Yield Strain
         rProjectedProperties.YieldStrainCompression = rMaterialProperties1.YieldStrainCompression * pow(cos(AngleToDamage), 2) +
-            (rMaterialProperties2.YieldStrainCompression / rMaterialProperties1.YieldStrainCompression) * rMaterialProperties2.YieldStrainCompression * pow(sin(AngleToDamage), 2);
+            ((rProjectedProperties.ResidualStressCompression / rProjectedProperties.E)/ (rMaterialProperties2.ResidualStressCompression / rMaterialProperties2.E))
+            * rMaterialProperties2.YieldStrainCompression * pow(sin(AngleToDamage), 2);
 
         // C1
         rProjectedProperties.BezierControllerC1 = rMaterialProperties1.BezierControllerC1 * pow(cos(AngleToDamage), 2) +
@@ -596,7 +597,7 @@ namespace Kratos
             const double material_length = 2.0 * rMaterialProperties.E * rMaterialProperties.FractureEnergyTension /
                 (yield_tension * yield_tension);
 
-            KRATOS_ERROR_IF(rMaterialProperties.CharacteristicLength >= material_length)
+            KRATOS_WARNING_IF("::[MasonryOrthotropicDamagePlaneStress2DLaw]::CalculateDamageCompression", rMaterialProperties.CharacteristicLength >= material_length)
                 << "FRACTURE_ENERGY_TENSION is to low:  2*E*Gt/(ft*ft) = " << material_length
                 << ",   Characteristic Length = " << rMaterialProperties.CharacteristicLength << std::endl;
 
@@ -637,29 +638,8 @@ namespace Kratos
                 rMaterialProperties.CharacteristicLength;
 
             // Auto-computation of remaining constitutive law parameters
-            const double s_k = s_r + (s_p - s_r) * c1;
             const double e_0 = s_0 / young_modulus;
             const double e_i = s_p / young_modulus;
-            const double alpha = 2.0 * (e_p - s_p / young_modulus);
-            double e_j = e_p + alpha * c2;
-            double e_k = e_j + alpha * (1 - c2);
-            double e_r = (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
-            double e_u = e_r * c3;
-
-            // regularization
-            double bezier_fracture_energy, bezier_energy_1;
-            this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
-                                        s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
-
-            const double stretcher = (specific_fracture_energy - bezier_energy_1) /
-                                     (bezier_fracture_energy - bezier_energy_1) - 1.0;
-
-            KRATOS_ERROR_IF(stretcher <= -1.0)
-                << "Damage TC Error: Compressive fracture energy is too low" << std::endl
-                << "Input Gc/lch = " << specific_fracture_energy << std::endl
-                << "Minimum Gc to avoid constitutive snap-back = " << bezier_energy_1 << std::endl;
-
-            this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
 
             // current abscissa
             const double strain_like_counterpart = TresholdCompression / young_modulus;
@@ -667,16 +647,43 @@ namespace Kratos
             // compute damage
             double damage_variable = TresholdCompression;
             if (strain_like_counterpart <= e_p) {
+                KRATOS_WARNING_IF("::[MasonryOrthotropicDamagePlaneStress2DLaw]::CalculateDamageCompression", e_0 > e_p)
+                    << "Residual strain e_p: " << e_p << " is smaller than the elastic extension e_0: " << e_0 << "." << std::endl;
+
                 this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_0, e_i, e_p, s_0, s_p, s_p);
-            }
-            else if (strain_like_counterpart <= e_k) {
-                this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_p, e_j, e_k, s_p, s_p, s_k);
-            }
-            else if (strain_like_counterpart <= e_u) {
-                this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_k, e_r, e_u, s_k, s_r, s_r);
-            }
-            else {
-                damage_variable = s_r;
+            } else {
+                const double s_k = s_r + (s_p - s_r) * c1;
+                const double alpha = 2.0 * (e_p - s_p / young_modulus);
+                double e_j = e_p + alpha * c2;
+                double e_k = e_j + alpha * (1 - c2);
+                double e_r = (e_k - e_j) / (s_p - s_k) * (s_p - s_r) + e_j;
+                double e_u = e_r * c3;
+
+                // regularization
+                double bezier_fracture_energy, bezier_energy_1;
+                this->ComputeBezierEnergy(bezier_fracture_energy, bezier_energy_1,
+                    s_p, s_k, s_r, e_p, e_j, e_k, e_r, e_u);
+
+                const double stretcher = (specific_fracture_energy - bezier_energy_1) /
+                    (bezier_fracture_energy - bezier_energy_1) - 1.0;
+
+                KRATOS_WARNING_IF("::[MasonryOrthotropicDamagePlaneStress2DLaw]::CalculateDamageCompression", stretcher <= -1.0)
+                    << "Compressive fracture energy is too low" << std::endl
+                    << "Input Gc/lch = " << specific_fracture_energy << std::endl
+                    << "Minimum Gc to avoid constitutive snap-back = " << bezier_energy_1 << std::endl;
+
+                this->ApplyBezierStretcherToStrains(stretcher, e_p, e_j, e_k, e_r, e_u);
+
+
+                if (strain_like_counterpart <= e_k) {
+                    this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_p, e_j, e_k, s_p, s_p, s_k);
+                }
+                else if (strain_like_counterpart <= e_u) {
+                    this->EvaluateBezierCurve(damage_variable, strain_like_counterpart, e_k, e_r, e_u, s_k, s_r, s_r);
+                }
+                else {
+                    damage_variable = s_r;
+                }
             }
             rDamageCompression = 1.0 - damage_variable / TresholdCompression;
         }
