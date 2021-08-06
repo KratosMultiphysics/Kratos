@@ -296,8 +296,8 @@ public:
     template<class TVarType>
     void ApplyFunction(
         const TVarType& rVariable,
-        const double t
-        )
+        const double t,
+        const unsigned int Step = 0)
     {
         // The first node iterator
         const auto it_node_begin = mrNodes.begin();
@@ -307,14 +307,14 @@ public:
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
                 const double value = mpFunction->CallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
+                it_node->FastGetSolutionStepValue(rVariable, Step) = value;
             }
         } else {
             //WARNING: do NOT put this loop in parallel, the python GIL does not allow you to do it!!
             for (IndexType k = 0; k< mrNodes.size(); k++) {
                 auto it_node = it_node_begin + k;
                 const double value = mpFunction->RotateAndCallFunction(it_node->X(), it_node->Y(), it_node->Z(), t, it_node->X0(), it_node->Y0(), it_node->Z0());
-                it_node->FastGetSolutionStepValue(rVariable) = value;
+                it_node->FastGetSolutionStepValue(rVariable, Step) = value;
             }
         }
     }

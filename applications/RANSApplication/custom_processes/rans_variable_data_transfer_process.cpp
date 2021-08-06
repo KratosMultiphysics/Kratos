@@ -33,12 +33,16 @@ template<class TVariableType>
 RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyVariableData(
     const TVariableType& rSourceVariable,
     const bool IsSourceVariableHistorical,
+    const IndexType SourceStepIndex,
     const TVariableType& rDestinationVariable,
-    const bool IsDestinationVariableHistorical)
+    const bool IsDestinationVariableHistorical,
+    const IndexType DestinationStepIndex)
     : mrSourceVariable(rSourceVariable),
       mIsSourceVariableHistorical(IsSourceVariableHistorical),
+      mSourceStepIndex(SourceStepIndex),
       mrDestinationVariable(rDestinationVariable),
-      mIsDestinationVariableHistorical(IsDestinationVariableHistorical)
+      mIsDestinationVariableHistorical(IsDestinationVariableHistorical),
+      mDestinationStepIndex(DestinationStepIndex)
 {
     if (mIsSourceVariableHistorical) {
         if (mIsDestinationVariableHistorical) {
@@ -66,19 +70,19 @@ void RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyData(
 template<class TVariableType>
 void RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyHistoricalToHistorical(const NodeType& rSourceNode, NodeType& rDestinationNode) const
 {
-    rDestinationNode.FastGetSolutionStepValue(mrDestinationVariable) = rSourceNode.FastGetSolutionStepValue(mrSourceVariable);
+    rDestinationNode.FastGetSolutionStepValue(mrDestinationVariable, mDestinationStepIndex) = rSourceNode.FastGetSolutionStepValue(mrSourceVariable, mSourceStepIndex);
 }
 
 template<class TVariableType>
 void RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyHistoricalToNonHistorical(const NodeType& rSourceNode, NodeType& rDestinationNode) const
 {
-    rDestinationNode.SetValue(mrDestinationVariable, rSourceNode.FastGetSolutionStepValue(mrSourceVariable));
+    rDestinationNode.SetValue(mrDestinationVariable, rSourceNode.FastGetSolutionStepValue(mrSourceVariable, mSourceStepIndex));
 }
 
 template<class TVariableType>
 void RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyNonHistoricalToHistorical(const NodeType& rSourceNode, NodeType& rDestinationNode) const
 {
-    rDestinationNode.FastGetSolutionStepValue(mrDestinationVariable) = rSourceNode.GetValue(mrSourceVariable);
+    rDestinationNode.FastGetSolutionStepValue(mrDestinationVariable, mDestinationStepIndex) = rSourceNode.GetValue(mrSourceVariable);
 }
 
 template<class TVariableType>
@@ -90,13 +94,64 @@ void RansVariableDataTransferProcess::CopyVariableData<TVariableType>::CopyNonHi
 template<class TVariableType>
 std::string RansVariableDataTransferProcess::CopyVariableData<TVariableType>::Info() const
 {
-    const auto& type_str = [](const bool IsHistorical) -> std::string {
-        return (IsHistorical ? "Historical" : "Non-historical");
+    const auto& type_str = [](const bool IsHistorical, const int StepIndex) -> std::string {
+        return (IsHistorical ? ("Historical at step " + std::to_string(StepIndex)) : "Non-historical");
     };
 
-    return type_str(mIsSourceVariableHistorical) + " " + mrSourceVariable.Name() +
-           " to " + type_str(mIsDestinationVariableHistorical) + " " +
+    return type_str(mIsSourceVariableHistorical, mSourceStepIndex) + " " + mrSourceVariable.Name() +
+           " to " + type_str(mIsDestinationVariableHistorical, mDestinationStepIndex) + " " +
            mrDestinationVariable.Name();
+}
+
+template<class TVariableType>
+void RansVariableDataTransferProcess::CheckVariableData(
+    const ModelPart& rModelPart,
+    const bool CheckSourceVariableData,
+    const CopyVariableData<TVariableType>& rCopyVariableData) const
+{
+    KRATOS_TRY
+
+    if (CheckSourceVariableData) {
+        if (rCopyVariableData.mIsSourceVariableHistorical) {
+            KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(
+                rCopyVariableData.mrSourceVariable))
+                << "Source " << rCopyVariableData.mrSourceVariable.Name()
+                << " is not found in solution step variables list of "
+                << rModelPart.FullName() << ".\n";
+            KRATOS_ERROR_IF(rModelPart.GetBufferSize() <= rCopyVariableData.mSourceStepIndex)
+                << "Requested source step index of " << rCopyVariableData.mSourceStepIndex
+                << " for variable " << rCopyVariableData.mrSourceVariable.Name() << " is not available in "
+                << rModelPart.FullName() << ". Maximum allowed step index is "
+                << rModelPart.GetBufferSize() - 1 << " .\n";
+        } else {
+            KRATOS_ERROR_IF(rCopyVariableData.mSourceStepIndex != 0)
+                << "Source step index should be zero for non-historical variables. "
+                "[ Source variable name = "
+                << rCopyVariableData.mrSourceVariable.Name()
+                << ", step index = " << rCopyVariableData.mSourceStepIndex << " ].\n";
+        }
+    } else {
+        if (rCopyVariableData.mIsDestinationVariableHistorical) {
+            KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(
+                rCopyVariableData.mrDestinationVariable))
+                << "Destination " << rCopyVariableData.mrDestinationVariable.Name()
+                << " is not found in solution step variables list of "
+                << rModelPart.FullName() << ".\n";
+            KRATOS_ERROR_IF(rModelPart.GetBufferSize() <= rCopyVariableData.mDestinationStepIndex)
+                << "Requested source step index of " << rCopyVariableData.mDestinationStepIndex
+                << " for variable " << rCopyVariableData.mrDestinationVariable.Name() << " is not available in "
+                << rModelPart.FullName() << ". Maximum allowed step index is "
+                << rModelPart.GetBufferSize() - 1 << " .\n";
+        } else {
+            KRATOS_ERROR_IF(rCopyVariableData.mDestinationStepIndex != 0)
+                << "Destination step index should be zero for non-historical variables. "
+                "[ Destination variable name = "
+                << rCopyVariableData.mrDestinationVariable.Name()
+                << ", step index = " << rCopyVariableData.mDestinationStepIndex << " ].\n";
+        }
+    }
+
+    KRATOS_CATCH("");
 }
 
 RansVariableDataTransferProcess::RansVariableDataTransferProcess(
@@ -120,11 +175,13 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
     {
         "source_variable_settings" : {
             "is_historical_container": true,
-            "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME"
+            "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME",
+            "step_index"             : 0
         },
         "destination_variable_settings" : {
             "is_historical_container": false,
-            "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME"
+            "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME",
+            "step_index"             : 0
         }
     })");
 
@@ -139,8 +196,10 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
         copy_variables_data_list.push_back(std::make_tuple(
             source_variable_settings["variable_name"].GetString(),
             source_variable_settings["is_historical_container"].GetBool(),
+            source_variable_settings["step_index"].GetInt(),
             destination_variable_settings["variable_name"].GetString(),
-            destination_variable_settings["is_historical_container"].GetBool()
+            destination_variable_settings["is_historical_container"].GetBool(),
+            destination_variable_settings["step_index"].GetInt()
         ));
     }
 
@@ -196,8 +255,9 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
 
 int RansVariableDataTransferProcess::Check()
 {
-    const auto& r_source_model_part_nodes = mrSourceModel.GetModelPart(mSourceModelPartName).Nodes();
-    auto& r_destination_model_part = mrDestinationModel.GetModelPart(mDestinationModelPartName);
+    const auto& r_source_model_part = mrSourceModel.GetModelPart(mSourceModelPartName);
+    const auto& r_source_model_part_nodes = r_source_model_part.Nodes();
+    const auto& r_destination_model_part = mrDestinationModel.GetModelPart(mDestinationModelPartName);
 
     KRATOS_ERROR_IF(r_source_model_part_nodes.size() !=
                     r_destination_model_part.Nodes().size())
@@ -206,6 +266,26 @@ int RansVariableDataTransferProcess::Check()
         << " [ number of nodes in source = " << r_source_model_part_nodes.size()
         << ", number of nodes in destination model part = "
         << r_destination_model_part.Nodes().size() << " ].\n";
+
+    for (const auto& copy_variable_data : mCopyDoubleVariableDataList) {
+        CheckVariableData(r_source_model_part, true, copy_variable_data);
+        CheckVariableData(r_destination_model_part, false, copy_variable_data);
+    }
+
+    for (const auto& copy_variable_data : mCopyArray3DVariableDataList) {
+        CheckVariableData(r_source_model_part, true, copy_variable_data);
+        CheckVariableData(r_destination_model_part, false, copy_variable_data);
+    }
+
+    for (const auto& copy_variable_data : mCopyVectorVariableDataList) {
+        CheckVariableData(r_source_model_part, true, copy_variable_data);
+        CheckVariableData(r_destination_model_part, false, copy_variable_data);
+    }
+
+    for (const auto& copy_variable_data : mCopyMatrixVariableDataList) {
+        CheckVariableData(r_source_model_part, true, copy_variable_data);
+        CheckVariableData(r_destination_model_part, false, copy_variable_data);
+    }
 
     return 0;
 }
@@ -291,11 +371,13 @@ const Parameters RansVariableDataTransferProcess::GetDefaultParameters() const
                 {
                     "source_variable_settings" : {
                         "is_historical_container": true,
-                        "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME"
+                        "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME",
+                        "step_index"             : 0
                     },
                     "destination_variable_settings" : {
                         "is_historical_container": false,
-                        "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME"
+                        "variable_name"          : "PLEASE_SPECIFY_VARIABLE_NAME",
+                        "step_index"             : 0
                     }
                 }
             ],
@@ -427,8 +509,10 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
     for (const auto&  r_copy_variable_data_item : rCopyVariableDataList) {
         const auto& source_variable_name = std::get<0>(r_copy_variable_data_item);
         const bool is_source_variable_historical = std::get<1>(r_copy_variable_data_item);
-        const auto& destination_variable_name = std::get<2>(r_copy_variable_data_item);
-        const bool is_destination_variable_historical = std::get<3>(r_copy_variable_data_item);
+        const int source_step_index = std::get<2>(r_copy_variable_data_item);
+        const auto& destination_variable_name = std::get<3>(r_copy_variable_data_item);
+        const bool is_destination_variable_historical = std::get<4>(r_copy_variable_data_item);
+        const int destination_step_index = std::get<5>(r_copy_variable_data_item);
 
         if (KratosComponents<Variable<double>>::Has(source_variable_name)) {
             const auto& r_source_variable = KratosComponents<Variable<double>>::Get(source_variable_name);
@@ -441,8 +525,8 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
             const auto& r_destination_variable = KratosComponents<Variable<double>>::Get(destination_variable_name);
 
             mCopyDoubleVariableDataList.push_back(CopyVariableData<Variable<double>>(
-                r_source_variable, is_source_variable_historical,
-                r_destination_variable, is_destination_variable_historical));
+                r_source_variable, is_source_variable_historical, source_step_index,
+                r_destination_variable, is_destination_variable_historical, destination_step_index));
         } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(source_variable_name)) {
             const auto& r_source_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(source_variable_name);
             const bool has_destination_variable = KratosComponents<Variable<array_1d<double, 3>>>::Has(destination_variable_name);
@@ -454,8 +538,8 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
             const auto& r_destination_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(destination_variable_name);
 
             mCopyArray3DVariableDataList.push_back(CopyVariableData<Variable<array_1d<double, 3>>>(
-                r_source_variable, is_source_variable_historical,
-                r_destination_variable, is_destination_variable_historical));
+                r_source_variable, is_source_variable_historical, source_step_index,
+                r_destination_variable, is_destination_variable_historical, destination_step_index));
         } else if (KratosComponents<Variable<Vector>>::Has(source_variable_name)) {
             const auto& r_source_variable = KratosComponents<Variable<Vector>>::Get(source_variable_name);
 
@@ -467,8 +551,8 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
             const auto& r_destination_variable = KratosComponents<Variable<Vector>>::Get(destination_variable_name);
 
             mCopyVectorVariableDataList.push_back(CopyVariableData<Variable<Vector>>(
-                r_source_variable, is_source_variable_historical,
-                r_destination_variable, is_destination_variable_historical));
+                r_source_variable, is_source_variable_historical, source_step_index,
+                r_destination_variable, is_destination_variable_historical, destination_step_index));
         } else if (KratosComponents<Variable<Matrix>>::Has(source_variable_name)) {
             const auto& r_source_variable = KratosComponents<Variable<Matrix>>::Get(source_variable_name);
 
@@ -480,8 +564,8 @@ void RansVariableDataTransferProcess::UpdateCopyVariableDataList(const std::vect
             const auto& r_destination_variable = KratosComponents<Variable<Matrix>>::Get(destination_variable_name);
 
             mCopyMatrixVariableDataList.push_back(CopyVariableData<Variable<Matrix>>(
-                r_source_variable, is_source_variable_historical,
-                r_destination_variable, is_destination_variable_historical));
+                r_source_variable, is_source_variable_historical, source_step_index,
+                r_destination_variable, is_destination_variable_historical, destination_step_index));
         } else {
             KRATOS_ERROR << "Unsupported source variable type requested. [ "
                             "variable name = "

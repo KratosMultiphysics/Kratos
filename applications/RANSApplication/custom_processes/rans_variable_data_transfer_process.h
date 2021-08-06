@@ -52,9 +52,11 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using IndexType = std::size_t;
+
     using NodeType = ModelPart::NodeType;
 
-    using CopyVariableDataListItem = std::tuple<const std::string, const bool, const std::string, const bool>;
+    using CopyVariableDataListItem = std::tuple<const std::string, const bool, const int, const std::string, const bool, const int>;
 
     /// Pointer definition of RansVariableDataTransferProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansVariableDataTransferProcess);
@@ -156,8 +158,10 @@ private:
         explicit CopyVariableData(
             const TVariableType& rSourceVariable,
             const bool IsSourceVariableHistorical,
+            const IndexType SourceStepIndex,
             const TVariableType& rDestinationVariable,
-            const bool IsDestinationVariableHistorical);
+            const bool IsDestinationVariableHistorical,
+            const IndexType DestinationStepIndex);
 
         ///@}
         ///@name Public Operations
@@ -175,8 +179,10 @@ private:
 
         const TVariableType& mrSourceVariable;
         const bool mIsSourceVariableHistorical;
+        const IndexType mSourceStepIndex;
         const TVariableType& mrDestinationVariable;
         const bool mIsDestinationVariableHistorical;
+        const IndexType mDestinationStepIndex;
 
         void (CopyVariableData::*mCopyMethod)(const NodeType& rSourceNode, NodeType& rDestinationNode) const;
 
@@ -187,6 +193,8 @@ private:
         void CopyNonHistoricalToHistorical(const NodeType& rSourceNode, NodeType& rDestinationNode) const;
 
         void CopyNonHistoricalToNonHistorical(const NodeType& rSourceNode, NodeType& rDestinationNode) const;
+
+        friend class RansVariableDataTransferProcess;
 
         ///@}
     };
@@ -212,6 +220,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    template<class TVariableType>
+    void CheckVariableData(
+        const ModelPart& rModelPart,
+        const bool CheckSourceVariableData,
+        const CopyVariableData<TVariableType>& rCopyVariableData) const;
 
     void ExecuteCopy();
 
