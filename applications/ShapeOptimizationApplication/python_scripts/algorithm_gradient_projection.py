@@ -74,6 +74,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.CORRECTION)
+        
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -116,6 +117,8 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             self.__analyzeShape()
 
             self.__computeShapeUpdate()
+            
+            self.__normOutputGradients()
 
             self.__logCurrentOptimizationStep()
 
@@ -234,7 +237,10 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             solver,
             s,
             c)
-
+        
+        print("s norm: ", s.norm_inf())
+        print("c norm: ", c.norm_inf())
+        
         if c.norm_inf() != 0.0:
             if c.norm_inf() <= self.max_correction_share * self.step_size:
                 delta = self.step_size - c.norm_inf()
@@ -275,11 +281,28 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
             return True
         else:
             return False
-
+    # --------------------------------------------------------------------------
+    def __normOutputGradients(self):
+        for itr, constraint in enumerate(self.constraints):
+            identifier = constraint["identifier"].GetString()
+            gradient = self.constraint_gradient_variables[identifier]["mapped_gradient"]
+            gradient_vector = KM.Vector()
+            self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, gradient)
+            grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, gradient)
+            if abs(grad_norm) > 1e-10:
+                gradient_vector *= 1.0/grad_norm
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, gradient_vector, gradient)
+            
+        gradient_vector = KM.Vector()
+        self.optimization_utilities.AssembleVector(self.design_surface, gradient_vector, KSO.DF1DX_MAPPED)
+        grad_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.DF1DX_MAPPED)
+        if abs(grad_norm) > 1e-10:
+            gradient_vector *= 1.0/grad_norm
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, gradient_vector, KSO.DF1DX_MAPPED)
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
-        additional_values_to_log["step_size"] = self.step_size
+        additional_values_to_log["step_size"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE)
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)

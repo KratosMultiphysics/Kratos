@@ -29,6 +29,8 @@ from .value_logger_trust_region import ValueLoggerTrustRegion
 from .value_logger_bead_optimization import ValueLoggerBeadOptimization
 from .value_logger_gradient_projection import ValueLoggerGradientProjection
 from .value_logger_relaxed_gradient_projection import ValueLoggerRelaxedGradientProjection
+from .value_logger_sequential_quadratic_programming import ValueLoggerSequentialQuadraticProgramming
+from .value_logger_sequential_quadratic_programming_with_line_search import ValueLoggerSequentialQuadraticProgrammingWithLineSearch
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -74,6 +76,12 @@ class DataLogger():
             return ValueLoggerBeadOptimization( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "relaxed_gradient_projection":
             return ValueLoggerRelaxedGradientProjection( self.Communicator, self.OptimizationSettings )
+        elif AlgorithmName == "sequential_quadratic_programming":
+            LineSearch = self.OptimizationSettings["optimization_algorithm"]["line_search"]["line_search_type"].GetString()
+            if LineSearch == "quadratic_approximation":
+                return ValueLoggerSequentialQuadraticProgrammingWithLineSearch( self.Communicator, self.OptimizationSettings )
+            else:
+                return ValueLoggerSequentialQuadraticProgramming( self.Communicator, self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
 

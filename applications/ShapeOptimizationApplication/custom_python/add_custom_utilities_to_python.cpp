@@ -40,6 +40,7 @@
 namespace Kratos {
 namespace Python {
 
+typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 // Overloaded functions
 template<typename TMapper>
 inline void MapVector(TMapper& mapper,
@@ -180,10 +181,35 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
                                             }
                                             return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
                                         })
+        .def_static("AssembleVectorstoMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                            std::size_t list_length = pybind11::len(rVariables);
+                                            std::vector<Vector*> variables_vector(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                variables_vector[i] = (rVariables[i]).cast<Vector*>();
+                                            }
+                                            return OptimizationUtilities::AssembleVectorstoMatrix(rModelPart, rMatrix, variables_vector);
+                                        })                               
         .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         .def_static("AssembleBufferVector", &OptimizationUtilities::AssembleBufferVector)
         .def_static("AssembleBufferMatrix", &OptimizationUtilities::AssembleBufferMatrix)
         .def_static("CalculateRelaxedProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateRelaxedProjectedSearchDirectionAndCorrection)
+        .def_static("AssembleVectorMatrix", &OptimizationUtilities::AssembleVectorMatrix)
+        .def_static("MatrixScalarProduct", &OptimizationUtilities::MatrixScalarProduct)
+        .def_static("CalculateProjectedSearchDirectionAndCorrectionMatrix", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrectionMatrix)
+        .def_static("CalculateLaplaceMultipliers", &OptimizationUtilities::CalculateLaplaceMultipliers)
+        .def_static("AssembleVectorMatrixtoMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                            std::size_t list_length = pybind11::len(rVariables);
+                                            std::vector<Matrix*> variables_vector(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                variables_vector[i] = (rVariables[i]).cast<Matrix*>();
+                                            }
+                                            return OptimizationUtilities::AssembleVectorMatrixtoMatrix(rModelPart, rMatrix, variables_vector);
+                                        })
+        .def_static("AssembleVectortoVectorMatrix", &OptimizationUtilities::AssembleVectortoVectorMatrix)
+        .def_static("AssembleVectorMatrixtoVector", &OptimizationUtilities::AssembleVectorMatrixtoVector)
+        .def_static("AssignMatrixToVariable", &OptimizationUtilities::AssignMatrixToVariable)
         ;
 
     // ========================================================================

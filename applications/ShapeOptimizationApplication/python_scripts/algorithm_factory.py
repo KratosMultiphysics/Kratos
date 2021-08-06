@@ -52,6 +52,20 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                                   analyzer,
                                                   communicator,
                                                   model_part_controller)
+    elif algorithm_name == "sequential_quadratic_programming":
+        line_search = optimization_settings["optimization_algorithm"]["line_search"]["line_search_type"].GetString()
+        if line_search == "quadratic_approximation":
+            from .algorithm_sequential_quadratic_programming_with_line_search import AlgorithmSequentialQuadraticProgrammingWithLineSearch
+            return AlgorithmSequentialQuadraticProgrammingWithLineSearch(optimization_settings,
+                                                      analyzer,
+                                                      communicator,
+                                                      model_part_controller)
+        else:
+            from .algorithm_sequential_quadratic_programming import AlgorithmSequentialQuadraticProgramming
+            return AlgorithmSequentialQuadraticProgramming(optimization_settings,
+                                                      analyzer,
+                                                      communicator,
+                                                      model_part_controller)
     else:
         raise NameError("The following optimization algorithm is not supported by the algorithm factory: " + algorithm_name)
 

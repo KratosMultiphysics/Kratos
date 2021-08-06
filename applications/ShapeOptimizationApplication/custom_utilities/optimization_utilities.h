@@ -17,6 +17,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <cmath>
 
 // ------------------------------------------------------------------------------
 // Project includes
@@ -404,6 +405,9 @@ public:
     // ==============================================================================
     // For running relaxed gradient projection
     // ==============================================================================
+    /**
+     * Assemble a list of Numbers into a Vector, independent of the model part
+     */
     static void AssembleBufferVector( Vector& rVector,
         const std::vector<double>& rVariables)
     {
@@ -413,11 +417,14 @@ public:
         }
 
 
-        for (int i=0;i < VectorSize;i++)
+        for (size_t i=0;i < VectorSize;i++)
         {
             rVector[i] = rVariables[i];
         }
     }
+    /**
+     * Assemble a list of Numbers into a diagonal Matrix, independent of the model part
+     */
     static void AssembleBufferMatrix( Matrix& rMatrix,
         const std::vector<double>& rVariables)
     {
@@ -427,10 +434,10 @@ public:
         }
 
         
-        for (int i=0; i < VectorSize; i++)
+        for (size_t i=0; i < VectorSize; i++)
         {
             
-            for (int j=0;j < VectorSize; j++)
+            for (size_t j=0;j < VectorSize; j++)
             {
             	if(i == j)
             	{
@@ -443,46 +450,222 @@ public:
             }
         }
     }
+    /**
+     * Assemble a list of Vectors into a  Matrix
+     */
+    static void AssembleVectorstoMatrix(ModelPart& rModelPart,
+        Matrix& rMatrix,
+        const std::vector<Vector*>& rVariables
+    )
+    {
+        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
+            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
+        }
+
+
+    	int j=0;
+    	for (Vector* p_variable_j : rVariables)
+    	{
+        	const Vector& r_variable_j = *p_variable_j;
+                
+                
+        	for (size_t i = 0; i < rModelPart.NumberOfNodes()*3; i++)
+        	{
+        		rMatrix(i, j) = r_variable_j[i];
+        	}
+   		++j;
+ 	}
+
+    }
     
+    /**
+     * Calculate the relaxed projection of the objective gradient into the subspace tangent to
+     * the active constraint gradients.
+     * In a second step, calculate correction move
+     */
     static void CalculateRelaxedProjectedSearchDirectionAndCorrection(
         Vector& rObjectiveGradient,
         Matrix& rConstraintGradients,
-        Vector& rConstraintValues,
         Matrix& rRelaxationCoefficients,
         Vector& rCorrectionCoefficients,
         LinearSolver<DenseSpace, DenseSpace>& rSolver,
-        Vector& rProjectedSearchDirection
+        Vector& rProjectedSearchDirection,
+        Vector& rCorrection
         )
     {
         // local variable naming according to https://msulaiman.org/onewebmedia/GradProj_2.pdf
         Vector& nabla_f = rObjectiveGradient;
         Matrix& N = rConstraintGradients;
-        Vector& g_a = rConstraintValues;
         Vector& s = rProjectedSearchDirection;
+        Vector& c = rCorrection;
         Matrix& omega_r = rRelaxationCoefficients;
         Vector& omega_c = rCorrectionCoefficients;
-	
-	printf("dof: %d \n",N.size1());
-	printf("n Constraint: %d \n",N.size2());
-	printf("relax 1: %f \n",omega_r(0,0));
-	printf("relax 1: %f \n",omega_r(1,1));
-	printf("relax 1: %f \n",omega_r(2,2));
-	printf("relax off: %f \n",omega_r(1,2));
-	printf("corection 1: %f \n",omega_c[0]);
-	printf("corection 1: %f \n",omega_c[1]);
-	printf("corection 1: %f \n",omega_c[2]);
+        
+      
+        Matrix NTN = prod(trans(N), N);
+        Matrix I = IdentityMatrix(N.size2());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
 
+        rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
 	
 	
+        s = - (nabla_f - prod(N, Vector(prod(omega_r, Vector(prod(NTN_inv, Vector(prod(trans(N), nabla_f))))))));
+        
+        c = - prod(N, omega_c);
+
+    }
+    // ==============================================================================
+    // For running sequential quadratic program 
+    // ==============================================================================
+    
+    /**
+     * Assemble the values of the nodal vector variable into a pseudo Vector Matrix (Matrix of dimension [n,1])
+     */
+    static void AssembleVectorMatrix(ModelPart& rModelPart,
+        Matrix& rMatrix,
+        const Variable<array_3d> &rVariable
+    )
+    {
+        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() != 1)){
+            rMatrix.resize(rModelPart.NumberOfNodes()*3, 1);
+        }
+
+        int i=0;
+        for (auto & node_i : rModelPart.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            rMatrix(i*3+0,0) = variable_vector[0];
+            rMatrix(i*3+1,0) = variable_vector[1];
+            rMatrix(i*3+2,0) = variable_vector[2];
+            ++i;
+        }
+    }
+
+    static void MatrixScalarProduct(Matrix& result, Matrix& mat1, Matrix& mat2)
+    {
+    	result = prod(trans(mat1),mat2);
+    
+    }
+
+    /**
+     * Calculate the projection of the objective gradient into the subspace tangent to
+     * the active constraint gradients.
+     * In a second step, calculate the restoration move accounting for the current violation of the constraints.
+     * Variable naming and implementation based on https://msulaiman.org/onewebmedia/GradProj_2.pdf
+     * The search direction returns a pseudo Vector Matrix (a Matrix of dimension [n,1])
+     */
+    static void CalculateProjectedSearchDirectionAndCorrectionMatrix(
+        Matrix& rObjectiveGradient,
+        Matrix& rConstraintGradients,
+        Vector& rConstraintValues,
+        LinearSolver<DenseSpace, DenseSpace>& rSolver,
+        Matrix& rProjectedSearchDirection,
+        Vector& rRestoration
+        )
+    {
+        // local variable naming according to https://msulaiman.org/onewebmedia/GradProj_2.pdf
+        Matrix& nabla_f = rObjectiveGradient;
+        Matrix& N = rConstraintGradients;
+        Vector& g_a = rConstraintValues;
+        Matrix& s = rProjectedSearchDirection;
+        Vector& c = rRestoration;
+
         Matrix NTN = prod(trans(N), N);
         Matrix I = IdentityMatrix(N.size2());
         Matrix NTN_inv(NTN.size1(), NTN.size2());
 
         rSolver.Solve(NTN, NTN_inv, I); // solve with identity to get the inverse
 
-        s = - (nabla_f - prod(N, Vector(prod(omega_r, Vector(prod(NTN_inv, Vector(prod(trans(N), nabla_f)))))))) - prod(N, omega_c);
+        s = - (nabla_f - prod(N, Matrix(prod(NTN_inv, Matrix(prod(trans(N), nabla_f))))));
+
+        c = - prod(N, Vector(prod(NTN_inv, g_a)));
+    }
+    /**
+     * Calculate the Laplace Multipliers for given Gradients
+     */
+    static void CalculateLaplaceMultipliers(Matrix& LapMult, Matrix& N, Matrix& rObjectiveGradient, LinearSolver<DenseSpace, DenseSpace>& rSolver)
+    {
+    	Matrix NTN = prod(trans(N), N);
+        Matrix I = IdentityMatrix(N.size2());
+        Matrix NTN_inv(NTN.size1(), NTN.size2());
+
+        rSolver.Solve(NTN, NTN_inv, I);
+    
+        LapMult = -1*prod(NTN_inv,Matrix(prod(trans(N),rObjectiveGradient)));
+    }
+    /**
+     * Assemble a list of pseudo Vector Matrices into a single Matrix
+     */
+    static void AssembleVectorMatrixtoMatrix(ModelPart& rModelPart,
+        Matrix& rMatrix,
+        const std::vector<Matrix*>& rVariables
+    )
+    {
+        if ((rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() !=  rVariables.size())){
+            rMatrix.resize(rModelPart.NumberOfNodes()*3, rVariables.size());
+        }
+
+
+    	int j=0;
+    	for (Matrix* p_variable_j : rVariables)
+    	{
+        	const Matrix& r_variable_j = *p_variable_j;
+                
+                
+        	for (size_t i = 0; i < rModelPart.NumberOfNodes()*3; i++)
+        	{
+        		rMatrix(i, j) = r_variable_j(i,0);
+        	}
+   		++j;
+ 	}
 
     }
+    /**
+     * Assemble a Vector into a pseudo Vector Matrix
+     */
+    static void AssembleVectortoVectorMatrix(Matrix& rMatrix, Vector& rVector)
+    {
+    	if ((rMatrix.size1() != rVector.size() || rMatrix.size2() !=  1)){
+            rMatrix.resize(rVector.size(), 1);
+        }
+        for(size_t i = 0; i < rVector.size(); i++)
+        {
+        	rMatrix(i,0) = rVector[i];
+        }
+    }
+    /**
+     * Assemble a pseudo Vector Matrix into a Vector
+     */
+    static void AssembleVectorMatrixtoVector(Vector& rVector, Matrix& rMatrix)
+    {
+    	if ((rMatrix.size1() != rVector.size())){
+            rVector.resize(rMatrix.size1());
+        }
+        for(size_t i = 0; i < rMatrix.size1(); i++)
+        {
+        	rVector[i]= rMatrix(i,0);
+        }
+    }
+    /**
+     * Assigns the values of a pseudo Matrix Vector to the nodal vector variables
+     */
+    static void AssignMatrixToVariable(ModelPart& rModelPart,
+        const Matrix& rMatrix,
+        const Variable<array_3d> &rVariable)
+    {
+        KRATOS_ERROR_IF(rMatrix.size1() != rModelPart.NumberOfNodes()*3 || rMatrix.size2() != 1)
+            << "AssignMatrixToVariable: Matrix size does not mach number of Nodes!" << std::endl;
+
+        int i=0;
+        for (auto & node_i : rModelPart.Nodes())
+        {
+            array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
+            variable_vector[0] = rMatrix(i*3+0,0);
+            variable_vector[1] = rMatrix(i*3+1,0);
+            variable_vector[2] = rMatrix(i*3+2,0);
+            ++i;
+        }
+    }	
     // ==============================================================================
 
     ///@}
