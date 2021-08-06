@@ -352,13 +352,6 @@ void ThermalFace::FillConditionDataStructure(
     const Variable<double> &r_flux_var = r_conv_diff_settings.GetSurfaceSourceVariable();
     const auto &r_geometry = this->GetGeometry();
     const unsigned int n_nodes = r_geometry.PointsNumber();
-    rData.UnknownValues.resize(n_nodes, false);
-    rData.FaceHeatFluxValues.resize(n_nodes, false);
-
-    for (unsigned int i = 0; i < n_nodes; ++i) {
-        rData.UnknownValues[i] = r_geometry[i].FastGetSolutionStepValue(r_unknown_var);
-        rData.FaceHeatFluxValues[i] = r_geometry[i].FastGetSolutionStepValue(r_flux_var);
-    }
 
     // Check (and resize) and fill data container arrays
     if (rData.UnknownValues.size() != n_nodes) {
@@ -366,6 +359,11 @@ void ThermalFace::FillConditionDataStructure(
     }
     if (rData.FaceHeatFluxValues.size() != n_nodes) {
         rData.FaceHeatFluxValues.resize(n_nodes, false);
+    }
+
+    for (unsigned int i = 0; i < n_nodes; ++i) {
+        rData.UnknownValues[i] = r_geometry[i].FastGetSolutionStepValue(r_unknown_var);
+        rData.FaceHeatFluxValues[i] = r_geometry[i].FastGetSolutionStepValue(r_flux_var);
     }
 
     // Fill data container values from properties

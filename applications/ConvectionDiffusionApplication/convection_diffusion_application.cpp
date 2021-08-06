@@ -52,6 +52,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mThermalCouplingCondition2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
+      mThermalCouplingCondition3D6N(0, Element::GeometryType::Pointer(new Prism3D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
+      mThermalCouplingCondition3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
       mAdjointThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mAdjointThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mQSConvectionDiffusionExplicit2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -112,6 +115,9 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
+    KRATOS_REGISTER_CONDITION("ThermalCouplingCondition2D4N", mThermalCouplingCondition2D4N);
+    KRATOS_REGISTER_CONDITION("ThermalCouplingCondition3D6N", mThermalCouplingCondition3D6N);
+    KRATOS_REGISTER_CONDITION("ThermalCouplingCondition3D8N", mThermalCouplingCondition3D8N);
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);
