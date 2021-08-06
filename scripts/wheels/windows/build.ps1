@@ -9,7 +9,7 @@ $wheelRoot = "c:\wheel"
 $wheelOutDir = "c:\out"
 
 function exec_build($python, $pythonPath) {
-    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) OFF"
+    cmd.exe /c "call configure.bat $($pythonPath) $($kratosRoot) OFF $($kratosRoot)/bin/Release/python_${python}/"
     cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
@@ -37,10 +37,10 @@ function  setup_wheel_dir {
     mkdir c:\wheel\KratosMultiphysics\.libs
 }
 
-function create_core_wheel ($pythonPath) {
+function create_core_wheel ($python, $pythonPath) {
     setup_wheel_dir
     cd $kratosRoot
-    cp bin\release\KratosMultiphysics\* "$($wheelRoot)\KratosMultiphysics"
+    cp "bin\release\python_${python}\KratosMultiphysics\*" "$($wheelRoot)\KratosMultiphysics"
     cp scripts\wheels\windows\KratosMultiphysics.json "$($wheelRoot)\wheel.json"
 
 
@@ -66,6 +66,8 @@ foreach ($python in $pythons){
     Write-Host "Begining build for python $($python)"
     $env:python = $python
 
+    mkdir $wheelOutDir
+
     cd $kratosRoot
     git clean -ffxd
     $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
@@ -75,7 +77,7 @@ foreach ($python in $pythons){
     Write-Host "Finished build"
     Write-Host "Begining wheel construction for python $($python)"
 
-    create_core_wheel $pythonPath
+    create_core_wheel $python $pythonPath
 
     $applications = Get-ChildItem "$($kratosRoot)\scripts\wheels\windows\applications"
 
