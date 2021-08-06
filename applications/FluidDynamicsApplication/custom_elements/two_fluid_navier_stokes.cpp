@@ -213,7 +213,16 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
                     }
                 }
 
-                noalias(rLeftHandSideMatrix) += (negative_density - positive_density)*lhs_acc_correction;
+                lhs_acc_correction = (negative_density - positive_density)*lhs_acc_correction;
+                noalias(rLeftHandSideMatrix) += lhs_acc_correction;
+
+                Kratos::array_1d<double, NumNodes * (Dim + 1)> tempU; // Unknowns vector containing only velocity components
+                for (unsigned int i = 0; i < NumNodes; i++){
+                    for (unsigned int dimi = 0; dimi < Dim; dimi++){
+                        tempU[i*(Dim+1) + dimi] = data.Velocity(i,dimi);
+                    }
+                }
+                noalias(rRightHandSideVector) -= prod(lhs_acc_correction,tempU);
 
                 if (rCurrentProcessInfo[SURFACE_TENSION]){
 
