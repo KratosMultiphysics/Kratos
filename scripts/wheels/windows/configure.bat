@@ -24,11 +24,11 @@ CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 :: CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
 :: CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 :: CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-:: CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-:: CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
-:: CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
-:: CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
-:: CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
+CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
+CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
+CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
