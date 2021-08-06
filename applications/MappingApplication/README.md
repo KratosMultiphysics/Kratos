@@ -53,7 +53,7 @@ mapper_settings = KM.Parameters("""{
 }""")
 
 # creating a mapper for shared memory
-mapper = KM.MapperFactory.CreateMapper(
+mapper = KratosMapping.MapperFactory.CreateMapper(
     model_part_origin,
     model_part_destination,
     mapper_settings
