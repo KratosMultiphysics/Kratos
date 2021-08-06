@@ -250,12 +250,26 @@ public:
 			{	
 				
 				double xval = element_i->GetValue(X_PHYS);
+
+				//Density value of the previous iteration
 				double xold_1 = element_i->GetValue(X_PHYS_OLD_1);
+
+				//Density of the iteration before that (OptIter-2)
 				double xold_2 = element_i->GetValue(X_PHYS_OLD_2);
+
+				//Value of the objective function sensitivity
 				double dfdx = (element_i->GetValue(DCDX));
+
+				// Value of the constraint function sensitivity
 				double dgdx = (element_i->GetValue(DVDX));   /// DVDX=1, gilt nur für regelmäßige Vernetzung!!!
+
+				//Value of the upper bound of the previous iteration
 				double upper_boundary = element_i->GetValue(UPP);
+
+				//Value of the lower bound of the previous iteration
 				double lower_boundary = element_i->GetValue(LOW);
+
+				
 				double Xmin = 0;
 				double Xmax = 1;
 				vol_summ = vol_summ + xval;
