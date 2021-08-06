@@ -28,24 +28,6 @@
 namespace Kratos {
 
 
-void ConversionUtilities::ConvertPressureToForces(ModelPart& model_part_interface)
-{
-    // initialize Forces
-    /* VariableUtils().SetHistoricalVariableToZero(FORCE, model_part_interface.Nodes());
-
-    block_for_each(model_part_interface.Elements(),[&](Element& rElement){
-        const array_1d<double, 3>& elem_force = rElement.GetGeometry().Area() * rElement.GetValue(PRESSURE);
-
-        const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
-
-        for (auto& r_node : rElement.GetGeometry().Points()){
-            AtomicAdd( noalias(r_node.FastGetSolutionStepValue(FORCE)), (elem_force/static_cast<double>(num_nodes)) );
-        }
-    });
-
-    model_part_interface.GetCommunicator().AssembleCurrentData(FORCE); */
-}
-
 void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& model_part_interface)
 {
     // initialize Forces
