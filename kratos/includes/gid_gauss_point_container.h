@@ -141,14 +141,6 @@ public:
                     } 
                 }
             }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
-                }
-            }
 
             if (isEntityActive) {
                 GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
@@ -197,14 +189,6 @@ public:
                         isEntityActive = true;
                         break;
                     } 
-                }
-            }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
                 }
             }
 
@@ -256,14 +240,6 @@ public:
                     } 
                 }
             }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
-                }
-            }
 
             if (isEntityActive) {
                 GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
@@ -310,14 +286,6 @@ public:
                         isEntityActive = true;
                         break;
                     } 
-                }
-            }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
                 }
             }
 
@@ -370,14 +338,6 @@ public:
                         isEntityActive = true;
                         break;
                     } 
-                }
-            }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
                 }
             }
 
@@ -437,14 +397,6 @@ public:
                     } 
                 }
             }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
-                }
-            }
 
             if (isEntityActive) {
                 GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
@@ -502,14 +454,6 @@ public:
                         isEntityActive = true;
                         break;
                     } 
-                }
-            }
-            if( mMeshConditions.size() != 0 ) {
-                for( auto it = mMeshConditions.begin(); it != mMeshConditions.end(); it++ ) {
-                    if( !(it->IsDefined(ACTIVE)) || it->Is(ACTIVE) ) {
-                        isEntityActive = true;
-                        break;
-                    }
                 }
             }
 
