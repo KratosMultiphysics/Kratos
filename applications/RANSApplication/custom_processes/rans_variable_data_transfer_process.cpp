@@ -122,7 +122,7 @@ void RansVariableDataTransferProcess::CheckVariableData(
                 << "Requested source step index of " << rCopyVariableData.mSourceStepIndex
                 << " for variable " << rCopyVariableData.mrSourceVariable.Name() << " is not available in "
                 << rModelPart.FullName() << ". Maximum allowed step index is "
-                << rModelPart.GetBufferSize() - 1 << " .\n";
+                << rModelPart.GetBufferSize() - 1 << ".\n";
         } else {
             KRATOS_ERROR_IF(rCopyVariableData.mSourceStepIndex != 0)
                 << "Source step index should be zero for non-historical variables. "
@@ -138,10 +138,10 @@ void RansVariableDataTransferProcess::CheckVariableData(
                 << " is not found in solution step variables list of "
                 << rModelPart.FullName() << ".\n";
             KRATOS_ERROR_IF(rModelPart.GetBufferSize() <= rCopyVariableData.mDestinationStepIndex)
-                << "Requested source step index of " << rCopyVariableData.mDestinationStepIndex
+                << "Requested destination step index of " << rCopyVariableData.mDestinationStepIndex
                 << " for variable " << rCopyVariableData.mrDestinationVariable.Name() << " is not available in "
                 << rModelPart.FullName() << ". Maximum allowed step index is "
-                << rModelPart.GetBufferSize() - 1 << " .\n";
+                << rModelPart.GetBufferSize() - 1 << ".\n";
         } else {
             KRATOS_ERROR_IF(rCopyVariableData.mDestinationStepIndex != 0)
                 << "Destination step index should be zero for non-historical variables. "
