@@ -129,6 +129,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
         # Set scalar origin field
         for node in self.model_part.Nodes:
             node.SetValue(VELOCITY, [node.X**2 + node.Y**2, node.X + node.Y, 0.0])
+        self.model_part.GetCommunicator().SynchronizeNonHistoricalVariable(VELOCITY)
 
         # Perform the variable redistribution test (first make point and then distribute again)
         reference_variable = VELOCITY
@@ -162,6 +163,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
         for node in self.model_part.Nodes:
             if inteface_check(node):
                 set_reference(node,reference_variable)
+        self.model_part.GetCommunicator().SynchronizeVariable(reference_variable)
 
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self.model_part,
@@ -194,6 +196,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
 
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(PRESSURE,1.0)
+        self.model_part.GetCommunicator().SynchronizeVariable(PRESSURE)
 
         VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self.model_part,
@@ -206,6 +209,7 @@ class TestVariableRedistributionUtility(UnitTest.TestCase):
             for node in cond.GetNodes():
                 nodal_area = node.GetSolutionStepValue(NODAL_PAUX)
                 node.SetSolutionStepValue(NODAL_PAUX,nodal_area+area/3.0)
+        self.model_part.GetCommunicator().AssembleCurrentData(NODAL_PAUX)
 
         if self.print_output:
             self._PrintOutput()
