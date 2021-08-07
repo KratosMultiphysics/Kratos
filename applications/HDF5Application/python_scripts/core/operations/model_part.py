@@ -33,7 +33,15 @@ class ModelPartOutput:
 
     def __init__(self, settings):
         settings.SetDefault('prefix', '/ModelData')
+        settings.SetDefault('mesh_update_indication_variable_name', 'None')
+        settings.SetDefault('mesh_update_indication_variable_value', 1.0)
         self.prefix = settings['prefix']
+        if (settings['mesh_update_indication_variable_name'] == 'None'):
+            self.is_mesh_update_indication_variable_used = False
+        else:
+            self.is_mesh_update_indication_variable_used = True
+            self.mesh_update_indication_variable = KratosMultiphysics.KratosGlobals.GetVariable(settings['mesh_update_indication_variable_name'])
+            self.mesh_update_indication_variable_value = settings['mesh_update_indication_variable_value']
         if '<time>' in self.prefix:
             settings.SetDefault('time_format', '0.4f')
             self.time_format = settings['time_format']
@@ -43,8 +51,12 @@ class ModelPartOutput:
             prefix = Prefix(self.prefix, model_part, self.time_format)
         else:
             prefix = Prefix(self.prefix, model_part)
-        KratosHDF5.HDF5ModelPartIO(
-            hdf5_file, prefix).WriteModelPart(model_part)
+        if self.is_mesh_update_indication_variable_used:
+            KratosHDF5.HDF5ModelPartIO(
+                hdf5_file, prefix, self.mesh_update_indication_variable, self.mesh_update_indication_variable_value).WriteModelPart(model_part)
+        else:
+            KratosHDF5.HDF5ModelPartIO(
+                hdf5_file, prefix).WriteModelPart(model_part)
 
 
 class PartitionedModelPartOutput:
@@ -183,10 +195,12 @@ class NodalSolutionStepDataOutput(VariableIO):
 
     def __init__(self, settings):
         super(NodalSolutionStepDataOutput, self).__init__(settings)
+        settings.SetDefault('step', 0)
+        self.step = settings['step']
 
     def __call__(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(
-            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part, 0)
+            self.GetSettings(model_part).Get(), hdf5_file).WriteNodalResults(model_part, self.step)
 
 
 class NodalSolutionStepDataInput(VariableIO):
@@ -194,12 +208,13 @@ class NodalSolutionStepDataInput(VariableIO):
 
     def __init__(self, settings):
         super(NodalSolutionStepDataInput, self).__init__(settings)
+        settings.SetDefault('step', 0)
+        self.step = settings['step']
 
     def __call__(self, model_part, hdf5_file):
         nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(
             self.GetSettings(model_part).Get(), hdf5_file)
-        nodal_io.ReadNodalResults(
-            model_part, 0)
+        nodal_io.ReadNodalResults(model_part, self.step)
 
 
 class NodalDataValueOutput(VariableIO):
