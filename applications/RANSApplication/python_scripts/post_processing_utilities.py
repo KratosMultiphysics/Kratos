@@ -232,7 +232,7 @@ def OutputModelPartToHDF5(model_part, hdf5_file):
 
     KratosHDF5.HDF5ModelPartIO(hdf5_file, "/ModelData").WriteModelPart(model_part)
 
-def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_historical = True):
+def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_historical = True, step = 0):
     if (KratosHDF5 is None):
         raise Exception("Please compile and install the HDF5 application first.")
 
@@ -247,7 +247,7 @@ def OutputNodalResultsToHDF5(model_part, hdf5_file, list_of_variables, is_histor
         nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(
             hdf5_output_parameters,
             hdf5_file)
-        nodal_io.WriteNodalResults(model_part, 0)
+        nodal_io.WriteNodalResults(model_part, step)
     else:
         nodal_io = KratosHDF5.HDF5NodalDataValueIO(
             hdf5_output_parameters,
