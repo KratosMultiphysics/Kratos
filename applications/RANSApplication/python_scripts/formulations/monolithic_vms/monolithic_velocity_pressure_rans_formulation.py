@@ -331,6 +331,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         else:
             return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
 
+
     def ComputeTransientResponseFunctionInterpolationError(self, settings, amr_output_path, model_import_settings):
         # in here we need to calculate response function interpolation error
         default_settings = Kratos.Parameters("""{
@@ -378,7 +379,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
             # copy time averaged quantities from the primal_simulation
             time_averaged_variable_data = [
-                ("TIME_AVERAGED_{:s}".format(var.Name()), False, "TIME_AVERAGED_{:s}".format(var.Name()), False) for var in self.GetSolvingVariables()
+                ("TIME_AVERAGED_{:s}".format(var.Name()), False, 0, "TIME_AVERAGED_{:s}".format(var.Name()), False, 0) for var in self.GetSolvingVariables()
             ]
             KratosRANS.RansVariableDataTransferProcess(
                 primal_model,
@@ -417,7 +418,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 adjoint_simulation._GetSolver().GetComputingModelPart().FullName(),
                 current_model_part.FullName(),
                 ["execute"],
-                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False)],
+                [("RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, 0, "RESPONSE_FUNCTION_INTERPOLATION_ERROR", False, 0)],
                 self.echo_level).Execute()
 
             # free the memory consumed by primal analysis
