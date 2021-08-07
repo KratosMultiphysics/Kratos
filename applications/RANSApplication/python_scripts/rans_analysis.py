@@ -11,9 +11,45 @@ class RANSAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         super().__init__(model, parameters)
 
-    def InitializeSolutionStep(self):
-        self._GetSolver().CheckAndExecuteAdaptiveMeshRefinement()
-        super().InitializeSolutionStep()
+    def RunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+
+        while self.KeepAdvancingSolutionLoop():
+            self.time = self._GetSolver().AdvanceInTime(self.time)
+            # We reinitialize if remeshed previously
+            if self._GetSolver().CheckAndExecuteAdaptiveMeshRefinement():
+                self._ReInitializeSolver()
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
+
+    def _ReInitializeSolver(self):
+        """ This reinitializes after remesh """
+        self._GetSolver().Clear()
+
+        self._GetSolver().PrepareModelPart()
+        self._GetSolver().AddDofs()
+
+        self.ModifyInitialProperties()
+        self.ModifyInitialGeometry()
+
+        ##here we initialize user-provided processes
+        for process in self._GetListOfProcesses():
+            process.ExecuteInitialize()
+
+        self._GetSolver().Initialize()
+        self.Check()
+
+        self.ModifyAfterSolverInitialize()
+
+        for process in self._GetListOfProcesses():
+            process.ExecuteBeforeSolutionLoop()
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Reinitialized solver after re-mesh")
 
     def _CreateSolver(self):
         return CoupledRANSSolver(self.model, self.project_parameters["solver_settings"])
