@@ -415,6 +415,13 @@ class RansFormulation:
             return self.GetStrategy().GetModelPart()
         return None
 
+    def DeleteModelPartsRecursively(self):
+        for formulation in self.__list_of_formulations:
+            formulation.DeleteModelPartsRecursively()
+
+        if (self.GetModelPart() is not None):
+            self.GetModelPart().GetModel().DeleteModelPart(self.GetModelPart().FullName())
+
     def GetStrategy(self):
         """Returns strategy used in this formulation, if used any.
 
@@ -431,7 +438,7 @@ class RansFormulation:
         """
         info = "\n" + self.__class__.__name__
         if (self.GetModelPart() is not None):
-            info += "\n   Model part    : " + str(self.GetModelPart().Name)
+            info += "\n   Model part    : " + str(self.GetModelPart().FullName())
 
         if (self.GetMaxCouplingIterations() != 0):
             info += "\n   Max iterations: " + str(self.GetMaxCouplingIterations())
