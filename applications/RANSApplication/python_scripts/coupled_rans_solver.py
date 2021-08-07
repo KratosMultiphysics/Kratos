@@ -1,20 +1,29 @@
 from pathlib import Path
+from shutil import rmtree
 
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosMultiphysics.python_solver import PythonSolver
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.RANSApplication as KratosRANS
+import KratosMultiphysics.MappingApplication as KratosMapping
 
 # Import application specific modules
 from KratosMultiphysics.RANSApplication.formulations import Factory as FormulationFactory
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializeWallLawProperties
+from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
+from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
 from KratosMultiphysics.RANSApplication import RansVariableUtilities
 from KratosMultiphysics.FluidDynamicsApplication.check_and_prepare_model_process_fluid import CheckAndPrepareModelProcess
+
+from KratosMultiphysics.RANSApplication.post_processing_utilities import GetHDF5File
+from KratosMultiphysics.RANSApplication.post_processing_utilities import OutputNodalResultsToHDF5
+from KratosMultiphysics.RANSApplication.post_processing_utilities import InputNodalResultsFromHDF5
 
 # case specific imports
 if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
@@ -22,6 +31,255 @@ if (IsDistributedRun() and CheckIfApplicationsAvailable("TrilinosApplication")):
     from KratosMultiphysics.mpi.distributed_import_model_part_utility import DistributedImportModelPartUtility
 elif (IsDistributedRun()):
     raise Exception("Distributed run requires TrilinosApplication")
+
+class MeshInterpolationMethod:
+    def __init__(self, model_part, settings):
+        self.model_part = model_part
+        self.model = self.model_part.GetModel()
+        self.settings = settings
+        self.interpolation_settings = settings["mesh_interpolation_settings"]
+
+    def Initialize(self):
+        pass
+
+    def InitializeSolutionStep(self):
+        pass
+
+    def Interpolate(self, delta_time):
+        pass
+
+    def FinalizeSolutionStep(self):
+        pass
+
+
+class MappedMeshInterpolationMethod(MeshInterpolationMethod):
+    def __init__(self, model_part, settings):
+        super().__init__(model_part, settings)
+
+        default_settings = Kratos.Parameters("""
+        {
+            "interpolation_method": "mapped",
+            "mapper_settings": {
+                "mapper_type": "nearest_element",
+                "echo_level" : 1,
+                "search_radius": 0.1
+            },
+            "post_processing_processes": []
+        }""")
+
+        self.interpolation_settings.ValidateAndAssignDefaults(default_settings)
+        self.list_of_post_processing_processes = []
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created mapped mesh interpolation for {:s}".format(self.model_part.FullName()))
+
+    def Initialize(self):
+        # create list of post processing processes
+        factory = KratosProcessFactory(self.model)
+        self.post_processing_processes = factory.ConstructListOfProcesses(self.interpolation_settings["post_processing_processes"])
+        for process in self.post_processing_processes:
+            self.list_of_post_processing_processes.append(process)
+
+    def Interpolate(self, delta_time):
+        destination_model_part = self.model_part
+        model = destination_model_part.GetModel()
+        source_model_part = model[destination_model_part.FullName() + "_Old"]
+
+        # remove conditions from the source model_part because it cannot have
+        # elements and conditions both for mapping
+        Kratos.VariableUtils().SetFlag(Kratos.TO_ERASE, True, source_model_part.Conditions)
+        source_model_part.RemoveConditionsFromAllLevels(Kratos.TO_ERASE)
+
+        # create mapper
+        mapper = KratosMapping.MapperFactory.CreateMapper(source_model_part, destination_model_part, self.interpolation_settings["mapper_settings"].Clone())
+
+        solution_step_variable_names_list = KratosRANS.RansVariableUtilities.GetSolutionstepVariableNamesList(destination_model_part)
+        variable_transfer_list = []
+
+        # map current solution step data
+        for solution_step_variable_name in solution_step_variable_names_list:
+            solution_step_variable = Kratos.KratosGlobals.GetVariable(solution_step_variable_name)
+            mapper.Map(solution_step_variable, solution_step_variable)
+            variable_transfer_list.append([
+                solution_step_variable_name,
+                True,
+                0,
+                solution_step_variable_name,
+                True,
+                1
+            ])
+
+
+        # copy current mapped solution step data to previous solution step
+        # since at this point both of the solution steps are cloned
+        # It is just the start of the the solve step.
+        KratosRANS.RansVariableDataTransferProcess(
+            model,
+            destination_model_part.FullName(),
+            destination_model_part.FullName(),
+            ["execute"],
+            variable_transfer_list,
+            2
+        ).Execute()
+
+        # delete the old model part and mapper model part
+        model.DeleteModelPart(source_model_part.FullName())
+
+        # now correct boundary values
+        for process in self.list_of_post_processing_processes:
+            process.Execute()
+
+class SmoothMappedMeshInterpolationMethod(MeshInterpolationMethod):
+    def __init__(self, model_part, settings):
+        super().__init__(model_part, settings)
+
+        default_settings = Kratos.Parameters("""
+        {
+            "interpolation_method": "smooth_mapped",
+            "primal_transient_smoothing_project_parameters_file_name": "PLEASE_SPECIFY_PROJECT_PARAMETERS_FILE_NAME",
+            "number_of_smoothing_step": 10,
+            "echo_level": 0,
+            "initialization_hdf5_file": "initialization.h5",
+            "clear_intermediate_files": true,
+            "mapper_settings": {
+                "mapper_type": "nearest_element",
+                "echo_level" : 1,
+                "search_radius": 0.1
+            },
+            "post_processing_processes": []
+        }""")
+
+        self.interpolation_settings.ValidateAndAssignDefaults(default_settings)
+        self.step_data_list = []
+        self.number_of_smoothing_steps = self.interpolation_settings["number_of_smoothing_step"].GetInt()
+        self.output_path = Path(self.settings["output_path"].GetString()) / "smooth_mapped_interpolation"
+        self.list_of_post_processing_processes = []
+        self.echo_level = self.interpolation_settings["echo_level"].GetInt()
+
+        primal_transient_smoothing_project_parameters_file_name = self.interpolation_settings["primal_transient_smoothing_project_parameters_file_name"].GetString()
+        with open(primal_transient_smoothing_project_parameters_file_name, "r") as file_input:
+            self.primal_parameters = Kratos.Parameters(file_input.read())
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Created smoothed mapped mesh interpolation for {:s}".format(self.model_part.FullName()))
+
+    def Initialize(self):
+        # create list of post processing processes
+        factory = KratosProcessFactory(self.model)
+        self.post_processing_processes = factory.ConstructListOfProcesses(self.interpolation_settings["post_processing_processes"])
+        for process in self.post_processing_processes:
+            self.list_of_post_processing_processes.append(process)
+
+    def Interpolate(self, delta_time):
+        if (len(self.step_data_list) == 0):
+            raise Exception("No completed steps found.")
+
+        process_info = self.model_part.ProcessInfo
+        current_time = process_info[Kratos.TIME]
+
+        # calculate starting point for smoothing simulation
+        required_start_time = max(current_time - delta_time * (self.number_of_smoothing_steps+1), 0.0)
+        end_time = current_time - delta_time
+
+        start_time = self.step_data_list[0][0]
+        start_path = self.step_data_list[0][2]
+        for step_data in self.step_data_list:
+            if start_time >= required_start_time:
+                break
+            start_time = step_data[0]
+            start_path = step_data[2]
+
+        primal_parameters = self.primal_parameters.Clone()
+
+        # set start time and end time
+        primal_parameters["problem_data"]["start_time"].SetDouble(start_time)
+        primal_parameters["problem_data"]["end_time"].SetDouble(end_time)
+        primal_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(delta_time)
+
+        with ExecutionScope(start_path):
+            if (self.echo_level > 1):
+                Kratos.Logger.PrintInfo(self.__class__.__name__, "Initializing data for smmothed mapped mesh interpolation from {:s}".format(start_path))
+
+            source_model_part = self.model[self.model_part.FullName() + "_Old"]
+            h5_file = GetHDF5File("initialization_old.h5", "read_only")
+            InputNodalResultsFromHDF5(source_model_part, h5_file, ["ALL_VARIABLES_FROM_FILE"])
+            del h5_file
+
+            # remove conditions from the source model_part because it cannot have
+            # elements and conditions both for mapping
+            Kratos.VariableUtils().SetFlag(Kratos.TO_ERASE, True, source_model_part.Conditions)
+            source_model_part.RemoveConditionsFromAllLevels(Kratos.TO_ERASE)
+
+            # create mapper
+            mapper = KratosMapping.MapperFactory.CreateMapper(source_model_part, self.model_part, self.interpolation_settings["mapper_settings"].Clone())
+
+            solution_step_variable_names_list = KratosRANS.RansVariableUtilities.GetSolutionstepVariableNamesList(self.model_part)
+            variable_transfer_list = []
+
+            # map current solution step data
+            for solution_step_variable_name in solution_step_variable_names_list:
+                solution_step_variable = Kratos.KratosGlobals.GetVariable(solution_step_variable_name)
+                mapper.Map(solution_step_variable, solution_step_variable)
+                variable_transfer_list.append([
+                    solution_step_variable_name,
+                    True,
+                    0,
+                    solution_step_variable_name,
+                    True,
+                    1
+                ])
+
+            process_info[Kratos.TIME] = start_time
+
+            # now correct boundary values
+            for process in self.list_of_post_processing_processes:
+                process.Execute()
+
+            # write existing model part
+            Kratos.ModelPartIO(primal_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString(), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
+
+            # write initialization hdf5 output
+            h5_file = GetHDF5File(self.interpolation_settings["initialization_hdf5_file"].GetString(), "truncate")
+            OutputNodalResultsToHDF5(self.model_part, h5_file, ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
+
+            from KratosMultiphysics.RANSApplication.rans_analysis import RANSAnalysis
+            primal_model, primal_simulation = SolveProblem(RANSAnalysis, primal_parameters, "smoothing")
+
+            # now transfer values from the smoothing simulation to current model part
+            KratosRANS.RansVariableDataTransferProcess(
+                primal_model,
+                self.model,
+                primal_simulation._GetSolver().main_model_part.FullName(),
+                self.model_part.FullName(),
+                ["execute"],
+                variable_transfer_list,
+                2
+            ).Execute()
+
+        # delete the old model part and mapper model part
+        self.model.DeleteModelPart(source_model_part.FullName())
+
+        if (self.interpolation_settings["clear_intermediate_files"].GetBool()):
+            for step_data in self.step_data_list:
+                rmtree(step_data[2])
+            self.step_data_list = []
+
+        process_info[Kratos.TIME] = current_time
+
+        if (self.echo_level > 1):
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Computed smoothed interpolation using time step {:f}".format(start_time))
+
+    def FinalizeSolutionStep(self):
+        process_info = self.model_part.ProcessInfo
+        current_step = process_info[Kratos.STEP]
+        current_time = process_info[Kratos.TIME]
+
+        current_output_path = Path(self.output_path / "step_{:d}".format(current_step))
+        current_output_path.mkdir(exist_ok=True, parents=True)
+
+        h5_file = GetHDF5File(str(current_output_path / "initialization_old.h5"), "truncate")
+        OutputNodalResultsToHDF5(self.model_part, h5_file, ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
+        Kratos.ModelPartIO("old_mesh", Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
+
+        self.step_data_list.append([current_time, current_step, str(current_output_path)])
 
 class CoupledRANSSolver(PythonSolver):
     def __init__(self, model, custom_settings):
@@ -101,6 +359,30 @@ class CoupledRANSSolver(PythonSolver):
             self.reform_dofs_dict = {}
             self.mesh_indication_variable = Kratos.KratosGlobals.GetVariable(self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_change_indication_variable_name"].GetString())
 
+            if not self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_interpolation_settings"].Has("interpolation_method"):
+                self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_interpolation_settings"].AddEmptyValue("interpolation_method")
+                self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_interpolation_settings"]["interpolation_method"].SetString("none")
+
+            mesh_interpolation_method_name = self.adaptive_mesh_refinement_based_on_response_function_settings["mesh_interpolation_settings"]["interpolation_method"].GetString()
+            if (mesh_interpolation_method_name == "none"):
+                self.mesh_interpolation_method = MeshInterpolationMethod(self.main_model_part, self.adaptive_mesh_refinement_based_on_response_function_settings)
+            elif (mesh_interpolation_method_name == "smooth_mapped"):
+                self.mesh_interpolation_method = SmoothMappedMeshInterpolationMethod(self.main_model_part, self.adaptive_mesh_refinement_based_on_response_function_settings)
+            elif (mesh_interpolation_method_name == "mapped"):
+                self.mesh_interpolation_method = MappedMeshInterpolationMethod(self.main_model_part, self.adaptive_mesh_refinement_based_on_response_function_settings)
+            else:
+                raise Exception(
+                    r"""Unsupported mesh interpolation method requested. Supported method names are:
+                            "none",
+                            "smooth_mapped",
+                            "mapped"
+                    """)
+
+
+            Kratos.Logger.PrintInfo(self.__class__.__name__,
+                                            "Solver prepared for transient adaptive mesh refinement.")
+
+        self.is_initialized = False
         Kratos.Logger.PrintInfo(self.__class__.__name__,
                                             "Solver construction finished.")
 
@@ -188,6 +470,9 @@ class CoupledRANSSolver(PythonSolver):
                     "echo_level": 0,
                     "force_min" : true,
                     "force_max" : true
+                },
+                "mesh_interpolation_settings": {
+                    "interpolation_method": "none"
                 }
             }
         }""")
@@ -275,7 +560,8 @@ class CoupledRANSSolver(PythonSolver):
         else:
             self.formulation.SetCommunicator(None)
 
-        self.main_model_part.ProcessInfo[Kratos.STEP] = 0
+        if not self.is_initialized:
+            self.main_model_part.ProcessInfo[Kratos.STEP] = 0
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -291,13 +577,15 @@ class CoupledRANSSolver(PythonSolver):
             # communicate to application to write the modified meshes
             self.main_model_part.ProcessInfo.SetValue(self.mesh_indication_variable, 1.0)
 
-            CoupledRANSSolver._ExecuteRecursively(self.formulation,
-                lambda x : self.reform_dofs_dict.__setitem__(x, x.GetStrategy().GetReformDofSetAtEachStepFlag()) if x.GetStrategy() is not None else None)
+            if not self.is_initialized:
+                self.mesh_interpolation_method.Initialize()
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__, self.formulation.GetInfo())
+        if not self.is_initialized:
+            Kratos.Logger.PrintInfo(self.__class__.__name__, self.formulation.GetInfo())
 
-        Kratos.Logger.PrintInfo(self.__class__.__name__,
-                                            "Solver initialization finished.")
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+        self.is_initialized = True
 
     def AdvanceInTime(self, current_time):
         dt = self._ComputeDeltaTime()
@@ -312,8 +600,7 @@ class CoupledRANSSolver(PythonSolver):
         self.formulation.InitializeSolutionStep()
 
         if (self.perform_adaptive_mesh_refinement):
-            CoupledRANSSolver._ExecuteRecursively(self.formulation,
-                lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(self.reform_dofs_dict[x]) if x.GetStrategy() is not None else None)
+            self.mesh_interpolation_method.InitializeSolutionStep()
 
     def Predict(self):
         self.formulation.Predict()
@@ -330,6 +617,9 @@ class CoupledRANSSolver(PythonSolver):
 
     def FinalizeSolutionStep(self):
         self.formulation.FinalizeSolutionStep()
+
+        if (self.perform_adaptive_mesh_refinement):
+            self.mesh_interpolation_method.FinalizeSolutionStep()
 
     def Finalize(self):
         self.formulation.Finalize()
@@ -359,16 +649,15 @@ class CoupledRANSSolver(PythonSolver):
             return False
 
     def CheckAndExecuteAdaptiveMeshRefinement(self):
-        if (self.settings["adaptive_mesh_refinement_based_on_response_function"].GetBool()):
-            adaptive_mesh_refinement_settings = self.settings["adaptive_mesh_refinement_based_on_response_function_settings"]
-            adaptive_mesh_refinement_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["adaptive_mesh_refinement_based_on_response_function_settings"])
-
+        if (self.perform_adaptive_mesh_refinement):
             if (self.adaptive_mesh_refinement_interval_utility.IsInInterval(self.main_model_part.ProcessInfo[Kratos.TIME])):
                 if (self.automatic_mesh_refinement_step % self.adaptive_mesh_refinement_based_on_response_function_settings["execute_every_nth_step"].GetInt() == 0):
                     self.formulation.ComputeTransientResponseFunctionInterpolationError(
-                        adaptive_mesh_refinement_settings["response_function_interpolation_error_computation_settings"].Clone(),
+                        self.adaptive_mesh_refinement_based_on_response_function_settings["response_function_interpolation_error_computation_settings"].Clone(),
                         self.amr_output_path,
                         self.settings["model_import_settings"])
+
+                    # this will interpolate all the nodal variables
                     self._PerformAdaptiveMeshRefinement()
 
                     # communicate to applications to write the modified mesh
@@ -378,6 +667,10 @@ class CoupledRANSSolver(PythonSolver):
                     self.main_model_part.ProcessInfo[self.mesh_indication_variable] = 0.0
 
                 self.automatic_mesh_refinement_step += 1
+                return (self.main_model_part.ProcessInfo[self.mesh_indication_variable] == 1.0)
+            else:
+                self.main_model_part.ProcessInfo[self.mesh_indication_variable] = 0.0
+                return False
 
     def GetComputingModelPart(self):
         if not self.main_model_part.HasSubModelPart(
@@ -486,35 +779,6 @@ class CoupledRANSSolver(PythonSolver):
             remeshing_process.ExecuteFinalizeSolutionStep()
             remeshing_process.ExecuteFinalize()
 
-        # re-do tetrahedral mesh orientation check
-        tmoc = Kratos.TetrahedralMeshOrientationCheck
-        throw_errors = False
-        flags = tmoc.COMPUTE_NODAL_NORMALS | tmoc.COMPUTE_CONDITION_NORMALS
-        if self.settings["assign_neighbour_elements_to_conditions"].GetBool():
-            flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-        else:
-            flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
-        tmoc(self.GetComputingModelPart(), throw_errors, flags).Execute()
-
-        # re-create formulation model parts with new mesh
-        CoupledRANSSolver._ExecuteRecursively(
-            self.formulation,
-            self._RecreateFormulationModelParts,
-            [self.GetComputingModelPart()])
-
-        self.AddDofs()
-
-        # initialize constitutive laws
-        RansVariableUtilities.SetElementConstitutiveLaws(self.main_model_part.Elements)
-
-        # re-initialize all elements and conditions
-        CoupledRANSSolver._ExecuteRecursively(self.formulation,
-            self._ReInitializeFormulationModelParts)
-
-        # re-set all the dofs
-        CoupledRANSSolver._ExecuteRecursively(self.formulation,
-            lambda x : x.GetStrategy().SetReformDofSetAtEachStepFlag(True) if x.GetStrategy() is not None else None)
-
         # re-calculate time step if required
         if adaptive_mesh_refinement_settings["re_calculate_time_step_after_refinement"].GetBool():
             time_step_re_calculation_settings = adaptive_mesh_refinement_settings["time_step_re_calculation_settings"]
@@ -532,40 +796,10 @@ class CoupledRANSSolver(PythonSolver):
                 self.settings["time_stepping"]["time_step"].SetDouble(new_time_step)
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Estimated max cfl number of refined mesh is {:f}, therefore time step is changed to {:f} to adhere to desired cfl number of {:f}.".format(max_cfl, new_time_step, desired_cfl_number_after_refinement))
 
+        self.mesh_interpolation_method.Interpolate(self._ComputeDeltaTime())
+
+        # now remove all the formulation model parts, because they have to be created
+        # from the refined mesh again
+        self.formulation.DeleteModelPartsRecursively()
+
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished adaptive mesh refinement.")
-
-
-    def _RecreateFormulationModelParts(self, formulation, original_model_part):
-        if (formulation.GetModelPart() is not None):
-            domain_size = original_model_part.ProcessInfo[Kratos.DOMAIN_SIZE]
-            element_name = formulation.GetElementNames()[0]
-            condition_name = formulation.GetConditionNames()[0]
-
-            connectivity_preserve_modeler = Kratos.ConnectivityPreserveModeler()
-
-            element_suffix = str(domain_size) + "D" + str(domain_size + 1) + "N"
-            element_name = element_name + element_suffix
-
-            if (condition_name != ""):
-                condition_suffix = str(domain_size) + "D" + str(domain_size) + "N"
-                condition_name = condition_name + condition_suffix
-                connectivity_preserve_modeler.GenerateModelPart(
-                    original_model_part, formulation.GetModelPart(), element_name, condition_name)
-            else:
-                connectivity_preserve_modeler.GenerateModelPart(
-                    original_model_part, formulation.GetModelPart(), element_name)
-
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Re-created refined {:s}".format(formulation.GetModelPart().FullName()))
-
-    def _ReInitializeFormulationModelParts(self, formulation):
-        model_part = formulation.GetModelPart()
-        if (model_part is not None):
-            RansVariableUtilities.InitializeContainerEntities(model_part.Elements, model_part.ProcessInfo)
-            RansVariableUtilities.InitializeContainerEntities(model_part.Conditions, model_part.ProcessInfo)
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Re-initialized entities of refined {:s}".format(model_part.FullName()))
-
-    @staticmethod
-    def _ExecuteRecursively(formulation, method, args=[]):
-        method(formulation, *args)
-        for child_formulation in formulation.GetRansFormulationsList():
-            CoupledRANSSolver._ExecuteRecursively(child_formulation, method, args)
