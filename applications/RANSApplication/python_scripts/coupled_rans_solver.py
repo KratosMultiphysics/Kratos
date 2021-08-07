@@ -179,11 +179,13 @@ class SmoothMappedMeshInterpolationMethod(MeshInterpolationMethod):
         required_start_time = max(current_time - delta_time * (self.number_of_smoothing_steps+1), 0.0)
         end_time = current_time - delta_time
 
+        start_index = 0
         start_time = self.step_data_list[0][0]
         start_path = self.step_data_list[0][2]
-        for step_data in self.step_data_list:
+        for index, step_data in enumerate(self.step_data_list):
             if start_time >= required_start_time:
                 break
+            start_index = index
             start_time = step_data[0]
             start_path = step_data[2]
 
@@ -254,6 +256,8 @@ class SmoothMappedMeshInterpolationMethod(MeshInterpolationMethod):
                 2
             ).Execute()
 
+            del self.step_data_list[start_index]
+
         # delete the old model part and mapper model part
         self.model.DeleteModelPart(source_model_part.FullName())
 
@@ -277,7 +281,7 @@ class SmoothMappedMeshInterpolationMethod(MeshInterpolationMethod):
 
         h5_file = GetHDF5File(str(current_output_path / "initialization_old.h5"), "truncate")
         OutputNodalResultsToHDF5(self.model_part, h5_file, ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
-        Kratos.ModelPartIO("old_mesh", Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
+        Kratos.ModelPartIO("mesh_old", Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
 
         self.step_data_list.append([current_time, current_step, str(current_output_path)])
 
