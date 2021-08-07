@@ -188,14 +188,12 @@ namespace Kratos {
                         break;
                     }
                 }
-
             });
 
             if (some_bond_is_broken > 0) {
                 r_process_info[SEARCH_CONTROL] = 1;
                 KRATOS_WARNING("DEM") << "From now on, the search is activated because some failure occurred " << std::endl;
             }
-
         }
 
         const int time_step = r_process_info[TIME_STEPS];
@@ -350,7 +348,6 @@ namespace Kratos {
         block_for_each(mListOfSphericContinuumParticles, [&](SphericContinuumParticle* particle){
             particle->ReorderFEMneighbours();
         });
-
 
         BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
 

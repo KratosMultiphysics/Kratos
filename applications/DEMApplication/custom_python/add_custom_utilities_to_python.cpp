@@ -176,6 +176,9 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
+        .def("DestroyParticlesModelPartType", &ParticleCreatorDestructor::DestroyParticlesModelPartType)
+        .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
+        .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")
@@ -250,7 +253,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("SetNodalMaxFaceImpactVelocities", &AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities)
         ;
 
-
     py::class_<std::list<int>>(m, "IntList")
         .def(py::init<>())
         //.def("clear", &std::list<int>::clear)
@@ -270,7 +272,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         //return make_iterator(v.begin(), v.end());
         //}
         ;
-
 
     py::class_<AnalyticFaceWatcher, AnalyticFaceWatcher::Pointer>(m, "AnalyticFaceWatcher")
         .def(py::init<ModelPart& >())
@@ -386,11 +387,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProbabilityDensity", &PiecewiseLinearRandomVariable::ProbabilityDensity)
         .def("GetMean", &PiecewiseLinearRandomVariable::GetMean)
         ;
-
     }
-
-
-
 
 /*ModelPart::NodesContainerType::Pointer ModelPartGetNodes1(ModelPart& rModelPart)
 {

@@ -122,14 +122,13 @@ class DEMAnalysisStage(AnalysisStage):
 
         for element in self.spheres_model_part.Elements:
 
-            element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 0)
-
             node = element.GetNode(0)
+            node.SetSolutionStepValue(SKIN_SPHERE, 0)
             x = node.X
             y = node.Y
 
             if x > D or y > D or x < d or y < d:
-                element.GetNode(0).SetSolutionStepValue(SKIN_SPHERE, 1)
+                node.SetSolutionStepValue(SKIN_SPHERE, 1)
 
     def CreateModelParts(self):
         self.spheres_model_part = self.model.CreateModelPart("SpheresPart")
@@ -264,12 +263,16 @@ class DEMAnalysisStage(AnalysisStage):
         #analytic_particle_ids = [elem.Id for elem in self.spheres_model_part.Elements]
         #self.analytic_model_part.AddElements(analytic_particle_ids)
 
+    def AdjustModelParts(self):
+        pass
+    
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0
 
         self.ReadModelParts()
 
+        self.AdjustModelParts()
         #self.AddSkinManually()
 
         self.SetMaterials()

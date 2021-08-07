@@ -243,6 +243,7 @@ public:
                                          bool automatic);
 
     void DestroyParticles(ModelPart& r_model_part);
+    void DestroyParticlesModelPartType(ModelPart& r_model_part);
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
     void DestroyParticles(ModelPart::MeshType& rMesh);
     void DestroyContactElements(ModelPart& r_model_part);
