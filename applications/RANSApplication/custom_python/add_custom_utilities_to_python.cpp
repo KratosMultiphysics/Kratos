@@ -59,6 +59,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("AssignMaximumVectorComponents", &RansVariableUtilities::AssignMaximumVectorComponents)
         .def("AssignMinimumVectorComponents", &RansVariableUtilities::AssignMinimumVectorComponents)
         .def("CalculateNodalNormal", &RansVariableUtilities::CalculateNodalNormal)
+        .def("GetSolutionstepVariableNamesList", &RansVariableUtilities::GetSolutionstepVariableNamesList)
         ;
 
     m.def_submodule("RansCalculationUtilities")

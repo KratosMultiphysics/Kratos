@@ -127,6 +127,10 @@ void KRATOS_API(RANS_APPLICATION)
     CalculateNodalNormal(
         ModelPart& rModelPart);
 
+std::vector<std::string> KRATOS_API(RANS_APPLICATION)
+    GetSolutionstepVariableNamesList(
+        const ModelPart& rModelPart);
+
 ///@}
 } // namespace RansVariableUtilities
 

@@ -452,6 +452,22 @@ void KRATOS_API(RANS_APPLICATION)
     rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 }
 
+std::vector<std::string> KRATOS_API(RANS_APPLICATION)
+    GetSolutionstepVariableNamesList(
+        const ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    std::vector<std::string> variable_names_list;
+    for (const auto& r_variable : rModelPart.GetNodalSolutionStepVariablesList()) {
+        variable_names_list.push_back(r_variable.Name());
+    }
+
+    return variable_names_list;
+
+    KRATOS_CATCH("");
+}
+
 // template instantiations
 template KRATOS_API(RANS_APPLICATION) void AssignConditionVariableValuesToNodes<double>(
     ModelPart&, const Variable<double>&, const Flags&, const bool);
