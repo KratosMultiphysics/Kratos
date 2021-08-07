@@ -281,7 +281,7 @@ class SmoothMappedMeshInterpolationMethod(MeshInterpolationMethod):
 
         h5_file = GetHDF5File(str(current_output_path / "initialization_old.h5"), "truncate")
         OutputNodalResultsToHDF5(self.model_part, h5_file, ["ALL_VARIABLES_FROM_VARIABLES_LIST"])
-        Kratos.ModelPartIO("mesh_old", Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
+        Kratos.ModelPartIO(str(current_output_path / "mesh_old"), Kratos.IO.WRITE | Kratos.IO.MESH_ONLY).WriteModelPart(self.model_part)
 
         self.step_data_list.append([current_time, current_step, str(current_output_path)])
 
