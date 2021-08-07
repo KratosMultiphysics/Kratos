@@ -1,4 +1,4 @@
-import os
+import os, sys
 from importlib import import_module
 from pathlib import Path
 
@@ -370,8 +370,11 @@ class ExecutionScope:
 
     def __enter__(self):
         self.scope.mkdir(parents=True, exist_ok=True)
+        sys.path.append(str(self.scope.absolute()))
         os.chdir(str(self.scope))
 
     def __exit__(self, exc_type, exc_value, traceback):
         os.chdir(self.currentPath)
+        sys.path.remove(str(self.scope.absolute()))
+
 
