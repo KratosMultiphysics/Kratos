@@ -369,8 +369,13 @@ namespace Kratos {
 
                         ModelPart& r_contact_mp = rModelPart.GetSubModelPart(contact_release_mp_name);
 
+
+
+                        // Determine boundary nodes of contact release model part
+                        CleanAndDetermineAuxMassContactReleaseModelPart(r_contact_mp);
+
+
                         // Dodgy hack to transfer completely failed concrete particles to water MP
-                        /*
                         if (rModelPart.HasSubModelPart("Parts_column") && contact_release_mp_name == "Parts_water")
                         {
                             ModelPart& r_concrete_mp = rModelPart.GetSubModelPart("Parts_column");
@@ -384,12 +389,26 @@ namespace Kratos {
                                 it_elem->CalculateOnIntegrationPoints(DAMAGE_COMPRESSION, damage_comp, rCurrentProcessInfo);
                                 if (damage_comp[0] > 0.95)
                                 {
-                                    std::vector<int> flag(1);
-                                    flag[0] = 1;
-                                    it_elem->SetValuesOnIntegrationPoints(IS_TRANSFERRED_TO_CONTACT_MP, flag, rCurrentProcessInfo);
+                                    // check if boundary node is shared
+                                    auto& rGeom = it_elem->GetGeometry();
+                                    bool isContactingWater = false;
 
-                                    #pragma omp critical
-                                    mps_to_move.push_back(it_elem->GetId());
+                                    for (unsigned int j = 0; j < rGeom.PointsNumber(); ++j) {
+                                        if (rGeom[j].FastGetSolutionStepValue(EXPLICIT_CONTACT_RELEASE)) {
+                                            isContactingWater = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (isContactingWater) {
+                                        std::vector<int> flag(1);
+                                        flag[0] = 1;
+                                        it_elem->SetValuesOnIntegrationPoints(IS_TRANSFERRED_TO_CONTACT_MP, flag, rCurrentProcessInfo);
+
+                                        #pragma omp critical
+                                        mps_to_move.push_back(it_elem->GetId());
+                                    }
+
                                 }
                             }
                             for (size_t i = 0; i < mps_to_move.size(); ++i)
@@ -400,10 +419,8 @@ namespace Kratos {
                                 r_concrete_mp.GetElement(mps_to_move[i]).GetGeometry().clear();
                                 r_concrete_mp.RemoveElementFromAllLevels(mps_to_move[i]);
                             }
-                        }
-                        */
+                        } // end dodgy element deletion stuff
 
-                        CleanAndDetermineAuxMassContactReleaseModelPart(r_contact_mp);
 
                         // Compute modelpart normals
                         ComputeContactReleaseModelPartNormals(r_contact_mp, mr_grid_model_part);

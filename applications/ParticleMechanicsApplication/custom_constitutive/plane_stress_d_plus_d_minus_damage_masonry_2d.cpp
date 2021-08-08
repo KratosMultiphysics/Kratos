@@ -592,6 +592,7 @@ void MPMDamageDPlusDMinusMasonry2DLaw::InitializeCalculationData(
 	// Tension Damage Properties
 	if (data.IsSFRC)
 	{
+		KRATOS_WATCH("SFRC");
 		const double k1 = 0.25 + 0.16 * data.srfc_fraction;
 		data.YieldStressTension = k1 * std::sqrt(props[YIELD_STRESS_COMPRESSION]/1e6) * 1e6 * dif_tension;
 		const double fracture_energy_factor = 19.953 + data.srfc_fraction * 3.213;

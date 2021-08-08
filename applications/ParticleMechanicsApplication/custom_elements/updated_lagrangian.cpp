@@ -218,6 +218,7 @@ void UpdatedLagrangian::SetGeneralVariables(GeneralVariables& rVariables,
         KRATOS_INFO("UpdatedLagrangian") << " Quadrature points: " << r_geometry.IntegrationPointsNumber() << std::endl;
         KRATOS_INFO("UpdatedLagrangian") << " Parent geometry ID: " << r_geometry.GetGeometryParent(0).Id() << std::endl;
         KRATOS_INFO("UpdatedLagrangian") << " Parent geometry number of points: " << r_geometry.GetGeometryParent(0).PointsNumber() << std::endl;
+        KRATOS_INFO("UpdatedLagrangian") << " Material law: " << mConstitutiveLawVector->Info() << std::endl;
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
