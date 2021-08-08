@@ -402,10 +402,8 @@ namespace Kratos {
 
                                     if (isContactingWater) {
                                         bool isNotOnBC = true;
-                                        const auto it_node_begin = r_concrete_mp.NodesBegin();
-                                        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
                                         for (unsigned int j = 0; j < rGeom.PointsNumber(); ++j) {
-                                            if (rGeom[j].GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                                            if (rGeom[j].GetDof(DISPLACEMENT_X).IsFixed()) {
                                                 isNotOnBC = false;
                                                 break;
                                             }

@@ -891,7 +891,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageTension(
 					// We are softening more
 					const double new_damage_softening = 1.0 - trial_softening_stress / yield_tension;
 					if (new_damage_softening > DamageParameterTensionSoftening) DamageParameterTensionSoftening = new_damage_softening;
-					else KRATOS_ERROR << "Tension softening damage tried to decrease\n";
 					if (DamageParameterTensionSoftening > 0.95) DamageParameterTensionSoftening = 1.0;
 				}
 			}
@@ -965,7 +964,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 				// We are hardening more
 				const double new_damage_hardening = (trial_hardened_stress - s_0) / (s_p - s_0);
 				if (new_damage_hardening > DamageParameterCompressionHardening) DamageParameterCompressionHardening = new_damage_hardening;
-				else KRATOS_ERROR << "Compression hardening damage tried to decrease\n";
 			}
 		}
 		else
@@ -1009,7 +1007,6 @@ void MPMDamageDPlusDMinusMasonry2DLaw::CalculateDamageCompression(
 				// We are softening more
 				const double new_damage_softening = 1.0 - (trial_softened_stress - s_r) / (s_p - s_r);
 				if (new_damage_softening > DamageParameterCompressionSoftening) DamageParameterCompressionSoftening = new_damage_softening;
-				else KRATOS_ERROR << "Compression softening damage tried to decrease\n";
 			}
 		}
 	}
@@ -1324,6 +1321,8 @@ const double MPMDamageDPlusDMinusMasonry2DLaw::GetDIF(const Properties& rProps,
 		c_2 = rProps[STRAIN_RATE_FACTOR_C2_YOUNGS_MOD];
 		break;
 	default:
+
+		KRATOS_INFO("mpm masonry") << "INVALID DIF CASE\n";
 		KRATOS_ERROR << "INVALID DIF CASE\n";
 		break;
 	}
