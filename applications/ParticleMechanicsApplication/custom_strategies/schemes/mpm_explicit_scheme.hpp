@@ -401,12 +401,23 @@ namespace Kratos {
                                     }
 
                                     if (isContactingWater) {
-                                        std::vector<int> flag(1);
-                                        flag[0] = 1;
-                                        it_elem->SetValuesOnIntegrationPoints(IS_TRANSFERRED_TO_CONTACT_MP, flag, rCurrentProcessInfo);
+                                        bool isNotOnBC = true;
+                                        const auto it_node_begin = r_concrete_mp.NodesBegin();
+                                        const IndexType disppos = it_node_begin->GetDofPosition(DISPLACEMENT_X);
+                                        for (unsigned int j = 0; j < rGeom.PointsNumber(); ++j) {
+                                            if (rGeom[j].GetDof(DISPLACEMENT_X, disppos).IsFixed()) {
+                                                isNotOnBC = false;
+                                                break;
+                                            }
+                                        }
+                                        if (isNotOnBC) {
+                                            std::vector<int> flag(1);
+                                            flag[0] = 1;
+                                            it_elem->SetValuesOnIntegrationPoints(IS_TRANSFERRED_TO_CONTACT_MP, flag, rCurrentProcessInfo);
 
-                                        #pragma omp critical
-                                        mps_to_move.push_back(it_elem->GetId());
+                                            #pragma omp critical
+                                            mps_to_move.push_back(it_elem->GetId());
+                                        }
                                     }
 
                                 }
