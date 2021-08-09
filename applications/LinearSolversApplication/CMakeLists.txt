@@ -118,7 +118,6 @@ endif()
 
 # changing the .dll suffix to .pyd
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-    set_target_properties( KratosLinearSolversCore PROPERTIES SUFFIX .pyd )
     set_target_properties( KratosLinearSolversApplication PROPERTIES SUFFIX .pyd )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
