@@ -60,6 +60,33 @@ namespace Testing
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
+    KRATOS_TEST_CASE_IN_SUITE(IgaDirectorUtility, KratosIgaFast5PSuite)
+    {
+        Model current_model;
+        auto& r_model_part = current_model.CreateModelPart("ModelPart");
+
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
+
+        IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
+        auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
+
+        TestCreationUtility::AddDisplacementDofs(r_model_part);
+        TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
+
+        DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
+        const double tolerance = 1.0e-8;
+        const std::array<double, 3> director{ 0.0, 0.0, 1.0 };
+        const array_1d<double, 3> director_node = r_model_part.GetNode(1).GetValue(DIRECTOR);
+        KRATOS_CHECK_NEAR(director_node[0], director[0], tolerance);
+        KRATOS_CHECK_NEAR(director_node[1], director[1], tolerance);
+        KRATOS_CHECK_NEAR(director_node[2], director[2], tolerance);
+    }
+
+    // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
     KRATOS_TEST_CASE_IN_SUITE(IgaShell5pElementP3, KratosIgaFast5PSuite)
     {
         Model current_model;
