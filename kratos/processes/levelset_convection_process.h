@@ -123,7 +123,7 @@ public:
     {
         KRATOS_TRY
 
-        mpBuilderAndSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);;
+        mpBuilderAndSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
 
         KRATOS_CATCH("")
     }
