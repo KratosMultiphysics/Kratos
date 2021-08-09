@@ -165,6 +165,32 @@ public:
         KRATOS_CATCH("")
     }
 
+    // /**
+    //  * @brief This is the place to initialize the elements.
+    //  * @details This is intended to be called just once when the strategy is initialized
+    //  * @param rModelPart The model part of the problem to solve
+    //  */
+    void InitializeElements( ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NElems = static_cast<int>(rModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+
+        // #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> Initialize(CurrentProcessInfo);
+        }
+
+        this->SetElementsAreInitialized();
+
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief This method initializes some rutines related with the explicit scheme
      * @param rModelPart The model of the problem to solve

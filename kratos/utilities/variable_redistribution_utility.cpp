@@ -364,7 +364,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
     }
 
-    TValueType value_j;
+    TValueType value_j = rPointVariable.Zero();
     block_for_each(rEntitiesContainer, value_j, [&](typename TContainerType::value_type& rEntity, TValueType& rValueJ){
         auto& r_geometry = rEntity.GetGeometry();
         const double size = r_geometry.DomainSize();
@@ -632,8 +632,8 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
 {
-    TValueType delta;
     double domain_size, error_l2_norm;
+    TValueType delta = rDistributedVariable.Zero();
     const auto& r_rhs_variable = GetRHSVariable(rDistributedVariable);
     typedef CombinedReduction<SumReduction<double>,SumReduction<double>> TwoSumReduction;
     std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
