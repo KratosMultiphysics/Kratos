@@ -338,8 +338,6 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const double model_tolerance = 1e-3;
-
         if (this->Dimension() == 1) {
             std::vector<double> master_span_intersections_in_master_local_space;
             std::vector<double> slave_span_intersections_in_master_local_space;
