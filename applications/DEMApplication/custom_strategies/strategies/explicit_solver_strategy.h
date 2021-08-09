@@ -121,9 +121,16 @@ namespace Kratos {
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
-            else mDoSearchNeighbourElements = false;
+
+            //Also checks old flag name for backward compatibility issues.
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
+                mDoSearchNeighbourElements = true;
+            } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
+
+            if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
+            else mDoSearchNeighbourFEMElements = false;
+
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
@@ -299,6 +306,7 @@ namespace Kratos {
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
+        bool mDoSearchNeighbourFEMElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
         ModelPart *mpFem_model_part;

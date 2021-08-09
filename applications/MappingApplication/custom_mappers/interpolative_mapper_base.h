@@ -25,11 +25,11 @@
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
 
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "mapping_application_variables.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"

@@ -280,7 +280,7 @@ public:
         p_geometry->SetData(rGeometry.GetData());
         return p_geometry;
     }
-    
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
@@ -670,7 +670,7 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TLocalSpaceDimension,
+        TDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 
