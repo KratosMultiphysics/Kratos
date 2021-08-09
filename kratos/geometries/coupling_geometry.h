@@ -406,8 +406,6 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        const double model_tolerance = 1e-3;
-
         const SizeType num_integration_points = rIntegrationPoints.size();
 
         if (rResultGeometries.size() != num_integration_points) {
@@ -478,8 +476,8 @@ public:
             rIntegrationInfo);
 
         for (SizeType i = 0; i < num_integration_points; ++i) {
-            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > model_tolerance)
-                << "Difference between master and slave coordinates above model tolerance of " << model_tolerance
+            KRATOS_DEBUG_ERROR_IF(norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) > 1e-3)
+                << "Difference between master and slave coordinates above model tolerance of " << 1e-3
                 << ". Location of master: " << master_quadrature_points(i)->Center() << ", location of slave: "
                 << slave_quadrature_points(i)->Center() << ". Distance: "
                 << norm_2(master_quadrature_points(i)->Center() - slave_quadrature_points(i)->Center()) << std::endl;
