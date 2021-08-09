@@ -800,7 +800,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
     //     }
     // }
 
-    for(unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
+    for (unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
         const std::string& actuator_name = mVectorOfActuatorNames[ind];
         std::vector<ModelPart*>& SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
         if (actuator_name == "RadialMultiDofs") {
@@ -810,7 +810,7 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
             const int number_of_nodes = static_cast<int>(rSubModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator it_begin = rSubModelPart.NodesBegin();
             #pragma omp parallel for
-            for(int i = 0; i<number_of_nodes; i++) {
+            for (int i = 0; i < number_of_nodes; i++) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
                 const double& r_nodal_next_target_stress = it->GetValue(RADIAL_NORMAL_STRESS_COMPONENT); // This is set by an external tool (can be a value projected from another modelpart)
                 const array_1d<double, 3>& r_nodal_reaction_stress_vector = it->GetValue(SMOOTHED_REACTION_STRESS);
@@ -826,11 +826,11 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
 
                 const double nodal_delta_target_stress = r_nodal_next_target_stress + nodal_reaction_stress;
 
-                if(std::abs(nodal_reaction_stress) < std::numeric_limits<double>::epsilon()) {
+                if (std::abs(nodal_reaction_stress) < std::numeric_limits<double>::epsilon()) {
                     double nodal_smoothed_nodal_velocity = (1.0 - mVelocityAlpha) * -1.0 * mMaxNodalVelocityForMultiDofs + mVelocityAlpha * it->GetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY);
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, nodal_smoothed_nodal_velocity);
                 }
-                else {
+                else if (nodal_delta_target_stress < 0.0 && nodal_reaction_stress > 0.0) {
                     double nodal_velocity_estimated = nodal_delta_target_stress * mCompressionLengthForMultiDofs / mNormOfInitiallyEstimatedStiffness / mCMDeltaTime; //TODO: norm_stiffness?
                     if (std::abs(nodal_velocity_estimated) > mMaxNodalVelocityForMultiDofs) {
                         nodal_velocity_estimated *= mMaxNodalVelocityForMultiDofs / std::abs(nodal_velocity_estimated);
@@ -838,9 +838,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
                     double nodal_smoothed_nodal_velocity = (1.0 - mVelocityAlpha) * nodal_velocity_estimated + mVelocityAlpha * it->GetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY);
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, nodal_smoothed_nodal_velocity);
                 }
-                /*else {
+                else {
                     it->SetValue(SMOOTHED_SCALAR_RADIAL_VELOCITY, 0.0);
-                }*/
+                }
             }
         }
     }
