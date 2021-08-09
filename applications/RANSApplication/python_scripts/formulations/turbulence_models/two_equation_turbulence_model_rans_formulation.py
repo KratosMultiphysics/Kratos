@@ -51,8 +51,8 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.GetBaseModelPart().Name,
             self.GetBaseModelPart().Name,
             ["initialize", "after_coupling_solve_step"],
-            [(self.formulation_1.GetSolvingVariable().Name(), True, self.formulation_1.GetSolvingVariable().Name(), False),
-             (self.formulation_2.GetSolvingVariable().Name(), True, self.formulation_2.GetSolvingVariable().Name(), False)],
+            [(self.formulation_1.GetSolvingVariable().Name(), True, 0, self.formulation_1.GetSolvingVariable().Name(), False, 0),
+             (self.formulation_2.GetSolvingVariable().Name(), True, 0, self.formulation_2.GetSolvingVariable().Name(), False, 0)],
             self.echo_level
         )
         self.AddProcess(turbulence_data_copy_process)
