@@ -149,7 +149,7 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteInitialize() override
+    void SetUpLevelSetConvection()
     {
         KRATOS_TRY;
 
@@ -174,7 +174,7 @@ public:
 
         InitializeConvectionStrategy(mpBuilderAndSolver);
 
-        mProcessIsInitialized = true;
+        mProcessIsSetUp = true;
 
         KRATOS_CATCH("")
 
@@ -193,8 +193,8 @@ public:
     {
         KRATOS_TRY;
 
-        if (!mProcessIsInitialized) {
-            ExecuteInitialize();
+        if (!mProcessIsSetUp) {
+            SetUpLevelSetConvection();
         }
 
         // Fill the auxiliary convection model part if not done yet
@@ -419,7 +419,7 @@ protected:
 
     BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
-    bool mProcessIsInitialized = false;
+    bool mProcessIsSetUp = false;
 
     ///@}
     ///@name Protected Operators
