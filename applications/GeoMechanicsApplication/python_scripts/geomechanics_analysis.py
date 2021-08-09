@@ -5,8 +5,6 @@ import sys
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
-# Linear solver is not working as expected
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
