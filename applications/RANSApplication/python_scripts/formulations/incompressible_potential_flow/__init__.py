@@ -16,7 +16,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBloc
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 
 class IncompressiblePotentialFlowRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Incompressible potential flow rans formulation
 
         This RansFormulation solves incompressible potential flow equation for steady
@@ -29,7 +29,7 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        super().__init__(model_part, settings)
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
         self.GetParameters().ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.SetMaxCouplingIterations(1)

@@ -11,20 +11,20 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.k_omega_s
 from KratosMultiphysics.RANSApplication.formulations.fractional_step.fractional_step_velocity_pressure_rans_formulation import FractionalStepVelocityPressureRansFormulation
 
 class FractionalStepKOmegaSSTRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
-        super().__init__(model_part, settings)
+    def __init__(self, model_part, settings, deprecated_settings_dict):
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         if (not settings["incompressible_potential_flow_initialization_settings"].IsEquivalentTo(
                 Kratos.Parameters("{}"))):
-            self.incompressible_potential_flow_formulation = IncompressiblePotentialFlowRansFormulation(model_part, settings["incompressible_potential_flow_initialization_settings"])
+            self.incompressible_potential_flow_formulation = IncompressiblePotentialFlowRansFormulation(model_part, settings["incompressible_potential_flow_initialization_settings"], deprecated_settings_dict)
             self.AddRansFormulation(self.incompressible_potential_flow_formulation)
 
-        self.fractional_step_formulation = FractionalStepVelocityPressureRansFormulation(model_part, settings["fractional_step_flow_solver_settings"])
+        self.fractional_step_formulation = FractionalStepVelocityPressureRansFormulation(model_part, settings["fractional_step_flow_solver_settings"], deprecated_settings_dict)
         self.AddRansFormulation(self.fractional_step_formulation)
 
-        self.k_omega_sst_formulation = KOmegaSSTRansFormulation(model_part, settings["k_omega_sst_solver_settings"])
+        self.k_omega_sst_formulation = KOmegaSSTRansFormulation(model_part, settings["k_omega_sst_solver_settings"], deprecated_settings_dict)
         self.AddRansFormulation(self.k_omega_sst_formulation)
 
         self.SetMaxCouplingIterations(settings["max_iterations"].GetInt())

@@ -34,14 +34,15 @@ class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
 
 
 class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         super().__init__(
             model_part,
             settings,
-            KOmegaSSTKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
-            KOmegaSSTOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
+            deprecated_settings_dict,
+            KOmegaSSTKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"], deprecated_settings_dict),
+            KOmegaSSTOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"], deprecated_settings_dict))
 
     def GetDefaultParameters(self):
         return Kratos.Parameters(r'''

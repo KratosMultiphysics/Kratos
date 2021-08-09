@@ -10,8 +10,8 @@ from KratosMultiphysics.RANSApplication.formulations.rans_formulation import Ran
 from KratosMultiphysics.RANSApplication import RansNutUtility
 
 class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings, formulation_1, formulation_2):
-        super().__init__(model_part, settings)
+    def __init__(self, model_part, settings, deprecated_settings_dict, formulation_1, formulation_2):
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
         self.stabilization_method = settings["stabilization_method"].GetString()
 

@@ -19,7 +19,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import Initialize
 
 
 class FractionalStepVelocityPressureRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
+    def __init__(self, model_part, settings, deprecated_settings_dict):
         """Incompressible Fractional Step Navier Stokes formulation
 
         This RansFormulation solves VELOCITY, and PRESSURE with Fractional Step formulated
@@ -32,7 +32,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        super().__init__(model_part, settings)
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
@@ -94,6 +94,9 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                     "relative_tolerance": 1e-3,
                     "absolute_tolerance": 1e-5
                 }
+            },
+            "wall_function_settings": {
+                "wall_function_region_type": "logarithmic_region_only"
             }
         }""")
 
@@ -289,10 +292,10 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def GetStrategy(self):
         return self.solver
 
-    def SetWallFunctionSettings(self, settings):
-        wall_function_region_type = "logarithmic_region_only"
-        if (settings.Has("wall_function_region_type")):
-            wall_function_region_type = settings["wall_function_region_type"].GetString()
+    def SetWallFunctionSettings(self):
+        wall_function_settings = self.GetParameters()["wall_function_settings"]
+        wall_function_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["wall_function_settings"])
+        wall_function_region_type = wall_function_settings["wall_function_region_type"].GetString()
 
         if (wall_function_region_type == "logarithmic_region_only"):
             self.condition_name = "RansFractionalStepKBasedWall"
