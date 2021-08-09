@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/contact_utilities.h"
@@ -48,7 +49,7 @@ double ContactUtilities::CalculateMaxNodalH(ModelPart& rModelPart)
 //     return max_value;
 
     // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
+    const int num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> max_vector(num_threads, 0.0);
     double nodal_h;
     #pragma omp parallel for private(nodal_h)
@@ -110,7 +111,7 @@ double ContactUtilities::CalculateMinimalNodalH(ModelPart& rModelPart)
 //         return min_value;
 
     // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
+    const int num_threads = ParallelUtilities::GetNumThreads();
     std::vector<double> min_vector(num_threads, 0.0);
     double nodal_h;
     #pragma omp parallel for private(nodal_h)
@@ -235,15 +236,12 @@ void ContactUtilities::CleanContactModelParts(ModelPart& rModelPart)
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        const auto& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        const auto& r_geometry = rCond.GetGeometry();
         if (r_geometry.NumberOfGeometryParts() > 0) {
-            it_cond->Set(TO_ERASE);
+            rCond.Set(TO_ERASE);
         }
-    }
+    });
     rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
@@ -254,13 +252,10 @@ void ContactUtilities::ComputeExplicitContributionConditions(ModelPart& rModelPa
 {
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
     KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-    const auto it_cond_begin = r_conditions_array.begin();
     const ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->AddExplicitContribution(r_process_info);
-    }
+    block_for_each(r_conditions_array, [&r_process_info](Condition& rCond) {
+        rCond.AddExplicitContribution(r_process_info);
+    });
 }
 
 /***********************************************************************************/
