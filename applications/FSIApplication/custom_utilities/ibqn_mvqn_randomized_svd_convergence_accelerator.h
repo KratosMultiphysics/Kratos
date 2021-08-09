@@ -183,13 +183,14 @@ public:
                     const std::size_t n_modes_right = TDenseSpace::Size1(*p_inv_jac_SigmaV_right);
 
                     if (n_modes_left > n_modes_right) {
-                        // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+                        // Extend the decomposition matrix from the right side as this is smaller since no force obseration is done yet
                         const auto& r_inv_jac_SigmaV_right = *p_inv_jac_SigmaV_right;
                         MatrixType extended_inv_jac_SigmaV_right = ZeroMatrix(n_modes_left, n_dofs);
                         IndexPartition<std::size_t>(n_dofs).for_each(
                             [&extended_inv_jac_SigmaV_right, &r_inv_jac_SigmaV_right, &n_modes_right](std::size_t Col){
-                                for (std::size_t row = 0; row < n_modes_right; ++row)
-                                extended_inv_jac_SigmaV_right(row, Col) = r_inv_jac_SigmaV_right(row, Col);
+                                for (std::size_t row = 0; row < n_modes_right; ++row) {
+                                    extended_inv_jac_SigmaV_right(row, Col) = r_inv_jac_SigmaV_right(row, Col);
+                                }
                             }
                         );
 
@@ -197,7 +198,20 @@ public:
                         ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_left, extended_inv_jac_SigmaV_right, aux_C, aux_RHS, rLeftCorrection);
 
                     } else {
-                        KRATOS_ERROR << "This matrix padding case is not implemented." << std::endl;
+                        // Extend the decomposition matrix from the left side as this is smaller (i.e. data cut off has been applied)
+                        const auto& r_inv_jac_QU_left = *p_inv_jac_QU_left;
+                        MatrixType extended_inv_jac_QU_left = ZeroMatrix(n_dofs, n_modes_right);
+                        IndexPartition<std::size_t>(n_dofs).for_each(
+                            [&extended_inv_jac_QU_left, &r_inv_jac_QU_left, &n_modes_left](std::size_t Row){
+                                for (std::size_t col = 0; col < n_modes_left; ++col) {
+                                    extended_inv_jac_QU_left(Row, col) = r_inv_jac_QU_left(Row, col);
+                                }
+                            }
+                        );
+
+                        // Calculate the correction with the Woodbury matrix identity
+                        ApplyWoodburyMatrixIdentity(extended_inv_jac_QU_left, *p_inv_jac_SigmaV_right, aux_C, aux_RHS, rLeftCorrection);
+
                     }
                 } else {
                     // Calculate the correction with the Woodbury matrix identity
@@ -260,29 +274,30 @@ public:
 
                 if (is_extended) {
                     const std::size_t n_modes_left = TDenseSpace::Size1(*p_inv_jac_SigmaV_left);
-                    if (n_modes_right == n_modes_left + 1) {
+                    if (n_modes_right > n_modes_left) {
                         // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
                         const auto& r_inv_jac_SigmaV_left = *p_inv_jac_SigmaV_left;
                         MatrixType extended_inv_jac_SigmaV_left = ZeroMatrix(n_modes_left + 1, n_dofs);
                         IndexPartition<std::size_t>(n_dofs).for_each(
                             [&extended_inv_jac_SigmaV_left, &r_inv_jac_SigmaV_left, &n_modes_left](std::size_t Col){
-                                for (std::size_t row = 0; row < n_modes_left; ++row)
-                                extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
+                                for (std::size_t row = 0; row < n_modes_left; ++row) {
+                                    extended_inv_jac_SigmaV_left(row, Col) = r_inv_jac_SigmaV_left(row, Col);
+                                }
                             }
                         );
 
                         // Calculate the correction with the Woodbury matrix identity
                         ApplyWoodburyMatrixIdentity(*p_inv_jac_QU_right, extended_inv_jac_SigmaV_left, aux_C, aux_RHS, rRightCorrection);
 
-                    //FIXME: WE SHOULD MAKE THIS GENERIC AS THE LEFT CASE
-                    //TODO: WE SHOULD MAKE THIS GENERIC AS THE LEFT CASE
-                    } else if (n_modes_right < n_modes_left && n_modes_right == 1) {
-                        // Extend the decomposition matrix from the left side as this is smaller since no force obseration is done yet
+                    } else {
+                        // Extend the decomposition matrix from the right side as this is smaller since no force obseration is done yet
                         const auto &r_inv_jac_QU_right = *p_inv_jac_QU_right;
                         MatrixType extended_inv_jac_QU_right = ZeroMatrix(n_dofs, n_modes_left);
                         IndexPartition<std::size_t>(n_dofs).for_each(
-                            [&extended_inv_jac_QU_right, &r_inv_jac_QU_right](std::size_t Row) {
-                                extended_inv_jac_QU_right(Row, 0) = r_inv_jac_QU_right(Row, 0);
+                            [&extended_inv_jac_QU_right, &r_inv_jac_QU_right, n_modes_right](std::size_t Row) {
+                                for (std::size_t col = 0; col < n_modes_right; ++col) {
+                                    extended_inv_jac_QU_right(Row, col) = r_inv_jac_QU_right(Row, col);
+                                }
                             });
 
                         // Calculate the correction with the Woodbury matrix identity
