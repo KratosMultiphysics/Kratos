@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosExternalSolversApplication",
 	"included_modules": ["ExternalSolversApplication"],
-	"included_binaries": ["KratosExternalSolversApplication.cp${PYTHON}-win_amd64.pyd"],
+	"included_binaries": ["KratosExternalSolversApplication.cp${PYTHON}-win_amd64.pyd", "KratosExternalSolversApplication.cp${PYTHON}-win_amd64.dll"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
