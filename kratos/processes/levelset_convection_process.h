@@ -149,37 +149,6 @@ public:
     ///@name Operations
     ///@{
 
-    void SetUpLevelSetConvection()
-    {
-        KRATOS_TRY;
-
-        // Validate the common settings as well as the element formulation specific ones
-        mLevelSetConvectionSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-        mLevelSetConvectionSettings["element_settings"].ValidateAndAssignDefaults(this->GetConvectionElementDefaultParameters(mLevelSetConvectionSettings["element_type"].GetString()));
-
-        // Checks and assign all the required member variables
-        CheckAndAssignSettings(mLevelSetConvectionSettings);
-
-        // Sets the convection diffusion problem settings
-        SetConvectionProblemSettings();
-
-        if (mIsBfecc || mElementRequiresLevelSetGradient){
-            mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
-            mrBaseModelPart,
-            *mpLevelSetVar,
-            *mpLevelSetGradientVar,
-            NODAL_AREA,
-            false);
-        }
-
-        InitializeConvectionStrategy(mpBuilderAndSolver);
-
-        mProcessIsSetUp = true;
-
-        KRATOS_CATCH("")
-
-    }
-
 
     /**
      * @brief Perform the level-set convection
@@ -436,6 +405,40 @@ protected:
         , mrModel(rModelPart.GetModel())
         , mLevelSetConvectionSettings(ThisParameters)
     {}
+
+    /**
+     * @brief This method validates and assigns the process settings and initializes
+     *  the convection strategy. Also, creates mpGradientCalculator if needed.
+     */
+    void SetUpLevelSetConvection()
+    {
+        KRATOS_TRY;
+
+        // Validate the common settings as well as the element formulation specific ones
+        mLevelSetConvectionSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        mLevelSetConvectionSettings["element_settings"].ValidateAndAssignDefaults(this->GetConvectionElementDefaultParameters(mLevelSetConvectionSettings["element_type"].GetString()));
+
+        // Checks and assign all the required member variables
+        CheckAndAssignSettings(mLevelSetConvectionSettings);
+
+        // Sets the convection diffusion problem settings
+        SetConvectionProblemSettings();
+
+        if (mIsBfecc || mElementRequiresLevelSetGradient){
+            mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
+            mrBaseModelPart,
+            *mpLevelSetVar,
+            *mpLevelSetGradientVar,
+            NODAL_AREA,
+            false);
+        }
+
+        InitializeConvectionStrategy(mpBuilderAndSolver);
+
+        mProcessIsSetUp = true;
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief Set the level set convection formulation settings
