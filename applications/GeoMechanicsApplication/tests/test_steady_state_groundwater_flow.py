@@ -58,12 +58,12 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         """
 
         hydraulic_discharge = test_helper.get_hydraulic_discharge(simulation)
-        sum = 0
+        sumValue = 0
         for value in hydraulic_discharge:
             if (value > 0):
-                sum = sum + value
+                sumValue = sumValue + value
 
-        return sum
+        return sumValue
 
     def assert_outflow_discharge(self, simulation, expected_value):
         """

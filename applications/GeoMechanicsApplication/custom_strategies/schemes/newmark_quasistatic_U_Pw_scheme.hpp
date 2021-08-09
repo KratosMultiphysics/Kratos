@@ -66,7 +66,7 @@ public:
         BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
         {
             if(it->SolutionStepsDataHas(DISPLACEMENT) == false)
                 KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node "
@@ -494,6 +494,7 @@ protected:
         mBeta = 0.25;
         mGamma = 0.5;
         mTheta = 0.5;
+        mDeltaTime = std::numeric_limits<double>::epsilon();
     }
 
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)

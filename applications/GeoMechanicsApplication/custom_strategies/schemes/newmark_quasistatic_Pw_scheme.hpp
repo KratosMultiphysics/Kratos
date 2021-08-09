@@ -66,7 +66,7 @@ public:
         BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); ++it)
         {
             if (it->SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
