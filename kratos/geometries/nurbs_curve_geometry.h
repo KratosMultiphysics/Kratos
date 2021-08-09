@@ -368,34 +368,36 @@ public:
         return 1;
     }
 
-    ///@}    ///@name Projection Point
+    ///@}
+    ///@name Projection Point
     ///@{
 
-    /* Makes projection of rPointGlobalCoordinates to
-     * the closest point rProjectedPointGlobalCoordinates on the curve,
-     * with local coordinates rProjectedPointLocalCoordinates.
+    /* @brief Makes projection of rPointGlobalCoordinates to
+     *       the closest point on the curve, with
+     *       local coordinates rProjectedPointLocalCoordinates.
      *
      * @param Tolerance is the breaking criteria.
      * @return 1 -> projection succeeded
      *         0 -> projection failed
      */
-    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
-    int ProjectionPoint(
+    int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
-        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointLocalCoordinates,
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
+        CoordinatesArrayType point_global_coordinates;
+
         return ProjectionNurbsGeometryUtilities::NewtonRaphsonCurve(
             rProjectedPointLocalCoordinates,
             rPointGlobalCoordinates,
-            rProjectedPointGlobalCoordinates,
+            point_global_coordinates,
             *this,
             20, Tolerance);
     }
 
-    ///@}    ///@name Geometrical Informations
+    ///@}
+    ///@name Geometrical Informations
     ///@{
 
     /// Computes the length of a nurbs curve
@@ -555,7 +557,7 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
+                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
         }
     }
 
