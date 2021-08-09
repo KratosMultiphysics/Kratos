@@ -46,8 +46,8 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
             KM.REACTION,
             KM.REACTION_MOMENT
         )
-        force = -reaction_force
-        moment= -reaction_moment
+        force = -1*reaction_force
+        moment= -1*reaction_moment
 
         '''
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
