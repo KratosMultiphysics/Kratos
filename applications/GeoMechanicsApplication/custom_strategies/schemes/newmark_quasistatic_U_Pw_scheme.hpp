@@ -494,7 +494,7 @@ protected:
         mBeta = 0.25;
         mGamma = 0.5;
         mTheta = 0.5;
-        mDeltaTime = std::numeric_limits<double>::epsilon();
+        mDeltaTime = 0.0;
     }
 
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
