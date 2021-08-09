@@ -18,7 +18,7 @@
 // Project includes
 #include "coupling_geometry_mapper.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_define.h"
+#include "mappers/mapper_define.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
