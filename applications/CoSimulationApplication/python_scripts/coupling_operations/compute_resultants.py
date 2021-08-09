@@ -38,12 +38,19 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         
-        force_and_moment_calculator = self.interface_data.GetModelPart()
+        model_part = self.interface_data.GetModelPart()
 
-        force = [0.0, 0.0, 0.0]
-        moment = [0.0, 0.0, 0.0]
+        reaction_force, reaction_moment = KM.ForceAndTorqueUtils.ComputeEquivalentForceAndTorque(
+            model_part,
+            self.reference_point,
+            KM.REACTION,
+            KM.REACTION_MOMENT
+        )
+        force = -reaction_force
+        moment= -reaction_moment
 
-        for node in force_and_moment_calculator.GetCommunicator().LocalMesh().Nodes:
+        '''
+        for node in model_part.GetCommunicator().LocalMesh().Nodes:
 
             # Sign is flipped to go from reaction to action -> force
             nodal_force = (-1) * node.GetSolutionStepValue(KM.REACTION, 0)
@@ -62,16 +69,18 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
             moment[2] += x * nodal_force[1] - y * nodal_force[0]
 
         # here does it on rank 0, which is ok for output
-        # force = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumDoubles(force,0)
-        # moment = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumDoubles(moment,0)
+        # force = model_part.GetCommunicator().GetDataCommunicator().SumDoubles(force,0)
+        # moment = model_part.GetCommunicator().GetDataCommunicator().SumDoubles(moment,0)
 
         # this will have it on all ranks
-        force = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(force)
-        moment = force_and_moment_calculator.GetCommunicator().GetDataCommunicator().SumAllDoubles(moment)
-
+        force = model_part.GetCommunicator().GetDataCommunicator().SumAllDoubles(force)
+        moment = model_part.GetCommunicator().GetDataCommunicator().SumAllDoubles(moment)
+        '''
+        
+        # Sign is flipped to go from reaction to action -> force
         # here [] is the equivalent of .SetValue()
-        force_and_moment_calculator[KMC.RESULTANT_FORCE] = force
-        force_and_moment_calculator[KMC.RESULTANT_MOMENT] = moment
+        model_part[KMC.RESULTANT_FORCE] = force
+        model_part[KMC.RESULTANT_MOMENT] = moment
 
     def PrintInfo(self):
         pass

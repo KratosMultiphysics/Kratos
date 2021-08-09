@@ -45,13 +45,19 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
 
         displacement = model_part[KMC.GLOBAL_DISPLACEMENT]
         rotation = model_part[KMC.GLOBAL_ROTATION]
+        angle = np.linalg.norm(rotation)
 
-        #print()
-        #print(displacement)
-        #print(rotation)
-        #print()
+        if angle != 0:
+            axis = rotation / angle
 
-        
+            KM.MeshMovingApplication.MoveModelPart(
+                model_part,
+                axis,                 # rotation axis
+                angle,                # rotation angle
+                self.reference_point, # one point of the rotation axis
+                displacement)         # translation
+
+        '''
         for node in model_part.GetCommunicator().LocalMesh().Nodes:
 
             dx = displacement[0]
@@ -79,7 +85,7 @@ class ComputeResultantsOperation(CoSimulationCouplingOperation):
             node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_X, dx)
             node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Y, dy)
             node.SetSolutionStepValue(KM.MESH_DISPLACEMENT_Z, dx)
-        
+        '''
 
     def PrintInfo(self):
         pass
