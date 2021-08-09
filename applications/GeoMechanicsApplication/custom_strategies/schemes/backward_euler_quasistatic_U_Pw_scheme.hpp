@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
 
 // Application includes
@@ -67,35 +68,22 @@ protected:
     /// Member Variables
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part) override
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
         //Update Acceleration, Velocity and DtPressure
 
-        array_1d<double,3> DeltaDisplacement;
-        double DeltaPressure;
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+            noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
+                                                                     - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;
+            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) = (  rNode.FastGetSolutionStepValue(VELOCITY)
+                                                                     - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / mDeltaTime;
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
-
-        #pragma omp parallel for private(DeltaDisplacement,DeltaPressure)
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
-
-            array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-            noalias(DeltaDisplacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT) - itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
-
-            noalias(CurrentVelocity)     = DeltaDisplacement / mDeltaTime;
-            noalias(CurrentAcceleration) = ( CurrentVelocity - PreviousVelocity ) / mDeltaTime;
-
-            double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
-            DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            CurrentDtPressure = DeltaPressure / mDeltaTime;
-        }
+            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
+                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / mDeltaTime;
+        });
 
         KRATOS_CATCH( "" )
     }

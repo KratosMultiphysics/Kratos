@@ -104,8 +104,7 @@ public:
             rModel.GetModelPart(ThisParameters["model_part_name"].GetString()),
             pLinearSolver,
             ThisParameters)
-    {
-    }
+    {}
 
     /**
      * @brief Construct a new Level Set Convection Process object
@@ -124,8 +123,7 @@ public:
     {
         KRATOS_TRY
 
-        auto p_builder_solver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
-        InitializeConvectionStrategy(p_builder_solver);
+        mpBuilderAndSolver = Kratos::make_shared< ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>>(pLinearSolver);
 
         KRATOS_CATCH("")
     }
@@ -151,6 +149,7 @@ public:
     ///@name Operations
     ///@{
 
+
     /**
      * @brief Perform the level-set convection
      * This solver provides a stabilized convection solver based on [Codina, R., 1993. Comput. Methods Appl. Mech. Engrg., 110(3-4), pp.325-342.]
@@ -162,6 +161,10 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
+
+        if (!mProcessIsSetUp) {
+            SetUpLevelSetConvection();
+        }
 
         // Fill the auxiliary convection model part if not done yet
         if(mDistancePartIsInitialized == false){
@@ -383,6 +386,10 @@ protected:
 
     ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
+
+    bool mProcessIsSetUp = false;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -396,13 +403,23 @@ protected:
         Parameters ThisParameters)
         : mrBaseModelPart(rModelPart)
         , mrModel(rModelPart.GetModel())
+        , mLevelSetConvectionSettings(ThisParameters)
+    {}
+
+    /**
+     * @brief This method validates and assigns the process settings and initializes
+     *  the convection strategy. Also, creates mpGradientCalculator if needed.
+     */
+    void SetUpLevelSetConvection()
     {
+        KRATOS_TRY;
+
         // Validate the common settings as well as the element formulation specific ones
-        ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-        ThisParameters["element_settings"].ValidateAndAssignDefaults(GetConvectionElementDefaultParameters(ThisParameters["element_type"].GetString()));
+        mLevelSetConvectionSettings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        mLevelSetConvectionSettings["element_settings"].ValidateAndAssignDefaults(this->GetConvectionElementDefaultParameters(mLevelSetConvectionSettings["element_type"].GetString()));
 
         // Checks and assign all the required member variables
-        CheckAndAssignSettings(ThisParameters);
+        CheckAndAssignSettings(mLevelSetConvectionSettings);
 
         // Sets the convection diffusion problem settings
         SetConvectionProblemSettings();
@@ -415,6 +432,12 @@ protected:
             NODAL_AREA,
             false);
         }
+
+        InitializeConvectionStrategy(mpBuilderAndSolver);
+
+        mProcessIsSetUp = true;
+
+        KRATOS_CATCH("")
     }
 
     /**
@@ -786,8 +809,6 @@ private:
      */
     void CheckAndAssignSettings(const Parameters ThisParameters)
     {
-        mLevelSetConvectionSettings = ThisParameters;
-
         // Convection element formulation settings
         std::string element_type = ThisParameters["element_type"].GetString();
         const auto element_list = GetConvectionElementsList();
@@ -904,7 +925,7 @@ private:
         return fill_process_info_function;
     }
 
-    void InitializeConvectionStrategy(BuilderAndSolverPointerType pBuilderAndSolver)
+    virtual void InitializeConvectionStrategy(BuilderAndSolverPointerType pBuilderAndSolver)
     {
         // Check that there is at least one element and node in the model
         KRATOS_ERROR_IF(mrBaseModelPart.NumberOfNodes() == 0) << "The model has no nodes." << std::endl;

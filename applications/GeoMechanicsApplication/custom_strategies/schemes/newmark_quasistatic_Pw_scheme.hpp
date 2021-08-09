@@ -59,14 +59,14 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(const ModelPart& r_model_part) const override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
 
-        BaseType::Check(r_model_part);
+        BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
+        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
@@ -85,9 +85,9 @@ public:
         }
 
         //check for minimum value of the buffer index.
-        if (r_model_part.GetBufferSize() < 2)
+        if (rModelPart.GetBufferSize() < 2)
             KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
-                         << r_model_part.GetBufferSize()
+                         << rModelPart.GetBufferSize()
                          << std::endl;
 
         // Check beta, gamma and theta
@@ -110,7 +110,7 @@ public:
     {
         KRATOS_TRY
 
-        FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }
@@ -123,7 +123,7 @@ protected:
     /// Member Variables
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part) override
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -131,8 +131,8 @@ protected:
 
         double DeltaPressure;
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+        const int NNodes = static_cast<int>(rModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
         #pragma omp parallel for private(DeltaPressure)
         for(int i = 0; i < NNodes; i++)
