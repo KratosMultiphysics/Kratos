@@ -34,8 +34,17 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
         """
         super().__init__(model_part, settings)
 
-        ##settings string in json format
-        default_settings = Kratos.Parameters("""
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        self.min_buffer_size = 3
+
+        self.echo_level = settings["echo_level"].GetInt()
+        self.SetMaxCouplingIterations(1)
+
+        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters("""
         {
             "formulation_name": "fractional_step",
             "predictor_corrector": false,
@@ -87,15 +96,6 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                 }
             }
         }""")
-
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        self.min_buffer_size = 3
-
-        self.echo_level = settings["echo_level"].GetInt()
-        self.SetMaxCouplingIterations(1)
-
-        Kratos.Logger.PrintInfo(self.__class__.__name__, "Construction of formulation finished.")
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()

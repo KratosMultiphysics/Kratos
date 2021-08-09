@@ -31,7 +31,11 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
         """
         super().__init__(model_part, settings)
 
-        default_settings = Kratos.Parameters(r'''
+        self.GetParameters().ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.SetMaxCouplingIterations(1)
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
         {
             "formulation_name": "incompressible_potential_flow",
             "linear_solver_settings": {
@@ -41,8 +45,6 @@ class IncompressiblePotentialFlowRansFormulation(RansFormulation):
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12
         }''')
-        self.GetParameters().ValidateAndAssignDefaults(default_settings)
-        self.SetMaxCouplingIterations(1)
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)

@@ -14,16 +14,7 @@ class FractionalStepKOmegaRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
         super().__init__(model_part, settings)
 
-        default_settings = Kratos.Parameters(r'''
-        {
-            "formulation_name": "fractional_step_k_epsilon",
-            "incompressible_potential_flow_initialization_settings": {},
-            "fractional_step_flow_solver_settings": {},
-            "k_omega_solver_settings": {},
-            "max_iterations": 1
-        }''')
-
-        settings.ValidateAndAssignDefaults(default_settings)
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         if (not settings["incompressible_potential_flow_initialization_settings"].IsEquivalentTo(
                 Kratos.Parameters("{}"))):
@@ -37,6 +28,16 @@ class FractionalStepKOmegaRansFormulation(RansFormulation):
         self.AddRansFormulation(self.k_omega_formulation)
 
         self.SetMaxCouplingIterations(settings["max_iterations"].GetInt())
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
+        {
+            "formulation_name": "fractional_step_k_epsilon",
+            "incompressible_potential_flow_initialization_settings": {},
+            "fractional_step_flow_solver_settings": {},
+            "k_omega_solver_settings": {},
+            "max_iterations": 1
+        }''')
 
     def SetConstants(self, settings):
         self.k_omega_formulation.SetConstants(settings)

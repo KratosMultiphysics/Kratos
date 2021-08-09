@@ -35,7 +35,16 @@ class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
 
 class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
     def __init__(self, model_part, settings):
-        default_settings = Kratos.Parameters(r'''
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        super().__init__(
+            model_part,
+            settings,
+            KOmegaSSTKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
+            KOmegaSSTOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
         {
             "formulation_name": "k_omega_sst",
             "stabilization_method": "algebraic_flux_corrected",
@@ -60,14 +69,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "echo_level": 0,
             "minimum_turbulent_viscosity": 1e-12
         }''')
-
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        super().__init__(
-            model_part,
-            settings,
-            KOmegaSSTKRansFormulation(model_part, settings["turbulent_kinetic_energy_solver_settings"]),
-            KOmegaSSTOmegaRansFormulation(model_part, settings["turbulent_specific_energy_dissipation_rate_solver_settings"]))
 
     def AddVariables(self):
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.VELOCITY)

@@ -1,7 +1,9 @@
+from abc import abstractmethod, ABC
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
-class RansFormulation:
+class RansFormulation(ABC):
     def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
 
@@ -19,6 +21,15 @@ class RansFormulation:
         self.__list_of_formulations = []
         self.__list_of_processes = []
         self.__move_mesh = False
+
+    @abstractmethod
+    def GetDefaultParameters(self):
+        """Returns default parameters used in this formulation
+
+        Returns:
+            Kratos.Parameters: Parameters of this formulation
+        """
+        pass
 
     def GetParameters(self):
         """Returns parameters used in this formulation

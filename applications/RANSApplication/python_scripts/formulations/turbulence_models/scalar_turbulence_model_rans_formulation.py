@@ -30,7 +30,13 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
-        defaults = Kratos.Parameters(r"""{
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.echo_level = settings["echo_level"].GetInt()
+
+        super().__init__(model_part, settings)
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r"""{
             "relative_tolerance"    : 1e-3,
             "absolute_tolerance"    : 1e-5,
             "max_iterations"        : 200,
@@ -41,11 +47,6 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             },
             "boundary_flags": ["INLET", "STRUCTURE"]
         }""")
-
-        settings.ValidateAndAssignDefaults(defaults)
-        self.echo_level = settings["echo_level"].GetInt()
-
-        super().__init__(model_part, settings)
 
     @abstractmethod
     def GetSolvingVariable(self):

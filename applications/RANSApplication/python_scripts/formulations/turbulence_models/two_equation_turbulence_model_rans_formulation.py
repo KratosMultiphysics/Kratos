@@ -33,6 +33,9 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             self.echo_level)
         self.SetMaxCouplingIterations(settings["coupling_settings"]["max_iterations"].GetInt())
 
+    def GetDefaultParameters(self):
+        return Kratos.Parameters("""{}""")
+
     def GetMinimumBufferSize(self):
         if (self.is_steady_simulation):
             return 1
