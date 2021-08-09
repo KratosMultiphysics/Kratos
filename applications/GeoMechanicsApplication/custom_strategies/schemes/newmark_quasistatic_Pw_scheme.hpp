@@ -110,7 +110,7 @@ public:
     {
         KRATOS_TRY
 
-        FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
+        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }

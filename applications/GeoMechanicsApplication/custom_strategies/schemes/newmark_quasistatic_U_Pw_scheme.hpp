@@ -251,10 +251,6 @@ public:
             SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
             if (Dim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
 
-            const int NNodes = static_cast<int>(rModelPart.Nodes().size());
-            ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
-
-
             // Clear nodal variables
             block_for_each(rModelPart.Nodes(), [&StressTensorSize](Node<3>& rNode) {
                 rNode.FastGetSolutionStepValue(NODAL_AREA) = 0.0;
