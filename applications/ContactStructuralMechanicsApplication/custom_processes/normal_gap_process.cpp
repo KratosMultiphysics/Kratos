@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "custom_processes/normal_gap_process.h"
 #include "contact_structural_mechanics_application_variables.h"
 
@@ -30,32 +31,24 @@ void NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>::Execute()
 
     // Iterate over the nodes
     auto& r_nodes_array_master = mrMasterModelPart.Nodes();
-    const auto it_node_begin_master = r_nodes_array_master.begin();
     auto& r_nodes_array_slave = mrSlaveModelPart.Nodes();
-    const auto it_node_begin_slave = r_nodes_array_slave.begin();
 
     // We set the auxiliar Coordinates
     const array_1d<double, 3> zero_array = ZeroVector(3);
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_master.size()); ++i) {
-        auto it_node = it_node_begin_master + i;
-
+    block_for_each(r_nodes_array_master, [&](NodeType& rNode) {
         if (mSearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
+            rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
+            rNode.SetValue(AUXILIAR_COORDINATES, zero_array);
         }
-    }
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_nodes_array_slave.size()); ++i) {
-        auto it_node = it_node_begin_slave + i;
-
+    });
+    block_for_each(r_nodes_array_slave, [&](NodeType& rNode) {
         if (!mSearchOrientation) {
-            it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
+            rNode.SetValue(AUXILIAR_COORDINATES, rNode.Coordinates());
         } else {
-            it_node->SetValue(AUXILIAR_COORDINATES, zero_array);
+            rNode.SetValue(AUXILIAR_COORDINATES, zero_array);
         }
-    }
+    });
 
     // Switch MASTER/SLAVE
     if (!mSearchOrientation) {
