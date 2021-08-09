@@ -164,7 +164,7 @@ indexStress3D SmallStrainUDSM2DPlaneStrainLaw::getIndex3D(indexStress2DPlaneStre
       case INDEX_2D_PLANE_STRESS_XY:
         return INDEX_3D_XY;
       default:
-        KRATOS_THROW_ERROR(std::invalid_argument, "invalid index: ", index2D);
+        KRATOS_ERROR << "invalid index: " << index2D << std::endl;
    }
 
    KRATOS_CATCH("")
