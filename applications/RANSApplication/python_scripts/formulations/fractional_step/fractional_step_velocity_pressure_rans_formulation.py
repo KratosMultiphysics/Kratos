@@ -32,6 +32,7 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             model_part (Kratos.ModelPart): ModelPart to be used in the formulation.
             settings (Kratos.Parameters): Settings to be used in the formulation.
         """
+        self.BackwardCompatibilityHelper(settings, deprecated_settings_dict)
         super().__init__(model_part, settings, deprecated_settings_dict)
 
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -99,6 +100,13 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
                 "wall_function_region_type": "logarithmic_region_only"
             }
         }""")
+
+    def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
+        if "wall_function_settings" in deprecated_settings_dict.keys():
+            if settings.Has("wall_function_settings"):
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Found \"wall_function_settings\" in deprecated settings as well as in formulation settings. Continuing with formulation based settings.")
+            else:
+                settings.AddValue("wall_function_settings", deprecated_settings_dict["wall_function_settings"].Clone())
 
     def AddVariables(self):
         base_model_part = self.GetBaseModelPart()

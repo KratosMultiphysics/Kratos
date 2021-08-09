@@ -61,6 +61,9 @@
                     "solver_type": "amgcl",
                     "tolerance": 1e-12,
                     "smoother_type": "damped_jacobi"
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only"
                 }
             },
             "k_omega_sst_solver_settings": {
