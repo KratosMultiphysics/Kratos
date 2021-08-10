@@ -79,11 +79,12 @@ namespace Testing
 
         DirectorUtilities(r_model_part, GetDirectorParametersSimpleTest()).ComputeDirectors();
         const double tolerance = 1.0e-8;
-        const std::array<double, 3> director{ 0.0, 0.0, 1.0 };
-        const array_1d<double, 3> director_node = r_model_part.GetNode(1).GetValue(DIRECTOR);
-        KRATOS_CHECK_NEAR(director_node[0], director[0], tolerance);
-        KRATOS_CHECK_NEAR(director_node[1], director[1], tolerance);
-        KRATOS_CHECK_NEAR(director_node[2], director[2], tolerance);
+        array_1d<double, 3> director = ZeroVector(3);
+        director[2] = 1.0;
+
+        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
+        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(4).GetValue(DIRECTOR), director, tolerance);
+        KRATOS_CHECK_VECTOR_NEAR(r_model_part.GetNode(8).GetValue(DIRECTOR), director, tolerance);
     }
 
     // Tests the stiffness matrix of the Shell3pElement with a polynomial degree of p=3.
