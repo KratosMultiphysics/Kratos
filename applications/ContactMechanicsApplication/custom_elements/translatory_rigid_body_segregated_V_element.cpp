@@ -93,7 +93,7 @@ TranslatoryRigidBodySegregatedVElement::~TranslatoryRigidBodySegregatedVElement(
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList,ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
   rElementalDofList.resize(0);
 
@@ -126,9 +126,9 @@ void TranslatoryRigidBodySegregatedVElement::GetDofList(DofsVectorType& rElement
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
-  this->SetProcessInformation(rCurrentProcessInfo);
+  //this->SetProcessInformation(rCurrentProcessInfo);
 
   switch(StepType(rCurrentProcessInfo[SEGREGATED_STEP]))
   {
@@ -256,11 +256,11 @@ void TranslatoryRigidBodySegregatedVElement::GetSecondDerivativesVector(Vector& 
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::Initialize()
+void TranslatoryRigidBodySegregatedVElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    TranslatoryRigidBodyElement::Initialize();
+    TranslatoryRigidBodyElement::Initialize(rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
 }
@@ -268,7 +268,7 @@ void TranslatoryRigidBodySegregatedVElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -295,7 +295,7 @@ void TranslatoryRigidBodySegregatedVElement::InitializeSolutionStep(ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -309,7 +309,7 @@ void TranslatoryRigidBodySegregatedVElement::InitializeNonLinearIteration( Proce
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -336,7 +336,7 @@ void TranslatoryRigidBodySegregatedVElement::FinalizeNonLinearIteration( Process
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void TranslatoryRigidBodySegregatedVElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
   KRATOS_TRY
 
@@ -366,7 +366,7 @@ void TranslatoryRigidBodySegregatedVElement::FinalizeSolutionStep( ProcessInfo& 
 //************************************************************************************
 
 void TranslatoryRigidBodySegregatedVElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                                                    ProcessInfo& rCurrentProcessInfo)
+                                                                    const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -383,7 +383,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateRightHandSide(VectorType& 
 //************************************************************************************
 
 void TranslatoryRigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                                                   ProcessInfo& rCurrentProcessInfo)
+                                                                   const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -401,7 +401,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateLeftHandSide(MatrixType& r
 
 void TranslatoryRigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                                   VectorType& rRightHandSideVector,
-                                                                  ProcessInfo& rCurrentProcessInfo)
+                                                                  const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -421,7 +421,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateLocalSystem(MatrixType& rL
 
 void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
                                                                                      VectorType& rRightHandSideVector,
-                                                                                     ProcessInfo& rCurrentProcessInfo)
+                                                                                     const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -453,7 +453,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesContribut
 //************************************************************************************
 
 void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-                                                                           ProcessInfo& rCurrentProcessInfo)
+                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -483,7 +483,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesLHS(Matri
 //************************************************************************************
 
 void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-                                                                           ProcessInfo& rCurrentProcessInfo)
+                                                                           const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -511,7 +511,7 @@ void TranslatoryRigidBodySegregatedVElement::CalculateSecondDerivativesRHS(Vecto
 //************************************************************************************
 //************************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -585,7 +585,7 @@ TranslatoryRigidBodySegregatedVElement::SizeType TranslatoryRigidBodySegregatedV
 //***********************************************************************************
 //***********************************************************************************
 
-void TranslatoryRigidBodySegregatedVElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
+void TranslatoryRigidBodySegregatedVElement::UpdateRigidBodyNodes(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
 
@@ -624,7 +624,7 @@ void TranslatoryRigidBodySegregatedVElement::SetProcessInformation(const Process
 //************************************************************************************
 //************************************************************************************
 
-int TranslatoryRigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int TranslatoryRigidBodySegregatedVElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 

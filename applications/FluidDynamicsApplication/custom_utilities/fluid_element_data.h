@@ -43,6 +43,8 @@ public:
 
     using NodalVectorData = BoundedMatrix<double,TNumNodes,TDim>;
 
+    using NodalTensorData = std::array<BoundedMatrix<double,TDim,TDim>,TNumNodes>;
+
     using ShapeFunctionsType = array_1d<double,TNumNodes>;
 
     using ShapeDerivativesType = BoundedMatrix<double,TNumNodes,TDim>;
@@ -157,6 +159,11 @@ protected:
         const Variable<array_1d<double, 3>> &rVariable,
         const Geometry<Node<3>> &rGeometry);
 
+    void FillFromHistoricalNodalData(
+        NodalTensorData& rData,
+        const Variable<Matrix>& rVariable,
+        const Geometry<Node<3>>& rGeometry);
+
     void FillFromHistoricalNodalData(NodalScalarData& rData, const Variable<double>& rVariable, const Geometry<Node<3>>& rGeometry, const unsigned int Step);
 
     void FillFromHistoricalNodalData(NodalVectorData& rData, const Variable<array_1d<double,3>>& rVariable, const Geometry<Node<3>>& rGeometry, const unsigned int Step);
@@ -176,6 +183,8 @@ protected:
     void FillFromProcessInfo(int& rData, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo);
 
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
+
+    void FillFromElementData(Vector& rData, const Variable<Vector>& rVariable, const Element& rElement);
 
     void FillFromElementData(NodalScalarData& rData, const Variable<Vector>& rVariable, const Element& rElement);
 

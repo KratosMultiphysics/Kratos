@@ -141,7 +141,9 @@ namespace Kratos {
                 elem_dist(0) = 1.0;
                 elem_dist(1) = 1.0;
                 elem_dist(2) = -1.0;
+                const array_1d<double,3> elem_edge_dist(3,-1.0);
                 p_elem_2->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+                p_elem_2->SetValue(ELEMENTAL_EDGE_DISTANCES, elem_edge_dist);
             }
 
         }

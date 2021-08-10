@@ -71,7 +71,8 @@ void OmegaElementData<TDim>::CalculateConstants(
     mSigmaOmega1 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_1];
     mSigmaOmega2 = rCurrentProcessInfo[TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE_SIGMA_2];
     mBetaStar = rCurrentProcessInfo[TURBULENCE_RANS_C_MU];
-    mKappa = this->GetProperties().GetValue(WALL_VON_KARMAN);
+    mKappa = rCurrentProcessInfo[VON_KARMAN];
+
     mDensity = this->GetProperties().GetValue(DENSITY);
 }
 

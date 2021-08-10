@@ -1,0 +1,124 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 5,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 3,
+        "num_coupling_iterations" : 12,
+        "predictors" : [],
+        "convergence_accelerators" : [
+            {
+                "type"      : "constant_relaxation",
+                "alpha"     : 0.8,
+                "solver"    : "fsi",
+                "data_name" : "disp"
+            }
+        ],
+        "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_previous_residual",
+                "solver"        : "fsi",
+                "data_name"     : "disp",
+                "abs_tolerance" : 1e-5,
+                "rel_tolerance" : 1e-5
+            }
+        ],
+        "data_transfer_operators" : {
+            "transfer_forces" : {
+                "type" : "copy"
+            },
+            "transfer_disp" : {
+                "type" : "copy"
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "fsi",
+            "input_data_list": [
+                //{
+                //    "data"             : "load",
+                //    "from_solver"      : "controller",
+                //    "from_solver_data" : "load",
+                //    "data_transfer_operator" : "transfer_forces"
+                //}
+            ],
+            "output_data_list": [
+                {
+                    "data"              : "disp",
+                    "to_solver"         : "controller",
+                    "to_solver_data"    : "disp",
+                    "data_transfer_operator" : "transfer_disp",
+                    "data_transfer_operator_options" : []
+                }
+            ]
+        },
+        {
+            "name": "controller",
+            "input_data_list": [
+                //{
+                //    "data"             : "disp",
+                //    "from_solver"      : "fsi",
+                //    "from_solver_data" : "disp",
+                //    "data_transfer_operator" : "transfer_disp"
+                //}
+            ],
+            "output_data_list": [
+                {
+                    "data"              : "load",
+                    "to_solver"         : "fsi",
+                    "to_solver_data"    : "load",
+                    "data_transfer_operator" : "transfer_forces",
+                    "data_transfer_operator_options" : []
+                }
+            ]
+        }
+        ],
+        "solvers" :
+        {
+            "fsi":
+            {
+                "type" : "solver_wrappers.existing_co_simulation",
+                "input_file"  : "fsi_sdof/cosim_sdof_fsi_parameters",
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "sdof_solver.Sdof",
+                        "variable_name" : "SCALAR_DISPLACEMENT",
+                        "location"      : "model_part"
+                    },
+                    "load" : {
+                        "model_part_name" : "sdof_solver.Sdof",
+                        "variable_name" : "SCALAR_FORCE",
+                        "location"      : "model_part"
+                    }
+                }
+            },
+            "controller" :
+            {
+                "type" : "solver_wrappers.sdof.sdof_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "fsi_sdof/ProjectParametersSdof_controller"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Sdof",
+                        "variable_name" : "SCALAR_ROOT_POINT_DISPLACEMENT",
+                        "location"      : "model_part"
+                    },
+                    "load" : {
+                        "model_part_name" : "Sdof",
+                        "variable_name" : "SCALAR_REACTION",
+                        "location"      : "model_part"
+                    }
+                }
+            }
+        }
+    }
+}

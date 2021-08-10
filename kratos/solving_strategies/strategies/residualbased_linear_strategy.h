@@ -390,21 +390,20 @@ public:
         DofsArrayType& r_dof_set = GetBuilderAndSolver()->GetDofSet();
 
         this->GetScheme()->Predict(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
+
+        // Applying constraints if needed
         auto& r_constraints_array = BaseType::GetModelPart().MasterSlaveConstraints();
         const int local_number_of_constraints = r_constraints_array.size();
         const int global_number_of_constraints = r_comm.SumAll(local_number_of_constraints);
         if(global_number_of_constraints != 0) {
-            const auto& rProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            auto it_begin = BaseType::GetModelPart().MasterSlaveConstraints().begin();
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_begin+i)->ResetSlaveDofs(rProcessInfo);
-
-            #pragma omp parallel for firstprivate(it_begin)
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_begin+i)->Apply(rProcessInfo);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             //the following is needed since we need to eventually compute time derivatives after applying
             //Master slave relations
@@ -540,21 +539,21 @@ public:
                 //setting up the list of the DOFs to be solved
                 BuiltinTimer setup_dofs_time;
                 p_builder_and_solver->SetUpDofSet(p_scheme, BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time" << setup_dofs_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: " << setup_dofs_time.ElapsedSeconds() << std::endl;
 
                 //shaping correctly the system
                 BuiltinTimer setup_system_time;
                 p_builder_and_solver->SetUpSystem(BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time" << setup_system_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: " << setup_system_time.ElapsedSeconds() << std::endl;
 
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
                                                                  BaseType::GetModelPart());
-                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time" << system_matrix_resize_time.ElapsedSeconds() << std::endl;
+                KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: " << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
 
-            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time" << system_construction_time.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("ResidualBasedLinearStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: " << system_construction_time.ElapsedSeconds() << std::endl;
 
             TSystemMatrixType& rA  = *mpA;
             TSystemVectorType& rDx = *mpDx;

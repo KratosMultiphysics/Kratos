@@ -42,6 +42,20 @@ def __ModuleInitDetail():
             import KratosMultiphysics.mpi
             mpi.InitializeMPIParallelRun()
             using_mpi = True
+
+            def CustomExceptionHook(exc_type, exc_value, exc_traceback):
+                """Custom exception hook that also prints the source rank where the exception was thrown."""
+                if issubclass(exc_type, KeyboardInterrupt):
+                    # call the default excepthook saved at __excepthook__
+                    sys.__excepthook__(exc_type, exc_value, exc_traceback)
+                    return
+
+                from KratosMultiphysics import DataCommunicator
+                exc_value = exc_type("(on rank {}): {}".format(DataCommunicator.GetDefault().Rank(), exc_value))
+                sys.__excepthook__(exc_type, exc_value, exc_traceback)
+
+            sys.excepthook = CustomExceptionHook
+
         else:
             if mpi_requested:
                 msg = [
@@ -75,6 +89,10 @@ def __ModuleInitDetail():
     return kratos_globals.KratosGlobalsImpl(Kernel(using_mpi), KratosPaths.kratos_applications)
 
 KratosGlobals = __ModuleInitDetail()
+
+# print the process id e.g. for attatching a debugger
+if KratosGlobals.Kernel.BuildType() != "Release":
+    Logger.PrintInfo("Process Id", os.getpid())
 
 def _ImportApplicationAsModule(application, application_name, application_folder, mod_path):
     Kernel = KratosGlobals.Kernel

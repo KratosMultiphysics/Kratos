@@ -5,8 +5,6 @@ Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as DEM_analysis_stage
 
-import KratosMultiphysics.kratos_utilities as kratos_utils
-
 import auxiliary_functions_for_tests
 
 this_working_dir_backup = os.getcwd()
@@ -42,6 +40,11 @@ class GluedParticlesTestSolution(DEM_analysis_stage.DEMAnalysisStage, KratosUnit
                     self.assertAlmostEqual(node.Y, 0.6362810292697275, delta=tolerance)
                     self.assertAlmostEqual(node.Z, -0.16645873461885752, delta=tolerance)
 
+
+    def Finalize(self):
+        self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
+        super().Finalize()
+
 class TestGluedParticles(KratosUnittest.TestCase):
 
     def setUp(self):
@@ -52,13 +55,7 @@ class TestGluedParticles(KratosUnittest.TestCase):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "glued_particles_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(GluedParticlesTestSolution, model, parameters_file_name, 1)
-
-    def tearDown(self):
-        file_to_remove = os.path.join("glued_particles_tests_files", "TimesPartialRelease")
-        kratos_utils.DeleteFileIfExisting(GetFilePath(file_to_remove))
-
-        os.chdir(this_working_dir_backup)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(GluedParticlesTestSolution, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 
 
 if __name__ == "__main__":

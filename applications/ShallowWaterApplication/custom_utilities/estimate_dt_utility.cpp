@@ -20,6 +20,7 @@
 // Project includes
 #include "estimate_dt_utility.h"
 #include "includes/model_part.h"
+#include "utilities/parallel_utilities.h"
 #include "shallow_water_application_variables.h"
 
 
@@ -62,19 +63,9 @@ double EstimateTimeStepUtility::Execute() const
 double EstimateTimeStepUtility::EstimateTimeStep() const
 {
     const double gravity = mrModelPart.GetProcessInfo().GetValue(GRAVITY_Z);
-    const auto elements_begin = mrModelPart.ElementsBegin();
-    double min_characteristic_time = std::numeric_limits<double>::max();
-
-    #pragma omp parallel for shared(min_characteristic_time)
-    for (int i = 0; i < static_cast<int>(mrModelPart.NumberOfElements()); ++i)
-    {
-        const auto& r_geometry = (elements_begin + i)->GetGeometry();
-        const double local_thread_min_characteristic_time = ElementCharacteristicTime(r_geometry, gravity);
-        #pragma omp critical
-        {
-            min_characteristic_time = std::min(min_characteristic_time, local_thread_min_characteristic_time);
-        }
-    }
+    const double min_characteristic_time = block_for_each<MinReduction<double>>(
+        mrModelPart.Elements(), [&](Element& rElement){return ElementCharacteristicTime(rElement.GetGeometry(), gravity);
+        });
 
     double current_time = min_characteristic_time * mCourant;
 

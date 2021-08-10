@@ -1,5 +1,6 @@
 #import python class test
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 #import python packages
 try:
@@ -18,7 +19,7 @@ def synthetic_matrix(degree, rows = 100):
 
 class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
 
-    @KratosUnittest.skipIf(numpy_available == False, "numpy is required for RomApplication")
+    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def test_empirical_cubature_method(self):
 
         for degree in range(5,10):
@@ -31,6 +32,8 @@ class TestEmpiricalCubatureMethod(KratosUnittest.TestCase):
             ElementSelector.Calculate()
 
             self.assertEqual( len(ElementSelector.z) , degree + 1 ) #for a polynomial of degree n, n+1 points are to be selected
+    # Cleaning
+    kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
 if __name__=='__main__':
     KratosUnittest.main()

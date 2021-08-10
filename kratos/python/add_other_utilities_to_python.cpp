@@ -23,9 +23,12 @@
 #include "linear_solvers/linear_solver.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
+#include "includes/fill_communicator.h"
 #include "includes/global_pointer_variables.h"
 
 //Other utilities
+#include "utilities/function_parser_utility.h"
+#include "utilities/apply_function_to_nodes_utility.h"
 #include "utilities/python_function_callback_utility.h"
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
@@ -47,10 +50,14 @@
 #include "utilities/entities_utilities.h"
 #include "utilities/constraint_utilities.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "utilities/specifications_utilities.h"
 #include "utilities/properties_utilities.h"
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_svd_decomposition.h"
+#include "utilities/force_and_torque_utils.h"
+#include "utilities/sub_model_part_entities_boolean_operation_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -156,6 +163,18 @@ std::string GetRegisteredNameCondition(const Condition& rCondition)
     return name;
 }
 
+template<class TEntityType, class TContainerType>
+void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::string Name)
+{
+    namespace py = pybind11;
+    typedef SubModelPartEntitiesBooleanOperationUtility<TEntityType,TContainerType> UtilityType;
+    py::class_<UtilityType>(m, Name.c_str())
+        .def_static("Union", &UtilityType::Union)
+        .def_static("Intersection", &UtilityType::Intersection)
+        .def_static("Difference", &UtilityType::Difference)
+        ;
+}
+
 void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
@@ -165,20 +184,29 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
-    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
+    py::class_<BasicGenericFunctionUtility,  BasicGenericFunctionUtility::Pointer >(m,"BasicGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def("UseLocalSystem", &BasicGenericFunctionUtility::UseLocalSystem)
+        .def("DependsOnSpace", &BasicGenericFunctionUtility::DependsOnSpace)
+        .def("FunctionBody", &BasicGenericFunctionUtility::FunctionBody)
+        .def("RotateAndCallFunction", &BasicGenericFunctionUtility::RotateAndCallFunction)
+        .def("CallFunction", &BasicGenericFunctionUtility::CallFunction)
+        ;
+
+    py::class_<GenericFunctionUtility,  GenericFunctionUtility::Pointer, BasicGenericFunctionUtility >(m,"GenericFunctionUtility")
         .def(py::init<const std::string&>() )
         .def(py::init<const std::string&, Parameters>())
-        .def("UseLocalSystem", &PythonGenericFunctionUtility::UseLocalSystem)
-        .def("DependsOnSpace", &PythonGenericFunctionUtility::DependsOnSpace)
-        .def("FunctionBody", &PythonGenericFunctionUtility::FunctionBody)
-        .def("RotateAndCallFunction", &PythonGenericFunctionUtility::RotateAndCallFunction)
-        .def("CallFunction", &PythonGenericFunctionUtility::CallFunction)
+        ;
+
+    // NOTE: This is a legacy function
+    py::class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer, GenericFunctionUtility>(m,"PythonGenericFunctionUtility")
+        .def(py::init<const std::string&>() )
+        .def(py::init<const std::string&, Parameters>())
         ;
 
     py::class_<ApplyFunctionToNodesUtility >(m,"ApplyFunctionToNodesUtility")
-        .def(py::init<ModelPart::NodesContainerType&, PythonGenericFunctionUtility::Pointer >() )
-        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction< Variable<double> >)
+        .def(py::init<ModelPart::NodesContainerType&, GenericFunctionUtility::Pointer >() )
+        .def("ApplyFunction", &ApplyFunctionToNodesUtility::ApplyFunction)
         .def("ReturnFunction", &ApplyFunctionToNodesUtility::ReturnFunction)
         ;
 
@@ -310,24 +338,27 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     // VariableRedistributionUtility
-    typedef void (*DistributePointDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&, double, unsigned int);
-    typedef void (*DistributePointArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&,double, unsigned int);
-
-    DistributePointDoubleType DistributePointDouble = &VariableRedistributionUtility::DistributePointValues;
-    DistributePointArrayType  DistributePointArray  = &VariableRedistributionUtility::DistributePointValues;
-
-    typedef void (*ConvertDistributedDoubleType)(ModelPart&, const Variable< double >&, const Variable< double >&);
-    typedef void (*ConvertDistributedArrayType)(ModelPart&, const Variable< array_1d<double,3> >&, const Variable< array_1d<double,3> >&);
-
-    ConvertDistributedDoubleType ConvertDistributedDouble = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-    ConvertDistributedArrayType  ConvertDistributedArray  = &VariableRedistributionUtility::ConvertDistributedValuesToPoint;
-
-    // Note: The StaticMethod thing should be done only once for each set of overloads
     py::class_< VariableRedistributionUtility >(m,"VariableRedistributionUtility")
-        .def_static("DistributePointValues",DistributePointDouble)
-        .def_static("DistributePointValues",DistributePointArray)
-        .def_static("ConvertDistributedValuesToPoint",ConvertDistributedDouble)
-        .def_static("ConvertDistributedValuesToPoint",ConvertDistributedArray)
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPoint", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPoint(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValues", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValues(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable);})
+        .def_static("ConvertDistributedValuesToPointNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable){VariableRedistributionUtility::ConvertDistributedValuesToPointNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<double>& rPointVariable, const Variable<double>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ElementsContainerType& rElements, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rElements, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
+        .def_static("DistributePointValuesNonHistorical", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rConditions, const Variable<array_1d<double,3>>& rPointVariable, const Variable<array_1d<double,3>>& rDistributedVariable, double Tolerance, double MaximumIterations){VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rConditions, rPointVariable, rDistributedVariable, Tolerance, MaximumIterations);})
         ;
 
     // Auxiliar ModelPart Utility
@@ -471,6 +502,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     .def(py::init<Model&>())
     .def(py::init<Parameters, Model&>())
     .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
+    .def("AssignMaterialToProperty",&ReadMaterialsUtility::AssignMaterialToProperty)
+    .def("AssignVariablesToProperty",&ReadMaterialsUtility::AssignVariablesToProperty)
+    .def("AssignTablesToProperty",&ReadMaterialsUtility::AssignTablesToProperty)
+    .def("AssignConstitutiveLawToProperty",&ReadMaterialsUtility::AssignConstitutiveLawToProperty)
     ;
 
     //activation utilities
@@ -535,6 +570,21 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameElement );
     mod_compare_elem_cond_utils.def("GetRegisteredName", GetRegisteredNameCondition );
 
+    // SpecificationsUtilities
+    auto mod_spec_utils = m.def_submodule("SpecificationsUtilities");
+    mod_spec_utils.def("AddMissingVariables", &SpecificationsUtilities::AddMissingVariables );
+    mod_spec_utils.def("AddMissingDofs", &SpecificationsUtilities::AddMissingDofs );
+    mod_spec_utils.def("DetermineFlagsUsed", &SpecificationsUtilities::DetermineFlagsUsed );
+    mod_spec_utils.def("DetermineTimeIntegration", &SpecificationsUtilities::DetermineTimeIntegration );
+    mod_spec_utils.def("DetermineFramework", &SpecificationsUtilities::DetermineFramework );
+    mod_spec_utils.def("DetermineSymmetricLHS", &SpecificationsUtilities::DetermineSymmetricLHS );
+    mod_spec_utils.def("DeterminePositiveDefiniteLHS", &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
+    mod_spec_utils.def("DetermineIfCompatibleGeometries", &SpecificationsUtilities::DetermineIfCompatibleGeometries );
+    mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
+    mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
+    mod_spec_utils.def("CheckGeometricalPolynomialDegree", &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
+    mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
+
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
     mod_prop_utils.def("CopyPropertiesValues", &PropertiesUtilities::CopyPropertiesValues);
@@ -589,6 +639,37 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Clear", &FileNameDataCollector::FileNameData::Clear)
         .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
+
+    py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
+        .def(py::init<ModelPart& >() )
+        .def(py::init<ModelPart&, const DataCommunicator& >() )
+        .def("Execute", &FillCommunicator::Execute)
+        .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
+    ;
+
+    typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
+    py::class_<DenseSingularValueDecompositionType, DenseSingularValueDecompositionType::Pointer>(m,"DenseSingularValueDecomposition")
+    ;
+
+    py::class_<ForceAndTorqueUtils>(m, "ForceAndTorqueUtils")
+        .def(py::init<>())
+        .def_static("SumForce", &ForceAndTorqueUtils::SumForce)
+        .def_static("SumForceAndTorque", &ForceAndTorqueUtils::SumForceAndTorque)
+        .def_static("ComputeEquivalentForceAndTorque", &ForceAndTorqueUtils::ComputeEquivalentForceAndTorque)
+        ;
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Node<3>,ModelPart::NodesContainerType>(
+        m, "SubModelPartNodesBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Element,ModelPart::ElementsContainerType>(
+        m, "SubModelPartElementsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<Condition,ModelPart::ConditionsContainerType>(
+        m, "SubModelPartConditionsBooleanOperationUtility");
+
+    AddSubModelPartEntitiesBooleanOperationToPython<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>(
+        m, "SubModelPartConstraintsBooleanOperationUtility");
+
 }
 
 } // namespace Python.
