@@ -40,8 +40,8 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
         # self._AssignSystemVector(x)
         # ----
 
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionStationaryMatrixSolver]:: ", "Extracted system matrix and vector.")
-        KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionStationaryMatrixSolver]:: ", "No solution triggered!")
+        KratosMultiphysics.Logger.PrintInfo("::[{}]:: ".format(self.__class__.__name__), "Extracted system matrix and vector.")
+        KratosMultiphysics.Logger.PrintInfo("::[{}]:: ".format(self.__class__.__name__), "No solution triggered!")
 
         return True
 
@@ -79,7 +79,6 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
 
     def _AssignSystemVector(self, vector):
         """Assigns the values of the vector to the TEMPERATURE dofs """
-        print(len(vector))
         for node in self.GetComputingModelPart().Nodes:
             dof = node.GetDof(KratosMultiphysics.TEMPERATURE)
 
