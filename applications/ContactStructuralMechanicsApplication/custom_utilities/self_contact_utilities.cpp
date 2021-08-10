@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/self_contact_utilities.h"
 #include "utilities/variable_utils.h"
@@ -327,30 +328,27 @@ void NotPredefinedMasterSlave(ModelPart& rModelPart)
     rModelPart.RemoveSubModelPart("AuxMasterModelPart");
 
     // Now we iterate over the conditions to set the nodes indexes
-    #pragma omp parallel for
-    for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
-        if (it_cond->Is(SLAVE)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
+    block_for_each(r_conditions_array, [&](Condition& rCond) {
+        if (rCond.Is(SLAVE)) {
+            GeometryType& r_geometry = rCond.GetGeometry();
             for (NodeType& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(SLAVE, true);
                 r_node.UnSetLock();
             }
         }
-        if (it_cond->Is(MASTER)) {
-            GeometryType& r_geometry = it_cond->GetGeometry();
+        if (rCond.Is(MASTER)) {
+            GeometryType& r_geometry = rCond.GetGeometry();
             for (NodeType& r_node : r_geometry) {
                 r_node.SetLock();
                 r_node.Set(MASTER, true);
                 r_node.UnSetLock();
             }
         }
-    }
+    });
 
     KRATOS_CATCH("")
 }
-
 
 } // namespace SelfContactUtilities
 } // namespace Kratos
