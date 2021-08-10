@@ -25,9 +25,7 @@ namespace Kratos
     void Shell5pElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        const GeometryType& r_geometry = GetGeometry();
-
-        const SizeType r_number_of_integration_points = r_geometry.IntegrationPointsNumber();
+        const SizeType r_number_of_integration_points = GetGeometry().IntegrationPointsNumber();
 
         // Prepare memory
         if (reference_Curvature.size() != r_number_of_integration_points)
@@ -40,8 +38,6 @@ namespace Kratos
             m_cart_deriv.resize(r_number_of_integration_points);
 
         KinematicVariables kinematic_variables;
-
-        m_N = GetGeometry().ShapeFunctionsValues(); //get shape functions
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
@@ -85,7 +81,7 @@ namespace Kratos
 
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
-                GetGeometry(), GetProperties(), rCurrentProcessInfo);
+                r_geometry, GetProperties(), rCurrentProcessInfo);
 
             ConstitutiveVariables constitutive_variables(8); //0..2 membrane, 3..5 curvature, 6..7 transverse shear
             CalculateConstitutiveVariables(
@@ -128,7 +124,7 @@ namespace Kratos
     {
         KinematicVariables rKin;
         VariationVariables rVar;
-        rKin.t = InterpolateNodalVariable(row(m_N, IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
+        rKin.t = InterpolateNodalVariable(row(GetGeometry().ShapeFunctionsValues(), IntegrationPointIndex), m_GetValueFunctor, DIRECTOR);
         rKin.dtd1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetValueFunctor, DIRECTOR);
         rKin.dtd2 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 1), m_GetValueFunctor, DIRECTOR);
         rKin.a1 = InterpolateNodalVariable(row(m_cart_deriv[IntegrationPointIndex], 0), m_GetCoordinatesFunctor);
@@ -247,14 +243,16 @@ namespace Kratos
     {
         const SizeType number_of_nodes = GetGeometry().size();
 
+        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+
         Matrix rB{ ZeroMatrix(8, number_of_nodes * 5) };
         for (SizeType r = 0; r < number_of_nodes; r++)
         {
             const SizeType kr = 5 * r;
 
             const Matrix32d BLAI = GetGeometry()[r].GetValue(DIRECTORTANGENTSPACE);
-            const Matrix3d WI1 = rVariations.Q1 * m_N(iP, r) + rVariations.P * m_cart_deriv[iP](0, r);
-            const Matrix3d WI2 = rVariations.Q2 * m_N(iP, r) + rVariations.P * m_cart_deriv[iP](1, r);
+            const Matrix3d WI1 = rVariations.Q1 * r_N(iP, r) + rVariations.P * m_cart_deriv[iP](0, r);
+            const Matrix3d WI2 = rVariations.Q2 * r_N(iP, r) + rVariations.P * m_cart_deriv[iP](1, r);
 
             for (int s = 0; s < 3; s++)
             {
@@ -273,8 +271,8 @@ namespace Kratos
             const Vector Temp = prod(prod<Vector>(trans(rActualKinematic.a1), WI1), BLAI); //bending_{,dir}
             const Vector Temp1 = prod(prod<Vector>(trans(rActualKinematic.a2), WI2), BLAI);
             const Vector Temp2 = prod(prod<Vector>(trans(rActualKinematic.a2), WI1) + prod(trans(rActualKinematic.a1), WI2), BLAI);
-            const Vector Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * m_N(iP, r), BLAI); //shear_{,dir}
-            const Vector Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * m_N(iP, r), BLAI);
+            const Vector Temp3 = prod(prod<Vector>(trans(rActualKinematic.a1), rVariations.P) * r_N(iP, r), BLAI); //shear_{,dir}
+            const Vector Temp4 = prod(prod<Vector>(trans(rActualKinematic.a2), rVariations.P) * r_N(iP, r), BLAI);
 
             for (int s = 0; s < 2; s++)
             {
@@ -297,6 +295,8 @@ namespace Kratos
         const auto& r_geometry = GetGeometry();
         const SizeType number_of_control_points = r_geometry.size();
 
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
         Matrix Kg{ ZeroMatrix(number_of_control_points * 5, number_of_control_points * 5) };
         const array_1d<double, 8>& S = rConstitutive.StressVector;
 
@@ -307,7 +307,7 @@ namespace Kratos
             const SizeType i1 = 5 * i;
             const SizeType i4 = i1 + 3;
 
-            const double Ni = m_N(iP, i);
+            const double Ni = r_N(iP, i);
             const double dN1i = m_cart_deriv[iP](0, i);
             const double dN2i = m_cart_deriv[iP](1, i);
 
@@ -319,7 +319,7 @@ namespace Kratos
                 const SizeType j1 = 5 * j;
                 const SizeType j4 = j1 + 3;
 
-                const double Nj = m_N(iP, j);
+                const double Nj = r_N(iP, j);
                 const double dN1j = m_cart_deriv[iP](0, j);
                 const double dN2j = m_cart_deriv[iP](1, j);
 

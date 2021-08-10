@@ -360,8 +360,6 @@ private:
     // Components of the shear coefficient tensor on the contravariant basis
     std::vector<array_1d<double, 2>> reference_TransShear;
 
-    // Shape functions at all integration points
-    Matrix m_N;
     // Determinant of the geometrical Jacobian.
     Vector m_dA_vector;
 
