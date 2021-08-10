@@ -139,19 +139,21 @@ public:
 
     void MatrixQ(MatrixType& rMatrixQ) const override
     {
-        // Get the Householder transformation matrix
-        // Note that we only retrieve the meaningful part of it to make it conformant with R
-        const std::size_t n_cols = mColPivHouseholderQR.matrixQR().cols();
-        const auto& r_Q = mColPivHouseholderQR.householderQ().setLength(n_cols);
-        const std::size_t m = r_Q.rows();
-        const std::size_t n = r_Q.cols();
-
-        // Calculate the Q matrix
-        if (rMatrixQ.size1() != m || rMatrixQ.size2() != n) {
-            rMatrixQ.resize(m,n);
-        }
-        Eigen::Map<EigenMatrix> matrix_Q_map(rMatrixQ.data().begin(), m, n);
+        // Get the complete unitary matrix
+        const auto& r_Q = mColPivHouseholderQR.householderQ();
+        const std::size_t Q_rows = r_Q.rows();
+        const std::size_t Q_cols = r_Q.cols();
+        MatrixType complete_Q(Q_rows, Q_cols);
+        Eigen::Map<EigenMatrix> matrix_Q_map(complete_Q.data().begin(), Q_rows, Q_cols);
         matrix_Q_map = r_Q;
+
+        // Calculate the thin Q to be returned
+        const std::size_t n = mColPivHouseholderQR.matrixQR().cols();
+        const MatrixType aux_identity = IdentityMatrix(Q_cols,n);
+        if (rMatrixQ.size1() != Q_rows || rMatrixQ.size2() != n) {
+            rMatrixQ.resize(Q_rows,n);
+        }
+        noalias(rMatrixQ) = prod(complete_Q, aux_identity);
     }
 
     void MatrixR(MatrixType& rMatrixR) const override
