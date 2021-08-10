@@ -88,35 +88,6 @@ void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 /***********************************************************************************/
 /***********************************************************************************/
 
-// void     GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
-// {
-//     KRATOS_TRY;
-
-//     const Properties& r_material_properties = rValues.GetMaterialProperties();
-//     const double E = r_material_properties[YOUNG_MODULUS];
-//     const double NU = r_material_properties[POISSON_RATIO];
-
-//     this->CheckClearElasticMatrix(C);
-
-//     const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-//     const double c1 = (1.00 - NU)*c0;
-//     const double c2 = c0 * NU;
-//     const double c3 = (0.5 - NU)*c0;
-
-//     C(0, 0) = c1;
-//     C(0, 1) = c2;
-
-//     C(1, 0) = c2;
-//     C(1, 1) = c1;
-
-//     C(2, 2) = c3;
-
-//     KRATOS_CATCH("");
-// }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void GeoLinearElasticPlaneStrain2DLaw::
     CalculatePK2Stress(const Vector& rStrainVector,
                        Vector& rStressVector,
@@ -124,19 +95,9 @@ void GeoLinearElasticPlaneStrain2DLaw::
 {
     KRATOS_TRY;
 
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[INDEX_2D_PLANE_STRAIN_XX] = c1 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_YY] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c1 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_XY] = c3 * rStrainVector[INDEX_2D_PLANE_STRESS_XY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 
     KRATOS_CATCH("");
 }

@@ -705,7 +705,8 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::
+   UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalDeltaStrainVector()") << std::endl;
@@ -748,21 +749,6 @@ void SmallStrainUDSM3DLaw::SetInternalStressVector(const Vector& rStressVector)
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStressVector()") << std::endl;
-   KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
-{
-   KRATOS_TRY
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
-
-   for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
-   {
-      mStrainVectorFinalized[i] = rStrainVector(i);
-   }
-
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
    KRATOS_CATCH("");
 }
 
@@ -1058,18 +1044,29 @@ void SmallStrainUDSM3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
 }
 
 //----------------------------------------------------------------------------------------
-void SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
-   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
-   const Vector& rStrainVector = rValues.GetStrainVector();
+   KRATOS_TRY
+   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
 
    for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
    {
       mStrainVectorFinalized[i] = rStrainVector(i);
    }
 
-   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::SetInternalStrainVector()") << std::endl;
+   KRATOS_CATCH("");
+}
 
+//----------------------------------------------------------------------------------------
+void SmallStrainUDSM3DLaw::
+   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+{
+   // KRATOS_INFO("0-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
+   const Vector& rStrainVector = rValues.GetStrainVector();
+   this->SetInternalStrainVector(rStrainVector);
+
+   // KRATOS_INFO("1-SmallStrainUDSM3DLaw::UpdateInternalStrainVectorFinalized()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
