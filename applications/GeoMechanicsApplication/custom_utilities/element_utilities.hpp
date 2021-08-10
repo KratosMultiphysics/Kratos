@@ -127,8 +127,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //2D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
@@ -139,8 +139,8 @@ public:
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
-                                                   const Element::PropertiesType& Prop)
+    static inline void FillPermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
+                                              const Element::PropertiesType& Prop)
     {
         //3D
         rPermeabilityMatrix(0,0) = Prop[PERMEABILITY_XX];
@@ -194,6 +194,34 @@ public:
 
         KRATOS_CATCH("");
     }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    template< unsigned int TDim>
+    static inline void AssembleDensityMatrix(BoundedMatrix<double,TDim+1, TDim+1> &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < TDim; ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < TDim; ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    static inline void AssembleDensityMatrix(Matrix &DensityMatrix,
+                                             const double &Density)
+    {
+        for (unsigned int idim = 0; idim < DensityMatrix.size1(); ++idim)
+        {
+            for (unsigned int jdim = 0; jdim < DensityMatrix.size2(); ++jdim)
+            {
+                DensityMatrix(idim, jdim) = Density;
+            }
+        }
+    }
+
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
