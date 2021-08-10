@@ -66,13 +66,12 @@ namespace Testing
         auto& r_model_part = current_model.CreateModelPart("ModelPart");
 
         r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 3);
-        const auto& r_process_info = r_model_part.GetProcessInfo();
 
         r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
         r_model_part.AddNodalSolutionStepVariable(DIRECTORINC);
 
         IntegrationPoint<3> integration_point(0.0694318442029737, 0.211324865405187, 0.0, 0.086963711284364);
-        auto p_shell_5p_element = GetShell5pElement(r_model_part, 3, integration_point);
+        GetShell5pElement(r_model_part, 3, integration_point);
 
         TestCreationUtility::AddDisplacementDofs(r_model_part);
         TestCreationUtility::AddDirectorInc2DDofs(r_model_part);
