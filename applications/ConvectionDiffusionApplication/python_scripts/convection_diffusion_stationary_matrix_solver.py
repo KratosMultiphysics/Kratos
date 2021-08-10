@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
-
 # Import base class file
 from KratosMultiphysics.ConvectionDiffusionApplication import convection_diffusion_stationary_solver
 import KratosMultiphysics.scipy_conversion_tools
@@ -15,6 +12,7 @@ def CreateSolver(main_model_part, custom_settings):
 
 
 class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_solver.ConvectionDiffusionStationarySolver):
+
     """Variant of the stationary convection diffusion solver that extracts:
     - the system matrix as scipy.sparse.csr_matrix
     - the system vector as np.ndarray
@@ -29,7 +27,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
 
 
     def SolveSolutionStep(self):
-        """Assembles the system and stores the system matrix and vector as member variables"""
+        """Assembles the system and stores the system matrix and vector as member variables."""
         self.K, self.p = self._SystemComputation()
 
         # example of a solution with the extracted matrix and vector
@@ -46,7 +44,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
         return True
 
     def _SystemComputation(self):
-        """Assembles the system matrix and vector and returns them as scipy.sparse.csr_matrix and np.ndarray respectively"""
+        """Assembles the system matrix and vector and returns them as scipy.sparse.csr_matrix and np.ndarray respectively."""
         space = KratosMultiphysics.UblasSparseSpace()
         strategy = self.get_convection_diffusion_solution_strategy()
         scheme = strategy.GetScheme()
@@ -78,7 +76,7 @@ class ConvectionDiffusionStationaryMatrixSolver(convection_diffusion_stationary_
 
 
     def _AssignSystemVector(self, vector):
-        """Assigns the values of the vector to the TEMPERATURE dofs """
+        """Assigns the values of the vector to the TEMPERATURE dofs."""
         for node in self.GetComputingModelPart().Nodes:
             dof = node.GetDof(KratosMultiphysics.TEMPERATURE)
 
