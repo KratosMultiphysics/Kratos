@@ -66,6 +66,7 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
     def _execute_eigen_dense_qr_decomposition_test(self, decomposition, generate_matrix_function, check_q_times_r):
         # Generate the sampling matrix
         A = generate_matrix_function()
+        A_rows = A.Size1()
         A_cols = A.Size2()
 
         # Compute the decomposition
@@ -84,18 +85,30 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
                 self.assertAlmostEqual(aux_sol[i,j], ref_val, 7)
 
         # Check the QR matrix reconstruction
+        # Note that we check AP=QR since R is only available for the pivoting QR decompositions
         if check_q_times_r:
             Q = KratosMultiphysics.Matrix()
             R = KratosMultiphysics.Matrix()
-            A_decomp = KratosMultiphysics.Matrix(m,n,0.0)
-            for i in range(m):
-                for j in range(n):
-                    for k in range(Q.size2()):
+            P = KratosMultiphysics.Matrix()
+            decomposition.MatrixQ(Q)
+            decomposition.MatrixR(R)
+            decomposition.MatrixP(P)
+            A_decomp = KratosMultiphysics.Matrix(A_rows,A_cols,0.0)
+            A_permut = KratosMultiphysics.Matrix(A_rows,A_cols,0.0)
+
+            for i in range(A_rows):
+                for j in range(A_cols):
+                    for k in range(R.Size1()):
                         A_decomp[i,j] += Q[i,k]*R[k,j]
+
+            for i in range(A_rows):
+                for j in range(A_cols):
+                    for k in range(P.Size2()):
+                        A_permut[i,j] += A[i,k]*P[k,j]
 
             for i in range(m):
                 for j in range(n):
-                    self.assertAlmostEqual(A_decomp[i,j], A[i,j], 7)
+                    self.assertAlmostEqual(A_decomp[i,j], A_permut[i,j], 7)
 
     def test_eigen_dense_BDC_SVD_3x3(self):
         decomposition = LinearSolversApplication.EigenDenseBDCSVD()
@@ -148,6 +161,18 @@ class TestEigenDenseDecompositions(KratosUnittest.TestCase):
     def test_eigen_dense_Householder_QR_decomposition_10x3_random(self):
         decomposition = LinearSolversApplication.EigenDenseHouseholderQRDecomposition()
         self._execute_eigen_dense_qr_decomposition_test(decomposition, lambda : self._random_matrix_mxn(10,3), False)
+
+    def test_eigen_dense_column_pivoting_Householder_QR_decomposition_3x3(self):
+        decomposition = LinearSolversApplication.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        self._execute_eigen_dense_qr_decomposition_test(decomposition, self._square_matrix_3x3, True)
+
+    def test_eigen_dense_column_pivoting_Householder_QR_decomposition_5x4_random(self):
+        decomposition = LinearSolversApplication.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        self._execute_eigen_dense_qr_decomposition_test(decomposition, lambda : self._random_matrix_mxn(5,4), True)
+
+    def test_eigen_dense_column_pivoting_Householder_QR_decomposition_10x3_random(self):
+        decomposition = LinearSolversApplication.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        self._execute_eigen_dense_qr_decomposition_test(decomposition, lambda : self._random_matrix_mxn(10,3), True)
 
 if __name__ == '__main__':
     KratosUnittest.main()

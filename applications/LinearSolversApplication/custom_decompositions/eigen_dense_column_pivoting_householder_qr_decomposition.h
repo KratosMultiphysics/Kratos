@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_EIGEN_DENSE_HOUSEHOLDER_QR_H_INCLUDED)
-#define KRATOS_EIGEN_DENSE_HOUSEHOLDER_QR_H_INCLUDED
+#if !defined(KRATOS_EIGEN_DENSE_COLUMN_PIVOTING_HOUSEHOLDER_QR_H_INCLUDED)
+#define KRATOS_EIGEN_DENSE_COLUMN_PIVOTING_HOUSEHOLDER_QR_H_INCLUDED
 
 // External includes
 #include <Eigen/QR>
@@ -43,7 +43,7 @@ namespace Kratos {
 ///@{
 
 template<class TDenseSpace>
-class EigenDenseHouseholderQRDecomposition : public DenseQRDecomposition<TDenseSpace>
+class EigenDenseColumnPivotingHouseholderQRDecomposition : public DenseQRDecomposition<TDenseSpace>
 {
 public:
 
@@ -51,7 +51,7 @@ public:
     ///@{
 
     /// Definition of the shared pointer of the class
-    KRATOS_CLASS_POINTER_DEFINITION(EigenDenseHouseholderQRDecomposition);
+    KRATOS_CLASS_POINTER_DEFINITION(EigenDenseColumnPivotingHouseholderQRDecomposition);
 
     typedef typename TDenseSpace::DataType DataType;
     typedef typename TDenseSpace::VectorType VectorType;
@@ -64,7 +64,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    EigenDenseHouseholderQRDecomposition() = default;
+    EigenDenseColumnPivotingHouseholderQRDecomposition() = default;
 
     ///@}
     ///@name Operators
@@ -77,7 +77,7 @@ public:
 
     static std::string Name()
     {
-        return "dense_householder_qr_decomposition";
+        return "dense_column_pivoting_householder_qr_decomposition";
     }
 
     void Compute(MatrixType& rInputMatrix) override
@@ -89,7 +89,7 @@ public:
 
         // Compute the Householder QR decomposition
         Eigen::Map<EigenMatrix> eigen_input_matrix_map(rInputMatrix.data().begin(), m, n);
-        mHouseholderQR.compute(eigen_input_matrix_map);
+        mColPivHouseholderQR.compute(eigen_input_matrix_map);
     }
 
     void Compute(
@@ -97,7 +97,9 @@ public:
         MatrixType& rMatrixQ,
         MatrixType& rMatrixR) override
     {
-        KRATOS_ERROR << "Householder QR decomposition does not implement the R matrix return. Call the \'Compute()\' and the \'MatrixQ\' methods sequentially." << std::endl;
+        Compute(rInputMatrix);
+        MatrixQ(rMatrixQ);
+        MatrixR(rMatrixR);
     }
 
     void Solve(
@@ -106,7 +108,7 @@ public:
     {
         // Solve the problem Ax = b
         Eigen::Map<EigenMatrix> eigen_rhs_map(rB.data().begin(), rB.size1(), rB.size2());
-        const auto& r_x = mHouseholderQR.solve(eigen_rhs_map);
+        const auto& r_x = mColPivHouseholderQR.solve(eigen_rhs_map);
 
         // Set the output matrix
         std::size_t m = r_x.rows();
@@ -137,26 +139,10 @@ public:
 
     void MatrixQ(MatrixType& rMatrixQ) const override
     {
-        // // Get the complete unitary matrix
-        // const auto& r_Q = mHouseholderQR.householderQ();
-        // MatrixType complete_Q(r_Q.rows(), r_Q.cols());
-        // Eigen::Map<EigenMatrix> matrix_Q_map(complete_Q.data().begin(), complete_Q.size1(), complete_Q.size2());
-        // matrix_Q_map = r_Q;
-
-        // // Calculate the thin Q to be returned
-        // const auto& r_input_matrix = mHouseholderQR.matrixQR();
-        // const std::size_t m = r_input_matrix.rows();
-        // const std::size_t n = r_input_matrix.cols();
-        // const MatrixType aux_identity = IdentityMatrix(m,n);
-        // if (rMatrixQ.size1() != m || rMatrixQ.size2() != n) {
-        //     rMatrixQ.resize(m,n);
-        // }
-        // noalias(rMatrixQ) = prod(complete_Q, aux_identity);
-
         // Get the Householder transformation matrix
         // Note that we only retrieve the meaningful part of it to make it conformant with R
-        const std::size_t n_cols = mHouseholderQR.matrixQR().cols();
-        const auto& r_Q = mHouseholderQR.householderQ().setLength(n_cols);
+        const std::size_t n_cols = mColPivHouseholderQR.matrixQR().cols();
+        const auto& r_Q = mColPivHouseholderQR.householderQ().setLength(n_cols);
         const std::size_t m = r_Q.rows();
         const std::size_t n = r_Q.cols();
 
@@ -170,12 +156,41 @@ public:
 
     void MatrixR(MatrixType& rMatrixR) const override
     {
-        KRATOS_ERROR << "Householder QR decomposition does not implement the R matrix return" << std::endl;
+        // Get the upper triangular matrix
+        // Note that we specify Eigen to return the upper triangular part as the bottom part are auxiliary internal values
+        const std::size_t rank = Rank();
+        auto& r_R = mColPivHouseholderQR.matrixR().topLeftCorner(rank, rank).template triangularView<Eigen::Upper>();
+
+        // r_R.template TriangularView<Eigen::Upper>();
+        const std::size_t m = r_R.rows();
+        const std::size_t n = r_R.cols();
+
+        // Output the upper triangular matrix
+        if (rMatrixR.size1() != m || rMatrixR.size2() != n) {
+            rMatrixR.resize(m,n);
+        }
+        Eigen::Map<EigenMatrix> matrix_R_map(rMatrixR.data().begin(), m, n);
+        matrix_R_map = r_R;
+    }
+
+    void MatrixP(MatrixType& rMatrixP) const
+    {
+        // Get the permutation matrix
+        const auto& r_P = mColPivHouseholderQR.colsPermutation();
+        const std::size_t m = r_P.rows();
+        const std::size_t n = r_P.cols();
+
+        // Output the permutation matrix
+        if (rMatrixP.size1() != m || rMatrixP.size2() != n) {
+            rMatrixP.resize(m,n);
+        }
+        Eigen::Map<EigenMatrix> matrix_P_map(rMatrixP.data().begin(), m, n);
+        matrix_P_map = r_P;
     }
 
     std::size_t Rank() const override
     {
-        KRATOS_ERROR << "Householder QR decomposition is not rank revealing." << std::endl;
+        return mColPivHouseholderQR.rank();
     }
 
     void PrintInfo(std::ostream &rOStream) const override
@@ -213,7 +228,7 @@ private:
     ///@name Private member Variables
     ///@{
 
-    Eigen::HouseholderQR<EigenMatrix> mHouseholderQR;
+    Eigen::ColPivHouseholderQR<EigenMatrix> mColPivHouseholderQR;
 
     ///@}
     ///@name Private Operators
@@ -260,4 +275,4 @@ private:
 ///@}
 } // namespace Kratos
 
-#endif // defined(KRATOS_EIGEN_DENSE_HOUSEHOLDER_QR_H_INCLUDED)
+#endif // defined(KRATOS_EIGEN_DENSE_COLUMN_PIVOTING_HOUSEHOLDER_QR_H_INCLUDED)
