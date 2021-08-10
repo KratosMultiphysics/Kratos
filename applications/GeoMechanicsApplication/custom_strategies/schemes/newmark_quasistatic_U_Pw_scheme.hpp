@@ -66,51 +66,51 @@ public:
         BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+        for (const auto& rNode : rModelPart.Nodes())
         {
-            if(it->SolutionStepsDataHas(DISPLACEMENT) == false)
+            if(rNode.SolutionStepsDataHas(DISPLACEMENT) == false)
                 KRATOS_ERROR << "DISPLACEMENT variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->SolutionStepsDataHas(VELOCITY) == false)
+            if(rNode.SolutionStepsDataHas(VELOCITY) == false)
                 KRATOS_ERROR << "VELOCITY variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->SolutionStepsDataHas(ACCELERATION) == false)
+            if(rNode.SolutionStepsDataHas(ACCELERATION) == false)
                 KRATOS_ERROR << "ACCELERATION variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
+            if(rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
+            if(rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
                 KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->HasDofFor(DISPLACEMENT_X) == false)
+            if(rNode.HasDofFor(DISPLACEMENT_X) == false)
                 KRATOS_ERROR << "missing DISPLACEMENT_X dof on node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->HasDofFor(DISPLACEMENT_Y) == false)
+            if(rNode.HasDofFor(DISPLACEMENT_Y) == false)
                 KRATOS_ERROR << "missing DISPLACEMENT_Y dof on node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->HasDofFor(DISPLACEMENT_Z) == false)
+            if(rNode.HasDofFor(DISPLACEMENT_Z) == false)
                 KRATOS_ERROR << "missing DISPLACEMENT_Z dof on node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if(it->HasDofFor(WATER_PRESSURE) == false)
+            if(rNode.HasDofFor(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
         }
 
@@ -494,6 +494,7 @@ protected:
         mBeta = 0.25;
         mGamma = 0.5;
         mTheta = 0.5;
+        mDeltaTime = 0.0;
     }
 
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
