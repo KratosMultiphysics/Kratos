@@ -132,7 +132,8 @@ namespace Kratos
             if (CalculateResidualVectorFlag == true)
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
         }
-
+        std::cout << BOperator << std::endl;
+        std::cout << rLeftHandSideMatrix << std::endl;
         KRATOS_CATCH("");
     }
 

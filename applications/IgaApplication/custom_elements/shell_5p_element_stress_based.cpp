@@ -25,6 +25,7 @@ namespace Kratos
     BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A);
     BoundedMatrix<double, 2, 2> invert2(const BoundedMatrix<double, 2, 2>& A);
     BoundedMatrix<double, 3, 3> invert3(const BoundedMatrix<double, 3, 3>& A);
+    Vector strainVecFromDeformationGradient(const Matrix& F);
     BoundedMatrix<double, 6, 6> getMatrixTransformMatrixForVoigtVector(const BoundedMatrix<double, 3, 3>& t);
     array_1d<double, 5> transformStrainMatrixToVector5P(const BoundedMatrix<double, 3, 3>& A);
 
@@ -46,12 +47,12 @@ namespace Kratos
         if (m_referenceJacobianInverse.size() != r_number_of_integration_points)
         {
             m_referenceJacobianInverse.resize(r_number_of_integration_points);
-            std::for_each(m_referenceJacobianInverse.begin(), m_referenceJacobianInverse.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+           std::for_each(m_referenceJacobianInverse.begin(), m_referenceJacobianInverse.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_referenceCartesianJacobian.size() != r_number_of_integration_points)
         {
             m_referenceCartesianJacobian.resize(r_number_of_integration_points);
-            std::for_each(m_referenceCartesianJacobian.begin(), m_referenceCartesianJacobian.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+           std::for_each(m_referenceCartesianJacobian.begin(), m_referenceCartesianJacobian.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_referenceCoVariantTransformationMatrix.size() != r_number_of_integration_points)
         {
@@ -77,25 +78,28 @@ namespace Kratos
 
         for (IndexType point_number = 0; point_number < r_number_of_integration_points; ++point_number)
         {
-            m_dN[point_number] = GetGeometry().ShapeFunctionLocalGradient(point_number);
-            std::cout << m_dN[point_number] << std::endl;
-            std::cout << m_dN.size() << std::endl;
-            std::cout << m_dN[point_number].size1() << std::endl;
-            std::cout << m_dN[point_number].size2() << std::endl;
+            m_dN[point_number] = trans(GetGeometry().ShapeFunctionLocalGradient(point_number));
+            //std::cout << m_dN[point_number] << std::endl;
+            //std::cout << m_dN.size() << std::endl;
+            //std::cout << m_dN[point_number].size1() << std::endl;
+            //std::cout << m_dN[point_number].size2() << std::endl;
             for (IndexType thickness_point_number = 0; thickness_point_number < mNumThicknessIntegrationPoints; ++thickness_point_number) {
 
                 std::tie(kinematic_variables, std::ignore) = CalculateKinematics(point_number, thickness_point_number);
 
-                m_dV_vector[point_number][thickness_point_number] = MathUtils<double>::Det3(kinematic_variables.j);
+                m_dV_vector[point_number][thickness_point_number] = MathUtils<double>::Det3(kinematic_variables.j) * this->GetProperties().GetValue(THICKNESS) / 2;
 
                 m_referenceJacobianInverse[point_number][thickness_point_number] = invert3(kinematic_variables.j);
 
                 const Matrix3d Jloc = orthonormalizeMatrixColumns(kinematic_variables.j);
                 Matrix3d invJloc = invert3(Jloc);
+                //std::cout << "==================" << std::endl;
+
                 const Matrix3d Ts = prod(invJloc, kinematic_variables.j);
                 m_referenceCoVariantTransformationMatrix[point_number][thickness_point_number] = getMatrixTransformMatrixForVoigtVector(Ts);
                 m_referenceContraVariantTransformationMatrix[point_number][thickness_point_number] = getMatrixTransformMatrixForVoigtVector(invert3(Ts));
-                m_referenceCartesianJacobian[point_number][thickness_point_number] = orthonormalizeMatrixColumns(kinematic_variables.j);
+                m_referenceCartesianJacobian[point_number][thickness_point_number] = Jloc;
+                //std::cout << kinematic_variables.j << " " << Jloc << " " << invJloc<<" "<< m_referenceCartesianJacobian[point_number][thickness_point_number] << std::endl;
             }
         }
         InitializeMaterial();
@@ -170,13 +174,15 @@ namespace Kratos
                     constitutive_law_parameters,
                     ConstitutiveLaw::StressMeasure_PK2);
 
+
+
                 BOperator = CalculateStrainDisplacementOperator(point_number, kinematic_variables, variation_variables);
 
                 double integration_weight = r_integration_points[point_number].Weight()
                     * GetThicknessIntegrationPoint(thickness_point_number)[1] * m_dV_vector[point_number][thickness_point_number];
 
-                std::cout << "IntegrationPoint: " << m_dV_vector[point_number][thickness_point_number] << std::endl;
-                std::cout << "integration_weight: " << integration_weight << std::endl;
+                //std::cout << "IntegrationPoint: " << m_dV_vector[point_number][thickness_point_number] << std::endl;
+                //std::cout << "integration_weight: " << integration_weight << std::endl;
                 std::cout << "kinematic_variablesA1: " << kinematic_variables.A1 << std::endl;
                 std::cout << "kinematic_variablesA2: " << kinematic_variables.A2 << std::endl;
                 std::cout << "kinematic_variablesa1: " << kinematic_variables.a1 << std::endl;
@@ -195,13 +201,22 @@ namespace Kratos
                             kinematic_variables,
                             variation_variables,
                             constitutive_variables);
-                    noalias(rLeftHandSideMatrix) += integration_weight * (prod(prod<MatrixType>(trans(BOperator), mC), BOperator) + Kg);
+
+                    //std::cout << BOperator << std::endl;
+                    //std::cout << constitutive_variables.ConstitutiveMatrix << std::endl;
+                    //std::cout << constitutive_variables.StressVector << std::endl;
+                    //std::cout << integration_weight << std::endl;
+                    //std::cout << Kg << std::endl;
+                    noalias(rLeftHandSideMatrix) += integration_weight * (prod(prod<MatrixType>(trans(BOperator), constitutive_variables.ConstitutiveMatrix), BOperator) + Kg);
                 }
                 // RIGHT HAND SIDE VECTOR
                 if (CalculateResidualVectorFlag == true)
                     noalias(rRightHandSideVector) -= integration_weight * prod(trans(BOperator), constitutive_variables.StressVector);
             }
+
         }
+        std::cout << BOperator << std::endl;
+        std::cout << rLeftHandSideMatrix << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -281,7 +296,7 @@ namespace Kratos
         //rKin.curvature[2] = inner_prod(rKin.a1, rKin.dtd2) + inner_prod(rKin.a2, rKin.dtd1);
 
 
-        rKin.zeta = GetThicknessIntegrationPoint(ThicknessIntegrationPointIndex)[0]* this->GetProperties().GetValue(THICKNESS); //TODO: get thickness coordiante of integration point;
+        rKin.zeta = GetThicknessIntegrationPoint(ThicknessIntegrationPointIndex)[0]* this->GetProperties().GetValue(THICKNESS)/2;
         rKin.g1 = rKin.a1 + rKin.zeta * rKin.dtd1;
         rKin.g2 = rKin.a2 + rKin.zeta * rKin.dtd2;
         //rKin.G1 = rKin.A1 + rKin.zeta * rKin.t0d1;
@@ -306,9 +321,57 @@ namespace Kratos
         rKin.F.resize(3, 3);
         rKin.F = prod(rKin.j, m_referenceJacobianInverse[IntegrationPointIndex][ThicknessIntegrationPointIndex]);
         rKin.F = prod(prod<Matrix3d>(trans(Jloc), rKin.F) , Jloc);
-
+        //std::cout << rKin.F << std::endl;
         return std::make_pair(rKin, rVar);
     }
+         template<typename LambdaType>
+        void Shell5pStressBasedElement::enforceS33EqualsZero(LambdaType updateStressAndTangent, Vector& S, Vector& E, Matrix& C)
+        {
+            const double tol = S[2] / 1e5;
+            const int maxiter = 10;
+            int iter = 0;
+
+            auto& Szz = S[2];
+            auto& Czz = C(2, 2);
+            double& Ezz = E[2];
+            while (std::fabs(Szz) > tol && maxiter > iter)
+            {
+                Ezz -= Szz / Czz;
+                updateStressAndTangent();
+                ++iter;
+            }
+            //static condensation of Czz but still in 6x6 matrix
+            std::cout << C << std::endl;
+            unsigned mapim_fshell[5] = { 0, 1, 3, 4, 5 };
+            unsigned mapiz_fshell[1] = { 2 };
+
+
+            BoundedVector<double,5> Cmz{};
+
+            const std::array<double, 5> indicesSkipping2({ 0,1,3,4,5 });
+            double Czm[5] = { 0.0 };
+
+            for (int i = 0; i < 5; i++)
+            {
+                Cmz[i] = C(indicesSkipping2[i],2);
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                C(indicesSkipping2[i],2) = 0.0;
+                C(2,indicesSkipping2[i]) = 0.0;
+            }
+
+            for (int i = 0; i < 5; i++)
+                for (int j = 0; j < 5; j++)
+                    C(indicesSkipping2[i],indicesSkipping2[j]) = C(indicesSkipping2[i],indicesSkipping2[j]) - Cmz[i] * Czm[j] / Czz;
+            C(2, 2) = 0.0;
+            std::cout << S << std::endl;
+            std::cout << E << std::endl;
+            std::cout << C << std::endl;
+
+        }
+
 
     Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
@@ -318,7 +381,7 @@ namespace Kratos
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
     {
-        rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        rValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
@@ -326,26 +389,32 @@ namespace Kratos
         //TODO: Fill SVoigt and CVoigt from somewhere, also take care of the S33=0 condition, maybe later
 
         Vector SVoigt = ZeroVector(6);
-        Vector Strain = ZeroVector(6);
+        Vector StrainVoigt = strainVecFromDeformationGradient(rActualKinematic.F);
         std::cout << rActualKinematic.F << std::endl;
+        std::cout << StrainVoigt << std::endl;
         // Constitive Matrices DMembrane and DCurvature
-        rValues.SetDeformationGradientF(rActualKinematic.F); //this is the input parameter
-        rValues.SetStrainVector(Strain); //this is an ouput parameter
+        //rValues.SetDeformationGradientF(rActualKinematic.F); //this is the input parameter
+        rValues.SetStrainVector(StrainVoigt); //this is an ouput parameter
         rValues.SetStressVector(SVoigt); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(CVoigt); //this is an ouput parameter
 
         mConstitutiveLawVectorOfVector[IntegrationPointIndex][ThicknessIntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
-        std::cout << SVoigt << std::endl;
-        std::cout << Strain << std::endl;
-        std::cout << CVoigt << std::endl;
+        auto updateStressAndTangent = [&]() {
+            mConstitutiveLawVectorOfVector[IntegrationPointIndex][ThicknessIntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
+        };
+        enforceS33EqualsZero(updateStressAndTangent, SVoigt, StrainVoigt, CVoigt);
+
+        //std::cout << SVoigt << std::endl;
+        //std::cout << Strain << std::endl;
+        //std::cout << CVoigt << std::endl;
 
         const auto& Tcont = m_referenceContraVariantTransformationMatrix[IntegrationPointIndex][ThicknessIntegrationPointIndex];
         SVoigt = prod(trans(Tcont), SVoigt);
         CVoigt = prod(prod<BoundedMatrix <double, 6, 6>>(trans(Tcont), CVoigt) , Tcont);
-        std::cout << SVoigt << std::endl;
-        std::cout << CVoigt << std::endl;
-        std::cout << Tcont << std::endl;
+        //std::cout << SVoigt << std::endl;
+        //std::cout << CVoigt << std::endl;
+        //std::cout << Tcont << std::endl;
         return convertMaterialAndStressFromVoigt(CVoigt, SVoigt);
     }
 
@@ -592,8 +661,10 @@ namespace Kratos
     template< typename ContainerType, typename NodeFunctor, typename ...Args>
     BoundedVector<double, 3> Shell5pStressBasedElement::InterpolateNodalVariable(const ContainerType& vec, const NodeFunctor& funct, const Args&... args) const
     {
+        //std::cout << "===============================" << std::endl;
         auto nodeValuesTimesAnsatzFunction = [&](double nodalVar, const NodeType& node)
-        { return nodalVar * (node.*funct)(args...); };
+        {   //std::cout << nodalVar << " " << (node.*funct)(args...) << std::endl;
+            return nodalVar * (node.*funct)(args...); };
         BoundedVector<double, 3> nullVec;
         nullVec = ZeroVector(3);
         return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
@@ -812,6 +883,24 @@ namespace Kratos
         ips[0] = 2.0* ips[0] - 1.0;
         ips[1] *= 2.0;
         return ips;
+    }
+
+    Vector strainVecFromDeformationGradient(const Matrix& F)
+    {
+        assert(F.size1() == 3);
+        assert(F.size2() == 3);
+
+        const BoundedMatrix<double, 3, 3> E = 0.5*(prod(trans(F),F)-IdentityMatrix(3)) ; //Here we lose digits if the strains are small better later usage of displacement to directly obtain E
+
+        Vector strainVec(6);
+        strainVec[0] = E(0, 0);
+        strainVec[1] = E(1, 1);
+        strainVec[2] = E(2, 2);
+        strainVec[3] = E(1, 2);
+        strainVec[4] = E(0, 2);
+        strainVec[5] = E(0, 1);
+
+        return strainVec;
     }
 
 } // Namespace Kratos

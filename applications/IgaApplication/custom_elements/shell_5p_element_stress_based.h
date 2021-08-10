@@ -383,8 +383,8 @@ private:
     // Reference Jacobians
     std::vector< std::vector<Matrix3d>> m_referenceJacobianInverse;
     std::vector< std::vector<Matrix3d>> m_referenceCartesianJacobian;
-    std::vector< std::vector<Matrix3d>> m_referenceCoVariantTransformationMatrix;
-    std::vector< std::vector<Matrix3d>> m_referenceContraVariantTransformationMatrix;
+    std::vector< std::vector<Matrix6d>> m_referenceCoVariantTransformationMatrix;
+    std::vector< std::vector<Matrix6d>> m_referenceContraVariantTransformationMatrix;
 
     // Shape functions at all integration points
     Matrix m_N;
@@ -403,7 +403,7 @@ private:
     std::vector<std::vector<ConstitutiveLaw::Pointer>> mConstitutiveLawVectorOfVector;
 
     //The St. Venant Kirchhoff 5P Material Tangent
-    BoundedMatrix<double, 8, 8> mC;
+    //BoundedMatrix<double, 8, 8> mC;
 
     IndexType mNumThicknessIntegrationPoints;
 
@@ -427,6 +427,9 @@ private:
         CalculateKinematics(const IndexType IntegrationPointIndex, const IndexType ThicknessIntegrationPointIndex) const;
 
     // Computes the cartesian derivatives from curvilinear ones
+    template<typename LambdaType>
+    void enforceS33EqualsZero(LambdaType cL, Vector& S, Vector& E, Matrix& C);
+
     Matrix CalculateCartesianDerivatives(
         const IndexType IntegrationPointIndex);
 

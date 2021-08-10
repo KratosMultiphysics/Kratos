@@ -246,9 +246,14 @@ public:
 
                     //assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+    
                 }
 
             }
+            std::cout << "=================================" << std::endl;
+            std::cout << A << std::endl;
+            std::cout << "=================================" << std::endl;
+            std::cout << b << std::endl;
 
             #pragma omp for  schedule(guided, 512)
             for (int k = 0; k < nconditions; k++)
