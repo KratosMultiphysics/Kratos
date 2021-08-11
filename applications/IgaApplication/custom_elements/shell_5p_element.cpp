@@ -483,7 +483,11 @@ namespace Kratos
         { return nodalVar * (node.*funct)(args...); };
         BoundedVector<double, 3> nullVec;
         nullVec = ZeroVector(3);
-        return std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
+        for (IndexType i = 0; i < vec.size(); ++i) {
+            nullVec += nodeValuesTimesAnsatzFunction(vec[i], GetGeometry()[i]);
+        }
+
+        return nullVec;//std::inner_product(vec.begin(), vec.end(), GetGeometry().begin(), nullVec, std::plus<BoundedVector<double, 3>>(), nodeValuesTimesAnsatzFunction);
     }
 
     void Shell5pElement::CalculateSVKMaterialTangent()
