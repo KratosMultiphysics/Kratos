@@ -180,7 +180,7 @@ class TestConversionOperation(KratosUnittest.TestCase):
             "type"           : "elemental_data_to_nodal_data",
             "solver"         : "dummy_solver",
             "data_name"      : "elemental_data",
-            "echo_level"     : 4
+            "echo_level"     : 0
         }""")
 
         conversion_operation = coupling_operation_factory.CreateCouplingOperation(conversion_op_settings, self.solver_wrappers, self.solver_process_info)
