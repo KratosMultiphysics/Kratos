@@ -155,7 +155,7 @@ void  AddGeometriesToPython(pybind11::module& m)
             std::vector<std::array<double,4>> tmp_ips;
             auto ips = self.IntegrationPoints();
             for( int i = 0; i < self.IntegrationPointsNumber(); ++i){
-                std::array<double,3> tmp_array = {ips[i].Coordinates()[0], ips[i].Coordinates()[1], ips[i].Coordinates()[2], ips[i].Weight()};
+                std::array<double,4> tmp_array = {ips[i].Coordinates()[0], ips[i].Coordinates()[1], ips[i].Coordinates()[2], ips[i].Weight()};
                 tmp_ips.push_back(tmp_array);
             }
             return tmp_ips;
