@@ -19,18 +19,12 @@ namespace Kratos
 
 int JointCohesionDriven3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo)
 {
-    // Verify ProcessInfo variables
-    KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
-
-    // Verify Properties variables
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
     if(rMaterialProperties.Has(YOUNG_MODULUS)) {
         KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "YOUNG_MODULUS not defined" << std::endl;
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
     if(rMaterialProperties.Has(POISSON_RATIO)) {
         KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] < -1.0) << "POISSON_RATIO has an invalid value lower than -1.0" << std::endl;
         KRATOS_ERROR_IF(rMaterialProperties[POISSON_RATIO] >= 0.5) << "POISSON_RATIO has an invalid value greater or equal to 0.5 " << std::endl;
@@ -38,14 +32,12 @@ int JointCohesionDriven3DLaw::Check(const Properties& rMaterialProperties, const
         KRATOS_ERROR << "POISSON_RATIO not defined" << std::endl;
     }
 
-    KRATOS_CHECK_VARIABLE_KEY(FRICTION_COEFFICIENT);
     if(rMaterialProperties.Has(FRICTION_COEFFICIENT)) {
         KRATOS_ERROR_IF(rMaterialProperties[FRICTION_COEFFICIENT] < 0.0) << "FRICTION_COEFFICIENT has an invalid value " << std::endl;
     } else {
         KRATOS_ERROR << "FRICTION_COEFFICIENT not defined" << std::endl;
     }
 
-        KRATOS_CHECK_VARIABLE_KEY(COHESION);
     if(rMaterialProperties.Has(COHESION)) {
         KRATOS_ERROR_IF(rMaterialProperties[COHESION] < 0.0) << "COHESION has an invalid value " << std::endl;
     } else {

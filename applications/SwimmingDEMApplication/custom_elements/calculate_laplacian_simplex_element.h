@@ -66,7 +66,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeLaplacianSimplex
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeLaplacianSimplex);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeLaplacianSimplex);
 
     typedef ComputeMaterialDerivativeSimplex<TDim, TNumNodes> BaseType;
 
@@ -185,14 +185,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
     /**

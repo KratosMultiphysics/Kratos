@@ -52,7 +52,7 @@ namespace Kratos
   }
 
 
-  void QFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void QFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
@@ -71,7 +71,7 @@ namespace Kratos
       }
 
 
-  void QFluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+  void QFluid3D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_ERROR<< "method not implemented";
   }
@@ -79,7 +79,7 @@ namespace Kratos
 
   //calculation by component of the fractional step VELOCITY corresponding to the first stage
   void QFluid3D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -227,7 +227,7 @@ namespace Kratos
   }
 
   void QFluid3D::Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo)
+			const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY;
 
@@ -359,7 +359,7 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-  void QFluid3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void QFluid3D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
   {
     KRATOS_TRY
       int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
@@ -700,7 +700,7 @@ namespace Kratos
     KRATOS_CATCH("");
   }
 
-  void QFluid3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+  void QFluid3D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
   {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dim = 3;
@@ -729,7 +729,7 @@ namespace Kratos
 
   }
 
-  void QFluid3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+  void QFluid3D::GetDofList(DofsVectorType& ElementalDofList,const ProcessInfo& CurrentProcessInfo) const
   {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dim = 3;

@@ -11,9 +11,7 @@ namespace Kratos
  * @see MonolithicDEMCoupledWeak::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupledWeak<2>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupledWeak<2>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
 
@@ -35,9 +33,7 @@ void MonolithicDEMCoupledWeak<2>::EquationIdVector(EquationIdVectorType& rResult
  * @see MonolithicDEMCoupledWeak::EquationIdVector
  */
 template <>
-void MonolithicDEMCoupledWeak<3>::EquationIdVector(EquationIdVectorType& rResult,
-                              ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupledWeak<3>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
     unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
@@ -56,12 +52,10 @@ void MonolithicDEMCoupledWeak<3>::EquationIdVector(EquationIdVectorType& rResult
 }
 
 /**
- * @see MonolithicDEMCoupledWeak::GetDofList
+ * @see MonolithicDEMCoupledWeak::
  */
 template <>
-void MonolithicDEMCoupledWeak<2>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupledWeak<2>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(3),LocalSize(9);
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
@@ -80,9 +74,7 @@ void MonolithicDEMCoupledWeak<2>::GetDofList(DofsVectorType& rElementalDofList,
  * @see MonolithicDEMCoupledWeak::GetDofList
  */
 template <>
-void MonolithicDEMCoupledWeak<3>::GetDofList(DofsVectorType& rElementalDofList,
-                        ProcessInfo& rCurrentProcessInfo)
-{
+void MonolithicDEMCoupledWeak<3>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const {
     const unsigned int NumNodes(4),LocalSize(16);
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);

@@ -65,7 +65,7 @@ public:
     ///@{
 
     /// Pointer definition of ComputeGradientPouliot2012Edge
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeGradientPouliot2012Edge);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ComputeGradientPouliot2012Edge);
 
     /// Node type (default is: Node<3>)
     typedef Node <3> NodeType;
@@ -183,14 +183,14 @@ public:
      * @param rResult A vector containing the global Id of each row
      * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a list of the element's Dofs
     /**
      * @param ElementalDofList the list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    virtual void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

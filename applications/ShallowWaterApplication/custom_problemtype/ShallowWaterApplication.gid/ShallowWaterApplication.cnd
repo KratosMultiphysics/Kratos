@@ -76,3 +76,13 @@ VALUE: false
 QUESTION: Fixed_Y#CB#(true,false)
 VALUE: false
 END CONDITION
+
+CONDITION: Nodal_condition
+CONDTYPE: over groups
+CONDMESHTYPE: over nodes
+GROUPALLOW: points nodes
+QUESTION: Value
+VALUE: 0.0
+QUESTION: Is_fixed#CB#(true,false)
+VALUE: false
+END CONDITION

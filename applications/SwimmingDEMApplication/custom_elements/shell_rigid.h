@@ -97,7 +97,7 @@ public:
     ///@{
 
     /// Counted pointer of ShellRigid
-    KRATOS_CLASS_POINTER_DEFINITION(ShellRigid);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShellRigid);
 
     ///@}
     ///@name Life Cycle
@@ -126,9 +126,9 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
 //		void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo);
 
@@ -142,7 +142,7 @@ public:
 
     void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& CurrentProcessInfo) override;
 

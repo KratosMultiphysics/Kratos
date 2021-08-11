@@ -22,9 +22,9 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     """
     # currently available mapper-flags aka transfer-options
     __mapper_flags_dict = {
-        "add_values"    : KratosMapping.Mapper.ADD_VALUES,
-        "swap_sign"     : KratosMapping.Mapper.SWAP_SIGN,
-        "use_transpose" : KratosMapping.Mapper.USE_TRANSPOSE
+        "add_values"    : KM.Mapper.ADD_VALUES,
+        "swap_sign"     : KM.Mapper.SWAP_SIGN,
+        "use_transpose" : KM.Mapper.USE_TRANSPOSE
     }
 
     def __init__(self, settings):

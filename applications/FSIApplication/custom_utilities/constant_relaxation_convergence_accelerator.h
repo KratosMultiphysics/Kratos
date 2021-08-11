@@ -85,7 +85,8 @@ public:
         Parameters default_settings(R"(
         {
             "solver_type": "constant_relaxation",
-            "w": 0.5
+            "w": 0.5,
+            "interface_block_newton" : false
         }
         )");
 

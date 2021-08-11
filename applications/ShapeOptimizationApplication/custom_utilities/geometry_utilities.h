@@ -28,6 +28,8 @@
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
 #include "shape_optimization_application.h"
+#include "utilities/variable_utils.h"
+#include "utilities/parallel_utilities.h"
 
 #include "spatial_containers/spatial_containers.h"
 
@@ -109,7 +111,7 @@ public:
             "> Normal calculation requires surface or line conditions to be defined!" << std::endl;
         KRATOS_ERROR_IF((domain_size == 3 && mrModelPart.ConditionsBegin()->GetGeometry().size() == 2)) <<
             "> Normal calculation of 2-noded conditions in 3D domains is not possible!" << std::endl;
-        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateAreaNormalsFromConditions();
         CalculateUnitNormals();
 
         KRATOS_CATCH("");
@@ -267,6 +269,17 @@ public:
         KRATOS_CATCH("");
     }
 
+
+    template <class TContainerType>
+    double CalculateLength(TContainerType& rContainer)
+    {
+        double length = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Length();
+        });
+
+        return length;
+    }
+
     // --------------------------------------------------------------------------
 
     ///@}
@@ -366,111 +379,31 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
+    void CalculateAreaNormalsFromConditions()
     {
         KRATOS_TRY
 
         //resetting the normals
-        array_1d<double,3> zero = Vector(3);
-        noalias(zero) = ZeroVector(3);
+        VariableUtils().SetHistoricalVariableToZero(NORMAL, mrModelPart.Nodes());
 
-        for(auto & cond_i : rConditions)
+        //calculating the normals and summing up at nodes
+        const array_1d<double,3> local_coords = ZeroVector(3);
+        block_for_each(mrModelPart.Conditions(), [&](Condition& rCond)
         {
-            Element::GeometryType& rNodes = cond_i.GetGeometry();
-            for(unsigned int in = 0; in<rNodes.size(); in++)
-                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
-        }
+            auto& r_geometry = rCond.GetGeometry();
 
-        //calculating the normals and storing on the conditions
-        array_1d<double,3> An;
-        if(dimension == 2)
-        {
-            for(auto & cond_i : rConditions)
+            const array_1d<double,3> normal = r_geometry.Normal(local_coords);
+            const double coeff = 1.0/r_geometry.size();
+
+            for(auto& node_i : r_geometry)
             {
-                if (cond_i.GetGeometry().PointsNumber() == 2)
-                    CalculateNormal2D(cond_i,An);
+                node_i.SetLock();
+                noalias(node_i.FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+                node_i.UnSetLock();
             }
-        }
-        else if(dimension == 3)
-        {
-            array_1d<double,3> v1;
-            array_1d<double,3> v2;
-            for(auto & cond_i : rConditions)
-            {
-                //calculate the normal on the given condition
-                if (cond_i.GetGeometry().PointsNumber() == 3)
-                    CalculateNormal3DTriangle(cond_i,An,v1,v2);
-                else if (cond_i.GetGeometry().PointsNumber() == 4)
-                    CalculateNormal3DQuad(cond_i,An,v1,v2);
-                else
-                    KRATOS_ERROR << "Calculation of surface normal not implemented for the given surface conditions!";
-            }
-        }
-
-        //adding the normals to the nodes
-        for(auto & cond_i : rConditions)
-        {
-            Geometry<Node<3> >& pGeometry = cond_i.GetGeometry();
-            double coeff = 1.00/pGeometry.size();
-	        const array_1d<double,3>& normal = cond_i.GetValue(NORMAL);
-            for(unsigned int i = 0; i<pGeometry.size(); i++)
-                noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
-        }
+        });
 
         KRATOS_CATCH("")
-    }
-
-    // --------------------------------------------------------------------------
-    static void CalculateNormal2D(Condition& cond, array_1d<double,3>& An)
-    {
-        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
-
-        An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
-        An[1] = - (pGeometry[1].X() - pGeometry[0].X());
-        An[2] =    0.00;
-
-        array_1d<double,3>& normal = cond.GetValue(NORMAL);
-        noalias(normal) = An;
-    }
-
-    // --------------------------------------------------------------------------
-    static void CalculateNormal3DTriangle(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
-    {
-        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
-
-        v1[0] = pGeometry[1].X() - pGeometry[0].X();
-        v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-        v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
-
-        v2[0] = pGeometry[2].X() - pGeometry[0].X();
-        v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-        v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-        MathUtils<double>::CrossProduct(An,v1,v2);
-        An *= 0.5;
-
-        array_1d<double,3>& normal = cond.GetValue(NORMAL);
-        noalias(normal) = An;
-    }
-
-    // --------------------------------------------------------------------------
-    static void CalculateNormal3DQuad(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
-    {
-        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
-
-        v1[0] = pGeometry[2].X() - pGeometry[0].X();
-        v1[1] = pGeometry[2].Y() - pGeometry[0].Y();
-        v1[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-        v2[0] = pGeometry[3].X() - pGeometry[1].X();
-        v2[1] = pGeometry[3].Y() - pGeometry[1].Y();
-        v2[2] = pGeometry[3].Z() - pGeometry[1].Z();
-
-        MathUtils<double>::CrossProduct(An,v1,v2);
-        An *= 0.5;
-
-        array_1d<double,3>& normal = cond.GetValue(NORMAL);
-        noalias(normal) = An;
     }
 
     // --------------------------------------------------------------------------

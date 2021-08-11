@@ -18,6 +18,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -318,9 +319,10 @@ array_1d<double, 3> CalculateWallVelocity(
     const Vector& gauss_parent_shape_functions = row(parent_shape_functions, 0);
 
     array_1d<double, 3> parent_center_velocity, parent_center_mesh_velocity;
-    EvaluateInPoint(r_parent_geometry, gauss_parent_shape_functions,
-                    std::tie(parent_center_velocity, VELOCITY),
-                    std::tie(parent_center_mesh_velocity, MESH_VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        r_parent_geometry, gauss_parent_shape_functions,
+        std::tie(parent_center_velocity, VELOCITY),
+        std::tie(parent_center_mesh_velocity, MESH_VELOCITY));
 
     const auto& parent_center_effective_velocity =
         parent_center_velocity - parent_center_mesh_velocity;
@@ -432,18 +434,6 @@ void CalculateNumberOfNeighbourEntities(
     KRATOS_CATCH("");
 }
 
-template<>
-void UpdateValue(double& rOutput, const double& rInput)
-{
-    rOutput += rInput;
-}
-
-template<class TDataType>
-void UpdateValue(TDataType& rOutput, const TDataType& rInput)
-{
-    noalias(rOutput) += rInput;
-}
-
 // template instantiations
 
 template double CalculateMatrixTrace<2>(
@@ -492,8 +482,6 @@ template Vector GetVector<2>(
 
 template Vector GetVector<3>(
     const array_1d<double, 3>&);
-
-template void UpdateValue<array_1d<double, 3>>(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
 
 template void CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
     ModelPart&,

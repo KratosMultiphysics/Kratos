@@ -165,11 +165,15 @@ def GetDefaultInputParameters():
             "fluid_model_type_comment" : " untouched, velocity incremented by 1/fluid_fraction (0), modified mass conservation only (1)"
         },
 
-        "dem_parameters" : {},
+        "dem_parameters" : {
+            "seed" : 42
+        },
 
         "custom_dem" : {
             "do_solve_dem" : true,
             "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "type_of_dem_inlet" : "VelocityImposed",
             "translational_integration_scheme" : "Hybrid_Bashforth"
         },

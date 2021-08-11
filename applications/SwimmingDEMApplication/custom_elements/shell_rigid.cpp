@@ -727,8 +727,7 @@ void ShellRigid::CalculateAllMatrices(
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-{
+void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const {
     int number_of_nodes = 3;
     if(rResult.size() != 18)
         rResult.resize(18,false);
@@ -749,8 +748,7 @@ void ShellRigid::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Cu
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
-{
+void ShellRigid::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const {
     ElementalDofList.resize(0);
 
     for (unsigned int i=0; i<GetGeometry().size(); i++)
@@ -1814,7 +1812,7 @@ void ShellRigid::InvertMatrix(const BoundedMatrix<double,3,3>& InputMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void ShellRigid::Initialize()
+void ShellRigid::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     //calculate local coordinates and rotation matrix

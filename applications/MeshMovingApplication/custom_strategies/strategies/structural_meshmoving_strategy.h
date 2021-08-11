@@ -82,15 +82,17 @@ public:
                                bool ComputeReactions = false,
                                bool CalculateMeshVelocities = true,
                                int EchoLevel = 0,
-                               const double PoissonRatio = 0.3)
+                               const double PoissonRatio = 0.3,
+                               const bool ReInitializeModelPartEachStep = false)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part) {
     KRATOS_TRY
 
-    mreform_dof_set_at_each_step = ReformDofSetAtEachStep;
+    mreform_dof_set_at_each_step = ReformDofSetAtEachStep || ReInitializeModelPartEachStep;
     mcompute_reactions = ComputeReactions;
     mcalculate_mesh_velocities = CalculateMeshVelocities;
     mecho_level = EchoLevel;
     mtime_order = TimeOrder;
+    mreinitialize_model_part_at_each_step = ReInitializeModelPartEachStep;
     bool calculate_norm_dx_flag = false;
 
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
@@ -132,6 +134,12 @@ public:
 
   double Solve() override {
     KRATOS_TRY;
+
+    if (mreinitialize_model_part_at_each_step) {
+        MoveMeshUtilities::InitializeMeshPartWithElements(
+            *mpmesh_model_part, BaseType::GetModelPart(),
+            mpmesh_model_part->pGetProperties(0), "StructuralMeshMovingElement");
+    }
 
     VariableUtils().UpdateCurrentToInitialConfiguration(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
@@ -218,6 +226,7 @@ private:
   bool mreform_dof_set_at_each_step;
   bool mcompute_reactions;
   bool mcalculate_mesh_velocities;
+  bool mreinitialize_model_part_at_each_step;
 
   /*@} */
   /**@name Private Operators*/

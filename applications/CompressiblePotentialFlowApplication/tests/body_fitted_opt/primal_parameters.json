@@ -1,0 +1,82 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "naca0012",
+        "parallel_type"   : "OpenMP",
+        "echo_level"      : 0,
+        "start_time"      : 0.0,
+        "end_time"        : 1
+    },
+    "solver_settings"                  : {
+        "solver_type"            : "potential_flow",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "model_import_settings"  : {
+            "input_type"     : "use_input_model_part",
+            "input_filename" : "current_design"
+        },
+        "maximum_iterations"     : 10,
+        "reform_dofs_at_each_step"  : true,
+        "echo_level"             : 0,
+        "formulation" :
+        {
+            "element_type": "compressible"
+        },
+        "linear_solver_settings"  : {
+            "solver_type": "LinearSolversApplication.sparse_lu"
+        },
+        "volume_model_part_name" : "Parts_Parts_Auto1",
+        "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
+        "no_skin_parts"          : []
+    },
+    "processes" : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_far_field_process",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "FarFieldProcess",
+            "Parameters"    : {
+                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "angle_of_attack": 0.0,
+                "mach_infinity": 0.2,
+                "free_stream_density": 1.225,
+                "inlet_potential"         : 1.0
+            }
+        },{
+            "python_module" : "define_wake_process_2d",
+            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
+            "process_name"  : "DefineWakeProcess",
+            "Parameters"    : {
+                "model_part_name" : "MainModelPart.Body2D_Body",
+                "epsilon"         : 1e-9,
+                "echo_level" : 0
+            }
+        }],
+        "list_other_processes": [
+            {
+                "python_module" : "from_json_check_result_process",
+                "kratos_module" : "KratosMultiphysics",
+                "help"          : "",
+                "process_name"  : "FromJsonCheckResultProcess",
+                "Parameters"    : {
+                    "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                    "input_file_name"  : "airfoil_change_results.json",
+                    "model_part_name"  : "MainModelPart.Body2D_Body",
+                    "time_frequency"   : 0.0
+                }
+            }
+        ]
+    },
+    "_json_output_process" : [
+        {
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "output_file_name" : "airfoil_change_results.json",
+                "model_part_name"  : "MainModelPart.Body2D_Body",
+                "time_frequency"   : 0.0
+            }
+    }]
+}

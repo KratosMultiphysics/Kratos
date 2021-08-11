@@ -58,7 +58,7 @@ public:
     typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementUWwPElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallDisplacementUWwPElement );
     ///@}
 
     ///@name Life Cycle
