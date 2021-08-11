@@ -81,7 +81,10 @@ public:
 
     static void ConvertElementalDataToNodalData(ModelPart& model_part_interface);
 
+   /*  template< class TType >
+    static void ConvertElementalDataToNodalData(ModelPart& model_part_interface, Variable<TType>& Var_name);
 
+ */
     ///@}
     ///@name Access
     ///@{
