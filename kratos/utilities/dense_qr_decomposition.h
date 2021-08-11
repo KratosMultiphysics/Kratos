@@ -135,6 +135,13 @@ public:
     virtual void MatrixR(MatrixType& rMatrixR) const = 0;
 
     /**
+     * @brief Pivoting matrix getter
+     * If computed, this method sets the pivoting matrix
+     * @param rMatrixP Pivoting matrix
+     */
+    virtual void MatrixP(MatrixType& rMatrixP) const = 0;
+
+    /**
      * @brief Rank of the provided array
      * Calculates and returns the rank of the array decomposed with the QR
      * @return std::size_t Rank of the provided array
