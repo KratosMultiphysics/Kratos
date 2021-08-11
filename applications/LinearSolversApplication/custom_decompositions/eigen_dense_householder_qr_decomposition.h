@@ -159,6 +159,11 @@ public:
         KRATOS_ERROR << "Householder QR decomposition does not implement the R matrix return" << std::endl;
     }
 
+    void MatrixP(MatrixType& rMatrixP) const override
+    {
+        KRATOS_ERROR << "Householder QR decomposition does not implement the P matrix return" << std::endl;
+    }
+
     std::size_t Rank() const override
     {
         KRATOS_ERROR << "Householder QR decomposition is not rank revealing." << std::endl;
