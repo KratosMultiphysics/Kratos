@@ -152,7 +152,7 @@ indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface i
       case INDEX_2D_INTERFACE_XZ:
         return INDEX_3D_XZ;
       default:
-        KRATOS_THROW_ERROR(std::invalid_argument, "invalid index: ", index2D);
+        KRATOS_ERROR << "invalid index: " << index2D << std::endl;
    }
 }
 

@@ -63,7 +63,7 @@ int DrainedUPwSmallStrainElement<TDim,TNumNodes>::
     const GeometryType& Geom = this->GetGeometry();
 
     if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )
+        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
     // Verify specific properties
 
@@ -103,11 +103,11 @@ void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void DrainedUPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
 
-    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 

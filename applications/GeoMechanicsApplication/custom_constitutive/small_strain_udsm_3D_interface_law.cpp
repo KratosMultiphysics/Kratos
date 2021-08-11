@@ -162,7 +162,7 @@ indexStress3D SmallStrainUDSM3DInterfaceLaw::getIndex3D(indexStress3DInterface i
       case INDEX_3D_INTERFACE_XZ:
         return INDEX_3D_XZ;
       default:
-        KRATOS_THROW_ERROR(std::invalid_argument, "invalid index: ", index3D);
+        KRATOS_ERROR << "invalid index: " << index3D << std::endl;
    }
 }
 
