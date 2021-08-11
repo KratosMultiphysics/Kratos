@@ -61,13 +61,6 @@ namespace Python{
                 &ConversionUtilities::ConvertElementalDataToNodalData)
             ;
 
-        /* pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def("ConvertElementalDataToNodalDataScalar",
-                &ConversionUtilities::ConvertElementalDataToNodalData<double>);
-        pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def("ConvertElementalDataToNodalDataVector",
-                &ConversionUtilities::ConvertElementalDataToNodalData<array_1d<double, 3>>); */
-
     }
 
 }  // namespace Python.
