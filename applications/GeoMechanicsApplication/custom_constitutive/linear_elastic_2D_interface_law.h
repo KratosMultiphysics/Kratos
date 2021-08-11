@@ -10,15 +10,15 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED
+#if !defined (KRATOS_LINEAR_ELASTIC_2D_INTERFACE_LAW_GEO_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_2D_INTERFACE_LAW_GEO_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_strain_K0_law.h"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 
 namespace Kratos
 {
@@ -42,14 +42,14 @@ namespace Kratos
 ///@{
 
 /**
- * @class LinearPlaneStrainK0Law
- * @ingroup StructuralMechanicsApplication
+ * @class LinearElastic2DInterfaceLaw
+ * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
  * @details This class derives from the linear elastic case on 3D
  * @author Vahid Galavi
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearPlaneStrain2DLaw
-    : public LinearPlaneStrainK0Law
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearElastic2DInterfaceLaw
+    : public GeoLinearElasticPlaneStrain2DLaw
 {
 public:
     ///@name Type Definitions
@@ -59,7 +59,7 @@ public:
     typedef ConstitutiveLaw       CLBaseType;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef LinearPlaneStrainK0Law      BaseType;
+    typedef GeoLinearElasticPlaneStrain2DLaw      BaseType;
 
     /// The size type definition
     typedef std::size_t             SizeType;
@@ -67,15 +67,8 @@ public:
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
 
-    /// Static definition of the VoigtSize
-    // for the time being
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
-
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSizePlaneStress = VOIGT_SIZE_2D_PLANE_STRESS;
-
-    /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain2DLaw );
+    /// Counted pointer of GeoLinearElasticPlaneStrain2DLaw
+    KRATOS_CLASS_POINTER_DEFINITION( LinearElastic2DInterfaceLaw );
 
     ///@name Life Cycle
     ///@{
@@ -83,7 +76,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    LinearPlaneStrain2DLaw();
+    LinearElastic2DInterfaceLaw();
 
     /**
      * @brief The clone operation
@@ -93,13 +86,13 @@ public:
     /**
      * Copy constructor.
      */
-    LinearPlaneStrain2DLaw (const LinearPlaneStrain2DLaw& rOther);
+    LinearElastic2DInterfaceLaw (const LinearElastic2DInterfaceLaw& rOther);
 
 
     /**
      * @brief Destructor.
      */
-    ~LinearPlaneStrain2DLaw() override;
+    ~LinearElastic2DInterfaceLaw() override;
 
     ///@}
     ///@name Operators
@@ -130,7 +123,7 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return VoigtSizePlaneStress;
+        return VOIGT_SIZE_2D_INTERFACE;
     }
 
     ///@}
@@ -181,7 +174,7 @@ protected:
     //  * @param C The constitutive matrix
     //  * @param rValues Parameters of the constitutive law
     //  */
-    // void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
+    void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief It calculates the stress vector
@@ -232,18 +225,18 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, GeoLinearElasticPlaneStrain2DLaw)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeoLinearElasticPlaneStrain2DLaw)
     }
 
     // stress vector indices
     // const int VOIGT_INDEX_XX = 0;
     // const int VOIGT_INDEX_YY = 1;
 
-}; // Class LinearPlaneStrainK0Law
+}; // Class GeoLinearElasticPlaneStrain2DLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined

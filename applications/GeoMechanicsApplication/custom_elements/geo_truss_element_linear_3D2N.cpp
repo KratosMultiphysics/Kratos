@@ -27,12 +27,14 @@ GeoTrussElementLinear3D2N::
                               GeometryType::Pointer pGeometry)
     : TrussElementLinear3D2N(NewId, pGeometry) {}
 
+//----------------------------------------------------------------------------------------
 GeoTrussElementLinear3D2N::
     GeoTrussElementLinear3D2N(IndexType NewId,
                               GeometryType::Pointer pGeometry,
                               PropertiesType::Pointer pProperties)
     : TrussElementLinear3D2N(NewId, pGeometry, pProperties) {}
 
+//----------------------------------------------------------------------------------------
 Element::Pointer
     GeoTrussElementLinear3D2N::
         Create(IndexType NewId,
@@ -43,6 +45,7 @@ Element::Pointer
     return Kratos::make_intrusive<GeoTrussElementLinear3D2N>(NewId, rGeom.Create(rThisNodes), pProperties);
 }
 
+//----------------------------------------------------------------------------------------
 Element::Pointer
     GeoTrussElementLinear3D2N::
         Create(IndexType NewId,
@@ -54,7 +57,20 @@ Element::Pointer
 
 GeoTrussElementLinear3D2N::~GeoTrussElementLinear3D2N() {}
 
+//----------------------------------------------------------------------------------------
+void GeoTrussElementLinear3D2N::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
 
+    mInternalStresses = ZeroVector(mStressVectorSize);
+    mInternalStressesFinalized = ZeroVector(mStressVectorSize);
+    mInternalStressesFinalizedPrevious = ZeroVector(mStressVectorSize);
+
+    KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -65,6 +81,7 @@ void GeoTrussElementLinear3D2N::Initialize(const ProcessInfo& rCurrentProcessInf
     KRATOS_CATCH("")
 }
 
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::
     CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                  std::vector<array_1d<double, 3>>& rOutput,
@@ -107,10 +124,9 @@ void GeoTrussElementLinear3D2N::
     }
 
     KRATOS_CATCH("")
-
 }
 
-
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::
     UpdateInternalForces(BoundedVector<double,msLocalSize>& rInternalForces,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -146,7 +162,7 @@ void GeoTrussElementLinear3D2N::
     KRATOS_CATCH("");
 }
 
-
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -174,6 +190,7 @@ void GeoTrussElementLinear3D2N::InitializeSolutionStep(const ProcessInfo& rCurre
 
 }
 
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
@@ -184,6 +201,7 @@ void GeoTrussElementLinear3D2N::FinalizeSolutionStep(const ProcessInfo& rCurrent
     KRATOS_CATCH("");
 }
 
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElementLinear3D2N);
@@ -193,6 +211,7 @@ void GeoTrussElementLinear3D2N::save(Serializer& rSerializer) const
     rSerializer.save("InternalStressesFinalizedPrevious", mInternalStressesFinalizedPrevious);
 }
 
+//----------------------------------------------------------------------------------------
 void GeoTrussElementLinear3D2N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElementLinear3D2N);
