@@ -159,22 +159,9 @@ indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(indexStress2DInterface i
    }
 }
 
-void SmallStrainUDSM2DInterfaceLaw::
-   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
-{
-   const Vector& rStrainVector = rValues.GetStrainVector();
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
-
-   mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_INTERFACE_ZZ);
-   mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_2D_INTERFACE_XZ);
-
-   // KRATOS_INFO("UpdateInternalStrainVectorFinalized:rStrainVector") << rStrainVector << std::endl;
-
-}
 
 /***********************************************************************************/
 /***********************************************************************************/
-
 void SmallStrainUDSM2DInterfaceLaw::
    CalculateCauchyGreenStrain( ConstitutiveLaw::Parameters& rValues,
                                Vector& rStrainVector )
