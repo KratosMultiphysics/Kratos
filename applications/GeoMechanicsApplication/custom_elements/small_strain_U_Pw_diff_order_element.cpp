@@ -138,6 +138,30 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 
     Prop.GetValue( CONSTITUTIVE_LAW )->Check( Prop, rGeom, rCurrentProcessInfo );
 
+
+
+    // Verify that the constitutive law has the correct dimension
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType strainSize = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
+    if ( Dim == 2 ) {
+        KRATOS_ERROR_IF_NOT( strainSize == VOIGT_SIZE_2D_PLANE_STRAIN )
+        << "Wrong constitutive law used. This is a 2D element! expected strain size is "
+        << VOIGT_SIZE_2D_PLANE_STRAIN
+        << " But received: "
+        << strainSize
+        << " in element id: "
+        << this->Id() << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT( strainSize == VOIGT_SIZE_3D )
+        << "Wrong constitutive law used. This is a 3D element! expected strain size is "
+        << VOIGT_SIZE_3D
+        << " But received: "
+        << strainSize
+        << " in element id: "
+        << this->Id() << std::endl;
+    }
+
+
     return 0;
 
     KRATOS_CATCH( "" );
@@ -212,8 +236,7 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
 
     // resize mStressVector:
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    unsigned int VoigtSize = VOIGT_SIZE_3D;
-    if (Dim == 2) VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     if ( mStressVector.size() != IntegrationPoints.size() )
     {
        mStressVector.resize(IntegrationPoints.size());
@@ -1321,7 +1344,7 @@ void SmallStrainUPwDiffOrderElement::
 
         const PropertiesType& Prop = this->GetProperties();
 
-        unsigned int VoigtSize = mStressVector[0].size();
+        const SizeType VoigtSize = mStressVector[0].size();
         Vector VoigtVector = ZeroVector(VoigtSize);
 
         for (unsigned int i=0; i < rGeom.WorkingSpaceDimension(); ++i) VoigtVector[i] = 1.0;
@@ -1634,16 +1657,13 @@ void SmallStrainUPwDiffOrderElement::
                                                                   this->GetIntegrationMethod());
 
     //Variables computed at each integration point
-    unsigned int voigtsize  = VOIGT_SIZE_2D_PLANE_STRESS;
-    if ( Dim == 3 ) voigtsize  = VOIGT_SIZE_3D;
-    (rVariables.B).resize(voigtsize, NumUNodes * Dim, false);
-    noalias(rVariables.B) = ZeroMatrix( voigtsize, NumUNodes * Dim );
-    (rVariables.StrainVector).resize(voigtsize,false);
-    (rVariables.ConstitutiveMatrix).resize(voigtsize, voigtsize, false);
+    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
 
-    // stress has a different size than the strain vector
-    // if ( Dim == 2 ) voigtsize = VOIGT_SIZE_2D_PLANE_STRAIN;
-    // (rVariables.StressVector).resize(voigtsize,false);
+    (rVariables.B).resize(VoigtSize, NumUNodes * Dim, false);
+    noalias(rVariables.B) = ZeroMatrix( VoigtSize, NumUNodes * Dim );
+
+    (rVariables.StrainVector).resize(VoigtSize, false);
+    (rVariables.ConstitutiveMatrix).resize(VoigtSize, VoigtSize, false);
 
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF = 1.0;
@@ -1910,31 +1930,32 @@ void SmallStrainUPwDiffOrderElement::
 
     if (Dim > 2)
     {
-        for ( unsigned int i = 0; i < NumUNodes; i++ )
+        for ( unsigned int i = 0; i < NumUNodes; ++i )
         {
             index = Dim * i;
 
-            rB( 0, index + 0 ) = DNp_DX( i, 0 );
-            rB( 1, index + 1 ) = DNp_DX( i, 1 );
-            rB( 2, index + 2 ) = DNp_DX( i, 2 );
-            rB( 3, index + 0 ) = DNp_DX( i, 1 );
-            rB( 3, index + 1 ) = DNp_DX( i, 0 );
-            rB( 4, index + 1 ) = DNp_DX( i, 2 );
-            rB( 4, index + 2 ) = DNp_DX( i, 1 );
-            rB( 5, index + 0 ) = DNp_DX( i, 2 );
-            rB( 5, index + 2 ) = DNp_DX( i, 0 );
+            rB( INDEX_3D_XX, index + INDEX_X ) = DNp_DX( i, INDEX_X );
+            rB( INDEX_3D_YY, index + INDEX_Y ) = DNp_DX( i, INDEX_Y );
+            rB( INDEX_3D_ZZ, index + INDEX_Z ) = DNp_DX( i, INDEX_Z );
+            rB( INDEX_3D_XY, index + INDEX_X ) = DNp_DX( i, INDEX_Y );
+            rB( INDEX_3D_XY, index + INDEX_Y ) = DNp_DX( i, INDEX_X );
+            rB( INDEX_3D_YZ, index + INDEX_Y ) = DNp_DX( i, INDEX_Z );
+            rB( INDEX_3D_YZ, index + INDEX_Z ) = DNp_DX( i, INDEX_Y );
+            rB( INDEX_3D_XZ, index + INDEX_X ) = DNp_DX( i, INDEX_Z );
+            rB( INDEX_3D_XZ, index + INDEX_Z ) = DNp_DX( i, INDEX_X );
         }
     }
     else
     {
-        for ( unsigned int i = 0; i < NumUNodes; i++ )
+        // 2D plane strain
+        for ( unsigned int i = 0; i < NumUNodes; ++i )
         {
             index = Dim * i;
 
-            rB( 0, index + 0 ) = DNp_DX( i, 0 );
-            rB( 1, index + 1 ) = DNp_DX( i, 1 );
-            rB( 2, index + 0 ) = DNp_DX( i, 1 );
-            rB( 2, index + 1 ) = DNp_DX( i, 0 );
+            rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = DNp_DX( i, INDEX_X );
+            rB( INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y ) = DNp_DX( i, INDEX_Y );
+            rB( INDEX_2D_PLANE_STRAIN_XY, index + INDEX_X ) = DNp_DX( i, INDEX_Y );
+            rB( INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y ) = DNp_DX( i, INDEX_X );
         }
     }
 
@@ -2065,10 +2086,9 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    unsigned int voigtsize  = VOIGT_SIZE_2D_PLANE_STRESS;
-    if ( Dim == 3 ) voigtsize  = VOIGT_SIZE_3D;
+    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
 
-    Vector VoigtVector = ZeroVector(voigtsize);
+    Vector VoigtVector = ZeroVector(VoigtSize);
 
     for (unsigned int i=0; i < Dim; ++i) VoigtVector[i] = 1.0;
 
@@ -2222,24 +2242,7 @@ void SmallStrainUPwDiffOrderElement::
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
-    Vector StiffnessForce;
-
-    if ( Dim == 3 )
-    {
-        StiffnessForce = prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
-    }
-    else
-    {
-        unsigned int VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-        Vector StressVector;
-        StressVector.resize(VoigtSize);
-
-        StressVector[INDEX_2D_PLANE_STRESS_XX] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XX);
-        StressVector[INDEX_2D_PLANE_STRESS_YY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_YY);
-        StressVector[INDEX_2D_PLANE_STRESS_XY] = mStressVector[GPoint](INDEX_2D_PLANE_STRAIN_XY);
-
-        StiffnessForce = prod(trans(rVariables.B), StressVector) * rVariables.IntegrationCoefficient;
-    }
+    Vector StiffnessForce = prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into the elemental vector
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -2325,10 +2328,9 @@ void SmallStrainUPwDiffOrderElement::
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    unsigned int voigtsize  = VOIGT_SIZE_2D_PLANE_STRESS;
-    if ( Dim == 3 ) voigtsize  = VOIGT_SIZE_3D;
+    const SizeType VoigtSize  = ( Dim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
 
-    Vector VoigtVector = ZeroVector(voigtsize);
+    Vector VoigtVector = ZeroVector(VoigtSize);
     for (SizeType idim=0; idim < Dim; ++idim)  VoigtVector[idim] = 1.0;
 
     Matrix CouplingMatrix = - PORE_PRESSURE_SIGN_FACTOR 

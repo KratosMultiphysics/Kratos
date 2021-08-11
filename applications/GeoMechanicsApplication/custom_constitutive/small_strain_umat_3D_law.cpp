@@ -606,14 +606,11 @@ void SmallStrainUMAT3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
    mStressVectorFinalized   = mStressVector;
 }
 
-void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUMAT3DLaw::
+   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
-
-   for (unsigned int i=0; i < mStrainVectorFinalized.size(); ++i)
-   {
-      mStrainVectorFinalized[i] = rStrainVector(i);
-   }
+   this->SetInternalStrainVector(rStrainVector);
 }
 
 /***********************************************************************************/

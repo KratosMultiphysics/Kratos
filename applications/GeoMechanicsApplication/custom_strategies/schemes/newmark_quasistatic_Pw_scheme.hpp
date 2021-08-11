@@ -66,21 +66,21 @@ public:
         BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
+        for (const auto& rNode : rModelPart.Nodes())
         {
-            if (it->SolutionStepsDataHas(WATER_PRESSURE) == false)
+            if (rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if (it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
+            if (rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
                 KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
 
-            if (it->HasDofFor(WATER_PRESSURE) == false)
+            if (rNode.HasDofFor(WATER_PRESSURE) == false)
                 KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
-                             << it->Id()
+                             << rNode.Id()
                              << std::endl;
         }
 
