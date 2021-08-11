@@ -872,7 +872,7 @@ namespace Kratos
         boost::numeric::ublas::bounded_matrix<double, TDim *(TDim + 1), (TDim + 1)> Kvp_aux = ZeroMatrix(TDim * (TDim + 1), (TDim + 1)); //Kvp_aux matrix
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> Tau = ZeroMatrix(TDim, TDim);                                          //Stabilization Tau vector
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim *(TDim + 1)> Prod_TaudummyN = ZeroMatrix(TDim, TDim * (TDim + 1));      //Prod_TaudummyN
-        boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim> Prod_DNDX_Tau = ZeroMatrix(TDim + 1, TDim);
+        boost::numeric::ublas::bounded_matrix<double, (TDim + 1), TDim> Prod_DNDX_Tau = ZeroMatrix((TDim + 1), TDim);
         array_1d<double, TDim> tauf = ZeroVector(TDim);                          //An auxilary stabilization vector
         array_1d<double, TDim *(TDim + 1)> arhs = ZeroVector(TDim * (TDim + 1)); //arhs vector_bdf1*vn+bdf2*vnn
         array_1d<double, TDim> arhs2 = ZeroVector(TDim);
@@ -1123,16 +1123,16 @@ namespace Kratos
             rp += rho * tau * (1.0 / dt) * prod(DN, utilde_n);
         }
 
-        // if (acceleratedparticles)
-        // { 
-        //  for (int i = 0; i < (TDim + 1); i++)
-        //  {
-        //     for (int k = 0; k < TDim; k++)
-        //     {
-        //         rv[i * TDim + k] -= N[i] * a_n_on_gauss_point[k];
-        //     }
-        //  }
-        // }
+        if (acceleratedparticles)
+        { 
+         for (int i = 0; i < (TDim + 1); i++)
+         {
+            for (int k = 0; k < TDim; k++)
+            {
+                rv[i * TDim + k] -= rho * N[i] * a_n_on_gauss_point[k];
+            }
+         }
+        }
 
         // if (acceleratedparticles)
         // { 
@@ -1140,14 +1140,14 @@ namespace Kratos
         //  rv -= prod(Mc,a_n)
         // }
 
-        if (acceleratedparticles)
-        { 
-         for (unsigned int i = 0; i < (TDim + 1); i++)
-         {
-            rv(i * TDim) -= N(i) * a_n(i * TDim);
-            rv(i * TDim + 1) -= N(i) * a_n(i * TDim + 1);
-         }
-        }
+        // if (acceleratedparticles)
+        // { 
+        //  for (unsigned int i = 0; i < (TDim + 1); i++)
+        //  {
+        //     rv(i * TDim) -= N(i) * a_n(i * TDim);
+        //     rv(i * TDim + 1) -= N(i) * a_n(i * TDim + 1);
+        //  }
+        // }
 
         
 
