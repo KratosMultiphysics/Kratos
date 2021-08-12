@@ -107,13 +107,19 @@ void LinearPlaneStrainK0Law::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::
     const double c2 = c0 * NU;
     const double c3 = (0.5 - NU)*c0;
 
-    C(0, 0) = c1;
-    C(0, 1) = c2;
+    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_XX) = c1;
+    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_YY) = c2;
+    C(INDEX_2D_PLANE_STRAIN_XX, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
 
-    C(1, 0) = c2;
-    C(1, 1) = c1;
+    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_XX) = c2;
+    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_YY) = c1;
+    C(INDEX_2D_PLANE_STRAIN_YY, INDEX_2D_PLANE_STRAIN_ZZ) = c2;
 
-    C(2, 2) = c3;
+    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_XX) = c2;
+    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_YY) = c2;
+    C(INDEX_2D_PLANE_STRAIN_ZZ, INDEX_2D_PLANE_STRAIN_ZZ) = c1;
+
+    C(INDEX_2D_PLANE_STRAIN_XY, INDEX_2D_PLANE_STRAIN_XY) = c3;
 
     KRATOS_CATCH("");
 }
@@ -128,18 +134,9 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
     KRATOS_TRY;
 
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[INDEX_2D_PLANE_STRAIN_XX] = c1 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_YY] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c1 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_XY] = c3 * rStrainVector[INDEX_2D_PLANE_STRESS_XY];
-    rStressVector[INDEX_2D_PLANE_STRAIN_ZZ] = c2 * rStrainVector[INDEX_2D_PLANE_STRESS_XX] + c2 * rStrainVector[INDEX_2D_PLANE_STRESS_YY];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 
     // apply K0 procedure:
     const double& K0ValueXX    = r_material_properties[K0_VALUE_XX];
@@ -184,18 +181,6 @@ void LinearPlaneStrainK0Law::CalculateCauchyGreenStrain(Parameters& rValues, Vec
 
     E_tensor *= 0.5;
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-
-/*
-    //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
-
-    const Matrix RightCauchyGreen = prod(trans(F),F);
-    rStrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
-    rStrainVector[1] = 0.5 * ( RightCauchyGreen( 1, 1 ) - 1.00 );
-    rStrainVector[2] = 0.0;
-    rStrainVector[3] = RightCauchyGreen( 0, 1 );
-*/
-
 }
 
 } // Namespace Kratos
