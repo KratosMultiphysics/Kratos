@@ -149,10 +149,10 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.thermal_solver.Predict()
 
     def SolveSolutionStep(self):
-        fluid_is_converged = self.structural_solver.SolveSolutionStep()
+        solid_is_converged = self.structural_solver.SolveSolutionStep()
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
-        return (fluid_is_converged and thermal_is_converged)
+        return (solid_is_converged and thermal_is_converged)
 
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
