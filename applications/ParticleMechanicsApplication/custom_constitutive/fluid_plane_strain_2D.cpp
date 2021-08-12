@@ -91,6 +91,7 @@ namespace Kratos
 
 		// Material properties
 		mPressure = MaterialProperties[BULK_MODULUS] * (1.0 - detF) / detF;
+		if (mPressure < 0.0) mPressure = 0.0;
 
 		Matrix stress_mat = -1.0* mPressure * IdentityMatrix(2) + 2.0 * MaterialProperties[VISCOSITY] * mStrainIncrementRateMat; // [mast2013]
 
