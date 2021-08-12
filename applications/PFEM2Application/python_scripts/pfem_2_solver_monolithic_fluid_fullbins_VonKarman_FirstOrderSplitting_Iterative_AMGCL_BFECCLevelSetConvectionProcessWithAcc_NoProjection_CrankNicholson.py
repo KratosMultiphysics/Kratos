@@ -458,8 +458,23 @@ class PFEM2Solver:
 
 
         
-        bfecc_utility.CalculateAccelerationOnTheMeshFirstOrder(self.model_part)
-        #bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
+        #bfecc_utility.CalculateAccelerationOnTheMeshFirstOrder(self.model_part)
+        bfecc_utility.CalculateAccelerationOnTheMeshSecondOrder(self.model_part)
+        
+        #for node in self.model_part.Nodes:        
+        # if (node.X)**2 + (node.Y)**2 < (0.5+0.00001)**2:
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_X,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Y,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Z,0,0.0)
+        # if node.Y>5.49999999 or node.Y<-5.49999999:
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_X,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Y,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Z,0,0.0)
+        # if node.X<-5.49999999:
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_X,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Y,0,0.0)
+        #  node.SetSolutionStepValue(ACCELERATION_AUX_Z,0,0.0)
+
 
 
          #self.nodaltasks = self.nodaltasks + t11-t9
