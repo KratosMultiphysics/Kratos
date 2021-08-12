@@ -1123,29 +1123,30 @@ namespace Kratos
             rp += rho * tau * (1.0 / dt) * prod(DN, utilde_n);
         }
 
-        if (acceleratedparticles)
-        { 
-         for (int i = 0; i < (TDim + 1); i++)
-         {
-            for (int k = 0; k < TDim; k++)
-            {
-                rv[i * TDim + k] -= rho * N[i] * a_n_on_gauss_point[k];
-            }
-         }
-        }
-
         // if (acceleratedparticles)
         // { 
-        //  Mc= prod(trans(dummyN),dummyN);
-        //  rv -= prod(Mc,a_n)
+        //  for (int i = 0; i < (TDim + 1); i++)
+        //  {
+        //     for (int k = 0; k < TDim; k++)
+        //     {
+        //         rv[i * TDim + k] -= rho * N[i] * a_n_on_gauss_point[k];
+        //     }
+        //  }
         // }
+
+        if (acceleratedparticles)
+        { 
+         Mc= prod(trans(dummyN),dummyN);
+         rv -= rho * prod(Mc,a_n);
+        }
+
 
         // if (acceleratedparticles)
         // { 
         //  for (unsigned int i = 0; i < (TDim + 1); i++)
         //  {
-        //     rv(i * TDim) -= N(i) * a_n(i * TDim);
-        //     rv(i * TDim + 1) -= N(i) * a_n(i * TDim + 1);
+        //     rv(i * TDim) -= rho * N(i) * a_n(i * TDim);
+        //     rv(i * TDim + 1) -= rho* N(i) * a_n(i * TDim + 1);
         //  }
         // }
 

@@ -276,6 +276,8 @@ class PFEM2Solver:
         self.time = 0.0
         self.timestep = 0.0
         self.bdfcalled=False
+        self.includeaccelerationonbfecc=False
+        #self.includeaccelerationonstokes=True
 
     #######################################################################
     #######################################################################
@@ -372,7 +374,8 @@ class PFEM2Solver:
 
         
         print("FIRST")
-        bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
+        if (self.includeaccelerationonbfecc==True):
+         bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_X,
@@ -401,7 +404,8 @@ class PFEM2Solver:
             self.monolithic_linear_solver,
             levelset_convection_settings).Execute()
         print("SECOND")
-        bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
+        if (self.includeaccelerationonbfecc==True):
+         bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_Y,
@@ -471,7 +475,8 @@ class PFEM2Solver:
         
         
         print("THIRD")
-        bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
+        if (self.includeaccelerationonbfecc==True):
+         bfecc_utility.CopyAccComponentXToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_X,
@@ -500,7 +505,8 @@ class PFEM2Solver:
             self.monolithic_linear_solver,
             levelset_convection_settings).Execute()
         print("FOURTH")
-        bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
+        if (self.includeaccelerationonbfecc==True):
+         bfecc_utility.CopyAccComponentYToWatPrAcc(self.model_part.Nodes)
         KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
             self.model_part,
             SCALARPROJECTEDVEL_Y,
