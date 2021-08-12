@@ -27,12 +27,13 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastSuite)
 {
+    // Creating a Model
     Model model;
     auto &test_model_part = model.CreateModelPart("TestModelPart");
     test_model_part.SetBufferSize(1);
     test_model_part.AddNodalSolutionStepVariable(FORCE);
 
-    //Node creation
+    // Creating Nodes
     test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     test_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -40,34 +41,33 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     test_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
     test_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
+    // Creating Elements
     std::vector<ModelPart::IndexType> elem_nodes_1{1, 2, 3, 4};
     test_model_part.CreateNewElement("Element2D4N", 1, elem_nodes_1, test_model_part.pGetProperties(0));
     std::vector<ModelPart::IndexType> elem_nodes_2{2, 5, 6, 3};
     test_model_part.CreateNewElement("Element2D4N", 2, elem_nodes_2, test_model_part.pGetProperties(0));
 
-    const auto it_elem_begin = test_model_part.ElementsBegin();
-    auto it_elem = it_elem_begin + 0;
-    array_1d<double, 3> forces {12.0, 8.0, 0.0};
-    it_elem->SetValue(FORCE, forces);
-
-    it_elem = it_elem_begin + 1;
-    array_1d<double, 3> forces_2 {16.0, 4.0, 0.0};
-    it_elem->SetValue(FORCE, forces_2);
+    // Assign values at elements
+    array_1d<double, 3> force_value {12.0, 8.0, 0.0};
+    for(auto& r_elem : test_model_part.Elements()){
+        r_elem.SetValue(FORCE, force_value);
+    }
 
     ConversionUtilities::ConvertElementalDataToNodalData(test_model_part);
+
+    // Converted Values at Nodes
     Vector nodal_force_values(18);
     int counter = 0;
 
     for (auto& r_node : test_model_part.Nodes()){
         auto nodal_force = r_node.FastGetSolutionStepValue(FORCE);
-        for(int i = 0 ; i< 3; i++)
-        {
-            nodal_force_values[counter] = nodal_force[i];
-            counter ++;
+        for(int i = 0 ; i< 3; i++){
+            nodal_force_values[counter++] = nodal_force[i];
         }
     }
 
-    array_1d<double, 18> expected_values {3, 2 ,0, 7, 3, 0, 7, 3 ,0, 3, 2 ,0, 4, 1 ,0, 4, 1 ,0};
+    // Expected Values at Nodes
+    array_1d<double, 18> expected_values {3, 2 ,0, 6, 4, 0, 6, 4 ,0, 3, 2 ,0, 3, 2 ,0, 3, 2 ,0};
 
     KRATOS_CHECK_VECTOR_NEAR(nodal_force_values, expected_values, 1.0e-4)
 
