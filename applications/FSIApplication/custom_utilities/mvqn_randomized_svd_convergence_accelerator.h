@@ -20,10 +20,9 @@
 
 // Project includes
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/qr_utility.h"
-#include "utilities/svd_utils.h"
 
 // Application includes
 #include "mvqn_convergence_accelerator.hpp"
@@ -80,6 +79,7 @@ public:
     typedef typename BaseType::DenseMatrixType MatrixType;
     typedef typename BaseType::DenseMatrixPointerType MatrixPointerType;
 
+    typedef typename DenseQRDecomposition<TDenseSpace>::Pointer DenseQRPointerType;
     typedef typename DenseSingularValueDecomposition<TDenseSpace>::Pointer DenseSVDPointerType;
 
     ///@}
@@ -93,9 +93,11 @@ public:
      * @param ConvAcceleratorParameters Json string encapsulating the settings
      */
     explicit MVQNRandomizedSVDConvergenceAccelerator(
+        DenseQRPointerType pDenseQR,
         DenseSVDPointerType pDenseSVD,
         Parameters ConvAcceleratorParameters)
     : BaseType()
+    , mpDenseQR(pDenseQR)
     , mpDenseSVD(pDenseSVD)
     {
         ConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
@@ -134,7 +136,7 @@ public:
         // If required, calculate the SVD of the inverse Jacobian approximation
         // It is important to check if the residual minimization has been done to avoid throwing errors in the first do nothing steps
         if (!BaseType::IsUsedInBlockNewtonEquations() && BaseType::IsFirstCorrectionPerformed()) {
-            CalculateInverseJacobianSVD();
+            CalculateInverseJacobianRandomizedSVD();
         }
 
         // Call the base class FinalizeSolutionStep
@@ -203,6 +205,7 @@ protected:
      * @brief Construct a new MVQNRandomizedSVDConvergenceAccelerator object
      * Multivector Quasi-Newton convergence accelerator with randomized SVD jacobian constructor
      * This constructor is intended to be used to set the subdomain MVQN pointers with the IBQN equations
+     * @param pDenseQR Pointer to the dense QR utility instance
      * @param pDenseSVD Pointer to the dense SVD utility instance
      * @param JacobianModes Number of modes to be kept in the randomization of the Jacobian
      * @param CutOffTolerance Tolerance for the new observation data cut off (relative to the maximum residual observation matrix eigenvalue)
@@ -210,6 +213,7 @@ protected:
      * @param MinRandSVDExtraModes Minimum number of extra modes to be used in the randomized SVD decomposition
      */
     explicit MVQNRandomizedSVDConvergenceAccelerator(
+        DenseQRPointerType pDenseQR,
         DenseSVDPointerType pDenseSVD,
         const unsigned int JacobianModes,
         const double CutOffTolerance,
@@ -219,6 +223,7 @@ protected:
     , mUserNumberOfModes(JacobianModes)
     , mMinRandSVDExtraModes(MinRandSVDExtraModes)
     , mLimitModesToIterations(LimitModesToIterations)
+    , mpDenseQR(pDenseQR)
     , mpDenseSVD(pDenseSVD)
     {
     }
@@ -238,7 +243,7 @@ protected:
         // If the complete Jacobian is required for the IBQN equations calculate it
         // Note that this is only done after the first iteration since the observation matrices are empty at the first one
         if (BaseType::IsUsedInBlockNewtonEquations() && BaseType::GetConvergenceAcceleratorIteration() != 0) {
-            CalculateInverseJacobianSVD();
+            CalculateInverseJacobianRandomizedSVD();
         }
     }
 
@@ -291,7 +296,7 @@ protected:
         }
     }
 
-    void CalculateInverseJacobianSVD()
+    void CalculateInverseJacobianRandomizedSVD()
     {
         const auto p_W = BaseType::pGetSolutionObservationMatrix();
         const auto p_V = BaseType::pGetResidualObservationMatrix();
@@ -313,17 +318,11 @@ protected:
             MatrixType y;
             MultiplyRight(aux_M, *mpOmega, y);
 
-            QR<double, row_major> qr_util;
+            mpDenseQR->Compute(y);
             const SizeType n_dofs = BaseType::GetProblemSize();
             const SizeType n_modes = TDenseSpace::Size2(*mpOmega);
-            qr_util.compute(n_dofs, n_modes, &(y(0,0)));
-            qr_util.compute_q();
             MatrixType Q(n_dofs, n_modes);
-            IndexPartition<SizeType>(n_dofs).for_each([&Q, &qr_util, &n_modes](SizeType I){
-                for (SizeType j = 0; j < n_modes; ++j) {
-                    Q(I,j) = qr_util.Q(I,j);
-                }
-            });
+            mpDenseQR->MatrixQ(Q);
 
             MatrixType phi;
             MultiplyTransposeLeft(aux_M, Q, phi);
@@ -409,6 +408,7 @@ private:
     bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
 
+    DenseQRPointerType mpDenseQR; // Pointer to the dense QR utility
     DenseSVDPointerType mpDenseSVD; // Pointer to the dense SVD utility
 
     MatrixPointerType mpOmega = nullptr; // Matrix with random values for truncated SVD
@@ -419,6 +419,11 @@ private:
 
     ///@}
     ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
     ///@{
 
     void InitializeRandomValuesMatrix()
@@ -573,47 +578,84 @@ private:
 
     void CalculateAuxiliaryMatrixM(MatrixType& rAuxM)
     {
-        // Compute (trans(V)*V)^-1
-        const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
-        const auto Vtrans = trans(r_V);
-        const SizeType n_data_cols = r_V.size2();
-        MatrixType transV_V(n_data_cols, n_data_cols);
-        noalias(transV_V) = prod(Vtrans, r_V);
+        // Do the QR decomposition of V
+        auto& r_V = *(BaseType::pGetResidualObservationMatrix());
+        mpDenseQR->Compute(r_V);
 
-        // Perform the observation matrix V Singular Value Decomposition (SVD) such that
-        // matrix V (m x n) is equal to the SVD matrices product V = u_svd * w_svd * v_svd
-        MatrixType u_svd; // Orthogonal matrix (m x m)
-        MatrixType w_svd; // Rectangular diagonal matrix (m x n)
-        MatrixType v_svd; // Orthogonal matrix (n x n)
-        std::string svd_type = "Jacobi"; // SVD decomposition type
-        double svd_rel_tol = 1.0e-6; // Relative tolerance of the SVD decomposition (it will be multiplied by the input matrix norm)
-        const std::size_t max_iter = 500; // Maximum number of iterations of the Jacobi SVD decomposition
-        SVDUtils<double>::SingularValueDecomposition(transV_V, u_svd, w_svd, v_svd, svd_type, svd_rel_tol, max_iter);
+        // Get the QR decomposition matrices
+        // Note that in here we are assuming that the pivoting QR is used
+        const std::size_t n_dofs = TDenseSpace::Size1(r_V);
+        const std::size_t n_data_cols = TDenseSpace::Size2(r_V);
+        MatrixType Q(n_dofs, n_data_cols);
+        MatrixType R(n_data_cols, n_data_cols);
+        MatrixType P(n_data_cols, n_data_cols);
+        mpDenseQR->MatrixQ(Q);
+        mpDenseQR->MatrixR(R);
+        mpDenseQR->MatrixP(P);
 
-        // Compute the matrix pseudo-inverse
-        // Note that we take advantage of the fact that the matrix is always squared
-        MatrixType transV_V_inv = ZeroMatrix(n_data_cols, n_data_cols);
-        for (SizeType i = 0; i < n_data_cols; ++i) {
-            for (SizeType j = 0; j < n_data_cols; ++j) {
-                const double aux = v_svd(j,i) / w_svd(j,j);
-                for (SizeType k = 0; k < n_data_cols; ++k) {
-                    transV_V_inv(i,k) += aux * u_svd(k,j);
+        // Calculate the SVD decomposition of R
+        // Note that we firstly undo the pivoting by doing R*inv(P)
+        // Also note that since P is orthogonal we actually do R*trans(P)
+        MatrixType R_transP(n_data_cols, n_data_cols);
+        noalias(R_transP) = prod(R, trans(P));
+
+        // Compute the Moore-Penrose pseudo-inverse of R
+        MatrixType R_transP_inv;
+        CalculateMoorePenroseInverse(R_transP, R_transP_inv);
+
+        // Calculate the solution of the problem inv(trans(V)*V)*trans(V)
+        // The problem is written to avoid the transpose multiplication as V*M=I
+        // Hence, from the previous QR decomposition we can do Q*R*M=I that is M=pseudoinv(R)*trans(Q)
+        const std::size_t m = TDenseSpace::Size1(rAuxM);
+        const std::size_t n = TDenseSpace::Size2(rAuxM);
+        if (m != n_data_cols || n != n_dofs) {
+            TDenseSpace::Resize(rAuxM, n_data_cols, n_dofs);
+        }
+        const MatrixType trans_Q = trans(Q);
+        noalias(rAuxM) = prod(R_transP_inv, trans_Q);
+    }
+
+    //TODO: Whe should add this to the MathUtils
+    void CalculateMoorePenroseInverse(
+        const MatrixType& rInputMatrix,
+        MatrixType& rMoorePenroseInverse)
+    {
+        IndexType aux_size_1 = TDenseSpace::Size1(rInputMatrix);
+        IndexType aux_size_2 = TDenseSpace::Size2(rInputMatrix);
+        KRATOS_ERROR_IF_NOT(aux_size_1 == aux_size_2) << "Input matrix is not squared." << std::endl;
+
+        VectorType s_svd; // Eigenvalues vector
+        MatrixType u_svd; // Left orthogonal matrix
+        MatrixType v_svd; // Right orthogonal matrix
+        Parameters svd_settings(R"({
+            "compute_thin_u" : true,
+            "compute_thin_v" : true
+        })");
+        mpDenseSVD->Compute(const_cast<MatrixType&>(rInputMatrix), s_svd, u_svd, v_svd, svd_settings);
+        const std::size_t n_eigs = s_svd.size();
+        MatrixType s_inv = ZeroMatrix(n_eigs, n_eigs);
+        for (std::size_t i = 0; i < n_eigs; ++i) {
+            s_inv(i,i) = 1.0 / s_svd(i);
+        }
+
+        // Calculate and save the input matrix pseudo-inverse
+        rMoorePenroseInverse = ZeroMatrix(aux_size_2, aux_size_1);
+
+        // Note that we take advantage of the fact that the input matrix is always square
+        for (std::size_t i = 0; i < aux_size_2; ++i) {
+            for (std::size_t j = 0; j < aux_size_1; ++j) {
+                double& r_value = rMoorePenroseInverse(i,j);
+                for (std::size_t k = 0; k < n_eigs; ++k) {
+                    const double v_ik = v_svd(i,k);
+                    for (std::size_t m = 0; m < n_eigs; ++m) {
+                        const double ut_mj = u_svd(j,m);
+                        const double s_inv_km = s_inv(k,m);
+                        r_value += v_ik * s_inv_km * ut_mj;
+                    }
                 }
             }
         }
-
-        // Compute ((trans(V)*V)^-1)*trans(V)
-        const SizeType n_dofs = BaseType::GetProblemSize();
-        if (TDenseSpace::Size1(rAuxM) != n_data_cols || TDenseSpace::Size2(rAuxM) != n_dofs) {
-            rAuxM.resize(n_data_cols, n_dofs);
-        }
-        noalias(rAuxM) = prod(transV_V_inv, Vtrans);
     }
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
 
     ///@}
     ///@name Private  Access

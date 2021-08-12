@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 
 // Application includes
@@ -75,6 +76,7 @@ public:
     typedef MVQNRandomizedSVDConvergenceAccelerator<TSparseSpace, TDenseSpace>        MVQNType;
     typedef typename BaseType::MVQNPointerType                                 MVQNPointerType;
 
+    typedef typename DenseQRDecomposition<TDenseSpace>::Pointer DenseQRPointerType;
     typedef typename DenseSingularValueDecomposition<TDenseSpace>::Pointer DenseSVDPointerType;
 
     ///@}
@@ -84,10 +86,12 @@ public:
     /**
      * @brief Construct a new IBQNMVQNRandomizedSVDConvergenceAccelerator object
      * IBQN-MVQN with randomized SVD Jacobian convergence accelerator Json settings constructor
+     * @param pDenseQR Pointer to the dense QR utility instance
      * @param pDenseSVD Pointer to the dense SVD utility instance
      * @param rConvAcceleratorParameters Json string encapsulating the settings
      */
     explicit IBQNMVQNRandomizedSVDConvergenceAccelerator(
+        DenseQRPointerType pDenseQR,
         DenseSVDPointerType pDenseSVD,
         Parameters ConvAcceleratorParameters)
     : BaseType()
@@ -97,8 +101,8 @@ public:
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
 
         // Set the subdomains MVQN randomized SVD convergence accelerator pointers
-        MVQNPointerType p_convergence_accelerator_left = CreateMVQNPointer(pDenseSVD, ConvAcceleratorParameters);
-        MVQNPointerType p_convergence_accelerator_right = CreateMVQNPointer(pDenseSVD, ConvAcceleratorParameters);
+        MVQNPointerType p_convergence_accelerator_left = CreateMVQNPointer(pDenseQR, pDenseSVD, ConvAcceleratorParameters);
+        MVQNPointerType p_convergence_accelerator_right = CreateMVQNPointer(pDenseQR, pDenseSVD, ConvAcceleratorParameters);
 
         // Assign the convergence accelerator pointers
         BaseType::SetLeftConvergenceAcceleratorPointer(p_convergence_accelerator_left);
@@ -359,6 +363,7 @@ private:
     ///@{
 
     static MVQNPointerType CreateMVQNPointer(
+        DenseQRPointerType pDenseQR,
         DenseSVDPointerType pDenseSVD,
         const Parameters ConvAcceleratorParameters)
     {
@@ -375,12 +380,14 @@ private:
         // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
         struct make_unique_enabler : public MVQNType {
             make_unique_enabler(
+                DenseQRPointerType pDenseQR,
                 DenseSVDPointerType pDenseSVD,
                 const unsigned int JacobianModes,
                 const double CutOffTolerance,
                 const bool LimitModesToIterations,
                 const unsigned int MinRandSVDExtraModes)
             : MVQNType(
+                pDenseQR,
                 pDenseSVD,
                 JacobianModes,
                 CutOffTolerance,
@@ -390,7 +397,7 @@ private:
         };
 
         // Create and return the convergence accelerator pointer
-        MVQNPointerType p_convergence_accelerator = Kratos::make_unique<make_unique_enabler>(pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations, min_rand_svd_extra_modes);
+        MVQNPointerType p_convergence_accelerator = Kratos::make_unique<make_unique_enabler>(pDenseQR, pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations, min_rand_svd_extra_modes);
         return p_convergence_accelerator;
     }
 
@@ -517,13 +524,13 @@ private:
             "compute_thin_u" : true,
             "compute_thin_v" : true
         })");
-        // MatrixType input_test;
-        // mpSmallMatrixDenseSVD->Compute(input_test, s_svd, u_svd, v_svd, svd_settings);
         mpSmallMatrixDenseSVD->Compute(const_cast<MatrixType&>(rInputMatrix), s_svd, u_svd, v_svd, svd_settings);
         const std::size_t n_eigs = s_svd.size();
+        double determinant = 1.0;
         MatrixType s_inv = ZeroMatrix(n_eigs, n_eigs);
         for (std::size_t i = 0; i < n_eigs; ++i) {
             s_inv(i,i) = 1.0 / s_svd(i);
+            determinant *= s_svd(i);
         }
 
         // Calculate and save the input matrix pseudo-inverse

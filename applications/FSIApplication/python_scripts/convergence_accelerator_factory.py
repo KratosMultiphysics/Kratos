@@ -40,7 +40,8 @@ def CreateConvergenceAccelerator(configuration):
             err_msg = "MVQN with randomized SVD Jacobian requires the \'LinearSolversApplication\'."
             raise Exception(err_msg)
         bdc_svd = KratosLinearSolvers.EigenDenseBDCSVD()
-        return KratosFSI.MVQNRandomizedSVDConvergenceAccelerator(bdc_svd, configuration)
+        col_piv_qr = KratosLinearSolvers.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        return KratosFSI.MVQNRandomizedSVDConvergenceAccelerator(col_piv_qr, bdc_svd, configuration)
 
     elif(convergence_accelerator_type == "MVQN_recursive"):
         return KratosFSI.MVQNRecursiveJacobianConvergenceAccelerator(configuration)
@@ -53,7 +54,8 @@ def CreateConvergenceAccelerator(configuration):
             err_msg = "MVQN with randomized SVD Jacobian requires the \'LinearSolversApplication\'."
             raise Exception(err_msg)
         bdc_svd = KratosLinearSolvers.EigenDenseBDCSVD()
-        return KratosFSI.IBQNMVQNRandomizedSVDConvergenceAccelerator(bdc_svd, configuration)
+        col_piv_qr = KratosLinearSolvers.EigenDenseColumnPivotingHouseholderQRDecomposition()
+        return KratosFSI.IBQNMVQNRandomizedSVDConvergenceAccelerator(col_piv_qr, bdc_svd, configuration)
 
     else:
         raise Exception("Convergence accelerator not found. Asking for : " + convergence_accelerator_type)
