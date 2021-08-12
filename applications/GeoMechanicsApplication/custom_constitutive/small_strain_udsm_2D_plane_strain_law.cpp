@@ -78,13 +78,15 @@ SmallStrainUDSM2DPlaneStrainLaw::~SmallStrainUDSM2DPlaneStrainLaw() {}
 //************************************************************************************
 //************************************************************************************
 
-void SmallStrainUDSM2DPlaneStrainLaw::UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUDSM2DPlaneStrainLaw::
+   UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
 
-   mDeltaStrainVector[INDEX_3D_XX] = rStrainVector(INDEX_2D_PLANE_STRESS_XX) - mStrainVectorFinalized[INDEX_3D_XX];
-   mDeltaStrainVector[INDEX_3D_YY] = rStrainVector(INDEX_2D_PLANE_STRESS_YY) - mStrainVectorFinalized[INDEX_3D_YY];
-   mDeltaStrainVector[INDEX_3D_XY] = rStrainVector(INDEX_2D_PLANE_STRESS_XY) - mStrainVectorFinalized[INDEX_3D_XY];
+   mDeltaStrainVector[INDEX_3D_XX] = rStrainVector(INDEX_2D_PLANE_STRAIN_XX) - mStrainVectorFinalized[INDEX_3D_XX];
+   mDeltaStrainVector[INDEX_3D_YY] = rStrainVector(INDEX_2D_PLANE_STRAIN_YY) - mStrainVectorFinalized[INDEX_3D_YY];
+   mDeltaStrainVector[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_PLANE_STRAIN_ZZ) - mStrainVectorFinalized[INDEX_3D_ZZ];
+   mDeltaStrainVector[INDEX_3D_XY] = rStrainVector(INDEX_2D_PLANE_STRAIN_XY) - mStrainVectorFinalized[INDEX_3D_XY];
 }
 
 void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVector)
@@ -93,8 +95,8 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVec
 
    rStressVector(INDEX_2D_PLANE_STRAIN_XX) = mStressVector[INDEX_3D_XX];
    rStressVector(INDEX_2D_PLANE_STRAIN_YY) = mStressVector[INDEX_3D_YY];
-   rStressVector(INDEX_2D_PLANE_STRAIN_XY) = mStressVector[INDEX_3D_XY];
    rStressVector(INDEX_2D_PLANE_STRAIN_ZZ) = mStressVector[INDEX_3D_ZZ];
+   rStressVector(INDEX_2D_PLANE_STRAIN_XY) = mStressVector[INDEX_3D_XY];
 
    KRATOS_CATCH("")
 }
@@ -103,12 +105,11 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetExternalStressVector(Vector& rStressVec
 void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStressVector(const Vector& rStressVector)
 {
    KRATOS_TRY;
-   std::fill(mStressVectorFinalized.begin(), mStressVectorFinalized.end(), 0.0);
 
    mStressVectorFinalized[INDEX_3D_XX] = rStressVector(INDEX_2D_PLANE_STRAIN_XX);
    mStressVectorFinalized[INDEX_3D_YY] = rStressVector(INDEX_2D_PLANE_STRAIN_YY);
-   mStressVectorFinalized[INDEX_3D_XY] = rStressVector(INDEX_2D_PLANE_STRAIN_XY);
    mStressVectorFinalized[INDEX_3D_ZZ] = rStressVector(INDEX_2D_PLANE_STRAIN_ZZ);
+   mStressVectorFinalized[INDEX_3D_XY] = rStressVector(INDEX_2D_PLANE_STRAIN_XY);
 
    KRATOS_CATCH("")
 }
@@ -116,69 +117,40 @@ void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStressVector(const Vector& rStr
 void SmallStrainUDSM2DPlaneStrainLaw::SetInternalStrainVector(const Vector& rStrainVector)
 {
    KRATOS_TRY;
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
 
-   mStrainVectorFinalized[INDEX_3D_XX] = rStrainVector(INDEX_2D_PLANE_STRESS_XX);
-   mStrainVectorFinalized[INDEX_3D_YY] = rStrainVector(INDEX_2D_PLANE_STRESS_YY);
-   mStrainVectorFinalized[INDEX_3D_XY] = rStrainVector(INDEX_2D_PLANE_STRESS_XY);
+   mStrainVectorFinalized[INDEX_3D_XX] = rStrainVector(INDEX_2D_PLANE_STRAIN_XX);
+   mStrainVectorFinalized[INDEX_3D_YY] = rStrainVector(INDEX_2D_PLANE_STRAIN_YY);
+   mStrainVectorFinalized[INDEX_3D_XY] = rStrainVector(INDEX_2D_PLANE_STRAIN_XY);
+   mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_2D_PLANE_STRAIN_ZZ);
 
    KRATOS_CATCH("")
 }
 
-void SmallStrainUDSM2DPlaneStrainLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
-                                                              Matrix& rConstitutiveMatrix )
+void SmallStrainUDSM2DPlaneStrainLaw::
+   CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
+                           Matrix& rConstitutiveMatrix )
 {
    KRATOS_TRY;
 
    if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM])
    {
       // transfer fortran style matrix to C++ style
-      for (unsigned int i = 0; i < VoigtSizePlaneStress; i++) {
-         for (unsigned int j = 0; j < VoigtSizePlaneStress; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DPlaneStress>(j))][getIndex3D(static_cast<indexStress2DPlaneStress>(i))];
+      for (unsigned int i = 0; i < VoigtSize; ++i) {
+         for (unsigned int j = 0; j < VoigtSize; ++j) {
+            rConstitutiveMatrix(i,j) = mMatrixD[j][i];
          }
       }
    }
    else
    {
-      for (unsigned int i = 0; i < VoigtSizePlaneStress; i++) {
-         for (unsigned int j = 0; j < VoigtSizePlaneStress; j++) {
-            rConstitutiveMatrix(i,j) = mMatrixD[getIndex3D(static_cast<indexStress2DPlaneStress>(i))][getIndex3D(static_cast<indexStress2DPlaneStress>(j))];
+      for (unsigned int i = 0; i < VoigtSize; ++i) {
+         for (unsigned int j = 0; j < VoigtSize; ++j) {
+            rConstitutiveMatrix(i,j) = mMatrixD[i][j];
          }
       }
    }
 
    KRATOS_CATCH("")
-}
-
-indexStress3D SmallStrainUDSM2DPlaneStrainLaw::getIndex3D(indexStress2DPlaneStress index2D)
-{
-   KRATOS_TRY;
-
-   switch (index2D)
-   {
-      case INDEX_2D_PLANE_STRESS_XX:
-        return INDEX_3D_XX;
-      case INDEX_2D_PLANE_STRESS_YY:
-        return INDEX_3D_YY;
-      case INDEX_2D_PLANE_STRESS_XY:
-        return INDEX_3D_XY;
-      default:
-        KRATOS_THROW_ERROR(std::invalid_argument, "invalid index: ", index2D);
-   }
-
-   KRATOS_CATCH("")
-}
-
-void SmallStrainUDSM2DPlaneStrainLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
-{
-   const Vector& rStrainVector = rValues.GetStrainVector();
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
-
-   mStrainVectorFinalized[INDEX_3D_XX] = rStrainVector(INDEX_2D_PLANE_STRESS_XX);
-   mStrainVectorFinalized[INDEX_3D_YY] = rStrainVector(INDEX_2D_PLANE_STRESS_YY);
-   mStrainVectorFinalized[INDEX_3D_XY] = rStrainVector(INDEX_2D_PLANE_STRESS_XY);
-
 }
 
 /***********************************************************************************/
@@ -224,9 +196,8 @@ Vector& SmallStrainUDSM2DPlaneStrainLaw::
 
       rValue[INDEX_2D_PLANE_STRAIN_XX] = mStressVectorFinalized[INDEX_3D_XX];
       rValue[INDEX_2D_PLANE_STRAIN_YY] = mStressVectorFinalized[INDEX_3D_YY];
-      rValue[INDEX_2D_PLANE_STRAIN_XY] = mStressVectorFinalized[INDEX_3D_XY];
       rValue[INDEX_2D_PLANE_STRAIN_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
-
+      rValue[INDEX_2D_PLANE_STRAIN_XY] = mStressVectorFinalized[INDEX_3D_XY];
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::GetValue()") << std::endl;

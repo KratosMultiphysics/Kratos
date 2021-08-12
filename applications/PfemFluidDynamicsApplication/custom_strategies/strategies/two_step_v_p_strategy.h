@@ -272,6 +272,9 @@ namespace Kratos
         }
         if (it == maxNonLinearIterations - 1 || ((continuityConverged && momentumConverged) && it > 2))
         {
+
+          //double tensilStressSign = 1.0;
+          // ComputeErrorL2Norm(tensilStressSign);
           this->UpdateStressStrain();
         }
 
@@ -548,15 +551,16 @@ namespace Kratos
 
       NormP = 0.00;
       errorNormDp = 0;
+      double tmp_NormP = 0.0;
 
-#pragma omp parallel for reduction(+ \
-                                   : NormP)
+#pragma omp parallel for reduction(+ : tmp_NormP)
       for (int i_node = 0; i_node < n_nodes; ++i_node)
       {
         const auto it_node = rModelPart.NodesBegin() + i_node;
         const double Pr = it_node->FastGetSolutionStepValue(PRESSURE);
-        NormP += Pr * Pr;
+        tmp_NormP += Pr * Pr;
       }
+      NormP = tmp_NormP;
       NormP = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator().SumAll(NormP);
       NormP = sqrt(NormP);
 
