@@ -27,8 +27,8 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
         self.work_folder = "TwoFluidMassConservationTest"
         self.check_absolute_tolerance = 1.0e-7
         self.check_relative_tolerance = 1.0e-5
-        self.print_output = False
-        self.print_reference_values = False
+        self.print_output = True
+        self.print_reference_values = True
 
     # runs the two dimensinal test case
     def runTwoFluidMassConservationTest2D(self):
