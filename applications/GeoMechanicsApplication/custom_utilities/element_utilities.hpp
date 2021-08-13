@@ -34,6 +34,9 @@ typedef std::size_t IndexType;
 
 public:
 
+    typedef Node <3> NodeType;
+    typedef Geometry<NodeType> GeometryType;
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     template< unsigned int TDim, unsigned int TNumNodes >
     static inline void CalculateNuMatrix(BoundedMatrix<double,TDim,TDim*TNumNodes>& rNu,
@@ -412,6 +415,27 @@ public:
             DN_DXContainer(integrationPoint,1) = -Xi[integrationPoint] * 2.0;
             DN_DXContainer(integrationPoint,2) =  Xi[integrationPoint] + 0.5;
         }
+    }
+
+    /**
+     * Calculates the radius of axisymmetry
+     * @param N: The Gauss Point shape function
+     * @param Geom: The geometry studied
+     * @return Radius: The radius of axisymmetry
+     */
+
+    static inline double CalculateRadius(const Vector N, const GeometryType& Geom)
+    {
+        double Radius = 0.0;
+
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
+        {
+            // Displacement from the reference to the current configuration
+            const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
+            Radius += CurrentPosition[0] * N[iNode];
+        }
+
+        return Radius;
     }
 
 
