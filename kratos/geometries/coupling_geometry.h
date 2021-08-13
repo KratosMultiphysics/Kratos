@@ -376,7 +376,8 @@ public:
                     #ifdef KRATOS_DEBUG
                         mpGeometries[0]->GlobalCoordinates(global_coords_master, local_coords_master);
                     #endif
-                    KRATOS_DEBUG_ERROR_IF(success == 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
+                    KRATOS_DEBUG_ERROR_IF((success == 1 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) > model_tolerance))
+                        || (success == 0 && (norm_2(global_coords_span_intersection_on_slave - local_coords_master) < model_tolerance)))
                         << "Projection of intersection spans failed. Global Coordinates on slave: "
                         << global_coords_span_intersection_on_slave << ", and global coordinates on master: "
                         << global_coords_master << ". Difference: " << norm_2(global_coords_span_intersection_on_slave - global_coords_master)
