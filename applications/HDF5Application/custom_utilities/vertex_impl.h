@@ -56,33 +56,43 @@ struct ZeroInitialized<Matrix<TValue>>
 
 
 template <class TLocator>
-bool Vertex::Locate(TLocator&& rLocator)
+Vertex::Vertex(const array_1d<double,3>& rPosition,
+               TLocator&& rLocator,
+               bool isHistorical)
+    : Point(rPosition)
 {
-    mShapeFunctionValues.clear();
-    mEntityID = rLocator.FindElement(*this, mShapeFunctionValues);
+    KRATOS_TRY
 
-    // Return false if the location failed
-    return -1 < mEntityID; 
+    mpContainingElement = rLocator.FindElement(*this);
+
+    if (isHistorical) {
+        mpVariableGetter = NodalVariableGetter::UniquePointer(new HistoricalVariableGetter);
+    }
+    else {
+        mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
+    }
+
+    KRATOS_CATCH("");
 }
 
 
 template <class TValue>
-TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
+inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 {
     KRATOS_TRY
 
-    const auto& rGeometry = this->GetLocatedGeometry();
+    KRATOS_ERROR_IF(!mpContainingElement) << "attempt to interpolate on a non-located vertex";
+
+    const auto& rGeometry = mpContainingElement->GetGeometry();
     auto value = ZeroInitialized<TValue>::Get();
 
-    if (mIsHistorical) {
-        for (std::size_t i_node=0; i_node<rGeometry.size(); ++i_node) {
-            value += (TValue)(mShapeFunctionValues[i_node] * rGeometry.GetPoint(i_node).GetSolutionStepValue(rVariable));
-        }
-    }
-    else {
-        for (std::size_t i_node=0; i_node<rGeometry.size(); ++i_node) {
-            value += (TValue)(mShapeFunctionValues[i_node] * rGeometry.GetPoint(i_node).GetValue(rVariable));
-        }
+    // Compute shape function values here
+    Kratos::Vector shape_function_values;
+    rGeometry.ShapeFunctionsValues(shape_function_values, *this);
+
+    // Interpolate variable
+    for (std::size_t i_node=0; i_node<rGeometry.size(); ++i_node) {
+        value += shape_function_values[i_node] * mpVariableGetter->GetValue(rGeometry.GetPoint(i_node), rVariable);
     }
 
     return value;

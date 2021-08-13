@@ -58,10 +58,12 @@ private:
     public:
         Locator(ModelPart& rModelPart, const Globals::Configuration configuration, const double tolerance);
 
-        int FindElement(const Point& rPoint, Kratos::Vector& rShapeFunctionValues) const;
+        const Element* FindElement(const Point& rPoint) const;
 
     private:
         BruteForcePointLocator mLocator;
+
+        const ModelPart& mrModelPart;
 
         const Globals::Configuration mConfiguration;
 
@@ -86,6 +88,8 @@ private:
     File::Pointer mpFile;
 
     std::string mPrefix;
+
+    bool mIsHistorical;
 };
 
 

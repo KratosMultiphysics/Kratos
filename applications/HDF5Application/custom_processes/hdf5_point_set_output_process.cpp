@@ -37,16 +37,18 @@ PointSetOutputProcess::PointSetOutputProcess(Parameters parameters, Model& rMode
     parameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     this->InitializeFromParameters(parameters);
 
-    // Populate points
-    const bool is_historical = parameters["historical_value"].GetBool();
+    // Populate vertices
     const std::size_t number_of_points = parameters["positions"].size();
     mVertices.reserve(number_of_points);
 
     for (std::size_t i_point=0; i_point<number_of_points; ++i_point) {
-        mVertices.push_back(std::make_shared<Detail::Vertex>(
+        auto p_vertex = std::make_shared<Detail::Vertex>(
             parameters["positions"].GetArrayItem(i_point).GetVector(),
-            mrModelPart,
-            is_historical));
+            *mpLocator);
+
+        if (p_vertex->IsLocated()) {
+            mVertices.push_back(p_vertex);
+        }
     }
 
     KRATOS_CATCH("");
@@ -98,13 +100,6 @@ void PointSetOutputProcess::ExecuteFinalizeSolutionStep()
         io_parameters,
         mpFile);
 
-    // Update vertices
-    block_for_each(mVertices,
-        [this](Detail::Vertex& rVertex){
-            rVertex.Locate(*mpLocator);
-        }
-    );
-
     // Write
     vertex_io.WriteVariables(mVertices);
 
@@ -131,21 +126,26 @@ const Parameters PointSetOutputProcess::GetDefaultParameters() const
 
 PointSetOutputProcess::Locator::Locator(ModelPart& rModelPart, const Globals::Configuration configuration, const double tolerance)
     : mLocator(rModelPart),
+      mrModelPart(rModelPart),
       mConfiguration(configuration),
       mTolerance(tolerance)
 {
 }
 
 
-int PointSetOutputProcess::Locator::FindElement(const Point& rPoint, Kratos::Vector& rShapeFunctionValues) const
+const Element* PointSetOutputProcess::Locator::FindElement(const Point& rPoint) const
 {
     KRATOS_TRY
 
-    return mLocator.FindElement(
+    Kratos::Vector shape_function_values;
+
+    const int element_id =  mLocator.FindElement(
         rPoint,
-        rShapeFunctionValues,
+        shape_function_values,
         mConfiguration,
         mTolerance);
+
+    return -1 < element_id ? &mrModelPart.GetElement(element_id) : nullptr;
 
     KRATOS_CATCH("");
 }
@@ -192,6 +192,7 @@ void PointSetOutputProcess::InitializeFromParameters(Parameters parameters)
 
     // Initialize other members
     mPrefix = parameters["prefix"].GetString();
+    mIsHistorical = parameters["historical_value"].GetBool();
 
     KRATOS_CATCH("");
 }
