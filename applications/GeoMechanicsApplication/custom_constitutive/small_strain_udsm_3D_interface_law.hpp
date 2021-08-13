@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 
 namespace Kratos
 {

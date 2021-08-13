@@ -139,7 +139,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             // Update the element internal variables
             this->UpdateHistoricalDatabase(Variables, GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer, mStressVector[0].size());
+        this->ExtrapolateGPValues(StressContainer);
     }
     else
     {

@@ -41,8 +41,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     UPwBaseElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    const SizeType VoigtSize  = ( TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-
     for (unsigned int i = 0; i < TDim; i++)
     {
         mNodalConstitutiveTensor[i].resize(VoigtSize);
@@ -117,7 +115,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     }
     Matrix DtStressContainer(NumGPoints,TDim);
 
-    const SizeType VoigtSize  = ( TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     Vector StressVector(VoigtSize);
 
     //Loop over integration points
@@ -175,7 +172,6 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     //Containers for extrapolation variables
     Matrix DtStressContainer(NumGPoints,TDim);
 
-    const SizeType VoigtSize  = ( TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
     Vector StressVector(VoigtSize);
 
     //Loop over integration points
@@ -215,7 +211,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     for (unsigned int i = 0; i < TDim; i++)
     {
-        for (unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++) //VoigtSize
+        for (unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++)
         {
             rConstitutiveTensorContainer[i](GPoint,j) = ConstitutiveMatrix(i,j);
         }
@@ -271,12 +267,11 @@ void UPwSmallStrainFICElement<2,3>::
 
     const SizeType Dim = 2;
     const SizeType NumNodes = 3;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
 
-    BoundedMatrix<double, NumNodes, VOIGT_SIZE_2D_PLANE_STRAIN> AuxNodalConstitutiveTensor;
+    BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
     
     for (unsigned int i = 0; i < Dim; i++)
     {
@@ -310,7 +305,6 @@ void UPwSmallStrainFICElement<2,4>::
     // Quadrilateral_2d_4 with GI_GAUSS_2
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
@@ -340,7 +334,6 @@ void UPwSmallStrainFICElement<3,4>::
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 4;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
@@ -369,7 +362,6 @@ void UPwSmallStrainFICElement<3,8>::
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
     this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
@@ -726,7 +718,6 @@ void UPwSmallStrainFICElement<2,3>::
     KRATOS_TRY;
 
     const SizeType Dim = 2;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     for (unsigned int i = 0; i < Dim; i++)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
@@ -744,7 +735,6 @@ void UPwSmallStrainFICElement<2,4>::
     KRATOS_TRY;
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     //Voigt identity matrix
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize,false);
@@ -772,7 +762,6 @@ void UPwSmallStrainFICElement<3,4>::
     KRATOS_TRY;
 
     const SizeType Dim = 3;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     for (unsigned int i = 0; i < Dim; i++)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
@@ -791,7 +780,6 @@ void UPwSmallStrainFICElement<3,8>::
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     //Voigt identity matrix
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize,false);
@@ -1015,7 +1003,6 @@ void UPwSmallStrainFICElement<2,3>::
 
     const SizeType Dim = 2;
     const SizeType NumNodes = 3;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     for (unsigned int i = 0; i < Dim; i++)
     {
@@ -1068,7 +1055,6 @@ void UPwSmallStrainFICElement<2,4>::
 
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
-    const SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
     for (unsigned int i = 0; i < Dim; i++)
     {
@@ -1127,7 +1113,6 @@ void UPwSmallStrainFICElement<3,4>::
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 4;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     for (unsigned int i = 0; i < Dim; i++)
     {
@@ -1169,7 +1154,6 @@ void UPwSmallStrainFICElement<3,8>::
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
-    const SizeType VoigtSize = VOIGT_SIZE_3D;
 
     for (unsigned int i = 0; i < Dim; i++)
     {
