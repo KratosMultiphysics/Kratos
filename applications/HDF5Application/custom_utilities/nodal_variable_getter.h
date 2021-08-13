@@ -10,8 +10,8 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5Application_NODAL_VARIABLE_GETTER_H
-#define KRATOS_HDF5Application_NODAL_VARIABLE_GETTER_H
+#ifndef KRATOS_HDF5APPLICATION_NODAL_VARIABLE_GETTER_H
+#define KRATOS_HDF5APPLICATION_NODAL_VARIABLE_GETTER_H
 
 // Project includes
 #include "includes/node.h"
@@ -117,4 +117,4 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
 } // namespace HDF5
 } // namespace Kratos
 
-#endif // KRATOS_HDF5Application_NODAL_VARIABLE_GETTER_H
+#endif // KRATOS_HDF5APPLICATION_NODAL_VARIABLE_GETTER_H
