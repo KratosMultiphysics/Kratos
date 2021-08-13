@@ -22,6 +22,25 @@ namespace Detail
 {
 
 
+Vertex::Vertex(const array_1d<double,3>& rPosition,
+               const PointLocatorAdaptor& rLocator,
+               bool isHistorical)
+    : Point(rPosition),
+      mpContainingElement(rLocator.FindElement(*this))
+{
+    KRATOS_TRY
+
+    if (isHistorical) {
+        mpVariableGetter = NodalVariableGetter::UniquePointer(new HistoricalVariableGetter);
+    }
+    else {
+        mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
+    }
+
+    KRATOS_CATCH("");
+}
+
+
 Vertex::Vertex()
     : Point(array_1d<double,3>{{0.0, 0.0, 0.0}}),
       mpContainingElement()

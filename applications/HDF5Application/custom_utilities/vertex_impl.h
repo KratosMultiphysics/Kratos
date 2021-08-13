@@ -55,26 +55,6 @@ struct ZeroInitialized<Matrix<TValue>>
 };
 
 
-template <class TLocator>
-Vertex::Vertex(const array_1d<double,3>& rPosition,
-               TLocator&& rLocator,
-               bool isHistorical)
-    : Point(rPosition),
-      mpContainingElement(rLocator.FindElement(*this))
-{
-    KRATOS_TRY
-
-    if (isHistorical) {
-        mpVariableGetter = NodalVariableGetter::UniquePointer(new HistoricalVariableGetter);
-    }
-    else {
-        mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
-    }
-
-    KRATOS_CATCH("");
-}
-
-
 template <class TValue>
 inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 {

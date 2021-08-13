@@ -40,14 +40,10 @@ public:
      *  The search result can be checked with @ref{IsLocated}.
      *
      *  @param rPosition position attribute
-     *  @param rLocator point locator exposing a FindElement member (see the notes for details)
-     *
-     *  @note the TLocator type must expose a member function for locating the element containing this vertex with the following signature:
-     *  const Element::WeakPointer TLocator::FindElement(const array_1d<double,3>&) const
+     *  @param rLocator point locator exposing a FindElement member
      */
-    template <class TLocator>
     Vertex(const array_1d<double,3>& rPosition,
-           TLocator&& rLocator,
+           const PointLocatorAdaptor& rLocator,
            bool isHistorical = true);
 
     /** Default constructor required by PointerVectorSet
