@@ -58,6 +58,9 @@ struct NodalVariableGetter
     KRATOS_CLASS_POINTER_DEFINITION(NodalVariableGetter);
 
     using Array3 = array_1d<double,3>;
+    using Array4 = array_1d<double,4>;
+    using Array6 = array_1d<double,6>;
+    using Array9 = array_1d<double,9>;
 
     virtual ~NodalVariableGetter() {}
 
@@ -66,12 +69,11 @@ struct NodalVariableGetter
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(double);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Kratos::Vector);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Array3);
-    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(AdjointExtensions::Pointer);
+    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Array4);
+    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Array6);
+    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Array9);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Kratos::Matrix);
-    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(std::string);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(DenseVector<int>);
-    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Quaternion<double>);
-    KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
 }; // struct NodalVariableGetter
 
 
@@ -79,18 +81,20 @@ struct HistoricalVariableGetter : public NodalVariableGetter
 {
     KRATOS_CLASS_POINTER_DEFINITION(HistoricalVariableGetter);
     using NodalVariableGetter::Array3;
+    using NodalVariableGetter::Array4;
+    using NodalVariableGetter::Array6;
+    using NodalVariableGetter::Array9;
 
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(bool);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(int);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(double);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Kratos::Vector);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Array3);
-    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(AdjointExtensions::Pointer);
+    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Array4);
+    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Array6);
+    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Array9);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Kratos::Matrix);
-    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(std::string);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(DenseVector<int>);
-    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Quaternion<double>);
-    KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
 }; // struct HistoricalVariableGetter
 
 
@@ -98,18 +102,20 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
 {
     KRATOS_CLASS_POINTER_DEFINITION(NonHistoricalVariableGetter);
     using NodalVariableGetter::Array3;
+    using NodalVariableGetter::Array4;
+    using NodalVariableGetter::Array6;
+    using NodalVariableGetter::Array9;
 
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(bool);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(int);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(double);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Kratos::Vector);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Array3);
-    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(AdjointExtensions::Pointer);
+    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Array4);
+    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Array6);
+    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Array9);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Kratos::Matrix);
-    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(std::string);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(DenseVector<int>);
-    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Quaternion<double>);
-    KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
 }; // struct NonHistoricalVariableGetter
 
 
@@ -121,7 +127,7 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
 /** Interface for point locators
  *  @details narrow down the scope of a locator's tasks (eg.: find element containing a point)
  */
-struct PointLocatorAdaptor
+struct KRATOS_API(HDF5Application) PointLocatorAdaptor
 {
     KRATOS_CLASS_POINTER_DEFINITION(PointLocatorAdaptor);
 
@@ -132,9 +138,11 @@ struct PointLocatorAdaptor
 
 
 /// BruteForcePointLocator with configuration and tolerance persistence
-class BruteForcePointLocatorAdaptor final : public PointLocatorAdaptor
+class KRATOS_API(HDF5Application) BruteForcePointLocatorAdaptor final : public PointLocatorAdaptor
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(BruteForcePointLocatorAdaptor);
+
     BruteForcePointLocatorAdaptor(ModelPart& rModelPart,
                                   const Globals::Configuration configuration,
                                   const double tolerance);
