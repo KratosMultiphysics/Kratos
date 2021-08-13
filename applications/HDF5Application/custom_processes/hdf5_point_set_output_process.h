@@ -16,14 +16,14 @@
 // Application includes
 #include "custom_io/hdf5_file.h"
 #include "custom_utilities/vertex.h"
-#include "includes/ublas_interface.h"
+#include "custom_utilities/vertex_utilities.h"
 
 // Core inlcudes
 #include "processes/process.h"
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "utilities/interval_utility.h"
-#include "utilities/brute_force_point_locator.h"
+#include "includes/ublas_interface.h"
 
 
 namespace Kratos
@@ -52,24 +52,6 @@ protected:
                           Detail::VertexContainerType&& rVertices);
 
 private:
-    /// BruteForcePointLocator with configuration and tolerance persistence
-    class Locator
-    {
-    public:
-        Locator(ModelPart& rModelPart, const Globals::Configuration configuration, const double tolerance);
-
-        const Element* FindElement(const Point& rPoint) const;
-
-    private:
-        BruteForcePointLocator mLocator;
-
-        const ModelPart& mrModelPart;
-
-        const Globals::Configuration mConfiguration;
-
-        const double mTolerance;
-    };
-
     /** Initialize common members
      *  (except vertices and members that must be initialized before the constructor body gets executed)
      */
@@ -81,7 +63,7 @@ private:
 
     Detail::VertexContainerType mVertices;
 
-    std::unique_ptr<Locator> mpLocator;
+    std::unique_ptr<PointLocatorAdaptor> mpLocator;
 
     Parameters mVariables;
 

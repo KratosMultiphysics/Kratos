@@ -59,11 +59,10 @@ template <class TLocator>
 Vertex::Vertex(const array_1d<double,3>& rPosition,
                TLocator&& rLocator,
                bool isHistorical)
-    : Point(rPosition)
+    : Point(rPosition),
+      mpContainingElement(rLocator.FindElement(*this))
 {
     KRATOS_TRY
-
-    mpContainingElement = rLocator.FindElement(*this);
 
     if (isHistorical) {
         mpVariableGetter = NodalVariableGetter::UniquePointer(new HistoricalVariableGetter);
@@ -81,7 +80,7 @@ inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(!mpContainingElement) << "attempt to interpolate on a non-located vertex";
+    KRATOS_ERROR_IF(!mpContainingElement.get()) << "attempt to interpolate on a non-located vertex";
 
     const auto& rGeometry = mpContainingElement->GetGeometry();
     auto value = ZeroInitialized<TValue>::Get();

@@ -124,33 +124,6 @@ const Parameters PointSetOutputProcess::GetDefaultParameters() const
 }
 
 
-PointSetOutputProcess::Locator::Locator(ModelPart& rModelPart, const Globals::Configuration configuration, const double tolerance)
-    : mLocator(rModelPart),
-      mrModelPart(rModelPart),
-      mConfiguration(configuration),
-      mTolerance(tolerance)
-{
-}
-
-
-const Element* PointSetOutputProcess::Locator::FindElement(const Point& rPoint) const
-{
-    KRATOS_TRY
-
-    Kratos::Vector shape_function_values;
-
-    const int element_id =  mLocator.FindElement(
-        rPoint,
-        shape_function_values,
-        mConfiguration,
-        mTolerance);
-
-    return -1 < element_id ? &mrModelPart.GetElement(element_id) : nullptr;
-
-    KRATOS_CATCH("");
-}
-
-
 void PointSetOutputProcess::InitializeFromParameters(Parameters parameters)
 {
     KRATOS_TRY
@@ -173,7 +146,7 @@ void PointSetOutputProcess::InitializeFromParameters(Parameters parameters)
         KRATOS_ERROR << "Invalid configuration '" << configuration_name << "', options are: 'initial', 'current'";
     }
 
-    mpLocator = std::unique_ptr<PointSetOutputProcess::Locator>(new PointSetOutputProcess::Locator(
+    mpLocator = std::unique_ptr<PointLocatorAdaptor>(new BruteForcePointLocatorAdaptor(
         mrModelPart,
         configuration,
         search_tolerance));

@@ -24,14 +24,14 @@ namespace Detail
 
 Vertex::Vertex()
     : Point(array_1d<double,3>{{0.0, 0.0, 0.0}}),
-      mpContainingElement(nullptr)
+      mpContainingElement()
 {
 }
 
 
 bool Vertex::IsLocated() const
 {
-    return mpContainingElement;
+    return mpContainingElement.get();
 }
 
 

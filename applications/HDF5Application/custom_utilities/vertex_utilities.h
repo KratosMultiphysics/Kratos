@@ -10,19 +10,22 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5APPLICATION_NODAL_VARIABLE_GETTER_H
-#define KRATOS_HDF5APPLICATION_NODAL_VARIABLE_GETTER_H
+#ifndef KRATOS_HDF5APPLICATION_VERTEX_UTILITIES_H
+#define KRATOS_HDF5APPLICATION_VERTEX_UTILITIES_H
 
 // Project includes
 #include "includes/node.h"
 #include "includes/variables.h"
 
+// Core includes
+#include "includes/element.h"
+#include "utilities/brute_force_point_locator.h"
+#include "includes/model_part.h"
+
 
 namespace Kratos
 {
 namespace HDF5
-{
-namespace Detail
 {
 
 
@@ -56,6 +59,8 @@ struct NodalVariableGetter
 
     using Array3 = array_1d<double,3>;
 
+    virtual ~NodalVariableGetter() {}
+
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(bool);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(int);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(double);
@@ -67,7 +72,7 @@ struct NodalVariableGetter
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(DenseVector<int>);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(Quaternion<double>);
     KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
-};
+}; // struct NodalVariableGetter
 
 
 struct HistoricalVariableGetter : public NodalVariableGetter
@@ -86,7 +91,7 @@ struct HistoricalVariableGetter : public NodalVariableGetter
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(DenseVector<int>);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(Quaternion<double>);
     KRATOS_DEFINE_HISTORICAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
-};
+}; // struct HistoricalVariableGetter
 
 
 struct NonHistoricalVariableGetter : public NodalVariableGetter
@@ -105,7 +110,7 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(DenseVector<int>);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(Quaternion<double>);
     KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER(TableStreamUtility::Pointer);
-};
+}; // struct NonHistoricalVariableGetter
 
 
 #undef KRATOS_DEFINE_NON_HISTORICAL_VARIABLE_GETTER
@@ -113,7 +118,40 @@ struct NonHistoricalVariableGetter : public NodalVariableGetter
 #undef KRATOS_DECLARE_VIRTUAL_VARIABLE_GETTER
 
 
-} // namespace Detail
+/** Interface for point locators
+ *  @details narrow down the scope of a locator's tasks (eg.: find element containing a point)
+ */
+struct PointLocatorAdaptor
+{
+    KRATOS_CLASS_POINTER_DEFINITION(PointLocatorAdaptor);
+
+    virtual ~PointLocatorAdaptor() {}
+
+    virtual const Element::WeakPointer FindElement(const Point& rPoint) const = 0;
+}; // struct PointLocatorAdaptor
+
+
+/// BruteForcePointLocator with configuration and tolerance persistence
+class BruteForcePointLocatorAdaptor final : public PointLocatorAdaptor
+{
+public:
+    BruteForcePointLocatorAdaptor(ModelPart& rModelPart,
+                                  const Globals::Configuration configuration,
+                                  const double tolerance);
+
+    const Element::WeakPointer FindElement(const Point& rPoint) const override;
+
+private:
+    BruteForcePointLocator mLocator;
+
+    const ModelPart& mrModelPart;
+
+    const Globals::Configuration mConfiguration;
+
+    const double mTolerance;
+}; // class BruteForcePointLocatorAdaptor
+
+
 } // namespace HDF5
 } // namespace Kratos
 

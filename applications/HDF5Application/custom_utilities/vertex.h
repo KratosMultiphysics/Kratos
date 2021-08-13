@@ -14,7 +14,7 @@
 #define KRATOS_HDF5_APPLICATION_VERTEX_H
 
 //  Project includes
-#include "nodal_variable_getter.h"
+#include "vertex_utilities.h"
 
 // Core includes
 #include "includes/model_part.h"
@@ -43,7 +43,7 @@ public:
      *  @param rLocator point locator exposing a FindElement member (see the notes for details)
      *
      *  @note the TLocator type must expose a member function for locating the element containing this vertex with the following signature:
-     *  const Element* TLocator::FindElement(const array_1d<double,3>&)
+     *  const Element::WeakPointer TLocator::FindElement(const array_1d<double,3>&) const
      */
     template <class TLocator>
     Vertex(const array_1d<double,3>& rPosition,
@@ -70,7 +70,7 @@ public:
     bool IsLocated() const;
 
 private:
-    const Element* mpContainingElement;
+    const Element::WeakPointer mpContainingElement;
 
     NodalVariableGetter::UniquePointer mpVariableGetter;
 };
