@@ -125,6 +125,9 @@ public:
 
 protected:
 
+    static constexpr SizeType VoigtSize  = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    static constexpr SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+
     struct ElementVariables
     {
         ///Properties variables
@@ -202,9 +205,7 @@ protected:
                        const Vector &StressVector,
                        const unsigned int &GPoint );
 
-    void ExtrapolateGPValues( const Matrix &StressContainer,
-                              const unsigned int &VoigtSize );
-
+    void ExtrapolateGPValues( const Matrix &StressContainer);
 
     void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
                                            const ProcessInfo& CurrentProcessInfo ) override;

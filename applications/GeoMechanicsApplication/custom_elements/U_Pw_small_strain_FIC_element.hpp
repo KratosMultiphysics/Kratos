@@ -48,6 +48,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;
+    using UPwSmallStrainElement<TDim,TNumNodes>::VoigtSize;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
