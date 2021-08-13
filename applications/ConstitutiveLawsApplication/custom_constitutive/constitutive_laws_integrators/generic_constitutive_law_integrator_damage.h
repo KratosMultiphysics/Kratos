@@ -286,7 +286,7 @@ class GenericConstitutiveLawIntegratorDamage
         }
         KRATOS_ERROR_IF(volumentric_fracture_energy_first_region > volumetric_fracture_energy) << "The Fracture Energy is too low: " << fracture_energy << std::endl;
 
-        double predictive_stress_end_first_region = strain_damage_curve[curve_points] * E;
+        const double predictive_stress_end_first_region = strain_damage_curve[curve_points] * E;
         if (UniaxialStress < predictive_stress_end_first_region){ //First region: point-by-point definition with linear interpolation
             for (IndexType i = 1; i <= curve_points; ++i) {
                 if (UniaxialStress < strain_damage_curve[i] * E){
