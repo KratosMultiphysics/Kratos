@@ -67,6 +67,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
+        self.is_dynamic = self.settings["structural_solver_settings"]["solver_type"].GetString() == "Dynamic"
 
     def AddVariables(self):
         # Import the structural and thermal solver variables. Then merge them to have them in both structural and thermal solvers.
@@ -149,10 +150,12 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.thermal_solver.Predict()
 
     def SolveSolutionStep(self):
-        print("\n" +"        Solving Structural part..." + "\n")
+        KratosMultiphysics.Logger.PrintInfo("\n" + "\t" +"Solving Structural part..." + "\n")
         solid_is_converged = self.structural_solver.SolveSolutionStep()
 
-        print("\n" +"        Solving Thermal part..."+ "\n")
+        self.RemoveConvectiveVelocity()
+
+        KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
         print("+--------------------------------------------------------------+")
@@ -162,3 +165,8 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
+
+    def RemoveConvectiveVelocity(self):
+        if self.is_dynamic:
+            for node in self.thermal_solver.GetComputingModelPart().Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
