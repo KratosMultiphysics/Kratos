@@ -50,10 +50,9 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
     const SizeType NumNodes = this->GetGeometry().size();
 
-    unsigned int index;
     for ( unsigned int i = 0; i < NumNodes; ++i )
     {
-        index = Dim * i;
+        const unsigned int index = Dim * i;
 
         rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );
         rB( INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y ) = GradNpT( i, INDEX_Y );
