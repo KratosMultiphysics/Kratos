@@ -47,9 +47,7 @@ namespace Kratos {
 
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         ElementsArrayType& pElements = r_spheres_modelPart.Elements();
-        bool verdict = true;
 
-        //#pragma omp parallel for //TODO: commented out. It doesn't compile in hpc0 because of the 'break'
         for (int k = 0; k < (int)pElements.size(); k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -58,16 +56,27 @@ namespace Kratos {
             const double value = p_sphere->GetGeometry()[0].FastGetSolutionStepValue(r_var);
 
             const unsigned int initial_cont_neigh_size = p_sphere->mContinuumInitialNeighborsSize;
-            if (!initial_cont_neigh_size && ignore_isolated_particles) {
-                continue;
-            }
+            if (ignore_isolated_particles) {
+                if (!initial_cont_neigh_size) {
+                    continue;
+                } else {
+                    unsigned int damaged_bonds = 0;
+                    for (int l = 0; l < (int)initial_cont_neigh_size; l++) {
+                        if (p_sphere->mIniNeighbourFailureId[l]) {
+                            damaged_bonds++;
+                        }
+                    }
+                    if (damaged_bonds == initial_cont_neigh_size) {
+                        continue;
+                    }
+                }
+            } 
             
             if (std::abs(value) > tolerance) {
-                verdict = false;
-                break;
+                return false;
             }
         }
-        return verdict;
+        return true;
     }
 
     std::string StationarityChecker::Info() const {

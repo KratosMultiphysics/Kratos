@@ -247,6 +247,7 @@ public:
     void DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction);
     void DestroyParticles(ModelPart::MeshType& rMesh);
     void DestroyContactElements(ModelPart& r_model_part);
+    void MarkIsolatedParticlesForErasing(ModelPart& r_model_part);
     void MarkInitialNeighboursThatAreBeingRemoved(ModelPart& r_model_part);
     void RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart);
     void MarkDistantParticlesForErasing(ModelPart& r_model_part);

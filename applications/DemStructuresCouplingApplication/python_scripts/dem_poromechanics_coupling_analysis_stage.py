@@ -19,10 +19,12 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.effective_stresses_communicator = DemStructuresCouplingApplication.EffectiveStressesCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.rigid_face_model_part)
         self.pore_pressure_communicator_utility = DemStructuresCouplingApplication.PorePressureCommunicatorUtility(self.poromechanics_solution._GetSolver().main_model_part, self.dem_solution.spheres_model_part)
         self._CheckCoherentInputs()
+        self.creator_destructor = DEM.ParticleCreatorDestructor()
 
         self.number_of_DEM_steps_between_steadiness_checks = 25
         self.stationarity_measuring_tolerance = 5e-3
         self.ignore_isolated_particles = True
+        self.remove_isolated_particles = True
 
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
         file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
@@ -41,8 +43,13 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.poromechanics_solution.Initialize()
         self.dem_solution.Initialize()
         super().Initialize()
+        self.ModifyAfterSolverInitialize()
         self.effective_stresses_communicator.Initialize()
         self.pore_pressure_communicator_utility.Initialize()
+    
+    def ModifyAfterSolverInitialize(self):
+        if self.remove_isolated_particles:
+            self.creator_destructor.MarkIsolatedParticlesForErasing(self.dem_solution.spheres_model_part)
 
     def RunSolutionLoop(self):
         self.stationarity_checking_is_activated = False

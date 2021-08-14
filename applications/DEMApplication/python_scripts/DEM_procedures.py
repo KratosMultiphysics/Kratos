@@ -638,8 +638,8 @@ class Procedures():
             sum_radi += node.GetSolutionStepValue(RADIUS)
             partial_sum_squared = node.GetSolutionStepValue(RADIUS) ** 2.0
             total_sum_squared += partial_sum_squared
-            volume += 4 * 3.141592 / 3 * node.GetSolutionStepValue(RADIUS) ** 3.0
-            area += 3.141592 * partial_sum_squared
+            volume += 4 * math.pi / 3 * node.GetSolutionStepValue(RADIUS) ** 3.0
+            area += math.pi * partial_sum_squared
             i += 1.0
 
         if i > 0.0:
@@ -675,7 +675,7 @@ class Procedures():
             Model_Data.write("Total Number of Bonds: " + str(Total_Contacts) + '\n')
             Model_Data.write("Bonded Coordination Number NC: " + str(Coordination_Number) + '\n')
             Model_Data.write('\n')
-            #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
+            Model_Data.write("Volume Elements: " + str(volume) + '\n')
             self.KratosPrintInfo("Coordination Number: " + str(Coordination_Number) + "\n")
 
         Model_Data.close()

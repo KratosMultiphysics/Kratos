@@ -179,6 +179,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("DestroyParticlesModelPartType", &ParticleCreatorDestructor::DestroyParticlesModelPartType)
         .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
         .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
+        .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
         ;
 
     py::class_<DEM_Inlet, DEM_Inlet::Pointer>(m, "DEM_Inlet")

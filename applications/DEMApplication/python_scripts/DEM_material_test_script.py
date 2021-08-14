@@ -64,7 +64,7 @@ class MaterialTest():
 
         self.new_strain = 0.0
         self.LoadingVelocity = 0.0
-        self.MeasuringSurface = 1.0
+        self.MeasuringSurface = 1.0 # TODO: maybe it would be better to set it to zero and then check its value changes
 
         # for the graph plotting
         if "material_test_settings" in DEM_parameters.keys():

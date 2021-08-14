@@ -70,6 +70,11 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.skin_factor_radius = 1.0
         else:
             self.skin_factor_radius = DEM_parameters["SkinFactorRadius"].GetDouble()
+        
+        if not "UnbreakableMaterial" in DEM_parameters.keys():
+            self.unbreakable_material = False
+        else:
+            self.unbreakable_material = DEM_parameters["UnbreakableMaterial"].GetBool()
 
     def CreateCPlusPlusStrategy(self):
 
@@ -91,6 +96,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(MAX_NUMBER_OF_INTACT_BONDS_TO_CONSIDER_A_SPHERE_BROKEN, self.max_number_of_intact_bonds_to_consider_a_sphere_broken)
         self.spheres_model_part.ProcessInfo.SetValue(AUTOMATIC_SKIN_COMPUTATION, self.automatic_skin_computation)
         self.spheres_model_part.ProcessInfo.SetValue(SKIN_FACTOR_RADIUS, self.skin_factor_radius)
+        self.spheres_model_part.ProcessInfo.SetValue(IS_UNBREAKABLE, self.unbreakable_material)
 
         for properties in self.spheres_model_part.Properties:
             for subproperties in properties.GetSubProperties():

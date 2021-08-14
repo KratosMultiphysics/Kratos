@@ -1176,6 +1176,20 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
+    void ParticleCreatorDestructor::MarkIsolatedParticlesForErasing(ModelPart& r_model_part) {
+
+        KRATOS_TRY
+        Configure::ElementsContainerType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
+        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            SphericContinuumParticle& r_continuum_spheric_particle = dynamic_cast<SphericContinuumParticle&> (rElement);
+            if (!r_continuum_spheric_particle.mContinuumInitialNeighborsSize) {
+                r_continuum_spheric_particle.GetGeometry()[0].Set(TO_ERASE);
+                r_continuum_spheric_particle.Set(TO_ERASE);
+            }
+        });
+        KRATOS_CATCH("")
+    }
+
     void ParticleCreatorDestructor::RemoveUnusedNodesOfTheClustersModelPart(ModelPart& r_clusters_modelpart) {
         KRATOS_TRY
         ModelPart::NodesContainerType& rNodes = r_clusters_modelpart.GetCommunicator().LocalMesh().Nodes();

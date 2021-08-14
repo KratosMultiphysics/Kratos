@@ -292,11 +292,12 @@ namespace Kratos {
         }
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-            if (failure_type == 0) {
+            
+            if (!failure_type) {
                 double mTensionLimit = GetContactSigmaMax(); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
-                if (fabs(LocalElasticContactForce[2]) > limit_force) {
+                if ((fabs(LocalElasticContactForce[2]) > limit_force) && !r_process_info[IS_UNBREAKABLE]) {
                     failure_type = 4; //tension failure
                     LocalElasticContactForce[2] = 0.0;
                 }
@@ -365,7 +366,7 @@ namespace Kratos {
                 tau_strength = tau_zero + internal_friction * contact_sigma;
             }
 
-            if (contact_tau > tau_strength) {
+            if ((contact_tau > tau_strength) && !r_process_info[IS_UNBREAKABLE]) {
                 failure_type = 2; // shear
             }
         }
