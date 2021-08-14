@@ -21,11 +21,13 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self._CheckCoherentInputs()
         self.creator_destructor = DEM.ParticleCreatorDestructor()
 
+        # Analysis settings
         self.number_of_DEM_steps_between_steadiness_checks = 25
         self.stationarity_measuring_tolerance = 5e-3
         self.ignore_isolated_particles = True
         self.remove_isolated_particles = True
-
+        self.breakable_material_after_first_dem_solution_steadiness_achieved = True
+        
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
         file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
         file3 = os.path.join(os.getcwd(), "poro_solution_time_vs_dem_time_vs_dems_steps.txt")
@@ -52,8 +54,10 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.creator_destructor.MarkIsolatedParticlesForErasing(self.dem_solution.spheres_model_part)
 
     def RunSolutionLoop(self):
+        
         self.stationarity_checking_is_activated = False
-
+        first_dem_solution_steadiness_achieved = False
+        
         while self.poromechanics_solution.KeepAdvancingSolutionLoop():
             print("\n************************************ Solving FEM...\n", flush=True)
             self.poromechanics_solution.time = self.poromechanics_solution._GetSolver().AdvanceInTime(self.poromechanics_solution.time)
@@ -71,6 +75,9 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
             self.DEM_steps_counter = 0
             self.dem_time_steps_per_fem_time_step = 0
             self.dem_solution.time = self.poromechanics_solution.time
+            
+            if first_dem_solution_steadiness_achieved and self.breakable_material_after_first_dem_solution_steadiness_achieved:
+                self.dem_solution.spheres_model_part.ProcessInfo[DEM.IS_UNBREAKABLE] = False
 
             while not self.DEMSolutionIsSteady():
                 self.dem_solution.time = self.dem_solution._GetSolver().AdvanceInTime(self.dem_solution.time)
@@ -80,6 +87,8 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
                 self.dem_solution.FinalizeSolutionStep()
                 self.AdditionalDEMOperationsToFinalizeDEMSolutionStep()
                 self.dem_solution.OutputSolutionStep()
+            
+            first_dem_solution_steadiness_achieved = True
 
     def AdditionalDEMOperationsToFinalizeDEMSolutionStep(self):
 
