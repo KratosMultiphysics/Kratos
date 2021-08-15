@@ -194,7 +194,6 @@ class PostUtils():
         if self.vel_trap_graph_frequency < 1:
             self.vel_trap_graph_frequency = 1 # that means it is not possible to print results with a higher frequency than the computations delta time
 
-
         self.previous_vector_of_inner_nodes = []
         self.previous_time = 0.0
 
@@ -888,6 +887,7 @@ class DEMFEMProcedures():
 
         self.graph_counter = 1
         self.balls_graph_counter = 0
+        self.additional_graphs_counter = 0
 
         self.graph_frequency = int((self.DEM_parameters["GraphExportFreq"].GetDouble() / spheres_model_part.ProcessInfo.GetValue(DELTA_TIME))+1.0)
         if self.graph_frequency < 1:
@@ -917,6 +917,9 @@ class DEMFEMProcedures():
                     self.particle_graph_forces[identifier] = open(absolute_path_to_file, 'w')
                     self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) + " " + str("total_force_z").rjust(13) + "\n")
 
+        absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_CN.grf")
+        self.CN_export = open(absolute_path_to_file, 'w')
+        
         def evaluate_computation_of_fem_results():
 
             self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_FEM_RESULTS_OPTION, 0)
@@ -1048,6 +1051,19 @@ class DEMFEMProcedures():
 
         if self.TestType == "None":
             self.close_graph_files(rigid_face_model_part)
+
+    def PrintAdditionalGraphs(self, time, solver):
+
+        if self.additional_graphs_counter == self.graph_frequency:
+            
+            self.additional_graphs_counter = 0
+
+            dummy = 0
+            CN = solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+            self.CN_export.write(str("%.13g"%time).rjust(14) + "  " + str("%.11g"%CN).rjust(12) + '\n')
+            self.CN_export.flush()
+
+        self.additional_graphs_counter += 1
 
     def PrintBallsGraph(self, time):
 
@@ -1249,10 +1265,6 @@ class MaterialTest():
     def GenerateGraphics(self):
         if self.TestType != "None":
             self.script.GenerateGraphics()
-
-    def PrintCoordinationNumberGraph(self, time, solver):
-        if self.TestType != "None":
-            self.script.PrintCoordinationNumberGraph(time, solver)
 
 
 class MultifileList():

@@ -407,6 +407,7 @@ class MaterialTest():
     def PrintGraph(self, time):
 
         if self.graph_counter == self.graph_frequency:
+            
             self.graph_counter = 0
 
             if self.test_type == "BTS":
@@ -429,17 +430,6 @@ class MaterialTest():
                     self.Flush(self.graph_export_volumetric)
 
         self.graph_counter += 1
-
-    def PrintCoordinationNumberGraph(self, time, solver):
-
-        if self.CN_graph_counter == self.graph_frequency:
-            self.CN_graph_counter = 0
-            dummy = 0
-            CN = solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
-            self.CN_export.write(str("%.8g"%time).rjust(12) + "  " + str(CN) + '\n')
-            self.Flush(self.CN_export)
-
-        self.CN_graph_counter += 1
 
     def PrintChart(self):
 
