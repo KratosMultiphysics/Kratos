@@ -146,7 +146,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::Initialize(const ProcessInfo& rCu
     }
 
     // resize mStressVector:
-    const unsigned int VoigtSize = this->GetVoigtSize();
     if ( mStressVector.size() != NumGPoints )
     {
        mStressVector.resize(NumGPoints);
@@ -168,10 +167,9 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if (rElementalDofList.size() != N_DOF)
-      rElementalDofList.resize( N_DOF );
+    if (rElementalDofList.size() != N_DOF_ELEMENT)
+      rElementalDofList.resize( N_DOF_ELEMENT );
 
     unsigned int index = 0;
     if (TDim == 3)
@@ -221,17 +219,15 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
     //Resetting the LHS
-    if ( rLeftHandSideMatrix.size1() != N_DOF )
-        rLeftHandSideMatrix.resize( N_DOF, N_DOF, false );
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( N_DOF, N_DOF );
+    if ( rLeftHandSideMatrix.size1() != N_DOF_ELEMENT )
+        rLeftHandSideMatrix.resize( N_DOF_ELEMENT, N_DOF_ELEMENT, false );
+    noalias( rLeftHandSideMatrix ) = ZeroMatrix( N_DOF_ELEMENT, N_DOF_ELEMENT );
 
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != N_DOF )
-        rRightHandSideVector.resize( N_DOF, false );
-    noalias( rRightHandSideVector ) = ZeroVector( N_DOF );
+    if ( rRightHandSideVector.size() != N_DOF_ELEMENT )
+        rRightHandSideVector.resize( N_DOF_ELEMENT, false );
+    noalias( rRightHandSideVector ) = ZeroVector( N_DOF_ELEMENT );
 
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -259,12 +255,10 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != N_DOF )
-        rRightHandSideVector.resize( N_DOF, false );
-    noalias( rRightHandSideVector ) = ZeroVector( N_DOF );
+    if ( rRightHandSideVector.size() != N_DOF_ELEMENT )
+        rRightHandSideVector.resize( N_DOF_ELEMENT, false );
+    noalias( rRightHandSideVector ) = ZeroVector( N_DOF_ELEMENT );
 
     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
 
@@ -280,11 +274,10 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& rGeom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
     unsigned int index = 0;
 
-    if (rResult.size() != N_DOF)
-      rResult.resize( N_DOF, false );
+    if (rResult.size() != N_DOF_ELEMENT)
+      rResult.resize( N_DOF_ELEMENT, false );
 
     if (TDim == 2)
     {
@@ -336,22 +329,20 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
     // Compute Mass Matrix
-    MatrixType MassMatrix(N_DOF, N_DOF);
+    MatrixType MassMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
 
     this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
 
     // Compute Stiffness matrix
-    MatrixType StiffnessMatrix(N_DOF, N_DOF);
+    MatrixType StiffnessMatrix(N_DOF_ELEMENT, N_DOF_ELEMENT);
 
     this->CalculateStiffnessMatrix(StiffnessMatrix, rCurrentProcessInfo);
 
     // Compute Damping Matrix
-    if ( rDampingMatrix.size1() != N_DOF )
-        rDampingMatrix.resize( N_DOF, N_DOF, false );
-    noalias( rDampingMatrix ) = ZeroMatrix( N_DOF, N_DOF );
+    if ( rDampingMatrix.size1() != N_DOF_ELEMENT )
+        rDampingMatrix.resize( N_DOF_ELEMENT, N_DOF_ELEMENT, false );
+    noalias( rDampingMatrix ) = ZeroMatrix( N_DOF_ELEMENT, N_DOF_ELEMENT );
 
     noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
     noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
@@ -367,10 +358,9 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if ( rValues.size() != N_DOF )
-        rValues.resize( N_DOF, false );
+    if ( rValues.size() != N_DOF_ELEMENT )
+        rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
     if ( TDim > 2 )
@@ -406,10 +396,9 @@ GetFirstDerivativesVector( Vector& rValues, int Step ) const
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if ( rValues.size() != N_DOF )
-        rValues.resize( N_DOF, false );
+    if ( rValues.size() != N_DOF_ELEMENT )
+        rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
 
@@ -446,10 +435,9 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     KRATOS_TRY
 
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int N_DOF = this->GetNumberOfDOF();
 
-    if ( rValues.size() != N_DOF )
-        rValues.resize( N_DOF, false );
+    if ( rValues.size() != N_DOF_ELEMENT )
+        rValues.resize( N_DOF_ELEMENT, false );
 
     unsigned int index = 0;
 
@@ -559,8 +547,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const unsigned int N_DOF = this->GetNumberOfDOF();
-
     //Properties variables
 
     //ProcessInfo variables
@@ -570,25 +556,22 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VelocityVector,     Geom, VELOCITY);
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.VolumeAcceleration, Geom, VOLUME_ACCELERATION);
 
-    rVariables.DofValuesVector.resize(N_DOF*TNumNodes);
+    rVariables.DofValuesVector.resize(N_DOF_ELEMENT*TNumNodes);
     GetNodalDofValuesVector(rVariables.DofValuesVector, Geom);
 
     //General Variables
-    const unsigned int VoigtSize = this->GetVoigtSize();
-
-    rVariables.DofValuesVector.resize(N_DOF*TNumNodes);
+    rVariables.DofValuesVector.resize(N_DOF_ELEMENT*TNumNodes);
 
     rVariables.CrossDirection.resize(TDim, TNumNodes);
     CalculateCrossDirection(rVariables.CrossDirection);
 
     //Variables computed at each GP
-    //rVariables.B.resize(TDim, N_DOF*TNumNodes, false);
-    rVariables.B.resize(VoigtSize, N_DOF*TNumNodes, false);
+    rVariables.B.resize(VoigtSize, N_DOF_ELEMENT*TNumNodes, false);
 
     noalias(rVariables.Nu) = ZeroMatrix(TDim, TNumNodes*TDim);
 
     rVariables.TransformationMatrix.resize(TDim, VoigtSize, false);
-    rVariables.UVoigtMatrix.resize(N_DOF*TNumNodes, VoigtSize, false);
+    rVariables.UVoigtMatrix.resize(N_DOF_ELEMENT*TNumNodes, VoigtSize, false);
 
     //Constitutive Law parameters
     rVariables.StrainVector.resize(VoigtSize, false);
@@ -647,75 +630,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     }
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-SizeType GeoStructuralBaseElement<TDim,TNumNodes>::GetNumberOfDOF() const
-{
-    KRATOS_ERROR << "calling the default GetNumberOfDOF method for a particular element ... illegal operation!!" << this->Id() << std::endl;
-
-    SizeType N_DOF = 0;
-    TDim == 2 ? N_DOF = 3 : N_DOF = 6;
-
-    return TNumNodes * N_DOF;
-}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-SizeType GeoStructuralBaseElement<TDim,TNumNodes>::GetVoigtSize() const
-{
-
-    KRATOS_ERROR << "calling the default GetVoigtSize method for a particular element ... illegal operation!!" << this->Id() << std::endl;
-
-    unsigned int VoigtSize;
-    TDim == 3 ? VoigtSize = VOIGT_SIZE_3D : VoigtSize = VOIGT_SIZE_2D_PLANE_STRESS;
-
-    return VoigtSize;
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void GeoStructuralBaseElement<TDim,TNumNodes>::
-    UpdateElementalVariableStressVector(ElementVariables& rVariables, unsigned int PointNumber)
-{
-    for (unsigned int i=0; i < rVariables.StressVector.size(); ++i)
-    {
-        rVariables.StressVector(i) = mStressVector[PointNumber][i];
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void GeoStructuralBaseElement<TDim,TNumNodes>::
-    UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber)
-{
-    for (unsigned int i=0; i < StressVector.size(); ++i)
-    {
-        StressVector(i) = mStressVector[PointNumber][i];
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void GeoStructuralBaseElement<TDim,TNumNodes>::
-    UpdateStressVector(const ElementVariables &rVariables, unsigned int PointNumber)
-{
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = rVariables.StressVector(i);
-    }
-}
-
-//-------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void GeoStructuralBaseElement<TDim,TNumNodes>::
-    UpdateStressVector(const Vector &StressVector, unsigned int PointNumber)
-{
-    for (unsigned int i=0; i < mStressVector[PointNumber].size(); ++i)
-    {
-        mStressVector[PointNumber][i] = StressVector(i);
-    }
-}
-
 //-------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 SizeType GeoStructuralBaseElement<TDim,TNumNodes>::
@@ -729,10 +643,8 @@ SizeType GeoStructuralBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-template class GeoStructuralBaseElement<2,2>;
 template class GeoStructuralBaseElement<2,3>;
 
-template class GeoStructuralBaseElement<3,2>;
 template class GeoStructuralBaseElement<3,3>;
 template class GeoStructuralBaseElement<3,4>;
 template class GeoStructuralBaseElement<3,6>;
