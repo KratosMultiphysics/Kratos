@@ -95,6 +95,7 @@
 
 // Thermal cl
 #include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
+#include "custom_constitutive_thermal/thermal_linear_plane_strain.h"
 
 namespace Kratos {
 namespace Python {
@@ -1481,6 +1482,9 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Thermal CL
     py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
     (m,"ThermalElasticIsotropic3D").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStrain, typename ThermalLinearPlaneStrain::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStrain").def(py::init<>());
 }
 
 }  // namespace Python.
