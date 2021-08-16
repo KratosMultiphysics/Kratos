@@ -519,7 +519,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     {
 
         const GeometryType& r_geometry = rParameters.GetElementGeometry();
-        const unsigned int number_of_nodes = r_geometry.size();
+        const std::size_t number_of_nodes = r_geometry.size();
         const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
         double result = 0;
 
