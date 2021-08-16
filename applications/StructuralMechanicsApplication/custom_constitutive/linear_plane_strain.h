@@ -39,7 +39,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 /**
  * @class LinearPlaneStrain
  * @ingroup StructuralMechanicsApplication
@@ -57,22 +57,22 @@ public:
 
     /// The process info definition
     typedef ProcessInfo      ProcessInfoType;
-    
+
     /// The base class ConstitutiveLaw type definition
     typedef ConstitutiveLaw       CLBaseType;
-    
+
     /// The base class ElasticIsotropic3D type definition
     typedef ElasticIsotropic3D      BaseType;
-    
+
     /// The size type definition
     typedef std::size_t             SizeType;
-    
+
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
-    
+
     /// Static definition of the VoigtSize
     static constexpr SizeType VoigtSize = 3;
-    
+
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION( LinearPlaneStrain );
 
@@ -116,7 +116,7 @@ public:
 
     /**
      * @brief Dimension of the law:
-     * @return The dimension were the law is working 
+     * @return The dimension were the law is working
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -188,7 +188,7 @@ protected:
      * @param rValues Parameters of the constitutive law
      */
     void CalculateElasticMatrix(
-        ConstitutiveLaw::VoigtSizeMatrixType& C, 
+        ConstitutiveLaw::VoigtSizeMatrixType& C,
         ConstitutiveLaw::Parameters& rValues
         ) override;
 
