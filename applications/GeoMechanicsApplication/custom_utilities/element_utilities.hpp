@@ -231,17 +231,15 @@ public:
     static inline void AssembleUBlockMatrix(Matrix &rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TDim*TNumNodes, TDim*TNumNodes> &UBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j  = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j  = j * TDim;
 
                 for (unsigned int idim = 0; idim < TDim; ++idim)
                 {
@@ -260,17 +258,15 @@ public:
                                             const double &TNumNodes,
                                             const double &TDim)
     {
-        unsigned int Global_i, Global_j, Local_i, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j  = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j  = j * TDim;
 
                 for (unsigned int idim = 0; idim < TDim; ++idim)
                 {
@@ -288,16 +284,14 @@ public:
     static inline void AssembleUPBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TDim*TNumNodes,TNumNodes>& UPBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i = i * TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1) + TDim;
+                const unsigned int Global_j = j * (TDim + 1) + TDim;
 
                 for (unsigned int dim = 0; dim < TDim; ++dim)
                 {
@@ -312,16 +306,14 @@ public:
     static inline void AssemblePUBlockMatrix(Matrix& rLeftHandSideMatrix,
                                              const BoundedMatrix<double,TNumNodes,TNumNodes*TDim>& PUBlockMatrix)
     {
-        unsigned int Global_i, Global_j, Local_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1);
-                Local_j = j * TDim;
+                const unsigned int Global_j = j * (TDim + 1);
+                const unsigned int Local_j = j * TDim;
 
                 for (unsigned int dim = 0; dim < TDim; ++dim)
                 {
@@ -336,15 +328,13 @@ public:
     static inline void AssemblePBlockMatrix(Matrix& rLeftHandSideMatrix,
                                             const BoundedMatrix<double,TNumNodes,TNumNodes> &PBlockMatrix)
     {
-        unsigned int Global_i, Global_j;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             for (unsigned int j = 0; j < TNumNodes; j++)
             {
-                Global_j = j * (TDim + 1) + TDim;
+                const unsigned int Global_j = j * (TDim + 1) + TDim;
 
                 rLeftHandSideMatrix(Global_i,Global_j) += PBlockMatrix(i,j);
             }
@@ -356,12 +346,10 @@ public:
     static inline void AssembleUBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double,TDim*TNumNodes>& UBlockVector)
     {
-        unsigned int Global_i, Local_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1);
-            Local_i  = i * TDim;
+            const unsigned int Global_i = i * (TDim + 1);
+            const unsigned int Local_i  = i * TDim;
 
             for (unsigned int dim = 0; dim < TDim; ++dim)
             {
@@ -375,11 +363,9 @@ public:
     static inline void AssemblePBlockVector(Vector& rRightHandSideVector,
                                             const array_1d<double, TNumNodes> &PBlockVector)
     {
-        unsigned int Global_i;
-
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            Global_i = i * (TDim + 1) + TDim;
+            const unsigned int Global_i = i * (TDim + 1) + TDim;
 
             rRightHandSideVector[Global_i] += PBlockVector[i];
         }
@@ -391,6 +377,7 @@ public:
         //Line 2-noded
         const unsigned int NumNodes = 2;
         const std::vector<double> Xi{-1.0, 1.0};
+
         noalias(DN_DXContainer) = ZeroMatrix(NumNodes,NumNodes);
 
         for (unsigned int integrationPoint = 0; integrationPoint < NumNodes; ++integrationPoint)
