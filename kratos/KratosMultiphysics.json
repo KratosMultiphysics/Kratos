@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMultiphysics",
 	"included_modules": [],
-	"included_binaries": ["Kratos", "KratosCore", "zlib"],
+	"included_binaries": ["Kratos.*", "KratosCore.*", "zlib.*"],
 	"dependencies": [],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
