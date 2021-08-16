@@ -498,7 +498,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
 
         // Compute the independent variable at the Gauss point
         double independent_at_gauss = 0.0;
-        for (unsigned int i = 0; i < r_N.size(); ++i) {
+        for (std::size_t i = 0; i < r_N.size(); ++i) {
             const double val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
             independent_at_gauss += val * r_N[i];
         }
