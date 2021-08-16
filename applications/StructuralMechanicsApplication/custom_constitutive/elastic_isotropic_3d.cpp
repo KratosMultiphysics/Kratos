@@ -354,8 +354,8 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double E  = GetMaterialProperty(YOUNG_MODULUS, rValues);
+    const double NU = GetMaterialProperty(POISSON_RATIO, rValues);
 
     this->CheckClearElasticMatrix(rConstitutiveMatrix);
 
@@ -388,8 +388,8 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     )
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
+    const double E  = GetMaterialProperty(YOUNG_MODULUS, rValues);
+    const double NU = GetMaterialProperty(POISSON_RATIO, rValues);
 
     const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
     const double c2 = c1 * (1 - NU);
