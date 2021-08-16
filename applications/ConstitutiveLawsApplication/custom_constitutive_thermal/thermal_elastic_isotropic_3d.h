@@ -58,7 +58,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef typename ElasticIsotropic3D BaseType;
+    typedef ElasticIsotropic3D BaseType;
 
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION(ThermalElasticIsotropic3D);
