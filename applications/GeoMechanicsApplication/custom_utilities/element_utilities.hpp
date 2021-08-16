@@ -431,7 +431,7 @@ public:
         for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
         {
             // Displacement from the reference to the current configuration
-            const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
+            const array_1d<double, 3 >& CurrentPosition = Geom[iNode].Coordinates();
             Radius += CurrentPosition[0] * N[iNode];
         }
 
