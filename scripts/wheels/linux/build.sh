@@ -24,7 +24,7 @@ build_core_wheel () {
     PREFIX_LOCATION=$1
     
     cp ${PREFIX_LOCATION}/KratosMultiphysics/* ${WHEEL_ROOT}/KratosMultiphysics
-    cp ${KRATOS_ROOT}/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics.json ${WHEEL_ROOT}/wheel.json
     cp scripts/wheels/__init__.py ${WHEEL_ROOT}/KratosMultiphysics/__init__.py
     
     cd $WHEEL_ROOT
@@ -57,7 +57,7 @@ build_application_wheel () {
 
 build_kratos_all_wheel () {
     setup_wheel_dir
-    cp ${KRATOS_ROOT}/scripts/wheels/linux/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
+    cp ${KRATOS_ROOT}/kratos/KratosMultiphysics-all.json ${WHEEL_ROOT}/wheel.json
     cp ${KRATOS_ROOT}/scripts/wheels/linux/setup_kratos_all.py ${WHEEL_ROOT}/setup.py
     cd ${WHEEL_ROOT}
     $PYTHON_LOCATION setup.py bdist_wheel
