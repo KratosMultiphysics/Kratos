@@ -159,7 +159,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         self.RemoveConvectiveVelocity()
 
-        KratosMultiphysics.Logger.PrintInfo("+--------------------------------------------------------------+")
+        KratosMultiphysics.Logger.PrintInfo("+" + 130*"-" + "+")
 
         return (solid_is_converged and thermal_is_converged)
 
