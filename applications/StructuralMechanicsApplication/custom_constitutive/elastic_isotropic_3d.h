@@ -360,6 +360,15 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
+
+    virtual double GetMaterialProperty(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters& rValues
+        )
+    {
+        return rValues.GetMaterialProperties()[rVariable];
+    }
+
 protected:
 
     ///@name Protected static Member Variables
