@@ -143,12 +143,12 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self.structural_solver.InitializeSolutionStep()
         self.thermal_solver.InitializeSolutionStep()
+        self.structural_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.structural_solver.Predict()
         self.thermal_solver.Predict()
+        self.structural_solver.Predict()
 
     def SolveSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
