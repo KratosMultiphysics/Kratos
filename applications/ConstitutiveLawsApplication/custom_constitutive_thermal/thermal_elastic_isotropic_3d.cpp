@@ -19,15 +19,18 @@
 // Project includes
 #include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
 
+#include "includes/checks.h"
+#include "structural_mechanics_application_variables.h"
+
 namespace Kratos
 {
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void  ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+void ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const auto& r_process_info = rValues.GetProcessInfo();
     if (r_process_info[STEP] == 1) // We storage the ref temperature as the initial one
         mReferenceTemperature = AdvancedConstitutiveLawUtilities<6>::CalculateInGaussPoint(TEMPERATURE, rValues);
@@ -46,14 +49,14 @@ void  ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::P
     AdvancedConstitutiveLawUtilities<6>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
 
     // We force to use the already computed strain in the base CL
-    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED, true);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
     BaseType::CalculateMaterialResponsePK2(rValues);
 
     // We reset the flag
-    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED, use_elem_provided_flag_backup);
+    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, use_elem_provided_flag_backup);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -65,11 +68,81 @@ int ThermalElasticIsotropic3D::Check(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_ERROR_IF_NOT(rElementGeometry[0].HasNodalSolutionStepVariable(TEMPERATURE)) << "The TEMPERATURE variable is not available at the nodes." << std::endl;
+    KRATOS_ERROR_IF_NOT(rElementGeometry[0].SolutionStepsDataHas(TEMPERATURE)) << "The TEMPERATURE variable is not available at the nodes." << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT))        << "The THERMAL_EXPANSION_COEFFICIENT is not set in the material properties." << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[THERMAL_EXPANSION_COEFFICIENT] < 0.0)          << "The THERMAL_EXPANSION_COEFFICIENT is negative..." << std::endl;
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector& ThermalElasticIsotropic3D::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<Vector>& rThisVariable,
+    Vector& rValue
+    )
+{
+    if (rThisVariable == STRAIN ||
+        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
+        rThisVariable == ALMANSI_STRAIN_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        // Set flags to only compute the strain
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+
+        ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
+        noalias(rValue) = rParameterValues.GetStrainVector();
+
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+
+    } else if (rThisVariable == STRESSES ||
+        rThisVariable == CAUCHY_STRESS_VECTOR ||
+        rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
+        rThisVariable == PK2_STRESS_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        // Set flags to only compute the stress
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(rParameterValues);
+        if (rValue.size() != GetStrainSize()) {
+            rValue.resize(GetStrainSize());
+        }
+        noalias(rValue) = rParameterValues.GetStressVector();
+
+        // Previous flags restored
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
+    } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
+        if (this->HasInitialState()) {
+	    if (rValue.size() != GetStrainSize()) {
+	        rValue.resize(GetStrainSize());
+	    }
+	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
+        } else {
+            noalias(rValue) = ZeroVector(0);
+        }
+    }
+    return (rValue);
 }
 
 /***********************************************************************************/

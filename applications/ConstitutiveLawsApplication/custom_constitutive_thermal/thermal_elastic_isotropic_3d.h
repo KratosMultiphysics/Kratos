@@ -66,14 +66,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    ///@}
-    ///@name Operators
-    ///@{
+    /**
+     * @brief Default constructor.
+     */
+    ThermalElasticIsotropic3D() {}
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Clone method
+     */
+    ConstitutiveLaw::Pointer Clone() const override
+    {
+        return Kratos::make_shared<ThermalElasticIsotropic3D>(*this);
+    }
 
+
+    /**
+     * @brief Destructor.
+     */
+    ~ThermalElasticIsotropic3D() override {}
 
     /**
     * Copy constructor.
@@ -83,6 +93,14 @@ public:
           mReferenceTemperature(rOther.mReferenceTemperature)
     {
     }
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     double& GetReferenceTemperature()
     {
@@ -102,7 +120,7 @@ public:
     double GetMaterialProperty(
         const Variable<double> &rVariable,
         ConstitutiveLaw::Parameters &rParameters
-        ) override;
+        ) override
     {
         const Properties& r_properties = rParameters.GetMaterialProperties();
 
@@ -132,6 +150,19 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief It calculates the value of a specified variable (Vector case)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<Vector>& rThisVariable,
+        Vector& rValue
         ) override;
 
     ///@}
