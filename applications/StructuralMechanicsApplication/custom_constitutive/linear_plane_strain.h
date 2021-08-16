@@ -48,7 +48,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain 
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearPlaneStrain
     : public ElasticIsotropic3D
 {
 public:
