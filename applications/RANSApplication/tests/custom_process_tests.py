@@ -18,6 +18,7 @@ class CustomProcessTest(UnitTest.TestCase):
 
         # add required variables to solution step list
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NORMAL)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
@@ -49,10 +50,12 @@ class CustomProcessTest(UnitTest.TestCase):
     def setUp(self):
         # reinitialize variables for each test
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.VELOCITY, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.MESH_VELOCITY, 0.0, 50.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
+        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.WALL_DISTANCE, 0.0, 100.0, 0)
 
         Kratos.VariableUtils().SetVariable(Kratos.DENSITY, 1.0, self.model_part.Nodes)
 
@@ -337,6 +340,52 @@ class CustomProcessTest(UnitTest.TestCase):
 
         CalculateNormalsOnConditions(self.model_part)
         self._RunProcessTest(settings)
+
+    def testApplyWallFunctionProcess(self):
+        settings = Kratos.Parameters(r'''
+        [
+            {
+                "python_module" : "apply_wall_function_process",
+                "kratos_module" : "KratosMultiphysics.RANSApplication",
+                "Parameters": {
+                    "model_part_names" : [
+                        "FluidModelPart.Slip2D.Slip2D_walls",
+                        "FluidModelPart.AutomaticInlet2D_inlet"
+                    ],
+                    "all_wall_model_part_name": "ALL_WALL_MODEL_PART",
+                    "activate_wall_functions" : true
+                }     
+            }
+        ]''')   # AutomaticInlet2D_inlet is added just for the sake of checkeing list of model parts. Has no physical significance.
+
+        self._RunProcessTest(settings)
+
+        self.assertTrue(self.model.HasModelPart("FluidModelPart.ALL_WALL_MODEL_PART"))
+
+        for node in self.model["FluidModelPart.ALL_WALL_MODEL_PART"].Nodes:
+            self.assertTrue(node.Is(Kratos.STRUCTURE))
+            self.assertTrue(node.Is(Kratos.SLIP))
+            self.assertAlmostEqual(node.GetValue(Kratos.Y_WALL), 1.0, delta=1e-12)
+
+        for condition in self.model["FluidModelPart.ALL_WALL_MODEL_PART"].Conditions:
+            self.assertTrue(condition.Is(Kratos.STRUCTURE))
+            self.assertTrue(condition.Is(Kratos.SLIP))
+            self.assertEqual(condition.GetValue(KratosRANS.RANS_IS_WALL_FUNCTION_ACTIVE), 1)
+
+        # Check if Nodes and Conditions in individual wall modelparts are present in ALL_WALL_MODEL_PART
+        all_wmp_nodeIds = set([node.Id for node in self.model["FluidModelPart.ALL_WALL_MODEL_PART"].Nodes])
+        all_wmp_conditionIds = set([condition.Id for condition in self.model["FluidModelPart.ALL_WALL_MODEL_PART"].Conditions])
+
+        wall_mp_names = settings[0]["Parameters"]["model_part_names"].GetStringArray()
+        for wall_mp_name in wall_mp_names:
+            wall_mp = self.model[wall_mp_name]
+
+            wmp_nodeIds = set([node.Id for node in wall_mp.Nodes])
+            wmp_conditionIds = set([condition.Id for condition in wall_mp.Conditions])
+
+            self.assertTrue(wmp_nodeIds.issubset(all_wmp_nodeIds))
+            self.assertTrue(wmp_conditionIds.issubset(all_wmp_conditionIds))
+
 
     def _RunProcessTest(self, settings):
         with UnitTest.WorkFolderScope(".", __file__):
