@@ -168,5 +168,4 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
     def RemoveConvectiveVelocity(self):
         if self.is_dynamic:
-            for node in self.thermal_solver.GetComputingModelPart().Nodes:
-                node.SetSolutionStepValue(KratosMultiphysics.MESH_VELOCITY, node.GetSolutionStepValue(KratosMultiphysics.VELOCITY))
+            KratosMultiphysics.variable_utils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY, KratosMultiphysics.MESH_VELOCITY, self.thermal_solver.GetComputingModelPart(), self.thermal_solver.GetComputingModelPart())
