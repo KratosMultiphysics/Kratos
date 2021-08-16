@@ -93,6 +93,9 @@
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
+// Thermal cl
+#include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
+
 namespace Kratos {
 namespace Python {
 
@@ -1474,6 +1477,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb").def(py::init<>());
+
+    // Thermal CL
+    py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m,"ThermalElasticIsotropic3D").def(py::init<>());
 }
 
 }  // namespace Python.

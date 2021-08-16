@@ -99,6 +99,9 @@
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
+// Thermal cl
+#include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -612,6 +615,10 @@ private:
     const AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>> mAssociativePlasticDamageModel3DVonMisesVonMises;
     const AssociativePlasticDamageModel <DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>> mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager;
     const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb;
+
+    // Thermal CL
+    const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
+
 
     ///@}
     ///@name Private Operators

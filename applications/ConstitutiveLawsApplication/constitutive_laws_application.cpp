@@ -398,6 +398,9 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DDruckerPragerDruckerPrager", mAssociativePlasticDamageModel3DDruckerPragerDruckerPrager);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulombModifiedMohrCoulomb);
 
+    // Thermal CL
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalElasticIsotropic3D", mThermalElasticIsotropic3D);
+
     // Constitutive laws variables
 
     //Faituge variables
