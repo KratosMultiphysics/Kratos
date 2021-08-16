@@ -385,7 +385,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
 
     const GeometryType& mrInputGeometry;
     const Vector& mrNodalDistances;
