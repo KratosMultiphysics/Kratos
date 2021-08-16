@@ -158,7 +158,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
         thermal_is_converged = self.thermal_solver.SolveSolutionStep()
 
-        print("+--------------------------------------------------------------+")
+        KratosMultiphysics.Logger.PrintInfo("+--------------------------------------------------------------+")
 
         return (solid_is_converged and thermal_is_converged)
 
