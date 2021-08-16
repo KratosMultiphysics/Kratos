@@ -380,6 +380,19 @@ class RansFormulation:
         """
         return None
 
+    def GetSolvingVariables(self):
+        """Returns list of variables being solved in this formulation
+
+        Returns:
+        List(RansFormulation): List of variables
+        """
+
+        variables = []
+        for formulation in self.__list_of_formulations:
+            variables.extend(formulation.GetSolvingVariables())
+
+        return variables
+
     def GetInfo(self):
         """Recursively identify formulations being used.
 

@@ -312,3 +312,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def ElementHasNodalProperties(self):
         return self.flow_solver_formulation.element_has_nodal_properties
 
+    def GetSolvingVariables(self):
+        if (self.GetDomainSize() == 2):
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.PRESSURE]
+        elif (self.GetDomainSize() == 3):
+            return [Kratos.VELOCITY_X, Kratos.VELOCITY_Y, Kratos.VELOCITY_Z, Kratos.PRESSURE]
