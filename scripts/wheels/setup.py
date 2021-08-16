@@ -1,6 +1,7 @@
 import setuptools
 import os
 import json
+import glob
 import shutil
 
 kratos_version = os.environ["KRATOS_VERSION"]
