@@ -533,7 +533,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      * @brief This substracts the thermal strain contribution to a vector
      */
     static void SubstractThermalStrain(
-        BoundedVectorType& rStrainVector,
+        ConstitutiveLaw::StrainVectorType& rStrainVector,
         const double ReferenceTemperature,
         ConstitutiveLaw::Parameters& rParameters
         )
