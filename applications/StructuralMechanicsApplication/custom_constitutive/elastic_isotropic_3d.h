@@ -361,6 +361,12 @@ public:
         ) override;
 
 
+    /**
+     * @brief This method retrieves a material property, in thermal CL
+     * this method calculate the value of the property according to TEMPERATURE
+     * @param rVariable The property of the material to be retrieved
+     * @param rValues The constitutive parameters
+     */
     virtual double GetMaterialProperty(
         const Variable<double>& rVariable,
         ConstitutiveLaw::Parameters& rValues
