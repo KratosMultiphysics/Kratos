@@ -78,9 +78,8 @@ void AxisymElasticIsotropic::GetLawFeatures(Features& rFeatures)
 
 void AxisymElasticIsotropic::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& MaterialProperties = rValues.GetMaterialProperties();
-    const double& E = MaterialProperties[YOUNG_MODULUS];
-    const double& NU = MaterialProperties[POISSON_RATIO];
+    const double E  = GetMaterialProperty(YOUNG_MODULUS, rValues);
+    const double NU = GetMaterialProperty(POISSON_RATIO, rValues);
 
     if (C.size1() != 4 || C.size2() != 4)
         C.resize(4, 4);
