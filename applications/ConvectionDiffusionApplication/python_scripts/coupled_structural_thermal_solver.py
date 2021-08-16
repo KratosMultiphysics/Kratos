@@ -67,7 +67,8 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
-        self.is_dynamic = self.settings["structural_solver_settings"]["solver_type"].GetString() == "Dynamic"
+        solver_type = self.settings["structural_solver_settings"]["solver_type"].GetString()
+        self.is_dynamic = solver_type == "Dynamic" or solver_type == "dynamic"
 
     def AddVariables(self):
         # Import the structural and thermal solver variables. Then merge them to have them in both structural and thermal solvers.
@@ -169,4 +170,4 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def RemoveConvectiveVelocity(self):
         if self.is_dynamic:
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY, KratosMultiphysics.MESH_VELOCITY, self.thermal_solver.GetComputingModelPart(), self.thermal_solver.GetComputingModelPart(), 0)
-            
+
