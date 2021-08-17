@@ -517,7 +517,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         unsigned int step = 0
         )
     {
-        CalculateInGaussPoint(rVariableInput, rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues());
+        return CalculateInGaussPoint(rVariableInput, rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues());
     }
 
     /**
