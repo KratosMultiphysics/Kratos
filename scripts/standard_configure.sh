@@ -42,14 +42,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeCache.txt"
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 
 # Configure
-cmake ..                                                                                            \
--H"${KRATOS_SOURCE}"                                                                                \
--B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}"                                                            \
--DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -Wl,--no-as-needed -ldl"                                      \
--DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -Wl,--no-as-needed -ldl"                                          \
--DUSE_MPI=OFF                                                                                       \
--DUSE_EIGEN_MKL=OFF
-
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -DUSE_MPI=OFF -DUSE_EIGEN_MKL=OFF
 
 # Buid
 cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
