@@ -31,9 +31,6 @@ namespace Kratos
 void ThermalLinearPlaneStrain::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
-    const auto& r_process_info = rValues.GetProcessInfo();
-    if (r_process_info[STEP] == 1) // We storage the ref temperature as the initial one
-        mReferenceTemperature = AdvancedConstitutiveLawUtilities<3>::CalculateInGaussPoint(TEMPERATURE, rValues);
 
     Flags& r_constitutive_law_options = rValues.GetOptions();
     ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
@@ -71,6 +68,7 @@ int ThermalLinearPlaneStrain::Check(
     KRATOS_ERROR_IF_NOT(rElementGeometry[0].SolutionStepsDataHas(TEMPERATURE))  << "The TEMPERATURE variable is not available at the nodes." << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT)) << "The THERMAL_EXPANSION_COEFFICIENT is not set in the material properties." << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[THERMAL_EXPANSION_COEFFICIENT] < 0.0)   << "The THERMAL_EXPANSION_COEFFICIENT is negative..." << std::endl;
+    KRATOS_ERROR_IF_NOT(rElementGeometry.Has(REFERENCE_TEMPERATURE) || rMaterialProperties.Has(REFERENCE_TEMPERATURE)) << "The REFERENCE_TEMPERATURE is not given in the material properties nor via SetValue()" << std::endl;
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     return 0;
 }
@@ -170,6 +168,11 @@ void ThermalLinearPlaneStrain::InitializeMaterial(
     const Vector& rShapeFunctionsValues
     )
 {
+    if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
+    } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
+    }
 }
 
 } // Namespace Kratos
