@@ -188,7 +188,7 @@ public:
      */
     void InitializeMaterial(const Properties &rMaterialProperties,
                             const GeometryType &rElementGeometry,
-                            const Vector &rShapeFunctionsValues);
+                            const Vector &rShapeFunctionsValues) override;
 
     ///@}
     ///@name Access
