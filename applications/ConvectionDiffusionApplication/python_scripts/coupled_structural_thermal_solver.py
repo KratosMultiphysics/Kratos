@@ -7,6 +7,7 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
+import KratosMultiphysics.ConstitutiveLawsApplication    as KratosCLApp
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -145,6 +146,11 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def InitializeSolutionStep(self):
         self.thermal_solver.InitializeSolutionStep()
         self.thermal_solver.Predict()
+
+        process_info = self.structural_solver.GetComputingModelPart().ProcessInfo
+        if process_info[KratosMultiphysics.IS_RESTARTED] or process_info[KratosMultiphysics.STEP] == 1:
+            KratosCLApp.ThermalConstitutiveLawsUtilities().ComputeAndSetReferenceTemperature(self.structural_solver.GetComputingModelPart())
+
         KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
         self.thermal_solver.SolveSolutionStep()
 
