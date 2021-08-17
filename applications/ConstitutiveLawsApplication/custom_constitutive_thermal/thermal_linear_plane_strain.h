@@ -165,6 +165,31 @@ public:
         Vector& rValue
         ) override;
 
+    /**
+     * @brief It calculates the value of a specified variable (double case)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue
+        ) override;
+
+    /**
+     * This is to be called at the very beginning of the calculation
+     * (e.g. from InitializeElement) in order to initialize all relevant
+     * attributes of the constitutive law
+     * @param rMaterialProperties the Properties instance of the current element
+     * @param rElementGeometry the geometry of the current element
+     * @param rShapeFunctionsValues the shape functions values in the current integration point
+     */
+    void InitializeMaterial(const Properties &rMaterialProperties,
+                            const GeometryType &rElementGeometry,
+                            const Vector &rShapeFunctionsValues);
+
     ///@}
     ///@name Access
     ///@{

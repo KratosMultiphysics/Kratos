@@ -165,6 +165,19 @@ public:
         Vector& rValue
         ) override;
 
+    /**
+     * @brief It calculates the value of a specified variable (double case)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        ConstitutiveLaw::Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue
+        ) override;
+
     ///@}
     ///@name Access
     ///@{

@@ -134,15 +134,42 @@ Vector& ThermalLinearPlaneStrain::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
     } else if (rThisVariable == INITIAL_STRAIN_VECTOR) {
         if (this->HasInitialState()) {
-	    if (rValue.size() != GetStrainSize()) {
-	        rValue.resize(GetStrainSize());
-	    }
-	    noalias(rValue) = GetInitialState().GetInitialStrainVector();
+            if (rValue.size() != GetStrainSize()) {
+                rValue.resize(GetStrainSize());
+            }
+            noalias(rValue) = GetInitialState().GetInitialStrainVector();
         } else {
             noalias(rValue) = ZeroVector(0);
         }
     }
     return (rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& ThermalLinearPlaneStrain::CalculateValue(
+    ConstitutiveLaw::Parameters& rParameterValues,
+    const Variable<double>& rThisVariable, double& rValue
+    )
+{
+    if (rThisVariable == REFERENCE_TEMPERATURE) {
+        rValue = mReferenceTemperature;
+    } else {
+        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
+    return (rValue);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThermalLinearPlaneStrain::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
+{
 }
 
 } // Namespace Kratos

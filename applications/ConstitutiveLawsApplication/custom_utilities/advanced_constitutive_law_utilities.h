@@ -517,14 +517,25 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         unsigned int step = 0
         )
     {
+        CalculateInGaussPoint(rVariableInput, rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues());
+    }
 
-        const GeometryType& r_geometry = rParameters.GetElementGeometry();
-        const std::size_t number_of_nodes = r_geometry.size();
-        const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
+    /**
+     * @brief This retrieves an interpolated nodal variable to a GP
+     */
+    static double CalculateInGaussPoint(
+        const Variable<double>& rVariableInput,
+        const GeometryType& rGeometry,
+        const Vector& rShapeFunctionsValues,
+        unsigned int step = 0
+        )
+    {
+
+        const std::size_t number_of_nodes = rGeometry.size();
         double result = 0;
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
-            result += r_shape_function[i] * r_geometry[i].FastGetSolutionStepValue(rVariableInput, step);
+            result += rShapeFunctionsValues[i] * rGeometry[i].FastGetSolutionStepValue(rVariableInput, step);
         }
         return result;
     }
