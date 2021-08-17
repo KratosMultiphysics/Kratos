@@ -147,10 +147,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.thermal_solver.InitializeSolutionStep()
         self.thermal_solver.Predict()
 
-        process_info = self.structural_solver.GetComputingModelPart().ProcessInfo
-        if process_info[KratosMultiphysics.IS_RESTARTED] or process_info[KratosMultiphysics.STEP] == 1:
-            KratosCLApp.ThermalConstitutiveLawsUtilities().ComputeAndSetReferenceTemperature(self.structural_solver.GetComputingModelPart())
-
         KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
         self.thermal_solver.SolveSolutionStep()
 
