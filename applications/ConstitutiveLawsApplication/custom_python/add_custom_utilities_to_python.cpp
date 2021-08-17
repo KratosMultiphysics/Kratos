@@ -20,7 +20,7 @@
 #include "spaces/ublas_space.h"
 
 //Utilities
-#include "custom_utilities/thermal_constitutive_laws_utilities.h"
+#include "custom_utilities/generic_constitutive_laws_application_utilities.h"
 
 
 namespace Kratos {
@@ -30,9 +30,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    py::class_<ThermalConstitutiveLawsUtilities, ThermalConstitutiveLawsUtilities::Pointer>(m,"ThermalConstitutiveLawsUtilities")
+    py::class_<GenericConstitutiveLawsApplicationUtilities, GenericConstitutiveLawsApplicationUtilities::Pointer>(m,"GenericConstitutiveLawsApplicationUtilities")
         .def(py::init<>())
-        .def("ComputeAndSetReferenceTemperature", &ThermalConstitutiveLawsUtilities::ComputeAndSetReferenceTemperature)
         ;
 }
 

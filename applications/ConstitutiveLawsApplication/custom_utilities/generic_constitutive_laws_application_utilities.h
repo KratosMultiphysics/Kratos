@@ -11,8 +11,8 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_THERMAL_CONSTITUTIVE_LAWS_UTILITIES_H_INCLUDED)
-#define KRATOS_THERMAL_CONSTITUTIVE_LAWS_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAWS_APPLICATION_UTILITIES_H_INCLUDED)
+#define KRATOS_GENERIC_CONSTITUTIVE_LAWS_APPLICATION_UTILITIES_H_INCLUDED
 
 // System includes
 #include "spaces/ublas_space.h"
@@ -32,30 +32,30 @@ namespace Kratos
   ///@{
 
   /**
- * @class ThermalConstitutiveLawsUtilities
+ * @class GenericConstitutiveLawsApplicationUtilities
  * @ingroup ConstitutiveLawsApplication
  * @details This class several methods required for thermomechanical calculations
  * @author Alejandro Cornejo
  */
 
-  class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ThermalConstitutiveLawsUtilities
+  class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericConstitutiveLawsApplicationUtilities
   {
   public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ThermalConstitutiveLawsUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ThermalConstitutiveLawsUtilities);
+    /// Pointer definition of GenericConstitutiveLawsApplicationUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawsApplicationUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    ThermalConstitutiveLawsUtilities() {}
+    GenericConstitutiveLawsApplicationUtilities() {}
 
     /// Destructor.
-    ~ThermalConstitutiveLawsUtilities()
+    ~GenericConstitutiveLawsApplicationUtilities()
     {
     }
 
@@ -63,11 +63,6 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    /**
-       * @brief Computes and Set the value of reference temperature via SetValue()
-       **/
-    void ComputeAndSetReferenceTemperature(
-        ModelPart &rModelPart);
 
     ///@}
     ///@name Input and output
@@ -77,13 +72,13 @@ namespace Kratos
     virtual std::string Info() const
     {
       std::stringstream buffer;
-      buffer << "ThermalConstitutiveLawsUtilities";
+      buffer << "GenericConstitutiveLawsApplicationUtilities";
 
       return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const { rOStream << "ThermalConstitutiveLawsUtilities"; }
+    virtual void PrintInfo(std::ostream &rOStream) const { rOStream << "GenericConstitutiveLawsApplicationUtilities"; }
 
     /// Print object's data.
     virtual void PrintData(std::ostream &rOStream) const {}
@@ -99,20 +94,20 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    ThermalConstitutiveLawsUtilities &operator=(ThermalConstitutiveLawsUtilities const &rOther)
+    GenericConstitutiveLawsApplicationUtilities &operator=(GenericConstitutiveLawsApplicationUtilities const &rOther)
     {
       return *this;
     }
 
     /// Copy constructor.
-    ThermalConstitutiveLawsUtilities(ThermalConstitutiveLawsUtilities const &rOther)
+    GenericConstitutiveLawsApplicationUtilities(GenericConstitutiveLawsApplicationUtilities const &rOther)
     {
       *this = rOther;
     }
 
     ///@}
 
-  }; // Class ThermalConstitutiveLawsUtilities
+  }; // Class GenericConstitutiveLawsApplicationUtilities
 
   ///@}
 
@@ -120,4 +115,4 @@ namespace Kratos
 
 } // namespace Kratos.
 
-#endif // KRATOS_THERMAL_CONSTITUTIVE_LAWS_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_GENERIC_CONSTITUTIVE_LAWS_APPLICATION_UTILITIES_H_INCLUDED  defined

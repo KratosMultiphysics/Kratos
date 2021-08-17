@@ -16,19 +16,10 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/thermal_constitutive_laws_utilities.h"
+#include "custom_utilities/generic_constitutive_laws_application_utilities.h"
 
 namespace Kratos {
 
-void ThermalConstitutiveLawsUtilities::ComputeAndSetReferenceTemperature(
-        ModelPart &rModelPart
-    )
-{
 
-    KRATOS_TRY
-
-
-    KRATOS_CATCH("")
-}
 
 } // namespace Kratos
