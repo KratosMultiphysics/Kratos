@@ -7,7 +7,6 @@ import KratosMultiphysics
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
-import KratosMultiphysics.ConstitutiveLawsApplication    as KratosCLApp
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
