@@ -102,6 +102,7 @@
 // Thermal cl
 #include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
 #include "custom_constitutive_thermal/thermal_linear_plane_strain.h"
+#include "custom_constitutive_thermal/thermal_linear_plane_stress.h"
 
 namespace Kratos {
 
@@ -620,6 +621,7 @@ private:
     // Thermal CL
     const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
     const ThermalLinearPlaneStrain mThermalLinearPlaneStrain;
+    const ThermalLinearPlaneStress mThermalLinearPlaneStress;
 
 
     ///@}

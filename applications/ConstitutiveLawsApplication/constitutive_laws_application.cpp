@@ -401,6 +401,7 @@ void KratosConstitutiveLawsApplication::Register()
     // Thermal CL
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalElasticIsotropic3D", mThermalElasticIsotropic3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStrain", mThermalLinearPlaneStrain);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStress", mThermalLinearPlaneStress);
 
     // Constitutive laws variables
 
