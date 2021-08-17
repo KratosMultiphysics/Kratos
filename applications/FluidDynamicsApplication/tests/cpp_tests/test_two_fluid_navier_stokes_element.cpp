@@ -28,6 +28,7 @@
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+
 #include "fluid_dynamics_application_variables.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "utilities/normal_calculation_utils.h"
@@ -64,7 +65,6 @@ namespace Kratos {
 			modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
 			modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 			modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
-			
 			Vector bdf_coefs(3);
 			bdf_coefs[0] = 3.0/(2.0*delta_time);
 			bdf_coefs[1] = -2.0/delta_time;

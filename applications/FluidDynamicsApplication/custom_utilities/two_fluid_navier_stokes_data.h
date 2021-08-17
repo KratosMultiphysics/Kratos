@@ -217,6 +217,7 @@ void CalculateAirMaterialResponse() {
     ComputeStrain();
 
     CalculateEffectiveViscosityAtGaussPoint();
+
     const double mu = this->EffectiveViscosity;
 	const double c1 = 2.0*mu;
 	const double c2 = mu;
@@ -332,7 +333,6 @@ void CalculateEffectiveViscosityAtGaussPoint()
     }
     DynamicViscosity = dynamic_viscosity / navg;
     
-
     if (SmagorinskyConstant > 0.0)
     {
         const double strain_rate_norm = ComputeStrainNorm();
@@ -356,6 +356,10 @@ void ComputeDarcyTerm()
     DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}
+
+
+
+
 
 };
 

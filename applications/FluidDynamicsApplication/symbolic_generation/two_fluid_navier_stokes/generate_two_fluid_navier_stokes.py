@@ -85,7 +85,7 @@ for dim in dim_vector:
     stab_c2 = Symbol('stab_c2', positive = True)
     K_darcy = Symbol('K_darcy', positive = True)
     volume_error_ratio = Symbol('volume_error_ratio')
-    ## for checking energy conservation 
+    
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
     bdf1 = Symbol('bdf1')

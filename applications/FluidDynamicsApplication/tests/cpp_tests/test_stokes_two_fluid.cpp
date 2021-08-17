@@ -21,6 +21,7 @@
 #include "custom_elements/stokes_3D_twofluid.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "fluid_dynamics_application_variables.h"
+
 namespace Kratos {
     namespace Testing {
 
@@ -41,7 +42,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
            
-
             // Process info creation
             double delta_time = 0.1;
             modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
@@ -52,7 +52,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0 / delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-            // modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,0);
+            
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
             pElemProp->SetValue(DENSITY, 1000.0);
