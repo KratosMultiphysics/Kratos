@@ -156,7 +156,7 @@ do
     build_core_wheel $PREFIX_LOCATION
 
     echo "Building App Wheels"
-    for APPLICATION in $(ls -d ./applications/*)
+    for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
     do
         APP=$(basename "$APPLICATION")
         echo $APP
