@@ -1,0 +1,116 @@
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
+//
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Alejandro Cornejo
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "containers/model.h"
+#include "testing/testing.h"
+// #include "includes/gid_io.h"
+#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
+#include "factories/linear_solver_factory.h"
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+
+namespace Kratos
+{
+
+namespace Testing
+{
+    /**
+    * Checks the ThermalLinearPlaneStrain
+    */
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearPlaneStrain, KratosConstitutiveLawsFastSuite)
+    {
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+
+        const auto& r_process_info = r_model_part.GetProcessInfo();
+
+        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+        p_elem_prop->SetValue(THERMAL_EXPANSION_COEFFICIENT, 7.2e-6);
+        p_elem_prop->SetValue(REFERENCE_TEMPERATURE, 0.0);
+        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalLinearPlaneStrain");
+        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+        // Create the test element
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
+
+        for (auto& r_node : r_model_part.Nodes()){
+            r_node.AddDof(DISPLACEMENT_X);
+            r_node.AddDof(DISPLACEMENT_Y);
+            r_node.AddDof(DISPLACEMENT_Z);
+        }
+
+        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+        auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
+        p_element->Initialize(r_model_part.GetProcessInfo());
+
+        // Set a displacement and temperature
+        array_1d<double, 3> aux_disp = ZeroVector(3);
+        noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+        noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+        aux_disp(0) = 0.001;
+        noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+        p_node_1->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        Matrix lhs;
+        Vector rhs;
+        const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
+        p_element->InitializeSolutionStep(const_procinfo_ref);
+        p_element->InitializeNonLinearIteration(const_procinfo_ref);
+        p_element->CalculateLocalSystem(lhs,rhs,const_procinfo_ref);
+        p_element->FinalizeNonLinearIteration(const_procinfo_ref);
+        p_element->FinalizeSolutionStep(const_procinfo_ref);
+
+        std::vector<Vector> output_strains(1);
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
+
+        std::vector<Vector> output_stress(1);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
+
+        std::vector<double> output_von_mises(1);
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+
+        Vector reference_stress(3);
+        reference_stress(0) = -630.769;
+        reference_stress(1) = -2169.23;
+        reference_stress(2) = 0.0;
+        Vector reference_strain(3);
+        reference_strain(0) = 0.000136;
+        reference_strain(1) = -0.000864;
+        reference_strain(2) = 0.0;
+        const double reference_von_mises_pk2 = 1932.650;
+
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
+        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
+        KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
+
+    }
+
+} // namespace Testing
+} // namespace Kratos.
