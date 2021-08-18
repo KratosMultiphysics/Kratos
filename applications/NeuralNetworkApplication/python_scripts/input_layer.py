@@ -39,9 +39,6 @@ class InputLayer(NeuralNetworkLayerClass):
         self.input_file = settings["data_input"].GetString()
 
         # Input
-        self.input_file = settings["data_input"].GetString()
-        
-
         self.layer_name = settings["layer_name"].GetString()
         if not settings["batch_size"].GetString() == '':
             self.batch_size = settings["batch_size"].GetInt()

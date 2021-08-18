@@ -29,7 +29,7 @@ class ScalingProcess(PreprocessingProcess):
         self.objective = settings["objective"].GetString()
         try:
             self.log_denominator = settings["log_denominator"].GetString()
-        except AttributeError:
+        except RuntimeError:
             self.log_denominator = "scaling"
        
 
@@ -45,17 +45,21 @@ class ScalingProcess(PreprocessingProcess):
         if self.scale == "std":
             if self.objective == "input":
                 std_in = np.std(data_in, axis = 0)
+                std_in = self.__check_for_zero(std_in)
                 data_in = data_in / std_in
                 input_log.update({self.log_denominator : std_in.tolist()})
             if self.objective == "output":
                 std_out = np.std(data_out, axis = 0)
+                std_out = self.__check_for_zero(std_out)
                 data_out = data_out / std_out
                 output_log.update({self.log_denominator : std_out.tolist()})
             if self.objective == "all":
                 std_in = np.std(data_in, axis = 0)
+                std_in = self.__check_for_zero(std_in)
                 data_in = data_in / std_in
                 input_log.update({self.log_denominator : std_in.tolist()})
                 std_out = np.std(data_out, axis = 0)
+                std_out = self.__check_for_zero(std_out)
                 data_out = data_out / std_out
                 output_log.update({self.log_denominator : std_out.tolist()})
 
@@ -63,17 +67,21 @@ class ScalingProcess(PreprocessingProcess):
         if self.scale == "minmax":
             if self.objective == "input":
                 range = data_in.max(axis = 0) - data_in.min(axis = 0)
+                range = self.__check_for_zero(range)
                 data_in = data_in/ range
                 input_log.update({self.log_denominator : range.tolist()})
             if self.objective == "output":
                 range = data_out.max(axis = 0) - data_out.min(axis = 0)
+                range = self.__check_for_zero(range)
                 data_out = data_out/ range
                 output_log.update({self.log_denominator : range.tolist()})
             if self.objective == "all":
                 range = data_in.max(axis = 0) - data_in.min(axis = 0)
+                range = self.__check_for_zero(range)
                 data_in = data_in/ range
                 input_log.update({self.log_denominator : range.tolist()})
                 range = data_out.max(axis = 0) - data_out.min(axis = 0)
+                range = self.__check_for_zero(range)
                 data_out = data_out/ range
                 output_log.update({self.log_denominator : range.tolist()})
 
@@ -81,17 +89,21 @@ class ScalingProcess(PreprocessingProcess):
         if self.scale == "soft_minmax":
             if self.objective == "input":
                 range = 1.25*(data_in.max(axis = 0) - data_in.min(axis = 0))
+                range = self.__check_for_zero(range)
                 data_in = data_in/ range
                 input_log.update({self.log_denominator : range.tolist()})
             if self.objective == "output":
                 range = 1.25*(data_out.max(axis = 0) - data_out.min(axis = 0))
+                range = self.__check_for_zero(range)
                 data_out = data_out/ range
                 output_log.update({self.log_denominator : range.tolist()})
             if self.objective == "all":
                 range = 1.25*(data_in.max(axis = 0) - data_in.min(axis = 0))
+                range = self.__check_for_zero(range)
                 data_in = data_in/ range
                 input_log.update({self.log_denominator : range.tolist()})
                 range = 1.25*(data_out.max(axis = 0) - data_out.min(axis = 0))
+                range = self.__check_for_zero(range)
                 data_out = data_out/ range
                 output_log.update({self.log_denominator : range.tolist()})
 
@@ -129,3 +141,11 @@ class ScalingProcess(PreprocessingProcess):
             data_out = data_out * output_log.get(self.log_denominator)
 
         return[data_in,data_out]
+
+    def __check_for_zero(self, scale_vector):
+
+        scale_vector[np.nonzero(abs(scale_vector)<1e-8)] = 1.0
+        
+        return scale_vector
+
+

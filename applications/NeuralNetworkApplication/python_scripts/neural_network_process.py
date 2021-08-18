@@ -34,6 +34,10 @@ class NeuralNetworkProcess(KM.Process):
     def ExecuteTuning(self, hypermodel):
         """ Process to act directly during the tuning step. """
         pass
+
+    def Predict(self, model, data_in):
+        """ Process to use the network for predicting the output."""
+        pass
     
     def Preprocess(self, data_in, data_out):
         """ Process to preprocess the data. """
@@ -43,7 +47,7 @@ class NeuralNetworkProcess(KM.Process):
         """ Process to invert the transformations of the data. """
         pass
 
-    def TransformPredictions(self, processes):
+    def TransformPredictions(self, processes, data_in = None, data_out = None):
         """ Process to transform the predictions."""
         pass
 

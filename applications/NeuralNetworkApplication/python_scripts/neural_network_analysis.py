@@ -1,8 +1,10 @@
+import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities
 import KratosMultiphysics
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
 
 import tensorflow.keras as keras
+import numpy as np
 
 class NeuralNetworkAnalysis(AnalysisStage):
     """
@@ -16,6 +18,14 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self.project_parameters = project_parameters
         self.problem_type = self.project_parameters["problem_data"]["problem_type"].GetString()
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        if self.problem_type == "predict":
+            try:
+                model_file = self.project_parameters["problem_data"]["model_file"].GetString()
+                self._PrintInfo("Compiling neural network model from file...")
+                self.model = keras.models.load_model(model_file)
+                self.model.compile()
+            except AttributeError:
+                self._PrintInfo("Model type predict must have a pre-trained model.")
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -25,50 +35,53 @@ class NeuralNetworkAnalysis(AnalysisStage):
         self.RunTrainingLoop()
         self.Finalize()
 
-    def Initialize(self):
+    def Initialize(self, data_input = None, data_output = None):
         # Create list of processes
         self.__CreateListOfProcesses()
+        if data_input != None:
+            self.data_in = data_input
+        else:
+            self.data_in = []
+        if data_input != None:
+            self.data_out = data_output
+        else:
+            self.data_out = []
 
         # Preprocessing
-        print("Starting data preprocessing...")
-        self.data_in = None
-        self.data_out = None
-        for process in self._GetListOfProcesses():
-            preprocessing_settings = process.Preprocess(self.data_in, self.data_out)
-            if not preprocessing_settings is None:
-                self.data_in = preprocessing_settings[0]
-                self.data_out = preprocessing_settings[1]
-        print("Data preprocessing done.")
+        
+        self.Preprocessing()
+        
+        ### TRAINING ###
 
         if self.problem_type == "train":
 
-            print("Starting generation of the neural network training setup...")
+            self._PrintInfo("Starting generation of the neural network training setup...")
 
             # Initalize the network
-            print("Initializing the network...")
+            self._PrintInfo("Initializing the network...")
             inputs = self._GetListOfProcesses()[0].Initialize()
             outputs = inputs
-            print("Initialization done.")
+            self._PrintInfo("Initialization done.")
 
             # Add layers to the network
-            print("Adding layers to the network...")
+            self._PrintInfo("Adding layers to the network...")
             for process in self._GetListOfProcesses()[1:]:
                 outputs = process.Add(outputs)
-            print("Addition of the layers done.")
+            self._PrintInfo("Addition of the layers done.")
 
             # Generate the model and save it
-            print("Generating the model...")
+            self._PrintInfo("Generating the model...")
             if not inputs == None:
                 self.model = keras.Model(inputs = inputs, outputs = outputs)
                 self.model.summary()
                 for process in self._GetListOfProcesses():
                     process.Save(self.model)
             else:
-                print("Warning: Model not defined.")
-            print("Generation of the model done.")
+                self._PrintInfo("Warning: Model not defined.")
+            self._PrintInfo("Generation of the model done.")
 
             # Compile the training parameters
-            print("Compiling the model(loss function and optimizers)...")
+            self._PrintInfo("Compiling the model(loss function and optimizers)...")
             self.loss_function = None
             self.optimizer = None
             for process in self._GetListOfProcesses():
@@ -76,46 +89,48 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 if not compilation_settings == None:
                     self.loss_function = compilation_settings[0]
                     self.optimizer = compilation_settings[1]
-            print("Compilation of the model done.")
+            self._PrintInfo("Compilation of the model done.")
 
             # Compile the list of Callbacks
-            print("Compiling the callbacks...")
+            self._PrintInfo("Compiling the callbacks...")
             self.callbacks_list = []
             for process in self._GetListOfProcesses():
                 callback = process.Callback()
                 if not callback == None:
                     self.callbacks_list.append(callback)
-            print("Compilation of the callbacks done.")
+            self._PrintInfo("Compilation of the callbacks done.")
 
             # Compile the list of metrics
-            print("Compiling the metrics...")
+            self._PrintInfo("Compiling the metrics...")
             self.metrics_list = []
             for process in self._GetListOfProcesses():
                 metric = process.CompileMetric()
                 if not metric == None:
                     self.metrics_list.append(metric)
-            print("Compilation of the metrics done.")
+            self._PrintInfo("Compilation of the metrics done.")
 
-            print("Training model setup done.")
+            self._PrintInfo("Training model setup done.")
+
+        ### TUNING ###
 
         elif self.problem_type == "tuning":
 
-            print("Starting generation of the neural network tuning setup...")
+            self._PrintInfo("Starting generation of the neural network tuning setup...")
             def build_model(hp):
                 # Initalize the network
-                print("Initializing the network...")
+                self._PrintInfo("Initializing the network...")
                 inputs = self._GetListOfProcesses()[0].Initialize()
                 outputs = inputs
-                print("Initialization done.")
+                self._PrintInfo("Initialization done.")
 
                 # Add layers to the network
-                print("Adding layers to the network...")
+                self._PrintInfo("Adding layers to the network...")
                 for process in self._GetListOfProcesses()[1:]:
                     outputs = process.Add(outputs, hp = hp)
-                print("Addition of the layers done.")
+                self._PrintInfo("Addition of the layers done.")
 
                 # Generate the model and save it
-                print("Generating the model...")
+                self._PrintInfo("Generating the model...")
                 model = keras.Model(inputs = inputs, outputs = outputs)
                 self.loss_function = None
                 self.optimizer = None
@@ -124,19 +139,19 @@ class NeuralNetworkAnalysis(AnalysisStage):
                     if not compilation_settings == None:
                         self.loss_function = compilation_settings[0]
                         self.optimizer = compilation_settings[1]
-                print("Generation of the model done.")
+                self._PrintInfo("Generation of the model done.")
 
                 # Compile the list of Callbacks
-                print("Compiling the callbacks...")
+                self._PrintInfo("Compiling the callbacks...")
                 self.callbacks_list = []
                 for process in self._GetListOfProcesses():
                     callback = process.Callback()
                     if not callback == None:
                         self.callbacks_list.append(callback)
-                print("Compilation of the callbacks done.")
+                self._PrintInfo("Compilation of the callbacks done.")
                 
                 # Compile the list of metrics
-                print("Compiling the metrics...")
+                self._PrintInfo("Compiling the metrics...")
                 self.metrics_list = []
                 for process in self._GetListOfProcesses():
                     metric = process.CompileMetric()
@@ -144,20 +159,20 @@ class NeuralNetworkAnalysis(AnalysisStage):
                         self.metrics_list.append(metric)
                                 
                 model.compile(optimizer = self.optimizer, loss = self.loss_function, metrics = self.metrics_list)
-                print("Compilation of the metrics done.")
+                self._PrintInfo("Compilation of the metrics done.")
 
                 return model
             self.hypermodel = build_model
-            print("Tuning model setup done.")
+            self._PrintInfo("Tuning model setup done.")
 
 
         # Execute other processes that must run on the initialization
-        print("Executing processes that run on initialization...")
+        self._PrintInfo("Executing processes that run on initialization...")
         for process in self._GetListOfProcesses():
             process.ExecuteInitialize()
 
         # Execute other processes that must run before the training
-        print("Executing processes that run before the training...")
+        self._PrintInfo("Executing processes that run before the training...")
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeTraining()
 
@@ -170,29 +185,51 @@ class NeuralNetworkAnalysis(AnalysisStage):
         """This function finalizes the AnalysisStage
         Usage: It is designed to be called ONCE, AFTER the execution of the solution-loop
         """
-        print("Executing processes that run on finalization...")
+        self._PrintInfo("Executing processes that run on finalization...")
         for process in self._GetListOfProcesses():
             process.ExecuteFinalize()
 
-        print("Transforming predictions if required...")
+        self._PrintInfo("Transforming predictions if required...")
         for process in self._GetListOfProcesses():
             process.TransformPredictions(self._GetListOfProcesses())
         
-        print("Plotting graphs if required...")
+        self._PrintInfo("Plotting graphs if required...")
         for process in self._GetListOfProcesses():
             process.Plot()
 
     def RunTrainingLoop(self):
         if self.problem_type == "train":
-            print("Training the model...")
+            self._PrintInfo("Training the model...")
             for process in self._GetListOfProcesses():
                 process.ExecuteTraining(self.loss_function, self.optimizer, self.callbacks_list, self.metrics_list)
-            print("Training done.")
+            self._PrintInfo("Training done.")
         elif self.problem_type == "tuning":
-            print("Tuning model...")
+            self._PrintInfo("Tuning model...")
             for process in self._GetListOfProcesses():
                 process.ExecuteTuning(self.hypermodel)
-            print("Tuning done.")
+            self._PrintInfo("Tuning done.")
+
+    def Predict(self):
+        if self.problem_type == "predict":
+            self._PrintInfo("Predicting with the Neural Network...")
+            for process in self._GetListOfProcesses():
+                output = process.Predict(self.model, self.data_in, self.data_out)
+                if output != None:
+                    self.data_out = output
+            for process in self._GetListOfProcesses():
+                process.TransformPredictions(self._GetListOfProcesses(), data_in = self.data_in, data_out = self.data_out)
+            return self.data_out
+        else:
+            raise Exception("The problem type for the neural network must be predict.")
+
+    def Preprocessing(self):
+        self._PrintInfo("Starting data preprocessing...")
+        for process in self._GetListOfProcesses():
+            preprocessing_settings = process.Preprocess(self.data_in, self.data_out)
+            if not preprocessing_settings is None:
+                self.data_in = preprocessing_settings[0]
+                self.data_out = preprocessing_settings[1]
+        self._PrintInfo("Data preprocessing done.")
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis
@@ -270,3 +307,10 @@ class NeuralNetworkAnalysis(AnalysisStage):
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+
+    def _PrintInfo(self, message):
+        """This function prints info messages if the echo level is greater than 1.
+        """
+        if self.echo_level > 0:
+            print(message)
+

@@ -107,16 +107,7 @@ class DataGeneratorProcess(KM.Process):
         if not (len(self.input_variables) == len(self.input_sources)):
             raise Exception('The number of input variables and sources are different.')
         self.dict_input = dict(zip(self.input_variables, self.input_sources))
-        # # validate types of variables
-        # for var in self.input_variables:
-        #     if type(var) == KM.DoubleVariable:
-        #         continue
-        #     elif type(var) == KM.Array1DVariable3:
-        #         continue
-        #     else:
-        #         err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
-        #         err_msg += 'It can only be double, component or array3d!'
-        #         raise Exception(err_msg)
+
 
         # retrieving the output variables
         output_var_names = settings["output_variables"]
@@ -129,16 +120,7 @@ class DataGeneratorProcess(KM.Process):
         if not (len(self.output_variables) == len(self.output_sources)):
             raise Exception('The number of output variables and sources are different.')
         self.dict_output = dict(zip(self.output_variables, self.output_sources))
-        # validate types of variables
-        # for var in self.output_variables:
-        #     if type(var) == KM.DoubleVariable:
-        #         continue
-        #     elif type(var) == KM.Array1DVariable3:
-        #         continue
-        #     else:
-        #         err_msg  = 'Type of variable "' + var.Name() + '" is not valid\n'
-        #         err_msg += 'It can only be double, component or array3d!'
-        #         raise Exception(err_msg)
+
 
         # Output file names handling
         if (self.write_output_file):
@@ -213,19 +195,7 @@ class DataGeneratorProcess(KM.Process):
         current_step = self.model_part.ProcessInfo[KM.STEP]
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             input_value_list=[]
-            # Perturbation of the load conditions
-            # for var,dist,params in zip(self.input_variables,self.random_distribution,self.random_parameters):
-            #     if self.perturbate :
-            #         factor = getattr(np.random, dist)(*params)
-            #         for condition in self.input_model_part.GetConditions():
-            #             input_value = op.imul(condition.GetValue(var),(0.0+factor))
-            #             for node in condition.GetNodes():
-            #                 node.SetSolutionStepValue(var,input_value)
-            #                 input_value_list.append(input_value+condition.GetValue(var))
-            #     else:
-            #         for condition in self.input_model_part.GetConditions():
-            #             for node in condition.GetNodes():
-            #                 input_value_list.append(condition.GetValue(var))
+
             for variable, source in self.dict_input.items():
                 if variable in self.perturbate_variables:
                     index = self.perturbate_variables.index(variable)

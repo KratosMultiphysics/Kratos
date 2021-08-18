@@ -1,6 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_layer import NeuralNetworkLayerClass
 from KratosMultiphysics.NeuralNetworkApplication.load_tunable_parameters_utility import LoadTunableParametersUtility
+import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities as DataLoadingUtilities
 
 from tensorflow.keras import layers
 import tensorflow.keras as keras
@@ -28,6 +29,8 @@ class DenseLayer(NeuralNetworkLayerClass):
         default_settings = KM.Parameters("""{
             "layer_name"               : "",
             "trainable"                : true,
+            "output_layer"             : false,
+            "data_output"              : "",
             "dtype"                    : "",
             "dynamic"                  : false,
             "units"                    : 1,
@@ -50,9 +53,14 @@ class DenseLayer(NeuralNetworkLayerClass):
 
         self.layer_name = settings["layer_name"].GetString()
         self.trainable = settings["trainable"].GetBool()
+        self.output_layer = settings["output_layer"].GetBool()
+        self.data_output = settings["data_output"].GetString()
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
-        self.units = settings["units"].GetInt()
+        if self.output_layer:
+            self.data_output = settings["data_output"].GetString()
+        else:
+            self.units = settings["units"].GetInt()
         if not settings["activation"].GetString() == "":
             self.activation = settings["activation"].GetString()
         else:
@@ -78,6 +86,10 @@ class DenseLayer(NeuralNetworkLayerClass):
 
     def Build(self, hp = None):
         """ This method builds the layer when called by a process."""
+        if self.output_layer:
+            data = DataLoadingUtilities.ImportDataFromFile(self.data_output, "OutputData")
+            self.units = data[0,:].size
+
         if self.tunable:
             setattr(self,self.tunable_variable,LoadTunableParametersUtility(self.tuning_parameters).Load(hp))
         

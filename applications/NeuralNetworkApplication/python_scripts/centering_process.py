@@ -84,18 +84,18 @@ class CenteringProcess(PreprocessingProcess):
             if self.objective == "input":
                 gap = (1.0 - data_in.max(axis = 0))/2.0
                 data_in = data_in + gap
-                input_log.update({self.log_denominator : gap.tolist()})
+                input_log.update({self.log_denominator : (-gap).tolist()})
             if self.objective == "output":
                 gap = (1.0 - data_out.max(axis = 0))/2.0
                 data_out = data_out + gap
-                output_log.update({self.log_denominator : gap.tolist()})
+                output_log.update({self.log_denominator : (-gap).tolist()})
             if self.objective == "all":
                 gap = (1.0 - data_in.max(axis = 0))/2.0
                 data_in = data_in + gap
-                input_log.update({self.log_denominator : gap.tolist()})
+                input_log.update({self.log_denominator : (-gap).tolist()})
                 gap = (1.0 - data_out.max(axis = 0))/2.0
                 data_out = data_out + gap
-                output_log.update({self.log_denominator: gap.tolist()})
+                output_log.update({self.log_denominator: (-gap).tolist()})
 
         # Centering from file log
         if self.center == "file":
