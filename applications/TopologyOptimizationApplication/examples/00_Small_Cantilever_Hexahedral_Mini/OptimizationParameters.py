@@ -40,7 +40,7 @@ q_max = 2 # Recomended: 2
 # OPTIMIZATION ALGORITHM
 #========================================================================================
     
-optimization_algorithm = "MMA_algorithm" #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
+optimization_algorithm = "oc_algorithm" #"MMA_algorithm"  #"oc_algorithm" für OC und "MMA_algorithm" für MMA
 # options: "oc_algorithm"
     
 # General convergence criterions

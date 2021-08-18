@@ -36,8 +36,7 @@ model_part_io.ReadModelPart(optimized_model_part)
 threshold = 0.2
 extracted_volume_model_part = current_model.CreateModelPart(
     "extracted_volume_model_part")
-TopologyExtractorUtilities().ExtractVolumeMesh(
-    optimized_model_part, threshold, extracted_volume_model_part)
+TopologyExtractorUtilities().ExtractVolumeMesh(optimized_model_part, threshold, extracted_volume_model_part)
 
 # Write extracted volume
 gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_part",
@@ -49,20 +48,7 @@ gid_io = GiDOutputProcess(extracted_volume_model_part, "extracted_volume_model_p
                                                         "WriteConditionsFlag": "WriteConditions",
                                                         "MultiFileFlag": "SingleFile"
                                                     },
-                                                    "file_label": "time",
-                                                    "output_control_type": "step",
-                                                    "output_interval": 1.0,
-                                                    "flush_after_output": false,
-                                                    "body_output": true,
-                                                    "node_output": true,
-                                                    "skin_output": false,
-                                                    "plane_output": [],
-                                                    "nodal_results": [],
-                                                    "nodal_nonhistorical_results": [],
-                                                    "nodal_flags_results": [],
-                                                    "elemental_conditional_flags_results": [],
-                                                    "gauss_point_results": ["X_PHYS"],
-                                                    "additional_list_files": []
+                                                    "gauss_point_results": ["X_PHYS"]
                                                 },
                                                 "point_data_configuration": []
                                             }''')
