@@ -158,8 +158,8 @@ do
     echo "Building App Wheels"
     for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
     do
-        APP=$(basename "$APPLICATION")
-        echo $APP
+        APPNAME=$(basename "$APPLICATION")
+        build_application_wheel $APPNAME
     done         
 
     echo "Building Bundle Wheel"
