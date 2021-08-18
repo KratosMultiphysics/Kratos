@@ -225,9 +225,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         InterfaceElementUtilities::CalculateNuElementMatrix(Nut, NContainer, GPoint);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               detJContainer[GPoint],
-                                               IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                                                 GPoint,
+                                                                                 detJContainer[GPoint]);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1319,9 +1319,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                                                 GPoint,
+                                                                                 detJContainer[GPoint]);
 
         //Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1433,9 +1433,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              detJContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                                                 GPoint,
+                                                                                 detJContainer[GPoint]);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);

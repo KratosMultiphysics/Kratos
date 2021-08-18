@@ -210,9 +210,10 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         // Calculating weights for integration on the reference configuration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -235,10 +236,12 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                            this->GetIntegrationMethod());
 
             // Calculating operator B
-            this->CalculateBMatrix( Variables.B, Variables.GradNpT);
-            this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                                   Variables.detJ0,
-                                                   IntegrationPoints[GPoint].Weight() );
+            this->CalculateBMatrix( Variables.B, Variables.GradNpT, Variables.Np);
+            Variables.IntegrationCoefficient =
+                this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                      GPoint,
+                                                      Variables.detJ0);
+
 
             //Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
@@ -289,7 +292,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                            this->GetIntegrationMethod());
 
     // Calculating operator B
-    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT);
+    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     // Calculating jacobian
     Matrix J, InvJ;
