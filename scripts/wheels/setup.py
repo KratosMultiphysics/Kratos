@@ -23,9 +23,9 @@ for module in conf["included_modules"]:
     shutil.copytree(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "KratosMultiphysics", module), os.path.join("KratosMultiphysics", module))
 
 for binary in conf["included_binaries"]:
-    for file in glob.glob(binary):
+    for file in glob.glob(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(binary))):
         print("Adding {} matching binary: {}".format(file, binary))
-        shutil.copy(os.path.join(os.environ["KRATOS_ROOT"], "bin", "Release", replaceKeyword("python_${PYTHON}"), "libs", replaceKeyword(file)), os.path.join("KratosMultiphysics", ".libs"))
+        shutil.copy(file, os.path.join("KratosMultiphysics", ".libs"))
 
 if "excluded_binaries" in conf:
     f = open("excluded.txt", "w")
