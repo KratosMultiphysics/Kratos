@@ -59,7 +59,8 @@ build_application_wheel () {
     auditwheel repair dist/*.whl
     
     optimize_wheel
-    cp ${WHEEL_ROOT}/dist/wheelhouse/* ${WHEEL_OUT}/
+
+    cp ${WHEEL_ROOT}/wheelhouse/* ${WHEEL_OUT}/
     
     cd
     rm -r $WHEEL_ROOT
@@ -80,7 +81,7 @@ build_kratos_all_wheel () {
 
 # Removes duplicated libraries from existing wheels.
 optimize_wheel(){
-    
+
     cd ${WHEEL_ROOT}/wheelhouse
     ARCHIVE_NAME=$(ls .)
     mkdir tmp
@@ -95,6 +96,7 @@ optimize_wheel(){
             sed -i "/${LIBRARY}/d" tmp/*.dist-info/RECORD
         fi
     done
+    
     cd tmp
     zip -r ../${ARCHIVE_NAME} ./*
     cd ..
