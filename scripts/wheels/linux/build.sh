@@ -50,7 +50,7 @@ build_core_wheel () {
 # Creates the wheel for each KratosApplication.
 build_application_wheel () {
     setup_wheel_dir
-    
+
     cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
     
@@ -80,7 +80,8 @@ build_kratos_all_wheel () {
 
 # Removes duplicated libraries from existing wheels.
 optimize_wheel(){
-    cd ${WHEEL_ROOT}/dist/wheelhouse
+    
+    cd ${WHEEL_ROOT}/wheelhouse
     ARCHIVE_NAME=$(ls .)
     mkdir tmp
     unzip ${ARCHIVE_NAME} -d tmp
