@@ -525,9 +525,10 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematicsOnInitialConfiguration(Variables,PointNumber);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[PointNumber].Weight());
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1528,9 +1529,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[PointNumber].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1583,9 +1585,10 @@ void SmallStrainUPwDiffOrderElement::
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[PointNumber].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         //Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1847,7 +1850,7 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics( ElementVariables& rVar
     rVariables.detJ0 = rVariables.detJuContainer[PointNumber];
 
     //Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
+    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX, rVariables.Nu);
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
@@ -1874,7 +1877,7 @@ void SmallStrainUPwDiffOrderElement::
                                                    this->GetIntegrationMethod());
 
     // Calculating operator B
-    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
+    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX, rVariables.Nu);
 
     rVariables.detJp0 =
         CalculateDerivativesOnInitialConfiguration(*mpPressureGeometry,
@@ -1917,7 +1920,9 @@ double SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX)
+    CalculateBMatrix(Matrix& rB,
+                     const Matrix& DNp_DX,
+                     const Vector& Np)
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
@@ -1987,13 +1992,14 @@ void SmallStrainUPwDiffOrderElement::
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::
-    CalculateIntegrationCoefficient( double& rIntegrationCoefficient,
-                                     double detJu,
-                                     double weight )
+//----------------------------------------------------------------------------------------
+double SmallStrainUPwDiffOrderElement::
+    CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                    const IndexType& PointNumber,
+                                    const double& detJ)
+
 {
-    rIntegrationCoefficient = detJu * weight;
+    return IntegrationPoints[PointNumber].Weight() * detJ;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
