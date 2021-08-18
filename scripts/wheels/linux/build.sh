@@ -156,10 +156,11 @@ do
     build_core_wheel $PREFIX_LOCATION
 
     echo "Building App Wheels"
-    for APPLICATION in $(ls ${KRATOS_ROOT}/scripts/wheels/linux/applications)
+    for APPLICATION in $(ls -d ./applications/*)
     do
-        build_application_wheel $APPLICATION
-    done
+        APP=$(basename "$APPLICATION")
+        echo $APP
+    done         
 
     echo "Building Bundle Wheel"
     build_kratos_all_wheel $PREFIX_LOCATION
