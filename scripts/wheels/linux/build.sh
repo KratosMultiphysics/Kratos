@@ -50,7 +50,8 @@ build_core_wheel () {
 # Creates the wheel for each KratosApplication.
 build_application_wheel () {
     setup_wheel_dir
-    cp ${KRATOS_ROOT}/applications/${1} ${WHEEL_ROOT}/wheel.json
+    
+    cp ${KRATOS_ROOT}/applications/${1}/${1}.json ${WHEEL_ROOT}/wheel.json
     cd $WHEEL_ROOT
     
     $PYTHON_LOCATION setup.py bdist_wheel
@@ -159,6 +160,7 @@ do
     for APPLICATION in $(ls -d ${PREFIX_LOCATION}/applications/*)
     do
         APPNAME=$(basename "$APPLICATION")
+        echo "Building ${APPNAME} Wheel"
         build_application_wheel $APPNAME
     done         
 
