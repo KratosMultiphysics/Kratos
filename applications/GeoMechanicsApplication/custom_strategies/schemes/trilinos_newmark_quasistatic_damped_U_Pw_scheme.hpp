@@ -75,10 +75,10 @@ public:
 
         // Importing in the new temp vector the values
         const unsigned int ierr = temp.Import(Dx,*mpDofImporter,Insert);
-        if(ierr != 0)
-        {
-            KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
-        }
+
+        if (ierr != 0)
+            KRATOS_ERROR << "Epetra failure found"
+                         << std::endl;
 
         double* temp_values; //DO NOT make delete of this one!!
         temp.ExtractView( &temp_values );
@@ -172,7 +172,8 @@ protected:
             std::stringstream Msg;
             Msg << "Dof count is not correct. There are less dofs then expected." << std::endl;
             Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
-            KRATOS_THROW_ERROR(std::runtime_error,Msg.str(),"")
+            KRATOS_ERROR << Msg.str()
+                         << std::endl;
         }
 
         // Defining a map as needed

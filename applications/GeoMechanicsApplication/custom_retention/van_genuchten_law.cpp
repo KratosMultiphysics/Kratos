@@ -230,24 +230,30 @@ void VanGenuchtenLaw::
 int VanGenuchtenLaw::Check(const Properties& rMaterialProperties,
                            const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(SATURATED_SATURATION))
+                    << "SATURATED_SATURATION is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < 0.0)
                     << "SATURATED_SATURATION cannot be less than 0 " << std::endl;
-
-    KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] < 0.0)
-                    << "RESIDUAL_SATURATION cannot be less than 0 " << std::endl;
-
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] > 1.0)
                     << "SATURATED_SATURATION cannot be greater than 1.0 " << std::endl;
 
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(RESIDUAL_SATURATION))
+                    << "RESIDUAL_SATURATION is not availabe in material parameters" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] < 0.0)
+                    << "RESIDUAL_SATURATION cannot be less than 0 " << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[RESIDUAL_SATURATION] > 1.0)
                     << "RESIDUAL_SATURATION cannot be greater than 1.0 " << std::endl;
 
     KRATOS_ERROR_IF(rMaterialProperties[SATURATED_SATURATION] < rMaterialProperties[RESIDUAL_SATURATION])
                     << "RESIDUAL_SATURATION cannot be greater than SATURATED_SATURATION " << std::endl;
 
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE))
+                    << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(!(rMaterialProperties[VAN_GENUCHTEN_AIR_ENTRY_PRESSURE] > 0.0))
                     << "VAN_GENUCHTEN_AIR_ENTRY_PRESSURE must be greater than 0 " << std::endl;
 
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(MINIMUM_RELATIVE_PERMEABILITY))
+                    << "MINIMUM_RELATIVE_PERMEABILITY is not availabe in material parameters" << std::endl;
     KRATOS_ERROR_IF(!(rMaterialProperties[MINIMUM_RELATIVE_PERMEABILITY] > 0.0))
                     << "MINIMUM_RELATIVE_PERMEABILITY must be greater than 0 " << std::endl;
 
