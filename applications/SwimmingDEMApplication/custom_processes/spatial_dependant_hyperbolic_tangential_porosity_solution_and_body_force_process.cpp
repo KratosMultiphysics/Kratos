@@ -304,6 +304,8 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Se
 
         it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
         it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+        it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
+        it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
         it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
     }
 
@@ -435,6 +437,8 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Se
             {
                 it_node->FastGetSolutionStepValue(VELOCITY_X) = r_u1;
                 it_node->FastGetSolutionStepValue(VELOCITY_Y) = r_u2;
+                it_node->FastGetSolutionStepValue(VELOCITY_X,1) = r_u1;
+                it_node->FastGetSolutionStepValue(VELOCITY_Y,1) = r_u2;
                 it_node->FastGetSolutionStepValue(PRESSURE) = r_pressure;
             }
         }
