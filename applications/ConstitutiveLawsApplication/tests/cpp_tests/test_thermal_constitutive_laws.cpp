@@ -84,13 +84,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(3);
         reference_stress(0) = -630.769;
@@ -166,13 +166,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(3);
         reference_stress(0) = -270.769;
@@ -254,13 +254,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(3);
         reference_stress(0) = -20493.4;
@@ -347,13 +347,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_model_part.GetProcessInfo());
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(6);
         reference_stress(0) = -27766.1;
