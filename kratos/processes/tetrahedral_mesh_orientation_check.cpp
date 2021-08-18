@@ -75,14 +75,14 @@ void TetrahedralMeshOrientationCheck::Execute()
     hashmap faces_map;
 
     for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
-        it_cond->Set(VISITED, false); //mark
+        it_cond->Set(VISITED, false); // Mark
 
-        GeometryType& geom = it_cond->GetGeometry();
-        DenseVector<int> ids(geom.size());
+        GeometryType& r_geometry = it_cond->GetGeometry();
+        DenseVector<int> ids(r_geometry.size());
 
         for(IndexType i=0; i<ids.size(); i++) {
-            geom[i].Set(BOUNDARY,true);
-            ids[i] = geom[i].Id();
+            r_geometry[i].Set(BOUNDARY,true);
+            ids[i] = r_geometry[i].Id();
         }
 
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
@@ -185,7 +185,7 @@ void TetrahedralMeshOrientationCheck::Execute()
         }
     }
 
-    //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
+    // Check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
     for (auto& r_cond : mrModelPart.Conditions()) {
         KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
     }
