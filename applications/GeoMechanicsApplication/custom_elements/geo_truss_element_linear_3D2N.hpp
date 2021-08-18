@@ -94,6 +94,7 @@ namespace Kratos
         void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
         void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+        void ResetConstitutiveLaw() override;
 
     private:
         bool mIsInitialization = false;

@@ -199,9 +199,11 @@ def AssembleTestSuites():
 
     # Test ProcessFactoryUtility
     smallSuite.addTest(TTestProcessFactory('test_process_factory'))
+    smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
+
+    # Test normal check
     smallSuite.addTest(TTestCheckNormals('test_check_normals'))
     smallSuite.addTest(TTestCheckNormals('test_check_normals_quads'))
-    smallSuite.addTest(TTestProcessFactory('test_processes_list_factory'))
 
     # Mesh tying tests
     smallSuite.addTest(TSimplePatchTestTwoDMeshTying('test_execution'))
@@ -262,6 +264,9 @@ def AssembleTestSuites():
 
     # Fill with all small tests
     nightlySuite.addTests(smallSuite)
+
+    # Test normal check
+    nightlySuite.addTest(TTestCheckNormals('test_check_normals_s_shape'))
 
     # Exact integration tests
     nightlySuite.addTest(TTestDoubleCurvatureIntegration('test_moving_mesh_integration_quad'))
@@ -408,7 +413,7 @@ def AssembleTestSuites():
     allSuite.addTests(nightlySuite) # Already contains the smallSuite
     validationSuite.addTests(allSuite) # Validation contains all
 
-    # Manual list for debugging
+    ## Manual list for debugging
     #allSuite.addTests(
         #KratosUnittest.TestLoader().loadTestsFromTestCases([
             #### STANDALONE
@@ -497,7 +502,7 @@ def AssembleTestSuites():
             #TBeamContactWithTyingTest,
             #TBeamContactWithFrictionTest,
             #TPlateTest,
-            ##### VALIDATION
+            #### VALIDATION
             ######TComponentsALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
             #TALMHertzSimpleTestContact,
             #TALMHertzCompleteTestContact,
@@ -514,7 +519,7 @@ def AssembleTestSuites():
             #TALMMeshMovingMatchingTestFrictionalPureSlipContact,
             #TALMMeshMovingNotMatchingTestFrictionalPureSlipContact,
             #TALMHertzTestFrictionalContact,
-            #TALMBlockTestFrictionalContact,
+            #TALMBlockTestFrictionalContact, # TODO: Fix this
             #####TALMIroningTestContact,
             #####TALMIroningDieTestContact,
             #TLargeDisplacementPatchTestHexa,
@@ -530,7 +535,7 @@ def AssembleTestSuites():
             #TComponentsALMLargeDisplacementPatchTestHexa,
             #TComponentsALMMultiLayerContactTest,
             #TComponentsALMSelfContactContactTest,
-            ####TMultiLayerContactTest,
+            ##TMultiLayerContactTest,
         #])
     #)
 

@@ -295,6 +295,16 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return mpNurbsCurve->GetDefaultIntegrationInfo();
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -302,15 +312,14 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = mpNurbsCurve->PolynomialDegree(0) + 1;
-
         std::vector<double> spans;
-        mpNurbsCurve->Spans(spans);
+        mpNurbsCurve->SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
     }
 
     ///@}
@@ -329,10 +338,11 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         mpNurbsCurve->CreateQuadraturePointGeometries(
-            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints);
+            rResultGeometries, NumberOfShapeFunctionDerivatives, rIntegrationPoints, rIntegrationInfo);
 
         for (IndexType i = 0; i < rResultGeometries.size(); ++i) {
             rResultGeometries(i)->SetGeometryParent(this);

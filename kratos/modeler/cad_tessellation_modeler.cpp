@@ -134,7 +134,7 @@ std::vector<array_1d<double, 2>> CadTessellationModeler::ComputeBoundaryTessella
         << "Missing \"absolute_chordal_error\" in CadTessellationModeler Parameters" << std::endl;
     const double chordal_error = mParameters["absolute_chordal_error"].GetDouble();
 
-    auto tessellation = NurbsCurveTessellation<2, ContainerNodeType>::ComputeTessellation(
+    auto tessellation = CurveTessellation<ContainerNodeType>::ComputeTessellation(
         rBoundarySegment,
         rBoundarySegment.PolynomialDegree(0),
         rBoundarySegment.pGetCurveOnSurface()->pGetCurve()->DomainInterval(),

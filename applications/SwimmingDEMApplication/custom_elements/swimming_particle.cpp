@@ -29,6 +29,7 @@ SwimmingParticle<TBaseElement>& SwimmingParticle<TBaseElement>::operator=(const 
     mSphericity = rOther.mSphericity;
     mNormOfSlipVel = rOther.mNormOfSlipVel;
     noalias(mSlipVel) = rOther.mSlipVel;
+    mHydrodynamicInteractionLaw = rOther.mHydrodynamicInteractionLaw->Clone();
 
     return *this;
 }
