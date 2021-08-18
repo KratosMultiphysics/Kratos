@@ -102,15 +102,6 @@ public:
     ///@name Operations
     ///@{
 
-    double& GetReferenceTemperature()
-    {
-        return mReferenceTemperature;
-    }
-    void SetReferenceTemperature(const double ToRefTemperature)
-    {
-        mReferenceTemperature = ToRefTemperature;
-    }
-
     /**
      * @brief This method retrieves a material property, in thermal CL
      * this method calculate the value of the property according to TEMPERATURE
@@ -130,7 +121,7 @@ public:
             return r_properties[rVariable];
     }
 
-        /**
+    /**
      * @brief Computes the material response:
      * @details PK2 stresses and algorithmic ConstitutiveMatrix
      * @param rValues The internal values of the law
@@ -194,6 +185,24 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Retrieve the reference temperature
+     * @return The reference temperature
+     */
+    double& GetReferenceTemperature()
+    {
+        return mReferenceTemperature;
+    }
+
+    /**
+     * @brief Sets the reference temperature
+     * @param ToRefTemperature The reference temperature
+     */
+    void SetReferenceTemperature(const double ToRefTemperature)
+    {
+        mReferenceTemperature = ToRefTemperature;
+    }
+    
     ///@}
     ///@name Inquiry
     ///@{
