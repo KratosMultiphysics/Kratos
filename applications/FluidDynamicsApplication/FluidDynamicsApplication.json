@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosFluidDynamicsApplication",
 	"included_modules": ["FluidDynamicsApplication"],
-	"included_binaries": ["KratosFluidDynamicsApplication", "KratosFluidDynamicsCore"],
+	"included_binaries": ["KratosFluidDynamicsApplication.*", "KratosFluidDynamicsCore.*", "libKratosFluidDynamicsCore.*"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",
