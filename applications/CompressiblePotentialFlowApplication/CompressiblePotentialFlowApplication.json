@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosCompressiblePotentialFlowApplication",
 	"included_modules": ["CompressiblePotentialFlowApplication"],
-	"included_binaries": ["KratosCompressiblePotentialFlowApplication", "KratosCompressiblePotentialFlowCore"],
+	"included_binaries": ["KratosCompressiblePotentialFlowApplication.*", "KratosCompressiblePotentialFlowCore.*", "libKratosCompressiblePotentialFlowCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

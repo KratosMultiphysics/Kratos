@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosChimeraApplication",
 	"included_modules": ["ChimeraApplication"],
-	"included_binaries": ["KratosChimeraApplication", "KratosChimeraCore"],
+	"included_binaries": ["KratosChimeraApplication.*", "KratosChimeraCore.*", "libKratosChimeraCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosIgaApplication",
 	"included_modules": ["IgaApplication"],
-	"included_binaries": ["KratosIgaApplication", "KratosIgaCore"],
+	"included_binaries": ["KratosIgaApplication.*", "KratosIgaCore.*", "libKratosIgaCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMetisApplication",
 	"included_modules": ["MetisApplication"],
-	"included_binaries": ["KratosMetisApplication", "KratosMetisCore"],
+	"included_binaries": ["KratosMetisApplication.*", "KratosMetisCore.*", "libKratosMetisCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

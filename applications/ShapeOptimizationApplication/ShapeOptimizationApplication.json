@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosShapeOptimizationApplication",
 	"included_modules": ["ShapeOptimizationApplication"],
-	"included_binaries": ["KratosShapeOptimizationApplication", "KratosShapeOptimizationCore"],
+	"included_binaries": ["KratosShapeOptimizationApplication.*", "KratosShapeOptimizationCore.*", "libKratosShapeOptimizationCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

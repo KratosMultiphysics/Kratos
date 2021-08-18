@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosConstitutiveLawsApplication",
 	"included_modules": ["ConstitutiveLawsApplication"],
-	"included_binaries": ["KratosConstitutiveLawsApplication", "KratosConstitutiveLawsCore"],
+	"included_binaries": ["KratosConstitutiveLawsApplication.*", "KratosConstitutiveLawsCore.*", "libKratosConstitutiveLawsCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

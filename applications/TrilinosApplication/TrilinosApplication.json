@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosTrilinosApplication",
 	"included_modules": ["TrilinosApplication"],
-	"included_binaries": ["KratosTrilinosApplication", "KratosTrilinosCore"],
+	"included_binaries": ["KratosTrilinosApplication.*", "KratosTrilinosCore.*", "libKratosTrilinosCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

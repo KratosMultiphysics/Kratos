@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosShallowWaterApplication",
 	"included_modules": ["ShallowWaterApplication"],
-	"included_binaries": ["KratosShallowWaterApplication", "KratosShallowWaterCore"],
+	"included_binaries": ["KratosShallowWaterApplication.*", "KratosShallowWaterCore.*", "libKratosShallowWaterCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

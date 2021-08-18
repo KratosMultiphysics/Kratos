@@ -1,8 +1,8 @@
 {
 	"wheel_name": "KratosDamApplication",
 	"included_modules": ["DamApplication"],
-	"included_binaries": ["KratosDamApplication"],
-	"excluded_binaries": ["libKratosStructuralMechanicsCore", "libKratosPoromechanicsCore"],
+	"included_binaries": ["KratosDamApplication.*", "KratosDamCore.*", "KratosDamCore.*"],
+	"excluded_binaries": ["libKratosStructuralMechanicsCore.*", "libKratosPoromechanicsCore.*"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosPoromechanicsApplication==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
 	"author_email": "kratos@listas.cimne.upc.edu",

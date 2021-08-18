@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosGeoMechanicsApplication",
 	"included_modules": ["GeoMechanicsApplication"],
-	"included_binaries": ["KratosGeoMechanicsApplication", "KratosGeoMechanicsCore"],
+	"included_binaries": ["KratosGeoMechanicsApplication.*", "KratosGeoMechanicsCore.*", "libKratosGeoMechanicsCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

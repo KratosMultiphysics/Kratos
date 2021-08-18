@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMeshMovingApplication",
 	"included_modules": ["MeshMovingApplication"],
-	"included_binaries": ["KratosMeshMovingApplication", "KratosMeshMovingCore"],
+	"included_binaries": ["KratosMeshMovingApplication.*", "KratosMeshMovingCore.*", "libKratosMeshMovingCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

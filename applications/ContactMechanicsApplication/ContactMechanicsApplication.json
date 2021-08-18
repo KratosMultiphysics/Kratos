@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosContactMechanicsApplication",
 	"included_modules": ["ContactMechanicsApplication"],
-	"included_binaries": ["KratosContactMechanicsApplication", "KratosContactMechanicsCore"],
+	"included_binaries": ["KratosContactMechanicsApplication.*", "KratosContactMechanicsCore.*", "libKratosContactMechanicsCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

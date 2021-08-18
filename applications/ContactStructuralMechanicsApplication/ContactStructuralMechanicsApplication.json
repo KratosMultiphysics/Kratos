@@ -1,8 +1,8 @@
 {
 	"wheel_name": "KratosContactStructuralMechanicsApplication",
 	"included_modules": ["ContactStructuralMechanicsApplication"],
-	"included_binaries": ["KratosContactStructuralMechanicsApplication", "KratosContactStructuralMechanicsCore"],
-    "excluded_binaries": ["libKratosStructuralMechanicsCore"],
+	"included_binaries": ["KratosContactStructuralMechanicsApplication.*", "KratosContactStructuralMechanicsCore.*", "KratosContactStructuralMechanicsCore.*"],
+    "excluded_binaries": ["libKratosStructuralMechanicsCore.*"],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}", "KratosStructuralMechanicsApplication==${KRATOS_VERSION}"],
 	"author": "Vicente Mataix Ferrándiz",
 	"author_email": "vmataix@cimne.upc.edu",

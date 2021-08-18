@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosCSharpWrapperApplication",
 	"included_modules": ["CSharpWrapperApplication"],
-	"included_binaries": ["KratosCSharpWrapperApplication", "KratosCSharpWrapperCore"],
+	"included_binaries": ["KratosCSharpWrapperApplication.*", "KratosCSharpWrapperCore.*", "libKratosCSharpWrapperCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

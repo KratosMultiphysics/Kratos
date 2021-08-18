@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosCableNetApplication",
 	"included_modules": ["CableNetApplication"],
-	"included_binaries": ["KratosCableNetApplication", "KratosCableNetCore"],
+	"included_binaries": ["KratosCableNetApplication.*", "KratosCableNetCore.*", "libKratosCableNetCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

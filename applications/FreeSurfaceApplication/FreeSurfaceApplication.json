@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosFreeSurfaceApplication",
 	"included_modules": ["FreeSurfaceApplication"],
-	"included_binaries": ["KratosFreeSurfaceApplication", "KratosFreeSurfaceCore"],
+	"included_binaries": ["KratosFreeSurfaceApplication.*", "KratosFreeSurfaceCore.*", "libKratosFreeSurfaceCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

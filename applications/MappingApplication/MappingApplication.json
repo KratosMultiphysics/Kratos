@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMappingApplication",
 	"included_modules": ["MappingApplication"],
-	"included_binaries": ["KratosMappingApplication", "KratosMappingCore"],
+	"included_binaries": ["KratosMappingApplication.*", "KratosMappingCore.*", "libKratosMappingCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

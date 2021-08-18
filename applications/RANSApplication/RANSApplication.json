@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosRANSApplication",
 	"included_modules": ["RANSApplication"],
-	"included_binaries": ["KratosRANSApplication", "KratosRANSCore"],
+	"included_binaries": ["KratosRANSApplication.*", "KratosRANSCore.*", "libKratosRANSCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosULFApplication",
 	"included_modules": ["ULFApplication"],
-	"included_binaries": ["KratosULFApplication", "KratosULFCore"],
+	"included_binaries": ["KratosULFApplication.*", "KratosULFCore.*", "libKratosULFCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

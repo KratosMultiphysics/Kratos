@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMultilevelMonteCarloApplication",
 	"included_modules": ["MultilevelMonteCarloApplication"],
-	"included_binaries": ["KratosMultilevelMonteCarloApplication", "KratosMultilevelMonteCarloCore"],
+	"included_binaries": ["KratosMultilevelMonteCarloApplication.*", "KratosMultilevelMonteCarloCore.*", "libKratosMultilevelMonteCarloCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

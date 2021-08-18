@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosStatisticsApplication",
 	"included_modules": ["StatisticsApplication"],
-	"included_binaries": ["KratosStatisticsApplication", "KratosStatisticsCore"],
+	"included_binaries": ["KratosStatisticsApplication.*", "KratosStatisticsCore.*", "libKratosStatisticsCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

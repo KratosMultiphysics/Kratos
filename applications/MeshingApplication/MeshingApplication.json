@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosMeshingApplication",
 	"included_modules": ["MeshingApplication"],
-	"included_binaries": ["KratosMeshingApplication", "KratosMeshingCore"],
+	"included_binaries": ["KratosMeshingApplication.*", "KratosMeshingCore.*", "libKratosMeshingCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

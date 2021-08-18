@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosFluidTransportApplication",
 	"included_modules": ["FluidTransportApplication"],
-	"included_binaries": ["KratosFluidTransportApplication", "KratosFluidTransportCore"],
+	"included_binaries": ["KratosFluidTransportApplication.*", "KratosFluidTransportCore.*", "libKratosFluidTransportCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

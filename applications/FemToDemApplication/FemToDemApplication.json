@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosFemToDemApplication",
 	"included_modules": ["FemToDemApplication"],
-	"included_binaries": ["KratosFemToDemApplication", "KratosFemToDemCore"],
+	"included_binaries": ["KratosFemToDemApplication.*", "KratosFemToDemCore.*", "libKratosFemToDemCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

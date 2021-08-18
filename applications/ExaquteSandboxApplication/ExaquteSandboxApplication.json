@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosExaquteSandboxApplication",
 	"included_modules": ["ExaquteSandboxApplication"],
-	"included_binaries": ["KratosExaquteSandboxApplication", "KratosExaquteSandboxCore"],
+	"included_binaries": ["KratosExaquteSandboxApplication.*", "KratosExaquteSandboxCore.*", "libKratosExaquteSandboxCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

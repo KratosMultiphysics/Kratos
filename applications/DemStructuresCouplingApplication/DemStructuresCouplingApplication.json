@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosDemStructuresCouplingApplication",
 	"included_modules": ["DemStructuresCouplingApplication"],
-	"included_binaries": ["KratosDemStructuresCouplingApplication", "KratosDemStructuresCouplingCore"],
+	"included_binaries": ["KratosDemStructuresCouplingApplication.*", "KratosDemStructuresCouplingCore.*", "libKratosDemStructuresCouplingCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

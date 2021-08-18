@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosPfemApplication",
 	"included_modules": ["PfemApplication"],
-	"included_binaries": ["KratosPfemApplication", "KratosPfemCore"],
+	"included_binaries": ["KratosPfemApplication.*", "KratosPfemCore.*", "libKratosPfemCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

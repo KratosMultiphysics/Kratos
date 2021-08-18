@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosSolidMechanicsApplication",
 	"included_modules": ["SolidMechanicsApplication"],
-	"included_binaries": ["KratosSolidMechanicsApplication", "KratosSolidMechanicsCore"],
+	"included_binaries": ["KratosSolidMechanicsApplication.*", "KratosSolidMechanicsCore.*", "libKratosSolidMechanicsCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",

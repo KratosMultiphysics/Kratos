@@ -1,7 +1,7 @@
 {
 	"wheel_name": "KratosRomApplication",
 	"included_modules": ["RomApplication"],
-	"included_binaries": ["KratosRomApplication", "KratosRomCore"],
+	"included_binaries": ["KratosRomApplication.*", "KratosRomCore.*", "libKratosRomCore.*"],
     "excluded_binaries": [],
 	"dependencies": ["KratosMultiphysics==${KRATOS_VERSION}"],
 	"author": "Kratos Team",
