@@ -18,12 +18,8 @@
 // Project includes
 #include "containers/model.h"
 #include "testing/testing.h"
-// #include "includes/gid_io.h"
-#include "custom_elements/small_displacement_mixed_volumetric_strain_element.h"
-#include "factories/linear_solver_factory.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "structural_mechanics_application_variables.h"
+#include "custom_elements/small_displacement.h"
 
 namespace Kratos
 {
