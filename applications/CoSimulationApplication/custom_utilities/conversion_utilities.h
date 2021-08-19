@@ -77,7 +77,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void ConvertElementalDataToNodalData(ModelPart& model_part_interface);
+    static void ConvertElementalDataToNodalData(ModelPart& rModelPart);
 
     ///@}
     ///@name Access

@@ -23,12 +23,12 @@
 
 namespace Kratos {
 
-void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& model_part_interface)
+void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart)
 {
     // initialize Forces
-    VariableUtils().SetHistoricalVariableToZero(FORCE, model_part_interface.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(FORCE, rModelPart.Nodes());
 
-    block_for_each(model_part_interface.Elements(), [&](Element& rElement){
+    block_for_each(rModelPart.Elements(), [&](Element& rElement){
         const array_1d<double, 3>& elem_force =  rElement.GetValue(FORCE);
 
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
@@ -38,7 +38,7 @@ void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& model_part_
         }
     });
 
-    model_part_interface.GetCommunicator().AssembleCurrentData(FORCE);
+    rModelPart.GetCommunicator().AssembleCurrentData(FORCE);
 }
 
 }  // namespace Kratos.

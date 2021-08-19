@@ -58,7 +58,7 @@ namespace Python{
             ;
 
         pybind11::class_< ConversionUtilities>(m, "ConversionUtilities")
-            .def("ConvertElementalDataToNodalData",
+            .def_static("ConvertElementalDataToNodalData",
                 &ConversionUtilities::ConvertElementalDataToNodalData)
             ;
 

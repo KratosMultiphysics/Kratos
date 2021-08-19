@@ -200,12 +200,7 @@ class TestConversionOperation(KratosUnittest.TestCase):
 
         expected_nodal_values = [3, 2 ,0, 7, 3, 0, 7, 3 ,0, 3, 2 ,0, 4, 1 ,0, 4, 1 ,0 ]
 
-        self.__CheckData(expected_nodal_values, nodal_data_output.GetData())
-
-
-    def __CheckData(self, exp_data, data):
-        for exp_val, val in zip(exp_data, data):
-            self.assertAlmostEqual(exp_val, val)
+        self.assertVectorAlmostEqual(expected_nodal_values, nodal_data_output.GetData())
 
 if __name__ == '__main__':
     KratosUnittest.main()
