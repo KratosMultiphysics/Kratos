@@ -14,18 +14,16 @@
 #if !defined(KRATOS_COSIM_CONVERSION_UTILITIES_H_INCLUDED )
 #define  KRATOS_COSIM_CONVERSION_UTILITIES_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {

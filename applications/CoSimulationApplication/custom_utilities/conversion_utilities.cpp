@@ -11,14 +11,11 @@
 //                   Ashish Darekar
 //
 
-
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/variables.h"
-#include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
