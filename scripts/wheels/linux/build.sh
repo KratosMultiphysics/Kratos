@@ -106,7 +106,6 @@ optimize_wheel(){
 # Buils the KratosXCore components for the kernel and applications
 build_core () {
 	cd $KRATOS_ROOT
-	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
@@ -121,7 +120,6 @@ build_core () {
 # Buils the KratosXInterface components for the kernel and applications given an specific version of python
 build_interface () {
     cd $KRATOS_ROOT
-	# git clean -ffxd
 
 	PYTHON_LOCATION=$1
     PREFIX_LOCATION=$2
@@ -136,9 +134,9 @@ build_interface () {
 
 # Core can be build independently of the python version.
 # Install path should be useless here.
-echo starting core build
+echo "Starting core build"
 build_core python3.6 ${KRATOS_ROOT}/bin/core
-echo finished core build
+echo "Finished core build"
 
 for PYTHON_VERSION in  "${PYTHONS[@]}"
 do
