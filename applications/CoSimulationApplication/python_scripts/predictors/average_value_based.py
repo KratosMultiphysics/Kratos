@@ -32,7 +32,7 @@ class AverageValuePredictor(CoSimulationPredictor):
         self._UpdateData(self.predicted_data)
 
     def FinalizeSolutionStep(self):
-        current_data = self.interface_data.GetData(0)
+        current_data  = self.interface_data.GetData(0)
 
         self.predicted_data = self.beta * current_data + (1-self.beta) * self.predicted_data
 
