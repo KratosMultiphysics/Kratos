@@ -5,9 +5,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
-# other imports
-from collections import deque
-
 class CoSimulationPredictor:
     """Baseclass for the predictors used for CoSimulation
     It predicts the solution of the next step at the beginning of a step
@@ -17,9 +14,11 @@ class CoSimulationPredictor:
         self.settings.RecursivelyValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.interface_data = solver_wrapper.GetInterfaceData(self.settings["data_name"].GetString())
-        self.historical_data_accessor = HistoricalDataAccessor(self.interface_data, self._GetMinimumBufferSize())
 
         self.echo_level = self.settings["echo_level"].GetInt()
+
+        # TODO check buffer size
+        self._GetMinimumBufferSize()
 
     def Initialize(self):
         pass
@@ -28,7 +27,7 @@ class CoSimulationPredictor:
         pass
 
     def InitializeSolutionStep(self):
-        self.historical_data_accessor.CloneTimeStep()
+        pass
 
     def Predict(self):
         raise Exception('"Predict" has to be implemented in the derived class!')
@@ -67,32 +66,3 @@ class CoSimulationPredictor:
             "data_name"  : "UNSPECIFIED",
             "echo_level" : 0
         }""")
-
-
-class HistoricalDataAccessor:
-    def __init__(self, interface_data, buffer_size):
-        self.interface_data = interface_data
-        self.buffer_size = buffer_size
-        self.step = 0
-
-        self.additional_buffer_size = max(0, buffer_size - interface_data.GetBufferSize())
-        self.aux_data = deque(maxlen=self.additional_buffer_size)
-
-    def CloneTimeStep(self):
-        self.step += 1
-        if self.additional_buffer_size > 0:
-            self.aux_data.appendleft(self.interface_data.GetData())
-
-    def GetData(self, buffer_index):
-        if buffer_index >= self.buffer_size:
-            raise Exception("the buffer-size is not large enough current buffer size: {} | requested solution_step_index: {}!".format(self.buffer_size, buffer_index+1))
-
-        if self.interface_data.GetBufferSize() > buffer_index:
-            # the interface data buffer size is large enough
-            return self.interface_data.GetData(buffer_index)
-        else:
-            # TODO check if time buffer is initialized
-            return self.aux_data[buffer_index-self.additional_buffer_size]
-
-    def TimeBufferIsInitialized(self):
-        return self.step >= self.additional_buffer_size
