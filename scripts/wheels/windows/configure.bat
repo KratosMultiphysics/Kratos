@@ -16,28 +16,26 @@ set CMAKE_UNITY_BUILD=%3
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
-CALL :add_app %KRATOS_APP_DIR%\DamApplication;
-CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
-CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
-CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\DEMApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ContactStructuralMechanicsApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ParticleMechanicsApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\DamApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DINSTALL_EMBEDDED_PYTHON=OFF                                                                       ^
--DLAPACK_LIBRARIES=%LAPACK%                                                                         ^
--DBLAS_LIBRARIES=%BLAS%                                                                             ^
+cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
+-DCMAKE_INSTALL_PREFIX=%2                                                                   ^
+-DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
+-DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF                                                                             ^
--DCMAKE_UNITY_BUILD=%CMAKE_UNITY_BUILD%                                                                           ^
--DKRATOS_BUILD_TESTING=OFF
 
 :add_app
 set KRATOS_APPLICATIONS=%KRATOS_APPLICATIONS%%1;
