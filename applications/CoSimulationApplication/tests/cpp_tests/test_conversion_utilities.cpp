@@ -7,6 +7,7 @@
 //                   license: CoSimulationApplication/license.txt
 //
 //  Main authors:    Philipp Bucher
+//                   Ashish Darekar
 //
 
 // System includes
