@@ -58,6 +58,9 @@
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -337,6 +340,20 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
+
+    // small strain axisymmtric elements:
+    const UPwSmallStrainAxisymmetricElement<2,3> mUPwSmallStrainAxisymmetricElement2D3N;
+    const UPwSmallStrainAxisymmetricElement<2,4> mUPwSmallStrainAxisymmetricElement2D4N;
+    const UPwSmallStrainAxisymmetricElement<2,6> mUPwSmallStrainAxisymmetricElement2D6N;
+    const UPwSmallStrainAxisymmetricElement<2,8> mUPwSmallStrainAxisymmetricElement2D8N;
+    const UPwSmallStrainAxisymmetricElement<2,9> mUPwSmallStrainAxisymmetricElement2D9N;
+
+    const UPwSmallStrainAxisymmetricFICElement<2,3> mUPwSmallStrainAxisymmetricFICElement2D3N;
+    const UPwSmallStrainAxisymmetricFICElement<2,4> mUPwSmallStrainAxisymmetricFICElement2D4N;
+
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N;
 
     // interface elements
     const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
