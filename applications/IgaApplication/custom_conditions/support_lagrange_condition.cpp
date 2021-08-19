@@ -110,12 +110,12 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes; i++) {
                     for (IndexType n = 0; n < r_N.size1(); ++n) {
                         if (r_N(n, i) > shape_function_tolerance) {
-                            const array_1d<double, 3>& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                            const array_1d<double, 3>& r_disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 
                             IndexType index = 3 * counter;
-                            u[index] = (disp[0] - displacement[0]);
-                            u[index + 1] = (disp[1] - displacement[1]);
-                            u[index + 2] = (disp[2] - displacement[2]);
+                            u[index] = (r_disp[0] - displacement[0]);
+                            u[index + 1] = (r_disp[1] - displacement[1]);
+                            u[index + 2] = (r_disp[2] - displacement[2]);
                             counter++;
                         }
                     }
@@ -123,11 +123,11 @@ namespace Kratos
                 for (IndexType i = 0; i < number_of_nodes; i++) {
                     for (IndexType n = 0; n < r_N.size1(); ++n) {
                         if (r_N(n, i) > shape_function_tolerance) {
-                            const array_1d<double, 3>& l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                            const array_1d<double, 3>& r_l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
                             IndexType index = 3 * (counter);
-                            u[index] = l_m[0];
-                            u[index + 1] = l_m[1];
-                            u[index + 2] = l_m[2];
+                            u[index] = r_l_m[0];
+                            u[index + 1] = r_l_m[1];
+                            u[index + 2] = r_l_m[2];
                             counter++;
                         }
                     }
