@@ -696,8 +696,8 @@ namespace Kratos
         if (!solver_parameters.Has("solver_type")) solver_parameters.AddString("solver_type", "skyline_lu_factorization");
 
         #ifdef KRATOS_SMP_OPENMP
-        const int omp_nest = omp_get_max_active_levels();
-        omp_set_max_active_levels(0); // disable omp nesting, forces solvers to be serial
+        const int omp_nest = omp_get_nested();
+        omp_set_nested(0); // disable omp nesting, forces solvers to be serial
         #endif
 
         IndexPartition<>(interface_dofs).for_each([&](SizeType i)
@@ -713,7 +713,7 @@ namespace Kratos
         );
 
         #ifdef KRATOS_SMP_OPENMP
-        omp_set_max_active_levels(omp_nest);
+        omp_set_nested(omp_nest);
         #endif
         rUnitResponse = SparseMatrixType(result);
 
