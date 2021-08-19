@@ -7,8 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author1 Fullname
-//                   Author2 Fullname
+//  Main authors:    Philipp Bucher
+//                   Ashish Darekar
 //
 
 #if !defined(KRATOS_COSIM_CONVERSION_UTILITIES_H_INCLUDED )
