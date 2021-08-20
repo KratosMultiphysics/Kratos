@@ -67,7 +67,7 @@ function build_core ($pythonLocation, $prefixLocation) {
     Write-Host "Debuging: begin cmd.exe call"
     
     cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation)"
-    cmake --build "$($kratosRoot)/build/Release" -j$numcores --target KratosKernel -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" -j$($numcores) --target KratosKernel -- /property:configuration=Release /p:Platform=x64
 }
 
 function build_interface ($pythonLocation, $pythonPath) {
@@ -76,8 +76,8 @@ function build_interface ($pythonLocation, $pythonPath) {
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
 
     cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation)"
-    cmake --build "$($kratosRoot)/build/Release" -j$numcores --target KratosPythonInterface -- /property:configuration=Release /p:Platform=x64
-    cmake --build "$($kratosRoot)/build/Release" -j$numcores --target install -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" -j$($numcores) --target KratosPythonInterface -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" -j$($numcores) --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 # Core can be build independently of the python version.
