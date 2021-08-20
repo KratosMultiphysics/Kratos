@@ -3,5 +3,5 @@ $RELEASE_BRANCH="ci/updating-whell-app-descriptors"
 $HOST_SWAP="C:/data_swap_host"
 $GUEST_SWAP="C:/data_swap_guest"
 
-docker run --name release_build -v ${HOST_SWAP}:${GUEST_SWAP} --entrypoint="/bin/bash" kratos/wheels /workspace/scripts/start.sh ${RELEASE_BRANCH}
+docker run --name release_build -v ${HOST_SWAP}:${GUEST_SWAP} --dns 1.1.1.1 --entrypoint="powershell.exe" kratosmultiphysics/kratos-wheelbuilder-windows "c:\\scripts\\start.ps1" ${RELEASE_BRANCH}
 docker rm release_build
