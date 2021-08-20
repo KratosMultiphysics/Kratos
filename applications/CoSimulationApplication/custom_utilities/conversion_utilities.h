@@ -22,7 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -77,7 +76,8 @@ public:
     ///@name Operations
     ///@{
 
-    static void ConvertElementalDataToNodalData(ModelPart& rModelPart);
+    //static void ConvertElementalDataToNodalData(ModelPart& rModelPart);
+    static void ConvertElementalDataToNodalData(ModelPart& rModelPart, Variable<array_1d<double,3> >& rVariable);
 
     ///@}
     ///@name Access

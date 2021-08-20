@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
@@ -23,22 +24,23 @@
 
 namespace Kratos {
 
-void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart)
+//void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart)
+void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart, Variable<array_1d<double,3> >& rVariable)
 {
     // initialize Forces
-    VariableUtils().SetHistoricalVariableToZero(FORCE, rModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        const array_1d<double, 3>& elem_force =  rElement.GetValue(FORCE);
+        const array_1d<double, 3>& elem_rVariable =  rElement.GetValue(rVariable);
 
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
 
         for (auto& r_node : rElement.GetGeometry().Points()){
-            AtomicAddVector( r_node.FastGetSolutionStepValue(FORCE), (elem_force / static_cast<double>(num_nodes)) );
+            AtomicAddVector( r_node.FastGetSolutionStepValue(rVariable), (elem_rVariable / static_cast<double>(num_nodes)) );
         }
     });
 
-    rModelPart.GetCommunicator().AssembleCurrentData(FORCE);
+    rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
 }
 
 }  // namespace Kratos.
