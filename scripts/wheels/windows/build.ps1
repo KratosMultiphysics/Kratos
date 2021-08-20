@@ -57,7 +57,12 @@ function build_application_wheel ($pythonPath, $app) {
 function build_core ($pythonLocation, $prefixLocation) {
     cd $kratosRoot
 
+    Write-Host $kratosRoot
+    Write-Host "$($kratosRoot)\scripts\wheels\windows\configure.bat"
+
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
+
+    Write-Host "Debuging: begin cmd.exe call"
     
     cmd.exe /c "call configure.bat $($pythonLocation) $($prefixLocation)"
     cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64
