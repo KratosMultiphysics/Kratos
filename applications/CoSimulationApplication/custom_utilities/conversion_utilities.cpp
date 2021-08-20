@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "includes/variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 #include "utilities/atomic_utilities.h"
@@ -24,13 +23,12 @@
 
 namespace Kratos {
 
-//void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart)
 void ConversionUtilities::ConvertElementalDataToNodalData(
     ModelPart& rModelPart,
     const Variable<array_1d<double,3> >& rElementalVariable,
     const Variable<array_1d<double,3> >& rNodalVariable )
 {
-    // initialize Forces
+    // prepare nodal variable
     VariableUtils().SetHistoricalVariableToZero(rNodalVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
@@ -47,5 +45,3 @@ void ConversionUtilities::ConvertElementalDataToNodalData(
 }
 
 }  // namespace Kratos.
-
-
