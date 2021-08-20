@@ -25,22 +25,25 @@
 namespace Kratos {
 
 //void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart)
-void ConversionUtilities::ConvertElementalDataToNodalData(ModelPart& rModelPart, Variable<array_1d<double,3> >& rVariable)
+void ConversionUtilities::ConvertElementalDataToNodalData(
+    ModelPart& rModelPart,
+    const Variable<array_1d<double,3> >& rElementalVariable,
+    const Variable<array_1d<double,3> >& rNodalVariable )
 {
     // initialize Forces
-    VariableUtils().SetHistoricalVariableToZero(rVariable, rModelPart.Nodes());
+    VariableUtils().SetHistoricalVariableToZero(rNodalVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), [&](Element& rElement){
-        const array_1d<double, 3>& elem_rVariable =  rElement.GetValue(rVariable);
+        const array_1d<double, 3>& elem_rVariable =  rElement.GetValue(rElementalVariable);
 
         const std::size_t num_nodes = rElement.GetGeometry().PointsNumber();
 
         for (auto& r_node : rElement.GetGeometry().Points()){
-            AtomicAddVector( r_node.FastGetSolutionStepValue(rVariable), (elem_rVariable / static_cast<double>(num_nodes)) );
+            AtomicAddVector( r_node.FastGetSolutionStepValue(rNodalVariable), (elem_rVariable / static_cast<double>(num_nodes)) );
         }
     });
 
-    rModelPart.GetCommunicator().AssembleCurrentData(rVariable);
+    rModelPart.GetCommunicator().AssembleCurrentData(rNodalVariable);
 }
 
 }  // namespace Kratos.

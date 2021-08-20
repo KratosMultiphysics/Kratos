@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementalDataToNodalDataForce, KratosCosimulationFastS
     }
 
     // ConversionUtilities::ConvertElementalDataToNodalData(test_model_part);
-    ConversionUtilities::ConvertElementalDataToNodalData(test_model_part, FORCE);
+    ConversionUtilities::ConvertElementalDataToNodalData(test_model_part, FORCE, FORCE);
 
     // Converted Values at Nodes
     Vector nodal_force_values(18);

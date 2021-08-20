@@ -32,7 +32,7 @@ class ElementalToNodalData(CoSimulationCouplingOperation):
         model_part_interface = self.interface_data.GetModelPart()
 
         #ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface)
-        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, KM.FORCE)
+        ConversionUtilities.ConvertElementalDataToNodalData(model_part_interface, KM.FORCE, KM.FORCE)
 
 
         if self.echo_level > 0:
