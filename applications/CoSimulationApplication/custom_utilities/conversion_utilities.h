@@ -59,8 +59,6 @@ public:
     ///@name Operations
     ///@{
 
-    //static void ConvertElementalDataToNodalData(ModelPart& rModelPart);
-    //static void ConvertElementalDataToNodalData(ModelPart& rModelPart, Variable<array_1d<double,3> >& rVariable);
     static void ConvertElementalDataToNodalData(
         ModelPart& rModelPart,
         const Variable<array_1d<double,3> >& rElementalVariable,
