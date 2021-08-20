@@ -11,8 +11,6 @@ set KRATOS_BUILD_TYPE=Release
 set BOOST_ROOT=%BOOST%
 set PYTHON_EXECUTABLE=%1
 
-set CMAKE_UNITY_BUILD=%3
-
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
@@ -36,7 +34,7 @@ echo %KRATOS_SOURCE%
 echo %KRATOS_BUILD%\%KRATOS_BUILD_TYPE%
 
 cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"  ^
--DCMAKE_INSTALL_PREFIX=%2                                                                   ^
+-DCMAKE_INSTALL_PREFIX=%3                                                                   ^
 -DBOOST_ROOT=%BOOST_ROOT%                                                                   ^
 -DKRATOS_BUILD_TESTING=OFF                                                                  ^
 -DINSTALL_RUNKRATOS=OFF                                                                     ^

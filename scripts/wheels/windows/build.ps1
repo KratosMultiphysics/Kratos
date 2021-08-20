@@ -64,7 +64,7 @@ function build_core ($pythonLocation, $prefixLocation) {
 
     Write-Host "Debuging: begin cmd.exe call"
     
-    cmd.exe /c "call configure.bat $($pythonLocation) $($prefixLocation)"
+    cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation)"
     cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64
 }
 
