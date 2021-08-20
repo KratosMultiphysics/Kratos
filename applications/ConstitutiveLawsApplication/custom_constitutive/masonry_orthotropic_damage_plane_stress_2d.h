@@ -125,7 +125,7 @@ namespace Kratos
                   YieldStressShearTension(rProperties[YIELD_STRESS_SHEAR_TENSION]),
                   YieldStressShearCompression(rProperties[YIELD_STRESS_SHEAR_COMPRESSION]),
                   ShearCompressionReductor(rProperties.Has(SHEAR_COMPRESSION_REDUCTOR)
-                      ? std::min(std::max(rProperties[SHEAR_COMPRESSION_REDUCTOR], 1.0), 0.0)
+                      ? std::max(std::min(rProperties[SHEAR_COMPRESSION_REDUCTOR], 1.0), 0.0)
                       : 0.16
                   ),
                   BiaxialCompressionMultiplier(rProperties[BIAXIAL_COMPRESSION_MULTIPLIER]),
@@ -174,6 +174,7 @@ namespace Kratos
             // Misc
             double DeltaTime;
             int TensionYieldModel;
+            int ProjectionOperator;
 
             CalculationData(const DirectionalMaterialProperties& rMaterialProperties1,
                 const DirectionalMaterialProperties& rMaterialProperties2)
@@ -385,6 +386,7 @@ namespace Kratos
         * @param CalculationData
         */
         void ConstructProjectionTensors(
+            const CalculationData& data,
             const array_1d<double, 3>& rEffectiveStressVector,
             Matrix& rProjectionTensorTension,
             Matrix& rProjectionTensorCompression);
