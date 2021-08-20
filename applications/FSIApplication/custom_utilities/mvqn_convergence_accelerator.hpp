@@ -555,22 +555,22 @@ protected:
         mAbsCutOff = CutOffTolerance;
     }
 
-    virtual MatrixPointerType pGetJacobianDecompositionMatixQU()
+    virtual MatrixPointerType pGetJacobianDecompositionMatrixQU()
     {
         KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
 
-    virtual MatrixPointerType pGetJacobianDecompositionMatixSigmaV()
+    virtual MatrixPointerType pGetJacobianDecompositionMatrixSigmaV()
     {
         KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
 
-    virtual MatrixPointerType pGetOldJacobianDecompositionMatixQU()
+    virtual MatrixPointerType pGetOldJacobianDecompositionMatrixQU()
     {
         KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
 
-    virtual MatrixPointerType pGetOldJacobianDecompositionMatixSigmaV()
+    virtual MatrixPointerType pGetOldJacobianDecompositionMatrixSigmaV()
     {
         KRATOS_ERROR << "Jacobian decomposition not available for this convergence accelerator." << std::endl;
     }
