@@ -233,9 +233,10 @@ void UpdatedLagrangianUPwDiffOrderElement::
         this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         // Calculating weights for integration on the reference configuration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -260,17 +261,17 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                            this->GetIntegrationMethod());
 
             // Calculating operator B
-            this->CalculateBMatrix( Variables.B, Variables.DNu_DX);
-            this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                                   Variables.detJ0,
-                                                   IntegrationPoints[GPoint].Weight() );
+            this->CalculateBMatrix( Variables.B, Variables.DNu_DX, Variables.Nu);
+            Variables.IntegrationCoefficient =
+                this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                      GPoint,
+                                                      Variables.detJ0);
 
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
         }
     }
 
     //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -328,7 +329,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                                     this->GetIntegrationMethod());
 
     // Calculating operator B
-    this->CalculateBMatrix( rVariables.B, rVariables.DNu_DX);
+    this->CalculateBMatrix( rVariables.B, rVariables.DNu_DX, rVariables.Nu);
 
     // derivative of shape function (pore pressure)
     Matrix Jp0, InvJp0;

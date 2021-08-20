@@ -678,12 +678,13 @@ void UPwBaseElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void UPwBaseElement<TDim,TNumNodes>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const double& detJ,
-                                    const double& weight)
+double UPwBaseElement<TDim,TNumNodes>::
+    CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                    const IndexType& PointNumber,
+                                    const double& detJ)
+
 {
-    rIntegrationCoefficient = weight * detJ;
+    return IntegrationPoints[PointNumber].Weight() * detJ;
 }
 
 //----------------------------------------------------------------------------------------

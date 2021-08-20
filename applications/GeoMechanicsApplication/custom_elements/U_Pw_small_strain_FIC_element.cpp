@@ -18,9 +18,14 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::
+    Create( IndexType NewId,
+            NodesArrayType const& ThisNodes,
+            PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new UPwSmallStrainFICElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new UPwSmallStrainFICElement( NewId,
+                                                           this->GetGeometry().Create( ThisNodes ),
+                                                           pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------
@@ -482,9 +487,9 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[GPoint].Weight());
+        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                                                 GPoint,
+                                                                                 Variables.detJ0);
 
         if (CalculateStiffnessMatrixFlag)
         {

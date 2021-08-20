@@ -27,7 +27,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement : public UPwBaseElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement :
+    public UPwBaseElement<TDim,TNumNodes>
 {
 
 public:
@@ -233,8 +234,9 @@ protected:
     void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient=false );
 
-    void CalculateBMatrix( Matrix &rB,
-                           const Matrix &GradNpT );
+    virtual void CalculateBMatrix( Matrix &rB,
+                                   const Matrix &GradNpT,
+                                   const Vector &Np );
 
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);
