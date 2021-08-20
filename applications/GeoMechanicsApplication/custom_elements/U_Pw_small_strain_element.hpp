@@ -27,7 +27,8 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement : public UPwBaseElement<TDim,TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwSmallStrainElement :
+    public UPwBaseElement<TDim,TNumNodes>
 {
 
 public:
@@ -125,6 +126,9 @@ public:
 
 protected:
 
+    static constexpr SizeType VoigtSize  = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    static constexpr SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+
     struct ElementVariables
     {
         ///Properties variables
@@ -202,9 +206,7 @@ protected:
                        const Vector &StressVector,
                        const unsigned int &GPoint );
 
-    void ExtrapolateGPValues( const Matrix &StressContainer,
-                              const unsigned int &VoigtSize );
-
+    void ExtrapolateGPValues( const Matrix &StressContainer);
 
     void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
                                            const ProcessInfo& CurrentProcessInfo ) override;
@@ -232,8 +234,9 @@ protected:
     void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient=false );
 
-    void CalculateBMatrix( Matrix &rB,
-                           const Matrix &GradNpT );
+    virtual void CalculateBMatrix( Matrix &rB,
+                                   const Matrix &GradNpT,
+                                   const Vector &Np );
 
 
     virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables);

@@ -233,9 +233,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         Variables.detJ0 = Variables.detJContainer[GPoint];
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[GPoint].Weight());
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         for (unsigned int node = 0; node < TNumNodes; ++node)
         {
@@ -369,7 +370,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             this->SaveGPStress(StressContainer, mStressVector[GPoint], GPoint);
         }
-        this->ExtrapolateGPValues(StressContainer, mStressVector[0].size());
+        this->ExtrapolateGPValues(StressContainer);
     }
     else
     {
@@ -436,10 +437,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::SaveGPStress(Matrix& rStressContaine
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim, TNumNodes>::
-    ExtrapolateGPValues(const Matrix& StressContainer, const unsigned int& VoigtSize)
+    ExtrapolateGPValues(const Matrix& StressContainer)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwSmallStrainElement::ExtrapolateGPValues():VoigtSize") << VoigtSize << std::endl;
+    // KRATOS_INFO("0-UPwSmallStrainElement::ExtrapolateGPValues()") << std::endl;
 
     array_1d<double, TNumNodes> DamageContainer;
 
@@ -453,8 +454,6 @@ void UPwSmallStrainElement<TDim, TNumNodes>::
     const double& Area = rGeom.Area(); // In 3D this is volume
     array_1d<Vector, TNumNodes> NodalStressVector; //List with stresses at each node
     array_1d<Matrix, TNumNodes> NodalStressTensor;
-
-    const SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     for (unsigned int Node = 0; Node < TNumNodes; Node++)
     {
@@ -735,7 +734,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     }
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -749,13 +747,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
 
-
     if (rVariable == CAUCHY_STRESS_TENSOR)
     {
         //Defining necessary variables
         const GeometryType& Geom = this->GetGeometry();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
-
 
         //Create constitutive law parameters:
         ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
@@ -766,9 +762,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         ElementVariables Variables;
         this->InitializeElementVariables(Variables,
                                          rCurrentProcessInfo);
-
-        SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
-        if (TDim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D; 
 
         if ( rOutput.size() != NumGPoints )
             rOutput.resize(NumGPoints);
@@ -812,9 +805,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         // create general parametes of retention law
         RetentionLaw::Parameters RetentionParameters(Geom, this->GetProperties(), rCurrentProcessInfo);
-
-        SizeType StressTensorSize = STRESS_TENSOR_SIZE_2D;
-        if (TDim == N_DIM_3D) StressTensorSize = STRESS_TENSOR_SIZE_3D;
 
         Vector VoigtVector(mStressVector[0].size());
         noalias(VoigtVector) = ZeroVector(VoigtVector.size());
@@ -867,13 +857,19 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
         Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,this->GetIntegrationMethod());
 
-        const SizeType VoigtSize  = ( TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         Matrix B(VoigtSize, TNumNodes*TDim);
         noalias(B) = ZeroMatrix(VoigtSize, TNumNodes*TDim);
         Vector StrainVector(VoigtSize);
 
+        Matrix NContainer(NumGPoints, TNumNodes);
+        NContainer = Geom.ShapeFunctionsValues( this->GetIntegrationMethod() );
+        Vector Np(TNumNodes);
+
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,Geom,DISPLACEMENT);
+        GeoElementUtilities::
+            GetNodalVariableVector<TDim, TNumNodes>(DisplacementVector,
+                                                    Geom,
+                                                    DISPLACEMENT);
 
         if ( rOutput.size() != NumGPoints )
             rOutput.resize(NumGPoints);
@@ -881,7 +877,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            this->CalculateBMatrix(B, DN_DXContainer[GPoint]);
+            noalias(Np) = row(NContainer, GPoint);
+            this->CalculateBMatrix(B, DN_DXContainer[GPoint], Np);
 
             noalias(StrainVector) = prod(B, DisplacementVector);
 
@@ -905,7 +902,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
         {
-            
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = PermeabilityMatrix;
         }
@@ -977,9 +973,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[GPoint].Weight());
+        Variables.IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         //Compute stiffness matrix
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1034,9 +1031,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                                  this->GetIntegrationMethod());
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               detJ,
-                                               IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  detJ);
 
         CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -1121,9 +1119,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[GPoint].Weight());
+        Variables.IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1239,8 +1238,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.detF = 1.0;
 
     //General Variables
-    const SizeType VoigtSize  = ( TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-
     rVariables.VoigtVector.resize(VoigtSize);
     noalias(rVariables.VoigtVector) = ZeroVector(VoigtSize);
     for (unsigned int i=0; i < TDim; ++i) rVariables.VoigtVector[i] = 1.0;
@@ -1284,7 +1281,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateBMatrix(Matrix& rB, const Matrix& GradNpT)
+    CalculateBMatrix(Matrix& rB,
+                     const Matrix& GradNpT,
+                     const Vector &Np)
 {
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBMatrix()") << std::endl;
@@ -1949,7 +1948,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     rVariables.detJ0 = rVariables.detJContainer[PointNumber];
 
     //Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.GradNpT);
+    this->CalculateBMatrix(rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
@@ -1998,9 +1997,7 @@ double UPwSmallStrainElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    double FluidPressure = inner_prod(rVariables.Np, rVariables.PressureVector);
-
-    return FluidPressure;
+    return inner_prod(rVariables.Np, rVariables.PressureVector);
 
     KRATOS_CATCH( "" )
 }
