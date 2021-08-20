@@ -274,6 +274,9 @@ namespace Kratos
         data.TensionYieldModel = rProperties.Has(TENSION_YIELD_MODEL)
             ? rProperties[TENSION_YIELD_MODEL]
             : 0;
+        data.ProjectionOperator = rProperties.Has(PROJECTION_OPERATOR)
+            ? rProperties[PROJECTION_OPERATOR]
+            : 0;
 
         return data;
     }
@@ -424,6 +427,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     void MasonryOrthotropicDamagePlaneStress2DLaw::ConstructProjectionTensors(
+        const CalculationData& data,
         const array_1d<double, 3>& rEffectiveStressVector,
         Matrix& rProjectionTensorTension,
         Matrix& rProjectionTensorCompression)
@@ -460,60 +464,62 @@ namespace Kratos
         noalias(rProjectionTensorTension) += HEAVISIDE(eigen_values_matrix(1, 1)) *
             outer_prod(projection_vector_22, projection_vector_22);
 
-#ifdef PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
-        /*
-        Theory from: "Viscoelasticity and rate-dependent continuum damage models"
-                      Miguel Cervera
-                      2003 (page 58)
-        */
-        array_1d<double, 3> projection_vector_12;
-        Matrix projection_tensor_12;
-        array_1d<double, 3> projection_vector_21;
-        Matrix projection_tensor_21;
-        projection_tensor_12 = outer_prod(eigen_vector_1, eigen_vector_2);
-        projection_tensor_21 = outer_prod(eigen_vector_2, eigen_vector_1);
+        //#ifdef PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
+        if (data.ProjectionOperator == 1)
+        {
+            /*
+            Theory from: "Viscoelasticity and rate-dependent continuum damage models"
+                          Miguel Cervera
+                          2003 (page 58)
+            */
+            array_1d<double, 3> projection_vector_12;
+            Matrix projection_tensor_12;
+            array_1d<double, 3> projection_vector_21;
+            Matrix projection_tensor_21;
+            projection_tensor_12 = outer_prod(eigen_vector_1, eigen_vector_2);
+            projection_tensor_21 = outer_prod(eigen_vector_2, eigen_vector_1);
 
-        array_1d<double, 3> projection_vector_cross;
-        Matrix projection_tensor_cross;
-        projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
-        projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
+            array_1d<double, 3> projection_vector_cross;
+            Matrix projection_tensor_cross;
+            projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
+            projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
-        double factor_12;
-        factor_12 = MACAULAY(eigen_values_matrix(0, 0)) - MACAULAY(eigen_values_matrix(1, 1));
+            double factor_12;
+            factor_12 = MACAULAY(eigen_values_matrix(0, 0)) - MACAULAY(eigen_values_matrix(1, 1));
 
-        if (std::abs(eigen_values_matrix(0, 0) - eigen_values_matrix(1, 1)) > 0.0) {
-            factor_12 *= 2.0;
-            factor_12 /= eigen_values_matrix(0, 0) - eigen_values_matrix(1, 1);
-        }
-        else {
-            factor_12 = 1.0;
-        }
-        noalias(rProjectionTensorTension) += factor_12 * outer_prod(projection_vector_cross, projection_vector_cross);
-#endif //PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
+            if (std::abs(eigen_values_matrix(0, 0) - eigen_values_matrix(1, 1)) > 0.0) {
+                factor_12 *= 2.0;
+                factor_12 /= eigen_values_matrix(0, 0) - eigen_values_matrix(1, 1);
+            }
+            else {
+                factor_12 = 1.0;
+            }
+            noalias(rProjectionTensorTension) += factor_12 * outer_prod(projection_vector_cross, projection_vector_cross);
+        } //#endif //PROJECTION_OPERATOR_CERVERA_2003_ORTHORTOPIC_CL
+        else if (data.ProjectionOperator == 2) //#ifdef PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
+        {
+            /*
+            Theory from:     "An Energy-Equivalent d+/d- Damage Model with
+                            Enhanced Microcrack Closure-Reopening
+                            Capabilities for Cohesive-Frictional Materials"
+                            Miguel Cervera & Claudia Tesei
+                            2017 (page 7/30)
+            */
+            array_1d<double, 3> projection_vector_12;
+            Matrix projection_tensor_12;
+            array_1d<double, 3> projection_vector_21;
+            Matrix projection_tensor_21;
+            projection_tensor_12 = outer_prod(eigen_vector_1, eigen_vector_2);
+            projection_tensor_21 = outer_prod(eigen_vector_2, eigen_vector_1);
 
-#ifdef PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
-        /*
-        Theory from:     "An Energy-Equivalent d+/d- Damage Model with
-                        Enhanced Microcrack Closure-Reopening
-                        Capabilities for Cohesive-Frictional Materials"
-                        Miguel Cervera & Claudia Tesei
-                        2017 (page 7/30)
-        */
-        array_1d<double, 3> projection_vector_12;
-        Matrix projection_tensor_12;
-        array_1d<double, 3> projection_vector_21;
-        Matrix projection_tensor_21;
-        projection_tensor_12 = outer_prod(eigen_vector_1, eigen_vector_2);
-        projection_tensor_21 = outer_prod(eigen_vector_2, eigen_vector_1);
+            array_1d<double, 3> projection_vector_cross;
+            Matrix projection_tensor_cross;
+            projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
+            projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
 
-        array_1d<double, 3> projection_vector_cross;
-        Matrix projection_tensor_cross;
-        projection_tensor_cross = 0.5 * (projection_tensor_12 + projection_tensor_21);
-        projection_vector_cross = MathUtils<double>::StressTensorToVector(projection_tensor_cross);
-
-        noalias(rProjectionTensorTension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
-            outer_prod(projection_vector_cross, projection_vector_cross);
-#endif //PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
+            noalias(rProjectionTensorTension) += (HEAVISIDE(eigen_values_matrix(0, 0)) + HEAVISIDE(eigen_values_matrix(1, 1))) *
+                outer_prod(projection_vector_cross, projection_vector_cross);
+        } // #endif //PROJECTION_OPERATOR_CERVERA_2017_ORTHORTOPIC_CL
 
         noalias(rProjectionTensorCompression) = IdentityMatrix(3, 3) - rProjectionTensorTension;
     }
@@ -544,8 +550,8 @@ namespace Kratos
                 const double beta = yield_compression / yield_tension * (1.0 - alpha) - (1.0 + alpha);
                 const double smax = std::max(std::max(rPrincipalStressVector(0), rPrincipalStressVector(1)), 0.0);
 
-                rUniaxialStressTension = 1.0 / (1.0 - alpha) * (alpha * I1 + std::sqrt(3.0 * J2) + beta * smax) /
-                    yield_compression * yield_tension;
+                rUniaxialStressTension = (1.0 / (1.0 - alpha)) * (alpha * I1 + std::sqrt(3.0 * J2) +  beta * smax)//;
+                    * ( yield_tension / yield_compression);
             }
             else if (data.TensionYieldModel == 1) {
                 // Rankine Yield Criteria
@@ -770,6 +776,7 @@ namespace Kratos
         AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
             data.PrincipalStressVector, data.EffectiveStressVector);
         this->ConstructProjectionTensors(
+            data,
             data.EffectiveStressVector,
             data.ProjectionTensorTension,
             data.ProjectionTensorCompression);
