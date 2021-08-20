@@ -153,18 +153,21 @@ public:
         auto p_conv_acc_right = BaseType::pGetConvergenceAcceleratorRight();
 
         // Get both left and inverse Jacobian
-        auto p_inv_jac_QU_left = p_conv_acc_left->pGetJacobianDecompositionMatixQU();
-        auto p_inv_jac_SigmaV_left = p_conv_acc_left->pGetJacobianDecompositionMatixSigmaV();
-        auto p_inv_jac_QU_right = p_conv_acc_right->pGetJacobianDecompositionMatixQU();
-        auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatixSigmaV();
+        auto p_inv_jac_QU_left = p_conv_acc_left->pGetJacobianDecompositionMatrixQU();
+        auto p_inv_jac_SigmaV_left = p_conv_acc_left->pGetJacobianDecompositionMatrixSigmaV();
+        auto p_inv_jac_QU_right = p_conv_acc_right->pGetJacobianDecompositionMatrixQU();
+        auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatrixSigmaV();
         auto p_uncorrected_displacement_vector = BaseType::pGetUncorrectedDisplacementVector();
 
         // If the decomposition have not been done yet (1st nonlinear iteration) use the previous step one
         if (p_inv_jac_QU_left == nullptr && p_inv_jac_SigmaV_left == nullptr) {
-            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixQU();
-            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixSigmaV();
-            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixQU();
-            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixSigmaV();
+            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatrixQU();
+            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatrixSigmaV();
+        }
+
+        if (p_inv_jac_QU_right == nullptr && p_inv_jac_SigmaV_right == nullptr) {
+            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatrixQU();
+            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatrixSigmaV();
         }
 
         // Set the residual of the update problem to be solved
@@ -240,23 +243,23 @@ public:
         auto p_conv_acc_right = BaseType::pGetConvergenceAcceleratorRight();
 
         // Get both left and inverse Jacobian
-        auto p_inv_jac_QU_left = p_conv_acc_left->pGetJacobianDecompositionMatixQU();
-        auto p_inv_jac_SigmaV_left = p_conv_acc_left->pGetJacobianDecompositionMatixSigmaV();
-        auto p_inv_jac_QU_right = p_conv_acc_right->pGetJacobianDecompositionMatixQU();
-        auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatixSigmaV();
+        auto p_inv_jac_QU_left = p_conv_acc_left->pGetJacobianDecompositionMatrixQU();
+        auto p_inv_jac_SigmaV_left = p_conv_acc_left->pGetJacobianDecompositionMatrixSigmaV();
+        auto p_inv_jac_QU_right = p_conv_acc_right->pGetJacobianDecompositionMatrixQU();
+        auto p_inv_jac_SigmaV_right = p_conv_acc_right->pGetJacobianDecompositionMatrixSigmaV();
         auto p_uncorrected_force_vector = BaseType::pGetUncorrectedForceVector();
 
         // If the decomposition have not been done yet (1st nonlinear iteration) use the previous step ones
         if (p_inv_jac_QU_right == nullptr && p_inv_jac_SigmaV_right == nullptr) {
-            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixQU();
-            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatixSigmaV();
+            p_inv_jac_QU_right = p_conv_acc_right->pGetOldJacobianDecompositionMatrixQU();
+            p_inv_jac_SigmaV_right = p_conv_acc_right->pGetOldJacobianDecompositionMatrixSigmaV();
         }
 
         // Note that it might happen (2nd nonlinear iteration) that the displacement Jacobian is updated but not the traction one
         // In consequence, it is required to check separately that the two Jacobian decompositions exist
         if (p_inv_jac_QU_left == nullptr && p_inv_jac_SigmaV_left == nullptr) {
-            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixQU();
-            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatixSigmaV();
+            p_inv_jac_QU_left = p_conv_acc_left->pGetOldJacobianDecompositionMatrixQU();
+            p_inv_jac_SigmaV_left = p_conv_acc_left->pGetOldJacobianDecompositionMatrixSigmaV();
         }
 
         // Set the residual of the update problem to be solved
@@ -517,7 +520,7 @@ private:
         IndexType aux_size_2 = TDenseSpace::Size2(rInputMatrix);
         KRATOS_ERROR_IF_NOT(aux_size_1 == aux_size_2) << "Input matrix is not squared." << std::endl;
 
-        VectorType s_svd; // Eigenvalues vector
+        VectorType s_svd; // Singular values vector
         MatrixType u_svd; // Left orthogonal matrix
         MatrixType v_svd; // Right orthogonal matrix
         Parameters svd_settings(R"({
@@ -525,12 +528,11 @@ private:
             "compute_thin_v" : true
         })");
         mpSmallMatrixDenseSVD->Compute(const_cast<MatrixType&>(rInputMatrix), s_svd, u_svd, v_svd, svd_settings);
-        const std::size_t n_eigs = s_svd.size();
-        double determinant = 1.0;
-        MatrixType s_inv = ZeroMatrix(n_eigs, n_eigs);
-        for (std::size_t i = 0; i < n_eigs; ++i) {
+        const std::size_t n_sing_val = s_svd.size();
+        //TODO: We could use a vector in here
+        MatrixType s_inv = ZeroMatrix(n_sing_val, n_sing_val);
+        for (std::size_t i = 0; i < n_sing_val; ++i) {
             s_inv(i,i) = 1.0 / s_svd(i);
-            determinant *= s_svd(i);
         }
 
         // Calculate and save the input matrix pseudo-inverse
@@ -540,9 +542,9 @@ private:
         for (std::size_t i = 0; i < aux_size_2; ++i) {
             for (std::size_t j = 0; j < aux_size_1; ++j) {
                 double& r_value = rMoorePenroseInverse(i,j);
-                for (std::size_t k = 0; k < n_eigs; ++k) {
+                for (std::size_t k = 0; k < n_sing_val; ++k) {
                     const double v_ik = v_svd(i,k);
-                    for (std::size_t m = 0; m < n_eigs; ++m) {
+                    for (std::size_t m = 0; m < n_sing_val; ++m) {
                         const double ut_mj = u_svd(j,m);
                         const double s_inv_km = s_inv(k,m);
                         r_value += v_ik * s_inv_km * ut_mj;

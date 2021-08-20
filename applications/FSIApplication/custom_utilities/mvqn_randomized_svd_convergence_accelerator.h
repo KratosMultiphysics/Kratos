@@ -327,7 +327,7 @@ protected:
             MatrixType phi;
             MultiplyTransposeLeft(aux_M, Q, phi);
 
-            VectorType s_svd; // Eigenvalues vector
+            VectorType s_svd; // Singular values vector
             MatrixType u_svd; // Left orthogonal matrix
             MatrixType v_svd; // Right orthogonal matrix
             Parameters svd_settings(R"({
@@ -370,22 +370,22 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    MatrixPointerType pGetJacobianDecompositionMatixQU() override
+    MatrixPointerType pGetJacobianDecompositionMatrixQU() override
     {
         return mpJacQU;
     }
 
-    MatrixPointerType pGetJacobianDecompositionMatixSigmaV() override
+    MatrixPointerType pGetJacobianDecompositionMatrixSigmaV() override
     {
         return mpJacSigmaV;
     }
 
-    MatrixPointerType pGetOldJacobianDecompositionMatixQU() override
+    MatrixPointerType pGetOldJacobianDecompositionMatrixQU() override
     {
         return mpOldJacQU;
     }
 
-    MatrixPointerType pGetOldJacobianDecompositionMatixSigmaV() override
+    MatrixPointerType pGetOldJacobianDecompositionMatrixSigmaV() override
     {
         return mpOldJacSigmaV;
     }
@@ -438,11 +438,11 @@ private:
         // This is important in case some iteration information has been dropped because its linear dependency
         // Note that we also add in here the extra modes
         if (mLimitModesToIterations) {
+            // Note that we check the current number of iterations and the previous step one
+            // This is because the rank of the matrix to be decomposed is indeed the maximum between the old Jacobian information and the current one
             const SizeType n_obs = BaseType::GetNumberOfObservations();
-            const SizeType new_modes = n_obs < mUserNumberOfModes ? n_obs + mNumberOfExtraModes : mUserNumberOfModes + mNumberOfExtraModes;
-            if (mCurrentNumberOfModes < new_modes) {
-                mCurrentNumberOfModes = new_modes;
-            }
+            const SizeType req_modes = mpOldJacQU ? std::max(n_obs, TDenseSpace::Size2(*mpOldJacQU)) : n_obs;
+            mCurrentNumberOfModes = req_modes < mUserNumberOfModes ? req_modes + mNumberOfExtraModes : mUserNumberOfModes + mNumberOfExtraModes;
             is_number_of_modes_limited = true;
         } else {
             mCurrentNumberOfModes = mUserNumberOfModes + mNumberOfExtraModes;
@@ -624,7 +624,7 @@ private:
         IndexType aux_size_2 = TDenseSpace::Size2(rInputMatrix);
         KRATOS_ERROR_IF_NOT(aux_size_1 == aux_size_2) << "Input matrix is not squared." << std::endl;
 
-        VectorType s_svd; // Eigenvalues vector
+        VectorType s_svd; // Singular values vector
         MatrixType u_svd; // Left orthogonal matrix
         MatrixType v_svd; // Right orthogonal matrix
         Parameters svd_settings(R"({
@@ -632,9 +632,10 @@ private:
             "compute_thin_v" : true
         })");
         mpDenseSVD->Compute(const_cast<MatrixType&>(rInputMatrix), s_svd, u_svd, v_svd, svd_settings);
-        const std::size_t n_eigs = s_svd.size();
-        MatrixType s_inv = ZeroMatrix(n_eigs, n_eigs);
-        for (std::size_t i = 0; i < n_eigs; ++i) {
+        const std::size_t n_sing_val = s_svd.size();
+        //TODO: This allocation can be avoided
+        MatrixType s_inv = ZeroMatrix(n_sing_val, n_sing_val);
+        for (std::size_t i = 0; i < n_sing_val; ++i) {
             s_inv(i,i) = 1.0 / s_svd(i);
         }
 
@@ -645,9 +646,9 @@ private:
         for (std::size_t i = 0; i < aux_size_2; ++i) {
             for (std::size_t j = 0; j < aux_size_1; ++j) {
                 double& r_value = rMoorePenroseInverse(i,j);
-                for (std::size_t k = 0; k < n_eigs; ++k) {
+                for (std::size_t k = 0; k < n_sing_val; ++k) {
                     const double v_ik = v_svd(i,k);
-                    for (std::size_t m = 0; m < n_eigs; ++m) {
+                    for (std::size_t m = 0; m < n_sing_val; ++m) {
                         const double ut_mj = u_svd(j,m);
                         const double s_inv_km = s_inv(k,m);
                         r_value += v_ik * s_inv_km * ut_mj;
