@@ -68,15 +68,14 @@ function build_core ($pythonLocation, $prefixLocation) {
     cmake --build "$($kratosRoot)/build/Release" --target KratosKernel -- /property:configuration=Release /p:Platform=x64
 }
 
-function build_interface ($python, $pythonPath) {
+function build_interface ($pythonLocation, $pythonPath) {
     cd $kratosRoot
+
     cp "$($kratosRoot)\scripts\wheels\windows\configure.bat" .\configure.bat
 
-    if($cotire -eq "ON"){
-        exec_build_cotire $python $pythonPath
-    }else {
-        exec_build $python $pythonPath
-    }
+    cmd.exe /c "call configure.bat $($pythonLocation) $($kratosRoot) $($prefixLocation)"
+    cmake --build "$($kratosRoot)/build/Release" --target KratosPythonInterface -- /property:configuration=Release /p:Platform=x64
+    cmake --build "$($kratosRoot)/build/Release" --target install -- /property:configuration=Release /p:Platform=x64
 }
 
 # Core can be build independently of the python version.
@@ -91,20 +90,22 @@ foreach ($python in $pythons){
 
     cd $kratosRoot
     git clean -ffxd
-    $pythonPath = "$($env:pythonRoot)\$($python)\python.exe"
+    
+    $pythonLocation = "$($env:pythonRoot)\$($python)\python.exe"
+    $prefixLocation = "$($kratosRoot)\bin\Release\python_$($python)"
 
-    build_interface $pythonPath $prefixLocation
+    build_interface $pythonLocation $prefixLocation
 
     Write-Host "Finished build"
 
     Write-Host "Building Core Wheel"
-    build_core_wheel $pythonPath $prefixLocation
+    build_core_wheel $pythonLocation $prefixLocation
 
     $applications = Get-ChildItem -Path "${prefixLocation}\applications" -Directory -Force -ErrorAction SilentlyContinue
     
     Write-Host "Building App Wheels"
     foreach($app in $applications) {
-        build_application_wheel $pythonPath $app
+        build_application_wheel $pythonLocation $app
     }
 
     Write-Host "Finished wheel construction for python $($python)"
