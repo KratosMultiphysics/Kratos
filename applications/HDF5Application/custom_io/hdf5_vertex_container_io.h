@@ -37,15 +37,7 @@ public:
     ///@{
 
     /// Pointer definition
-    //KRATOS_CLASS_POINTER_DEFINITION(VertexContainerIO);
-
-    using BaseType = ContainerComponentIO<Detail::VertexContainerType,
-                                          Detail::Vertex,
-                                          Variable<array_1d<double, 3>>,
-                                          Variable<double>,
-                                          Variable<int>,
-                                          Variable<Vector<double>>,
-                                          Variable<Matrix<double>>>;
+    KRATOS_CLASS_POINTER_DEFINITION(VertexContainerIO);
 
     ///@}
     ///@name Life Cycle
@@ -65,6 +57,14 @@ public:
 
     ///@}
 private:
+    using BaseType = ContainerComponentIO<Detail::VertexContainerType,
+                                          Detail::Vertex,
+                                          Variable<array_1d<double, 3>>,
+                                          Variable<double>,
+                                          Variable<int>,
+                                          Variable<Vector<double>>,
+                                          Variable<Matrix<double>>>;
+
     ///@name Member Variables
     ///@{
 
