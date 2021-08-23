@@ -40,6 +40,7 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
+#include "custom_io/hdf5_vertex_container_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -144,6 +145,13 @@ void AddCustomIOToPython(pybind11::module& m)
         m,"HDF5ConditionGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
+        ;
+
+    py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer>(m, "VertexContainerIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("WriteCoordinates", &HDF5::VertexContainerIO::WriteCoordinates)
+        .def("WriteVariables", &HDF5::VertexContainerIO::WriteVariables)
+        .def("GetDefaultParameters", &HDF5::VertexContainerIO::GetDefaultParameters)
         ;
 
 #ifdef KRATOS_USING_MPI
