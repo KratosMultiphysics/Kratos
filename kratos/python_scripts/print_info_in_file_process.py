@@ -7,7 +7,7 @@ def Factory(settings, Model):
     return PrintInfoInFileProcess(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class PrintInfoInFileProcess(KratosMultiphysics.Process):
+class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
     """This process prints a text file with the required nodal or elemental information
 
     Only the member variables listed below should be accessed directly.
@@ -24,7 +24,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
         Model -- the container of the different model parts.
         settings -- Kratos parameters containing solver settings.
         """
-        KratosMultiphysics.Process.__init__(self)
+        super().__init__()
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -61,73 +61,58 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
         self.plot_file.write(" TIME      \t" + settings["variable_name"].GetString() + "\n")
         self.plot_file.close()
 
-    def ExecuteBeforeSolutionLoop(self):
-        """ This method is executed in before initialize the solution step
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
 
-    def ExecuteInitializeSolutionStep(self):
-        """ This method is executed in order to initialize the current step
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        """ This method is executed in order to finalize the current step
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        if self.CheckIfPlotting():
-            self.SetPreviousPlotInstant()
-            if self.is_nodal_variable_type: # In nodal values we add them
-                for node in self.model_part.Nodes:
-                    counter = 0
-                    if counter == 0:
-                        array_values = self.GetValueToPrint(node)
-                    for value in array_values:
-                        if counter > 0:
-                            value += self.GetValueToPrint(node)[counter]
-                        counter += 1
-                self.plot_file = open(self.file_name, "a")
-                self.plot_file.write("{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "\t")
+    def PrintOutput(self):
+        self.SetPreviousPlotInstant()
+        if self.is_nodal_variable_type: # In nodal values we add them
+            for node in self.model_part.Nodes:
+                counter = 0
+                if counter == 0:
+                    array_values = self.GetValueToPrint(node)
                 for value in array_values:
-                    self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-                self.plot_file.write("\n")
-                self.plot_file.close()
-            else: # elemental information, not adding values
-                for elem in self.model_part.Elements:
-                    counter = 0
-                    if counter == 0:
-                        array_values = self.GetValueToPrint(elem)
-                    for value in array_values:
-                        if counter > 0:
-                            value += self.GetValueToPrint(elem)[counter]
-                        counter += 1
-                self.plot_file = open(self.file_name, "a")
-                self.plot_file.write("{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "\t")
+                    if counter > 0:
+                        value += self.GetValueToPrint(node)[counter]
+                    counter += 1
+            self.plot_file = open(self.file_name, "a")
+            self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+            for value in array_values:
+                self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
+            self.plot_file.write("\n")
+            self.plot_file.close()
+        else: # elemental information, not adding values
+            for elem in self.model_part.Elements:
+                counter = 0
+                if counter == 0:
+                    array_values = self.GetValueToPrint(elem)
                 for value in array_values:
-                    self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-                self.plot_file.write("\n")
-                self.plot_file.close()
+                    if counter > 0:
+                        value += self.GetValueToPrint(elem)[counter]
+                    counter += 1
+            self.plot_file = open(self.file_name, "a")
+            self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+            for value in array_values:
+                self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
+            self.plot_file.write("\n")
+            self.plot_file.close()
 
 
-    def CheckIfPlotting(self):
+    def IsOutputStep(self):
         if self.output_control_type == "step":
             return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot >= self.output_interval
         else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.instant_previous_plot >= self.output_interval
+            return self.__GetTime() - self.instant_previous_plot >= self.output_interval
 
     def SetPreviousPlotInstant(self):
         if self.output_control_type == "step":
             self.instant_previous_plot = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         else:
-            self.instant_previous_plot = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            self.instant_previous_plot = self.__GetTime()
 
     def GetValueToPrint(self, Entity):
         if self.is_nodal_variable_type:
             return Entity.GetSolutionStepValue(self.variable)
         else:
             return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)[self.integration_point]
+
+    def __GetTime(self):
+        return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
