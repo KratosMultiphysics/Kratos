@@ -326,7 +326,8 @@ namespace Kratos
         double mUniaxialStressCompression = 0.0;
 
         // Misc
-        double mInitialCharacteristicLength = 0.0;
+        double mInitialCharacteristicLength0 = 0.0;
+        double mInitialCharacteristicLength1 = 0.0;
 
         ///@}
         ///@name Protected Operators

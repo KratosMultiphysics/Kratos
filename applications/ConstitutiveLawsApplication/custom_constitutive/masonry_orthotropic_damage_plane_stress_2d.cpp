@@ -110,9 +110,12 @@ namespace Kratos
             mUniaxialStressTension = 0.0;
             mUniaxialStressCompression = 0.0;
 
-            this->ComputeCharacteristicLength(
+            mInitialCharacteristicLength0 = this->ComputeCharacteristicLength(
                 rGeometry,
-                mInitialCharacteristicLength);
+                0);
+            mInitialCharacteristicLength1 = this->ComputeCharacteristicLength(
+                rGeometry,
+                1);
 
             mInitializeDamageLaw = true;
         }
@@ -178,7 +181,8 @@ namespace Kratos
         mDamageTension = 0.0;
         mDamageCompression = 0.0;
 
-        mInitialCharacteristicLength = 0.0;
+        mInitialCharacteristicLength0 = 0.0;
+        mInitialCharacteristicLength1 = 0.0;
         mInitializeDamageLaw = false;
 
     }
@@ -258,13 +262,11 @@ namespace Kratos
         const ProcessInfo& rProcessInfo)
     {
         const DirectionalMaterialProperties MaterialProperties1(
-            this->ComputeCharacteristicLength(
-                rGeometry, 0),
+            mInitialCharacteristicLength0,
             *rProperties.GetSubProperties().begin());
 
         const DirectionalMaterialProperties MaterialProperties2(
-            this->ComputeCharacteristicLength(
-                rGeometry, 1),
+            mInitialCharacteristicLength1,
             *(rProperties.GetSubProperties().begin() + 1));
 
         CalculationData data(MaterialProperties1, MaterialProperties2);
@@ -762,8 +764,8 @@ namespace Kratos
     {
         array_1d<double, 3> characteristic_lengthness;
         rGeometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_lengthness);
-        SizeType polynomial_degree = rGeometry.PolynomialDegree(0);
-        return characteristic_lengthness[DirectionIndex] / std::sqrt(polynomial_degree);
+        //SizeType polynomial_degree = rGeometry.PolynomialDegree(DirectionIndex);
+        return characteristic_lengthness[DirectionIndex];// / std::sqrt(polynomial_degree);
     }
     /***********************************************************************************/
     /***********************************************************************************/
