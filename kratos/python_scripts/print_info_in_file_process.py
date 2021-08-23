@@ -96,6 +96,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                 for value in array_values:
                     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
                 self.plot_file.write("|\n")
+                self.plot_file.close()
             else: # elemental information, not adding values
                 for elem in self.model_part.Elements:
                     counter = 0
@@ -110,6 +111,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                 for value in array_values:
                     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
                 self.plot_file.write("|\n")
+                self.plot_file.close()
 
 
     def CheckIfPlotting(self):
