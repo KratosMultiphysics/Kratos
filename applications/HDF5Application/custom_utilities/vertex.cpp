@@ -52,6 +52,14 @@ Vertex::Vertex()
 }
 
 
+Vertex::Pointer Vertex::MakeShared(const array_1d<double,3>& rPosition,
+                                   const PointLocatorAdaptor& rLocator,
+                                   bool isHistorical)
+{
+    return Vertex::Pointer(new Vertex(rPosition, rLocator, isHistorical));
+}
+
+
 bool Vertex::IsLocated() const
 {
     return mpContainingElement.get();

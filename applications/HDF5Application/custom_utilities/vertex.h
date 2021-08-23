@@ -46,11 +46,24 @@ public:
            const PointLocatorAdaptor& rLocator,
            bool isHistorical = true);
 
-    /** Default constructor required by PointerVectorSet
+    /** Default constructor required by PointerVector
      *  @note this constructor does not locate the vertex and should
      *  not be called.
      */
     Vertex();
+
+    /** Pointer constructor for python
+     *
+     *  @details a search using the provided locator is used to find which element contains this vertex.
+     *  If the search fails, @ref{GetValue} should not be called and will throw an exception.
+     *  The search result can be checked with @ref{IsLocated}.
+     *
+     *  @param rPosition position attribute
+     *  @param rLocator point locator exposing a FindElement member
+     */
+    static Vertex::Pointer MakeShared(const array_1d<double,3>& rPosition,
+                                      const PointLocatorAdaptor& rLocator,
+                                      bool isHistorical);
 
     /** Interpolate the requested variable
      *  @param rVariable variable to interpolate
@@ -74,12 +87,9 @@ private:
 };
 
 
-using VertexContainerType = PointerVectorSet<Vertex,
-                                             IndexedObject,
-                                             std::less<typename IndexedObject::result_type>,
-                                             std::equal_to<typename IndexedObject::result_type>,
-                                             Vertex::Pointer,
-                                             std::vector<Vertex::Pointer>>;
+using VertexContainerType = PointerVector<Vertex,
+                                          Vertex::Pointer,
+                                          std::vector<Vertex::Pointer>>;
 
 
 } // namespace Detail

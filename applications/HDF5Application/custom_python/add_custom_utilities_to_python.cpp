@@ -74,7 +74,13 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(Array9)
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(Kratos::Matrix)
         KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING(DenseVector<int>)
+        .def_static("MakeShared", &HDF5::Detail::Vertex::MakeShared)
         .def("IsLocated", &HDF5::Detail::Vertex::IsLocated)
+        ;
+
+    pybind11::class_<HDF5::Detail::VertexContainerType, HDF5::Detail::VertexContainerType::Pointer>(rModule, "VertexContainer")
+        .def(pybind11::init<>())
+        .def("push_back", &HDF5::Detail::VertexContainerType::push_back)
         ;
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
