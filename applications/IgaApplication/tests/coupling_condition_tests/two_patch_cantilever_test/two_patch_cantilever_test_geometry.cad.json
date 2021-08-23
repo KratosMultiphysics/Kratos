@@ -1,0 +1,320 @@
+{
+    "tolerances": {
+        "model_tolerance": 0.001
+    },
+    "version_number": 1,
+    "breps": [{
+        "brep_id": 4,
+        "faces": [{
+            "brep_id": 1,
+            "swapped_surface_normal": false,
+            "surface": {
+                "is_trimmed": true,
+                "is_rational": false,
+                "degrees": [3, 3],
+                "knot_vectors": [
+                    [0, 0, 0, 0, 5, 5, 5, 5],
+                    [0, 0, 0, 0, 2, 2, 2, 2]
+                ],
+                "control_points": [
+                    [1, [0, 0, 0, 1]],
+                    [2, [1.666666666666667, 0, 0, 1]],
+                    [3, [3.333333333333333, 0, 0, 1]],
+                    [4, [5, 0, 0, 1]],
+                    [5, [0, 0.66666666666666652, 0, 1]],
+                    [6, [1.6666666666666665, 0.66666666666666674, 0, 1]],
+                    [7, [3.3333333333333308, 0.66666666666666663, 0, 1]],
+                    [8, [4.9999999999999973, 0.66666666666666652, 0, 1]],
+                    [9, [0, 1.3333333333333333, 0, 1]],
+                    [10, [1.6666666666666665, 1.3333333333333328, 0, 1]],
+                    [11, [3.3333333333333339, 1.3333333333333326, 0, 1]],
+                    [12, [5.0000000000000009, 1.3333333333333333, 0, 1]],
+                    [13, [0, 2, 0, 1]],
+                    [14, [1.666666666666667, 2.0000000000000004, 0, 1]],
+                    [15, [3.333333333333333, 1.9999999999999998, 0, 1]],
+                    [16, [5, 2, 0, 1]]
+                ]
+            },
+            "boundary_loops": [{
+                "loop_type": "outer",
+                "trimming_curves": [{
+                    "trim_index": 0,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 5, 5],
+                        "active_range": [0, 5],
+                        "control_points": [
+                            [17, [0, 0, 0, 1]],
+                            [18, [5, 0, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 1,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 2, 2],
+                        "active_range": [0, 2],
+                        "control_points": [
+                            [19, [5, 0, 0, 1]],
+                            [20, [5, 2, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 2,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 5, 5],
+                        "active_range": [0, 5],
+                        "control_points": [
+                            [21, [5, 2, 0, 1]],
+                            [22, [0, 2, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 3,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 2, 2],
+                        "active_range": [0, 2],
+                        "control_points": [
+                            [23, [0, 2, 0, 1]],
+                            [24, [0, 0, 0, 1]]
+                        ]
+                    }
+                }]
+            }],
+            "embedded_loops": [],
+            "embedded_edges": [],
+            "embedded_points": []
+        }, {
+            "brep_id": 2,
+            "swapped_surface_normal": true,
+            "surface": {
+                "is_trimmed": true,
+                "is_rational": false,
+                "degrees": [3, 3],
+                "knot_vectors": [
+                    [0, 0, 0, 0, 2, 2, 2, 2],
+                    [0, 0, 0, 0, 5, 5, 5, 5]
+                ],
+                "control_points": [
+                    [25, [5, 0, 0, 1]],
+                    [26, [4.9999999999999973, 0.66666666666666652, 0, 1]],
+                    [27, [5.0000000000000009, 1.3333333333333333, 0, 1]],
+                    [28, [5, 2, 0, 1]],
+                    [29, [6.6666666666666661, 0, 0, 1]],
+                    [30, [6.6666666666666634, 0.66666666666666685, 0, 1]],
+                    [31, [6.6666666666666705, 1.333333333333333, 0, 1]],
+                    [32, [6.6666666666666661, 2.0000000000000004, 0, 1]],
+                    [33, [8.3333333333333339, 0, 0, 1]],
+                    [34, [8.333333333333325, 0.66666666666666619, 0, 1]],
+                    [35, [8.3333333333333321, 1.3333333333333335, 0, 1]],
+                    [36, [8.3333333333333339, 1.9999999999999998, 0, 1]],
+                    [37, [10, 0, 0, 1]],
+                    [38, [9.9999999999999947, 0.66666666666666652, 0, 1]],
+                    [39, [10.000000000000002, 1.3333333333333333, 0, 1]],
+                    [40, [10, 2, 0, 1]]
+                ]
+            },
+            "boundary_loops": [{
+                "loop_type": "outer",
+                "trimming_curves": [{
+                    "trim_index": 4,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 2, 2],
+                        "active_range": [0, 2],
+                        "control_points": [
+                            [41, [0, 0, 0, 1]],
+                            [42, [2, 0, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 5,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 5, 5],
+                        "active_range": [0, 5],
+                        "control_points": [
+                            [43, [2, 0, 0, 1]],
+                            [44, [2, 5, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 6,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 2, 2],
+                        "active_range": [0, 2],
+                        "control_points": [
+                            [45, [2, 5, 0, 1]],
+                            [46, [0, 5, 0, 1]]
+                        ]
+                    }
+                }, {
+                    "trim_index": 7,
+                    "curve_direction": true,
+                    "parameter_curve": {
+                        "is_rational": false,
+                        "degree": 1,
+                        "knot_vector": [0, 0, 5, 5],
+                        "active_range": [0, 5],
+                        "control_points": [
+                            [47, [0, 5, 0, 1]],
+                            [48, [0, 0, 0, 1]]
+                        ]
+                    }
+                }]
+            }],
+            "embedded_loops": [],
+            "embedded_edges": [],
+            "embedded_points": []
+        }],
+        "edges": [{
+            "brep_id": 5,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [0, 0, 0, 0, 5, 5, 5, 5],
+                "active_range": [0, 5],
+                "control_points": [
+                    [49, [0, 0, 0, 1]],
+                    [50, [1.666666666666667, 0, 0, 1]],
+                    [51, [3.333333333333333, 0, 0, 1]],
+                    [52, [5, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 0,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 6,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [0, 0, 0, 0, 2, 2, 2, 2],
+                "active_range": [0, 2],
+                "control_points": [
+                    [53, [5, 0, 0, 1]],
+                    [54, [4.9999999999999973, 0.66666666666666652, 0, 1]],
+                    [55, [5.0000000000000009, 1.3333333333333333, 0, 1]],
+                    [56, [5, 2, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 1,
+                "relative_direction": true
+            }, {
+                "brep_id": 2,
+                "trim_index": 4,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 7,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [-5, -5, -5, -5, 0, 0, 0, 0],
+                "active_range": [-5, 0],
+                "control_points": [
+                    [57, [5, 2, 0, 1]],
+                    [58, [3.333333333333333, 1.9999999999999998, 0, 1]],
+                    [59, [1.666666666666667, 2.0000000000000004, 0, 1]],
+                    [60, [0, 2, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 2,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 8,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [-2, -2, -2, -2, 0, 0, 0, 0],
+                "active_range": [-2, 0],
+                "control_points": [
+                    [61, [0, 2, 0, 1]],
+                    [62, [0, 1.3333333333333333, 0, 1]],
+                    [63, [0, 0.66666666666666652, 0, 1]],
+                    [64, [0, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 1,
+                "trim_index": 3,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 3,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [0, 0, 0, 0, 5, 5, 5, 5],
+                "active_range": [0, 5],
+                "control_points": [
+                    [65, [5, 2, 0, 1]],
+                    [66, [6.6666666666666661, 2.0000000000000004, 0, 1]],
+                    [67, [8.3333333333333339, 1.9999999999999998, 0, 1]],
+                    [68, [10, 2, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 2,
+                "trim_index": 5,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 9,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [-2, -2, -2, -2, 0, 0, 0, 0],
+                "active_range": [-2, 0],
+                "control_points": [
+                    [69, [10, 2, 0, 1]],
+                    [70, [10.000000000000002, 1.3333333333333333, 0, 1]],
+                    [71, [9.9999999999999947, 0.66666666666666652, 0, 1]],
+                    [72, [10, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 2,
+                "trim_index": 6,
+                "relative_direction": true
+            }]
+        }, {
+            "brep_id": 10,
+            "3d_curve": {
+                "degree": 3,
+                "knot_vector": [-5, -5, -5, -5, 0, 0, 0, 0],
+                "active_range": [-5, 0],
+                "control_points": [
+                    [73, [10, 0, 0, 1]],
+                    [74, [8.3333333333333339, 0, 0, 1]],
+                    [75, [6.6666666666666661, 0, 0, 1]],
+                    [76, [5, 0, 0, 1]]
+                ]
+            },
+            "topology": [{
+                "brep_id": 2,
+                "trim_index": 7,
+                "relative_direction": true
+            }]
+        }],
+        "vertices": []
+    }]
+}

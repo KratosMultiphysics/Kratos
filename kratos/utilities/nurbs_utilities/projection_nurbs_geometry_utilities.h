@@ -74,7 +74,7 @@ public:
                 2);
             rResultLocal = derivatives[0];
 
-            // Compute the distance vector between the point and its 
+            // Compute the distance vector between the point and its
             // projection on the curve
             distance_vector = rResultLocal - rPointGlobal;
             if (norm_2(distance_vector) < Accuracy)
@@ -95,9 +95,9 @@ public:
             if (norm_2(delta_t * derivatives[1]) < Accuracy)
                 return true;
 
-            // Check if the parameter gets out of its interval of definition and if so clamp it 
+            // Check if the parameter gets out of its interval of definition and if so clamp it
             // back to the boundaries
-            int check = 1;//rGeometry.ClosestPointLocalSpace(rParameterLocalCoordinates);
+            int check = rGeometry.ClosestPointLocalToLocalSpace(rParameterLocalCoordinates, rParameterLocalCoordinates);
             if (check == 0) {
                 if (projection_reset_to_boundary) { return false; }
                 else { projection_reset_to_boundary = true; }
@@ -231,7 +231,7 @@ public:
             rParameterLocalCoordinates[0] += d_u;
             rParameterLocalCoordinates[1] += d_v;
 
-            // Check if the parametric coordinates get out of their interval of definition 
+            // Check if the parametric coordinates get out of their interval of definition
             // and if so clamp them back to their boundaries
             rNurbsSurface.DomainIntervalU().IsInside(rParameterLocalCoordinates[0]);
             rNurbsSurface.DomainIntervalV().IsInside(rParameterLocalCoordinates[1]);

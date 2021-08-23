@@ -51,7 +51,9 @@ int UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
     if (ierr != 0) return ierr;
 
     if (Geom.DomainSize() < 1.0e-15)
-        KRATOS_THROW_ERROR( std::logic_error, "DomainSize < 1.0e-15 for the element ", this->Id() )
+        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element "
+                     << this->Id()
+                     << std::endl;
 
     // Verify generic variables
     ierr = UPwBaseElement<TDim,TNumNodes>::Check(rCurrentProcessInfo);
@@ -59,7 +61,9 @@ int UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
 
     // Verify specific properties
     if ( Prop.Has( BULK_MODULUS_FLUID ) == false || Prop[BULK_MODULUS_FLUID] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element", this->Id() )
+        KRATOS_ERROR << "BULK_MODULUS_FLUID has Key zero, is not defined or has an invalid value at element "
+                     << this->Id()
+                     << std::endl;
 
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
@@ -101,11 +105,11 @@ void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UndrainedUPwSmallStrainElement<TDim,TNumNodes>::
-    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
 
-    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables);
+    UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
     UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(rRightHandSideVector, rVariables);
 
