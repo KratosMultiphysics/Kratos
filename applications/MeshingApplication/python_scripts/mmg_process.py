@@ -366,6 +366,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("internal_variables_parameters",self.settings["internal_variables_parameters"])
         mmg_parameters.AddValue("collapse_prisms_elements",self.settings["collapse_prisms_elements"])
         mmg_parameters.AddValue("save_external_files",self.settings["save_external_files"])
+        mmg_parameters.AddValue("preserve_old_model_part",self.settings["preserve_old_model_part"])
         mmg_parameters.AddValue("save_colors_files",self.settings["save_colors_files"])
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])

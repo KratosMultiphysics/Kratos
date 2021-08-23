@@ -677,7 +677,7 @@ void MmgProcess<TMMGLibrary>::ExecuteRemeshing()
 
     // Finally remove old model part
     if (!mThisParameters["preserve_old_model_part"].GetBool()) {
-        // r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
+        r_owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
     }
 
     /* We clean conditions with duplicated geometries (this is an error on fluid simulations) */
