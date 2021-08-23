@@ -549,9 +549,16 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         ConstitutiveLaw::Parameters& rParameters
         )
     {
-        double alpha = rParameters.GetMaterialProperties()[THERMAL_EXPANSION_COEFFICIENT];
+        const auto &r_properties = rParameters.GetMaterialProperties();
+        double alpha;
         BoundedVectorType thermal_strain = ZeroVector(VoigtSize);
         const double current_temperature_gp = CalculateInGaussPoint(TEMPERATURE, rParameters);
+
+        if (r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT))
+            alpha = GetValueFromTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT, rParameters);
+        else
+            alpha = r_properties[THERMAL_EXPANSION_COEFFICIENT];
+
         alpha *= (current_temperature_gp - ReferenceTemperature);
         for (IndexType i = 0; i < Dimension; ++i)
             thermal_strain(i) = 1.0;
