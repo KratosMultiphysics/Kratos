@@ -58,7 +58,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
 
         self.plot_file = open(self.file_name, open_file_aproach)
         self.plot_file.write("In this file we print the " + settings["variable_type"].GetString() + " " + settings["variable_name"].GetString() + " in the sub_model_part: " + settings["model_part_name"].GetString() + "\n\n")
-        self.plot_file.write("| TIME      |\t|" + settings["variable_name"].GetString() + "\n")
+        self.plot_file.write(" TIME      \t" + settings["variable_name"].GetString() + "\n")
         self.plot_file.close()
 
     def ExecuteBeforeSolutionLoop(self):
@@ -92,10 +92,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                             value += self.GetValueToPrint(node)[counter]
                         counter += 1
                 self.plot_file = open(self.file_name, "a")
-                self.plot_file.write("|" +"{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "|" + "\t" + "|")
+                self.plot_file.write("{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "\t")
                 for value in array_values:
                     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-                self.plot_file.write("|\n")
+                self.plot_file.write("\n")
                 self.plot_file.close()
             else: # elemental information, not adding values
                 for elem in self.model_part.Elements:
@@ -107,10 +107,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                             value += self.GetValueToPrint(elem)[counter]
                         counter += 1
                 self.plot_file = open(self.file_name, "a")
-                self.plot_file.write("|" +"{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "|" + "\t" + "|")
+                self.plot_file.write("{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "\t")
                 for value in array_values:
                     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-                self.plot_file.write("|\n")
+                self.plot_file.write("\n")
                 self.plot_file.close()
 
 
