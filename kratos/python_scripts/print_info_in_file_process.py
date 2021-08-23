@@ -86,7 +86,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
         """
         if self.CheckIfPlotting():
             self.SetPreviousPlotInstant()
-            if self.is_nodal_variable_type:
+            if self.is_nodal_variable_type: # In nodal values we add them
                 for node in self.model_part.Nodes:
                     counter = 0
                     if counter == 0:
@@ -94,6 +94,20 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                     for value in array_values:
                         if counter > 0:
                             value += self.GetValueToPrint(node)[counter]
+                        counter += 1
+                self.plot_file = open(self.file_name, "a")
+                self.plot_file.write("|" +"{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "|" + "\t" + "|")
+                for value in array_values:
+                    self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
+                self.plot_file.write("|\n")
+            else: # elemental information, not adding values
+                for elem in self.model_part.Elements:
+                    counter = 0
+                    if counter == 0:
+                        array_values = self.GetValueToPrint(elem)
+                    for value in array_values:
+                        if counter > 0:
+                            value += self.GetValueToPrint(elem)[counter]
                         counter += 1
                 self.plot_file = open(self.file_name, "a")
                 self.plot_file.write("|" +"{0:.4e}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]).rjust(11) + "|" + "\t" + "|")
@@ -117,4 +131,4 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
         if self.is_nodal_variable_type:
             return Entity.GetSolutionStepValue(self.variable)
         else:
-            return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
+            return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)[self.integration_point]
