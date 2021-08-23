@@ -58,7 +58,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
         self.plot_file = open(self.file_name, open_file_aproach)
         self.plot_file.write("# In this file we print the " + settings["variable_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
-        self.plot_file.write("# TIME      \t" + settings["variable_name"].GetString() + "\n")
+        self.plot_file.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
         self.plot_file.close()
 
 
