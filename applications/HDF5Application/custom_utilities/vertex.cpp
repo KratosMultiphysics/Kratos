@@ -37,6 +37,10 @@ Vertex::Vertex(const array_1d<double,3>& rPosition,
         mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
     }
 
+    if (mpContainingElement.get()) {
+        mpContainingElement->GetGeometry().IsInside(*this, mLocalCoordinates);
+    }
+
     KRATOS_CATCH("");
 }
 

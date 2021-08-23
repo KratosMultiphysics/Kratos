@@ -67,7 +67,7 @@ inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 
     // Compute shape function values here
     Kratos::Vector shape_function_values;
-    rGeometry.ShapeFunctionsValues(shape_function_values, *this);
+    rGeometry.ShapeFunctionsValues(shape_function_values, mLocalCoordinates);
 
     // Interpolate variable
     for (std::size_t i_node=0; i_node<rGeometry.size(); ++i_node) {

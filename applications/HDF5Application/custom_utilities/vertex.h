@@ -69,6 +69,8 @@ private:
     const Element::WeakPointer mpContainingElement;
 
     NodalVariableGetter::UniquePointer mpVariableGetter;
+
+    Point mLocalCoordinates;
 };
 
 
