@@ -69,10 +69,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                 counter = 0
                 if counter == 0:
                     array_values = self.GetValueToPrint(node)
-                for value in array_values:
-                    if counter > 0:
+                if counter > 0:
+                    for value in array_values:
                         value += self.GetValueToPrint(node)[counter]
-                    counter += 1
+                counter += 1
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
