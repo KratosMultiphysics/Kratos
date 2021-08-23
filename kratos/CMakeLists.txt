@@ -62,7 +62,7 @@ target_compile_definitions(KratosVersion PRIVATE
 
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
-target_link_libraries(KratosCore PUBLIC gidpost triangle tinyexpr)
+target_link_libraries(KratosCore PUBLIC gidpost triangle tinyexpr clipper)
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)

@@ -512,6 +512,7 @@ message("\t VariableComponent and VectorComponentAdaptor are no longer used: htt
 
 # Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
 
 # Compiling the tinyexpr library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
