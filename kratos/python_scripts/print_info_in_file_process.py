@@ -37,10 +37,9 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "output_control_type"      : "step",
             "integration_point_number" : 0,
             "erase_previous_info"      : true,
-            "output_interval"          : 1
-        }
-        """
-        )
+            "output_interval"          : 1,
+            "sum_results_from_multiple_entites" : false
+        }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
@@ -51,6 +50,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.instant_previous_plot = 0.0
         self.integration_point = settings["integration_point_number"].GetInt()
+        self.sum_results_from_multiple_entites = settings["sum_results_from_multiple_entites"].GetBool()
 
         open_file_aproach = "a"
         if settings["erase_previous_info"].GetBool():
@@ -65,29 +65,34 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
         if self.is_nodal_variable_type: # In nodal values we add them
+            initialized = False
             for node in self.model_part.Nodes:
-                counter = 0
-                if counter == 0:
+                if not initialized:
                     array_values = self.GetValueToPrint(node)
-                if counter > 0:
-                    for value in array_values:
-                        value += self.GetValueToPrint(node)[counter]
-                counter += 1
+                    self.ResetValues(array_values)
+                    initialized = True
+                for comp in range(len(array_values)):
+                    array_values[comp] += self.GetValueToPrint(node)[comp]
+                if not self.sum_results_from_multiple_entites:
+                    break
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
                 self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
             self.plot_file.write("\n")
             self.plot_file.close()
-        else: # elemental information, not adding values
+        else:
+            initialized = False
             for elem in self.model_part.Elements:
-                counter = 0
-                if counter == 0:
-                    array_values = self.GetValueToPrint(elem)
-                if counter > 0:
-                    for value in array_values:
-                        value += self.GetValueToPrint(elem)[counter]
-                counter += 1
+                if not initialized:
+                    array_values = self.GetValueToPrint(elem)[0]
+                    self.ResetValues(array_values)
+                    initialized = True
+                for ip in range(len(self.GetValueToPrint(elem))):
+                    for comp in range(len(array_values)):
+                        array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
+                if not self.sum_results_from_multiple_entites:
+                    break
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
@@ -110,9 +115,16 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def GetValueToPrint(self, Entity):
         if self.is_nodal_variable_type:
-            return Entity.GetSolutionStepValue(self.variable)
+            if Entity.HasSolutionStepValue(self.variable):
+                return Entity.GetSolutionStepValue(self.variable)
+            else:
+                return Entity.GetValue(self.variable)
         else:
-            return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)[self.integration_point]
+            return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
 
     def __GetTime(self):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
+
+    def ResetValues(self, values):
+        for value in values:
+            value = 0.0
