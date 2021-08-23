@@ -8,7 +8,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class PrintInfoInFileProcess(KratosMultiphysics.Process):
-    """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
+    """This process prints a text file with the required nodal or elemental information
 
     Only the member variables listed below should be accessed directly.
 
@@ -64,7 +64,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed in before initialize the solution step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -72,7 +71,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -80,7 +78,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
-
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
@@ -121,6 +118,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
             return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot >= self.output_interval
         else:
             return self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.instant_previous_plot >= self.output_interval
+
     def SetPreviousPlotInstant(self):
         if self.output_control_type == "step":
             self.instant_previous_plot = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
