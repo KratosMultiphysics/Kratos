@@ -22,7 +22,6 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_gauss_point_output.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_vertex_container_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_point_set_output_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_ghost_splitting_utility.cpp
