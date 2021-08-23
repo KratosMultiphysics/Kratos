@@ -37,7 +37,7 @@ class TestVertex(KratosUnittest.TestCase):
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [5.0, 0.0, 0.0])
         node.SetSolutionStepValue(KratosMultiphysics.REACTION, [0.0, 0.0, 5.0])
 
-        element = model_part.CreateNewElement(
+        model_part.CreateNewElement(
             "Element2D4N",
             1,
             [1, 2, 3, 4],
