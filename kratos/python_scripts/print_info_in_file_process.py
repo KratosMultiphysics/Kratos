@@ -100,27 +100,18 @@ class PrintInfoInFileProcess(KratosMultiphysics.Process):
                 for value in array_values:
                     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
                 self.plot_file.write("|\n")
-        else:
-            self.AddPlotInstant()
-
-
 
 
     def CheckIfPlotting(self):
         if self.output_control_type == "step":
-            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot > 0
+            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot >= self.output_interval
         else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.instant_previous_plot > 0.0
+            return self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.instant_previous_plot >= self.output_interval
     def SetPreviousPlotInstant(self):
         if self.output_control_type == "step":
             self.instant_previous_plot = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
         else:
             self.instant_previous_plot = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-    def AddPlotInstant(self):
-        if self.output_control_type == "step":
-            self.instant_previous_plot += 1
-        else:
-            self.instant_previous_plot += self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
     def GetValueToPrint(self, Entity):
         if self.is_nodal_variable_type:
