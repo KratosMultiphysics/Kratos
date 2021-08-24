@@ -32,7 +32,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
-            "variable_type"            : "nodal",
+            "variable_type"            : "nodal_historical",
             "file_name"                : "info_file.txt",
             "output_control_type"      : "step",
             "integration_point_number" : 0,
@@ -43,7 +43,8 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        self.is_nodal_variable_type = settings["variable_type"].GetString() == "nodal"
+        self.variable_type = settings["variable_type"].GetString()
+        self.is_nodal_variable_type = "nodal" in self.variable_type
         self.file_name = settings["file_name"].GetString()
         self.output_control_type = settings["output_control_type"].GetString()
         self.output_interval = settings["output_interval"].GetDouble()
@@ -67,13 +68,14 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         if self.is_nodal_variable_type:
             for node in self.model_part.Nodes:
                 array_values = self.GetValueToPrint(node)
-                if not self.sum_results_from_multiple_entites:
-                    break
                 for comp in range(len(array_values)):
                     array_values[comp] = 0.0
+                break
             for node in self.model_part.Nodes:
                 for comp in range(len(array_values)):
                     array_values[comp] += self.GetValueToPrint(node)[comp]
+                if not self.sum_results_from_multiple_entites:
+                    break
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
@@ -83,14 +85,17 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         else:
             for elem in self.model_part.Elements:
                 array_values = self.GetValueToPrint(elem)[self.integration_point]
-                if not self.sum_results_from_multiple_entites:
-                    break
                 for comp in range(len(array_values)):
                     array_values[comp] = 0.0
+                break
             for elem in self.model_part.Elements:
-                for ip in range(len(self.GetValueToPrint(elem))):
-                    for comp in range(len(array_values)):
-                        array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
+                if self.sum_results_from_multiple_entites:
+                    for ip in range(len(self.GetValueToPrint(elem))):
+                        for comp in range(len(array_values)):
+                            array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
+                else:
+                    array_values = self.GetValueToPrint(elem)[self.integration_point]
+                    break
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
@@ -113,10 +118,12 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def GetValueToPrint(self, Entity):
         if self.is_nodal_variable_type:
-            if Entity.HasSolutionStepValue(self.variable):
+            if self.variable_type == "nodal_historical":
                 return Entity.GetSolutionStepValue(self.variable)
-            else:
+            elif self.variable_type == "nodal_non_historical":
                 return Entity.GetValue(self.variable)
+            else:
+                raise NameError("variable_type not supported")
         else:
             return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
 
