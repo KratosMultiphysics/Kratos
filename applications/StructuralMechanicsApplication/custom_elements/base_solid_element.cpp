@@ -941,6 +941,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 rOutput[point_number] = global_point.Coordinates();
             }
+        } else if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
+            if (this->Has(rVariable)) {
+                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+                    rOutput[point_number] = this->GetValue(rVariable);
+                }
+            }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
