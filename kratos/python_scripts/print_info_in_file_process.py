@@ -64,17 +64,17 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
-        if self.is_nodal_variable_type: # In nodal values we add them
-            initialized = False
+        if self.is_nodal_variable_type:
+            array_values = []
             for node in self.model_part.Nodes:
-                if not initialized:
-                    array_values = self.GetValueToPrint(node)
-                    if not self.sum_results_from_multiple_entites:
-                        break
-                    self.ResetValues(array_values)
-                    initialized = True
-                for comp in range(len(array_values)):
+                array_values = self.GetValueToPrint(node)
+                self.ResetValues(array_values)
+                break
+            for node in self.model_part.Nodes:
+                for comp in range(len(self.GetValueToPrint(node))):
                     array_values[comp] += self.GetValueToPrint(node)[comp]
+                if not self.sum_results_from_multiple_entites:
+                    break
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
@@ -82,16 +82,17 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             self.plot_file.write("\n")
             self.plot_file.close()
         else:
-            initialized = False
+            array_values = []
             for elem in self.model_part.Elements:
-                if not initialized:
+                array_values = self.GetValueToPrint(elem)[0]
+                self.ResetValues(array_values)
+                break
+            for elem in self.model_part.Elements:
+                if not self.sum_results_from_multiple_entites:
                     array_values = self.GetValueToPrint(elem)[self.integration_point]
-                    if not self.sum_results_from_multiple_entites:
-                        break
-                    self.ResetValues(array_values)
-                    initialized = True
+                    break
                 for ip in range(len(self.GetValueToPrint(elem))):
-                    for comp in range(len(array_values)):
+                    for comp in range(len(self.GetValueToPrint(elem)[0])):
                         array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
@@ -106,6 +107,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot >= self.output_interval
         else:
             return self.__GetTime() - self.instant_previous_plot >= self.output_interval
+
 
     def SetPreviousPlotInstant(self):
         if self.output_control_type == "step":
