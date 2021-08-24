@@ -249,7 +249,7 @@ void GeoTrussElementLinearBase<2,2>::
     rReferenceCoordinates[0] = this->GetGeometry()[0].X0();
     rReferenceCoordinates[1] = this->GetGeometry()[0].Y0();
     rReferenceCoordinates[2] = this->GetGeometry()[1].X0();
-    rReferenceCoordinates[2] = this->GetGeometry()[1].Y0();
+    rReferenceCoordinates[3] = this->GetGeometry()[1].Y0();
 
     KRATOS_CATCH("")
 }

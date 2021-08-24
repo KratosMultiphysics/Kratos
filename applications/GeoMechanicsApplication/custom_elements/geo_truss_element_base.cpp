@@ -745,7 +745,7 @@ void GeoTrussElementBase<3,2>::
     arraydim global_z_vector = ZeroVector(DIM);
     global_z_vector[2] = 1.0;
 
-    WriteTransformationCoordinates(reference_coordinates);
+    this->WriteTransformationCoordinates(reference_coordinates);
 
     for (unsigned int i = 0; i < DIM; ++i) {
         direction_vector_x[i] = (reference_coordinates[i + DIM] - reference_coordinates[i]);
@@ -758,7 +758,7 @@ void GeoTrussElementBase<3,2>::
     if (VectorNorm > numeric_limit) {
         direction_vector_x /= VectorNorm;
     } else {
-        KRATOS_ERROR << "length of element" << Id() << "~ zero" << std::endl;
+        KRATOS_ERROR << "length of element " << Id() << " is ~ zero: " << VectorNorm << std::endl;
     }
 
     if (std::abs(direction_vector_x[2]-1.00) <= numeric_limit) {
@@ -814,7 +814,7 @@ void GeoTrussElementBase<2,2>::
     // 1st calculate transformation matrix
 
     BoundedVector<double, DIM_2D*NUM_NODES> reference_coordinates_2D = ZeroVector(DIM_2D*NUM_NODES);
-    WriteTransformationCoordinates(reference_coordinates_2D);
+    this->WriteTransformationCoordinates(reference_coordinates_2D);
 
     BoundedVector<double, DIM_3D> direction_vector_x_3D = ZeroVector(DIM_3D);
     for (unsigned int i = 0; i < DIM_2D; ++i) {
@@ -827,7 +827,9 @@ void GeoTrussElementBase<2,2>::
     if (VectorNorm > std::numeric_limits<double>::epsilon()) {
         direction_vector_x_3D /= VectorNorm;
     } else {
-        KRATOS_ERROR << "length of element" << Id() << "~ zero" << std::endl;
+        KRATOS_ERROR << "length of element " << Id()
+                     << " is ~ zero: " << VectorNorm
+                     << std::endl;
     }
 
     BoundedVector<double, DIM_3D> direction_vector_y_3D = ZeroVector(DIM_3D);
