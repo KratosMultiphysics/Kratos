@@ -44,6 +44,8 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
         self.variable_type = settings["variable_type"].GetString()
+        if not self.variable_type == "nodal_historical" and not self.variable_type == "nodal_non_historical" and not self.variable_type == "elemental":
+            raise NameError("variable_type not correct, must be nodal_historical, nodal_non_historical or elemental")
         self.is_nodal_variable_type = "nodal" in self.variable_type
         self.file_name = settings["file_name"].GetString()
         self.output_control_type = settings["output_control_type"].GetString()
