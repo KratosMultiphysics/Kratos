@@ -26,6 +26,7 @@
 #include "custom_processes/apply_chimera_process.h"
 #include "custom_processes/apply_chimera_process_monolithic.h"
 #include "custom_processes/apply_chimera_process_fractional_step.h"
+#include "custom_processes/apply_rans_chimera_process_monolithic.h"
 #include "custom_processes/rotate_region_process.h"
 #include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -46,6 +47,10 @@ void AddCustomProcessesToPython(pybind11::module &m)
     typedef ApplyChimeraProcessMonolithic<2> ApplyChimeraMonolithic2DType;
     typedef ApplyChimeraProcessMonolithic<3> ApplyChimeraMonolithic3DType;
 
+    typedef std::vector<std::string> SolvingVariablesVectorType;
+    typedef ApplyRANSChimeraProcessMonolithic<2> ApplyRANSChimeraMonolithic2DType;
+    // typedef ApplyRANSChimeraProcessMonolithic<3> ApplyRANSChimeraMonolithic3DType;
+
     typedef ApplyChimeraProcessFractionalStep<2> ApplyChimeraFractionalStep2DType;
     typedef ApplyChimeraProcessFractionalStep<3> ApplyChimeraFractionalStep3DType;
 
@@ -64,6 +69,11 @@ void AddCustomProcessesToPython(pybind11::module &m)
     py::class_<ApplyChimeraMonolithic3DType, ApplyChimeraMonolithic3DType::Pointer, BaseApplyChimera3D>(m, "ApplyChimeraProcessMonolithic3d")
         .def(py::init<ModelPart &, Parameters>());
 
+    py::class_<ApplyRANSChimeraMonolithic2DType, ApplyRANSChimeraMonolithic2DType::Pointer, BaseApplyChimera2D>(m, "ApplyRANSChimeraProcessMonolithic2d")
+        .def(py::init<ModelPart &, Parameters, SolvingVariablesVectorType>());
+    // py::class_<ApplyRANSChimeraMonolithic3DType, ApplyRANSChimeraMonolithic3DType::Pointer, BaseApplyChimera3D>(m, "ApplyRANSChimeraProcessMonolithic3d")
+    //     .def(py::init<ModelPart &, Parameters, SolvingVariablesVectorType>());
+        
     py::class_<ApplyChimeraFractionalStep2DType, ApplyChimeraFractionalStep2DType::Pointer, BaseApplyChimera2D>(m, "ApplyChimeraProcessFractionalStep2d")
         .def(py::init<ModelPart &, Parameters>());
 

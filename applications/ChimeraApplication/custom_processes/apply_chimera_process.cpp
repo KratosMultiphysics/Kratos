@@ -58,7 +58,24 @@ ApplyChimera<TDim>::ApplyChimera(ModelPart& rMainModelPart, Parameters iParamete
     mEchoLevel = 0;
     mReformulateEveryStep = false;
     mIsFormulated = false;
+    mNumberofSolvingVariables = static_cast<std::size_t>(TDim + 1); // for rans_chimera_process, it is changed in the derived class constructor
 }
+
+// template <int TDim>
+// ApplyChimera<TDim>::ApplyChimera(ModelPart& rMainModelPart, Parameters iParameters, 
+//                                  SolvingVariablesVectorType rSolvingVariablesVector)
+//     : mrMainModelPart(rMainModelPart), mParameters(iParameters))
+// {
+    
+//     mNumberOfLevels = mParameters.size();
+//     KRATOS_ERROR_IF(mNumberOfLevels < 2)
+//         << "Chimera requires atleast one Patch !" << std::endl;
+
+//     mEchoLevel = 0;
+//     mReformulateEveryStep = false;
+//     mIsFormulated = false;
+//     mNumberofSolvingVariables = mSolvingVariableNamesVector.size();
+// }
 
 template <int TDim>
 void ApplyChimera<TDim>::SetEchoLevel(int EchoLevel)
@@ -305,7 +322,7 @@ void ApplyChimera<TDim>::CreateConstraintIds(std::vector<int>& rIdVector,
     }
 
     // Now create a vector size NumberOfConstraintsRequired
-    rIdVector.resize(NumberOfConstraintsRequired * (TDim + 1));
+    rIdVector.resize(NumberOfConstraintsRequired * mNumberofSolvingVariables);
     std::iota(std::begin(rIdVector), std::end(rIdVector), max_constraint_id); // Fill with consecutive integers
 }
 
@@ -619,3 +636,4 @@ template class ApplyChimera<2>;
 template class ApplyChimera<3>;
 
 } // namespace Kratos.
+

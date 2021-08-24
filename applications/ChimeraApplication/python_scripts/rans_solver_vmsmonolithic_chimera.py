@@ -54,10 +54,13 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
         super().Initialize()
 
         # Chimera utilities initialization
+        self.solving_variables = [variable.Name() for variable in self._GetSolver().formulation.GetSolvingVariables()]
         self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(
             self.model,
             self.chimera_settings,
-            self.settings)
+            self.settings,
+            self.solving_variables)
+            
         chimera_setup_utils.SetChimeraInternalPartsFlag(
             self.model,
             self.chimera_internal_parts)
@@ -65,11 +68,6 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
     def GetComputingModelPart(self):
         # chimera implementation
         return self.main_model_part
-        """OR"""
-        # rans implementation
-        # if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
-        #     raise Exception("The ComputingModelPart was not created yet!")
-        # return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
 
     def InitializeSolutionStep(self):
         self.chimera_process.ExecuteInitializeSolutionStep()

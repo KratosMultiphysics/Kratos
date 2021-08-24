@@ -53,7 +53,7 @@ def SeparateAndValidateChimeraSettings(parameters):
 
     return [chimera_parameters, chimera_internal_parts, parameters]
 
-def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters):
+def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters, solving_variable_names):
 
     chimera_echo_lvl = 0
     if chimera_parameters.Has("chimera_echo_level"):
@@ -80,6 +80,8 @@ def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters):
     if domain_size == 2:
         if(solver_type == "Monolithic" or solver_type == "monolithic"):
             chimera_process = KratosChimera.ApplyChimeraProcessMonolithic2d(main_model_part,chimera_levels)
+        elif(solver_type == "monolithic_rans_chimera" or solver_type == "MonolithicRANSChimera"):
+            chimera_process = KratosChimera.ApplyRANSChimeraProcessMonolithic2d(main_model_part,chimera_levels, solving_variable_names)    
         elif (solver_type == "fractional_step" or solver_type == "FractionalStep"):
             chimera_process = KratosChimera.ApplyChimeraProcessFractionalStep2d(main_model_part,chimera_levels)
     else:

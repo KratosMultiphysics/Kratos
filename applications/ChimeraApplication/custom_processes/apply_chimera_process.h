@@ -98,6 +98,17 @@ public:
      */
     explicit ApplyChimera(ModelPart& rMainModelPart, Parameters iParameters);
 
+    // /**
+    //  * @brief Constructor
+    //  * @param rMainModelPart The reference to the modelpart which will be used
+    //  * for computations later on.
+    //  * @param iParameters The settings parameters.
+    //  * @param SolvingVariablesVector The vector of solving variables names used 
+    //  * to identify solving variables which are constrained at chimera boundary.
+    //  */
+    // explicit ApplyChimera(ModelPart& rMainModelPart, Parameters iParameters, 
+    //                       SolvingVariablesVectorType rSolvingVariablesVector);
+
     /// Destructor.
     virtual ~ApplyChimera()=default;
 
@@ -146,6 +157,8 @@ protected:
     bool mReformulateEveryStep;
     std::map<std::string, PointLocatorPointerType> mPointLocatorsMap;
     bool mIsFormulated;
+    std::size_t mNumberofSolvingVariables;
+
 
     // Modelpart names which are generated here
     const std::string mModifiedName = "ChimeraModified";
@@ -295,6 +308,43 @@ protected:
                               PointLocatorType& rBinLocator,
                               MasterSlaveContainerVectorType& rVelocityMasterSlaveContainerVector,
                               MasterSlaveContainerVectorType& rPressureMasterSlaveContainerVector);
+
+    /**
+     * @brief Searches for a given node using given locator and adds the
+     * velocity
+     *        and pressureconstraints to the respective containers.
+     * @param rBinLocator The bin based locator formulated on the background.
+     * This is used to locate nodes on rBoundaryModelPart.
+     * @param pNodeToFind The node which is to be found
+     * @param[out] prHostElement The element where the node is found.
+     * @param[out] rWeights the values of the shape functions at the node inside
+     * the elements.
+     */
+    bool SearchNode(PointLocatorType& rBinLocator,
+                    NodeType& rNodeToFind,
+                    Element::Pointer& prHostElement,
+                    Vector& rWeights);
+
+    /**
+     * @brief Creates the constraints and adds them respective containers.
+     * @param pNodeToFind The node which is to be found
+     * @param pHostElement The element where the node is found.
+     * @param rWeights The weights (#Nodes on host elem) for constraint
+     * relations
+     * @param rVelocityMsConstraintsVector the velocity constraints vector
+     * @param rPressureMsConstraintsVector the pressure constraints vector
+     * @param rConstraintIdVector the vector of constraint ids which are to be
+     * used.
+     * @param StartConstraintId the start index of the constraints
+     */
+    void MakeConstraints(NodeType& rNodeToFind,
+                         Element::Pointer& rHostElement,
+                         Vector& rWeights,
+                         MasterSlaveConstraintContainerType& rVelocityMsConstraintsVector,
+                         MasterSlaveConstraintContainerType& rPressureMsConstraintsVector,
+                         std::vector<int>& rConstraintIdVector,
+                         const IndexType StartConstraintId);
+                         
     ///@}
     ///@name Protected  Access
     ///@{
@@ -343,41 +393,6 @@ private:
      */
     PointLocatorPointerType GetPointLocator(ModelPart& rModelPart);
 
-    /**
-     * @brief Searches for a given node using given locator and adds the
-     * velocity
-     *        and pressureconstraints to the respective containers.
-     * @param rBinLocator The bin based locator formulated on the background.
-     * This is used to locate nodes on rBoundaryModelPart.
-     * @param pNodeToFind The node which is to be found
-     * @param[out] prHostElement The element where the node is found.
-     * @param[out] rWeights the values of the shape functions at the node inside
-     * the elements.
-     */
-    bool SearchNode(PointLocatorType& rBinLocator,
-                    NodeType& rNodeToFind,
-                    Element::Pointer& prHostElement,
-                    Vector& rWeights);
-
-    /**
-     * @brief Creates the constraints and adds them respective containers.
-     * @param pNodeToFind The node which is to be found
-     * @param pHostElement The element where the node is found.
-     * @param rWeights The weights (#Nodes on host elem) for constraint
-     * relations
-     * @param rVelocityMsConstraintsVector the velocity constraints vector
-     * @param rPressureMsConstraintsVector the pressure constraints vector
-     * @param rConstraintIdVector the vector of constraint ids which are to be
-     * used.
-     * @param StartConstraintId the start index of the constraints
-     */
-    void MakeConstraints(NodeType& rNodeToFind,
-                         Element::Pointer& rHostElement,
-                         Vector& rWeights,
-                         MasterSlaveConstraintContainerType& rVelocityMsConstraintsVector,
-                         MasterSlaveConstraintContainerType& rPressureMsConstraintsVector,
-                         std::vector<int>& rConstraintIdVector,
-                         const IndexType StartConstraintId);
     ///@}
     ///@name Private  Access
     ///@{
