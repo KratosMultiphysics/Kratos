@@ -65,16 +65,16 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
         if self.is_nodal_variable_type:
-            array_values = []
             for node in self.model_part.Nodes:
                 array_values = self.GetValueToPrint(node)
-                self.ResetValues(array_values)
-                break
-            for node in self.model_part.Nodes:
-                for comp in range(len(self.GetValueToPrint(node))):
-                    array_values[comp] += self.GetValueToPrint(node)[comp]
                 if not self.sum_results_from_multiple_entites:
                     break
+                for comp in range(len(array_values)):
+                    array_values[comp] = 0.0
+            for node in self.model_part.Nodes:
+                for comp in range(len(array_values)):
+                    array_values[comp] += self.GetValueToPrint(node)[comp]
+
             self.plot_file = open(self.file_name, "a")
             self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
             for value in array_values:
@@ -83,23 +83,29 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             self.plot_file.close()
         else:
             array_values = []
-            for elem in self.model_part.Elements:
-                array_values = self.GetValueToPrint(elem)[0]
-                self.ResetValues(array_values)
-                break
-            for elem in self.model_part.Elements:
-                if not self.sum_results_from_multiple_entites:
-                    array_values = self.GetValueToPrint(elem)[self.integration_point]
-                    break
-                for ip in range(len(self.GetValueToPrint(elem))):
-                    for comp in range(len(self.GetValueToPrint(elem)[0])):
-                        array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
-            self.plot_file = open(self.file_name, "a")
-            self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
-            for value in array_values:
-                self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-            self.plot_file.write("\n")
-            self.plot_file.close()
+            # for elem in self.model_part.Elements:
+            #     array_values = self.GetValueToPrint(elem)[0]
+            #     for value in array_values:
+            #         value = 0.0
+            #     # array_values = self.ResetValues(self.GetValueToPrint(elem)[0])
+            #     break
+
+            # for elem in self.model_part.Elements:
+            #     if not self.sum_results_from_multiple_entites:
+            #         array_values = self.GetValueToPrint(elem)[self.integration_point]
+            #         break
+            #     for ip in range(len(self.GetValueToPrint(elem))):
+            #         for comp in range(len(self.GetValueToPrint(elem)[0])):
+            #             print(self.GetValueToPrint(elem)[ip])
+            #             array_values[comp] += self.GetValueToPrint(elem)[ip][comp]
+            #         # print("array")
+            #         # print(array_values)
+            # self.plot_file = open(self.file_name, "a")
+            # self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+            # for value in array_values:
+            #     self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
+            # self.plot_file.write("\n")
+            # self.plot_file.close()
 
 
     def IsOutputStep(self):
@@ -126,7 +132,3 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def __GetTime(self):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
-
-    def ResetValues(self, values):
-        for value in values:
-            value = 0.0
