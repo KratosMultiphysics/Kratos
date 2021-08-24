@@ -32,7 +32,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
-            "variable_type"            : "nodal_historical",
+            "variable_type"            : "not_provided_by_default",
             "file_name"                : "info_file.txt",
             "output_control_type"      : "step",
             "integration_point_number" : 0,
