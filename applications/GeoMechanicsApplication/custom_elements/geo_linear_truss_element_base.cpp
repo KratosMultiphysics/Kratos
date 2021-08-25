@@ -86,7 +86,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void GeoTrussElementLinearBase<TDim,TNumNodes>::
     AddPrestressLinear(VectorType& rRightHandSideVector)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
     FullDofMatrixType transformation_matrix;
     this->CreateTransformationMatrix(transformation_matrix);
 
@@ -172,8 +173,6 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        array_1d<double, TDim> temp_internal_stresses = ZeroVector(TDim);
-
         ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                            this->GetProperties(),
                                            rCurrentProcessInfo);
@@ -258,8 +257,6 @@ void GeoTrussElementLinearBase<2,2>::
 template< unsigned int TDim, unsigned int TNumNodes >
 double GeoTrussElementLinearBase<TDim,TNumNodes>::CalculateLinearStrain()
 {
-    KRATOS_TRY;
-
     Vector current_disp = ZeroVector(TDim*TNumNodes);
     this->GetValuesVector(current_disp);
     FullDofMatrixType transformation_matrix;
@@ -270,7 +267,6 @@ double GeoTrussElementLinearBase<TDim,TNumNodes>::CalculateLinearStrain()
     const double e = (current_disp[TDim]-current_disp[0])/length_0;
 
     return e;
-    KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------
@@ -279,9 +275,8 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
     UpdateInternalForces(FullDofVectorType& rInternalForces,
                          const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
-    Vector temp_internal_stresses = ZeroVector(TDim*TNumNodes);
     ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
 
     Vector temp_strain = ZeroVector(1);
@@ -291,8 +286,9 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-    temp_internal_stresses[0]    = -1.0*temp_stress[0];
-    temp_internal_stresses[TDim] = temp_stress[0];
+    Vector temp_internal_stresses = ZeroVector(TDim*TNumNodes);
+    temp_internal_stresses[0]     = -1.0*temp_stress[0];
+    temp_internal_stresses[TDim]  = temp_stress[0];
 
     rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 
@@ -302,7 +298,7 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
 
     rInternalForces = prod(transformation_matrix, rInternalForces);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------
@@ -310,7 +306,8 @@ template< unsigned int TDim, unsigned int TNumNodes >
 void GeoTrussElementLinearBase<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
     ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),rCurrentProcessInfo);
     Vector temp_strain = ZeroVector(1);
     Vector temp_stress = ZeroVector(1);
@@ -318,7 +315,8 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->FinalizeMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
-    KRATOS_CATCH("");
+
+    KRATOS_CATCH("")
 }
 
 //----------------------------------------------------------------------------------------

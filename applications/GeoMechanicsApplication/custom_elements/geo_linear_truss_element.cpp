@@ -126,8 +126,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
             prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
         }
 
-        array_1d<double, TDim> temp_internal_stresses = ZeroVector(TDim);
-
         ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                            this->GetProperties(),
                                            rCurrentProcessInfo);
@@ -156,7 +154,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    Vector temp_internal_stresses = ZeroVector(TDim*TNumNodes);
     ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                        this->GetProperties(),
                                        rCurrentProcessInfo);
@@ -172,8 +169,9 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
 
     temp_stress += mInternalStressesFinalizedPrevious;
 
-    temp_internal_stresses[0]    = -1.0*temp_stress[0];
-    temp_internal_stresses[TDim] = temp_stress[0];
+    Vector temp_internal_stresses = ZeroVector(TDim*TNumNodes);
+    temp_internal_stresses[0]     = -1.0*temp_stress[0];
+    temp_internal_stresses[TDim]  = temp_stress[0];
 
     rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 

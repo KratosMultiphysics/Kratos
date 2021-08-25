@@ -243,11 +243,11 @@ void GeoTrussElementBase<TDim,TNumNodes>::
     const double rho = GeoStructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
     double total_mass = A * L * rho;
-    BoundedVector<double, TDim> body_forces_node = ZeroVector(TDim);
 
     rGlobalBodyForces = ZeroVector(TDim*TNumNodes);
 
     // assemble global Vector
+    BoundedVector<double, 3> body_forces_node = ZeroVector(3);
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         body_forces_node = total_mass *
                            GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION) *
