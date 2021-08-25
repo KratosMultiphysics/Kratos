@@ -99,8 +99,8 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
 
     // internal force vectors
     FullDofVectorType f_local = ZeroVector(TDim*TNumNodes);
-    f_local[0] = -1.00 * N;
-    f_local[3] = 1.00 * N;
+    f_local[0]    = -1.00 * N;
+    f_local[TDim] = 1.00 * N;
     rRightHandSideVector -= prod(transformation_matrix, f_local);
 
     KRATOS_CATCH("")
@@ -291,8 +291,8 @@ void GeoTrussElementLinearBase<TDim,TNumNodes>::
     Values.SetStressVector(temp_stress);
     mpConstitutiveLaw->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2);
 
-    temp_internal_stresses[0] = -1.0*temp_stress[0];
-    temp_internal_stresses[3] = temp_stress[0];
+    temp_internal_stresses[0]    = -1.0*temp_stress[0];
+    temp_internal_stresses[TDim] = temp_stress[0];
 
     rInternalForces = temp_internal_stresses*this->GetProperties()[CROSS_AREA];
 
