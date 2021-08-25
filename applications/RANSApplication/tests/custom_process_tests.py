@@ -53,7 +53,6 @@ class CustomProcessTest(UnitTest.TestCase):
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.PRESSURE, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_KINETIC_ENERGY, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.TURBULENT_ENERGY_DISSIPATION_RATE, 10.0, 100.0, 0)
-        KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, Kratos.DISTANCE, 0.0, 100.0, 0)
         KratosCFD.FluidTestUtilities.RandomFillNodalHistoricalVariable(self.model_part, KratosRANS.WALL_DISTANCE, 0.0, 100.0, 0)
 
         Kratos.VariableUtils().SetVariable(Kratos.DENSITY, 1.0, self.model_part.Nodes)
