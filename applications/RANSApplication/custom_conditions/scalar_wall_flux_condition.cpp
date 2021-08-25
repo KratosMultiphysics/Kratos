@@ -213,11 +213,11 @@ int ScalarWallFluxCondition<TDim, TNumNodes, TScalarWallFluxConditionData>::Chec
             << "GAUSS_RANS_Y_PLUS were not found in condition "
             << this->Info() << ".\n";
 
-        KRATOS_ERROR_IF_NOT(this->GetValue(GAUSS_RANS_Y_PLUS).size() == 2)
+        KRATOS_ERROR_IF_NOT(this->GetValue(GAUSS_RANS_Y_PLUS).size() == this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2))
             << "GAUSS_RANS_Y_PLUS were not initialized properly in condition "
             << this->Info()
             << " [ GAUSS_RANS_Y_PLUS.size() = " << this->GetValue(GAUSS_RANS_Y_PLUS).size()
-            << ", required size = " << 2 << " ].\n";
+            << ", required size = " << this->GetGeometry().IntegrationPointsNumber(GeometryData::IntegrationMethod::GI_GAUSS_2) << " ].\n";
 
         KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(VON_KARMAN)) << "VON_KARMAN is not found in process info.\n";
 

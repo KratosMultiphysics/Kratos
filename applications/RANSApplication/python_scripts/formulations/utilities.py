@@ -270,3 +270,12 @@ def CreateBlockBuilderAndSolver(
                 linear_solver, KratosCFD.PATCH_INDEX)
         else:
             return ResidualBasedBlockBuilderAndSolver(linear_solver)
+
+def GetRansFormulationsListRecursively(formulation):
+    flat_list_of_formulations = [formulation]
+
+    list_of_formulations = formulation.GetRansFormulationsList()
+    for child_formulation in list_of_formulations:
+        flat_list_of_formulations.extend(GetRansFormulationsListRecursively(child_formulation))
+
+    return flat_list_of_formulations
