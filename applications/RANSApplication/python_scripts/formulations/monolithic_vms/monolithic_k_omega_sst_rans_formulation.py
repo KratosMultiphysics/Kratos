@@ -21,6 +21,24 @@ class MonolithicKOmegaSSTRansFormulation(RansFormulation):
             self.incompressible_potential_flow_formulation = IncompressiblePotentialFlowRansFormulation(model_part, settings["incompressible_potential_flow_initialization_settings"], deprecated_settings_dict)
             self.AddRansFormulation(self.incompressible_potential_flow_formulation)
 
+        apply_constraints_every_step = False
+        #  chimera_constraints flag
+        if settings.Has("apply_chimera_constraints_every_step"):
+            apply_constraints_every_step = settings["apply_chimera_constraints_every_step"].GetBool();
+   
+        # add the chimera_constraints bool parameter to each of the formulations (monolithic, k and w )
+        if not settings["monolithic_flow_solver_settings"].Has("apply_chimera_constraints_every_step"):
+            settings["monolithic_flow_solver_settings"].AddEmptyValue("apply_chimera_constraints_every_step")
+        if not settings["k_omega_sst_solver_settings"]["turbulent_kinetic_energy_solver_settings"].Has("apply_chimera_constraints_every_step"):
+            settings["k_omega_sst_solver_settings"]["turbulent_kinetic_energy_solver_settings"].AddEmptyValue("apply_chimera_constraints_every_step")
+        if not settings["k_omega_sst_solver_settings"]["turbulent_specific_energy_dissipation_rate_solver_settings"].Has("apply_chimera_constraints_every_step"):
+            settings["k_omega_sst_solver_settings"]["turbulent_specific_energy_dissipation_rate_solver_settings"].AddEmptyValue("apply_chimera_constraints_every_step")
+
+        # set the flag
+        settings["monolithic_flow_solver_settings"]["apply_chimera_constraints_every_step"].SetBool(apply_constraints_every_step)
+        settings["k_omega_sst_solver_settings"]["turbulent_kinetic_energy_solver_settings"]["apply_chimera_constraints_every_step"].SetBool(apply_constraints_every_step)
+        settings["k_omega_sst_solver_settings"]["turbulent_specific_energy_dissipation_rate_solver_settings"]["apply_chimera_constraints_every_step"].SetBool(apply_constraints_every_step)
+
         self.monolithic_formulation = MonolithicVelocityPressureRansFormulation(model_part, settings["monolithic_flow_solver_settings"], deprecated_settings_dict)
         self.AddRansFormulation(self.monolithic_formulation)
 
@@ -36,7 +54,8 @@ class MonolithicKOmegaSSTRansFormulation(RansFormulation):
             "incompressible_potential_flow_initialization_settings": {},
             "monolithic_flow_solver_settings": {},
             "k_omega_sst_solver_settings": {},
-            "max_iterations": 1
+            "max_iterations": 1,
+            "apply_chimera_constraints_every_step": false
         }''')
 
     def SetConstants(self, settings):

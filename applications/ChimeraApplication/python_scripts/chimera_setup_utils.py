@@ -53,7 +53,7 @@ def SeparateAndValidateChimeraSettings(parameters):
 
     return [chimera_parameters, chimera_internal_parts, parameters]
 
-def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters, solving_variable_names):
+def GetApplyChimeraProcess(model, chimera_parameters, fluid_parameters, solving_variable_names=[]):
 
     chimera_echo_lvl = 0
     if chimera_parameters.Has("chimera_echo_level"):

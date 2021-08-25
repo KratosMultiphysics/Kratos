@@ -47,6 +47,7 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 "solver_type"  : "amgcl"
             },
             "boundary_flags": ["INLET", "STRUCTURE"],
+            "apply_chimera_constraints_every_step": false,
             "wall_function_settings": {
                 "wall_function_region_type": "logarithmic_region_only",
                 "wall_friction_velocity_calculation_method": "velocity_based"
@@ -141,6 +142,14 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
 
         super().Initialize()
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Initialized formulation")
+
+    def InitializeSolutionStep(self):
+        settings = self.GetParameters()
+        if settings["apply_chimera_constraints_every_step"].GetBool():
+            for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+                if (constraint.GetSlaveDofsVector()[0].GetVariable() == self.GetSolvingVariable()):
+                    self.GetModelPart().AddMasterSlaveConstraint(constraint)
+        super().InitializeSolutionStep()
 
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
