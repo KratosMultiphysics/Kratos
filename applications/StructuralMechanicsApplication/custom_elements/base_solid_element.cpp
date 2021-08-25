@@ -1490,7 +1490,7 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // rotate to local axes strain/F
     RotateToLocalAxes(rValues);
 
-    // Actually do the computations in the ConstitutiveLaw
+    // Actually do the computations in the ConstitutiveLaw in local axes
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 
     // We undo the rotation of strain/F, C, stress
@@ -1546,7 +1546,52 @@ void BaseSolidElement::RotateToGlobalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2) && this->Has(LOCAL_AXIS_3)) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        BoundedMatrix<double, 3, 3> rotation_matrix;
 
+        const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+        const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+        const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+
+        rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
+        rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
+        rotation_matrix(2, 0) = local_axis_1(2); rotation_matrix(2, 1) = local_axis_2(2); rotation_matrix(2, 2) = local_axis_3(2);
+
+        // Undo the rotation in strain, stress and C
+        if (strain_size == 6) {
+            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            const auto &r_C = rValues.GetConstitutiveMatrix();
+            Matrix C_global = r_C;
+            noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
+            C_global = prod(C_global, voigt_rotation_matrix);
+            rValues.SetConstitutiveMatrix(C_global);
+        } else if (strain_size == 3) {
+            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+            rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
+            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            const auto &r_C = rValues.GetConstitutiveMatrix();
+            Matrix C_global = r_C;
+            noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
+            C_global = prod(C_global, voigt_rotation_matrix);
+            rValues.SetConstitutiveMatrix(C_global);
+        }
+        // Now undo the rotation in F if required
+        if (!UseElementProvidedStrain()) {
+            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+            double aux_det;
+            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+            const auto &r_F = rValues.GetDeformationGradientF();
+            BoundedMatrix<double, 3, 3> F_glob = r_F;
+            noalias(F_glob) = prod(inv_rotation_matrix, r_F);
+            F_glob = prod(F_glob, rotation_matrix);
+            rValues.SetDeformationGradientF(F_glob);
+        }
+    }
 }
 
 /***********************************************************************************/
