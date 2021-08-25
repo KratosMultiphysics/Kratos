@@ -33,10 +33,6 @@
         "material_import_settings": {
             "materials_filename": "backward_facing_step_material_properties.json"
         },
-        "wall_function_settings": {
-            "wall_function_region_type": "logarithmic_region_only",
-            "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
-        },
         "formulation_settings": {
             "formulation_name": "monolithic_k_omega_sst",
             "incompressible_potential_flow_initialization_settings": {},
@@ -61,6 +57,10 @@
                     "element_type": "<FLOW_SOLVER_FORMULATION>",
                     "use_orthogonal_subscales": false,
                     "dynamic_tau": 1.0
+                },
+                "wall_function_settings": {
+                    "wall_function_region_type": "logarithmic_region_only",
+                    "wall_friction_velocity_calculation_method": "turbulent_kinetic_energy_based"
                 }
             },
             "k_omega_sst_solver_settings": {
@@ -75,6 +75,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "turbulent_specific_energy_dissipation_rate_solver_settings": {
@@ -87,6 +91,10 @@
                         "solver_type": "amgcl",
                         "tolerance": 1e-9,
                         "verbosity": 0
+                    },
+                    "wall_function_settings": {
+                        "wall_function_region_type": "logarithmic_region_only",
+                        "wall_friction_velocity_calculation_method": "<WALL_FRICTION_VELOCITY_CALCULATION_METHOD>"
                     }
                 },
                 "echo_level": 0,

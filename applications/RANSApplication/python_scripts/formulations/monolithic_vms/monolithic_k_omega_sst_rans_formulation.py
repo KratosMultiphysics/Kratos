@@ -11,10 +11,26 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.k_omega_s
 from KratosMultiphysics.RANSApplication.formulations.monolithic_vms.monolithic_velocity_pressure_rans_formulation import MonolithicVelocityPressureRansFormulation
 
 class MonolithicKOmegaSSTRansFormulation(RansFormulation):
-    def __init__(self, model_part, settings):
-        super().__init__(model_part, settings)
+    def __init__(self, model_part, settings, deprecated_settings_dict):
+        super().__init__(model_part, settings, deprecated_settings_dict)
 
-        default_settings = Kratos.Parameters(r'''
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+
+        if (not settings["incompressible_potential_flow_initialization_settings"].IsEquivalentTo(
+                Kratos.Parameters("{}"))):
+            self.incompressible_potential_flow_formulation = IncompressiblePotentialFlowRansFormulation(model_part, settings["incompressible_potential_flow_initialization_settings"], deprecated_settings_dict)
+            self.AddRansFormulation(self.incompressible_potential_flow_formulation)
+
+        self.monolithic_formulation = MonolithicVelocityPressureRansFormulation(model_part, settings["monolithic_flow_solver_settings"], deprecated_settings_dict)
+        self.AddRansFormulation(self.monolithic_formulation)
+
+        self.k_omega_sst_formulation = KOmegaSSTRansFormulation(model_part, settings["k_omega_sst_solver_settings"], deprecated_settings_dict)
+        self.AddRansFormulation(self.k_omega_sst_formulation)
+
+        self.SetMaxCouplingIterations(settings["max_iterations"].GetInt())
+
+    def GetDefaultParameters(self):
+        return Kratos.Parameters(r'''
         {
             "formulation_name": "monolithic_k_omega_sst",
             "incompressible_potential_flow_initialization_settings": {},
@@ -22,20 +38,6 @@ class MonolithicKOmegaSSTRansFormulation(RansFormulation):
             "k_omega_sst_solver_settings": {},
             "max_iterations": 1
         }''')
-        settings.ValidateAndAssignDefaults(default_settings)
-
-        if (not settings["incompressible_potential_flow_initialization_settings"].IsEquivalentTo(
-                Kratos.Parameters("{}"))):
-            self.incompressible_potential_flow_formulation = IncompressiblePotentialFlowRansFormulation(model_part, settings["incompressible_potential_flow_initialization_settings"])
-            self.AddRansFormulation(self.incompressible_potential_flow_formulation)
-
-        self.monolithic_formulation = MonolithicVelocityPressureRansFormulation(model_part, settings["monolithic_flow_solver_settings"])
-        self.AddRansFormulation(self.monolithic_formulation)
-
-        self.k_omega_sst_formulation = KOmegaSSTRansFormulation(model_part, settings["k_omega_sst_solver_settings"])
-        self.AddRansFormulation(self.k_omega_sst_formulation)
-
-        self.SetMaxCouplingIterations(settings["max_iterations"].GetInt())
 
     def SetConstants(self, settings):
         self.k_omega_sst_formulation.SetConstants(settings)
