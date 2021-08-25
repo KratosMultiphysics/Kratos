@@ -453,7 +453,7 @@ namespace Kratos
 			const double dot = inner_prod(a, b);
 			if (dot < -0.999999) { // We rotate 180 deg
 				TVector3 cross = MathUtils<double>::CrossProduct(x_unit_vector, a);
-				if (norm(cross) < 0.000001)
+				if (MathUtils<double>::Norm3(cross) < 0.000001)
 					noalias(cross) = MathUtils<double>::CrossProduct(y_unit_vector, a);
 				cross /= MathUtils<double>::Norm3(cross);
 				Quaternion result = Quaternion::FromAxisAngle(cross, Globals::Pi);
