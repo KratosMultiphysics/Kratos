@@ -18,8 +18,17 @@ def CreateSolver(model, custom_settings):
 class RansSolverMonolithicChimera(CoupledRANSSolver):
     def __init__(self, model, custom_settings):
         [self.chimera_settings, self.chimera_internal_parts,
-            custom_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
-        super().__init__(model, custom_settings)
+            fluid_settings] = chimera_setup_utils.SeparateAndValidateChimeraSettings(custom_settings)
+
+        reformulate_every_step = False
+        if fluid_settings.Has("reform_dofs_at_each_step"):
+            reformulate_every_step = fluid_settings["reform_dofs_at_each_step"].GetBool()
+            
+        if fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"].Has("reform_dofs_at_each_step"):
+            fluid_settings["formulation_settings"]["monolithic_flow_solver_settings"]["reform_dofs_at_each_step"].SetBool(reformulate_every_step) 
+        fluid_settings.RemoveValue("reform_dofs_at_each_step")
+
+        super().__init__(model, fluid_settings)
         KratosMultiphysics.Logger.PrintInfo(
             self.__class__.__name__, "Construction of RansSolverMonolithicChimera finished.")
 
