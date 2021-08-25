@@ -123,10 +123,7 @@ void DistanceModificationProcess::ExecuteInitialize()
 
     if (mContinuousDistance){
         // Continuous distance modification historical variables check
-        if (mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes() != 0) {
-            const auto& r_node = *mrModelPart.NodesBegin();
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
-        }
+        KRATOS_ERROR_IF_NOT(mrModelPart.HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mrModelPart.FullName() << ".\n";
 
         // Compute NODAL_H (used for computing the distance tolerance)
         FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable> nodal_h_calculator(mrModelPart);
