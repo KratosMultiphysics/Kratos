@@ -109,7 +109,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 "element_type": "vms",
                 "use_orthogonal_subscales": false,
                 "dynamic_tau": 0.01
-            }
+            },
+            "apply_chimera_constraints_every_step": false
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -254,7 +255,15 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         return False
 
     def InitializeSolutionStep(self):
+        settings = self.GetParameters()
         if (self.IsBufferInitialized()):
+            if settings["apply_chimera_constraints_every_step"].GetBool():  
+                for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+                    if (constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_X or
+                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Y or
+                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.Velocity_Z or
+                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.PRESSURE):
+                        self.monolithic_model_part.AddMasterSlaveConstraint(constraint)
             super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
