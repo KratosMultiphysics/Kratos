@@ -209,7 +209,7 @@ void ConstitutiveLawUtilities<3>::CalculateProjectionOperator(
 /***********************************************************************************/
 
 template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
+void ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )
@@ -273,7 +273,7 @@ void AdvancedConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 
 template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
+void ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
     const BoundedMatrixType& rEulerOperator,
     BoundedMatrixVoigtType& rVoigtOperator
     )

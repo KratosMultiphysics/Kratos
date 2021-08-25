@@ -1501,17 +1501,38 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 
 void BaseSolidElement::RotateToLocalAxes(
-    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues
     )
 {
+    if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2) && this->Has(LOCAL_AXIS_3)) {
+        const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+        BoundedMatrix<double, 3, 3> rotation_matrix;
 
+        const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+        const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+        const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+
+        rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
+        rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
+        rotation_matrix(2, 0) = local_axis_1(2); rotation_matrix(2, 1) = local_axis_2(2); rotation_matrix(2, 2) = local_axis_3(2);
+
+        if (strain_size == 6) {
+            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        } else if (strain_size == 3) {
+            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        }
+        
+
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 void BaseSolidElement::RotateToGlobalAxes(
-    ConstitutiveLaw::Parameters& rValues,
+    ConstitutiveLaw::Parameters& rValues
     )
 {
 
