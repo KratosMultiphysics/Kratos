@@ -38,7 +38,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "integration_point_number" : 0,
             "erase_previous_info"      : true,
             "output_interval"          : 1,
-            "sum_results_from_multiple_entites" : false
+            "sum_results_from_multiple_entities" : false
         }""")
         settings.ValidateAndAssignDefaults(default_settings)
 
