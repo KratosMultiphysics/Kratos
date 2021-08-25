@@ -16,6 +16,7 @@
 
 #include "includes/global_variables.h"
 #include "includes/serializer.h"
+#include "math_utils.h"
 
 namespace Kratos
 {
