@@ -1547,6 +1547,10 @@ void BaseSolidElement::RotateToGlobalAxes(
     )
 {
     if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2) && this->Has(LOCAL_AXIS_3)) {
+        const auto& r_options = rValues.GetOptions();
+        const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
+        const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
@@ -1563,22 +1567,28 @@ void BaseSolidElement::RotateToGlobalAxes(
             BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
             ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
             rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
-            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            const auto &r_C = rValues.GetConstitutiveMatrix();
-            Matrix C_global = r_C;
-            noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-            C_global = prod(C_global, voigt_rotation_matrix);
-            rValues.SetConstitutiveMatrix(C_global);
+            if (stress_option)
+                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            if (constitutive_matrix_option) {
+                const auto &r_C = rValues.GetConstitutiveMatrix();
+                Matrix C_global = r_C;
+                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
+                C_global = prod(C_global, voigt_rotation_matrix);
+                rValues.SetConstitutiveMatrix(C_global);
+            }
         } else if (strain_size == 3) {
             BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
             ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
             rValues.GetStrainVector() = prod(trans(voigt_rotation_matrix), rValues.GetStrainVector());
-            rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
-            const auto &r_C = rValues.GetConstitutiveMatrix();
-            Matrix C_global = r_C;
-            noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
-            C_global = prod(C_global, voigt_rotation_matrix);
-            rValues.SetConstitutiveMatrix(C_global);
+            if (stress_option)
+                rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            if (constitutive_matrix_option) {
+                const auto &r_C = rValues.GetConstitutiveMatrix();
+                Matrix C_global = r_C;
+                noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
+                C_global = prod(C_global, voigt_rotation_matrix);
+                rValues.SetConstitutiveMatrix(C_global);
+            }
         }
         // Now undo the rotation in F if required
         if (!UseElementProvidedStrain()) {
