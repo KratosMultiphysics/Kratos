@@ -456,7 +456,7 @@ namespace Kratos
 				if (norm(cross) < 0.000001)
 					noalias(cross) = MathUtils<double>::CrossProduct(y_unit_vector, a);
 				cross /= MathUtils<double>::Norm3(cross);
-				Quaternion Quaternion::FromAxisAngle(cross, Globals::Pi);
+				Quaternion result = Quaternion::FromAxisAngle(cross, Globals::Pi);
 				result.normalize();
 				return result;
 			} else if (dot > 0.999999) { // Identity
