@@ -111,13 +111,11 @@ public:
                                       std::vector< array_1d<double, 3 > >& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void ResetConstitutiveLaw() override;
 
 private:
-    bool mIsInitialization = false;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override

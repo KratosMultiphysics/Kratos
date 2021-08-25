@@ -834,7 +834,7 @@ void GeoTrussElementBase<2,2>::
 
     BoundedVector<double, DIM_3D> direction_vector_y_3D = ZeroVector(DIM_3D);
     BoundedVector<double, DIM_3D> global_z_vector_3D    = ZeroVector(DIM_3D);
-    global_z_vector_3D[2] = 1.0;
+    global_z_vector_3D[INDEX_Z] = 1.0;
     MathUtils<double>::
         UnitCrossProduct(direction_vector_y_3D, direction_vector_x_3D, global_z_vector_3D);
 

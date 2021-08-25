@@ -83,9 +83,21 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    // KRATOS_INFO("0-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
+
     GeoTrussElementLinearBase<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    mIsInitialization = true;
+    if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
+        bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
+        if (ResetDisplacement) {
+            mInternalStressesFinalizedPrevious = mInternalStressesFinalized;
+        } else {
+            mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
+        }
+    }
+
+    // KRATOS_INFO("1-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -172,31 +184,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
     rInternalForces = prod(transformation_matrix, rInternalForces);
 
     KRATOS_CATCH("");
-}
-
-//----------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-void GeoLinearTrussElement<TDim,TNumNodes>::
-    InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    GeoTrussElementLinearBase<TDim,TNumNodes>::InitializeSolutionStep(rCurrentProcessInfo);
-
-    if (mIsInitialization) {
-        if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
-            bool ResetDisplacement = rCurrentProcessInfo[RESET_DISPLACEMENTS];
-            if (ResetDisplacement) {
-                mInternalStressesFinalizedPrevious = mInternalStressesFinalized;
-            } else {
-                mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
-            }
-        }
-    }
-    mIsInitialization = false;
-
-    KRATOS_CATCH("")
-
 }
 
 //----------------------------------------------------------------------------------------
