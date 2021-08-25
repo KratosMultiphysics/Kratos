@@ -77,6 +77,18 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
           ModelPart &rModelPart,
           Parameters ThisParameters);
 
+
+      void CheckAndNormalizeVector(
+        BoundedVector<double, 3>& rVector)
+      {
+        const double norm = MathUtils<double>::Norm3(rVector);
+        if (norm > std::numeric_limits<double>::epsilon()) {
+          rVector /= norm;
+        } else {
+          KRATOS_ERROR << "The norm of one LOCAL_AXIS is null" << std::endl;
+        }
+      }
+
       ///@}
       ///@name Input and output
       ///@{
