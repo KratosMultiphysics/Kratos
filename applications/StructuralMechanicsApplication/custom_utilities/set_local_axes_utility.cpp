@@ -87,7 +87,6 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
         const BoundedVector<double, 3> coords = rElement.GetGeometry().Center();
-        // Let's solve the linear system of equations
         const double c = -generatrix_axis(0) * coords(0) - generatrix_axis(1) * coords(1) - generatrix_axis(2) * coords(2);
         const double lambda = -(generatrix_axis(0) * generatrix_point(0) + generatrix_axis(1) * generatrix_point(1) + generatrix_axis(2) * generatrix_point(2) + c) / (std::pow(generatrix_axis(0), 2) + std::pow(generatrix_axis(1), 2) + std::pow(generatrix_axis(2), 2));
 
