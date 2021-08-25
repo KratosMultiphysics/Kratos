@@ -1516,15 +1516,26 @@ void BaseSolidElement::RotateToLocalAxes(
         rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
         rotation_matrix(2, 0) = local_axis_1(2); rotation_matrix(2, 1) = local_axis_2(2); rotation_matrix(2, 2) = local_axis_3(2);
 
-        if (strain_size == 6) {
-            BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
-            ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
-        } else if (strain_size == 3) {
-            BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
-            ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+        if (UseElementProvidedStrain()) { // we rotate strain
+            if (strain_size == 6) {
+                BoundedMatrix<double, 6, 6> voigt_rotation_matrix;
+                ConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
+            } else if (strain_size == 3) {
+                BoundedMatrix<double, 3, 3> voigt_rotation_matrix;
+                ConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(rotation_matrix, voigt_rotation_matrix);
+                rValues.GetStrainVector() = prod(voigt_rotation_matrix, rValues.GetStrainVector());
+            }
+        } else { // rotate F
+            BoundedMatrix<double, 3, 3> inv_rotation_matrix;
+            double aux_det;
+            MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
+            const auto &r_F = rValues.GetDeformationGradientF();
+            BoundedMatrix<double, 3, 3> F_loc = r_F;
+            noalias(F_loc) = prod(rotation_matrix, r_F);
+            F_loc = prod(F_loc, inv_rotation_matrix);
+            rValues.SetDeformationGradientF(F_loc);
         }
-        
-
     }
 }
 
