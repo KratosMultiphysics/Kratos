@@ -501,7 +501,7 @@ void DistanceModificationProcess::SetDiscontinuousDistanceToSplitFlag()
 
 void DistanceModificationProcess::CheckAndStoreVariablesList(const std::vector<std::string>& rVariableStringArray)
 {
-    if (mrModelPart.GetCommunicator().GetLocalMesh().NumberOfNodes() != 0) {
+    if (mrModelPart.GetCommunicator().LocalMesh().NumberOfNodes() != 0) {
         const auto& r_node = *mrModelPart.NodesBegin();
         for (std::size_t i_variable=0; i_variable < rVariableStringArray.size(); i_variable++){
             if (KratosComponents<Variable<double>>::Has(rVariableStringArray[i_variable])) {
