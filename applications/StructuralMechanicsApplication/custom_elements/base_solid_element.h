@@ -946,6 +946,20 @@ private:
     }
 
     /**
+     * @brief This method rotates the F or strain according to local axis from
+     * global to local
+     * @param rValues The constitutive laws parameters
+     */
+    void RotateToLocalAxes(ConstitutiveLaw::Parameters &rValues);
+
+    /**
+     * @brief This method rotates the F or strain according to local axis from
+     * local de global
+     * @param rValues The constitutive laws parameters
+     */
+    void RotateToGlobalAxes(ConstitutiveLaw::Parameters &rValues);
+
+    /**
      * @brief This method computes directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get

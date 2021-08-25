@@ -1487,8 +1487,34 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // Setting the variables for the CL
     SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
+    // rotate to local axes strain/F
+    RotateToLocalAxes(rValues);
+
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+
+    // We undo the rotation of strain/F, C, stress
+    RotateToGlobalAxes(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::RotateToLocalAxes(
+    ConstitutiveLaw::Parameters& rValues,
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::RotateToGlobalAxes(
+    ConstitutiveLaw::Parameters& rValues,
+    )
+{
+
 }
 
 /***********************************************************************************/
