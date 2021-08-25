@@ -1169,7 +1169,7 @@ class Report():
 
     def BeginReport(self, timer):
         label = "DEM: "
-        report = label + "Total number of time s expected in the calculation: " + str(self.total_steps_expected) + "\n\n"
+        report = label + "Total number of time steps expected in the calculation: " + str(self.total_steps_expected) + "\n\n"
         return report
 
     def StepiReport(self, timer, time, step):
