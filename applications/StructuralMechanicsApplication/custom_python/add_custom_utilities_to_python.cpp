@@ -74,6 +74,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     py::class_<SetLocalAxesUtility, SetLocalAxesUtility::Pointer>(m,"SetLocalAxesUtility")
         .def(py::init<>())
         .def("SetLocalAxisCartesianSystem", &SetLocalAxesUtility::SetLocalAxisCartesianSystem)
+        .def("SetLocalAxisCylindricalSystem", &SetLocalAxesUtility::SetLocalAxisCylindricalSystem)
         ;
 }
 

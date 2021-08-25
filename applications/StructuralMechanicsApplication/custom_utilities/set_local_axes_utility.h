@@ -66,14 +66,16 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
       ///@{
 
       /**
-       * @brief Perform Node Search
-       * @details Searches for nodes within a given 'Radius' of the current node
-       * @param rStructureNodes Nodes Container
-       * @param Id NodeId of current node.
-       * @param Radius Search radius.
-       * @param rResults Results container.
+       * @brief Sets the local axes according to a cartesian system
        **/
       void SetLocalAxisCartesianSystem(
+          ModelPart &rModelPart,
+          Parameters ThisParameters);
+
+      /**
+       * @brief Sets the local axes according to a cylindrical system
+       **/
+      void SetLocalAxisCylindricalSystem(
           ModelPart &rModelPart,
           Parameters ThisParameters);
 
