@@ -1511,6 +1511,11 @@ void BaseSolidElement::RotateToLocalAxes(
         const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
         const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
         const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+        if (MathUtils<double>::Norm3(local_axis_1) > 1.0 ||
+            MathUtils<double>::Norm3(local_axis_2) > 1.0 ||
+            MathUtils<double>::Norm3(local_axis_2) > 1.0) {
+                KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
+            }
 
         rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
         rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
@@ -1557,6 +1562,11 @@ void BaseSolidElement::RotateToGlobalAxes(
         const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
         const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
         const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+        if (MathUtils<double>::Norm3(local_axis_1) > 1.0 ||
+            MathUtils<double>::Norm3(local_axis_2) > 1.0 ||
+            MathUtils<double>::Norm3(local_axis_2) > 1.0) {
+                KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
+            }
 
         rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
         rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
