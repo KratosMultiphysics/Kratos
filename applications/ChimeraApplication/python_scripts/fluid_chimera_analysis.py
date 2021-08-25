@@ -24,7 +24,15 @@ class FluidChimeraAnalysis(FluidDynamicsAnalysis):
     def KeepAdvancingSolutionLoop(self):
         """This function specfies the stopping criteria for breaking the solution loop.
         It can be overridden by derived class"""
-        return (self.time < self.end_time) and (not self._GetSolver().IsConverged())
+
+        solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+        if (solver_type == "monolithic_rans_chimera" or solver_type == "MonolithicRANSChimera"):
+            # for RANSChimera: IsConverged() returns false if convergence occurs in ramp-up interval
+            return (self.time < self.end_time) and (not self._GetSolver().IsConverged())
+        else:
+            # for FluidDynamicsChimera
+            return (self.time < self.end_time)
+            
 
 
 if __name__ == '__main__':
