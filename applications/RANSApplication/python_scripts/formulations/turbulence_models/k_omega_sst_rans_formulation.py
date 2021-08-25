@@ -12,9 +12,6 @@ from KratosMultiphysics.RANSApplication.formulations.turbulence_models.two_equat
 from KratosMultiphysics.RANSApplication import RansWallDistanceCalculationProcess
 
 class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
-    def GetSolvingVariables(self):
-        return [self.GetSolvingVariable()]
-
     def GetSolvingVariable(self):
         return KratosRANS.TURBULENT_KINETIC_ENERGY
 
@@ -26,9 +23,6 @@ class KOmegaSSTKRansFormulation(ScalarTurbulenceModelRansFormulation):
 
 
 class KOmegaSSTOmegaRansFormulation(ScalarTurbulenceModelRansFormulation):
-    def GetSolvingVariables(self):
-        return [self.GetSolvingVariable()]
-
     def GetSolvingVariable(self):
         return KratosRANS.TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE
 
@@ -91,7 +85,6 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
 	    # additional variables required for wall distance calculation
         self.GetBaseModelPart().AddNodalSolutionStepVariable(KratosRANS.WALL_DISTANCE)
-        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.DISTANCE)
         self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.FLAG_VARIABLE)
 
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")

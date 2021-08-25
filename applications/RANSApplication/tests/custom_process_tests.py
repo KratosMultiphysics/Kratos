@@ -23,7 +23,6 @@ class CustomProcessTest(UnitTest.TestCase):
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.REACTION)
-        cls.model_part.AddNodalSolutionStepVariable(Kratos.DISTANCE)
         cls.model_part.AddNodalSolutionStepVariable(KratosRANS.WALL_DISTANCE)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.NODAL_AREA)
         cls.model_part.AddNodalSolutionStepVariable(Kratos.VISCOSITY)
@@ -354,7 +353,7 @@ class CustomProcessTest(UnitTest.TestCase):
                     ],
                     "all_wall_model_part_name": "ALL_WALL_MODEL_PART",
                     "activate_wall_functions" : true
-                }     
+                }
             }
         ]''')   # AutomaticInlet2D_inlet is added just for the sake of checkeing list of model parts. Has no physical significance.
 

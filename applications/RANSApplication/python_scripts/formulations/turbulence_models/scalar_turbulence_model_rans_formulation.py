@@ -72,6 +72,9 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
     def GetConditionNamePrefix(self):
         pass
 
+    def GetSolvingVariables(self):
+        return [self.GetSolvingVariable()]
+
     def PrepareModelPart(self):
         self.turbulence_model_part = CreateRansFormulationModelPart(
             self.GetComputingModelPart(),
