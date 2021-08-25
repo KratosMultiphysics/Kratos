@@ -18,10 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "includes/define.h"
-#include "includes/variables.h"
-#include "geometries/geometry.h"
 #include "custom_elements/geo_truss_element_base.hpp"
 
 namespace Kratos
