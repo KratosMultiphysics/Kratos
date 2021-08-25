@@ -1207,28 +1207,28 @@ void GeoTrussElementBase<2,2>::
 
     const double EA = E * A;
 
-    rElasticStiffnessMatrix(0,       0) = (EA * dx * dx) / L3;
+    rElasticStiffnessMatrix(0,     0) = (EA * dx * dx) / L3;
     rElasticStiffnessMatrix(DIM, DIM) = rElasticStiffnessMatrix(0, 0);
 
-    rElasticStiffnessMatrix(1,           1) = (EA * dy * dy) / L3;
+    rElasticStiffnessMatrix(1,         1) = (EA * dy * dy) / L3;
     rElasticStiffnessMatrix(DIM+1, DIM+1) = rElasticStiffnessMatrix(1, 1);
 
     rElasticStiffnessMatrix(0, 1) = (EA * dx * dy) / L3;
     rElasticStiffnessMatrix(1, 0) = rElasticStiffnessMatrix(0, 1);
 
-    rElasticStiffnessMatrix(0, DIM) = -rElasticStiffnessMatrix(0, 0);
-    rElasticStiffnessMatrix(DIM, 0) = rElasticStiffnessMatrix(0, DIM);
+    rElasticStiffnessMatrix(0,  DIM) = -rElasticStiffnessMatrix(0, 0);
+    rElasticStiffnessMatrix(DIM,  0) =  rElasticStiffnessMatrix(0, DIM);
 
-    rElasticStiffnessMatrix(0, DIM+1) = -rElasticStiffnessMatrix(0, 1);
-    rElasticStiffnessMatrix(DIM+1, 0) = rElasticStiffnessMatrix(0, DIM+1);
+    rElasticStiffnessMatrix(0,    DIM+1) = -rElasticStiffnessMatrix(0, 1);
+    rElasticStiffnessMatrix(DIM+1,    0) =  rElasticStiffnessMatrix(0, DIM+1);
 
     rElasticStiffnessMatrix(1, DIM) = rElasticStiffnessMatrix(0, DIM+1);
     rElasticStiffnessMatrix(DIM, 1) = rElasticStiffnessMatrix(1, DIM);
 
-    rElasticStiffnessMatrix(1,      DIM+1) = -rElasticStiffnessMatrix(1, 1);
-    rElasticStiffnessMatrix(DIM+1, 1)      =  rElasticStiffnessMatrix(1, DIM+1);
+    rElasticStiffnessMatrix(1,    DIM+1) = -rElasticStiffnessMatrix(1, 1);
+    rElasticStiffnessMatrix(DIM+1,    1) =  rElasticStiffnessMatrix(1, DIM+1);
 
-    rElasticStiffnessMatrix(DIM, DIM+1) = rElasticStiffnessMatrix(0,         1);
+    rElasticStiffnessMatrix(DIM, DIM+1) = rElasticStiffnessMatrix(0,       1);
     rElasticStiffnessMatrix(DIM+1, DIM) = rElasticStiffnessMatrix(DIM, DIM+1);
 
     KRATOS_CATCH("")
