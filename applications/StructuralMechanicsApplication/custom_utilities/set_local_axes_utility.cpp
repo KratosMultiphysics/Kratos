@@ -81,6 +81,8 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
     const BoundedVector<double, 3> generatrix_axis  = ThisParameters["cylindrical_generatrix_axis"].GetVector();
     const BoundedVector<double, 3> generatrix_point = ThisParameters["cylindrical_generatrix_point"].GetVector();
 
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The generatrix_axis has norm zero" << std::endl;
+
     BoundedVector<double, 3> local_axis_1;
     BoundedVector<double, 3> local_axis_2;
     BoundedVector<double, 3> local_axis_3;
@@ -126,6 +128,9 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
 
     const BoundedVector<double, 3> spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
     const BoundedVector<double, 3> spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
+    const double tolerance = std::numeric_limits<double>::epsilon();
+
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
 
     BoundedVector<double, 3> local_axis_1;
     BoundedVector<double, 3> local_axis_2;
@@ -136,6 +141,13 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
         noalias(local_axis_1) = coords - spherical_central_point;
         CheckAndNormalizeVector(local_axis_1);
 
+        if (std::abs(local_axis_1(2)) <= tolerance ||
+            std::abs(local_axis_1(1) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(1)) <= tolerance) {
+            noalias(local_axis_2) = spherical_reference_axis;
+            CheckAndNormalizeVector(local_axis_2);
+            noalias(local_axis_3) = MathUtils<double>::CrossProduct(local_axis_1, local_axis_2);
+            CheckAndNormalizeVector(local_axis_3);
+        }
         // Let's compute the second local axis
         const double c1 = -(local_axis_1(0) * coords(0) + local_axis_1(1) * coords(1) + local_axis_1(2) * coords(2));
         const double c2 = -(spherical_reference_axis(0) * coords(0) + spherical_reference_axis(1) * coords(1) + spherical_reference_axis(2) * coords(2));
