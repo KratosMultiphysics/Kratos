@@ -27,6 +27,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         """
         super().__init__()
 
+        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
+        if is_mpi_execution:
+            raise RuntimeError('MPI not supported yet')
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                     : "This process prints nodal/elemental information ina .txt file",
@@ -101,7 +105,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                     array_values = self.GetValueToPrint(elem)[self.integration_point]
                     break
             self.PrintInFile(array_values)
-
 
     def IsOutputStep(self):
         if self.output_control_type == "step":
