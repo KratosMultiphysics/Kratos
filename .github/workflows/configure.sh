@@ -47,6 +47,7 @@ add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
+add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 
 # Clean
 clear
