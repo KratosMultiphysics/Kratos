@@ -8,6 +8,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_BASE_SOLID_ELEMENT_H_INCLUDED )
