@@ -1,6 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
+from KratosMultiphysics import Logger
 
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
@@ -31,6 +32,7 @@ class SetLocalAxesProcess(KM.Process):
         KM.Process.__init__(self)
 
         # Let's compute the local axes
+        Logger.PrintInfo("SetLocalAxesProcess:: ","Setting the oriented local axes...")
         self.settings.RemoveValue("model_part_name")
         if (self.settings["local_axes_coordinate_system"].GetString() == "cartesian"):
             self.settings.RemoveValue("cylindrical_generatrix_axis")
