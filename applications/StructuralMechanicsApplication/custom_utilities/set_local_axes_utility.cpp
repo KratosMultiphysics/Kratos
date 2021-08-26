@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 // System includes
@@ -14,8 +14,9 @@
 // External includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
+
 // Project includes
-#include "set_local_axes_utility.h"
+#include "custom_utilities/set_local_axes_utility.h"
 
 namespace Kratos {
 
