@@ -26,6 +26,7 @@
 #include "constitutive_laws_application_variables.h"
 
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos {
@@ -42,6 +43,7 @@ PYBIND11_MODULE(KratosConstitutiveLawsApplication,m)
         ;
 
     AddCustomConstitutiveLawsToPython(m);
+    AddCustomProcessesToPython(m);
 
     // Constitutive laws variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HIGH_CYCLE_FATIGUE_COEFFICIENTS)
