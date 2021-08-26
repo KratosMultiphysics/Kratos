@@ -67,11 +67,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         if settings["erase_previous_info"].GetBool():
             open_file_aproach = "w"
 
-        self.plot_file = open(self.file_name, open_file_aproach)
-        self.plot_file.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
-        self.plot_file.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
-        self.plot_file.close()
-
+        with open(self.file_name, open_file_aproach) as plot_file:
+            plot_file = open(self.file_name, open_file_aproach)
+            plot_file.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
+            plot_file.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
@@ -86,12 +85,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                     array_values[comp] += self.GetValueToPrint(node)[comp]
                 if not self.sum_results_from_multiple_entites:
                     break
-            self.plot_file = open(self.file_name, "a")
-            self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
-            for value in array_values:
-                self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-            self.plot_file.write("\n")
-            self.plot_file.close()
+            self.PrintInFile(array_values)
         else:
             for elem in self.model_part.Elements:
                 array_values = self.GetValueToPrint(elem)[self.integration_point]
@@ -106,19 +100,14 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
                 else:
                     array_values = self.GetValueToPrint(elem)[self.integration_point]
                     break
-            self.plot_file = open(self.file_name, "a")
-            self.plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
-            for value in array_values:
-                self.plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
-            self.plot_file.write("\n")
-            self.plot_file.close()
+            self.PrintInFile(array_values)
+
 
     def IsOutputStep(self):
         if self.output_control_type == "step":
             return self.model_part.ProcessInfo[KratosMultiphysics.STEP] - self.instant_previous_plot >= self.output_interval
         else:
             return self.__GetTime() - self.instant_previous_plot >= self.output_interval
-
 
     def SetPreviousPlotInstant(self):
         if self.output_control_type == "step":
@@ -139,3 +128,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
 
     def __GetTime(self):
         return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
+
+    def PrintInFile(self, values):
+        with open(self.file_name, "a") as plot_file:
+            plot_file.write("{0:.4e}".format(self.__GetTime()).rjust(11) + "\t")
+            for value in values:
+                plot_file.write("{0:.4e}".format(value).rjust(11) + "\t")
+            plot_file.write("\n")
