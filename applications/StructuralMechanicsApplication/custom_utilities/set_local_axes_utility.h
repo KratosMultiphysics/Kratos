@@ -79,6 +79,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
           ModelPart &rModelPart,
           Parameters ThisParameters);
 
+      /**
+       * @brief Sets the local axes according to a cylindrical system
+       **/
+      void SetLocalAxisSphericalSystem(
+          ModelPart &rModelPart,
+          Parameters ThisParameters);
+
 
       void CheckAndNormalizeVector(
         BoundedVector<double, 3>& rVector)

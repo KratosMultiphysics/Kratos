@@ -109,4 +109,53 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
     KRATOS_CATCH("")
 }
 
+void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
+    ModelPart &rModelPart,
+    Parameters ThisParameters
+    )
+{
+    KRATOS_TRY
+
+    Parameters default_parameters = Parameters(R"(
+    {
+        "local_axes_coordinate_system"  : "spherical",
+        "spherical_reference_axis"   : [0.0,0.0,1.0],
+        "spherical_central_point"    : [0.0,0.0,0.0]
+    })");
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const BoundedVector<double, 3> spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
+    const BoundedVector<double, 3> spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
+
+    BoundedVector<double, 3> local_axis_1;
+    BoundedVector<double, 3> local_axis_2;
+    BoundedVector<double, 3> local_axis_3;
+
+    block_for_each(rModelPart.Elements(), [&](Element &rElement) {
+        const BoundedVector<double, 3> coords = rElement.GetGeometry().Center();
+        noalias(local_axis_1) = coords - spherical_central_point;
+        CheckAndNormalizeVector(local_axis_1);
+
+        // Let's compute the second local axis
+        const double c1 = -(local_axis_1(0) * coords(0) + local_axis_1(1) * coords(1) + local_axis_1(2) * coords(2));
+        const double c2 = -(spherical_reference_axis(0) * coords(0) + spherical_reference_axis(1) * coords(1) + spherical_reference_axis(2) * coords(2));
+        const double x = 1.0;
+        const double y = -(local_axis_1(0) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(0)) / (local_axis_1(1) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(1));
+        const double z = -local_axis_1(0) / local_axis_1(2) - local_axis_1(1) / local_axis_1(2) * y;
+        local_axis_2(0) = x;
+        local_axis_2(1) = y;
+        local_axis_2(2) = z;
+        CheckAndNormalizeVector(local_axis_2);
+
+        noalias(local_axis_3) = MathUtils<double>::CrossProduct(local_axis_1, local_axis_2);
+        CheckAndNormalizeVector(local_axis_3);
+
+        rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
+        rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+        rElement.SetValue(LOCAL_AXIS_3, local_axis_3);
+    });
+
+    KRATOS_CATCH("")
+}
+
 } // namespace Kratos
