@@ -6,22 +6,18 @@
 //  License:         BSD License
 //                         license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alejandro Cornejo Velazquez
 //
 
 #if !defined(KRATOS_SET_LOCAL_AXES_UTILITY_H_INCLUDED )
 #define  KRATOS_SET_LOCAL_AXES_UTILITY_H_INCLUDED
 
 // System includes
-#include "includes/model_part.h"
-
-// Include kratos definitions
-
-// Project includes
-
-// Configures
 
 // External includes
+
+// Project includes
+#include "includes/model_part.h"
 
 namespace Kratos {
 ///@addtogroup StructuralMechanicsApplication
