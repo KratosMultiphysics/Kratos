@@ -32,7 +32,7 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             "mesh_id"                  : 0,
             "model_part_name"          : "please_specify_model_part_name",
             "variable_name"            : "SPECIFY_VARIABLE_NAME",
-            "variable_type"            : "not_provided_by_default",
+            "results_type"             : "not_provided_by_default",
             "file_name"                : "info_file.txt",
             "output_control_type"      : "step",
             "integration_point_number" : 0,
@@ -43,10 +43,10 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        self.variable_type = settings["variable_type"].GetString()
-        if not self.variable_type == "nodal_historical" and not self.variable_type == "nodal_non_historical" and not self.variable_type == "elemental":
-            raise NameError("variable_type not correct, must be nodal_historical, nodal_non_historical or elemental")
-        self.is_nodal_variable_type = "nodal" in self.variable_type
+        self.results_type = settings["results_type"].GetString()
+        if not self.results_type == "nodal_historical" and not self.results_type == "nodal_non_historical" and not self.results_type == "elemental":
+            raise NameError("results_type not correct, must be nodal_historical, nodal_non_historical or elemental")
+        self.is_nodal_results_type = "nodal" in self.results_type
         self.file_name = settings["file_name"].GetString()
         self.output_control_type = settings["output_control_type"].GetString()
         self.output_interval = settings["output_interval"].GetDouble()
@@ -60,14 +60,14 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             open_file_aproach = "w"
 
         self.plot_file = open(self.file_name, open_file_aproach)
-        self.plot_file.write("# In this file we print the " + settings["variable_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
+        self.plot_file.write("# In this file we print the " + settings["results_type"].GetString() + " " + settings["variable_name"].GetString() + " in the ModelPart: " + settings["model_part_name"].GetString() + "\n\n")
         self.plot_file.write("# TIME\t\t" + settings["variable_name"].GetString() + "\n")
         self.plot_file.close()
 
 
     def PrintOutput(self):
         self.SetPreviousPlotInstant()
-        if self.is_nodal_variable_type:
+        if self.is_nodal_results_type:
             for node in self.model_part.Nodes:
                 array_values = self.GetValueToPrint(node)
                 for comp in range(len(array_values)):
@@ -119,13 +119,13 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
             self.instant_previous_plot = self.__GetTime()
 
     def GetValueToPrint(self, Entity):
-        if self.is_nodal_variable_type:
-            if self.variable_type == "nodal_historical":
+        if self.is_nodal_results_type:
+            if self.results_type == "nodal_historical":
                 return Entity.GetSolutionStepValue(self.variable)
-            elif self.variable_type == "nodal_non_historical":
+            elif self.results_type == "nodal_non_historical":
                 return Entity.GetValue(self.variable)
             else:
-                raise NameError("variable_type not supported")
+                raise NameError("results_type not supported")
         else:
             return Entity.CalculateOnIntegrationPoints(self.variable, self.model_part.ProcessInfo)
 
