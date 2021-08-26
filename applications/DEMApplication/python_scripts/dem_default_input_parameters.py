@@ -104,7 +104,6 @@ def GetDefaultInputParameters():
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
-            "UnbreakableMaterial"              : false,
             "virtual_sea_surface_settings"     : {
                 "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,

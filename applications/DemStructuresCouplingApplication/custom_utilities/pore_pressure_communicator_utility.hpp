@@ -51,6 +51,7 @@ namespace Kratos {
         void ComputeForceOnParticlesDueToPorePressureGradient() {
 
             KRATOS_TRY
+            
             const int max_results = 10000;
 
             #pragma omp parallel
@@ -59,8 +60,17 @@ namespace Kratos {
                 typename BinBasedFastPointLocator<2>::ResultContainerType results(max_results);
                 typename BinBasedFastPointLocator<2>::ResultIteratorType results_begin = results.begin();
 
+                int property_id = 0;
+                for (int i = 0; i < (int)mrDestinationModelPart.Elements().size(); i++) {
+                    const auto elem_it = mrDestinationModelPart.ElementsBegin() + i;
+                    property_id = elem_it->GetProperties().Id();
+                    break;
+                }
+                const double porosity = mrDestinationModelPart.GetProperties(property_id)[POROSITY];
+                const double particle_volume_to_voronoi_volume_factor = 1.0 / (1.0 - porosity);
+
                 #pragma omp for
-                for (int i=0; i<(int)mrDestinationModelPart.Elements().size(); i++) {
+                for (int i = 0; i < (int)mrDestinationModelPart.Elements().size(); i++) {
                     const auto elem_it = mrDestinationModelPart.ElementsBegin() + i;
                     auto& central_node = elem_it->GetGeometry()[0];
                     const auto& particle_coordinates = central_node.Coordinates();
@@ -71,12 +81,12 @@ namespace Kratos {
                     if (is_found == true) {
                         const auto& geom = shared_p_element->GetGeometry();
                         array_1d<double, 3> interpolated_gradient_of_pore_pressure = ZeroVector(3);
-                        for(size_t j=0; j<geom.size(); j++){
+                        for (size_t j = 0; j < geom.size(); j++) {
                             noalias(interpolated_gradient_of_pore_pressure) += N[j] * geom[j].FastGetSolutionStepValue(WATER_PRESSURE_GRADIENT);
                         }
                         SphericParticle* particle = dynamic_cast<SphericParticle*>(&*elem_it);
                         const double particle_volume = particle->CalculateVolume();
-                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * interpolated_gradient_of_pore_pressure * particle_volume;
+                        noalias(central_node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE)) = -1.0 * interpolated_gradient_of_pore_pressure * particle_volume * particle_volume_to_voronoi_volume_factor;
                     }
                 }
             }

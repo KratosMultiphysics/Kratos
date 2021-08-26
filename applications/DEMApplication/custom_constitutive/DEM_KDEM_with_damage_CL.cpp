@@ -155,7 +155,7 @@ namespace Kratos {
                 limit_force = (1.0 - mDamageNormal) * initial_limit_force;
                 LocalElasticContactForce[2] = kn_updated * indentation;
 
-                if ((current_normal_force_module > limit_force) && !r_process_info[IS_UNBREAKABLE]) {
+                if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
                     if (!damage_energy_coeff) { // there is no damage energy left
                         failure_type = 4; // failure by traction
@@ -258,7 +258,7 @@ namespace Kratos {
                 updated_max_tau_strength += internal_friction * contact_sigma;
             }
 
-            if ((contact_tau > tau_strength) && !r_process_info[IS_UNBREAKABLE]) { // damage
+            if ((contact_tau > tau_strength) && !(*mpProperties)[IS_UNBREAKABLE]) { // damage
 
                 if (!damage_energy_coeff) { // there is no damage energy left
                     failure_type = 2; // failure by shear

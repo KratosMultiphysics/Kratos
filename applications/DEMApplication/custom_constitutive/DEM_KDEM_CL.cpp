@@ -65,6 +65,13 @@ namespace Kratos {
             KRATOS_WARNING("DEM")<<std::endl;
             pProp->GetValue(ROTATIONAL_MOMENT_COEFFICIENT) = 0.0;
         }
+
+        if(!pProp->Has(IS_UNBREAKABLE)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable IS_UNBREAKABLE was not present in the properties when using DEM_KDEM. False value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(IS_UNBREAKABLE) = false;
+        }
     }
 
     void DEM_KDEM::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
@@ -297,7 +304,7 @@ namespace Kratos {
                 double mTensionLimit = GetContactSigmaMax(); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
-                if ((fabs(LocalElasticContactForce[2]) > limit_force) && !r_process_info[IS_UNBREAKABLE]) {
+                if ((fabs(LocalElasticContactForce[2]) > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
                     failure_type = 4; //tension failure
                     LocalElasticContactForce[2] = 0.0;
                 }
@@ -366,7 +373,7 @@ namespace Kratos {
                 tau_strength = tau_zero + internal_friction * contact_sigma;
             }
 
-            if ((contact_tau > tau_strength) && !r_process_info[IS_UNBREAKABLE]) {
+            if ((contact_tau > tau_strength) && !(*mpProperties)[IS_UNBREAKABLE]) {
                 failure_type = 2; // shear
             }
         }

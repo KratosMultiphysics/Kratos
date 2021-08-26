@@ -357,7 +357,7 @@ namespace Kratos {
 
                 BondedLocalElasticContactForce2 = kn_updated * indentation;
 
-                if ((current_normal_force_module > limit_force) && !r_process_info[IS_UNBREAKABLE]) {
+                if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
                     if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
 
@@ -510,7 +510,7 @@ namespace Kratos {
             }
             tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
 
-            if ((contact_tau > tau_strength) && !r_process_info[IS_UNBREAKABLE]) { // damage
+            if ((contact_tau > tau_strength) && !(*mpProperties)[IS_UNBREAKABLE]) { // damage
 
                 if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
 
