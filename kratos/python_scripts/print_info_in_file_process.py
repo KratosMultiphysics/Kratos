@@ -27,10 +27,6 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         """
         super().__init__()
 
-        is_mpi_execution = (model_part.GetCommunicator().TotalProcesses() > 1)
-        if is_mpi_execution:
-            raise RuntimeError('MPI not supported yet')
-
         default_settings = KratosMultiphysics.Parameters("""
         {
             "help"                     : "This process prints nodal/elemental information ina .txt file",
@@ -60,12 +56,15 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         self.integration_point = settings["integration_point_number"].GetInt()
         self.sum_results_from_multiple_entites = settings["sum_results_from_multiple_entites"].GetBool()
 
+        is_mpi_execution = (self.model_part.GetCommunicator().TotalProcesses() > 1)
+        if is_mpi_execution:
+            raise RuntimeError('MPI not supported yet')
+
         if not self.sum_results_from_multiple_entites:
             if self.is_nodal_results_type and self.model_part.NumberOfNodes() > 1:
                 raise NameError("The sum_results_from_multiple_entites is false but more than one node is given...")
             if not self.is_nodal_results_type and self.model_part.NumberOfElements() > 1:
                 raise NameError("The sum_results_from_multiple_entites is false but more than one element is given...")
-
 
         open_file_aproach = "a"
         if settings["erase_previous_info"].GetBool():
