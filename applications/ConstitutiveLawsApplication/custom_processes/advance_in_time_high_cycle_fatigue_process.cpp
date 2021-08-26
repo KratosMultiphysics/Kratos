@@ -37,7 +37,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
-    if (process_info[DAMAGE_ACTIVATION] == false) {
+    if (!process_info[DAMAGE_ACTIVATION]) {
+
 
     const auto& r_elem = mrModelPart.ElementsBegin();
     const unsigned int number_of_ip = r_elem->GetGeometry().IntegrationPoints(r_elem->GetIntegrationMethod()).size();
