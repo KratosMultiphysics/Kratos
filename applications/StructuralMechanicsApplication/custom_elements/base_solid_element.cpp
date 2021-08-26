@@ -1510,18 +1510,18 @@ void BaseSolidElement::RotateToLocalAxes(
                 const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
                 BoundedMatrix<double, 3, 3> rotation_matrix;
 
-                const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-                const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-                const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
-                if (MathUtils<double>::Norm3(local_axis_1) > 1.0001 ||
-                    MathUtils<double>::Norm3(local_axis_2) > 1.0001 ||
-                    MathUtils<double>::Norm3(local_axis_2) > 1.0001) {
+                const BoundedVector<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+                const BoundedVector<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+                const BoundedVector<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+                if (MathUtils<double>::Norm3(r_local_axis_1) > 1.0001 ||
+                    MathUtils<double>::Norm3(r_local_axis_2) > 1.0001 ||
+                    MathUtils<double>::Norm3(r_local_axis_2) > 1.0001) {
                         KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
                     }
 
-                rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
-                rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
-                rotation_matrix(2, 0) = local_axis_1(2); rotation_matrix(2, 1) = local_axis_2(2); rotation_matrix(2, 2) = local_axis_3(2);
+                rotation_matrix(0, 0) = r_local_axis_1[0]; rotation_matrix(0, 1) = r_local_axis_2[0]; rotation_matrix(0, 2) = r_local_axis_3[0];
+                rotation_matrix(1, 0) = r_local_axis_1[1]; rotation_matrix(1, 1) = r_local_axis_2[1]; rotation_matrix(1, 2) = r_local_axis_3[1];
+                rotation_matrix(2, 0) = r_local_axis_1[2]; rotation_matrix(2, 1) = r_local_axis_2[2]; rotation_matrix(2, 2) = r_local_axis_3[2];
 
                 if (UseElementProvidedStrain()) { // we rotate strain
                     if (strain_size == 6) {
@@ -1537,7 +1537,7 @@ void BaseSolidElement::RotateToLocalAxes(
                     BoundedMatrix<double, 3, 3> inv_rotation_matrix;
                     double aux_det;
                     MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-                    const auto &r_F = rValues.GetDeformationGradientF();
+                    const auto& r_F = rValues.GetDeformationGradientF();
                     BoundedMatrix<double, 3, 3> F_loc = r_F;
                     noalias(F_loc) = prod(rotation_matrix, r_F);
                     F_loc = prod(F_loc, inv_rotation_matrix);
@@ -1565,18 +1565,18 @@ void BaseSolidElement::RotateToGlobalAxes(
                 const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
                 BoundedMatrix<double, 3, 3> rotation_matrix;
 
-                const BoundedVector<double, 3> local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-                const BoundedVector<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-                const BoundedVector<double, 3> local_axis_3 = this->GetValue(LOCAL_AXIS_3);
-                if (MathUtils<double>::Norm3(local_axis_1) > 1.0001 ||
-                    MathUtils<double>::Norm3(local_axis_2) > 1.0001 ||
-                    MathUtils<double>::Norm3(local_axis_2) > 1.0001) {
+                const BoundedVector<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+                const BoundedVector<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+                const BoundedVector<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+                if (MathUtils<double>::Norm3(r_local_axis_1) > 1.0001 ||
+                    MathUtils<double>::Norm3(r_local_axis_2) > 1.0001 ||
+                    MathUtils<double>::Norm3(r_local_axis_2) > 1.0001) {
                         KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
                     }
 
-                rotation_matrix(0, 0) = local_axis_1(0); rotation_matrix(0, 1) = local_axis_2(0); rotation_matrix(0, 2) = local_axis_3(0);
-                rotation_matrix(1, 0) = local_axis_1(1); rotation_matrix(1, 1) = local_axis_2(1); rotation_matrix(1, 2) = local_axis_3(1);
-                rotation_matrix(2, 0) = local_axis_1(2); rotation_matrix(2, 1) = local_axis_2(2); rotation_matrix(2, 2) = local_axis_3(2);
+                rotation_matrix(0, 0) = r_local_axis_1[0]; rotation_matrix(0, 1) = r_local_axis_2[0]; rotation_matrix(0, 2) = r_local_axis_3[0];
+                rotation_matrix(1, 0) = r_local_axis_1[1]; rotation_matrix(1, 1) = r_local_axis_2[1]; rotation_matrix(1, 2) = r_local_axis_3[1];
+                rotation_matrix(2, 0) = r_local_axis_1[2]; rotation_matrix(2, 1) = r_local_axis_2[2]; rotation_matrix(2, 2) = r_local_axis_3[2];
 
                 // Undo the rotation in strain, stress and C
                 if (strain_size == 6) {
@@ -1586,7 +1586,7 @@ void BaseSolidElement::RotateToGlobalAxes(
                     if (stress_option)
                         rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
                     if (constitutive_matrix_option) {
-                        const auto &r_C = rValues.GetConstitutiveMatrix();
+                        const auto& r_C = rValues.GetConstitutiveMatrix();
                         Matrix C_global = r_C;
                         noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
                         C_global = prod(C_global, voigt_rotation_matrix);
@@ -1599,7 +1599,7 @@ void BaseSolidElement::RotateToGlobalAxes(
                     if (stress_option)
                         rValues.GetStressVector() = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
                     if (constitutive_matrix_option) {
-                        const auto &r_C = rValues.GetConstitutiveMatrix();
+                        const auto& r_C = rValues.GetConstitutiveMatrix();
                         Matrix C_global = r_C;
                         noalias(C_global) = prod(trans(voigt_rotation_matrix), r_C);
                         C_global = prod(C_global, voigt_rotation_matrix);
@@ -1611,7 +1611,7 @@ void BaseSolidElement::RotateToGlobalAxes(
                     BoundedMatrix<double, 3, 3> inv_rotation_matrix;
                     double aux_det;
                     MathUtils<double>::InvertMatrix3(rotation_matrix, inv_rotation_matrix, aux_det);
-                    const auto &r_F = rValues.GetDeformationGradientF();
+                    const auto& r_F = rValues.GetDeformationGradientF();
                     BoundedMatrix<double, 3, 3> F_glob = r_F;
                     noalias(F_glob) = prod(inv_rotation_matrix, r_F);
                     F_glob = prod(F_glob, rotation_matrix);
