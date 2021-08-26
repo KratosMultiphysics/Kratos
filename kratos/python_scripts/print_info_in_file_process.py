@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -54,6 +55,13 @@ class PrintInfoInFileProcess(KratosMultiphysics.OutputProcess):
         self.instant_previous_plot = 0.0
         self.integration_point = settings["integration_point_number"].GetInt()
         self.sum_results_from_multiple_entites = settings["sum_results_from_multiple_entites"].GetBool()
+
+        if not self.sum_results_from_multiple_entites:
+            if self.is_nodal_results_type and self.model_part.NumberOfNodes() > 1:
+                raise NameError("The sum_results_from_multiple_entites is false but more than one node is given...")
+            if not self.is_nodal_results_type and self.model_part.NumberOfElements() > 1:
+                raise NameError("The sum_results_from_multiple_entites is false but more than one element is given...")
+
 
         open_file_aproach = "a"
         if settings["erase_previous_info"].GetBool():
