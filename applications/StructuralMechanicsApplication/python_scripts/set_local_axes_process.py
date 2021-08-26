@@ -52,8 +52,6 @@ class SetLocalAxesProcess(KM.Process):
             SMA.SetLocalAxesUtility().SetLocalAxisSphericalSystem(self.model_part, self.settings)
         else:
             raise Exception("local_axes_coordinate_system not supported...")
-    # def ExecuteInitializeSolutionStep(self):
-    #     pass
 
 
 
