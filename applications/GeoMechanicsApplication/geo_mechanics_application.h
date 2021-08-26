@@ -58,15 +58,18 @@
 #include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
+#include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
 #include "custom_elements/geo_cr_beam_element_linear_3D2N.hpp"
-#include "custom_elements/geo_truss_element_3D2N.hpp"
-#include "custom_elements/geo_truss_element_linear_3D2N.hpp"
-#include "custom_elements/geo_cable_element_3D2N.hpp"
+#include "custom_elements/geo_truss_element.hpp"
+#include "custom_elements/geo_linear_truss_element.hpp"
+#include "custom_elements/geo_cable_element.hpp"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
@@ -338,6 +341,20 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
 
+    // small strain axisymmtric elements:
+    const UPwSmallStrainAxisymmetricElement<2,3> mUPwSmallStrainAxisymmetricElement2D3N;
+    const UPwSmallStrainAxisymmetricElement<2,4> mUPwSmallStrainAxisymmetricElement2D4N;
+    const UPwSmallStrainAxisymmetricElement<2,6> mUPwSmallStrainAxisymmetricElement2D6N;
+    const UPwSmallStrainAxisymmetricElement<2,8> mUPwSmallStrainAxisymmetricElement2D8N;
+    const UPwSmallStrainAxisymmetricElement<2,9> mUPwSmallStrainAxisymmetricElement2D9N;
+
+    const UPwSmallStrainAxisymmetricFICElement<2,3> mUPwSmallStrainAxisymmetricFICElement2D3N;
+    const UPwSmallStrainAxisymmetricFICElement<2,4> mUPwSmallStrainAxisymmetricFICElement2D4N;
+
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D6N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D8N;
+    const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D9N;
+
     // interface elements
     const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N;
     const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N;
@@ -378,9 +395,14 @@ private:
     const GeoCrBeamElement3D2N mGeoCrBeamElement3D2N;
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N;
     const GeoCrBeamElementLinear3D2N mGeoCrBeamElementLinear3D2N;
-    const GeoTrussElement3D2N mGeoTrussElement3D2N;
-    const GeoTrussElementLinear3D2N mGeoTrussLinearElement3D2N;
-    const GeoCableElement3D2N mGeoCableElement3D2N;
+    const GeoTrussElement<2,2> mGeoTrussElement2D2N;
+    const GeoTrussElement<3,2> mGeoTrussElement3D2N;
+
+    const GeoLinearTrussElement<2,2> mGeoLinearTrussElement2D2N;
+    const GeoLinearTrussElement<3,2> mGeoLinearTrussElement3D2N;
+
+    const GeoCableElement<2,2> mGeoCableElement2D2N;
+    const GeoCableElement<3,2> mGeoCableElement3D2N;
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N;
