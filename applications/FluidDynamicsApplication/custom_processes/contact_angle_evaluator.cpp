@@ -33,8 +33,8 @@ void ContactAngleEvaluator::Execute()
 {
     KRATOS_TRY;
 
-    const double theta_advancing = 149.0*PI/180.0;
-    const double theta_receding = 115.0*PI/180.0;
+    const double theta_advancing = 149.0*PI/180.0;//129.78*PI/180.0;//
+    const double theta_receding = 115.0*PI/180.0;//129.78*PI/180.0;//
 
     const unsigned int num_nodes = mrModelPart.NumberOfNodes();
     const unsigned int num_elements = mrModelPart.NumberOfElements();

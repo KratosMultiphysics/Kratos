@@ -325,18 +325,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.01*9.81
+            gravity = 9.81#0.0#TimeStep*DT/0.01*9.81
             if gravity > 9.81:
                 gravity = 9.81
 
             tilting_angle = 0.0
 
-            if gravity == 9.81:
-                tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
-                if tilting_angle < 0.0:
-                    tilting_angle = 0.0
-                elif tilting_angle > (0.0/180.0)*math.pi:
-                    tilting_angle = (0.0/180.0)*math.pi
+            # if gravity == 9.81:
+            #     tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
+            #     if tilting_angle < 0.0:
+            #         tilting_angle = 0.0
+            #     elif tilting_angle > (30.0/180.0)*math.pi:
+            #         tilting_angle = (30.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
@@ -521,7 +521,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-        if (TimeStep % 20 == 0):
+        if (TimeStep % 10 == 0):
 
             ##############################
             # Contact Angle and Velocity #
@@ -557,7 +557,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ###############################
 
             if self.model.HasModelPart("FluidModelPart.Slip3D"):
-                x_center = 4.0e-3#1.5e-3#
+                x_center = 0.5#4.0e-3#1.5e-3#
                 y_center = x_center
                 z_center = 0.0
                 mean_radius = 0.0
@@ -624,11 +624,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Zero Disance - Structured #
             #############################
 
-            X_c = 4.0e-3#1.5e-3#
-            Z_max = 3.0e-3#2.0e-3#
+            X_c = 0.5#4.0e-3#1.5e-3#
+            Z_max = 1.0#3.0e-3#2.0e-3#
             X_min = 0.0
             X_max = 2*X_c
             Y_c = X_c
+            Z_c = X_c
 
             XPlusMin = X_c
             XMinusMin = X_min
@@ -671,13 +672,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                             XMinusMax = NodeX
 
                 if (abs(NodeY - Y_c) < 1.0e-6 and abs(NodeX - X_c) < 1.0e-6):
-                    Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                    if (Dist >= 0.0 and Dist <= DistPlusZ):
-                        DistPlusZ = Dist
-                        ZPlus = NodeZ
-                    if (Dist <= 0.0 and Dist >= DistMinusZ):
-                        DistMinusZ = Dist
-                        ZMinus = NodeZ
+                    if (NodeZ > Z_c): #condition only for oscillating droplet. Omit it for spreading droplet
+                        Dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                        if (Dist >= 0.0 and Dist <= DistPlusZ):
+                            DistPlusZ = Dist
+                            ZPlus = NodeZ
+                        if (Dist <= 0.0 and Dist >= DistMinusZ):
+                            DistMinusZ = Dist
+                            ZMinus = NodeZ
 
             if (abs(DistPlusMin - DistMinusMin) > 1.0e-15):
                 XZeroMin = XMinusMin + (-DistMinusMin)/(DistPlusMin - DistMinusMin)*(XPlusMin - XMinusMin)
@@ -719,7 +721,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.solver).FinalizeSolutionStep()
             if (TimeStep >= 3):
                 KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver, TIMESTEP= ", TimeStep)
-            (self.accelerationLimitationUtility).Execute()
+                (self.accelerationLimitationUtility).Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
     def _SetPhysicalProperties(self):

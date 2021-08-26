@@ -161,7 +161,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
         ShiftDistanceField( shift_for_correction );
     }
 
-    const double energy = 1.0*pos_kinetic_energy + 1000.0*neg_kinetic_energy + 1.0e2*inter_area;
+    const double energy = 1.0*pos_kinetic_energy + 1000.0*neg_kinetic_energy + 0.072*inter_area;//1.0e2*inter_area;//
 
     // assembly of the log message
     std::ostringstream oss;
