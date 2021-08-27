@@ -39,7 +39,8 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     std::vector<double> damage;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
 
-    if (process_info[DAMAGE_ACTIVATION] == false) {
+    if (!process_info[DAMAGE_ACTIVATION]) {
+
 
         KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
