@@ -1510,6 +1510,39 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void InitialCheckLocalAxes(
+    const BoundedVector<double, 3>& rv1,
+    const BoundedVector<double, 3>& rv2,
+    const BoundedVector<double, 3>& rv3,
+    const double Tolerance = 1.0e4*std::numeric_limits<double>::epsilon()
+    )
+{
+    if (MathUtils<double>::Norm3(rv1) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv2) > 1.0 + Tolerance ||
+        MathUtils<double>::Norm3(rv3) > 1.0 + Tolerance) {
+            KRATOS_ERROR << "The norm of one of the LOCAL_AXIS is greater than 1.0!" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BuildRotationMatrix(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const BoundedVector<double, 3>& rv1,
+    const BoundedVector<double, 3>& rv2,
+    const BoundedVector<double, 3>& rv3
+    )
+{
+    rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv2[0]; rRotationMatrix(0, 2) = rv3[0];
+    rRotationMatrix(1, 0) = rv1[1]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv3[1];
+    rRotationMatrix(2, 0) = rv1[2]; rRotationMatrix(2, 1) = rv2[2]; rRotationMatrix(2, 2) = rv3[2];
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::RotateToLocalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
