@@ -201,6 +201,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.DT_WATER_PRESSURE)
         # Add variables for the water conditions
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.NORMAL_FLUID_FLUX)
+        # Add variables for the water conditions
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.HYDRAULIC_DISCHARGE)
 
     def _add_smoothing_variables(self):
         if (self.settings.Has("nodal_smoothing")):

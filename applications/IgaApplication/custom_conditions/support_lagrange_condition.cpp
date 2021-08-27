@@ -63,7 +63,7 @@ namespace Kratos
             // Differential area, being 1 for points.
             const double integration = (r_geometry.Dimension() == 0)
                 ? 1
-                : integration_points[point_number].Weight()* determinant_jacobian_vector[point_number];
+                : integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
 
             // loop over Lagrange Multipliers
             for (IndexType i = 0; i < number_of_nodes; i++) {
@@ -83,11 +83,11 @@ namespace Kratos
                             // |0 H^T|
                             // |H 0  |
 
-                            LHS(ibase, jbase)         = NN;
+                            LHS(ibase, jbase) = NN;
                             LHS(ibase + 1, jbase + 1) = NN;
                             LHS(ibase + 2, jbase + 2) = NN;
 
-                            LHS(jbase, ibase)         = NN;
+                            LHS(jbase, ibase) = NN;
                             LHS(jbase + 1, ibase + 1) = NN;
                             LHS(jbase + 2, ibase + 2) = NN;
 
@@ -96,44 +96,44 @@ namespace Kratos
                     }
                     counter_n++;
                 }
-                if (CalculateStiffnessMatrixFlag) {
-                    noalias(rLeftHandSideMatrix) += LHS;
-                }
+            }
+            if (CalculateStiffnessMatrixFlag) {
+                noalias(rLeftHandSideMatrix) += LHS;
+            }
 
-                if (CalculateResidualVectorFlag) {
-                    const array_1d<double, 3>& displacement = (Has(DISPLACEMENT))
-                        ? this->GetValue(DISPLACEMENT)
-                        : ZeroVector(3);
+            if (CalculateResidualVectorFlag) {
+                const array_1d<double, 3>& displacement = (Has(DISPLACEMENT))
+                    ? this->GetValue(DISPLACEMENT)
+                    : ZeroVector(3);
 
-                    IndexType counter = 0;
-                    for (IndexType i = 0; i < number_of_nodes; i++) {
-                        for (IndexType n = 0; n < r_N.size1(); ++n) {
-                            if (r_N(n, i) > shape_function_tolerance) {
-                                const array_1d<double, 3>& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+                IndexType counter = 0;
+                for (IndexType i = 0; i < number_of_nodes; i++) {
+                    for (IndexType n = 0; n < r_N.size1(); ++n) {
+                        if (r_N(n, i) > shape_function_tolerance) {
+                            const array_1d<double, 3>& r_disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-                                IndexType index = 3 * counter;
-                                u[index]     = (disp[0] - displacement[0]);
-                                u[index + 1] = (disp[1] - displacement[1]);
-                                u[index + 2] = (disp[2] - displacement[2]);
-                                counter++;
-                            }
+                            IndexType index = 3 * counter;
+                            u[index] = (r_disp[0] - displacement[0]);
+                            u[index + 1] = (r_disp[1] - displacement[1]);
+                            u[index + 2] = (r_disp[2] - displacement[2]);
+                            counter++;
                         }
                     }
-                    for (IndexType i = 0; i < number_of_nodes; i++) {
-                        for (IndexType n = 0; n < r_N.size1(); ++n) {
-                            if (r_N(n, i) > shape_function_tolerance) {
-                                const array_1d<double, 3>& l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                                IndexType index = 3 * (counter);
-                                u[index]     = l_m[0] - displacement[0];
-                                u[index + 1] = l_m[1] - displacement[1];
-                                u[index + 2] = l_m[2] - displacement[2];
-                                counter++;
-                            }
+                }
+                for (IndexType i = 0; i < number_of_nodes; i++) {
+                    for (IndexType n = 0; n < r_N.size1(); ++n) {
+                        if (r_N(n, i) > shape_function_tolerance) {
+                            const array_1d<double, 3>& r_l_m = r_geometry[i].FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                            IndexType index = 3 * (counter);
+                            u[index] = r_l_m[0];
+                            u[index + 1] = r_l_m[1];
+                            u[index + 2] = r_l_m[2];
+                            counter++;
                         }
                     }
-
-                    noalias(rRightHandSideVector) -= prod(LHS, u);
                 }
+
+                noalias(rRightHandSideVector) -= prod(LHS, u);
             }
         }
         KRATOS_CATCH("")

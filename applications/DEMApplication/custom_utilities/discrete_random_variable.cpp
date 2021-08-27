@@ -3,6 +3,7 @@
 
 #include "discrete_random_variable.h"
 #include "includes/checks.h"
+#include <numeric>
 
 namespace Kratos {
     DiscreteRandomVariable::DiscreteRandomVariable():

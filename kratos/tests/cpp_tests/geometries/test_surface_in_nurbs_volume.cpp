@@ -152,10 +152,11 @@ namespace Testing {
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
-        surface_in_volume.CreateIntegrationPoints(integration_points_created);
+        IntegrationInfo integration_info = surface_in_volume.GetDefaultIntegrationInfo();
+        surface_in_volume.CreateIntegrationPoints(integration_points_created, integration_info);
 
         PointerVector<Geometry<NodeType>> quad_geometries;
-        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created);
+        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check get functions
         KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
@@ -217,10 +218,11 @@ namespace Testing {
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
-        surface_in_volume.CreateIntegrationPoints(integration_points_created);
+        IntegrationInfo integration_info = surface_in_volume.GetDefaultIntegrationInfo();
+        surface_in_volume.CreateIntegrationPoints(integration_points_created, integration_info);
 
         PointerVector<Geometry<NodeType>> quad_geometries;
-        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created);
+        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check get functions
         KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
@@ -312,10 +314,11 @@ namespace Testing {
 
         // Create integration points and quadrature point geometries.
         std::vector<IntegrationPoint<3>> integration_points_created;
-        surface_in_volume.CreateIntegrationPoints(integration_points_created);
+        IntegrationInfo integration_info = surface_in_volume.GetDefaultIntegrationInfo();
+        surface_in_volume.CreateIntegrationPoints(integration_points_created, integration_info);
 
         PointerVector<Geometry<NodeType>> quad_geometries;
-        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created);
+        surface_in_volume.CreateQuadraturePointGeometries(quad_geometries, 2, integration_points_created, integration_info);
 
         // Check Get functions
         KRATOS_CHECK_EQUAL(surface_in_volume.HasGeometryPart( GeometryType::BACKGROUND_GEOMETRY_INDEX ), 1);
