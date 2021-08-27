@@ -119,12 +119,11 @@ public:
 		for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
 				element_i++ )
 		{
-		/* 	std::cout<< "respones function VOR CALCULATE:" << std::endl;  */
+
 			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, mr_structure_model_part.GetProcessInfo());
-		/* 	std::cout<< "respones function NACH CALCULATE:" << std::endl;  */
+
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
-			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
-			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;
+			
 		}
 
 		clock_t end = clock();
