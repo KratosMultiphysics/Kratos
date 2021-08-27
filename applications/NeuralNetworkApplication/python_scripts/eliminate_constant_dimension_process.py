@@ -1,6 +1,7 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
 from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import ImportDictionaryFromText, UpdateDictionaryJson
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListNeuralNetworkData
 import numpy as np
 
 
@@ -26,17 +27,18 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
         except RuntimeError:
             self.log_denominator = "eliminate_constant_dimension"
         
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
+
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
 
         # Setup for input
         if self.objective == 'input':
-            # dimensions = range(len(data_in[0,0]))
-            non_constant_dim = np.zeros(data_in.shape[2], dtype=np.bool)
-            # dataset_length = range(len(data_in[:,0]))
+            non_constant_dim = np.zeros(data_in.shape[-1], dtype=np.bool)
             # Extract which variables are always 0
-            for ix in range(data_in.shape[2]):
+            for ix in range(data_in.shape[-1]):
                 non_constant_dim[ix] = (abs(data_in[...,ix]- data_in[0,0,ix]) > 1e-8).any()
-            new_data_in = data_in[...,non_constant_dim]
+            data_structure_in.UpdateData(data_in[...,non_constant_dim])
 
             try:
                 input_log = ImportDictionaryFromText(self.input_log_name)
@@ -45,17 +47,15 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
             except AttributeError:
                 print("Input not logged")
 
-            return [new_data_in, data_out]
+            return [data_structure_in, data_structure_out]
             
         # Setup for output
         if self.objective == 'output':
-            # dimensions = range(len(data_out[0,0]))
-            non_constant_dim = np.zeros(data_out.shape[2], dtype=np.bool)
-            # dataset_length = range(len(data_out[:,0]))
+            non_constant_dim = np.zeros(data_out.shape[-1], dtype=np.bool)
             # Extract which variables are always 0
-            for ix in range(data_out.shape[2]):
+            for ix in range(data_out.shape[-1]):
                 non_constant_dim[ix] = (abs(data_out[...,ix]- data_out[0,0,ix]) > 1e-8).any()
-            new_data_out = data_out[...,non_constant_dim]
+            data_structure_out.UpdateData(data_out[...,non_constant_dim])
 
             try:
                 output_log = ImportDictionaryFromText(self.output_log_name)
@@ -64,11 +64,14 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
             except AttributeError:
                 print("Output not logged")
 
-            return [data_in, new_data_out]
+            return [data_structure_in, data_structure_out]
         else:
             raise Exception("Masking objective not supported. Supported objectives are input and output")
 
-    def Invert(self, data_in, data_out):  
+    def Invert(self, data_structure_in, data_structure_out):
+        
+        data_in = data_structure_in.ExportAsArray()       
+        data_out = data_structure_out.ExportAsArray()
 
         # This only works if the constant dimensions are 0!!
 
@@ -96,5 +99,8 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
             new_data_out = np.zeros((data_out.shape[0],data_out.shape[1],len(non_constant_dim_out)))
             new_data_out[:,:,non_constant_dim_out]=data_out
 
-        return [new_data_in, new_data_out]
+        data_structure_in.UpdateData(new_data_in)
+        data_structure_out.UpdateData(new_data_out)
+
+        return [data_structure_in, data_structure_out]
 

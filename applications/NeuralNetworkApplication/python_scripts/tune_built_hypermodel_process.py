@@ -33,7 +33,7 @@ class TunerFromBuiltModel(NeuralNetworkTrainingProcess):
                                     max_trials=self.max_trials, executions_per_trial = self.executions_per_trial,
                                     directory = self.directory, project_name = self.project_name)
         self.tuner.search_space_summary()
-        self.tuner.search(self.test_input,self.test_output,epochs=self.epochs)
+        self.tuner.search(self.test_input.ExportAsArray(),self.test_output.ExportAsArray(),epochs=self.epochs)
         
     
     def ExecuteFinalize(self):

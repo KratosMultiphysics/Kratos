@@ -46,8 +46,8 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
 
     def Plot(self):
 
-        input = ImportDataFromFile(self.input_file, "InputData")
-        target = ImportDataFromFile(self.target_file, "OutputData")
+        input = ImportDataFromFile(self.input_file, "InputData").ExportAsArray()
+        target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
         if self.predictions_file.endswith('.npy'):
             predictions = np.load(self.predictions_file)
         else:
@@ -55,11 +55,26 @@ class PredictionPlotterProcess(NeuralNetworkProcess):
 
         for variable in self.variables:
             figure, ax = plt.subplots()
-            getattr(ax,self.axis)(input[:,self.input_variable_id],target[:,self.node_id + self.variables.index(variable)],'.',label='Ground Truth')
-            if isinstance(predictions[0],(list, tuple, np.ndarray)): 
-                getattr(ax,self.axis)(input,predictions[:,self.node_id + self.variables.index(variable)],'.',label='Prediction')
+            if isinstance(target[0],(list, tuple, np.ndarray)):
+                try:
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],target[:,self.node_id + self.variables.index(variable)],'.',label='Ground Truth')
+                except IndexError:
+                    getattr(ax,self.axis)(input,target[:,self.node_id + self.variables.index(variable)],'.',label='Ground Truth')
             else:
-                getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],predictions[:],'.',label='Prediction')
+                try:
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],target[:],'.',label='Prediction')
+                except IndexError:
+                    getattr(ax,self.axis)(input,target[:],'.',label='Prediction')
+            if isinstance(predictions[0],(list, tuple, np.ndarray)):
+                try:
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],predictions[:,self.node_id + self.variables.index(variable)],'.',label='Prediction')
+                except IndexError:
+                    getattr(ax,self.axis)(input,predictions[:,self.node_id + self.variables.index(variable)],'.',label='Prediction')
+            else:
+                try:
+                    getattr(ax,self.axis)(input[:,self.node_id + self.input_variable_id],predictions[:],'.',label='Prediction')
+                except IndexError:
+                    getattr(ax,self.axis)(input,predictions[:],'.',label='Prediction')
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
             ax.legend()

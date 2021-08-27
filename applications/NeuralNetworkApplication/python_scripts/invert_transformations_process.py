@@ -67,15 +67,15 @@ class InvertTransformationsProcess(NeuralNetworkProcess):
                 extension  = ".csv"
                 self.input_file_name = self.input_file_name + extension
                 self.output_file_name = self.output_file_name + extension
-                np.savetxt(self.input_file_name, self.data_in)
-                np.savetxt(self.output_file_name,self.data_out)
+                np.savetxt(self.input_file_name, self.data_in.ExportAsArray())
+                np.savetxt(self.output_file_name,self.data_out.ExportAsArray())
 
             elif self.save_format == "npy":
                 extension = ".npy"
                 self.input_file_name = self.input_file_name + extension
                 self.output_file_name = self.output_file_name + extension
-                np.save(self.input_file_name, self.data_in)
-                np.save(self.output_file_name,self.data_out)
+                np.save(self.input_file_name, self.data_in.ExportAsArray())
+                np.save(self.output_file_name,self.data_out.ExportAsArray())
             else:
                 raise Exception("Output save format not supported. Supported formats are ascii and npy.")
 

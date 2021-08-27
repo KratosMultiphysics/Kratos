@@ -1,7 +1,7 @@
 import numpy as np
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
-from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import ImportDictionaryFromText, UpdateDictionaryJson, KratosVectorToList
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, DataWithLookback
 
 
 def Factory(settings):
@@ -23,37 +23,26 @@ class LookbackProcess(PreprocessingProcess):
         if not self.load_from_log:
             self.lookback = settings["lookback"].GetInt()
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
         """ This method records the lookback of timeseries and saves them. 
             Normally applied before LSTM and RNN layers. """
 
-        new_data_in, new_data_out = [], []
-        if data_in == None:
-            data_in = np.array([0.0])
-        if data_out == None:
-            data_out = np.array([0.0])
+        if not isinstance(data_structure_in, ListDataWithLookback) or not isinstance(data_structure_in, DataWithLookback):
+            new_data_structure_in = ListDataWithLookback(lookback_index = self.lookback)
+            new_data_structure_in.ExtendFromNeuralNetworkData(data_structure_in)
+        
 
-        lookback_indexes = len(data_in)-self.lookback-1
-        if lookback_indexes < 1:
-            initial_vector_shape_input = data_in.shape
-            initial_vector_shape_output = data_out.shape
-            new_data_in = data_in
-            new_data_out = data_out
-            for i in range(-lookback_indexes):
-                new_data_in = np.concatenate((new_data_in,np.zeros(initial_vector_shape_input)))
-                new_data_out = np.concatenate((new_data_out,np.zeros(initial_vector_shape_output)))
+        for i in reversed(range(self.lookback)):
+            
+            data_in = data_structure_out.ExportAsArray()
+            new_data_in = np.zeros_like(data_in)
+            new_data_in[i+1:] = data_in[:-i-1]
+            # if len(new_data_in.shape) == 1: 
+            #     new_data_in = np.reshape(new_data_in, (1, 1,new_data_in.shape[0]))
 
-        for i in range(len(data_in)-self.lookback-1):
-            value = data_out[i:(i+self.lookback)]
-            new_data_in.append(np.concatenate((data_in[i], value.T[0])))
-            new_data_out.append(data_out[i+self.lookback]) 
-        new_data_in = np.array(new_data_in)
-        new_data_out = np.array(new_data_out)
+            # if len(new_data_in.shape) == 2: 
+            #     new_data_in = np.reshape(new_data_in, (new_data_in.shape[0],1, new_data_in.shape[1]))
 
-        if len(new_data_in.shape) == 1: 
-            new_data_in = np.reshape(new_data_in, (1, 1,new_data_in.shape[0]))
+            new_data_structure_in.CheckLookbackAndUpdate(new_data_in)
 
-        if len(new_data_in.shape) == 2: 
-            new_data_in = np.reshape(new_data_in, (new_data_in.shape[0],1, new_data_in.shape[1]))
-        print(new_data_in)
-        return [new_data_in, new_data_out]
+        return [new_data_structure_in, data_structure_out]

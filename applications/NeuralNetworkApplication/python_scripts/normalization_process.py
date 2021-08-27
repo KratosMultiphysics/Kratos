@@ -53,7 +53,7 @@ class NormalizationProcess(PreprocessingProcess):
             self.center = settings["center"].GetString()
             normalization_parameters.AddEmptyValue("center")
             normalization_parameters["center"].SetString(self.center)
-        # Centering
+        # Scaling
         if settings.Has("scale"):
             self.scale = settings["scale"].GetString()
             normalization_parameters.AddEmptyValue("scale")

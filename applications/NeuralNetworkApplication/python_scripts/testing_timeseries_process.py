@@ -44,23 +44,35 @@ class TestingTimeseriesProcess(NeuralNetworkProcess):
     def ExecuteFinalize(self):
 
         print("Testing process started... \n")
-        input = ImportDataFromFile(self.input_file, "InputData")
-        target = ImportDataFromFile(self.target_file, "OutputData")
+        input = ImportDataFromFile(self.input_file, "InputData",lookback=False).ExportAsArray()
+        target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
+        input = np.reshape(input, (target.shape[0],input.shape[1],target.shape[1]))
+        # input = np.swapaxes(input, 1, 2)
         # The compiling options of the model do not matter, as it will not be trained
         model = keras.models.load_model(self.model)
         model.compile()
         predictions = []
         initial_length = len(input[:])
         for i in range(self.timesteps):
-            test = np.reshape(input[i],(1, input[i].shape[0],input[i].shape[1]))
+            # if len(input[i].shape)>1:
+            #     test = np.reshape(input.T[i],(1,input[i].shape[0],input[i].shape[1]))
+            # else:
+            #     test = np.reshape(input[i],(1,input[i].shape[0],1))
+            test = input[i]
+            test = np.reshape(test, (1, test.shape[0], test.shape[1]))
+            # test = np.swapaxes(test, 1, 2)
             predictions.append(model.predict(test)[0])
             if i > initial_length - 2:
-                new_timestep = []
-                for j in reversed(range(self.lookback-1)):
-                     new_timestep.append(input[i-j][self.lookback-1])
-                new_timestep.append(predictions[-1].tolist())
-                new_timestep = np.array(new_timestep)
-                new_timestep = np.reshape(new_timestep, (1, new_timestep.shape[0],new_timestep.shape[1]))
+                for j in range(self.lookback-1):
+                    if j == 0:
+                        new_timestep = np.asarray(input[-1][j+1])
+                    else:
+                        new_timestep = np.vstack([new_timestep,np.asarray(input[-1][j+1])])
+                new_timestep= np.vstack([new_timestep, np.asarray(predictions[-1])])
+                if len(new_timestep.shape)>1:
+                    new_timestep = np.reshape(new_timestep, (1,new_timestep.shape[0], new_timestep.shape[1]))
+                else:
+                    new_timestep = np.reshape(new_timestep, (1, new_timestep.shape[0],1))
                 input = np.vstack([input,new_timestep])
                 if self.echo > 0:
                     print('Predicted: ' + str(predictions[i]))

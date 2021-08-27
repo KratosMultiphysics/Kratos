@@ -40,8 +40,8 @@ class TestingProcess(NeuralNetworkProcess):
     def ExecuteFinalize(self):
 
         print("Testing process started... \n")
-        input = ImportDataFromFile(self.input_file, "InputData")
-        target = ImportDataFromFile(self.target_file, "OutputData")
+        input = ImportDataFromFile(self.input_file, "InputData").ExportAsArray()
+        target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
         # The compiling options of the model do not matter, as it will not be trained
         model = keras.models.load_model(self.model)
         model.compile()
@@ -58,6 +58,7 @@ class TestingProcess(NeuralNetworkProcess):
             self.predictions_file = self.predictions_file + '.csv'
             np.savetxt(self.predictions_file, predictions)
         
+
         if self.save_format == "npy":
             self.predictions_file = self.predictions_file + '.npy'
             np.save(self.predictions_file, predictions)

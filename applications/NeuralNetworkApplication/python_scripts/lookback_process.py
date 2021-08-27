@@ -1,7 +1,7 @@
 import numpy as np
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
-from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import ImportDictionaryFromText, UpdateDictionaryJson, KratosVectorToList
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, DataWithLookback
 
 
 def Factory(settings):
@@ -22,19 +22,37 @@ class LookbackProcess(PreprocessingProcess):
         """
         if not self.load_from_log:
             self.lookback = settings["lookback"].GetInt()
+        if settings.Has("stack_input"):
+            self.stack_input = settings["stack_input"].GetBool()
+        else:
+            self.stack_input = False
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
         """ This method records the lookback of timeseries and saves them. 
             Normally applied before LSTM and RNN layers. """
 
-        new_data_in, new_data_out = [], []
+        if not isinstance(data_structure_in, ListDataWithLookback) or not isinstance(data_structure_in, DataWithLookback):
+            new_data_structure_in = ListDataWithLookback(lookback_index = self.lookback)
+            new_data_structure_in.ExtendFromNeuralNetworkData(data_structure_in)
+        
 
-        for i in range(len(data_in)-self.lookback-1):
-            value = data_out[i:(i+self.lookback)]
-            new_data_in.append(value)
-            new_data_out.append(data_out[i+self.lookback]) 
-        new_data_in = np.array(new_data_in)
-        new_data_out = np.array(new_data_out)
-        if len(new_data_in.shape) <3: 
-            new_data_in = np.reshape(new_data_in, (new_data_in.shape[0],new_data_in.shape[1],1))
-        return [new_data_in, new_data_out]
+        for i in reversed(range(self.lookback)):
+            
+            data_in = data_structure_out.ExportAsArray()
+            new_data_in = np.zeros_like(data_in)
+            new_data_in[i+1:] = data_in[:-i-1]
+            # if len(new_data_in.shape) == 1: 
+            #     new_data_in = np.reshape(new_data_in, (1, 1,new_data_in.shape[0]))
+
+            # if len(new_data_in.shape) == 2: 
+            #     new_data_in = np.reshape(new_data_in, (new_data_in.shape[0],1, new_data_in.shape[1]))
+
+            new_data_structure_in.CheckLookbackAndUpdate(new_data_in)
+
+
+        new_data_structure_in.KeepPart(slice(self.lookback, None, None))
+        data_structure_out.KeepPart(slice(self.lookback, None, None))
+        new_data_structure_in.SetOnlyLookback(False) if self.stack_input else new_data_structure_in.SetOnlyLookback(True)
+
+
+        return [new_data_structure_in, data_structure_out]

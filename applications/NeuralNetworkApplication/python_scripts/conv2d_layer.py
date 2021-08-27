@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_layer import NeuralNetworkLayerClass
 from KratosMultiphysics.NeuralNetworkApplication.load_tunable_parameters_utility import LoadTunableParametersUtility
-import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities as DataLoadingUtilities
 
 from tensorflow.keras import layers
 import tensorflow.keras as keras
@@ -10,10 +9,10 @@ import kerastuner as kt
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return DenseLayer(settings)
+    return Conv2DLayer(settings)
 
-class DenseLayer(NeuralNetworkLayerClass):
-    """This class generates a base class for a Dense layer
+class Conv2DLayer(NeuralNetworkLayerClass):
+    """This class generates a base class for a Conv1D layer
 
     Public member variables:
     settings -- Kratos parameters containing process settings.
@@ -29,11 +28,17 @@ class DenseLayer(NeuralNetworkLayerClass):
         default_settings = KM.Parameters("""{
             "layer_name"               : "",
             "trainable"                : true,
-            "output_layer"             : false,
-            "data_output"              : "",
             "dtype"                    : "",
             "dynamic"                  : false,
-            "units"                    : 1,
+            "filters"                  : 1,
+            "kernel_size"              : 1,
+            "strides_1"                : 1,
+            "strides_2"                : 1,
+            "padding"                  : "valid",
+            "data_format"              : "channels_last",
+            "dilation_rate_1"          : 1,
+            "dilation_rate_2"          : 1,
+            "groups"                   : 1,
             "activation"               : "",
             "use_bias"                 : true,
             "kernel_initializer"       : "glorot_uniform",
@@ -53,14 +58,15 @@ class DenseLayer(NeuralNetworkLayerClass):
 
         self.layer_name = settings["layer_name"].GetString()
         self.trainable = settings["trainable"].GetBool()
-        self.output_layer = settings["output_layer"].GetBool()
-        self.data_output = settings["data_output"].GetString()
         self.dtype = settings["dtype"].GetString()
         self.dynamic = settings["dynamic"].GetBool()
-        if self.output_layer:
-            self.data_output = settings["data_output"].GetString()
-        else:
-            self.units = settings["units"].GetInt()
+        self.filters = settings["filters"].GetInt()
+        self.kernel_size = settings["kernel_size"].GetInt()
+        self.strides = tuple((settings["strides_1"].GetInt(), settings["strides_2"].GetInt()))
+        self.padding = settings["padding"].GetString()
+        self.data_format = settings["data_format"].GetString()
+        self.dilation_rate = tuple((settings["dilation_rate_1"].GetInt(), settings["dilation_rate_2"].GetInt()))
+        self.groups = settings["groups"].GetInt()
         if not settings["activation"].GetString() == "":
             self.activation = settings["activation"].GetString()
         else:
@@ -86,16 +92,13 @@ class DenseLayer(NeuralNetworkLayerClass):
 
     def Build(self, hp = None):
         """ This method builds the layer when called by a process."""
-        if self.output_layer:
-            data = DataLoadingUtilities.ImportDataFromFile(self.data_output, "OutputData").ExportAsArray()
-            self.units = data[0,:].size
-
         if self.tunable:
             setattr(self,self.tunable_variable,LoadTunableParametersUtility(self.tuning_parameters).Load(hp))
-
-        self.layer = layers.Dense(self.units, activation=self.activation,use_bias=self.use_bias,
-        kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,kernel_regularizer=self.kernel_regularizer,
-        bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,
+        
+        self.layer = layers.Conv2D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding, 
+        data_format=self.data_format, dilation_rate=self.dilation_rate, groups= self.groups, activation=self.activation,
+        use_bias=self.use_bias, kernel_initializer=self.kernel_initializer,bias_initializer=self.bias_initializer,
+        kernel_regularizer=self.kernel_regularizer, bias_regularizer=self.bias_regularizer,activity_regularizer=self.activity_regularizer,
         trainable=self.trainable, dtype=self.dtype, name=self.layer_name, dynamic=self.dynamic)
         return self.layer
 

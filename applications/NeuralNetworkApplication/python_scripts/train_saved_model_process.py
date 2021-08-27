@@ -29,10 +29,10 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
         # self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
         self.reconstructed_model.compile(loss=loss_function, optimizer=optimizer, metrics = metrics_list)
         if self.validation:
-            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, 
+            history = self.reconstructed_model.fit(self.test_input.ExportAsArray(), self.test_output.ExportAsArray(), epochs = self.epochs, 
             validation_data = (self.val_input, self.val_output), shuffle=self.shuffle, callbacks = callbacks_list)
         else:
-            history = self.reconstructed_model.fit(self.test_input, self.test_output, epochs = self.epochs, shuffle=self.shuffle,
+            history = self.reconstructed_model.fit(self.test_input.ExportAsArray(), self.test_output.ExportAsArray(), epochs = self.epochs, shuffle=self.shuffle,
             validation_split = self.validation_split, callbacks = callbacks_list) 
         self.reconstructed_model.save(self.model_name)
         if self.training_log:

@@ -23,7 +23,11 @@ class SaveDataProcess(PreprocessingProcess):
         self.output_file_name = parameters["output_file_name"].GetString()
         self.format = parameters["format"].GetString()
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
+
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
+
         # Save the data
         if self.format == "ascii":
             extension  = ".dat"
@@ -40,8 +44,6 @@ class SaveDataProcess(PreprocessingProcess):
             np.save(self.output_file_name,data_out)
         else:
             raise Exception("Output save format not supported. Supported formats are ascii and npy.")
-        
-        
 
         if not self.load_from_log:
             input_log = DataLoadingUtilities.ImportDictionaryFromText(self.input_log_name)

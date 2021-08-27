@@ -45,7 +45,7 @@ class CorrelationMatrixPlotterProcess(NeuralNetworkProcess):
     def Plot(self):
         
         if self.origin == "input_generation" or self.origin == "output_generation":
-            data = ImportDataFromFile(self.file, "OutputData")
+            data = ImportDataFromFile(self.file, "OutputData").ExportAsArray()
         elif self.origin == "prediction":
             if self.file.endswith('.npy'):
                 data = np.load(self.file)

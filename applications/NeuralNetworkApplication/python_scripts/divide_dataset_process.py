@@ -1,5 +1,6 @@
 import numpy as np
 import KratosMultiphysics as KM
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListNeuralNetworkData
 from KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
 from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import ImportDictionaryFromText, UpdateDictionaryJson, KratosVectorToList
 
@@ -28,14 +29,10 @@ class DivideDatasetProcess(PreprocessingProcess):
         if (self.proportion >= 1.0) or (self.proportion <= 0.0):
             print("The division proportion must be a value between 0.0 and 1.0.")
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
         """ This method divides the dataset in two parts """
 
-        # new_data_in, new_data_out = [], []
+        data_structure_in.UpdateData(data_structure_in[:np.int64(len(data_structure_in)*self.proportion)])
+        data_structure_out.UpdateData(data_structure_out[:np.int64(len(data_structure_out)*self.proportion)])
 
-        new_data_in = data_in[:np.int64(len(data_in)*self.proportion)]
-        new_data_out = data_out[:np.int64(len(data_out)*self.proportion)]
-        # for i in range(np.int64(len(data_in)*self.proportion)):
-        #     new_data_in.append(data_in[i])
-        #     new_data_out.append(data_out[i])
-        return [new_data_in, new_data_out]
+        return [data_structure_in, data_structure_out]

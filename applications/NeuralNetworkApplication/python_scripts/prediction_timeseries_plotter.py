@@ -44,9 +44,10 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
 
     def Plot(self):
 
-        target = ImportDataFromFile(self.target_file, "OutputData")
+        target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
         if self.predictions_file.endswith('.npy'):
             predictions = np.load(self.predictions_file)
+            predictions = np.squeeze(predictions)
         else:
             predictions = np.genfromtxt(self.predictions_file)
         predictions_times = range(self.training_timesteps,len(predictions[:]))
@@ -65,14 +66,20 @@ class PredictionTimeseriesPlotterProcess(NeuralNetworkProcess):
                 except IndexError:
                     getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'r-',label='Training')
             else:
-                getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'r-',label='Training')
-            if isinstance(predictions[0],(list, tuple, np.ndarray)): 
                 try:
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,self.node_id,self.variables.index(variable)],'g-',label='Prediction')
+                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1,len(self.variables)*self.node_id+self.variables.index(variable)],'r-',label='Training')
                 except IndexError:
-                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Prediction')
+                    getattr(ax,self.axis)(range(self.training_timesteps-1),predictions[:self.training_timesteps-1],'r-',label='Training')
+            if isinstance(predictions[0],(list, tuple, np.ndarray)):
+                try: 
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,self.node_id,self.variables.index(variable)],'g-',label='Training')
+                except IndexError:
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Training')
             else:
-                getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Prediction')
+                try:
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:,len(self.variables)*self.node_id+self.variables.index(variable)],'g-',label='Training')
+                except IndexError:
+                    getattr(ax,self.axis)(predictions_times,predictions[self.training_timesteps:],'g-',label='Training')
             ax.set_xlabel(self.input_variable)
             ax.set_ylabel(variable)
             ax.legend()

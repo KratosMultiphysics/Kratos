@@ -31,11 +31,15 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
             self.val_output_file = parameters["val_output"].GetString()
         if parameters.Has("validation_split"):
             self.validation_split = parameters["validation_split"].GetDouble()
+        if parameters.Has("recurrent"):
+            self.recurrent = parameters["recurrent"].GetBool()
+        else:
+            self.recurrent = False
 
     def ExecuteBeforeTraining(self):
         # Input
         
-        self.test_input = DataLoadingUtilities.ImportDataFromFile(self.input_file,"InputData")
+        self.test_input = DataLoadingUtilities.ImportDataFromFile(self.input_file,"InputData", lookback=self.recurrent)
 
         # Output
         
@@ -47,7 +51,7 @@ class NeuralNetworkTrainingProcess(NeuralNetworkProcess):
         if self.validation:
             # Input
         
-            self.val_test_input = DataLoadingUtilities.ImportDataFromFile(self.val_input_file,"InputData")
+            self.val_test_input = DataLoadingUtilities.ImportDataFromFile(self.val_input_file,"InputData", lookback=self.recurrent)
 
             # Output
             

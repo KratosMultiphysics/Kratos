@@ -23,7 +23,8 @@ class HistoryPlotterProcess(NeuralNetworkProcess):
             "axis"                       : "plot",
             "output_name"                : "",
             "output_format"              : "png",
-            "burn_up"                    : 0                     
+            "burn_up"                    : 0,
+            "show"                       : true                     
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
@@ -33,6 +34,7 @@ class HistoryPlotterProcess(NeuralNetworkProcess):
         self.output_name = parameters["output_name"].GetString()
         self.axis = parameters["axis"].GetString()
         self.burn_up = parameters["burn_up"].GetInt()
+        self.show = parameters["show"].GetBool()
 
     def ExecuteFinalize(self):
 
@@ -44,5 +46,6 @@ class HistoryPlotterProcess(NeuralNetworkProcess):
             ax.set_xlabel("Epochs")
             ax.set_ylabel(variable)
             figure.savefig(self.output_name + "_" + variable + "." + self.output_format)
-            plt.show()
+            if self.show:
+                plt.show()
             

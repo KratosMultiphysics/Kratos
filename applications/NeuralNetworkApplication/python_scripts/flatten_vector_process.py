@@ -2,6 +2,7 @@ import numpy as np
 import KratosMultiphysics as KM
 from  KratosMultiphysics.NeuralNetworkApplication.preprocessing_process import PreprocessingProcess
 from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import ImportDictionaryFromText, UpdateDictionaryJson
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListNeuralNetworkData, ListDataWithLookback
 
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
@@ -26,14 +27,10 @@ class FlattenVectorProcess(PreprocessingProcess):
             self.log_denominator = "flatten"
        
 
-    def Preprocess(self, data_in, data_out):
-        # try:
-        #     input_log = ImportDictionaryFromText(self.input_log_name)
-        #     output_log = ImportDictionaryFromText(self.output_log_name)
-        # except AttributeError:
-        #             print("No logging.")
-        #             input_log = {}
-        #             output_log = {}
+    def Preprocess(self, data_structure_in, data_structure_out):
+        
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
 
         # Flatten for input
         if self.objective == "input":
@@ -58,10 +55,16 @@ class FlattenVectorProcess(PreprocessingProcess):
                 UpdateDictionaryJson(self.output_log_name, output_log)
             except AttributeError:
                 pass
+        
+        data_structure_in.UpdateData(new_data_in)
+        data_structure_out.UpdateData(new_data_out)
             
-        return [new_data_in, new_data_out]
+        return [data_structure_in, data_structure_out]
 
-    def Invert(self, data_in, data_out):
+    def Invert(self, data_structure_in, data_structure_out):
+
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
 
         if self.objective == "input" or self.objective == "predict_input":
             input_log = ImportDictionaryFromText(self.input_log_name)
@@ -81,4 +84,7 @@ class FlattenVectorProcess(PreprocessingProcess):
             output_shape = output_log.get(self.log_denominator)
             new_data_out = data_out.reshape(data_out.shape[0],output_shape[0],output_shape[1])
 
-        return [new_data_in, new_data_out]
+        data_structure_in.UpdateData(new_data_in)
+        data_structure_out.UpdateData(new_data_out)
+
+        return [data_structure_in, data_structure_out]

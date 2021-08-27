@@ -34,7 +34,13 @@ class CenteringProcess(PreprocessingProcess):
             self.log_denominator = "centering"
        
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
+
+        if len(data_structure_in)>0:
+            data_in = data_structure_in.ExportAsArray()
+        if len(data_structure_out)>0:
+            data_out = data_structure_out.ExportAsArray()
+
         try:
             input_log = ImportDictionaryFromText(self.input_log_name)
             output_log = ImportDictionaryFromText(self.output_log_name)
@@ -114,11 +120,20 @@ class CenteringProcess(PreprocessingProcess):
                 UpdateDictionaryJson(self.output_log_name, output_log)
             except AttributeError:
                 pass
-
-        return [data_in, data_out]
-
-    def Invert(self,data_in,data_out):
         
+        # Updating the data structure
+        if len(data_structure_in)>0:
+            data_structure_in.UpdateData(data_in)
+        if len(data_structure_out)>0:
+            data_structure_out.UpdateData(data_out)
+
+        return [data_structure_in, data_structure_out]
+
+    def Invert(self,data_structure_in,data_structure_out):
+        
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
+
         input_log = ImportDictionaryFromText(self.input_log_name)
         output_log = ImportDictionaryFromText(self.output_log_name)
 
@@ -130,4 +145,7 @@ class CenteringProcess(PreprocessingProcess):
             data_in = data_in + input_log.get(self.log_denominator)
             data_out = data_out + output_log.get(self.log_denominator)
 
-        return[data_in,data_out]
+        data_structure_in.UpdateData(data_in)
+        data_structure_out.UpdateData(data_out)
+
+        return[data_structure_in,data_structure_out]

@@ -43,7 +43,7 @@ class DataGeneratorProcess(KM.Process):
             "output_format"            : "ascii",
             "perturbate_variables"     : [""],
             "random_distribution"      : [""],
-            "random_parameters"        : [],
+            "random_parameters"        : [[]],
             "print_format"             : ".8f",
             "training_file_settings": {
                     "input_file_name"  : "training_in",

@@ -26,13 +26,19 @@ class MaskZerosProcess(PreprocessingProcess):
         except RuntimeError:
             self.log_denominator = "masking_zeros"
         
-    def Preprocess(self, data_in, data_out):
-
+    def Preprocess(self, data_structure_in, data_structure_out):
+        
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
+        
         mask_parameters = KM.Parameters()
         # Setup for input
         if self.objective == 'input':
-            dimension_variables = range(len(data_in[0]))
-            dataset_length = range(len(data_in[:,0]))
+            try:
+                dimension_variables = range(len(data_in[0]))
+                dataset_length = range(len(data_in[:,0]))
+            except IndexError:
+                raise Exception("Trying to mask a one-dimensional array.")
             masking_variables = []
             # Extract which variables are always 0
             for variable in dimension_variables:
@@ -47,8 +53,11 @@ class MaskZerosProcess(PreprocessingProcess):
 
         # Setup for output
         elif self.objective == 'output':
-            dimension_variables = range(len(data_out[0]))
-            dataset_length = range(len(data_out[:,0]))
+            try:
+                dimension_variables = range(len(data_out[0]))
+                dataset_length = range(len(data_out[:,0]))
+            except:
+                raise Exception("Trying to mask one-dimensional array.")
             masking_variables = []
             # Extract which variables are always 0
             for variable in dimension_variables:
@@ -76,6 +85,6 @@ class MaskZerosProcess(PreprocessingProcess):
 
             # Mask the dataset
             self.mask_process = MaskingProcess(mask_parameters)
-            [data_in , data_out] = self.mask_process.Preprocess(data_in, data_out)
+            [data_structure_in , data_structure_out] = self.mask_process.Preprocess(data_structure_in, data_structure_out)
 
-        return [data_in, data_out]
+        return [data_structure_in, data_structure_out]

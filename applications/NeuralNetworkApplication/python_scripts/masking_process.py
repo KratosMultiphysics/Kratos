@@ -28,7 +28,10 @@ class MaskingProcess(PreprocessingProcess):
         except RuntimeError:
             self.log_denominator = "masking"
 
-    def Preprocess(self, data_in, data_out):
+    def Preprocess(self, data_structure_in, data_structure_out):
+        
+        data_in = data_structure_in.ExportAsArray()
+        data_out = data_structure_out.ExportAsArray()
 
         # Check if masking is in the input
         if self.objective == "input": 
@@ -75,5 +78,8 @@ class MaskingProcess(PreprocessingProcess):
      
         else:
             raise Exception("Masking objective not supported. Supported objectives are input and output")    
+
+        data_structure_in.UpdateData(data_in)
+        data_structure_out.UpdateData(data_out)
             
-        return [data_in, data_out]
+        return [data_structure_in, data_structure_out]
