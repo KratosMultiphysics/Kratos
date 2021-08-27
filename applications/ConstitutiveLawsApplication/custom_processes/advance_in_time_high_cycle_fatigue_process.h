@@ -14,11 +14,8 @@
 #if !defined(KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS)
 #define KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS
 
-#include "includes/define.h"
-#include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
-#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
