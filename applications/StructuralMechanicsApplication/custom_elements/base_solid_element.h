@@ -159,6 +159,8 @@ public:
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( BaseSolidElement );
 
+    KRATOS_DEFINE_LOCAL_FLAG(ROTATED);
+
     ///@}
     ///@name Life Cycle
     ///@{
