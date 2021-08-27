@@ -150,8 +150,6 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
             CheckAndNormalizeVector(local_axis_3);
         }
         // Let's compute the second local axis
-        const double c1 = -(local_axis_1(0) * coords(0) + local_axis_1(1) * coords(1) + local_axis_1(2) * coords(2));
-        const double c2 = -(spherical_reference_axis(0) * coords(0) + spherical_reference_axis(1) * coords(1) + spherical_reference_axis(2) * coords(2));
         const double x = 1.0;
         const double y = -(local_axis_1(0) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(0)) / (local_axis_1(1) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(1));
         const double z = -local_axis_1(0) / local_axis_1(2) - local_axis_1(1) / local_axis_1(2) * y;
