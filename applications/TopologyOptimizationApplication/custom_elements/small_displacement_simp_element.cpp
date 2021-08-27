@@ -208,11 +208,10 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 		///Normalize the youngs modulus
 		double factor    = (1/E_current)*E_new; 
 		MatrixType Ke = Ke0 * factor;
-		/* std::cout<< "Velocity times stiffness: " << Ke0 << " Wert"<< std::endl; */
 
 		// Loop through nodes of elements and create elemental displacement vector "ue"
 		Element::GeometryType& rGeom = this->GetGeometry();
-		unsigned int NumNodes = rGeom.PointsNumber();  //NumNodes=8
+		unsigned int NumNodes = rGeom.PointsNumber(); 
 
 		// Resize "ue" according to element type
 		Vector ue;
@@ -237,7 +236,6 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 			// Calculation of the compliance sensitivities DCDX
 			// Do they have to be normalized?
 			double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
-/* 			std::cout<< "Velocity times stiffness: " << dcdx << " Wert"<< std::endl; */
 			this->SetValue(DCDX, dcdx); 
 		}
 		if (rVariable == LOCAL_STRAIN_ENERGY)
