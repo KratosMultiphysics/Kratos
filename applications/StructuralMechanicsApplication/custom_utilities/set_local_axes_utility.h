@@ -99,7 +99,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const
+      std::string Info() const
       {
           std::stringstream buffer;
           buffer << "SetLocalAxesUtility" ;
@@ -108,10 +108,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const  {rOStream << "SetLocalAxesUtility";}
+      void PrintInfo(std::ostream& rOStream) const  {rOStream << "SetLocalAxesUtility";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const  {}
+      void PrintData(std::ostream& rOStream) const  {}
 
       ///@}
 
