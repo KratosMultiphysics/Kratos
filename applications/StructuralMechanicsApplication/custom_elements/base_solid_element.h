@@ -967,7 +967,7 @@ private:
         const BoundedVector<double, 3>& rv1,
         const BoundedVector<double, 3>& rv2,
         const BoundedVector<double, 3>& rv3,
-        const double Tolerance = 1.0e4*std::numeric_limits<double>epsilon()
+        const double Tolerance = 1.0e4*std::numeric_limits<double>::epsilon()
         )
     {
         if (MathUtils<double>::Norm3(rv1) > 1.0 + Tolerance ||
