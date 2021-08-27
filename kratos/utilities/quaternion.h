@@ -443,7 +443,7 @@ namespace Kratos
 		@
 		*/
 		template<class TVector3>
-		static inline Quaternion FromTwoVectors(TVector3 a, TVector3 b)
+		static inline Quaternion FromTwoVectors(TVector3 a, TVector3 b, const double Tolerance = std::numeric_limits<double>::epsilon())
 		{
 			TVector3 x_unit_vector = ZeroVector(3);
 			x_unit_vector(0) = 1.0;
@@ -451,15 +451,15 @@ namespace Kratos
 			y_unit_vector(1) = 1.0;
 
 			const double dot = inner_prod(a, b);
-			if (dot < -0.999999) { // We rotate 180 deg
+			if (dot < Tolerance - 1.0) { // We rotate 180 deg
 				TVector3 cross = MathUtils<double>::CrossProduct(x_unit_vector, a);
-				if (MathUtils<double>::Norm3(cross) < 0.000001)
+				if (MathUtils<double>::Norm3(cross) < 1.0e4*Tolerance)
 					noalias(cross) = MathUtils<double>::CrossProduct(y_unit_vector, a);
 				cross /= MathUtils<double>::Norm3(cross);
 				Quaternion result = Quaternion::FromAxisAngle(cross, Globals::Pi);
 				result.normalize();
 				return result;
-			} else if (dot > 0.999999) { // Identity
+			} else if (dot > 1.0 - Tolerance) { // Identity
 				Quaternion result(0.0, 0.0, 0.0, 1.0);
 				return result;
 			} else { // Normal cases
