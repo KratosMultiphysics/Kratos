@@ -5,13 +5,13 @@ import KratosMultiphysics.ConstitutiveLawsApplication as CLA
 # Importing the base class
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-class StructuralMechanicsHCFAnalysis(StructuralMechanicsAnalysis):
+class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
     """
     This class is used to complement the structurea_mechanics_analysis
     when using the HCF constitutive law
     """
     def __init__(self, model, project_parameters):
-        super(StructuralMechanicsHCFAnalysis, self).__init__(model, project_parameters)
+        super(HighCycleFatigueAnalysis, self).__init__(model, project_parameters)
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
