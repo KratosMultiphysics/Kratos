@@ -587,9 +587,9 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             if (dim == 2){      // 2D case: condition is a line
 
                 array_1d<double, 3> normal;
-                this->CalculateNormal2D( normal, rGeom );
-                if( norm_2( normal ) < epsilon ){ continue; }
-                else { normal /= norm_2( normal ); }
+                //this->CalculateNormal2D( normal, rGeom );
+                //if( norm_2( normal ) < epsilon ){ continue; }
+                //else { normal /= norm_2( normal ); }
 
                 // --- the condition is completely on the negative side (2D)
                 if ( neg_count == rGeom.PointsNumber() ){
@@ -605,7 +605,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
                             noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( normal ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(NORMAL);
                         }
+
+                        if( norm_2( normal ) < epsilon ){ continue; }
+                        else { normal /= norm_2( normal ); }
                         inflow_over_boundary -= w_gauss * inner_prod( normal, interpolated_velocity );
                     }
 
@@ -638,9 +642,9 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 // 3D case: condition is a triangle (implemented routines can be used)
 
                 array_1d<double, 3> normal;
-                this->CalculateNormal3D( normal, rGeom);
-                if( norm_2( normal ) < epsilon ){ continue; }
-                else { normal /= norm_2( normal ); }
+                //this->CalculateNormal3D( normal, rGeom);
+                //if( norm_2( normal ) < epsilon ){ continue; }
+                //else { normal /= norm_2( normal ); }
 
                 // --- the condition is completely on the negative side (3D)
                 if ( neg_count == rGeom.PointsNumber() ){
@@ -657,7 +661,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
                             noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( normal ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(NORMAL);
                         }
+
+                        if( norm_2( normal ) < epsilon ){ continue; }
+                        else { normal /= norm_2( normal ); }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
 
