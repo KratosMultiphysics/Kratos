@@ -163,8 +163,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
             for injection_condition in self.injection_model_part.Conditions:
                 for node in injection_condition.GetNodes():
-                    if node.GetSolutionStepValue(KratosCFD.DISTANCE) > -1.0e-6:
-                        node.SetSolutionStepValue(KratosCFD.DISTANCE, -1.0e-6)
+                    if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -386,8 +386,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
                 for injection_condition in self.injection_model_part.Conditions:
                     for node in injection_condition.GetNodes():
-                        if node.GetSolutionStepValue(KratosCFD.DISTANCE) > -1.0e-6:
-                            node.SetSolutionStepValue(KratosCFD.DISTANCE, -1.0e-6)
+                        if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:
@@ -497,8 +497,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
                 for injection_condition in self.injection_model_part.Conditions:
                     for node in injection_condition.GetNodes():
-                        if node.GetSolutionStepValue(KratosCFD.DISTANCE) > -1.0e-6:
-                            node.SetSolutionStepValue(KratosCFD.DISTANCE, -1.0e-6)
+                        if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
             for node in self.main_model_part.Nodes:
                 velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
