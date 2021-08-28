@@ -122,7 +122,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     //KRATOS_INFO("Outlet:") << OUTLET << std::endl;
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
     //KRATOS_INFO("Inlet/Outlet:") << BOUNDARY << std::endl;
-    double net_inflow = ComputeFlowOverBoundary(BOUNDARY);
+    double net_inflow = 0.0;//ComputeFlowOverBoundary(BOUNDARY);
     
     // computing global quantities via MPI communication
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
@@ -220,8 +220,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             // all nodes are positive (pointer is necessary to maintain polymorphism of DomainSize())
             pos_vol += it_elem->pGetGeometry()->DomainSize();
             if ( num_nodes == 3 ){
-                BoundedMatrix<double,3,2> DN_DX;  // Gradients matrix 
-                array_1d<double,3> N; //dimension = number of nodes . Position of the gauss point 
+                BoundedMatrix<double,3,2> DN_DX;  // Gradients matrix
+                array_1d<double,3> N; //dimension = number of nodes . Position of the gauss point
                 double area;
                 GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
                 Vector vel = ZeroVector(num_dim);
@@ -230,8 +230,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                 }
                 pos_kinetic_energy_to_rho += 0.5*inner_prod(vel,vel)*area;
             } else if ( num_nodes == 4 ){
-                BoundedMatrix<double,4,3> DN_DX;  // Gradients matrix 
-                array_1d<double,4> N; //dimension = number of nodes . Position of the gauss point 
+                BoundedMatrix<double,4,3> DN_DX;  // Gradients matrix
+                array_1d<double,4> N; //dimension = number of nodes . Position of the gauss point
                 double area;
                 GeometryUtils::CalculateGeometryData(it_elem->GetGeometry(), DN_DX, N, area);
                 Vector vel = ZeroVector(num_dim);
@@ -300,8 +300,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             if ( num_nodes == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
             }
             else if ( num_nodes == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); 
-            }            
-            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; 
+            }
+            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl;
             }
 
             //KRATOS_INFO("MassConservationProcess") << "Constructed the ModifiedShapeFunctions" << std::endl;
@@ -560,6 +560,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
     #pragma omp parallel for reduction(+: inflow_over_boundary)
     for (int i_cond = 0; i_cond < static_cast<int>(mrModelPart.NumberOfConditions()); ++i_cond){
 
+        //KRATOS_INFO("ComputeFlowOverBoundary:") << "HEREEEEE" << std::endl;
+
         // iteration over all conditions (pointer to condition)
         const auto p_condition = mrModelPart.ConditionsBegin() + i_cond;
 
@@ -590,6 +592,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 this->CalculateNormal2D( normal, rGeom );
                 if( norm_2( normal ) < epsilon ){ continue; }
                 else { normal /= norm_2( normal ); }
+                //KRATOS_INFO("ComputeFlowOverBoundary:") << "normal is calculated" << std::endl;
 
                 // --- the condition is completely on the negative side (2D)
                 if ( neg_count == rGeom.PointsNumber() ){
@@ -645,6 +648,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 this->CalculateNormal3D( normal, rGeom);
                 if( norm_2( normal ) < epsilon ){ continue; }
                 else { normal /= norm_2( normal ); }
+                //KRATOS_INFO("ComputeFlowOverBoundary:") << "normal is calculated" << std::endl;
 
                 // --- the condition is completely on the negative side (3D)
                 if ( neg_count == rGeom.PointsNumber() ){
@@ -666,7 +670,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
                         // if( norm_2( normal ) < epsilon ){ continue; }
                         // else { normal /= norm_2( normal ); }
-                        inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
+                        inflow_over_boundary += wGauss * inner_prod( normal, interpolated_velocity );
                     }
 
                 // --- the condition is cut

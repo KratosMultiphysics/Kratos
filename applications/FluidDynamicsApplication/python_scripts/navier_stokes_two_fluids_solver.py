@@ -162,7 +162,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
             self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
             for injection_condition in self.injection_model_part.Conditions:
+                injection_condition.Set(KratosMultiphysics.BOUNDARY, True)
                 for node in injection_condition.GetNodes():
+                    node.Set(KratosMultiphysics.BOUNDARY, True)
                     if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
                         node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
