@@ -19,6 +19,8 @@
 // Project includes
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "utilities/builtin_timer.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -63,9 +65,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PrebucklingStrategy);
 
+    // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef PrebucklingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -83,11 +93,27 @@ public:
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
 
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> ConvergenceCriteriaType;
+    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+
+    /// Convergence criteria factory
+    typedef Factory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
 
     ///@}
     ///@name Life Cycle
     ///@{
+    
+    /**
+     * @brief Default constructor
+     */
+    explicit PrebucklingStrategy() : BaseType()
+    {
+    }
 
     /**
      * @brief Constructor
@@ -111,7 +137,7 @@ public:
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria,
         int MaxIteration,
         Parameters BucklingSettings )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart)
+        : BaseType(rModelPart)
     {
         KRATOS_TRY
 
@@ -135,30 +161,30 @@ public:
 
         mMakeMatricesSymmetricFlag = BucklingSettings["make_matrices_symmetric"].GetBool();
 
-        // Set Eigensolver flags
-        mpEigenSolver->SetDofSetIsInitializedFlag(false);
-        mpEigenSolver->SetReshapeMatrixFlag(false);
-        mpEigenSolver->SetCalculateReactionsFlag(false);
-        // Set Static Builder and Solver flags
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        mpBuilderAndSolver->SetCalculateReactionsFlag(false);
-        mpBuilderAndSolver->SetReshapeMatrixFlag(false);
-
-        // Set EchoLevel to the default value (only time is displayed)
-        this->SetEchoLevel(1);
-
-        // Default rebuild level (build at each solution step)
-        this->SetRebuildLevel(1);
-
-        // Set Matrices and Vectors to empty pointers
-        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer();
-        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
-        mpDx = TSparseSpace::CreateEmptyVectorPointer();
-        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
+        // Some initializations
+        AuxiliarInitialization();
 
         rModelPart.GetProcessInfo()[TIME] = 1.0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit PrebucklingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
+
+        rModelPart.GetProcessInfo()[TIME] = 1.0;
     }
 
     /// Deleted copy constructor.
@@ -202,7 +228,7 @@ public:
      * @brief Get method for the builder and solver
      * @return mpBuilderAndSolver: The pointer to the builder and solver considered
      */
-    BuilderAndSolverPointerType &pGetBuilderAndSolver()
+    BuilderAndSolverPointerType& pGetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
     };
@@ -211,7 +237,7 @@ public:
      * @brief Get method for the convergence criteria
      * @return mpConvergenceCriteria: The pointer to the convergence criteria considered
      */
-    ConvergenceCriteriaType &GetConvergenceCriteria()
+    typename TConvergenceCriteriaType::Pointer& GetConvergenceCriteria()
     {
         return mpConvergenceCriteria;
     }
@@ -286,10 +312,12 @@ public:
     {
         KRATOS_TRY
 
-        BuilderAndSolverPointerType &pBuilderAndSolver = this->pGetBuilderAndSolver();
-        pBuilderAndSolver->GetLinearSystemSolver()->Clear();
-        BuilderAndSolverPointerType &pEigenSolver = this->pGetEigenSolver();
-        pEigenSolver->GetLinearSystemSolver()->Clear();
+        auto pBuilderAndSolver = this->pGetBuilderAndSolver();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->GetLinearSystemSolver()->Clear();
+        auto pEigenSolver = this->pGetEigenSolver();
+        if (pEigenSolver != nullptr)
+            pEigenSolver->GetLinearSystemSolver()->Clear();
 
         if (mpStiffnessMatrix != nullptr)
             mpStiffnessMatrix = nullptr;
@@ -304,17 +332,21 @@ public:
             mpDx = nullptr;
 
         // Re-setting internal flag to ensure that the dof sets are recalculated
-        pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-        pEigenSolver->SetDofSetIsInitializedFlag(false);
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        if (pEigenSolver != nullptr)
+            pEigenSolver->SetDofSetIsInitializedFlag(false);
 
-        pBuilderAndSolver->Clear();
-        pEigenSolver->Clear();
-
-        this->pGetScheme()->Clear();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->Clear();
+        if (pEigenSolver != nullptr)
+            pEigenSolver->Clear();
+        
+        if (this->pGetScheme() != nullptr)
+            this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
         mSolutionStepIsInitialized = false;
-
 
         KRATOS_CATCH("")
     }
@@ -426,7 +458,7 @@ public:
         typename ConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
         // Initializing the parameters of the Newton-Raphson cycle
-        unsigned int iteration_number = 1;
+        std::size_t iteration_number = 1;
         rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         bool is_converged = false;
 
@@ -567,7 +599,7 @@ public:
 
             // Update eigenvalues to loadfactors (Instead of dividing matrix by delta_load_multiplier, here eigenvalues are multiplied)
             mLambda = Eigenvalues(0)*delta_load_multiplier;
-            for(unsigned int i = 0; i < Eigenvalues.size(); i++ )
+            for(std::size_t i = 0; i < Eigenvalues.size(); i++ )
             {
                 Eigenvalues[i] = mLambdaPrev + Eigenvalues[i]*delta_load_multiplier;
             }
@@ -661,6 +693,44 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "prebuckling_strategy",
+            "max_iteration"                 : 10,
+            "builder_and_solver_settings"   : {},
+            "convergence_criteria_settings" : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "buckling_settings"             : {
+                "initial_load_increment"    : 1.0,
+                "small_load_increment"      : 0.0005,
+                "path_following_step"       : 0.5,
+                "convergence_ratio"         : 0.05,
+                "make_matrices_symmetric"   : true
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "prebuckling_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -678,6 +748,8 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
 
     ///@}
     ///@name Protected member Variables
@@ -690,6 +762,47 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMaxIteration = ThisParameters["max_iteration"].GetInt();
+        mInitialLoadIncrement = ThisParameters["buckling_settings"]["initial_load_increment"].GetDouble();
+        mSmallLoadIncrement = ThisParameters["buckling_settings"]["small_load_increment"].GetDouble();
+        mPathFollowingStep = ThisParameters["buckling_settings"]["path_following_step"].GetDouble();
+        mConvergenceRatio = ThisParameters["buckling_settings"]["convergence_ratio"].GetDouble();
+        mMakeMatricesSymmetricFlag = ThisParameters["buckling_settings"]["make_matrices_symmetric"].GetBool();
+
+        // Saving the convergence criteria to be used
+        if (ThisParameters["convergence_criteria_settings"].Has("name")) {
+            mpConvergenceCriteria = ConvergenceCriteriaFactoryType().Create(ThisParameters["convergence_criteria_settings"]);
+        }
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
@@ -713,11 +826,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpEigenSolver;
+    BuilderAndSolverPointerType mpEigenSolver = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     // SparseMatrixPointerType mpMassMatrix;
 
@@ -729,7 +842,7 @@ private:
 
     SparseVectorPointerType mpDx;
 
-    typename ConvergenceCriteriaType::Pointer mpConvergenceCriteria;
+    typename ConvergenceCriteriaType::Pointer mpConvergenceCriteria = nullptr;
     /// The pointer to the convergence criteria employed
 
     bool mInitializeWasPerformed = false;
@@ -738,9 +851,9 @@ private:
 
     bool mSolutionFound = false;
 
-    unsigned int mLoadStepIteration = 0;
+    std::size_t mLoadStepIteration = 0;
 
-    unsigned int mMaxIteration;
+    std::size_t mMaxIteration;
 
     std::vector<array_1d<double,3>> mpInitialLoads;
 
@@ -827,6 +940,33 @@ private:
                 }
             }
         }
+    }
+
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // Set Eigensolver flags
+        mpEigenSolver->SetDofSetIsInitializedFlag(false);
+        mpEigenSolver->SetReshapeMatrixFlag(false);
+        mpEigenSolver->SetCalculateReactionsFlag(false);
+        // Set Static Builder and Solver flags
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        mpBuilderAndSolver->SetCalculateReactionsFlag(false);
+        mpBuilderAndSolver->SetReshapeMatrixFlag(false);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        this->SetEchoLevel(1);
+
+        // Default rebuild level (build at each solution step)
+        this->SetRebuildLevel(1);
+
+        // Set Matrices and Vectors to empty pointers
+        mpStiffnessMatrix = TSparseSpace::CreateEmptyMatrixPointer();
+        mpStiffnessMatrixPrevious = TSparseSpace::CreateEmptyMatrixPointer();
+        mpDx = TSparseSpace::CreateEmptyVectorPointer();
+        mpRHS = TSparseSpace::CreateEmptyVectorPointer();
     }
 
     ///@}

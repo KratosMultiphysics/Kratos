@@ -60,6 +60,14 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py KratosMultiphysics/StructuralMechanicsApplication/__init__.py )
 
+if(CMAKE_UNITY_BUILD MATCHES ON)
+    ## The following are conflicting due to KratosComponents
+    file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp)
+    FOREACH(exception ${KRATOS_STRATEGIES_SOURCES})
+        set_source_files_properties (${exception} PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    ENDFOREACH(exception ${KRATOS_STRATEGIES_SOURCES})
+endif(CMAKE_UNITY_BUILD MATCHES ON)
+
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )

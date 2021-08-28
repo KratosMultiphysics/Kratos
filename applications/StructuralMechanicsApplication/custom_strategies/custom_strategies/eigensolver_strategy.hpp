@@ -22,6 +22,8 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/entities_utilities.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/register_factories.h"
 
 // Application includes
 #include "structural_mechanics_application_variables.h"
@@ -62,9 +64,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(EigensolverStrategy);
 
+    // Base class definition
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    /// Definition of the current scheme
+    typedef EigensolverStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
+    typedef typename BaseType::TSchemeType TSchemeType;
+
     typedef typename BaseType::TSchemeType::Pointer SchemePointerType;
+
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TBuilderAndSolverType::Pointer BuilderAndSolverPointerType;
 
@@ -82,12 +92,25 @@ public:
 
     typedef typename TSparseSpace::VectorType SparseVectorType;
 
+    /// Linear solver factory
+    typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
+    
+    /// Scheme factory
+    typedef Factory<TSchemeType> SchemeFactoryType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Default constructor
+     */
+    explicit EigensolverStrategy() : BaseType()
+    {
+    }
+
     /// Constructor.
-    EigensolverStrategy(
+    explicit EigensolverStrategy(
         ModelPart& rModelPart,
         SchemePointerType pScheme,
         BuilderAndSolverPointerType pBuilderAndSolver,
@@ -95,10 +118,10 @@ public:
         double StiffnessMatrixDiagonalValue,
         bool ComputeModalDecomposition = false
         )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart),
-            mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
-            mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
-            mComputeModalDecompostion(ComputeModalDecomposition)
+        : BaseType(rModelPart),
+          mMassMatrixDiagonalValue(MassMatrixDiagonalValue),
+          mStiffnessMatrixDiagonalValue(StiffnessMatrixDiagonalValue),
+          mComputeModalDecompostion(ComputeModalDecomposition)
     {
         KRATOS_TRY
 
@@ -106,21 +129,25 @@ public:
 
         mpBuilderAndSolver = pBuilderAndSolver;
 
-        // ensure initialization of system matrices in InitializeSolutionStep()
-        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
-
-        // default echo level (mute)
-        this->SetEchoLevel(0);
-
-        // default rebuild level (build at each solution step)
-        this->SetRebuildLevel(1);
-
-        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
-        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
-        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
-        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
+        AuxiliarInitialization();
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit EigensolverStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Some initializations
+        AuxiliarInitialization();
     }
 
     /// Deleted copy constructor.
@@ -273,8 +300,9 @@ public:
         KRATOS_TRY
 
         // if the preconditioner is saved between solves, it should be cleared here
-        BuilderAndSolverPointerType& pBuilderAndSolver = this->pGetBuilderAndSolver();
-        pBuilderAndSolver->GetLinearSystemSolver()->Clear();
+        auto pBuilderAndSolver = this->pGetBuilderAndSolver();
+        if (pBuilderAndSolver != nullptr)
+            pBuilderAndSolver->GetLinearSystemSolver()->Clear();
 
         if (this->pGetMassMatrix() != nullptr)
             this->pGetMassMatrix() = nullptr;
@@ -282,12 +310,14 @@ public:
         if (this->pGetStiffnessMatrix() != nullptr)
             this->pGetStiffnessMatrix() = nullptr;
 
-        // Re-setting internal flag to ensure that the dof sets are recalculated
-        pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+        // Re-setting internal flag to ensure that the dof sets are 
+        if (pBuilderAndSolver != nullptr) {
+            pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+            pBuilderAndSolver->Clear();
+        }
 
-        pBuilderAndSolver->Clear();
-
-        this->pGetScheme()->Clear();
+        if (this->pGetScheme() != nullptr)
+            this->pGetScheme()->Clear();
 
         mInitializeWasPerformed = false;
 
@@ -517,6 +547,47 @@ public:
         KRATOS_CATCH("")
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                          : "eigensolver_strategy",
+            "builder_and_solver_settings"   : {},
+            "linear_solver_settings"        : {},
+            "scheme_settings"               : {},
+            "compute_modal_decomposition"   : false,
+            "eigensolver_settings" : {
+                "solver_type"           : "eigen_eigensystem",
+                "max_iteration"         : 1000,
+                "tolerance"             : 1e-6,
+                "number_of_eigenvalues" : 5,
+                "echo_level"            : 1
+            },
+            "eigensolver_diagonal_values"   : { 
+                "mass_matrix_diagonal_value"      : 0.0,
+                "stiffness_matrix_diagonal_value" : 0.0
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "eigensolver_strategy";
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -535,6 +606,8 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    static std::vector<Internals::RegisteredPrototypeBase<BaseType>> msPrototypes;
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -546,6 +619,39 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mMassMatrixDiagonalValue = ThisParameters["eigensolver_diagonal_values"]["mass_matrix_diagonal_value"].GetDouble();
+        mStiffnessMatrixDiagonalValue = ThisParameters["eigensolver_diagonal_values"]["stiffness_matrix_diagonal_value"].GetDouble();
+        mComputeModalDecompostion = ThisParameters["compute_modal_decomposition"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            mpScheme =  SchemeFactoryType().Create(ThisParameters["scheme_settings"]);
+        }
+
+        // Setting up the default builder and solver
+        if (ThisParameters["builder_and_solver_settings"].Has("name")) {
+            const std::string& r_name = ThisParameters["builder_and_solver_settings"]["name"].GetString();
+            if (KratosComponents<TBuilderAndSolverType>::Has( r_name )) {
+                // Defining the linear solver
+                auto p_linear_solver = LinearSolverFactoryType().Create(ThisParameters["linear_solver_settings"]);
+
+                // Defining the builder and solver
+                mpBuilderAndSolver = KratosComponents<TBuilderAndSolverType>::Get(r_name).Create(p_linear_solver, ThisParameters["builder_and_solver_settings"]);
+            } else {
+                KRATOS_ERROR << "Trying to construct builder and solver with name= " << r_name << std::endl <<
+                                "Which does not exist. The list of available options (for currently loaded applications) are: " << std::endl <<
+                                KratosComponents<TBuilderAndSolverType>() << std::endl;
+            }
+        }
+    }
 
     ///@}
     ///@name Protected  Access
@@ -569,9 +675,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    SchemePointerType mpScheme;
+    SchemePointerType mpScheme = nullptr;
 
-    BuilderAndSolverPointerType mpBuilderAndSolver;
+    BuilderAndSolverPointerType mpBuilderAndSolver = nullptr;
 
     SparseMatrixPointerType mpMassMatrix;
 
@@ -805,6 +911,27 @@ private:
 
         KRATOS_INFO("ModalMassMatrix")      << modal_mass_matrix << std::endl;
         KRATOS_INFO("ModalStiffnessMatrix") << modal_stiffness_matrix << std::endl;
+    }
+
+    
+    /**
+     * @brief Some auxiliar initilizations
+     */
+    void AuxiliarInitialization()
+    {
+        // ensure initialization of system matrices in InitializeSolutionStep()
+        mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+
+        // default echo level (mute)
+        this->SetEchoLevel(0);
+
+        // default rebuild level (build at each solution step)
+        this->SetRebuildLevel(1);
+
+        SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
+        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
+        SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
+        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
     }
 
     ///@}
