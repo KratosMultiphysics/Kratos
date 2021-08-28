@@ -553,7 +553,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
     // Convention: "mass" is considered as "water", meaning the volumes with a negative distance is considered
     double inflow_over_boundary = 0.0;
-    const double epsilon = 1.0e-12; //1.0e-8; //Decreased
+    const double epsilon = 1.0e-16; //1.0e-8; //Decreased
 
     //KRATOS_INFO("NumberOfConditions:") << (mrModelPart.NumberOfConditions()) << std::endl;
 
@@ -771,8 +771,8 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
     array_1d<double,3> coord1_transformed = prod( rot_mat, rGeom[0].Coordinates() );
     array_1d<double,3> coord2_transformed = prod( rot_mat, rGeom[1].Coordinates() );
     array_1d<double,3> coord3_transformed = prod( rot_mat, rGeom[2].Coordinates() );
-    KRATOS_DEBUG_ERROR_IF_NOT( std::abs(coord1_transformed[2] - coord2_transformed[2])<1.0e-12 &&
-                            std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-12 ); //Tolerance is decreased -7 to -12
+    KRATOS_DEBUG_ERROR_IF_NOT( std::abs(coord1_transformed[2] - coord2_transformed[2])<1.0e-15 &&
+                            std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-15 ); //Tolerance is decreased -7 to -12
 
     // creating auxiliary nodes based on the transformed position
     Node<3UL>::Pointer node1 = Kratos::make_intrusive<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
