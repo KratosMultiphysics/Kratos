@@ -24,13 +24,15 @@ namespace Kratos {
         const double other_poisson = element2->GetPoisson();
         const double equiv_young   = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
 
-        //const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        //const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+        double equiv_poisson;
+        if (my_poisson + other_poisson) {
+            equiv_poisson = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
+        } else {
+            equiv_poisson = 0.0;
+        }
 
-        mKn = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
-
-        mKt = mKn * (1.0 - my_poisson) / (1.0 - 0.5 * my_poisson);
+        mKn = 0.25 * Globals::Pi * equiv_young * 1.0; // This 1.0 is the length (the unitary thickness)
+        mKt = mKn * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
     }
 
     void DEM_D_Hertz_viscous_Coulomb2D::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {

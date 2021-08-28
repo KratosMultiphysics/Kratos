@@ -50,7 +50,7 @@ namespace Kratos {
 
         //Normal and Tangent elastic constants
         mUnbondedNormalElasticConstant = 0.25 * Globals::Pi * equiv_young; // Here length is 1.0m
-        mUnbondedTangentialElasticConstant = mUnbondedNormalElasticConstant * (1.0 - my_poisson) / (1.0 - 0.5 * my_poisson);
+        mUnbondedTangentialElasticConstant = mUnbondedNormalElasticConstant * (1.0 - equiv_poisson) / (1.0 - 0.5 * equiv_poisson);
 
         const double my_mass    = element1->GetMass();
         const double other_mass = element2->GetMass();
