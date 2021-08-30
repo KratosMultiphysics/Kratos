@@ -86,22 +86,22 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
         array_1d<double, 3> local_axis_1;
-        array_1d<double, 3> local_axis_2;
         const array_1d<double, 3> coords = rElement.GetGeometry().Center();
-        const double c = -r_generatrix_axis(0) * coords(0) - r_generatrix_axis(1) * coords(1) - r_generatrix_axis(2) * coords(2);
-        const double lambda = -(r_generatrix_axis(0) * r_generatrix_point(0) + r_generatrix_axis(1) * r_generatrix_point(1) + r_generatrix_axis(2) * r_generatrix_point(2) + c) / (std::pow(r_generatrix_axis(0), 2) + std::pow(r_generatrix_axis(1), 2) + std::pow(r_generatrix_axis(2), 2));
-
+        const double c = -r_generatrix_axis[0] * coords[0] - r_generatrix_axis[1] * coords[1] - r_generatrix_axis[2] * coords[2];
+        const double lambda = -(r_generatrix_axis[0] * r_generatrix_point[0] + r_generatrix_axis[1] * r_generatrix_point[1] + r_generatrix_axis[2] * r_generatrix_point[2] + c) / (std::pow(r_generatrix_axis[0], 2) + std::pow(r_generatrix_axis[1], 2) + std::pow(r_generatrix_axis[2], 2));
         array_1d<double, 3> intersection;
         noalias(intersection) = r_generatrix_point + lambda * r_generatrix_axis;
 
         noalias(local_axis_1) = coords - intersection;
-        noalias(local_axis_2) = r_generatrix_axis;
-
         CheckAndNormalizeVector(local_axis_1);
-        CheckAndNormalizeVector(local_axis_2);
-
         rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
-        rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+            array_1d<double, 3> local_axis_2;
+            noalias(local_axis_2) = r_generatrix_axis;
+            CheckAndNormalizeVector(local_axis_2);
+            rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+        }
     });
 
     KRATOS_CATCH("")
@@ -122,36 +122,37 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
     })");
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    const array_1d<double, 3> spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
-    const array_1d<double, 3> spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
+    const array_1d<double, 3>& spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
+    const array_1d<double, 3>& spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
     const double tolerance = std::numeric_limits<double>::epsilon();
 
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
         array_1d<double, 3> local_axis_1;
-        array_1d<double, 3> local_axis_2;
 
         const array_1d<double, 3> coords = rElement.GetGeometry().Center();
         noalias(local_axis_1) = coords - spherical_central_point;
         CheckAndNormalizeVector(local_axis_1);
-
-        if (std::abs(local_axis_1(2)) <= tolerance ||
-            std::abs(local_axis_1(1) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(1)) <= tolerance) {
-            noalias(local_axis_2) = spherical_reference_axis;
-            CheckAndNormalizeVector(local_axis_2);
-        }
-        // Let's compute the second local axis
-        const double x = 1.0;
-        const double y = -(local_axis_1(0) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(0)) / (local_axis_1(1) * spherical_reference_axis(2) - local_axis_1(2) * spherical_reference_axis(1));
-        const double z = -local_axis_1(0) / local_axis_1(2) - local_axis_1(1) / local_axis_1(2) * y;
-        local_axis_2(0) = x;
-        local_axis_2(1) = y;
-        local_axis_2(2) = z;
-        CheckAndNormalizeVector(local_axis_2);
-
         rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
-        rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+
+        if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+            array_1d<double, 3> local_axis_2;
+            if (std::abs(local_axis_1[2]) <= tolerance ||
+                std::abs(local_axis_1[1] * spherical_reference_axis[2] - local_axis_1[2] * spherical_reference_axis[1]) <= tolerance) {
+                noalias(local_axis_2) = spherical_reference_axis;
+                CheckAndNormalizeVector(local_axis_2);
+            }
+            // Let's compute the second local axis
+            const double x = 1.0;
+            const double y = -(local_axis_1[0] * spherical_reference_axis[2] - local_axis_1[2] * spherical_reference_axis[0]) / (local_axis_1[1] * spherical_reference_axis[2] - local_axis_1[2] * spherical_reference_axis[1]);
+            const double z = -local_axis_1[0] / local_axis_1[2] - local_axis_1[1] / local_axis_1[2] * y;
+            local_axis_2[0] = x;
+            local_axis_2[1] = y;
+            local_axis_2[2] = z;
+            CheckAndNormalizeVector(local_axis_2);
+            rElement.SetValue(LOCAL_AXIS_2, local_axis_2);
+        }
     });
 
     KRATOS_CATCH("")
