@@ -297,6 +297,10 @@ class SIMPMethod:
                     print("\n  Time needed for current optimization step = ",round(end_time - start_time,1),"s")
                     print("  Time needed for total optimization so far = ",round(end_time - self.opt_start_time,1),"s")
                     print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
+                    #==========================  Check the displacements in the last iteration ===============================================================
+                    opt_itr = 101
+                    self.analyzer(self.controller.get_controls(), response, opt_itr)
+                    #==================================================================================================================================
                     self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     
                     # Displacement showing

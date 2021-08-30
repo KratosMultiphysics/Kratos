@@ -131,7 +131,7 @@ public:
 
 			// Update Densities procedure
 			double l1     = 0.0;
-			double l2     = 100000000000.0; ///10000000000.0
+			double l2     = 1000000000000.0; ///10000000000.0
 			double move   = 0.2;
 			double sum_X_Phys;
 			int nele;
