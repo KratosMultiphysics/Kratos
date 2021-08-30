@@ -34,7 +34,8 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "YOUNG_MODULUS": 2.1e9,
             "BONDED_MATERIAL_YOUNG_MODULUS": 2.1e9,
-            "FRACTURE_ENERGY": 5.0
+            "FRACTURE_ENERGY": 5.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat1", "mat2"],

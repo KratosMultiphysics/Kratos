@@ -64,7 +64,8 @@
             "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
-            "FRACTURE_ENERGY": 0.0
+            "FRACTURE_ENERGY": 0.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat1", "mat5"],
@@ -106,7 +107,8 @@
             "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
-            "FRACTURE_ENERGY": 0.0
+            "FRACTURE_ENERGY": 0.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat2", "mat5"],
@@ -148,7 +150,8 @@
             "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
-            "FRACTURE_ENERGY": 0.0
+            "FRACTURE_ENERGY": 0.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat3", "mat5"],
@@ -190,7 +193,8 @@
             "KDEM_STANDARD_DEVIATION_FRICTION": 0.2235,
             "SHEAR_ENERGY_COEF": 4.0,
             "BONDED_MATERIAL_YOUNG_MODULUS": 3e3,
-            "FRACTURE_ENERGY": 0.0
+            "FRACTURE_ENERGY": 0.0,
+            "IS_UNBREAKABLE" : false
         }
     },{
         "material_names_list":["mat4", "mat5"],

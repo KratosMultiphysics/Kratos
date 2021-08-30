@@ -34,7 +34,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             print(final_vel)'''
 
     def Finalize(self):
-        tolerance = 0.1
+        tolerance = 0.03
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             Logger.PrintInfo("initial velocity:", self.initial_normal_vel)
@@ -66,7 +66,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
         coordinates = KratosMultiphysics.Array3()
         coordinates[0] = 0.0
-        coordinates[1] = 0.0025002
+        coordinates[1] = 0.0025
         coordinates[2] = 0.0
         radius = 0.0025
         self.creator_destructor.CreateSphericParticle(self.spheres_model_part, coordinates, properties, radius, element_name)

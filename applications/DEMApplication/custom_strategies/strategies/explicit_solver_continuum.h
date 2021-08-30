@@ -68,7 +68,7 @@ namespace Kratos {
         void ComputeNewRigidFaceNeighboursHistoricalData() override;
         void CreateContactElements() override;
         void SetCoordinationNumber(ModelPart& r_model_part);
-        double ComputeCoordinationNumber(double& standard_dev);
+        double ComputeCoordinationNumber(double& standard_dev) override;
         void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification);
         void BoundingBoxUtility(bool is_time_to_mark_and_remove = true) override;
         void Check_MPI(bool& has_mpi);

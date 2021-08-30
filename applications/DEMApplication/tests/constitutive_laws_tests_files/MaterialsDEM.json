@@ -36,7 +36,8 @@
             "FRACTURE_ENERGY": 0.0,
             "DEBUG_PRINTING_OPTION": true,
             "DEBUG_PRINTING_ID_1": 1,
-            "DEBUG_PRINTING_ID_2": 2
+            "DEBUG_PRINTING_ID_2": 2,
+            "IS_UNBREAKABLE" : false
         }
     }],
     "material_assignation_table":[

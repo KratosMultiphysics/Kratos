@@ -917,8 +917,14 @@ class DEMFEMProcedures():
                     self.particle_graph_forces[identifier] = open(absolute_path_to_file, 'w')
                     self.particle_graph_forces[identifier].write(str("#time").rjust(12) + " " + str("total_force_x").rjust(13) + " " + str("total_force_y").rjust(13) + " " + str("total_force_z").rjust(13) + "\n")
 
-        absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_CN.grf")
-        self.CN_export = open(absolute_path_to_file, 'w')
+        if not "print_CN_graph" in DEM_parameters.keys():
+            self.print_CN_graph = False
+        else:
+            self.print_CN_graph = self.DEM_parameters["print_CN_graph"].GetBool()
+        
+        if self.print_CN_graph:
+            absolute_path_to_file = os.path.join(self.graphs_path, str(self.DEM_parameters["problem_name"].GetString()) + "_CN.grf")
+            self.CN_export = open(absolute_path_to_file, 'w')
         
         def evaluate_computation_of_fem_results():
 
@@ -1055,14 +1061,12 @@ class DEMFEMProcedures():
     def PrintAdditionalGraphs(self, time, solver):
 
         if self.additional_graphs_counter == self.graph_frequency:
-            
             self.additional_graphs_counter = 0
-
-            dummy = 0
-            CN = solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
-            self.CN_export.write(str("%.13g"%time).rjust(14) + "  " + str("%.11g"%CN).rjust(12) + '\n')
-            self.CN_export.flush()
-
+            if self.print_CN_graph:
+                dummy = 0
+                CN = solver.cplusplus_strategy.ComputeCoordinationNumber(dummy)
+                self.CN_export.write(str("%.13g"%time).rjust(14) + "  " + str("%.11g"%CN).rjust(12) + '\n')
+                self.CN_export.flush()
         self.additional_graphs_counter += 1
 
     def PrintBallsGraph(self, time):
