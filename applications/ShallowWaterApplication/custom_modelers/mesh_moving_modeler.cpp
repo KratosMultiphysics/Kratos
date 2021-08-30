@@ -125,28 +125,26 @@ void MeshMovingModeler::SetupModelPart()
     moving_model_part.AddConditions(aux_array_with_condition_pointers.begin(), aux_array_with_condition_pointers.end());
 
     // SubModelParts
-    std::vector<std::size_t> nodes_ids;
-    std::vector<std::size_t> elements_ids;
-    std::vector<std::size_t> conditions_ids;
     for (const auto& sub_model_part : fixed_model_part.SubModelParts())
     {
         auto& dest_sub_model_part = moving_model_part.CreateSubModelPart(sub_model_part.Name());
 
-        for (const auto& node : sub_model_part.Nodes()) {
-            if (node.Is(TO_COPY)) {
-                nodes_ids.push_back(node.Id());
+        auto nodes_ids = block_for_each<AccumReduction<std::size_t>>(sub_model_part.Nodes(), [](const auto& rNode){
+            if (rNode.Is(TO_COPY)) {
+                return rNode.Id();
             }
-        }
-        for (const auto& element : sub_model_part.Elements()) {
-            if (element.Is(TO_COPY)) {
-                elements_ids.push_back(old_to_new_elem_id[element.Id()]);
+        });
+        auto elements_ids = block_for_each<AccumReduction<std::size_t>>(sub_model_part.Elements(), [](const auto& rElem){
+            if (rElem.Is(TO_COPY)) {
+                return rElem.Id();
             }
-        }
-        for (const auto& condition : sub_model_part.Conditions()) {
-            if (condition.Is(TO_COPY)) {
-                conditions_ids.push_back(old_to_new_cond_id[condition.Id()]);
+        });
+        auto conditions_ids = block_for_each<AccumReduction<std::size_t>>(sub_model_part.Conditions(), [](const auto& rCond){
+            if (rCond.Is(TO_COPY)) {
+                return rCond.Id();
             }
-        }
+        });
+
         dest_sub_model_part.AddNodes(nodes_ids);
         dest_sub_model_part.AddElements(elements_ids);
         dest_sub_model_part.AddConditions(conditions_ids);
