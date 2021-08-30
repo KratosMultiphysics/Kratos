@@ -76,6 +76,9 @@ public:
     using BaseType::Has;
     using BaseType::GetValue;
 
+    /// Definition of the property retrieve function
+    typedef std::function<double(const Variable<double>& rVariable, ConstitutiveLaw::Parameters& rParameters)> GetMaterialValueFunction;
+
     /// Counted pointer of ElasticIsotropic3D
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
@@ -360,21 +363,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-
-    /**
-     * @brief This method retrieves a material property, in thermal CL
-     * this method calculate the value of the property according to TEMPERATURE
-     * @param rVariable The property of the material to be retrieved
-     * @param rValues The constitutive parameters
-     */
-    virtual double GetMaterialProperty(
-        const Variable<double>& rVariable,
-        ConstitutiveLaw::Parameters& rValues
-        )
-    {
-        return rValues.GetMaterialProperties()[rVariable];
-    }
-
 protected:
 
     ///@name Protected static Member Variables
@@ -383,6 +371,8 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    GetMaterialValueFunction mGetMaterialValueFunction = [](const Variable<double>& rVariable,ConstitutiveLaw::Parameters& rParameters) -> double {return rParameters.GetMaterialProperties()[rVariable];};
 
     ///@}
     ///@name Protected Operators

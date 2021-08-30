@@ -69,7 +69,16 @@ public:
     /**
      * @brief Default constructor.
      */
-    ThermalLinearPlaneStress() {}
+    ThermalLinearPlaneStress() 
+    {
+        mGetMaterialValueFunction = [](const Variable<double>& rVariable,ConstitutiveLaw::Parameters& rParameters) -> double {
+        const Properties& r_properties = rParameters.GetMaterialProperties();
+        if (r_properties.HasTable(TEMPERATURE, rVariable))
+            return AdvancedConstitutiveLawUtilities<3>::GetValueFromTable(TEMPERATURE, rVariable, rParameters);
+        else
+            return r_properties[rVariable];
+        }; 
+    }
 
     /**
      * @brief Clone method
@@ -101,25 +110,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief This method retrieves a material property, in thermal CL
-     * this method calculate the value of the property according to TEMPERATURE
-     * @param rVariable The property of the material to be retrieved
-     * @param rValues The constitutive parameters
-     */
-    double GetMaterialProperty(
-        const Variable<double> &rVariable,
-        ConstitutiveLaw::Parameters &rParameters
-        ) override
-    {
-        const Properties& r_properties = rParameters.GetMaterialProperties();
-
-        if (r_properties.HasTable(TEMPERATURE, rVariable))
-            return AdvancedConstitutiveLawUtilities<3>::GetValueFromTable(TEMPERATURE, rVariable, rParameters);
-        else
-            return r_properties[rVariable];
-    }
 
     /**
      * @brief Computes the material response:

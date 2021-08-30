@@ -91,8 +91,8 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 
 void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
-    const double E  = GetMaterialProperty(YOUNG_MODULUS, rValues);
-    const double NU = GetMaterialProperty(POISSON_RATIO, rValues);
+    const double E  = mGetMaterialValueFunction(YOUNG_MODULUS, rValues);
+    const double NU = mGetMaterialValueFunction(POISSON_RATIO, rValues);
 
     this->CheckClearElasticMatrix(C);
 
@@ -116,8 +116,8 @@ void LinearPlaneStress::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
 )
 {
-    const double E  = GetMaterialProperty(YOUNG_MODULUS, rValues);
-    const double NU = GetMaterialProperty(POISSON_RATIO, rValues);
+    const double E  = mGetMaterialValueFunction(YOUNG_MODULUS, rValues);
+    const double NU = mGetMaterialValueFunction(POISSON_RATIO, rValues);
 
     const double c1 = E / (1.00 - NU * NU);
     const double c2 = c1 * NU;
