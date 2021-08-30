@@ -1543,6 +1543,33 @@ void BuildRotationMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BaseSolidElement::BuildRotationSystem(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const SizeType StrainSize
+    )
+{
+    const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+    array_1d<double, 3> local_axis_2;
+    array_1d<double, 3> local_axis_3;
+
+    if (StrainSize == 6) {
+        noalias(local_axis_2) = this->GetValue(LOCAL_AXIS_2);
+        noalias(local_axis_3) = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
+    } else if (StrainSize == 3) { // we assume xy plane
+        local_axis_2[0] = r_local_axis_1[1];
+        local_axis_2[1] = -r_local_axis_1[0];
+        local_axis_2[2] = 0.0;
+        local_axis_3[0] = 0.0;
+        local_axis_3[1] = 0.0;
+        local_axis_3[2] = 1.0;
+    }
+    InitialCheckLocalAxes(r_local_axis_1, local_axis_2, local_axis_3);
+    BuildRotationMatrix(rRotationMatrix, r_local_axis_1, local_axis_2, local_axis_3);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::RotateToLocalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
@@ -1551,11 +1578,7 @@ void BaseSolidElement::RotateToLocalAxes(
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-        const array_1d<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-        const array_1d<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
-        InitialCheckLocalAxes(r_local_axis_1, r_local_axis_2, r_local_axis_3);
-        BuildRotationMatrix(rotation_matrix, r_local_axis_1, r_local_axis_2, r_local_axis_3);
+        BuildRotationSystem(rotation_matrix, strain_size);
 
         if (UseElementProvidedStrain()) { // we rotate strain
             if (strain_size == 6) {
@@ -1595,11 +1618,7 @@ void BaseSolidElement::RotateToGlobalAxes(
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-        const array_1d<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-        const array_1d<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
-        InitialCheckLocalAxes(r_local_axis_1, r_local_axis_2, r_local_axis_3);
-        BuildRotationMatrix(rotation_matrix, r_local_axis_1, r_local_axis_2, r_local_axis_3);
+        BuildRotationSystem(rotation_matrix, strain_size);
 
         // Undo the rotation in strain, stress and C
         if (strain_size == 6) {

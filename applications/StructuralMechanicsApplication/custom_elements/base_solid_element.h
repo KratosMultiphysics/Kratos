@@ -963,6 +963,13 @@ private:
     void RotateToGlobalAxes(ConstitutiveLaw::Parameters &rValues);
 
     /**
+     * @brief This method builds the rotation matrices and local axes
+     */
+    void BuildRotationSystem(
+        BoundedMatrix<double, 3, 3> &rRotationMatrix,
+        const SizeType StrainSize);
+
+    /**
      * @brief This method computes directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
