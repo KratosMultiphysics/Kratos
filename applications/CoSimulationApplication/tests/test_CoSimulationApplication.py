@@ -89,6 +89,7 @@ def AssembleTestSuites():
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
     validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
+    validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure_remote_controlled'))
     # if numpy_available:
     #     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFLOWerCoupling]))
 

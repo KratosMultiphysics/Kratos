@@ -319,7 +319,7 @@ namespace Kratos
 
     // Compute the positive side interface outwards area normal vector values.
     void ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
-        std::vector<Vector> &rPositiveSideInterfaceAreaNormal,
+        AreaNormalsContainerType& rPositiveSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod)
     {
         if (this->IsSplit()) {
@@ -336,7 +336,7 @@ namespace Kratos
 
     // Compute the positive side interface outwards area normal vector values.
     void ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
-        std::vector<Vector> &rNegativeSideInterfaceAreaNormal,
+        AreaNormalsContainerType& rNegativeSideInterfaceAreaNormal,
         const IntegrationMethodType IntegrationMethod)
     {
         if (this->IsSplit()) {
@@ -353,7 +353,7 @@ namespace Kratos
 
     // For a given face, computes the positive side face outwards area normal vector values.
     void ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
-        std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+        AreaNormalsContainerType& rPositiveExteriorFaceAreaNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod)
     {
@@ -380,7 +380,7 @@ namespace Kratos
 
     // For a given face, computes the positive side face outwards area normal vector values.
     void ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
-        std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+        AreaNormalsContainerType& rNegativeExteriorFaceAreaNormal,
         const unsigned int FaceId,
         const IntegrationMethodType IntegrationMethod)
     {
@@ -686,7 +686,7 @@ namespace Kratos
 
     // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
     void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceAreaNormalValues,
+        AreaNormalsContainerType& rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 

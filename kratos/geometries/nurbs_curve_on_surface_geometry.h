@@ -260,7 +260,7 @@ public:
         mpNurbsSurface->SpansLocalSpace(surface_spans_u, 0);
         mpNurbsSurface->SpansLocalSpace(surface_spans_v, 1);
 
-        CurveAxisIntersection<2, CurveNodeType>::ComputeAxisIntersection(
+        CurveAxisIntersection<CurveNodeType>::ComputeAxisIntersection(
             rSpans,
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
@@ -301,6 +301,45 @@ public:
             *this,
             20, Tolerance);
     }
+
+    ///@}
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->IsInsideLocalSpace(rPointLocalCoordinates, Tolerance);
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     *         inside -> 1
+     *         outside -> 0
+     */
+    int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        return mpNurbsCurve->ClosestPointLocalToLocalSpace(rPointLocalCoordinates, rClosestPointLocalCoordinates, Tolerance);
+    }
+
 
     ///@}
     ///@name Geometrical Informations

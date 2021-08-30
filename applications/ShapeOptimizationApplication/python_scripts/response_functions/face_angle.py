@@ -6,6 +6,20 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 import time as timer
 
+
+def _AddConditionsFromParent(parent, child):
+    node_ids = set([node.Id for node in child.Nodes])
+    conditions = []
+    for condition in parent.Conditions:
+        all_nodes_found = True
+        for node in condition.GetNodes():
+            if node.Id not in node_ids:
+                all_nodes_found = False
+                break
+        if all_nodes_found:
+            conditions.append(condition.Id)
+    child.AddConditions(conditions)
+
 # ==============================================================================
 class FaceAngleResponseFunction(ResponseFunctionInterface):
     """
@@ -80,8 +94,14 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
         only = self.response_settings["only"].GetString()
         if only != "":
             only_part = self.model.GetModelPart(only)
+            if only_part.NumberOfConditions() == 0:
+                _AddConditionsFromParent(self.model_part, only_part)
+                Logger.PrintWarning("FaceAngleResponse", "Automatically added {} conditions to model_part '{}'.".format(only_part.NumberOfConditions(), only_part.Name))
         else:
             only_part = self.model_part
+
+        if only_part.NumberOfConditions() == 0:
+            raise RuntimeError("The model_part '{}' does not have any surface conditions!".format(only_part.Name))
 
         self.response_function_utility = KSO.FaceAngleResponseFunctionUtility(only_part, self.response_settings)
 

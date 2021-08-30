@@ -165,6 +165,32 @@ public:
         KRATOS_CATCH("")
     }
 
+    // /**
+    //  * @brief This is the place to initialize the elements.
+    //  * @details This is intended to be called just once when the strategy is initialized
+    //  * @param rModelPart The model part of the problem to solve
+    //  */
+    void InitializeElements( ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NElems = static_cast<int>(rModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+
+        // #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> Initialize(CurrentProcessInfo);
+        }
+
+        this->SetElementsAreInitialized();
+
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief This method initializes some rutines related with the explicit scheme
      * @param rModelPart The model of the problem to solve
@@ -452,7 +478,6 @@ public:
         noalias(displacement_aux) = r_displacement;
         array_1d<double, 3>& r_displacement_old = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT_OLD);
         // array_1d<double, 3>& r_displacement_older = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT_OLDER);
-        const array_1d<double, 3>& r_actual_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,2);
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
 
         double& r_current_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE);
