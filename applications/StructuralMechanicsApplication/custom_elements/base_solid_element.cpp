@@ -72,10 +72,18 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         InitializeMaterial();
 
-        if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2) && this->Has(LOCAL_AXIS_3)) {
-            this->Set(BaseSolidElement::ROTATED, true);
-        } else {
-            this->Set(BaseSolidElement::ROTATED, false);
+        if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
+            if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2)) {
+                this->Set(BaseSolidElement::ROTATED, true);
+            } else {
+                this->Set(BaseSolidElement::ROTATED, false);
+            }
+        } else if (mConstitutiveLawVector[0]->GetStrainSize() == 3) {
+            if (this->Has(LOCAL_AXIS_1)) {
+                this->Set(BaseSolidElement::ROTATED, true);
+            } else {
+                this->Set(BaseSolidElement::ROTATED, false);
+            }
         }
     }
 
