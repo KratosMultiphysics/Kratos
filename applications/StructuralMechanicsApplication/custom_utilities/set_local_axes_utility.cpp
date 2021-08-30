@@ -84,11 +84,10 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
 
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The generatrix_axis has norm zero" << std::endl;
 
-    array_1d<double, 3> local_axis_1;
-    array_1d<double, 3> local_axis_2;
-    array_1d<double, 3> local_axis_3;
-
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
+        array_1d<double, 3> local_axis_1;
+        array_1d<double, 3> local_axis_2;
+        array_1d<double, 3> local_axis_3;
         const array_1d<double, 3> coords = rElement.GetGeometry().Center();
         const double c = -generatrix_axis(0) * coords(0) - generatrix_axis(1) * coords(1) - generatrix_axis(2) * coords(2);
         const double lambda = -(generatrix_axis(0) * generatrix_point(0) + generatrix_axis(1) * generatrix_point(1) + generatrix_axis(2) * generatrix_point(2) + c) / (std::pow(generatrix_axis(0), 2) + std::pow(generatrix_axis(1), 2) + std::pow(generatrix_axis(2), 2));
@@ -133,11 +132,11 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
 
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
 
-    array_1d<double, 3> local_axis_1;
-    array_1d<double, 3> local_axis_2;
-    array_1d<double, 3> local_axis_3;
-
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
+        array_1d<double, 3> local_axis_1;
+        array_1d<double, 3> local_axis_2;
+        array_1d<double, 3> local_axis_3;
+
         const array_1d<double, 3> coords = rElement.GetGeometry().Center();
         noalias(local_axis_1) = coords - spherical_central_point;
         CheckAndNormalizeVector(local_axis_1);
