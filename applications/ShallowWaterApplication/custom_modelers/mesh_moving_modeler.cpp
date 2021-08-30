@@ -136,12 +136,12 @@ void MeshMovingModeler::SetupModelPart()
         });
         auto elements_ids = block_for_each<AccumReduction<std::size_t>>(sub_model_part.Elements(), [](const auto& rElem){
             if (rElem.Is(TO_COPY)) {
-                return rElem.Id();
+                return old_to_new_elem_id[rElem.Id()];
             }
         });
         auto conditions_ids = block_for_each<AccumReduction<std::size_t>>(sub_model_part.Conditions(), [](const auto& rCond){
             if (rCond.Is(TO_COPY)) {
-                return rCond.Id();
+                return old_to_new_cond_id[rCond.Id()];
             }
         });
 
