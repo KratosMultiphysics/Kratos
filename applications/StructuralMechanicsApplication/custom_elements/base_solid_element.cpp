@@ -1511,9 +1511,9 @@ void BaseSolidElement::CalculateConstitutiveVariables(
 /***********************************************************************************/
 
 void InitialCheckLocalAxes(
-    const BoundedVector<double, 3>& rv1,
-    const BoundedVector<double, 3>& rv2,
-    const BoundedVector<double, 3>& rv3,
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3,
     const double Tolerance = 1.0e4*std::numeric_limits<double>::epsilon()
     )
 {
@@ -1529,9 +1529,9 @@ void InitialCheckLocalAxes(
 
 void BuildRotationMatrix(
     BoundedMatrix<double, 3, 3>& rRotationMatrix,
-    const BoundedVector<double, 3>& rv1,
-    const BoundedVector<double, 3>& rv2,
-    const BoundedVector<double, 3>& rv3
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3
     )
 {
     rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
@@ -1551,9 +1551,9 @@ void BaseSolidElement::RotateToLocalAxes(
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        const BoundedVector<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-        const BoundedVector<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-        const BoundedVector<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+        const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+        const array_1d<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+        const array_1d<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
         InitialCheckLocalAxes(r_local_axis_1, r_local_axis_2, r_local_axis_3);
         BuildRotationMatrix(rotation_matrix, r_local_axis_1, r_local_axis_2, r_local_axis_3);
 
@@ -1595,9 +1595,9 @@ void BaseSolidElement::RotateToGlobalAxes(
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
-        const BoundedVector<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
-        const BoundedVector<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
-        const BoundedVector<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
+        const array_1d<double, 3>& r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+        const array_1d<double, 3>& r_local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+        const array_1d<double, 3>& r_local_axis_3 = this->GetValue(LOCAL_AXIS_3);
         InitialCheckLocalAxes(r_local_axis_1, r_local_axis_2, r_local_axis_3);
         BuildRotationMatrix(rotation_matrix, r_local_axis_1, r_local_axis_2, r_local_axis_3);
 
