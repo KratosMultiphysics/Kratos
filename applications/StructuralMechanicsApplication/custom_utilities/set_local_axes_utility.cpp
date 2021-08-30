@@ -35,9 +35,9 @@ void SetLocalAxesUtility::SetLocalAxisCartesianSystem(
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     const Matrix cartesian_local_axes_matrix = ThisParameters["cartesian_local_axis"].GetMatrix();
-    BoundedVector<double, 3> local_axis_1;
-    BoundedVector<double, 3> local_axis_2;
-    BoundedVector<double, 3> local_axis_3;
+    array_1d<double, 3> local_axis_1;
+    array_1d<double, 3> local_axis_2;
+    array_1d<double, 3> local_axis_3;
 
     local_axis_1(0) = cartesian_local_axes_matrix(0, 0);
     local_axis_1(1) = cartesian_local_axes_matrix(0, 1);
@@ -79,21 +79,21 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
     })");
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    const BoundedVector<double, 3> generatrix_axis  = ThisParameters["cylindrical_generatrix_axis"].GetVector();
-    const BoundedVector<double, 3> generatrix_point = ThisParameters["cylindrical_generatrix_point"].GetVector();
+    const array_1d<double, 3> generatrix_axis  = ThisParameters["cylindrical_generatrix_axis"].GetVector();
+    const array_1d<double, 3> generatrix_point = ThisParameters["cylindrical_generatrix_point"].GetVector();
 
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The generatrix_axis has norm zero" << std::endl;
 
-    BoundedVector<double, 3> local_axis_1;
-    BoundedVector<double, 3> local_axis_2;
-    BoundedVector<double, 3> local_axis_3;
+    array_1d<double, 3> local_axis_1;
+    array_1d<double, 3> local_axis_2;
+    array_1d<double, 3> local_axis_3;
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
-        const BoundedVector<double, 3> coords = rElement.GetGeometry().Center();
+        const array_1d<double, 3> coords = rElement.GetGeometry().Center();
         const double c = -generatrix_axis(0) * coords(0) - generatrix_axis(1) * coords(1) - generatrix_axis(2) * coords(2);
         const double lambda = -(generatrix_axis(0) * generatrix_point(0) + generatrix_axis(1) * generatrix_point(1) + generatrix_axis(2) * generatrix_point(2) + c) / (std::pow(generatrix_axis(0), 2) + std::pow(generatrix_axis(1), 2) + std::pow(generatrix_axis(2), 2));
 
-        BoundedVector<double, 3> intersection;
+        array_1d<double, 3> intersection;
         noalias(intersection) = generatrix_point + lambda * generatrix_axis;
 
         noalias(local_axis_1) = coords - intersection;
@@ -127,18 +127,18 @@ void SetLocalAxesUtility::SetLocalAxisSphericalSystem(
     })");
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    const BoundedVector<double, 3> spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
-    const BoundedVector<double, 3> spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
+    const array_1d<double, 3> spherical_reference_axis  = ThisParameters["spherical_reference_axis"].GetVector();
+    const array_1d<double, 3> spherical_central_point   = ThisParameters["spherical_central_point"].GetVector();
     const double tolerance = std::numeric_limits<double>::epsilon();
 
     KRATOS_ERROR_IF(MathUtils<double>::Norm3(spherical_reference_axis) < tolerance) << "The spherical_reference_axis has norm zero" << std::endl;
 
-    BoundedVector<double, 3> local_axis_1;
-    BoundedVector<double, 3> local_axis_2;
-    BoundedVector<double, 3> local_axis_3;
+    array_1d<double, 3> local_axis_1;
+    array_1d<double, 3> local_axis_2;
+    array_1d<double, 3> local_axis_3;
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
-        const BoundedVector<double, 3> coords = rElement.GetGeometry().Center();
+        const array_1d<double, 3> coords = rElement.GetGeometry().Center();
         noalias(local_axis_1) = coords - spherical_central_point;
         CheckAndNormalizeVector(local_axis_1);
 

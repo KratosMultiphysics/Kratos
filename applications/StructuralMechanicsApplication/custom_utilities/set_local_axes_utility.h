@@ -84,7 +84,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetLocalAxesUtility
 
 
       void CheckAndNormalizeVector(
-        BoundedVector<double, 3>& rVector)
+        array_1d<double, 3>& rVector)
       {
         const double norm = MathUtils<double>::Norm3(rVector);
         if (norm > std::numeric_limits<double>::epsilon()) {
