@@ -300,8 +300,8 @@ class SIMPMethod:
                     self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     
                     # Displacement showing
-                    for node_i in self.opt_model_part.Nodes:
-                        print("\n  Displacement:", node_i.GetValue(DISPLACEMENT))
+                    #for node_i in self.opt_model_part.Nodes:
+                       # print("\n  Displacement:", node_i.GetValue(DISPLACEMENT))
 
                     break
             

@@ -125,6 +125,17 @@ public:
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
 			
 		}
+/* 
+		for (ModelPart::NodeIterator node_i = mr_structure_model_part.NodesBegin(); node_i!=mr_structure_model_part.NodesEnd(); node_i++)
+		{
+			double displ_x = 0;
+			double displ_y = 0;
+			double displ_z = 0;
+			displ_x = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
+			displ_y = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);
+			displ_z = node_i->FastGetSolutionStepValue(DISPLACEMENT_Z);
+			std::cout<<"  X:"<< displ_x <<"  Y:"<< displ_y << "  Z:"<< displ_z<< std::endl;
+		} */
 
 		clock_t end = clock();
 		std::cout << "  Strain energy calculated                  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;
