@@ -79,24 +79,24 @@ void SetLocalAxesUtility::SetLocalAxisCylindricalSystem(
     })");
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-    const array_1d<double, 3> generatrix_axis  = ThisParameters["cylindrical_generatrix_axis"].GetVector();
-    const array_1d<double, 3> generatrix_point = ThisParameters["cylindrical_generatrix_point"].GetVector();
+    const array_1d<double, 3>& r_generatrix_axis  = ThisParameters["cylindrical_generatrix_axis"].GetVector();
+    const array_1d<double, 3>& r_generatrix_point = ThisParameters["cylindrical_generatrix_point"].GetVector();
 
-    KRATOS_ERROR_IF(MathUtils<double>::Norm3(generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The generatrix_axis has norm zero" << std::endl;
+    KRATOS_ERROR_IF(MathUtils<double>::Norm3(r_generatrix_axis) < std::numeric_limits<double>::epsilon()) << "The r_generatrix_axis has norm zero" << std::endl;
 
     block_for_each(rModelPart.Elements(), [&](Element &rElement) {
         array_1d<double, 3> local_axis_1;
         array_1d<double, 3> local_axis_2;
         array_1d<double, 3> local_axis_3;
         const array_1d<double, 3> coords = rElement.GetGeometry().Center();
-        const double c = -generatrix_axis(0) * coords(0) - generatrix_axis(1) * coords(1) - generatrix_axis(2) * coords(2);
-        const double lambda = -(generatrix_axis(0) * generatrix_point(0) + generatrix_axis(1) * generatrix_point(1) + generatrix_axis(2) * generatrix_point(2) + c) / (std::pow(generatrix_axis(0), 2) + std::pow(generatrix_axis(1), 2) + std::pow(generatrix_axis(2), 2));
+        const double c = -r_generatrix_axis(0) * coords(0) - r_generatrix_axis(1) * coords(1) - r_generatrix_axis(2) * coords(2);
+        const double lambda = -(r_generatrix_axis(0) * r_generatrix_point(0) + r_generatrix_axis(1) * r_generatrix_point(1) + r_generatrix_axis(2) * r_generatrix_point(2) + c) / (std::pow(r_generatrix_axis(0), 2) + std::pow(r_generatrix_axis(1), 2) + std::pow(r_generatrix_axis(2), 2));
 
         array_1d<double, 3> intersection;
-        noalias(intersection) = generatrix_point + lambda * generatrix_axis;
+        noalias(intersection) = r_generatrix_point + lambda * r_generatrix_axis;
 
         noalias(local_axis_1) = coords - intersection;
-        noalias(local_axis_2) = generatrix_axis;
+        noalias(local_axis_2) = r_generatrix_axis;
         noalias(local_axis_3) = MathUtils<double>::CrossProduct(local_axis_1, local_axis_2);
 
         CheckAndNormalizeVector(local_axis_1);
