@@ -10,7 +10,7 @@
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
-//  Collaborator:    Lucia Barbu
+//
 //
 
 #if !defined(KRATOS_GENERIC_FINITE_STRAIN_ISOTROPIC_PLASTICITY_3D_H_INCLUDED)
@@ -21,7 +21,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "custom_constitutive/generic_small_strain_isotropic_plasticity.h"
 
 namespace Kratos
 {
@@ -50,17 +50,15 @@ namespace Kratos
 /**
  * @class GenericFiniteStrainIsotropicPlasticity
  * @ingroup StructuralMechanicsApplication
- * @brief This class is the base class which define all the constitutive laws for plasticity in large deformation
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity, as well as hyper elastic law to compute the prediction
- * This implementation is based on the multiplicative elastoplasticity kinematics (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 603).
- * The main hypothesis underlying the finite strain elastoplasticity constitutive framework described here is the multiplicative decomposition of the deformation gradient, F , into elastic and plastic contributions; that is, it is assumed that the deformation gradient can be decomposed as the product F = Fe x Fp, where F and F are named, respectively, the elastic and plastic deformation gradients.
+ * @brief This class is the base class which define all the constitutive laws for plasticity in strain framework
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the plasticity
+ * This implementation is based on the Eulerian logarithmic strain measure (COMPUTATIONAL METHODS FOR PLASTICITY THEORY AND APPLICATIONS. EA de Souza Neto,D Perić, DRJ Owen pag. 596).
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
- * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
- * @author Vicente Mataix Ferrandiz
+ * @author Alejandro Cornejo & Vicente Mataix Ferrandiz
  */
-template<class TElasticBehaviourLaw, class TConstLawIntegratorType>
+template<class TConstLawIntegratorType>
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericFiniteStrainIsotropicPlasticity
-    : public TElasticBehaviourLaw
+    : public GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>
 {
 public:
     ///@name Type Definitions
@@ -73,7 +71,7 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef TElasticBehaviourLaw BaseType;
+    typedef GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType> BaseType;
 
     /// The definition of the Voigt array type
     typedef array_1d<double, VoigtSize> BoundedArrayType;
@@ -106,18 +104,14 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericFiniteStrainIsotropicPlasticity<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
     GenericFiniteStrainIsotropicPlasticity(const GenericFiniteStrainIsotropicPlasticity &rOther)
-        : BaseType(rOther),
-          mPlasticDissipation(rOther.mPlasticDissipation),
-          mThreshold(rOther.mThreshold),
-          mPlasticDeformationGradient(rOther.mPlasticDeformationGradient),
-          mPreviousDeformationGradient(rOther.mPreviousDeformationGradient)
+        : BaseType(rOther)
     {
     }
 
@@ -161,19 +155,6 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
 
     /**
-     * @brief This is to be called at the very beginning of the calculation
-     * @details (e.g. from InitializeElement) in order to initialize all relevant attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void InitializeMaterial(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const Vector& rShapeFunctionsValues
-        ) override;
-
-    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @see Parameters
      */
@@ -195,96 +176,6 @@ public:
      * @see Parameters
      */
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<double> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Vector)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Vector> &rThisVariable) override;
-
-    /**
-     * @brief Returns whether this constitutive Law has specified variable (Matrix)
-     * @param rThisVariable the variable to be checked for
-     * @return true if the variable is defined in the constitutive law
-     */
-    bool Has(const Variable<Matrix> &rThisVariable) override;
-
-    /**
-     * @brief Sets the value of a specified variable (double)
-     * @param rVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<double> &rThisVariable,
-        const double& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Vector> &rThisVariable,
-        const Vector& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Sets the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue new value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<Matrix> &rThisVariable,
-        const Matrix& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (double)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& GetValue(
-        const Variable<double> &rThisVariable,
-        double& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Vector)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& GetValue(
-        const Variable<Vector> &rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (Matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix> &rThisVariable,
-        Matrix& rValue
-        ) override;
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -377,16 +268,6 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    double& GetThreshold() { return mThreshold; }
-    double& GetPlasticDissipation() { return mPlasticDissipation; }
-    Matrix& GetPlasticDeformationGradient() { return mPlasticDeformationGradient; }
-    Matrix& GetPreviousDeformationGradient() { return mPreviousDeformationGradient; }
-
-    void SetThreshold(const double Threshold) { mThreshold = Threshold; }
-    void SetPlasticDissipation(const double PlasticDissipation) { mPlasticDissipation = PlasticDissipation; }
-    void SetPlasticDeformationGradient(const Matrix& rmPlasticDeformationGradient) { mPlasticDeformationGradient = rmPlasticDeformationGradient; }
-    void SetPreviousDeformationGradient(const Matrix& rmPreviousDeformationGradient) { mPreviousDeformationGradient = rmPreviousDeformationGradient; }
-
     ///@}
     ///@name Protected Operations
     ///@{
@@ -411,12 +292,6 @@ protected:
     ///@}
     ///@name Member Variables
     ///@{
-
-    // Converged values
-    double mPlasticDissipation = 0.0;
-    double mThreshold = 0.0;
-    Matrix mPlasticDeformationGradient = IdentityMatrix(Dimension);
-    Matrix mPreviousDeformationGradient = IdentityMatrix(Dimension);
 
     ///@}
     ///@name Private Operators
@@ -448,27 +323,6 @@ protected:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.save("PlasticDissipation", mPlasticDissipation);
-        rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.save("PreviousDeformationGradient", mPreviousDeformationGradient);
-    }
-
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-        rSerializer.load("PlasticDissipation", mPlasticDissipation);
-        rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("PlasticDeformationGradient", mPlasticDeformationGradient);
-        rSerializer.load("PreviousDeformationGradient", mPreviousDeformationGradient);
-    }
 
     ///@}
 

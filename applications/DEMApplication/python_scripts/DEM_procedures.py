@@ -894,7 +894,6 @@ class DEMFEMProcedures():
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
 
-        self.mesh_motion = DEMFEMUtilities()
 
         def Flush(self, a):
             a.flush()

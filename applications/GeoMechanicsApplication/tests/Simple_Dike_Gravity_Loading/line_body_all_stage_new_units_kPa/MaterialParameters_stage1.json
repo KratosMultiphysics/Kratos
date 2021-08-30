@@ -42,9 +42,9 @@
           "Variables": {
               "YOUNG_MODULUS"            :  10e12,
               "POISSON_RATIO"            :  0.0,
-              "DENSITY_SOLID": 50.0,
-              "DENSITY_WATER": 1000.0,
-              "POROSITY": 0.395,
+              "DENSITY_SOLID"            :  50.0,
+              "DENSITY_WATER"            :  1000.0,
+              "POROSITY"                 :  0.395,
               "BULK_MODULUS_SOLID"       :  1.0e12,
               "BULK_MODULUS_FLUID"       :  2.0e-30,
               "PERMEABILITY_XX"          :  4.5e-30,

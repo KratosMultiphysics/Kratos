@@ -282,7 +282,7 @@ public:
      * @param resulting vector of span intervals.
      * @param index of chosen direction, for curves always 0.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex = 0) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -298,7 +298,77 @@ public:
     }
 
     ///@}
-    ///@name Projection Point
+    ///@name IsInside
+    ///@{
+
+    /* @brief checks and returns if local coordinate rPointLocalCoordinates[0]
+     *        is inside the local/parameter space.
+     * @return inside -> 1
+     *         outside -> 0
+     */
+    int IsInsideLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter =
+            std::min(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            return 0;
+        }
+
+        const double max_parameter =
+            std::max(mKnots[mPolynomialDegree - 1],
+                mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    ///@}
+    ///@name ClosestPoint
+    ///@{
+
+    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+     *        is inside the curve, or on the boundary or if it lays outside.
+     *        If it is outside, it is set to the boundary which is closer to it.
+     * @return if rPointLocalCoordinates[0] was before the projection:
+     *         outside -> 0
+     *         inside -> 1
+     *         on boundary -> 2 - meaning that it is equal to start or end point.
+     */
+    virtual int ClosestPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rClosestPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        const double min_parameter = std::min(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] < min_parameter) {
+            rClosestPointLocalCoordinates[0] = min_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == min_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        const double max_parameter = std::max(mKnots[mPolynomialDegree - 1], mKnots[NumberOfKnots() - mPolynomialDegree]);
+        if (rPointLocalCoordinates[0] > max_parameter) {
+            rClosestPointLocalCoordinates[0] = max_parameter;
+            return 0;
+        } else if (rPointLocalCoordinates[0] == max_parameter) {
+            rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+            return 2;
+        }
+
+        rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
+        return 1;
+    }
+
+    ///@}    ///@name Projection Point
     ///@{
 
     /* Makes projection of rPointGlobalCoordinates to
@@ -324,15 +394,15 @@ public:
             20, Tolerance);
     }
 
-    ///@}
-    ///@name Geometrical Informations
+    ///@}    ///@name Geometrical Informations
     ///@{
 
     /// Computes the length of a nurbs curve
     double Length() const override
     {
         IntegrationPointsArrayType integration_points;
-        CreateIntegrationPoints(integration_points);
+        IntegrationInfo integration_info = GetDefaultIntegrationInfo();
+        CreateIntegrationPoints(integration_points, integration_info);
 
         double length = 0.0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
@@ -379,6 +449,18 @@ public:
     }
 
     ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(1,
+            mPolynomialDegree + 1,
+            IntegrationInfo::QuadratureMethod::GAUSS);
+    }
+
+    ///@}
     ///@name Integration Points
     ///@{
 
@@ -386,12 +468,13 @@ public:
      * @param result integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = PolynomialDegree(0) + 1;
+        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
 
         std::vector<double> spans;
-        Spans(spans);
+        SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
             rIntegrationPoints, spans, points_per_span);
@@ -414,7 +497,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsCurveShapeFunction shape_function_container(
@@ -470,7 +554,7 @@ public:
                 N, shape_function_derivatives);
 
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 2, data_container, nonzero_control_points, this);
+                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
         }
     }
 
