@@ -18,9 +18,10 @@
 #include "includes/kratos_application.h"
 
 //elements
-#include "custom_elements/shell_3p_element.h"
-#include "custom_elements/iga_membrane_element.h"
+#include "custom_elements/truss_element.h"
 #include "custom_elements/truss_embedded_edge_element.h"
+#include "custom_elements/iga_membrane_element.h"
+#include "custom_elements/shell_3p_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 
@@ -37,6 +38,7 @@
 
 //modelers
 #include "custom_modelers/iga_modeler.h"
+#include "custom_modelers/refinement_modeler.h"
 #include "custom_modelers/nurbs_geometry_modeler.h"
 
 namespace Kratos {
@@ -111,9 +113,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    const Shell3pElement mShell3pElement;
-    const IgaMembraneElement mIgaMembraneElement;
+    const TrussElement mTrussElement;
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
+    const IgaMembraneElement mIgaMembraneElement;
+    const Shell3pElement mShell3pElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
 
@@ -130,6 +133,7 @@ private:
 
     // Modelers
     const IgaModeler mIgaModeler;
+    const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
 
     ///@}

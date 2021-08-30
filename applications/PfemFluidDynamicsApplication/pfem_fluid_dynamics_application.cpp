@@ -97,7 +97,19 @@ namespace Kratos
                                                                              mThreeStepUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
                                                                              mThreeStepUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
                                                                              mThreeStepUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
-                                                                             mThreeStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10))))
+                                                                             mThreeStepUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3>>(Element::GeometryType::PointsArrayType(6)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
+                                                                             mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic(0, Element::GeometryType::Pointer(new Tetrahedra3D10<Node<3>>(Element::GeometryType::PointsArrayType(10))))
   {
   }
 
@@ -234,6 +246,18 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("ThreeStepUpdatedLagrangianElement2Dquadratic", mThreeStepUpdatedLagrangianElement2Dquadratic);
     KRATOS_REGISTER_ELEMENT("ThreeStepUpdatedLagrangianElement3D", mThreeStepUpdatedLagrangianElement3D);
     KRATOS_REGISTER_ELEMENT("ThreeStepUpdatedLagrangianElement3Dquadratic", mThreeStepUpdatedLagrangianElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepFirstOrderUpdatedLagrangianElement2D", mThreeStepFirstOrderUpdatedLagrangianElement2D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic", mThreeStepFirstOrderUpdatedLagrangianElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepFirstOrderUpdatedLagrangianElement3D", mThreeStepFirstOrderUpdatedLagrangianElement3D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic", mThreeStepFirstOrderUpdatedLagrangianElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderUpdatedLagrangianElement2D", mThreeStepSecondOrderUpdatedLagrangianElement2D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic", mThreeStepSecondOrderUpdatedLagrangianElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderUpdatedLagrangianElement3D", mThreeStepSecondOrderUpdatedLagrangianElement3D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic", mThreeStepSecondOrderUpdatedLagrangianElement3Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement2D", mThreeStepSecondOrderPspgUpdatedLagrangianElement2D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic", mThreeStepSecondOrderPspgUpdatedLagrangianElement2Dquadratic);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement3D", mThreeStepSecondOrderPspgUpdatedLagrangianElement3D);
+    KRATOS_REGISTER_ELEMENT("ThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic", mThreeStepSecondOrderPspgUpdatedLagrangianElement3Dquadratic);
 
     //Register Conditions
 
