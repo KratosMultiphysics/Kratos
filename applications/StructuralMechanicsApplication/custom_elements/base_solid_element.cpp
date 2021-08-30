@@ -961,9 +961,13 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             }
         } else if (rVariable == LOCAL_AXIS_1 || rVariable == LOCAL_AXIS_2 || rVariable == LOCAL_AXIS_3) {
             if (this->Has(rVariable)) {
-                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number) {
+                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
                     rOutput[point_number] = this->GetValue(rVariable);
-                }
+            } else if (rVariable == LOCAL_AXIS_3) {
+                const array_1d<double, 3> r_local_axis_1 = this->GetValue(LOCAL_AXIS_1);
+                const array_1d<double, 3> local_axis_2 = this->GetValue(LOCAL_AXIS_2);
+                for (IndexType point_number = 0; point_number < number_of_integration_points; ++point_number)
+                    rOutput[point_number] = MathUtils<double>::CrossProduct(r_local_axis_1, local_axis_2);
             }
         } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
