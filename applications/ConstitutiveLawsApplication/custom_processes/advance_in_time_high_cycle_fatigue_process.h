@@ -98,7 +98,7 @@ public:
      * @brief This method properly applies the time increment in terms of cycle increment to all the integration points of the model
      * @param Increment Time increment to apply along the model
      */
-    void TimeAndCyclesUpdate(double Increment);
+    void TimeAndCyclesUpdate(const double Increment);
 
 protected:
     // Member Variables
