@@ -248,21 +248,21 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     if ( mStateVariablesFinalized.size() != IntegrationPoints.size() )
-       mStateVariablesFinalized.resize(IntegrationPoints.size());
+        mStateVariablesFinalized.resize(IntegrationPoints.size());
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
     {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue( NUMBER_OF_UMAT_STATE_VARIABLES,
-                                                               nStateVariables);
-        if (nStateVariables > 0)
-        {
-            ProcessInfo EmptyProcessInfo;
+                                                                nStateVariables );
+        if (nStateVariables > 0) {
             mConstitutiveLawVector[i]->SetValue( STATE_VARIABLES,
                                                  mStateVariablesFinalized[i],
-                                                 EmptyProcessInfo );
+                                                 rCurrentProcessInfo );
         }
     }
+
+
 
     mIsInitialised = true;
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Initialize()") << std::endl;
