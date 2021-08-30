@@ -20,7 +20,7 @@ class SetLocalAxesProcess(KM.Process):
             {
                 "model_part_name"               : "set_model_part_name",
                 "local_axes_coordinate_system"  : "cartesian",
-                "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]],
+                "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0]],
                 "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
                 "cylindrical_generatrix_point"  : [0.0,0.0,0.0],
                 "spherical_reference_axis"      : [0.0,0.0,1.0],
