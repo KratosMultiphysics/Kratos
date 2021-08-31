@@ -24,6 +24,8 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# 5p Shell Stress Based
+from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pSBTest
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
