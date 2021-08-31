@@ -70,7 +70,7 @@ def AssembleTestSuites():
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
         # 5p Shell Director
-        # ScordelisRoofShell5pTest, -- commented as it contains heap error in ubuntu/CI
+        ScordelisRoofShell5pTest,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,
