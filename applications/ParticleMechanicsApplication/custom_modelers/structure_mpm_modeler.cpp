@@ -25,7 +25,7 @@ namespace Kratos
     void StructureMpmModeler::SetupGeometryModel()
     {
         CheckParameters();
-
+        
         const bool is_create_segmented_fem_quads = false;
 
         Model* p_model_mpm = (mIsOriginMpm) ? mpModelOrigin : mpModelDest;
@@ -62,7 +62,7 @@ namespace Kratos
         std::vector<GeometryPointerType> interface_geoms;
         std::vector<GeometryPointerType> segmented_fem_quad_points;
         std::vector<GeometryPointerType> quads_structure;
-
+        
         const IndexType gauss_order = mParameters["gauss_integration_order"].GetInt();
         GeometryData::IntegrationMethod integration_method = GeometryData::IntegrationMethod(gauss_order - 1);
 
@@ -178,7 +178,7 @@ namespace Kratos
 
             std::vector<double> mpc_penalty_factor(1);
             
-            mpc_penalty_factor[0]=1e10;
+            mpc_penalty_factor[0]=1e5;
             p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
             p_condition->Set(INTERFACE);
@@ -204,7 +204,7 @@ namespace Kratos
             
         }
         
-        KRATOS_WATCH(*p_model_mpm)
+        // KRATOS_WATCH(*p_model_mpm)
     }
 
     void StructureMpmModeler::UpdateGeometryModel()
@@ -255,14 +255,14 @@ namespace Kratos
         // ReleaseMPMDestInterfaceNodes(mpm_coupling_nodes);
         
 
-        // Set all mpm interface nodal forces to be zero
-        if (mIsOriginMpm && mParameters["is_gauss_seidel"].GetBool()) {
-            for (auto interface_node : mpm_coupling_nodes.NodesArray())
-            {
-                array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
-                point_load.clear();
-            }
-        }
+        // // Set all mpm interface nodal forces to be zero
+        // if (mIsOriginMpm && mParameters["is_gauss_seidel"].GetBool()) {
+        //     for (auto interface_node : mpm_coupling_nodes.NodesArray())
+        //     {
+        //         array_1d<double, 3 >& point_load = (interface_node)->FastGetSolutionStepValue(POINT_LOAD);
+        //         point_load.clear();
+        //     }
+        // }
 
         // Remove all old interface nodes from coupling nodes modelpart
         mpm_coupling_nodes.NodesArray().clear();
@@ -287,7 +287,7 @@ namespace Kratos
         // Set coupling interface nodes in coupling model part
         coupling_interface_mpm.SetNodes(mpm_coupling_nodes.pNodes());
 
-        // We fix the interface nodes so they can receive the prescribed displacements from FEM.
+        // // We fix the interface nodes so they can receive the prescribed displacements from FEM.
         // FixMPMDestInterfaceNodes(mpm_coupling_nodes);
     }
 

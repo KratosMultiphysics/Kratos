@@ -103,7 +103,7 @@ void MPMParticlePenaltyCouplingInterfaceCondition::InitializeNonLinearIteration(
             m_imposed_displacement[2] += Variables.N[i] * r_geometry[i].FastGetSolutionStepValue(IMPOSED_DISPLACEMENT_Z);
             
         }
-        KRATOS_WATCH(m_imposed_displacement)
+        // KRATOS_WATCH(m_imposed_displacement)
     }
 }
 
