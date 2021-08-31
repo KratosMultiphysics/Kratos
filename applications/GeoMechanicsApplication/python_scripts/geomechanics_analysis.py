@@ -61,8 +61,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def Initialize(self):
-        if (self.reset_displacements):
-            self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = True
+        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
 
         super().Initialize()
         if (self.reset_displacements):
@@ -77,8 +76,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
-        else:
-            self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = False
 
     def Finalize(self):
         super().Finalize()
@@ -134,7 +131,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
 
         while self.KeepAdvancingSolutionLoop():
-            if(self.delta_time > self.max_delta_time):
+            if (self.delta_time > self.max_delta_time):
                 self.delta_time = self.max_delta_time
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
             t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
