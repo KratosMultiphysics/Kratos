@@ -234,6 +234,8 @@ class ImposePerturbedInitialConditionProcess(KratosMultiphysics.Process):
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.ExaquteSandboxApplication.VELOCITY_NOISE) # map P(u_{cn}) into Poisson problem variable VELOCITY_NOISE
         self.LoadVelocityField() # c*P(u_{cn}) + u_T stored in VELOCITY
         mapper.Map(KratosMultiphysics.VELOCITY,KratosMultiphysics.VELOCITY) # map c*P(u_{cn}) + u_T into Poisson problem variable VELOCITY
+        simulation._GetSolver().main_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.VELOCITY)
+        simulation._GetSolver().main_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.PRESSURE)
 
         # run the Poisson problem
         # restore boundary conditions

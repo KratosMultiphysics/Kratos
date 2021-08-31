@@ -492,3 +492,5 @@ class ImposeMPIWindInletProcess(ImposeWindInletProcess):
         mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMPIMapper(self.model_part, self.mpi_model_part,mapping_parameters)
         mapper.Map(KratosMultiphysics.VELOCITY, \
             KratosMultiphysics.VELOCITY)
+        self.mpi_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.VELOCITY)
+        self.mpi_model_part.GetCommunicator().SynchronizeVariable(KratosMultiphysics.PRESSURE)
