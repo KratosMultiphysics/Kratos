@@ -227,6 +227,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         BoundedMatrixVoigtType &rNewOperator
     );
 
+    /**
+     * @brief This checks if a vector has null norm
+     */
+    template <class TVector>
+    static void CheckAndNormalizeVector(
+        TVector& rVector
+        )
+    {
+        const double norm = MathUtils<double>::Norm3(rVector);
+        if (norm > std::numeric_limits<double>::epsilon()) {
+            rVector /= norm;
+        } else {
+            KRATOS_ERROR << "The norm of one LOCAL_AXIS is null" << std::endl;
+        }
+    }
+
 private:
 
 }; // class ConstitutiveLawUtilities

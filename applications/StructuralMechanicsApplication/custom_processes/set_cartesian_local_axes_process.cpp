@@ -12,6 +12,7 @@
 #include "custom_processes/set_cartesian_local_axes_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -22,21 +23,6 @@ SetCartesianLocalAxesProcess::SetCartesianLocalAxesProcess(
       mThisParameters(ThisParameters)
 {
     mThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void CheckAndNormalizeVector(
-    array_1d<double, 3>& rVector
-    )
-{
-    const double norm = MathUtils<double>::Norm3(rVector);
-    if (norm > std::numeric_limits<double>::epsilon()) {
-        rVector /= norm;
-    } else {
-        KRATOS_ERROR << "The norm of one LOCAL_AXIS is null" << std::endl;
-    }
 }
 
 /***********************************************************************************/
@@ -57,8 +43,8 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
         local_axis_2[0] = cartesian_local_axes_matrix(1, 0);
         local_axis_2[1] = cartesian_local_axes_matrix(1, 1);
         local_axis_2[2] = cartesian_local_axes_matrix(1, 2);
-        CheckAndNormalizeVector(local_axis_1);
-        CheckAndNormalizeVector(local_axis_2);
+        ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_1);
+        ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_2);
 
         block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
             rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
@@ -69,7 +55,7 @@ void SetCartesianLocalAxesProcess::ExecuteInitialize()
         local_axis_1[0] = cartesian_local_axes_matrix[0];
         local_axis_1[1] = cartesian_local_axes_matrix[1];
         local_axis_1[2] = cartesian_local_axes_matrix[2];
-        CheckAndNormalizeVector(local_axis_1);
+        ConstitutiveLawUtilities<3>::CheckAndNormalizeVector<array_1d<double,3>>(local_axis_1);
         block_for_each(mrThisModelPart.Elements(), [&](Element& rElement) {
             rElement.SetValue(LOCAL_AXIS_1, local_axis_1);
         });
