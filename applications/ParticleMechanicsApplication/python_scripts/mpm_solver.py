@@ -440,9 +440,7 @@ class MPMSolver(PythonSolver):
         elif self.settings["time_stepping"].Has("time_step_table"):
             current_time = self.grid_model_part.ProcessInfo[KratosMultiphysics.TIME]
             time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
-            tb = KratosMultiphysics.PiecewiseLinearTable()
-            for interval in range(time_step_table.Size1()):
-                tb.AddRow(time_step_table[interval, 0], time_step_table[interval, 1])
+            tb = KratosMultiphysics.PiecewiseLinearTable(time_step_table)
             return tb.GetValue(current_time)
         else:
             raise Exception("::[ParticleSolver]:: Time stepping not defined!")
