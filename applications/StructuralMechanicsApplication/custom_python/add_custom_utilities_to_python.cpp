@@ -24,7 +24,6 @@
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
-#include "custom_utilities/set_local_axes_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -69,13 +68,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, LinearSolverPointerTypeDense, Parameters>())
         .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
         .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
-        ;
-
-    py::class_<SetLocalAxesUtility, SetLocalAxesUtility::Pointer>(m,"SetLocalAxesUtility")
-        .def(py::init<>())
-        .def("SetLocalAxisCartesianSystem", &SetLocalAxesUtility::SetLocalAxisCartesianSystem)
-        .def("SetLocalAxisCylindricalSystem", &SetLocalAxesUtility::SetLocalAxisCylindricalSystem)
-        .def("SetLocalAxisSphericalSystem", &SetLocalAxesUtility::SetLocalAxisSphericalSystem)
         ;
 }
 
