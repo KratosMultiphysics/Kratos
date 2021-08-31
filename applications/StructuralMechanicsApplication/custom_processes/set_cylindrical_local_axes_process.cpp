@@ -66,7 +66,6 @@ const Parameters SetCylindricalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "local_axes_coordinate_system"  : "cylindrical",
         "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
         "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
     })" );

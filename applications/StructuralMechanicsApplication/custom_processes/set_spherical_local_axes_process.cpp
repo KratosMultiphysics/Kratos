@@ -73,7 +73,6 @@ const Parameters SetSphericalLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "local_axes_coordinate_system"  : "spherical",
         "spherical_reference_axis"   : [0.0,0.0,1.0],
         "spherical_central_point"    : [0.0,0.0,0.0]
     })" );

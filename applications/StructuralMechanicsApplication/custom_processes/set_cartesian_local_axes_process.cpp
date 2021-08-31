@@ -70,7 +70,6 @@ const Parameters SetCartesianLocalAxesProcess::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
-        "local_axes_coordinate_system"  : "cartesian",
         "cartesian_local_axis"          : [[1.0,0.0,0.0],[0.0,1.0,0.0]]
     })" );
 
