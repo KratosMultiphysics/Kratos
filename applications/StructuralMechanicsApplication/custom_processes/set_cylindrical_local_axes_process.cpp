@@ -68,7 +68,7 @@ const Parameters SetCylindricalLocalAxesProcess::GetDefaultParameters() const
     {
         "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
         "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
-    })" );
+    })");
 
     return default_parameters;
 }
