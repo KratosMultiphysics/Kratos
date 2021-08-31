@@ -9,6 +9,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class MultiaxialControlModuleGeneralized2DProcess(KratosMultiphysics.Process):
+
     """This process assigns a given value (vector) to the nodes belonging a certain submodelpart
 
     Only the member variables listed below should be accessed directly.
@@ -19,6 +20,7 @@ class MultiaxialControlModuleGeneralized2DProcess(KratosMultiphysics.Process):
     """
 
     def __init__(self, Model, settings):
+
         """ The default constructor of the class
 
         Keyword arguments:

@@ -265,7 +265,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def AdjustModelParts(self):
         pass
-    
+
     def Initialize(self):
         self.time = 0.0
         self.time_old_print = 0.0

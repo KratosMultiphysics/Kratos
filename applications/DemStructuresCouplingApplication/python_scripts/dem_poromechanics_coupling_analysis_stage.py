@@ -1,10 +1,8 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.python_solver import PythonSolver
-import KratosMultiphysics.analysis_stage
 
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.PoromechanicsApplication as Poromechanics
-import KratosMultiphysics.PoromechanicsApplication.poromechanics_analysis
 import KratosMultiphysics.DemStructuresCouplingApplication as DemStructuresCouplingApplication
 from sp_2d_rigid_fem_algorithm import DEMAnalysisStage2DSpRigidFem
 import os
@@ -27,7 +25,7 @@ class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Krat
         self.ignore_isolated_particles = True
         self.remove_isolated_particles = True
         self.breakable_material_after_first_dem_solution_steadiness_achieved = True
-        
+
         file1 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_chunks.txt")
         file2 = os.path.join(os.getcwd(), "poro_solution_time_vs_sp_standard.txt")
         file3 = os.path.join(os.getcwd(), "poro_solution_time_vs_dem_time_vs_dems_steps.txt")

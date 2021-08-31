@@ -802,9 +802,9 @@ void MultiaxialControlModuleGeneralized2DUtilities::CalculateVelocity(const Vect
 
     for (unsigned int ind = 0; ind < mVectorOfActuatorNames.size(); ind++) {
         const std::string& actuator_name = mVectorOfActuatorNames[ind];
-        std::vector<ModelPart*>& SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
         if (actuator_name == "RadialMultiDofs") {
             // In axisymmetric cases we assume there is only 1 actuator in the FEM boundary
+            std::vector<ModelPart*>& SubModelPartList = mListsOfFEMSubModelPartsForEachActuator[actuator_name];
             ModelPart& rSubModelPart = *(SubModelPartList[0]);
             // Iterate through nodes of Fem boundary
             const int number_of_nodes = static_cast<int>(rSubModelPart.Nodes().size());

@@ -35,7 +35,7 @@ class DEM2D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
         node6   = self.spheres_model_part.GetNode(6)
         node7   = self.spheres_model_part.GetNode(7)
         node8   = self.spheres_model_part.GetNode(8)
-        
+
         displ1   =  node1.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         displ2   =  node2.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         displ3   =  node3.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
@@ -44,7 +44,7 @@ class DEM2D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
         displ6   =  node6.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         displ7   =  node7.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
         displ8   =  node8.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X)
-                
+
         self.assertAlmostEqual(displ1,   displ3, delta = self.tolerance)
         self.assertAlmostEqual(displ2,   displ4, delta = self.tolerance)
         self.assertAlmostEqual(displ5,   displ7, delta = self.tolerance)

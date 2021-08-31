@@ -407,7 +407,7 @@ class MaterialTest():
     def PrintGraph(self, time):
 
         if self.graph_counter == self.graph_frequency:
-            
+
             self.graph_counter = 0
 
             if self.test_type == "BTS":

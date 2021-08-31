@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DEMApplication as DEMApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import test_guis
+#import test_guis
 import test_kinematic_constraints
 import test_particle_creator_destructor
 import test_wall_creator_destructor
@@ -20,7 +20,7 @@ import test_DEM_3D_continuum_vs_discontinuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
 import test_inlet
-import test_DEM_2D_control_module
+#import test_DEM_2D_control_module
 import test_post_process
 import test_friction_decay
 import test_forces_and_moments
