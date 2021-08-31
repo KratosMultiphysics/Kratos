@@ -63,9 +63,6 @@ namespace Kratos
       /// Static definition of the VoigtSize
       static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
 
-      /// Static definition of the VoigtSize
-      static constexpr SizeType VoigtSizePlaneStress = VOIGT_SIZE_2D_PLANE_STRESS;
-
       /// Pointer definition of SmallStrainUMAT2DPlaneStrainLaw
       KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUMAT2DPlaneStrainLaw );
 
@@ -205,7 +202,6 @@ namespace Kratos
       ///@name Protected  Access
       ///@{
       void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues) override;
-      void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues) override;
       void SetExternalStressVector(Vector& rStressVector) override;
       void SetInternalStressVector(const Vector& rStressVector) override;
       void SetInternalStrainVector(const Vector& rStrainVector) override;
@@ -227,8 +223,6 @@ namespace Kratos
    private:
       ///@name Static Member Variables
       ///@{
-
-      indexStress3D getIndex3D(indexStress2DPlaneStress index2D);
 
       ///@}
       ///@name Member Variables

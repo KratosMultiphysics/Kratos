@@ -156,7 +156,7 @@ public:
     ///@name Operations
     ///@{
 
-    int Check() const override
+    int Check() override
     {
         int err_code = BaseType::Check();
 
