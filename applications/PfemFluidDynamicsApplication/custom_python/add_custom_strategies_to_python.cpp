@@ -17,7 +17,7 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_strategies/strategies/v_p_strategy.h"
 #include "custom_strategies/strategies/two_step_v_p_strategy.h"
 #include "custom_strategies/strategies/three_step_v_p_strategy.h"
@@ -50,7 +50,7 @@ namespace Kratos
 
             //base types
             typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-            typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
+            typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> BaseSolvingStrategyType;
             typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
             typedef Scheme<SparseSpaceType, LocalSpaceType> BaseSchemeType;
             //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
