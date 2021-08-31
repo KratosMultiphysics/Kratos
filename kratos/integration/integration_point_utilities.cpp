@@ -18,7 +18,7 @@ namespace Kratos
     void IntegrationPointUtilities::CreateIntegrationPoints1D(
         IntegrationPointsArrayType& rIntegrationPoints,
         const std::vector<double>& rSpansLocalSpace,
-        IntegrationInfo& rIntegrationInfo)
+        const IntegrationInfo& rIntegrationInfo)
     {
         if (rIntegrationInfo.GetQuadratureMethod(0) == IntegrationInfo::QuadratureMethod::GAUSS) {
             IntegrationPointUtilities::CreateIntegrationPoints1DGauss(

@@ -48,7 +48,7 @@ public:
     ///@name Generic generation of Integration Points
     ///@{
     /// 
-    static void IntegrationPointUtilities::CreateIntegrationPoints1D(
+    static void CreateIntegrationPoints1D(
         IntegrationPointsArrayType & rIntegrationPoints,
         const std::vector<double>&rSpansLocalSpace,
         const IntegrationInfo& rIntegrationInfo);
@@ -58,13 +58,13 @@ public:
     ///@{
 
     static void CreateIntegrationPoints1DGauss(
-        IntegrationPointsArrayType & rIntegrationPoints,
-        const std::vector<double>&rSpanIntervals,
+        IntegrationPointsArrayType& rIntegrationPoints,
+        const std::vector<double>& rSpanIntervals,
         const SizeType IntegrationPointsPerSpan);
 
     static void CreateIntegrationPoints1DGrid(
         IntegrationPointsArrayType & rIntegrationPoints,
-        const std::vector<double>&rSpanIntervals,
+        const std::vector<double>& rSpanIntervals,
         const SizeType IntegrationPointsPerSpan);
 
     ///@}
