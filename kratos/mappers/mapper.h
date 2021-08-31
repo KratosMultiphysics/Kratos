@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /// Base Class for all Mappers
-/** This is the base class for every mapper. This is the equivalent to a Kratos-ImplicitSolvingStrategy.
+/** This is the base class for every mapper. This is the equivalent to a Kratos-SolvingStrategy.
  * It provides the basic interface for the mapping operations
 */
 template<class TSparseSpace, class TDenseSpace>
