@@ -133,7 +133,7 @@ double& SaturatedBelowPhreaticLevelLaw::CalculateValue(RetentionLaw::Parameters&
         return rValue;
     }
 
-    return( rValue );
+    return rValue;
 }
 
 //------------------------- RETENSION LAW GENERAL FEATURES ----------------------------------------
