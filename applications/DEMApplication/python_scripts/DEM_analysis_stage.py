@@ -84,7 +84,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.dem_fem_search = self.SetDemFemSearch()
         self.procedures = self.SetProcedures()
         self.PreUtilities = PreUtilities()
-        self.aux = AuxiliaryUtilities()
 
         # Set the print function TO_DO: do this better...
         self.KratosPrintInfo = self.procedures.KratosPrintInfo
@@ -280,10 +279,7 @@ class DEMAnalysisStage(AnalysisStage):
         #Setting up the BoundingBox
         self.bounding_box_time_limits = self.procedures.SetBoundingBoxLimits(self.all_model_parts, self.creator_destructor)
 
-        #Finding the max id of the nodes... (it is necessary for anything that will add spheres to the self.spheres_model_part, for instance, the INLETS and the CLUSTERS read from mdpa file.z
-        #max_Id = self.procedures.FindMaxNodeIdAccrossModelParts(self.creator_destructor, self.all_model_parts)   # TODO this seems not be longer required
-        #self.creator_destructor.SetMaxNodeId(max_Id)
-        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
+        self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)
 
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(self.DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
@@ -330,7 +326,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def ReadMaterialsFile(self):
         adapted_to_current_os_relative_path = pathlib.Path(self.DEM_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString())
-        materials_file_abs_path = os.path.join(self.main_path, adapted_to_current_os_relative_path)
+        materials_file_abs_path = os.path.join(self.main_path, str(adapted_to_current_os_relative_path))
         with open(materials_file_abs_path, 'r') as materials_file:
             self.DEM_material_parameters = Parameters(materials_file.read())
 
@@ -499,7 +495,7 @@ class DEMAnalysisStage(AnalysisStage):
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
-            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.seed)
+            self.DEM_inlet = DEM_Inlet(self.dem_inlet_model_part, self.DEM_parameters["dem_inlets_settings"], self.seed)
             self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor, self._GetSolver().continuum_type)
 
     def SetInitialNodalValues(self):
@@ -555,6 +551,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", self.time, self.graphs_path)
         self.materialTest.MeasureForcesAndPressure()
         self.materialTest.PrintGraph(self.time)
+        self.materialTest.PrintCoordinationNumberGraph(self.time, self._GetSolver())
         self.DEMFEMProcedures.PrintGraph(self.time)
         self.DEMFEMProcedures.PrintBallsGraph(self.time)
         self.DEMEnergyCalculator.CalculateEnergyAndPlot(self.time)

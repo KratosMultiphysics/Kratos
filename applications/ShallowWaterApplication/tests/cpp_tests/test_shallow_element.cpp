@@ -149,7 +149,7 @@ void PerformSteadyStateTest(
     model_part.GetProcessInfo().SetValue(STABILIZATION_FACTOR, stab_factor);
     model_part.GetProcessInfo().SetValue(SHOCK_STABILIZATION_FACTOR, shock_stab_factor);
     model_part.GetProcessInfo().SetValue(RELATIVE_DRY_HEIGHT, relative_dry_height);
-    model_part.GetProcessInfo().SetValue(DENSITY_WATER, density_water);
+    model_part.GetProcessInfo().SetValue(DENSITY, density_water);
     model_part.GetProcessInfo().SetValue(DENSITY_AIR, density_air);
 
     // Geometry creation

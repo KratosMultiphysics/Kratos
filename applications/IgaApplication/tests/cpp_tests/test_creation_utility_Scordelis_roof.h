@@ -224,8 +224,9 @@ namespace TestCreationUtilityScordelisRoof
 
         auto p_nurbs_surface = GenerateScordelisNurbsSurface(rModelPart, PolynomialDegree);
         p_nurbs_surface->SetId(1);
+        IntegrationInfo integration_info = p_nurbs_surface->GetDefaultIntegrationInfo();
         p_nurbs_surface->CreateQuadraturePointGeometries(
-            result_geometries, 3, integration_points);
+            result_geometries, 3, integration_points, integration_info);
         rModelPart.AddGeometry(p_nurbs_surface);
 
         return result_geometries(0);

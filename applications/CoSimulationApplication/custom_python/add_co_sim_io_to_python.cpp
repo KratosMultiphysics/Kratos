@@ -15,6 +15,7 @@
 #include <limits>
 
 // External includes
+#include <pybind11/functional.h>
 
 // Project includes
 #include "includes/model_part.h"
@@ -338,6 +339,12 @@ void  AddCoSimIOToPython(pybind11::module& m)
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_ModelPart_Vector);
     m_co_sim_io.def("ImportData", CoSimIO_Wrappers::ImportData_RawValues);
     m_co_sim_io.def("ExportData", CoSimIO_Wrappers::ExportData_RawValues);
+
+    m_co_sim_io.def("Register", [](
+        const CoSimIO::Info& I_Info,
+        std::function<CoSimIO::Info(const CoSimIO::Info&)> FunctionPointer)
+        { return CoSimIO::Register(I_Info, FunctionPointer); } );
+    m_co_sim_io.def("Run",      &CoSimIO::Run);
 
 
     m_co_sim_io.def("InfoFromParameters", CoSimIO_Wrappers::InfoFromParameters);
