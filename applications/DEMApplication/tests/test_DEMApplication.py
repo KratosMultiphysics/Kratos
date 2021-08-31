@@ -15,6 +15,7 @@ import test_DEM_2D_contact
 import test_DEM_3D_restitution
 import test_DEM_2D_restitution
 import test_DEM_3D_continuum
+import test_DEM_2D_continuum_vs_discontinuum
 import test_DEM_3D_continuum_vs_discontinuum
 import test_DEM_2D_inlet
 import test_DEM_3D_inlet
@@ -78,6 +79,7 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
+    smallSuite.addTest(test_DEM_2D_continuum_vs_discontinuum.TestDEM2DContinuumVsDiscontinuum("test_DEM2D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
     smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
     smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
