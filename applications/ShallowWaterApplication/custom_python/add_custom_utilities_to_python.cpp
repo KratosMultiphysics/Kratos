@@ -32,14 +32,34 @@ namespace Kratos
 
 namespace Python
 {
-  typedef ModelPart::NodesContainerType NodesContainerType;
 
-  typedef ModelPart::ElementsContainerType ElementsContainerType;
+typedef ModelPart::NodesContainerType NodesContainerType;
 
-  typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+typedef ModelPart::ElementsContainerType ElementsContainerType;
 
-  void  AddCustomUtilitiesToPython(pybind11::module& m)
-  {
+typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces1(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo);
+}
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces2(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo,
+    const double RelativeDryHeight)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo, RelativeDryHeight);
+}
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
     namespace py = pybind11;
 
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
@@ -82,8 +102,10 @@ namespace Python
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
-        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ElementsContainerType>)
-        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ConditionsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ConditionsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ConditionsContainerType>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
@@ -127,7 +149,7 @@ namespace Python
         .def("MapResults", &MoveMeshUtility::MapResults)
         ;
 
-  }
+}
 
 }  // namespace Python.
 
