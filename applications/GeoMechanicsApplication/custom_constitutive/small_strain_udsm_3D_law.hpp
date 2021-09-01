@@ -475,7 +475,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
       // Set number of MaterialParameters
       void CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rValues);
-      void CallUDSM(int *IDTask, const Properties& rMaterialProperties);
 
       // Set state variables to zero
       void ResetStateVariables(const Properties& rMaterialProperties);
