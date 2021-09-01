@@ -531,7 +531,6 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
-    //energy_check_cut elements
 
     // Mass correction term
     double volume_error_ratio = 0.0;
