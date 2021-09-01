@@ -105,6 +105,11 @@ def Analyzer(controls, response, opt_itr):
     if(controls["strain_energy"]["calc_func"]):
         # Compute structure solution to get displacement field u
         solve_structure(opt_itr)
+        if (opt_itr==101):
+            disp = [[]]*len(model_part.Nodes)
+            for ii in range(len(model_part.Nodes)):
+                disp[ii] = model_part.Nodes[ii+1].GetSolutionStepValue(km.DISPLACEMENT)
+            print("Dispalcements:", disp[6404], disp[6405])
         # Calculate objective function value based on u and save into container
         response["strain_energy"]["func"] = response_analyzer.ComputeStrainEnergy()
     # Compute constraint function value
