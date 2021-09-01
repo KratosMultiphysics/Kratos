@@ -152,9 +152,4 @@ class FluidDynamicsAnalysisSloshingTank(FluidDynamicsAnalysis):
                 self.last_flush = now
 
 if __name__ == "__main__":
-
-    test = TwoFluidMassConservationTest()
-
-    test.runTwoFluidMassConservationTest2D()
-
-    #test.runTwoFluidMassConservationTest3D()
+    KratosUnittest.main()
