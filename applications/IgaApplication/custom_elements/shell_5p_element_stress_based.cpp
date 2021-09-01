@@ -47,27 +47,27 @@ namespace Kratos
         if (m_referenceJacobianInverse.size() != r_number_of_integration_points)
         {
             m_referenceJacobianInverse.resize(r_number_of_integration_points);
-           std::for_each(m_referenceJacobianInverse.begin(), m_referenceJacobianInverse.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+           std::for_each(m_referenceJacobianInverse.begin(), m_referenceJacobianInverse.end(), [&](std::vector<Matrix3d>&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_referenceCartesianJacobian.size() != r_number_of_integration_points)
         {
             m_referenceCartesianJacobian.resize(r_number_of_integration_points);
-           std::for_each(m_referenceCartesianJacobian.begin(), m_referenceCartesianJacobian.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+           std::for_each(m_referenceCartesianJacobian.begin(), m_referenceCartesianJacobian.end(), [&](std::vector<Matrix3d>&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_referenceCoVariantTransformationMatrix.size() != r_number_of_integration_points)
         {
             m_referenceCoVariantTransformationMatrix.resize(r_number_of_integration_points);
-            std::for_each(m_referenceCoVariantTransformationMatrix.begin(), m_referenceCoVariantTransformationMatrix.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+            std::for_each(m_referenceCoVariantTransformationMatrix.begin(), m_referenceCoVariantTransformationMatrix.end(), [&](std::vector<Matrix6d>&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_referenceContraVariantTransformationMatrix.size() != r_number_of_integration_points)
         {
             m_referenceContraVariantTransformationMatrix.resize(r_number_of_integration_points);
-            std::for_each(m_referenceContraVariantTransformationMatrix.begin(), m_referenceContraVariantTransformationMatrix.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+            std::for_each(m_referenceContraVariantTransformationMatrix.begin(), m_referenceContraVariantTransformationMatrix.end(), [&](std::vector<Matrix6d>&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_dV_vector.size() != r_number_of_integration_points)
         {
             m_dV_vector.resize(r_number_of_integration_points);
-            std::for_each(m_dV_vector.begin(), m_dV_vector.end(), [&](auto&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
+            std::for_each(m_dV_vector.begin(), m_dV_vector.end(), [&](std::vector<double>&& entry) {entry.resize(mNumThicknessIntegrationPoints); });
         }
         if (m_dN.size() != r_number_of_integration_points)
             m_dN.resize(r_number_of_integration_points);
@@ -393,7 +393,7 @@ namespace Kratos
         SVoigt = prod(trans(Tcont), SVoigt);
         CVoigt = prod(prod<BoundedMatrix <double, 6, 6>>(trans(Tcont), CVoigt) , Tcont);
 
-        return convertMaterialAndStressFromVoigt(CVoigt, SVoigt);
+        return ConvertMaterialAndStressFromVoigt(CVoigt, SVoigt);
     }
 
 
@@ -716,7 +716,7 @@ namespace Kratos
     }
 
     /** Transformation of material tangent and Stresses from Voigt to 5P strains notation */
-    Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::convertMaterialAndStressFromVoigt(
+    Shell5pStressBasedElement::ConstitutiveVariables Shell5pStressBasedElement::ConvertMaterialAndStressFromVoigt(
         const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S)
     {
         ConstitutiveVariables constVar;

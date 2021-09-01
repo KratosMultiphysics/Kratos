@@ -447,7 +447,7 @@ private:
 
     //auto Shell5pStressBasedElement::getMatrixTransformMatrixForVoigtVector(const Matrix3d& t);
     //array_1d<double, 5> Shell5pStressBasedElement::transformStrainMatrixToVector5P(const Matrix3d& A);
-    ConstitutiveVariables Shell5pStressBasedElement::convertMaterialAndStressFromVoigt(
+    ConstitutiveVariables ConvertMaterialAndStressFromVoigt(
         const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S);
 
     /**
