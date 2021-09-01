@@ -230,9 +230,9 @@ public:
         TVectorType& rColIndices
     ) const
     {
-        IndexType* pRowIndicesData=nullptr;
+        Kratos::unique_ptr<IndexType[]> pRowIndicesData;
         IndexType RowIndicesDataSize=0;
-        IndexType* pColIndicesData=nullptr;
+        Kratos::unique_ptr<IndexType[]> pColIndicesData;
         IndexType ColIndicesDataSize=0;
         ExportCSRArrays(pRowIndicesData,RowIndicesDataSize,pColIndicesData,ColIndicesDataSize);
         if(rRowIndices.size() != RowIndicesDataSize)
@@ -241,13 +241,13 @@ public:
             [&](IndexType i){rRowIndices[i] = pRowIndicesData[i];}
         );
         
-        delete [] pRowIndicesData;
+        pRowIndicesData.reset();
         if(rColIndices.size() != ColIndicesDataSize)
             rColIndices.resize(ColIndicesDataSize);
         IndexPartition<IndexType>(ColIndicesDataSize).for_each( 
             [&](IndexType i){rColIndices[i] = pColIndicesData[i];}
         );
-        delete [] pColIndicesData;
+        pColIndicesData.reset();
 
         return rRowIndices.size();
     }
@@ -257,21 +257,19 @@ public:
         Kratos::span<IndexType>& rColIndices
     ) const = delete;
 
-    //NOTE this function will transfer ownership of pRowIndicesData and pColIndicesData to the caller
-    //hence the caller will be in charge of deleting that array
     IndexType ExportCSRArrays(
-        IndexType*& pRowIndicesData,
+        Kratos::unique_ptr<IndexType[]>& pRowIndicesData,
         IndexType& rRowDataSize,
-        IndexType*& pColIndicesData,
+        Kratos::unique_ptr<IndexType[]>& pColIndicesData,
         IndexType& rColDataSize
     ) const
     {
         //need to detect the number of rows this way since there may be gaps
         IndexType nrows=Size();
 
-        pRowIndicesData = new IndexType[nrows+1];
+        pRowIndicesData = std::move(Kratos::unique_ptr<IndexType[]>(new IndexType[nrows+1]));
         rRowDataSize=nrows+1;
-        Kratos::span<IndexType> row_indices(pRowIndicesData, nrows+1);
+        Kratos::span<IndexType> row_indices(pRowIndicesData.get(), nrows+1);
 
         if(nrows == 0) //empty
         {
@@ -297,8 +295,8 @@ public:
 
         IndexType nnz = row_indices[nrows];
         rColDataSize=nnz;
-        pColIndicesData = new IndexType[nnz];
-        Kratos::span<IndexType> col_indices(pColIndicesData,nnz);
+        pColIndicesData = std::move(Kratos::unique_ptr<IndexType[]>(new IndexType[nnz]));
+        Kratos::span<IndexType> col_indices(pColIndicesData.get(),nnz);
 
         //set it to zero in parallel to allow first touching
         IndexPartition<IndexType>(col_indices.size()).for_each([&](IndexType i){
