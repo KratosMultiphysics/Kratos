@@ -27,8 +27,8 @@ class TwoFluidMassConservationInletTest(UnitTest.TestCase):
         self.work_folder = "TwoFluidMassInletTest"
         self.check_absolute_tolerance = 1.0e-7
         self.check_relative_tolerance = 1.0e-5
-        self.print_output =True
-        self.print_reference_values =True
+        self.print_output =False
+        self.print_reference_values =False
 
     # runs the three dimensional test case
     def runTwoFluidMassConservationTestInlet3D(self):
