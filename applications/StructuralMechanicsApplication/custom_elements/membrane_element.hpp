@@ -210,7 +210,7 @@ namespace Kratos
 
 
       /**
-     * @brief Calculates the determinant of the Jacobian
+     * @brief Calculates the determinant of the Jacobian for mapping between parameter and physical space
      * @param rDetJacobi The determinant of the Jacobian
      * @param rReferenceBaseVectors Reference base vectors
      */

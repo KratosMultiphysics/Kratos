@@ -592,13 +592,11 @@ public:
         // but we store the prediction increment in dx_prediction.
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
-        const auto it_dof_begin = BaseType::mDofSet.begin();
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mDofSet.size()); ++i) {
-            auto it_dof = it_dof_begin + i;
-            //NOTE: this is initialzed to - the value of dx prediction
-            dx_prediction[it_dof->EquationId()] = -(it_dof->GetSolutionStepValue() - it_dof->GetSolutionStepValue(1));
-        }
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            // NOTE: this is initialzed to - the value of dx prediction
+            dx_prediction[rDof.EquationId()] = -(rDof.GetSolutionStepValue() - rDof.GetSolutionStepValue(1));
+
+        });
 
         // Use UpdateDatabase to bring back the solution to how it was at the end of the previous step
         pScheme->Update(rModelPart, BaseType::mDofSet, rA, dx_prediction, rb);
@@ -696,18 +694,13 @@ public:
 
         BuildRHSNoDirichlet(pScheme,rModelPart,b);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++)
-        {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
-            const std::size_t i = dof_iterator->EquationId();
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const std::size_t i = rDof.EquationId();
 
-            if (dof_iterator->IsFixed())
+            if (rDof.IsFixed())
                 b[i] = 0.0;
-        }
+        });
 
         Timer::Stop("BuildRHS");
 
@@ -851,14 +844,11 @@ public:
     {
         //int free_id = 0;
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
-        int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int i = 0; i < static_cast<int>(ndofs); i++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
-            dof_iterator->SetEquationId(i);
-
-        }
+        IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&, this](std::size_t Index){
+            typename DofsArrayType::iterator dof_iterator = this->mDofSet.begin() + Index;
+            dof_iterator->SetEquationId(Index);
+        });
     }
 
     //**************************************************************************
@@ -988,16 +978,12 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHSNoDirichlet(pScheme, rModelPart, b);
 
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         //NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++) {
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
+        block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
+            const std::size_t i = rDof.EquationId();
 
-            const int i = (dof_iterator)->EquationId();
-            (dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-        }
+            rDof.GetSolutionStepReactionValue() = -b[i];
+        });
     }
 
     /**
@@ -1023,18 +1009,16 @@ public:
         Vector scaling_factors (system_size);
 
         const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        #pragma omp parallel for firstprivate(ndofs)
-        for (int k = 0; k<ndofs; k++) {
-            auto it_dof_iterator = it_dof_iterator_begin + k;
+        IndexPartition<std::size_t>(BaseType::mDofSet.size()).for_each([&](std::size_t Index){
+            auto it_dof_iterator = it_dof_iterator_begin + Index;
             if (it_dof_iterator->IsFixed()) {
-                scaling_factors[k] = 0.0;
+                scaling_factors[Index] = 0.0;
             } else {
-                scaling_factors[k] = 1.0;
+                scaling_factors[Index] = 1.0;
             }
-        }
+        });
 
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
@@ -1044,50 +1028,44 @@ public:
         mScaleFactor = GetScaleNorm(rModelPart, rA);
 
         // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        #pragma omp parallel firstprivate(system_size)
-        {
-            std::size_t col_begin = 0, col_end  = 0;
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             bool empty = true;
 
-            #pragma omp for
-            for (int k = 0; k < static_cast<int>(system_size); ++k) {
-                col_begin = Arow_indices[k];
-                col_end = Arow_indices[k + 1];
-                empty = true;
-                for (std::size_t j = col_begin; j < col_end; ++j) {
-                    if(Avalues[j] != 0.0) {
-                        empty = false;
-                        break;
-                    }
-                }
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index + 1];
 
-                if(empty) {
-                    rA(k, k) = mScaleFactor;
-                    rb[k] = 0.0;
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(Avalues[j] != 0.0) {
+                    empty = false;
+                    break;
                 }
             }
-        }
 
-        #pragma omp parallel for firstprivate(system_size)
-        for (int k = 0; k < static_cast<int>(system_size); ++k) {
-            std::size_t col_begin = Arow_indices[k];
-            std::size_t col_end = Arow_indices[k+1];
-            const double k_factor = scaling_factors[k];
+            if(empty) {
+                rA(Index, Index) = mScaleFactor;
+                rb[Index] = 0.0;
+            }
+        });
+
+        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            const double k_factor = scaling_factors[Index];
             if (k_factor == 0.0) {
                 // Zero out the whole row, except the diagonal
                 for (std::size_t j = col_begin; j < col_end; ++j)
-                    if (static_cast<int>(Acol_indices[j]) != k )
+                    if (Acol_indices[j] != Index )
                         Avalues[j] = 0.0;
 
                 // Zero out the RHS
-                rb[k] = 0.0;
+                rb[Index] = 0.0;
             } else {
                 // Zero out the column which is associated with the zero'ed row
                 for (std::size_t j = col_begin; j < col_end; ++j)
                     if(scaling_factors[ Acol_indices[j] ] == 0 )
                         Avalues[j] = 0.0;
             }
-        }
+        });
     }
 
     /**
@@ -1116,13 +1094,12 @@ public:
             TSparseSpace::Copy(b_modified, rb);
 
             // Apply diagonal values on slaves
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const IndexType slave_equation_id = mSlaveIds[i];
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rb[slave_equation_id] = 0.0;
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("")
@@ -1165,14 +1142,13 @@ public:
             const double max_diag = GetMaxDiagonal(rA);
 
             // Apply diagonal values on slaves
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mSlaveIds.size()); ++i) {
-                const IndexType slave_equation_id = mSlaveIds[i];
+            IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
+                const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
                     rA(slave_equation_id, slave_equation_id) = max_diag;
                     rb[slave_equation_id] = 0.0;
                 }
-            }
+            });
         }
 
         KRATOS_CATCH("")
@@ -1452,21 +1428,20 @@ protected:
             for (int i = 0; i < static_cast<int>(mT.size1()); i++)
                 Trow_indices[i + 1] = Trow_indices[i] + indices[i].size();
 
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(mT.size1()); ++i) {
-                const IndexType row_begin = Trow_indices[i];
-                const IndexType row_end = Trow_indices[i + 1];
+            IndexPartition<std::size_t>(mT.size1()).for_each([&](std::size_t Index){
+                const IndexType row_begin = Trow_indices[Index];
+                const IndexType row_end = Trow_indices[Index + 1];
                 IndexType k = row_begin;
-                for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
+                for (auto it = indices[Index].begin(); it != indices[Index].end(); ++it) {
                     Tcol_indices[k] = *it;
                     Tvalues[k] = 0.0;
                     k++;
                 }
 
-                indices[i].clear(); //deallocating the memory
+                indices[Index].clear(); //deallocating the memory
 
                 std::sort(&Tcol_indices[row_begin], &Tcol_indices[row_end]);
-            }
+            });
 
             mT.set_filled(indices.size() + 1, nnz);
 
@@ -1564,78 +1539,66 @@ protected:
         //filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        ModelPart::ConditionsContainerType::iterator cond_begin = rModelPart.ConditionsBegin();
 
         const std::size_t equation_size = BaseType::mEquationSystemSize;
 
         std::vector< LockObject > lock_array(equation_size);
 
         std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-        #pragma omp parallel for firstprivate(equation_size)
-        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
-            indices[iii].reserve(40);
-        }
+
+        block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
+            rIndices.reserve(40);
+        });
 
         Element::EquationIdVectorType ids(3, 0);
 
-        #pragma omp parallel for firstprivate(nelements, ids)
-        for (int iii=0; iii<nelements; iii++) {
-            typename ElementsContainerType::iterator i_element = el_begin + iii;
-            pScheme->EquationId(*i_element, ids, CurrentProcessInfo);
-            for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].lock();
-                auto& row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].unlock();
+        block_for_each(rModelPart.Elements(), ids, [&](Element& rElem, Element::EquationIdVectorType& rIdsTLS){
+            pScheme->EquationId(rElem, rIdsTLS, CurrentProcessInfo);
+            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+                lock_array[rIdsTLS[i]].lock();
+                auto& row_indices = indices[rIdsTLS[i]];
+                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+                lock_array[rIdsTLS[i]].unlock();
             }
-        }
+        });
 
-        #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int iii = 0; iii<nconditions; iii++) {
-            typename ConditionsArrayType::iterator i_condition = cond_begin + iii;
-            pScheme->EquationId(*i_condition, ids, CurrentProcessInfo);
-            for (std::size_t i = 0; i < ids.size(); i++) {
-                lock_array[ids[i]].lock();
-                auto& row_indices = indices[ids[i]];
-                row_indices.insert(ids.begin(), ids.end());
-                lock_array[ids[i]].unlock();
+        block_for_each(rModelPart.Conditions(), ids, [&](Condition& rCond, Element::EquationIdVectorType& rIdsTLS){
+            pScheme->EquationId(rCond, rIdsTLS, CurrentProcessInfo);
+            for (std::size_t i = 0; i < rIdsTLS.size(); i++) {
+                lock_array[rIdsTLS[i]].lock();
+                auto& row_indices = indices[rIdsTLS[i]];
+                row_indices.insert(rIdsTLS.begin(), rIdsTLS.end());
+                lock_array[rIdsTLS[i]].unlock();
             }
-        }
+        });
 
         if (rModelPart.MasterSlaveConstraints().size() != 0) {
-            Element::EquationIdVectorType master_ids(3, 0);
-            Element::EquationIdVectorType slave_ids(3, 0);
+            struct TLS
+            {
+                Element::EquationIdVectorType master_ids = Element::EquationIdVectorType(3,0);
+                Element::EquationIdVectorType slave_ids = Element::EquationIdVectorType(3,0);
+            };
+            TLS tls;
 
-            const int nmasterSlaveConstraints = rModelPart.MasterSlaveConstraints().size();
-            const auto const_begin = rModelPart.MasterSlaveConstraints().begin();
+            block_for_each(rModelPart.MasterSlaveConstraints(), tls, [&](MasterSlaveConstraint& rConst, TLS& rTls){
+                rConst.EquationIdVector(rTls.slave_ids, rTls.master_ids, CurrentProcessInfo);
 
-            #pragma omp parallel for firstprivate(nmasterSlaveConstraints, slave_ids, master_ids)
-            for (int iii = 0; iii<nmasterSlaveConstraints; ++iii) {
-                auto i_const = const_begin + iii;
-                i_const->EquationIdVector(slave_ids, master_ids, CurrentProcessInfo);
-
-                for (std::size_t i = 0; i < slave_ids.size(); i++) {
-                    lock_array[slave_ids[i]].lock();
-                    auto& row_indices = indices[slave_ids[i]];
-                    row_indices.insert(slave_ids[i]);
-                    lock_array[slave_ids[i]].unlock();
+                for (std::size_t i = 0; i < rTls.slave_ids.size(); i++) {
+                    lock_array[rTls.slave_ids[i]].lock();
+                    auto& row_indices = indices[rTls.slave_ids[i]];
+                    row_indices.insert(rTls.slave_ids[i]);
+                    lock_array[rTls.slave_ids[i]].unlock();
                 }
 
-                for (std::size_t i = 0; i < master_ids.size(); i++) {
-                    lock_array[master_ids[i]].lock();
-                    auto& row_indices = indices[master_ids[i]];
-                    row_indices.insert(master_ids[i]);
-                    lock_array[master_ids[i]].unlock();
+                for (std::size_t i = 0; i < rTls.master_ids.size(); i++) {
+                    lock_array[rTls.master_ids[i]].lock();
+                    auto& row_indices = indices[rTls.master_ids[i]];
+                    row_indices.insert(rTls.master_ids[i]);
+                    lock_array[rTls.master_ids[i]].unlock();
                 }
-            }
+            });
+
         }
 
         //destroy locks
@@ -1659,8 +1622,7 @@ protected:
             Arow_indices[i+1] = Arow_indices[i] + indices[i].size();
         }
 
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(A.size1()); i++) {
+        IndexPartition<std::size_t>(A.size1()).for_each([&](std::size_t i){
             const unsigned int row_begin = Arow_indices[i];
             const unsigned int row_end = Arow_indices[i+1];
             unsigned int k = row_begin;
@@ -1674,7 +1636,7 @@ protected:
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
 
-        }
+        });
 
         A.set_filled(indices.size()+1, nnz);
 
@@ -1814,10 +1776,10 @@ protected:
     double GetDiagonalNorm(TSystemMatrixType& rA)
     {
         double diagonal_norm = 0.0;
-        #pragma omp parallel for reduction(+:diagonal_norm)
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            diagonal_norm += std::pow(rA(i,i), 2);
-        }
+        diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
+            return std::pow(rA(Index,Index), 2);
+        });
+
         return std::sqrt(diagonal_norm);
     }
 
@@ -1849,6 +1811,7 @@ protected:
         // Creating a buffer for parallel vector fill
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector max_vector(num_threads, 0.0);
+
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
@@ -1882,6 +1845,7 @@ protected:
         // Creating a buffer for parallel vector fill
         const int num_threads = ParallelUtilities::GetNumThreads();
         Vector min_vector(num_threads, std::numeric_limits<double>::max());
+
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
             const int id = OpenMPUtils::ThisThread();
