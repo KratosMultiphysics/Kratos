@@ -11,51 +11,54 @@
 //
 
 // Application includes
-#include "custom_elements/geo_mindlin_beam_element.hpp"
-#include <math.h> 
+#include "geo_mechanics_application_variables.h"
+#include "custom_elements/geo_curved_beam_element.hpp"
+#include "custom_utilities/element_utilities.hpp"
+
+#include <math.h>
 
 namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer GeoMindlinBeamElement<TDim,TNumNodes>::
+Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
     Create( IndexType NewId,
             NodesArrayType const& ThisNodes,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
 
-    return Element::Pointer( new GeoMindlinBeamElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Element::Pointer( new GeoCurvedBeamElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-Element::Pointer GeoMindlinBeamElement<TDim,TNumNodes>::
+Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
     Create( IndexType NewId,
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties ) const
 {
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default Create method for a particular element ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default Create method for a particular element ... illegal operation!!" << std::endl;
 
-    return Element::Pointer( new GeoMindlinBeamElement( NewId, pGeom, pProperties ) );
+    return Element::Pointer( new GeoCurvedBeamElement( NewId, pGeom, pProperties ) );
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
                            const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
-    KRATOS_THROW_ERROR(std::logic_error,"GeoMindlinBeamElement::CalculateLeftHandSide not implemented","");
+    KRATOS_ERROR << "GeoCurvedBeamElement::CalculateLeftHandSide not implemented" << std::endl;
 
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-int GeoMindlinBeamElement<TDim,TNumNodes>::
+int GeoCurvedBeamElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
@@ -69,32 +72,31 @@ int GeoMindlinBeamElement<TDim,TNumNodes>::
     if ( I33.Key() == 0 ||
          Prop.Has( I33 ) == false ||
          Prop[I33] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "I33 has Key zero, is not defined or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "I33 has Key zero, is not defined or has an invalid value at element: "
+                     << this->Id()
+                     << std::endl;
 
     if ( CROSS_AREA.Key() == 0 ||
          Prop.Has( CROSS_AREA ) == false ||
          Prop[CROSS_AREA] < 0.0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,
-                            "CROSS_AREA has Key zero, is not defined or has an invalid value at element",
-                            this->Id() )
+        KRATOS_ERROR << "CROSS_AREA has Key zero, is not defined or has an invalid value at element: "
+                     << this->Id()
+                     << std::endl;
 
-    if (TDim > 2)
-    {
+    if (TDim > 2) {
         if ( TORSIONAL_INERTIA.Key() == 0 ||
              Prop.Has( TORSIONAL_INERTIA ) == false ||
              Prop[TORSIONAL_INERTIA] < 0.0 )
-             KRATOS_THROW_ERROR( std::invalid_argument,
-                                 "TORSIONAL_INERTIA has Key zero, is not defined or has an invalid value at element",
-                                 this->Id() )
+             KRATOS_ERROR << "TORSIONAL_INERTIA has Key zero, is not defined or has an invalid value at element: "
+                          << this->Id()
+                          << std::endl;
 
         if ( I22.Key() == 0 ||
              Prop.Has( I22 ) == false ||
              Prop[I22] < 0.0 )
-             KRATOS_THROW_ERROR( std::invalid_argument,
-                                 "I22 has Key zero, is not defined or has an invalid value at element",
-                                 this->Id() )
+             KRATOS_ERROR << "I22 has Key zero, is not defined or has an invalid value at element: "
+                          << this->Id()
+                          << std::endl;
     }
 
     return 0;
@@ -104,7 +106,7 @@ int GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< >
-void GeoMindlinBeamElement<3,3>::
+void GeoCurvedBeamElement<3,3>::
     SetRotationalInertiaVector(const PropertiesType& Prop, Vector& rRotationalInertia) const
 {
     KRATOS_TRY
@@ -122,7 +124,7 @@ void GeoMindlinBeamElement<3,3>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< >
-void GeoMindlinBeamElement<2,3>::
+void GeoCurvedBeamElement<2,3>::
     SetRotationalInertiaVector(const PropertiesType& Prop, Vector& rRotationalInertia) const
 {
     KRATOS_TRY
@@ -138,7 +140,7 @@ void GeoMindlinBeamElement<2,3>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateMassMatrix( MatrixType& rMassMatrix,
                          const ProcessInfo& rCurrentProcessInfo )
 {
@@ -166,26 +168,21 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
      unsigned int index = 0;
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); GPoint++ )
-    {
-
+    for ( unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); GPoint++ ) {
         //calculating weighting coefficient for integration
         double IntegrationCoefficient = IntegrationPoints[GPoint].Weight() * detJContainer[GPoint];
 
         //Adding contribution to Mass matrix
         // loop over nodes
-        for (unsigned int node = 0; node < TNumNodes; ++node)
-        {
+        for (unsigned int node = 0; node < TNumNodes; ++node) {
             // displacement degrees of freedom
-            for (unsigned int dof = 0; dof < N_DOF_NODE_DISP; ++dof)
-            {
+            for (unsigned int dof = 0; dof < N_DOF_NODE_DISP; ++dof) {
                 unsigned int i = index++;
                 rMassMatrix(i, i) += Density * NContainer(GPoint, node) * IntegrationCoefficient;
             }
 
             // rotational degrees of freedom
-            for (unsigned int dof = 0; dof < N_DOF_NODE_ROT; ++dof)
-            {
+            for (unsigned int dof = 0; dof < N_DOF_NODE_ROT; ++dof) {
                 unsigned int i = index++;
                 rMassMatrix(i, i) += RotationalInertia[dof] * NContainer(GPoint, node) * IntegrationCoefficient;
             }
@@ -197,7 +194,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateStiffnessMatrix( MatrixType& rStiffnessMatrix,
                               const ProcessInfo& CurrentProcessInfo )
 {
@@ -233,8 +230,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
                                      CurrentProcessInfo);
 
     //Loop over integration points
-    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong)
-    {
+    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong) {
         //Compute Np, GradNpT, B and StrainVector
         noalias(Variables.Np)      = row(NContainer, GPointAlong);
         noalias(Variables.GradNpT) = DN_DXContainer[GPointAlong];
@@ -242,8 +238,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
         this->CalculateTransformationMatrix( Variables.TransformationMatrix,
                                              Variables.GradNpT );
 
-        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross)
-        {
+        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross) {
             int GPoint= GPointAlong * N_POINT_CROSS + GPointCross;
 
             BoundedMatrix<double,TDim, TDim> DetJacobianMatrix;
@@ -281,7 +276,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAll( MatrixType& rLeftHandSideMatrix,
                   VectorType& rRightHandSideVector,
                   const ProcessInfo& CurrentProcessInfo )
@@ -291,13 +286,16 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType&
+        IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
 
     //Containers of variables at all integration points
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     GeometryType::ShapeFunctionsGradientsType DN_DXContainer(IntegrationPoints.size());
     Vector detJContainer(IntegrationPoints.size());
-    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer, detJContainer, mThisIntegrationMethod);
+    Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,
+                                                  detJContainer,
+                                                  mThisIntegrationMethod);
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,Prop,CurrentProcessInfo);
@@ -314,8 +312,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
                                       CurrentProcessInfo );
 
     //Loop over integration points
-    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong)
-    {
+    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong) {
         //Compute Np, GradNpT, B and StrainVector
         noalias(Variables.GradNpT) = DN_DXContainer[GPointAlong];
         noalias(Variables.Np)      = row(NContainer, GPointAlong);
@@ -330,8 +327,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
                                                                Variables.VolumeAcceleration,
                                                                GPointAlong );
 
-        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross)
-        {
+        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross) {
             int GPoint= GPointAlong * N_POINT_CROSS + GPointCross;
 
             BoundedMatrix<double,TDim, TDim> DetJacobianMatrix;
@@ -371,7 +367,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     InitializeElementVariables( ElementVariables& rVariables,
                                 ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                 const GeometryType& Geom,
@@ -392,7 +388,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 }
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateRHS( VectorType& rRightHandSideVector,
                   const ProcessInfo& CurrentProcessInfo )
 {
@@ -423,8 +419,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
                                       CurrentProcessInfo );
 
     //Loop over integration points
-    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong)
-    {
+    for (unsigned int GPointAlong = 0; GPointAlong < IntegrationPoints.size(); ++GPointAlong) {
         //Compute Np, GradNpT, B and StrainVector
         noalias(Variables.GradNpT) = DN_DXContainer[GPointAlong];
         noalias(Variables.Np)      = row(NContainer, GPointAlong);
@@ -439,8 +434,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
                                                                Variables.VolumeAcceleration,
                                                                GPointAlong );
 
-        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross)
-        {
+        for (unsigned int GPointCross = 0; GPointCross < N_POINT_CROSS; ++GPointCross) {
             int GPoint= GPointAlong * N_POINT_CROSS + GPointCross;
 
             BoundedMatrix<double,TDim, TDim> DetJacobianMatrix;
@@ -478,21 +472,22 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
                        ElementVariables& rVariables ) const
 {
     KRATOS_TRY;
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rVariables.ConstitutiveMatrix);
-    rLeftHandSideMatrix = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient;
+    rLeftHandSideMatrix =  prod(rVariables.UVoigtMatrix,rVariables.B)
+                         * rVariables.IntegrationCoefficient;
 
     KRATOS_CATCH("");
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector,
                        ElementVariables& rVariables) const
 {
@@ -507,7 +502,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAndAddBodyForce(VectorType& rRightHandSideVector,
                              ElementVariables& rVariables) const
 {
@@ -526,7 +521,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAndAddStiffnessForce( VectorType& rRightHandSideVector,
                                    ElementVariables& rVariables ) const
 {
@@ -541,7 +536,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double GeoMindlinBeamElement<TDim,TNumNodes>::
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateElementCrossAngle(unsigned int GPoint,
                                const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DXContainer) const
 {
@@ -553,8 +548,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
     double dy = 0;
 
     // loop over nodes
-    for (unsigned int node = 0; node < TNumNodes; ++node)
-    {
+    for (unsigned int node = 0; node < TNumNodes; ++node) {
         dx += DN_DXContainer(GPoint, node) * Geom[node].X0();
         dy += DN_DXContainer(GPoint, node) * Geom[node].Y0();
     }
@@ -566,7 +560,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double GeoMindlinBeamElement<TDim,TNumNodes>::
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateElementAngle(unsigned int GPoint,
                           const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DXContainer) const
 {
@@ -578,8 +572,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
     double dy = 0;
 
     // loop over nodes
-    for (unsigned int node = 0; node < TNumNodes; ++node)
-    {
+    for (unsigned int node = 0; node < TNumNodes; ++node) {
         dx += DN_DXContainer(GPoint, node) * Geom[node].X0();
         dy += DN_DXContainer(GPoint, node) * Geom[node].Y0();
     }
@@ -591,7 +584,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double GeoMindlinBeamElement<TDim,TNumNodes>::
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateElementAngle(const Matrix &GradNpT) const
 {
     KRATOS_TRY;
@@ -602,8 +595,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
     double dy = 0;
 
     // loop over nodes
-    for (unsigned int node = 0; node < TNumNodes; ++node)
-    {
+    for (unsigned int node = 0; node < TNumNodes; ++node) {
         dx += GradNpT(node, 0) * Geom[node].X0();
         dy += GradNpT(node, 0) * Geom[node].Y0();
     }
@@ -615,7 +607,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< >
-void GeoMindlinBeamElement<2,3>::
+void GeoCurvedBeamElement<2,3>::
     CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                    const Matrix &GradNpT ) const
 {
@@ -637,7 +629,7 @@ void GeoMindlinBeamElement<2,3>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< >
-void GeoMindlinBeamElement<3,3>::
+void GeoCurvedBeamElement<3,3>::
     CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                    const Matrix &GradNpT ) const
 {
@@ -650,7 +642,7 @@ void GeoMindlinBeamElement<3,3>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateCrossDirection( Matrix &CrossDirection ) const
 {
     KRATOS_TRY;
@@ -658,8 +650,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
     BoundedMatrix<double, TNumNodes, TNumNodes> DN_DXContainer;
     GeoElementUtilities::CalculateShapeFunctionsNodesGradients(DN_DXContainer);
 
-    for (unsigned int IntegrationNode = 0; IntegrationNode < TNumNodes; ++IntegrationNode)
-    {
+    for (unsigned int IntegrationNode = 0; IntegrationNode < TNumNodes; ++IntegrationNode) {
         double phi = CalculateElementCrossAngle(IntegrationNode, DN_DXContainer);
         CrossDirection(0, IntegrationNode) = cos(phi);
         CrossDirection(1, IntegrationNode) = sin(phi);
@@ -670,7 +661,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
      CalculateDeterminantJacobian(unsigned int GPointCross,
                                   const ElementVariables &rVariables,
                                   BoundedMatrix<double,TDim, TDim> &DeterminantJacobian) const
@@ -683,8 +674,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
     noalias(DeterminantJacobian) = ZeroMatrix(TDim, TDim);
 
-    for (unsigned int node=0; node < TNumNodes; ++node)
-    {
+    for (unsigned int node=0; node < TNumNodes; ++node) {
         DeterminantJacobian(0, 0) += rVariables.GradNpT(node, 0) * Geom[node].X0() + thick * CrossXi[GPointCross] * rVariables.CrossDirection(0, node);
         DeterminantJacobian(0, 1) += rVariables.GradNpT(node, 0) * Geom[node].Y0() + thick * CrossXi[GPointCross] * rVariables.CrossDirection(1, node);
 
@@ -697,7 +687,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateBMatrix( Matrix &BTransformed,
                       unsigned int GPointCross,
                       const BoundedMatrix<double,TDim, TDim> &InvertDetJacobian,
@@ -741,10 +731,8 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
     noalias(BTransformed) = ZeroMatrix(BTransformed.size1(), BTransformed.size2());
     for (unsigned int idim=0; idim < TDim; ++idim)
     {
-        for (unsigned int idof=0; idof < N_DOF_ELEMENT; ++idof)
-        {
-            for (unsigned int jvoigt=0; jvoigt < VoigtSize; ++jvoigt)
-            {
+        for (unsigned int idof=0; idof < N_DOF_ELEMENT; ++idof) {
+            for (unsigned int jvoigt=0; jvoigt < VoigtSize; ++jvoigt) {
                 BTransformed(idim, idof) += rVariables.TransformationMatrix(idim, jvoigt) * B(jvoigt,idof);
             }
         }
@@ -755,7 +743,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-void GeoMindlinBeamElement<TDim,TNumNodes>::
+void GeoCurvedBeamElement<TDim,TNumNodes>::
      CalculateStrainVector(ElementVariables &rVariables) const
 {
     KRATOS_TRY
@@ -767,7 +755,7 @@ void GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
-double GeoMindlinBeamElement<TDim,TNumNodes>::
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateIntegrationCoefficient(unsigned int GPointCross,
                                     double detJ,
                                     double weight) const
@@ -777,9 +765,7 @@ double GeoMindlinBeamElement<TDim,TNumNodes>::
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//template class GeoMindlinBeamElement<2,2>;
-template class GeoMindlinBeamElement<2,3>;
-//template class GeoMindlinBeamElement<3,2>;
-template class GeoMindlinBeamElement<3,3>;
+template class GeoCurvedBeamElement<2,3>;
+template class GeoCurvedBeamElement<3,3>;
 
 } // Namespace Kratos

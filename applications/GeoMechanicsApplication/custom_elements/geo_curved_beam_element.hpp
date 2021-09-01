@@ -10,28 +10,27 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_MINDLIN_BEAM_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_MINDLIN_BEAM_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_GEO_CURVED_BEAM_ELEMENT_H_INCLUDED )
+#define  KRATOS_GEO_CURVED_BEAM_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/serializer.h"
-#include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 #include "custom_elements/geo_structural_base_element.hpp"
 
 namespace Kratos
 {
+/**
+ * @class GeoCurvedBeamElement
+ *
+ * @brief This is a geometrically non-linear (curved) beam element.
+ *        The formulation can be found in papers written by Karan S. Surana, e.g:
+ *        "Geometrically non-linear formulation for two dimensional curved beam elements"
+ * @author Vahid Galavi
+ */
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoMindlinBeamElement :
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCurvedBeamElement :
     public GeoStructuralBaseElement<TDim,TNumNodes>
 {
 
@@ -56,33 +55,33 @@ public:
     using GeoStructuralBaseElement<TDim,TNumNodes>::VoigtSize;
     typedef typename GeoStructuralBaseElement<TDim,TNumNodes>::ElementVariables ElementVariables;
 
-    KRATOS_CLASS_POINTER_DEFINITION( GeoMindlinBeamElement );
+    KRATOS_CLASS_POINTER_DEFINITION( GeoCurvedBeamElement );
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    GeoMindlinBeamElement(IndexType NewId = 0) :
+    GeoCurvedBeamElement(IndexType NewId = 0) :
         GeoStructuralBaseElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
-    GeoMindlinBeamElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+    GeoCurvedBeamElement(IndexType NewId, const NodesArrayType& ThisNodes) :
         GeoStructuralBaseElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
-    GeoMindlinBeamElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+    GeoCurvedBeamElement(IndexType NewId, GeometryType::Pointer pGeometry) :
         GeoStructuralBaseElement<TDim,TNumNodes>( NewId, pGeometry ) {}
 
     /// Constructor using Properties
-    GeoMindlinBeamElement(IndexType NewId,
-                          GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties) :
+    GeoCurvedBeamElement(IndexType NewId,
+                         GeometryType::Pointer pGeometry,
+                         PropertiesType::Pointer pProperties) :
         GeoStructuralBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
         {
             mThisIntegrationMethod = this->GetIntegrationMethod();
         }
 
     /// Destructor
-    virtual ~GeoMindlinBeamElement() {}
+    virtual ~GeoCurvedBeamElement() {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -138,8 +137,11 @@ protected:
     virtual void CalculateRHS( VectorType &rRightHandSideVector,
                                const ProcessInfo &CurrentProcessInfo ) override;
 
-    virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix, ElementVariables &rVariables) const;
-    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables) const;
+    virtual void CalculateAndAddLHS(MatrixType &rLeftHandSideMatrix,
+                                    ElementVariables &rVariables) const;
+
+    virtual void CalculateAndAddRHS(VectorType &rRightHandSideVector,
+                                    ElementVariables &rVariables) const;
 
     virtual void CalculateTransformationMatrix( Matrix &TransformationMatrix,
                                                 const Matrix &GradNpT ) const;
@@ -189,10 +191,10 @@ private:
     }
 
     /// Assignment operator.
-    GeoMindlinBeamElement & operator=(GeoMindlinBeamElement const& rOther);
+    GeoCurvedBeamElement & operator=(GeoCurvedBeamElement const& rOther);
 
     /// Copy constructor.
-    GeoMindlinBeamElement(GeoMindlinBeamElement const& rOther);
+    GeoCurvedBeamElement(GeoCurvedBeamElement const& rOther);
 
     //const values
     static constexpr SizeType N_DOF_NODE_DISP = TDim;
@@ -201,8 +203,8 @@ private:
     static constexpr SizeType N_POINT_CROSS = 2;
     const Vector CrossWeight = UnitVector(N_POINT_CROSS);
 
-}; // Class GeoMindlinBeamElement
+}; // Class GeoCurvedBeamElement
 
 } // namespace Kratos
 
-#endif // KRATOS_GEO_MINDLIN_BEAM_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_GEO_CURVED_BEAM_ELEMENT_H_INCLUDED  defined

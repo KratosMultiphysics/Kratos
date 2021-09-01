@@ -14,17 +14,11 @@
 #define  KRATOS_GEO_STRUCTURAL_BASE_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
-#include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+#include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {

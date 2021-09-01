@@ -11,6 +11,8 @@
 //
 
 // Application includes
+#include "custom_utilities/element_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "custom_elements/geo_structural_base_element.hpp"
 
 namespace Kratos
