@@ -217,28 +217,28 @@ void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateRayleighDampingMatrix
  * @param rElement The Element for which the reference length should be computed
  * @return reference length
  */
-double CalculateReferenceLength2D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateReferenceLength2D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the current length for 2D2N elements
  * @param rElement The Element for which the current length should be computed
  * @return current length
  */
-double CalculateCurrentLength2D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateCurrentLength2D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the reference length for 3D2N elements
  * @param rElement The Element for which the reference length should be computed
  * @return reference length
  */
-double CalculateReferenceLength3D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateReferenceLength3D2N(const Element& rElement);
 
 /**
  * @brief This function calculates the current length for 3D2N elements
  * @param rElement The Element for which the current length should be computed
  * @return current length
  */
-double CalculateCurrentLength3D2N(const Element& rElement);
+double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateCurrentLength3D2N(const Element& rElement);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
