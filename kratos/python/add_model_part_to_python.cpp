@@ -34,6 +34,18 @@ namespace Kratos
 namespace Python
 {
 
+template<class TDataType>
+void AddNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
+{
+    rModelPart.AddNodalSolutionStepVariable(rThisVariable);
+}
+
+template<class TDataType>
+bool HasNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
+{
+    return rModelPart.HasNodalSolutionStepVariable(rThisVariable);
+}
+
 void SetModelPartName(ModelPart& rModelPart, std::string const& NewName)
 {
     rModelPart.Name() = NewName;
@@ -944,8 +956,20 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveSubModelPart", RemoveSubModelPart2)
         .def("HasSubModelPart", &ModelPart::HasSubModelPart)
         .def("ConditionsArray", &ModelPart::ConditionsArray, py::return_value_policy::reference_internal)
-        .def("AddNodalSolutionStepVariable", &ModelPart::AddNodalSolutionStepVariable)
-        .def("HasNodalSolutionStepVariable", &ModelPart::HasNodalSolutionStepVariable)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<double>)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<array_1d<double, 3 > >)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
+        .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<bool>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<int>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<double>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<array_1d<double, 3 > >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Vector>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Matrix>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Quaternion<double> >)
         .def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
         .def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
         .def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)
