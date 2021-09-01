@@ -450,6 +450,8 @@ private:
     ConstitutiveVariables ConvertMaterialAndStressFromVoigt(
         const BoundedMatrix<double, 6, 6>& c, const BoundedVector<double, 6>& S);
 
+    BoundedMatrix<double, 3, 3> orthonormalizeMatrixColumns(const BoundedMatrix<double, 3, 3>& A);
+
     /**
     * This functions updates the constitutive variables
     * @param rActualMetric: The actual metric

@@ -330,9 +330,8 @@ namespace Kratos
             }
             //static condensation of Czz but still in 6x6 matrix
             std::cout << C << std::endl;
-            unsigned mapim_fshell[5] = { 0, 1, 3, 4, 5 };
-            unsigned mapiz_fshell[1] = { 2 };
-
+            //unsigned mapim_fshell[5] = { 0, 1, 3, 4, 5 };
+            //unsigned mapiz_fshell[1] = { 2 };
 
             BoundedVector<double,5> Cmz{};
 
@@ -825,17 +824,17 @@ namespace Kratos
     }
 
 
-    template<IndexType size1, IndexType size2>
-    BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A) {
+    //template<IndexType size1, IndexType size2>
+    BoundedMatrix<double, 3, 3> orthonormalizeMatrixColumns(const BoundedMatrix<double, 3, 3>& A) {
         //Gram Schmidt Orthogonalization
-        BoundedMatrix<double, size1, size2> Q = A;
+        BoundedMatrix<double, 3, 3> Q = A;
 
         column(Q, 0) = column(Q, 0) / norm_2(column(Q, 0));
 
         for (int colIndex = 1; colIndex < Q.size2(); colIndex++) {
-            matrix_range<bounded_matrix<double, size1, size2> > mr2(Q, range(0, Q.size1()), range(0, colIndex));
+            matrix_range<bounded_matrix<double, 3, 3> > mr2(Q, range(0, Q.size1()), range(0, colIndex));
            // bounded_vector<double, size1> v = prod(trans(mr2), column(A, colIndex));
-            column(Q, colIndex) -= prod(mr2, prod< bounded_vector<double, size1>>(trans(mr2), column(A, colIndex)));
+            column(Q, colIndex) -= prod(mr2, prod< bounded_vector<double, 3>>(trans(mr2), column(A, colIndex)));
             column(Q, colIndex) = column(Q, colIndex) / norm_2(column(Q, colIndex));
         }
 
