@@ -1,6 +1,9 @@
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
+import KratosMultiphysics as KM
+import pdb
+
 class PrintIterationNumberOperation(CoSimulationCouplingOperation):
     # this is a dummy implementation, this be used with iterative coupled-solvers
     def Initialize(self):
@@ -26,6 +29,8 @@ class PrintIterationNumberOperation(CoSimulationCouplingOperation):
 
     def Execute(self):
         pass
+        #pdb.set_trace()
+        #time = self.process_info.ProcessInfo[KM.TIME]
 
 
     def PrintInfo(self):
