@@ -271,6 +271,28 @@ double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<do
     return rNode.GetValue(rVariable);
 }
 
+
+bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double RelativeDryHeight)
+{
+    double height = 0.0;
+    for (const auto& r_node : rGeometry)
+    {
+        height += r_node.FastGetSolutionStepValue(HEIGHT);
+    }
+    height /= rGeometry.size();
+    return IsWet(rGeometry, height, RelativeDryHeight);
+}
+
+bool ShallowWaterUtilities::IsWet(const GeometryType& rGeometry, const double Height, const double RelativeDryHeight)
+{
+    const double epsilon = RelativeDryHeight * rGeometry.Length();
+    const double wet_fraction = WetFraction(Height, epsilon);
+    const double threshold = 1.0 - 1e-16;
+    const bool is_wet = (wet_fraction >= threshold);
+    return is_wet;
+
+}
+
 template<>
 array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::ConditionsContainerType>(
     const double Density,

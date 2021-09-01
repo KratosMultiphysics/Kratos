@@ -294,7 +294,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
 
                     Vector w_vect;
                     Matrix N_container;
-                    std::vector<Vector> normals_vect;
+                    std::vector<array_1d<double,3>> normals_vect;
                     CalculateSplitConditionGeometryData<IsPositiveSubdomain>(p_mod_sh_func, face_id, N_container, normals_vect, w_vect);
 
                     // Interpolate the flow rate in the positive subdomain
@@ -303,7 +303,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     array_1d<double,3> aux_vel;
                     const std::size_t n_gauss = w_vect.size();
                     for (std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
-                        aux_vel = ZeroVector(0);
+                        aux_vel = ZeroVector(3);
                         i_N = row(N_container, i_gauss);
                         i_normal = normals_vect[i_gauss];
                         const double i_normal_norm = norm_2(i_normal);
@@ -393,7 +393,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<true>(
     const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
     const std::size_t FaceId,
     Matrix& rShapeFunctions,
-    std::vector<Vector>& rNormals,
+    std::vector<array_1d<double,3>>& rNormals,
     Vector& rWeights)
 {
     //TODO: Use a method without gradients when we implement it
@@ -407,7 +407,7 @@ void FluidAuxiliaryUtilities::CalculateSplitConditionGeometryData<false>(
     const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
     const std::size_t FaceId,
     Matrix& rShapeFunctions,
-    std::vector<Vector>& rNormals,
+    std::vector<array_1d<double,3>>& rNormals,
     Vector& rWeights)
 {
     //TODO: Use a method without gradients when we implement it

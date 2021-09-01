@@ -47,7 +47,7 @@ namespace Kratos
 
 /**
  * @class ElasticIsotropicK03DLaw
- * @ingroup StructuralMechanicsApplication
+ * @ingroup GeoMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for 3D cases
  * @details This class derives from the base constitutive law
  * @author Vahid Galavi
