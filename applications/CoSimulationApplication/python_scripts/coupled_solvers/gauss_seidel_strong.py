@@ -80,6 +80,11 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
+                # Check if the solver is the pfem, as this doesn't implement the reset to the buffer.
+                if solver_name == "pfem": #k > 0 and 
+                    # pdb.set_trace()
+                    KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(solver._analysis_stage._GetSolver().model["PfemFluidModelPart.Fluid"])
+
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
                 self._SynchronizeOutputData(solver_name)
@@ -93,7 +98,29 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
             for conv_crit in self.convergence_criteria_list:
                 conv_crit.FinalizeNonLinearIteration()
 
-            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
+            is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])# and k >= 2# This and is required for Aitken relaxation!!!
+
+            ##### Dump the iteration numbers to a file
+            """This operation is used to print the iteration number per timestep.
+                TODO:
+                - promote to a coupling operation
+                - refactor
+                - initialize the file to write its the heading
+            """
+            plot_file_iter_aitken = "iterations_Aitken.txt"
+            with open(plot_file_iter_aitken, "a") as f:
+                #f.write("#TIME[s]" + "\t" + "AITKEN_ITERATION_NUMBER\n")
+                for solver_name, solver in self.solver_wrappers.items():
+                # Check if the solver is the pfem, as this doesn't implement the reset to the buffer.
+                    if solver_name == "pfem": #k > 0 and 
+                        time = solver._analysis_stage._GetSolver().model["PfemFluidModelPart.InterfaceWalls"].ProcessInfo[KM.TIME]
+                        # self.model_part.ProcessInfo[KM.TIME]
+                        # time = self.process_info[KM.TIME]
+                #pdb.set_trace()
+                if k < self.num_coupling_iterations:
+                    f.write("{0:.4e}".format(time).rjust(11) + "\t" + str(k) + "\n")
+                else:
+                    f.write("{0:.4e}".format(time).rjust(11) + "\t" + str(k) + "  MAX iterations reached!" + "\n")
 
             if is_converged:
                 if self.echo_level > 0:
