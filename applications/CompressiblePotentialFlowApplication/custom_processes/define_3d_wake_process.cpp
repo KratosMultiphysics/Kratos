@@ -37,6 +37,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
         "tolerance"                            : 1e-9,
         "wake_normal"                          : [0.0,0.0,1.0],
         "wake_direction"                       : [1.0,0.0,0.0],
+        "is_sharp_trailing_edge"               : true,
         "switch_wake_normal"                   : false,
         "count_elements_number"                : false,
         "write_elements_ids_to_file"           : false,
@@ -51,6 +52,7 @@ Define3DWakeProcess::Define3DWakeProcess(ModelPart& rTrailingEdgeModelPart,
     mTolerance = ThisParameters["tolerance"].GetDouble();
     mWakeNormal = ThisParameters["wake_normal"].GetVector();
     mWakeDirection = ThisParameters["wake_direction"].GetVector();
+    mIsSharpTrailingEdge = ThisParameters["is_sharp_trailing_edge"].GetBool();
     mSwitchWakeDirection = ThisParameters["switch_wake_normal"].GetBool();
     mCountElementsNumber = ThisParameters["count_elements_number"].GetBool();
     mWriteElementsIdsToFile = ThisParameters["write_elements_ids_to_file"].GetBool();
@@ -73,6 +75,7 @@ void Define3DWakeProcess::ExecuteInitialize()
         r_nodes.SetValue(UPPER_SURFACE, false);
         r_nodes.SetValue(LOWER_SURFACE, false);
         r_nodes.SetValue(TRAILING_EDGE, false);
+        r_nodes.SetValue(KUTTA, false);
         r_nodes.SetValue(WAKE_DISTANCE, 0.0);
     });
     auto& r_elements = root_model_part.Elements();
@@ -98,9 +101,11 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     MarkWakeElements();
 
-    // RecomputeNodalDistancesToWakeOrWingLowerSurface();
+    if(mIsSharpTrailingEdge){
+        RecomputeNodalDistancesToWakeOrWingLowerSurface();
 
-    // MarkKuttaElements();
+        MarkKuttaElements();
+    }
 
     SaveLocalWakeNormalInElements();
 
@@ -182,9 +187,6 @@ void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
     auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
 
     for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
-        // if(r_node.Z() > -0.044){
-        //     r_node.SetValue(KUTTA, true);
-        // }
         r_node.SetValue(KUTTA, true);
         r_node.SetValue(TRAILING_EDGE, true);
         const auto& r_coordinates = r_node.Coordinates();
@@ -438,7 +440,6 @@ void Define3DWakeProcess::MarkWakeElements() const
     BuiltinTimer timer;
 
     CalculateDiscontinuousDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
-    // CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
 
     KRATOS_INFO_IF("MarkWakeElements", mEchoLevel > 0)
@@ -912,71 +913,5 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
         outfile_all_wake << "\n";
     }
     outfile_all_wake.close();
-
-    std::ofstream outfile_kutta_condition;
-    outfile_kutta_condition.open("kutta_condition_elements_id.txt");
-    std::ofstream outfile_te_elements;
-    outfile_te_elements.open("te_elements_id.txt");
-    unsigned int te_elements_counter = 0;
-    for (auto& r_element : root_model_part.Elements()){
-        unsigned int kutta_nodes_counter = 0;
-        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
-        {
-            // Elements touching the trailing edge are trailing edge elements
-            if (r_element.GetGeometry()[i].GetValue(KUTTA))
-            {
-                outfile_kutta_condition << r_element.Id();
-                outfile_kutta_condition << "\n";
-                r_element.SetValue(ZERO_VELOCITY_CONDITION, true);
-                break;
-            }
-        }
-
-        int trailing_edge_node_counter = 0;
-
-        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
-        {
-            // Elements touching the trailing edge are trailing edge elements
-            if (r_element.GetGeometry()[i].GetValue(TRAILING_EDGE))
-            {
-                trailing_edge_node_counter += 1;
-            }
-        }
-        // if(trailing_edge_node_counter > 1){
-        //     r_element.SetValue(ALL_TRAILING_EDGE, true);
-        // }
-        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
-        {
-            // Elements touching the trailing edge are trailing edge elements
-            if (r_element.GetGeometry()[i].GetValue(KUTTA))
-            {
-                kutta_nodes_counter += 1;
-            }
-        }
-
-        // const int te_element = r_element.GetValue(ALL_TRAILING_EDGE);
-        // const int wake = r_element.GetValue(WAKE);
-
-        // if(kutta_nodes_counter > 0 && r_element.GetGeometry().Center().X() > 0.488){
-        // if(kutta_nodes_counter > 0 || (wake && trailing_edge_node_counter > 0)){
-        if(kutta_nodes_counter > 0){
-            r_element.SetValue(ALL_TRAILING_EDGE, true);
-            te_elements_counter += 1;
-            outfile_te_elements << r_element.Id();
-            outfile_te_elements << "\n";
-        }
-        // if(wake==0){
-        //     outfile_te_elements << r_element.Id();
-        //     outfile_te_elements << "\n";
-        // }
-        // else if(te_element){
-        //     outfile_te_elements << r_element.Id();
-        //     outfile_te_elements << "\n";
-        // }
-    }
-    KRATOS_WATCH(te_elements_counter)
-
-    outfile_kutta_condition.close();
-    outfile_te_elements.close();
 }
 } // namespace Kratos.

@@ -254,9 +254,6 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_WATCH(LHS_finite_diference)
-        KRATOS_WATCH(LHS_analytical)
-
         KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-5);
     }
 
@@ -287,9 +284,6 @@ namespace Kratos {
 
         PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
-
-        KRATOS_WATCH(LHS_finite_diference)
-        KRATOS_WATCH(LHS_analytical)
 
         KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-5);
     }

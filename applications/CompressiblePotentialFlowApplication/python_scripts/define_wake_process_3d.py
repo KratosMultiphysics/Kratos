@@ -39,6 +39,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                 "tolerance"                     : 1e-9,
                 "wake_normal"                   : [0.0,0.0,1.0],
                 "wake_direction"                : [1.0,0.0,0.0],
+                "is_sharp_trailing_edge"        : true,
                 "switch_wake_normal"            : false,
                 "count_elements_number"         : false,
                 "write_elements_ids_to_file"    : false,

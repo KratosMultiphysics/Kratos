@@ -100,6 +100,7 @@ private:
     BoundedVector<double, 3> mWakeDirection;
     BoundedVector<double, 3> mSpanDirection;
 
+    bool mIsSharpTrailingEdge;
     bool mSwitchWakeDirection;
     bool mCountElementsNumber;
     bool mWriteElementsIdsToFile;

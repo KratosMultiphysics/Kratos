@@ -198,12 +198,12 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(const Element& rElement,
+void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
                               Matrix& rLeftHandSideMatrix,
                               const ProcessInfo& rCurrentProcessInfo);
 
 template <int Dim, int NumNodes>
-void AddKuttaConditionPenaltyTerm(const Element& rElement,
+void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 

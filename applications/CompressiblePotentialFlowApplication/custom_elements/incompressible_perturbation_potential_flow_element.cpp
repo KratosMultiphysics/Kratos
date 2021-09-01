@@ -72,7 +72,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
         CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim, NumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<Dim, NumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
     }
 }
 
@@ -89,7 +89,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
         CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
-        PotentialFlowUtilities::AddKuttaConditionPenaltyTerm<Dim, NumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<Dim, NumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
     }
 }
 
@@ -233,8 +233,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnI
         rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
         rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
-    else if (rVariable == ALL_TRAILING_EDGE)
-        rValues[0] = this->GetValue(ALL_TRAILING_EDGE);
 }
 
 template <int Dim, int NumNodes>
