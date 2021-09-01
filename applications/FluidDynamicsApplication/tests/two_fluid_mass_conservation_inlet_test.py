@@ -147,6 +147,4 @@ class FluidDynamicsAnalysisChannel(FluidDynamicsAnalysis):
                 self.last_flush = now
 
 if __name__ == "__main__":
-
-    test = TwoFluidMassConservationInletTest()
-    test.runTwoFluidMassConservationTestInlet3D()
+    KratosUnittest.main()
