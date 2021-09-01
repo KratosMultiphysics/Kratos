@@ -271,10 +271,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().InitializeSolutionStep()
 
             # Accumulative Water volume error ratio due to level Set .Adding source term 
-            self.water_volume_after_transport=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+            water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
 
-            volume_error = (self.water_volume_after_transport -  self.system_volume)/ self.system_volume
-            self.volume_error_to_check_before_adding_source_term= self.water_volume_after_transport - self.system_volume
+            volume_error = (water_volume_after_transport - system_volume) / system_volume
             
             # By setting VOLUME_ERROR to 0 the mass conservation source is set to 0. grad_v=0 
             # self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = 0
