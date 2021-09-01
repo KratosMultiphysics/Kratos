@@ -226,14 +226,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def InitializeSolutionStep(self):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
-        self.outlet_discharge=KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
-        self.inlet_discharge=KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.INLET)
-        self.current_dt=self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        self.inlet_volume=-self.current_dt*self.inlet_discharge
-        self.outlet_volume=self.current_dt*self.outlet_discharge
+        outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
+        inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.INLET)
+        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        inlet_volume = -current_dt * inlet_discharge
+        outlet_volume = current_dt * outlet_discharge
 
         # System water volume is calculated for current time step considering inlet and outlet discharge. 
-        self.system_volume= self.inlet_volume+self.initial_system_volume-self.outlet_volume
+        system_volume = inlet_volume + self.initial_system_volume - outlet_volume
         
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
