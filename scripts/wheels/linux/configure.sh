@@ -31,7 +31,7 @@ add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/FSIApplication;
 add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
-add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
+# add_app ${KRATOS_APP_DIR}/ExternalSolversApplication;
 add_app ${KRATOS_APP_DIR}/EigenSolversApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;

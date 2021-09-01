@@ -22,7 +22,7 @@ CALL :add_app %KRATOS_APP_DIR%\DamApplication;
 CALL :add_app %KRATOS_APP_DIR%\PoromechanicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\FSIApplication;
 CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
-CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\ExternalSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
