@@ -21,15 +21,21 @@ namespace Kratos {
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) override;
 
+        void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true) override;
+
+        void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
+
         void Check(Properties::Pointer pProp) const override;
 
-        void Initialize(SphericContinuumParticle* element) override;
+        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double bonded_equiv_young,
-                                             double equiv_poisson, double calculation_area,
-                                             SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
+                                        double equiv_poisson, double calculation_area,
+                                        SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
+
+        double GetYoungModulusForComputingRotationalMoments(const double& equiv_young) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                                 double OldLocalElasticContactForce[3],

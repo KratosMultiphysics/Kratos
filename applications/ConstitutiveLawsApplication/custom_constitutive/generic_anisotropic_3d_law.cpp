@@ -111,10 +111,10 @@ void GenericAnisotropic3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Para
         if (r_material_properties.Has(EULER_ANGLES)   &&
             MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
                 const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
+                AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                     r_euler_angles(0), r_euler_angles(1),
                     r_euler_angles(2), rotation_matrix);
-                ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                     (rotation_matrix),
                     voigt_rotation_matrix);
         } else {
@@ -267,10 +267,10 @@ void GenericAnisotropic3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     if (r_material_properties.Has(EULER_ANGLES)   &&
         MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
             const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                 r_euler_angles(0), r_euler_angles(1),
                 r_euler_angles(2), rotation_matrix);
-            ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                 (rotation_matrix),
                 voigt_rotation_matrix);
     } else {
@@ -474,10 +474,10 @@ Vector& GenericAnisotropic3DLaw::CalculateValue(
             if (r_material_properties.Has(EULER_ANGLES)   &&
                 MathUtils<double>::Norm3(r_material_properties[EULER_ANGLES]) > machine_tolerance) {
                     const Vector& r_euler_angles = r_material_properties[EULER_ANGLES];
-                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
+                    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperator(
                         r_euler_angles(0), r_euler_angles(1),
                         r_euler_angles(2), rotation_matrix);
-                    ConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
+                    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateRotationOperatorVoigt(
                         (rotation_matrix),
                         voigt_rotation_matrix);
                     double det = 0.0;

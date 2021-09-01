@@ -23,6 +23,7 @@
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/linear_plane_strain.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 
@@ -99,15 +100,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(AssociativePlasticDamageModel);
 
     struct PlasticDamageParameters {
-        BoundedMatrixType ComplianceMatrixIncrement = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType ComplianceMatrix       = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType ConstitutiveMatrix     = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedMatrixType TangentTensor          = ZeroMatrix(VoigtSize,VoigtSize);
-        BoundedVectorType PlasticFlow            = ZeroVector(VoigtSize);
-        BoundedVectorType PlasticStrain          = ZeroVector(VoigtSize);
-        BoundedVectorType PlasticStrainIncrement = ZeroVector(VoigtSize);
-        BoundedVectorType StrainVector           = ZeroVector(VoigtSize);
-        BoundedVectorType StressVector           = ZeroVector(VoigtSize);
+        BoundedMatrixType ComplianceMatrixIncrement { ZeroMatrix(VoigtSize,VoigtSize) } ;
+        BoundedMatrixType ComplianceMatrix       { ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedMatrixType ConstitutiveMatrix     {  ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedMatrixType TangentTensor          {  ZeroMatrix(VoigtSize,VoigtSize) };
+        BoundedVectorType PlasticFlow            {  ZeroVector(VoigtSize) };
+        BoundedVectorType PlasticStrain          {  ZeroVector(VoigtSize)};
+        BoundedVectorType PlasticStrainIncrement {  ZeroVector(VoigtSize)};
+        BoundedVectorType StrainVector           {  ZeroVector(VoigtSize)};
+        BoundedVectorType StressVector           {  ZeroVector(VoigtSize)};
         double NonLinearIndicator          = 0.0; // F
         double PlasticConsistencyIncrement = 0.0; // Lambda dot
         double UniaxialStress              = 0.0;

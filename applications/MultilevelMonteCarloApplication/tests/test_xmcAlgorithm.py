@@ -23,6 +23,7 @@ import unittest
 import json
 import sys
 import os
+import numpy as np
 
 # Import XMC, distributed environment
 import xmc
@@ -70,9 +71,13 @@ class TestXMCAlgorithm(unittest.TestCase):
             "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_poisson_2d.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_poisson_2d_with_combined_power_sums.json",
             "poisson_square_2d/problem_settings/poisson_multi-moment_mc.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_asynchronous_poisson_2d_fixedsamples.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_poisson_2d_fixedsamples.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mc_Kratos_asynchronous_adaptive_poisson_2d.json",
         ]
 
         for parametersPath in parametersList:
+            # start reading parameters
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
             # SolverWrapper
@@ -113,6 +118,8 @@ class TestXMCAlgorithm(unittest.TestCase):
                 **parameters["errorEstimatorInputDictionary"]
             )
             # HierarchyOptimiser
+            # Set tolerance from stopping criterion
+            parameters["hierarchyOptimiserInputDictionary"]["tolerance"] = parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"]
             hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(
                 **parameters["hierarchyOptimiserInputDictionary"]
             )
@@ -138,6 +145,7 @@ class TestXMCAlgorithm(unittest.TestCase):
                 varianceAssembler,
             ]
             monteCarloSamplerInputDictionary["errorEstimators"] = [statErrorEstimator]
+            # build Monte Carlo sampler object
             mcSampler = xmc.monteCarloSampler.MonteCarloSampler(
                 **monteCarloSamplerInputDictionary
             )
@@ -157,7 +165,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             estimations = get_value_from_remote(algo.estimation())
             estimated_mean = 1.5
             self.assertAlmostEqual(estimations[0], estimated_mean, delta=0.1)
-            self.assertEqual(algo.hierarchy()[0][1], 15)
+            if "asynchronous_adaptive" in parametersPath:
+                # self.assertEqual(algo.hierarchy()[0][1], 117) # uncomment once issue #62 is solved
+                self.assertAlmostEqual(estimations[0], 1.4176913818988959, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
+            else:
+                self.assertEqual(algo.hierarchy()[0][1], 15)
+            if parameters["solverWrapperInputDictionary"]["asynchronous"]:
+                self.assertEqual(algo.monteCarloSampler.samplesCounter,algo.hierarchy()[0][1])
+                if parameters["samplerInputDictionary"]["randomGenerator"] == "xmc.randomGeneratorWrapper.EventDatabase":
+                    self.assertEqual(algo.monteCarloSampler.batchIndices[-1][-1].sampler.randomGenerator._eventCounter,algo.hierarchy()[0][1])
 
     def test_mlmc_Kratos(self):
         if not isKratosFound():
@@ -177,8 +193,14 @@ class TestXMCAlgorithm(unittest.TestCase):
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_with_combined_power_sums_multi_ensemble.json",
             "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_DAR.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_poisson_2d_fixedsamples.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_asynchronous_adaptivefixednumberlevels_poisson_2d.json",
+            "poisson_square_2d/problem_settings/parameters_xmc_test_mlmc_Kratos_adaptivefixednumberlevels_poisson_2d.json"
         ]
+
+
         for parametersPath in parametersList:
+            # read parameters
             with open(parametersPath, "r") as parameter_file:
                 parameters = json.load(parameter_file)
             # SolverWrapper
@@ -219,6 +241,8 @@ class TestXMCAlgorithm(unittest.TestCase):
                 **parameters["errorEstimatorInputDictionary"]
             )
             # HierarchyOptimiser
+            # Set tolerance from stopping criterion
+            parameters["hierarchyOptimiserInputDictionary"]["tolerance"] = parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"]
             hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(
                 **parameters["hierarchyOptimiserInputDictionary"]
             )
@@ -254,6 +278,7 @@ class TestXMCAlgorithm(unittest.TestCase):
                 varianceAssembler,
             ]
             monteCarloSamplerInputDictionary["errorEstimators"] = [MSEErrorEstimator]
+            # build Monte Carlo sampler object
             mcSampler = xmc.monteCarloSampler.MonteCarloSampler(
                 **monteCarloSamplerInputDictionary
             )
@@ -273,8 +298,15 @@ class TestXMCAlgorithm(unittest.TestCase):
             estimations = get_value_from_remote(algo.estimation())
             estimated_mean = 1.47
             self.assertAlmostEqual(estimations[0], estimated_mean, delta=1.0)
-            for level in algo.hierarchy():
-                self.assertEqual(level[1], 15)
+            if "asynchronous_adaptivefixednumberlevels" in parametersPath:
+                self.assertAlmostEqual(sum(estimations), 1.5285582403120515, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
+                # self.assertEqual(sum(algo.hierarchy()[i][-1] for i in range (0,len(algo.hierarchy()))), 194) # uncomment once issue #62 is solved
+            elif "adaptivefixednumberlevels" in parametersPath:
+                self.assertAlmostEqual(sum(estimations), 1.528129424481246, delta=parameters["monoCriteriaInputDictionary"]["statisticalError"]["tolerance"][0])
+                # self.assertEqual(sum(algo.hierarchy()[i][-1] for i in range (0,len(algo.hierarchy()))), 122) # uncomment once issue #62 is solved
+            else:
+                for level in algo.hierarchy():
+                    self.assertEqual(level[1], 15)
 
 
 if __name__ == "__main__":

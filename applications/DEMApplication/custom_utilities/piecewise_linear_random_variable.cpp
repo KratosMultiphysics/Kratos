@@ -1,6 +1,6 @@
 // Authors:
 // Guillermo Casas gcasas@cimne-upc.edu
-
+#include <algorithm>
 #include "piecewise_linear_random_variable.h"
 #include "includes/checks.h"
 
@@ -47,6 +47,12 @@ namespace Kratos {
             mPDFBreakpoints[i] = breakpoints[i];
             mPDFValues[i] = values[i];
         }
+
+        size_t low_index;
+        size_t high_index;
+        CalculateFirstAndLastIndicesWithNonzeroValue<double>(mPDFValues, low_index, high_index);
+
+        SetSupport(mPDFBreakpoints[low_index], mPDFBreakpoints[high_index]);
 
         Check();
 
@@ -140,6 +146,7 @@ namespace Kratos {
             std::vector<double> areas(mPDFBreakpoints.size() - 1);
 
             // Compute the mean by weighing the centroid coordinate of every trapezoid by its area
+            mMean = 0.0;
             for (std::size_t i = 0; i < areas.size(); ++i) {
                 const double& x1 = mPDFBreakpoints[i];
                 const double& x2 = mPDFBreakpoints[i + 1];

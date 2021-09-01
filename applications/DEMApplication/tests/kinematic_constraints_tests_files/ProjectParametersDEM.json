@@ -20,7 +20,10 @@
     "CleanIndentationsOption"        : false,
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "sphere_strategy"
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -155,7 +158,7 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 0.0002,
+    "MaxTimeStep"                    : 0.0005,
     "FinalTime"                      : 0.31,
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 0.001,
