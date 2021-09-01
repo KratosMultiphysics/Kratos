@@ -11,15 +11,6 @@ import sys
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
-# Class to navigate through the folders
-class WorkFolderScope:
-    def __init__(self, work_folder):
-        self.currentPath = os.getcwd()
-        self.scope = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),work_folder))
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidMassConservationTest(UnitTest.TestCase):
 
