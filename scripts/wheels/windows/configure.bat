@@ -35,7 +35,7 @@ CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
-CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
 CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
