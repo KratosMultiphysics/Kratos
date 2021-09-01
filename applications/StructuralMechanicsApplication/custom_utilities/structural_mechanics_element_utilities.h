@@ -206,7 +206,7 @@ double GetDensityForMassMatrixComputation(const Element& rElement);
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @param MatrixSize The size of the damping-matrix
  */
-void CalculateRayleighDampingMatrix(
+void KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo,
