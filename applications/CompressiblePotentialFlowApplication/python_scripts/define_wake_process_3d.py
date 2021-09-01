@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import math
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 import time as time
 
 def DotProduct(A,B):
@@ -101,6 +102,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
 
     def ExecuteInitialize(self):
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, 5.0)
         # If stl available, read wake from stl and create the wake model part
         start_time = time.time()
         self.__CreateWakeModelPart()
@@ -128,8 +130,8 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
     def __CreateWakeModelPart(self):
         self.wake_model_part = self.model.CreateModelPart("wake_model_part")
         self.dummy_property = self.wake_model_part.Properties[0]
-        self.node_id = 1
-        self.elem_id = 1
+        self.node_id = 1000000
+        self.elem_id = 1000000
         if not self.shed_wake_from_trailing_edge:
             self.__ReadWakeStlModelFromFile()
 
@@ -138,14 +140,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         from stl import mesh #this requires numpy-stl
         wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
 
-        z = 0.0#-1e-4
+        z = -1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
+        y = 0.0
+        x = -3e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
             for vertex in stl_mesh.points:
-                node1 = self.__AddNodeToWakeModelPart(float(vertex[0]), float(vertex[1]), float(vertex[2]) + z )
-                node2 = self.__AddNodeToWakeModelPart(float(vertex[3]), float(vertex[4]), float(vertex[5]) + z )
-                node3 = self.__AddNodeToWakeModelPart(float(vertex[6]), float(vertex[7]), float(vertex[8]) + z )
+                node1 = self.__AddNodeToWakeModelPart(float(vertex[0]) + x, float(vertex[1]) + y, float(vertex[2]) + z )
+                node2 = self.__AddNodeToWakeModelPart(float(vertex[3]) + x, float(vertex[4]) + y, float(vertex[5]) + z )
+                node3 = self.__AddNodeToWakeModelPart(float(vertex[6]) + x, float(vertex[7]) + y, float(vertex[8]) + z )
 
                 side1 = node2 - node1
                 side2 = node3 - node1
@@ -197,7 +201,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
                                             },
                                             "file_label": "time",
                                             "output_control_type": "step",
-                                            "output_frequency": 1.0,
+                                            "output_interval": 1.0,
                                             "body_output": true,
                                             "node_output": false,
                                             "skin_output": false,
@@ -218,6 +222,32 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         gid_output.PrintOutput()
         gid_output.ExecuteFinalizeSolutionStep()
         gid_output.ExecuteFinalize()
+
+        vtk_output = VtkOutputProcess(self.model, KratosMultiphysics.Parameters("""
+                                    {
+                "model_part_name"                             : "wake_model_part",
+                "output_control_type"                         : "step",
+                "output_interval"                             : 1,
+                "file_format"                                 : "ascii",
+                "output_precision"                            : 7,
+                "output_sub_model_parts"                      : false,
+                "output_path"                                 : "vtk_wake_output",
+                "save_output_files_in_folder"                 : true,
+                "nodal_solution_step_data_variables"          : [],
+                "nodal_data_value_variables"                  : ["REACTION_WATER_PRESSURE"],
+                "element_data_value_variables"                : [],
+                "condition_data_value_variables"              : [],
+                "gauss_point_variables_extrapolated_to_nodes" : []
+                                    }
+                                    """)
+                                )
+
+        vtk_output.ExecuteInitialize()
+        vtk_output.ExecuteBeforeSolutionLoop()
+        vtk_output.ExecuteInitializeSolutionStep()
+        vtk_output.PrintOutput()
+        vtk_output.ExecuteFinalizeSolutionStep()
+        vtk_output.ExecuteFinalize()
 
     def ExecuteFinalizeSolutionStep(self):
         if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):

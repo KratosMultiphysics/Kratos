@@ -11,6 +11,8 @@ class PotentialFlowFormulation(object):
         self.condition_name = None
         self.process_info_data = {}
 
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = 1e5
+
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
             if element_type == "incompressible":

@@ -98,9 +98,9 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     MarkWakeElements();
 
-    RecomputeNodalDistancesToWakeOrWingLowerSurface();
+    // RecomputeNodalDistancesToWakeOrWingLowerSurface();
 
-    MarkKuttaElements();
+    // MarkKuttaElements();
 
     SaveLocalWakeNormalInElements();
 
@@ -182,6 +182,10 @@ void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
     auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
 
     for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
+        // if(r_node.Z() > -0.044){
+        //     r_node.SetValue(KUTTA, true);
+        // }
+        r_node.SetValue(KUTTA, true);
         r_node.SetValue(TRAILING_EDGE, true);
         const auto& r_coordinates = r_node.Coordinates();
         const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
@@ -434,6 +438,7 @@ void Define3DWakeProcess::MarkWakeElements() const
     BuiltinTimer timer;
 
     CalculateDiscontinuousDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
+    // CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
 
     KRATOS_INFO_IF("MarkWakeElements", mEchoLevel > 0)
@@ -872,7 +877,7 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
     outfile_structure.open("structure_elements_id.txt");
     std::ofstream outfile_kutta;
     outfile_kutta.open("kutta_elements_id.txt");
-        for (auto& r_element : trailing_edge_sub_model_part.Elements()){
+    for (auto& r_element : trailing_edge_sub_model_part.Elements()){
         if(!r_element.GetValue(WAKE)){
             if(r_element.GetValue(KUTTA)){
                 outfile_kutta << r_element.Id();
@@ -907,5 +912,71 @@ void Define3DWakeProcess::WriteElementIdsToFile() const
         outfile_all_wake << "\n";
     }
     outfile_all_wake.close();
+
+    std::ofstream outfile_kutta_condition;
+    outfile_kutta_condition.open("kutta_condition_elements_id.txt");
+    std::ofstream outfile_te_elements;
+    outfile_te_elements.open("te_elements_id.txt");
+    unsigned int te_elements_counter = 0;
+    for (auto& r_element : root_model_part.Elements()){
+        unsigned int kutta_nodes_counter = 0;
+        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
+        {
+            // Elements touching the trailing edge are trailing edge elements
+            if (r_element.GetGeometry()[i].GetValue(KUTTA))
+            {
+                outfile_kutta_condition << r_element.Id();
+                outfile_kutta_condition << "\n";
+                r_element.SetValue(ZERO_VELOCITY_CONDITION, true);
+                break;
+            }
+        }
+
+        int trailing_edge_node_counter = 0;
+
+        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
+        {
+            // Elements touching the trailing edge are trailing edge elements
+            if (r_element.GetGeometry()[i].GetValue(TRAILING_EDGE))
+            {
+                trailing_edge_node_counter += 1;
+            }
+        }
+        // if(trailing_edge_node_counter > 1){
+        //     r_element.SetValue(ALL_TRAILING_EDGE, true);
+        // }
+        for (unsigned int i = 0; i < r_element.GetGeometry().size(); i++)
+        {
+            // Elements touching the trailing edge are trailing edge elements
+            if (r_element.GetGeometry()[i].GetValue(KUTTA))
+            {
+                kutta_nodes_counter += 1;
+            }
+        }
+
+        // const int te_element = r_element.GetValue(ALL_TRAILING_EDGE);
+        // const int wake = r_element.GetValue(WAKE);
+
+        // if(kutta_nodes_counter > 0 && r_element.GetGeometry().Center().X() > 0.488){
+        // if(kutta_nodes_counter > 0 || (wake && trailing_edge_node_counter > 0)){
+        if(kutta_nodes_counter > 0){
+            r_element.SetValue(ALL_TRAILING_EDGE, true);
+            te_elements_counter += 1;
+            outfile_te_elements << r_element.Id();
+            outfile_te_elements << "\n";
+        }
+        // if(wake==0){
+        //     outfile_te_elements << r_element.Id();
+        //     outfile_te_elements << "\n";
+        // }
+        // else if(te_element){
+        //     outfile_te_elements << r_element.Id();
+        //     outfile_te_elements << "\n";
+        // }
+    }
+    KRATOS_WATCH(te_elements_counter)
+
+    outfile_kutta_condition.close();
+    outfile_te_elements.close();
 }
 } // namespace Kratos.

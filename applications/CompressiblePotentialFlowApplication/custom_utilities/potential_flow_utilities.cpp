@@ -1066,6 +1066,176 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 }
 
 template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
+        Matrix& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+    // const int te_element = rElement.GetValue(ALL_TRAILING_EDGE);
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+    data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+    // BoundedVector<double, 3> wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    // BoundedVector<double, Dim> n_angle = ZeroVector(Dim);
+    // for(unsigned int i = 0; i < Dim; ++i){
+    //     n_angle[i] = wake_normal[i];
+    // }
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_zero = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    noalias(lhs_kutta) = penalty*data.vol*free_stream_density * prod(aux, trans(data.DN_DX));
+    noalias(lhs_zero) = penalty*data.vol*free_stream_density * prod(data.DN_DX, trans(data.DN_DX));
+    // KRATOS_WATCH(angle_in_deg)
+    // KRATOS_WATCH(penalty)
+
+    // if(rElement.Id()==543){
+    //     KRATOS_WATCH(wake_normal)
+    //     KRATOS_WATCH(n_angle)
+    //     KRATOS_WATCH(n_matrix)
+    // }
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        if (rElement.GetGeometry()[i].GetValue(KUTTA))
+        {
+            // KRATOS_WATCH(lhs_kutta)
+            if (wake==0)  {
+                // noalias(rLeftHandSideMatrix) = lhs_zero;
+                // noalias(rLeftHandSideMatrix) = lhs_kutta;
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                }
+                // if(rElement.Id() == 109 || rElement.Id() == 366 || rElement.Id() == 531 || rElement.Id() == 109){
+                // if(rElement.Id() == 356 || rElement.Id() == 711 || rElement.Id() == 355 || rElement.Id() == 356){
+                // if(rElement.Id() == 109 || rElement.Id() == 366 || rElement.Id() == 531 ||
+                //     rElement.Id() == 356 || rElement.Id() == 711 || rElement.Id() == 355){
+                //     for (unsigned int j = 0; j < NumNodes; ++j)
+                //     {
+                //         rLeftHandSideMatrix(i, j) += lhs_zero(i, j);
+                //     }
+                //     // noalias(rLeftHandSideMatrix) = lhs_kutta;
+                // }
+                // else{
+                //     // for (unsigned int j = 0; j < NumNodes; ++j)
+                //     // {
+                //     //     rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                //     // }
+                //     noalias(rLeftHandSideMatrix) = lhs_zero;
+                // }
+            } else {
+                // for (unsigned int i = 0; i < NumNodes; ++i){
+                //     for (unsigned int j = 0; j < NumNodes; ++j)
+                //     {
+                //         rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                //         rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
+                //     }
+                // }
+                // for (unsigned int i = 0; i < NumNodes; ++i){
+                //     for (unsigned int j = 0; j < NumNodes; ++j)
+                //     {
+                //         rLeftHandSideMatrix(i, j) += lhs_zero(i, j);
+                //         rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_zero(i, j);
+                //     }
+                // }
+                for (unsigned int j = 0; j < NumNodes; ++j)
+                {
+                    rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
+                }
+            }
+        }
+    }
+}
+
+template <int Dim, int NumNodes>
+void AddKuttaConditionPenaltyTerm(const Element& rElement,
+        Vector& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    const int wake = rElement.GetValue(WAKE);
+    // const int te_element = rElement.GetValue(ALL_TRAILING_EDGE);
+
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+
+    GeometryUtils::CalculateGeometryData(rElement.GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+    BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
+    // BoundedVector<double, 3> wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    // BoundedVector<double, Dim> n_angle = ZeroVector(Dim);
+    // for(unsigned int i = 0; i < Dim; ++i){
+    //     n_angle[i] = wake_normal[i];
+    // }
+
+    BoundedMatrix<double, NumNodes, NumNodes> lhs_kutta = ZeroMatrix(NumNodes, NumNodes);
+    BoundedMatrix<double, NumNodes, NumNodes> n_matrix = outer_prod(n_angle, n_angle);
+    BoundedMatrix<double, NumNodes, Dim> aux = prod(data.DN_DX, n_matrix);
+    const double penalty = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    const array_1d<double, Dim> velocity = ComputePerturbedVelocity<Dim,NumNodes>(rElement, rCurrentProcessInfo);
+    BoundedVector<double, NumNodes> upper_rhs = -penalty*data.vol*free_stream_density*prod(aux,velocity);
+    BoundedVector<double, NumNodes> zero_rhs = -penalty*data.vol*free_stream_density*prod(data.DN_DX,velocity);
+
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        if (rElement.GetGeometry()[i].GetValue(KUTTA))
+        {
+            // KRATOS_WATCH(rElement.Id())
+            if (wake==0)  {
+                // KRATOS_WATCH(rElement.Id())
+                // noalias(rRightHandSideVector) = zero_rhs;
+                // noalias(rRightHandSideVector) = -penalty*data.vol*free_stream_density*prod(aux,velocity);
+                // rRightHandSideVector(i) += zero_rhs(i);
+                rRightHandSideVector(i) += upper_rhs(i);
+                // if(rElement.Id() == 109 || rElement.Id() == 366 || rElement.Id() == 531 || rElement.Id() == 109){
+                // if(rElement.Id() == 356 || rElement.Id() == 711 || rElement.Id() == 355 || rElement.Id() == 356){
+                // if(rElement.Id() == 109 || rElement.Id() == 366 || rElement.Id() == 531 ||
+                //     rElement.Id() == 356 || rElement.Id() == 711 || rElement.Id() == 355){
+                //     // noalias(rRightHandSideVector) = -penalty*data.vol*free_stream_density*prod(aux,velocity);
+                //     rRightHandSideVector(i) += zero_rhs(i);
+                // }
+                // else{
+                //     noalias(rRightHandSideVector) = zero_rhs;
+                //     // noalias(rRightHandSideVector) = -penalty*data.vol*free_stream_density*prod(aux,velocity);
+                // }
+            } else {
+                // KRATOS_WATCH(rElement.Id())
+                const array_1d<double, Dim> lower_velocity = ComputePerturbedVelocityLowerElement<Dim,NumNodes>(rElement,   rCurrentProcessInfo);
+                // for (unsigned int i = 0; i < NumNodes; ++i){
+                //     for (unsigned int j = 0; j < Dim; ++j)
+                //     {
+                //         rRightHandSideVector(i) += -penalty*data.vol*free_stream_density*aux(i, j)*velocity(j);
+                //         rRightHandSideVector(i+NumNodes) += -penalty*data.vol*free_stream_density*aux(i, j)*lower_velocity(j)   ;
+                //     }
+                // }
+                // for (unsigned int i = 0; i < NumNodes; ++i){
+                //     for (unsigned int j = 0; j < Dim; ++j)
+                //     {
+                //         rRightHandSideVector(i) += -penalty*data.vol*free_stream_density*data.DN_DX(i, j)*velocity(j);
+                //         rRightHandSideVector(i+NumNodes) += -penalty*data.vol*free_stream_density*data.DN_DX(i, j)   *lower_velocity(j);
+                //     }
+                // }
+                BoundedVector<double, NumNodes> lower_rhs = -penalty*data.vol*free_stream_density*prod(aux,lower_velocity)   ;
+                rRightHandSideVector(i) += upper_rhs(i);
+                rRightHandSideVector(i+NumNodes) += lower_rhs(i);
+            }
+        }
+    }
+}
+
+template <int Dim, int NumNodes>
 void AddPotentialGradientStabilizationTerm(
         Element& rElement,
         Matrix& rLeftHandSideMatrix,
@@ -1257,6 +1427,10 @@ template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateAre
 template double KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CalculateArea<ModelPart::ConditionsContainerType>(ModelPart::ConditionsContainerType& rContainer);
 template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement,  Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<2, 3>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
+template void AddKuttaConditionPenaltyTerm<3, 4>(const Element& rElement, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);

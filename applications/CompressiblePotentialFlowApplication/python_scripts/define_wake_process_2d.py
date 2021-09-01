@@ -43,6 +43,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, 5.0)
 
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 

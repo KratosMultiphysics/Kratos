@@ -24,6 +24,12 @@ Define2DWakeProcess::Define2DWakeProcess(ModelPart& rBodyModelPart, const double
 
 void Define2DWakeProcess::ExecuteInitialize()
 {
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    block_for_each(root_model_part.Nodes(), [&](Node<3>& r_nodes)
+    {
+        r_nodes.SetValue(KUTTA, false);
+        r_nodes.SetValue(TRAILING_EDGE_ELEMENT, false);
+    });
     // Initialize submodelparts
     InitializeTrailingEdgeSubModelpart();
     InitializeWakeSubModelpart();
@@ -33,9 +39,9 @@ void Define2DWakeProcess::ExecuteInitialize()
     SaveTrailingEdgeNode();
     // Check which elements are cut and mark them as wake
     MarkWakeElements();
-    // Mark the elements touching the trailing edge from below as kutta
-    MarkKuttaElements();
-    // Mark the trailing edge element that is further downstream as wake
+    // // Mark the elements touching the trailing edge from below as kutta
+    // MarkKuttaElements();
+    // // Mark the trailing edge element that is further downstream as wake
     MarkWakeTrailingEdgeElement();
 }
 
@@ -126,6 +132,34 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
     auto p_trailing_edge_node = &*mrBodyModelPart.NodesBegin();
 
     for (auto& r_node : mrBodyModelPart.Nodes()) {
+        // if (r_node.Id() == 292){
+        //     p_trailing_edge_node = &r_node;
+        // }
+        if (r_node.Id() == 244){
+            r_node.SetValue(KUTTA, true);
+        }
+        // if (r_node.Id() == 285){
+        //     r_node.SetValue(KUTTA, true);
+        // }
+        // if (r_node.Id() == 284 ||
+        //     r_node.Id() == 285 ||
+        //     r_node.Id() == 286 ||
+        //     r_node.Id() == 287 ||
+        //     r_node.Id() == 288 ||
+        //     r_node.Id() == 289 ||
+        //     r_node.Id() == 290 ||
+        //     r_node.Id() == 291 ||
+        //     r_node.Id() == 292 ||
+        //     r_node.Id() == 293 ||
+        //     r_node.Id() == 294 ||
+        //     r_node.Id() == 295 ||
+        //     r_node.Id() == 296 ||
+        //     r_node.Id() == 297 ||
+        //     r_node.Id() == 298 ||
+        //     r_node.Id() == 299 ||
+        //     r_node.Id() == 300){
+        //     r_node.SetValue(KUTTA, true);
+        // }
         if (r_node.X() > max_x_coordinate) {
             max_x_coordinate = r_node.X();
             p_trailing_edge_node = &r_node;
@@ -153,12 +187,21 @@ void Define2DWakeProcess::MarkWakeElements()
         // Elements downstream the trailing edge can be wake elements
         bool potentially_wake = CheckIfPotentiallyWakeElement(*it_elem);
 
+        if(it_elem->Id()==505){
+            KRATOS_WATCH(potentially_wake)
+        }
+
         if (potentially_wake) {
             // Compute the nodal distances of the element to the wake
             BoundedVector<double, 3> nodal_distances_to_wake = ComputeNodalDistancesToWake(*it_elem);
 
             // Selecting the cut (wake) elements
-            const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);;
+            const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
+
+            if(it_elem->Id()==505){
+                KRATOS_WATCH(nodal_distances_to_wake)
+                KRATOS_WATCH(is_wake_element)
+            }
 
             // Mark wake element and save their nodal distances to the wake
             if (is_wake_element) {
@@ -169,13 +212,23 @@ void Define2DWakeProcess::MarkWakeElements()
                     wake_elements_ordered_ids.push_back(it_elem->Id());
                 }
                 auto r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
-                    r_geometry[i].SetLock();
-                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
-                    r_geometry[i].UnSetLock();
+                for (unsigned int j = 0; j < it_elem->GetGeometry().size(); j++) {
+                    r_geometry[j].SetLock();
+                    r_geometry[j].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(j));
+                    r_geometry[j].UnSetLock();
                 }
             }
         }
+        // auto r_geometry = it_elem->GetGeometry();
+        // for (unsigned int j = 0; j < it_elem->GetGeometry().size(); j++) {
+        //     if (r_geometry[j].GetValue(TRAILING_EDGE_ELEMENT)){
+        //         for ( unsigned int k = 0; k < r_geometry.size(); k++){
+        //             r_geometry[k].SetLock();
+        //             r_geometry[k].SetValue(KUTTA, true);
+        //             r_geometry[k].UnSetLock();
+        //         }
+        //     }
+        // }
     }
     // Add the trailing edge elements to the trailing_edge_sub_model_part
     AddTrailingEdgeAndWakeElements(wake_elements_ordered_ids);
@@ -279,21 +332,26 @@ void Define2DWakeProcess::MarkWakeTrailingEdgeElement() const
     ModelPart& trailing_edge_sub_model_part =
         root_model_part.GetSubModelPart("trailing_edge_sub_model_part");
 
-    ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_sub_model_part");
+    // ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_sub_model_part");
 
     for (auto& r_element : trailing_edge_sub_model_part.Elements()) {
         if(r_element.GetValue(WAKE)){
+            r_element.Set(STRUCTURE);
+            r_element.SetValue(KUTTA, false);
             // Trailing edge wake element
-            if(CheckIfTrailingEdgeElementIsCutByWake(r_element)){
-                r_element.Set(STRUCTURE);
-                r_element.SetValue(KUTTA, false);
-            }
-            //Rest of elements touching the trailing edge but not part of the wake
-            else{
-                r_element.SetValue(WAKE, false);
-                wake_sub_model_part.RemoveElement(r_element.Id());
-            }
+            // if(CheckIfTrailingEdgeElementIsCutByWake(r_element)){
+            //     r_element.Set(STRUCTURE);
+            //     r_element.SetValue(KUTTA, false);
+            // }
+            // //Rest of elements touching the trailing edge but not part of the wake
+            // else{
+            //     r_element.SetValue(WAKE, false);
+            //     wake_sub_model_part.RemoveElement(r_element.Id());
+            // }
         }
+        // if(r_element.Id()==346){
+        //     r_element.Set(STRUCTURE, false);
+        // }
     }
 }
 
@@ -320,8 +378,8 @@ const BoundedVector<double, 3> Define2DWakeProcess::ComputeDistanceFromTrailingE
 {
     BoundedVector<double, 3> distance_to_point = ZeroVector(3);
 
-    distance_to_point(0) = rInputPoint.X() - mpTrailingEdgeNode->X();
-    distance_to_point(1) = rInputPoint.Y() - mpTrailingEdgeNode->Y();
+    distance_to_point(0) = rInputPoint.X() - mpTrailingEdgeNode->X(); //- 0.49311635;//mpTrailingEdgeNode->X();
+    distance_to_point(1) = rInputPoint.Y() - mpTrailingEdgeNode->Y(); //+ 0.04314209;//mpTrailingEdgeNode->Y();
 
     return distance_to_point;
 }

@@ -18,6 +18,8 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_elements/incompressible_perturbation_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "tests/cpp_tests/test_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
   namespace Testing {
@@ -267,6 +269,68 @@ namespace Kratos {
         KRATOS_CHECK(EquationIdVector[i] == i);
       }
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(PingIncompressiblePerturbationPotentialFlowElementLHS2D,
+                          CompressiblePotentialApplicationFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateIncompressiblePerturbationElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1e6;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    BoundedVector<double, 3> wake_normal = ZeroVector(3);
+    wake_normal(1) = 1.0;
+    model_part.GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    std::array<double, 3> potential{1.5348, 2.31532, 3.2874};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_WATCH(LHS_finite_diference)
+    KRATOS_WATCH(LHS_analytical)
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-6);
+}
+
+    KRATOS_TEST_CASE_IN_SUITE(PingIncompressiblePerturbationPotentialFlowElementLHSWake2D,
+                          CompressiblePotentialApplicationFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateIncompressiblePerturbationElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1e6;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 0.0;
+    BoundedVector<double, 3> wake_normal = ZeroVector(3);
+    wake_normal(1) = 1.0;
+    model_part.GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    std::array<double, 6> potential{1.0, 2.0, 3.0, 6.0, 7.0, 8.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2 * number_of_nodes, 2 * number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2 * number_of_nodes, 2 * number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_WATCH(LHS_finite_diference)
+    KRATOS_WATCH(LHS_analytical)
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-6);
+}
 
   } // namespace Testing
 }  // namespace Kratos.
