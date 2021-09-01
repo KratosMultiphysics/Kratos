@@ -489,7 +489,7 @@ void ModelPart::SetNodalSolutionStepVariablesList()
     // Iterate over nodes
     auto& r_nodes_array = this->Nodes();
     block_for_each(r_nodes_array,[&](NodeType& rNode) {
-        rNode.SetSolutionStepVariablesList(mpVariablesList);;
+        rNode.SetSolutionStepVariablesList(mpVariablesList);
     });
 }
 
