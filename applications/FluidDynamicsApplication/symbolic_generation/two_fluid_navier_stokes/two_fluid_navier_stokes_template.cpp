@@ -534,7 +534,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     //energy_check_cut elements
 
     // Mass correction term
-        double volume_error_ratio = 0.0;
+    double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
         const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
         volume_error_ratio = volume_error / dt;
