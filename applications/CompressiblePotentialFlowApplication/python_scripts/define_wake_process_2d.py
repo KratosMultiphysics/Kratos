@@ -20,6 +20,7 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
             "model_part_name": "",
             "epsilon": 1e-9,
             "compute_wake_at_each_step": false,
+            "kutta_condition_rotation_angle" : 0.0,
             "echo_level": 1
         }''')
         settings.ValidateAndAssignDefaults(default_settings)
@@ -35,6 +36,8 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
         self.echo_level = settings["echo_level"].GetInt()
 
         self.fluid_model_part = self.body_model_part.GetRootModelPart()
+        self.rotation_angle = settings["kutta_condition_rotation_angle"].GetDouble()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, self.rotation_angle)
 
         self.compute_wake_at_each_step = settings["compute_wake_at_each_step"].GetBool()
 
@@ -43,8 +46,6 @@ class DefineWakeProcess2D(KratosMultiphysics.Process):
                 node.Set(KratosMultiphysics.SOLID)
 
     def ExecuteInitialize(self):
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, 5.0)
-
         CPFApp.Define2DWakeProcess(self.body_model_part, self.epsilon).ExecuteInitialize()
 
         #self.__FindWakeElements()

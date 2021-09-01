@@ -35,6 +35,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             "body_model_part_name": "",
             "wake_stl_file_name" : "",
             "output_wake": false,
+            "kutta_condition_rotation_angle" : 0.0,
             "wake_process_cpp_parameters":    {
                 "tolerance"                     : 1e-9,
                 "wake_normal"                   : [0.0,0.0,1.0],
@@ -76,6 +77,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.fluid_model_part = self.trailing_edge_model_part.GetRootModelPart()
         self.fluid_model_part.ProcessInfo.SetValue(CPFApp.WAKE_NORMAL,self.wake_normal)
 
+        self.rotation_angle = settings["kutta_condition_rotation_angle"].GetDouble()
+        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, self.rotation_angle)
+
         if self.wake_process_cpp_parameters.Has("wake_direction"):
             self.wake_direction = self.wake_process_cpp_parameters["wake_direction"].GetVector()
         else:
@@ -103,7 +107,6 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintWarning('::[DefineWakeProcess3D]::', warn_msg)
 
     def ExecuteInitialize(self):
-        self.fluid_model_part.ProcessInfo.SetValue(CPFApp.ROTATION_ANGLE, 5.0)
         # If stl available, read wake from stl and create the wake model part
         start_time = time.time()
         self.__CreateWakeModelPart()

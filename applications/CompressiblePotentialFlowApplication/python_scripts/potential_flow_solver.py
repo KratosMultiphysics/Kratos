@@ -7,107 +7,42 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_solver import FluidSolver
 
 class PotentialFlowFormulation(object):
     def __init__(self, formulation_settings):
-        self.element_name = None
-        self.condition_name = None
-        self.process_info_data = {}
+        default_settings = KratosMultiphysics.Parameters(r"""{
+            "element_type": "incompressible",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
 
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = 1e5
+        }""")
+        formulation_settings.ValidateAndAssignDefaults(default_settings)
+
+        self.element_name = None
+        self.condition_name = "PotentialWallCondition"
+        self.process_info_data = {}
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
             if element_type == "incompressible":
-                self._SetUpIncompressibleElement(formulation_settings)
+                self.element_name = "IncompressiblePotentialFlowElement"
             elif element_type == "compressible":
-                self._SetUpCompressibleElement(formulation_settings)
+                self.element_name = "CompressiblePotentialFlowElement"
             elif element_type == "embedded_incompressible":
-                self._SetUpEmbeddedIncompressibleElement(formulation_settings)
+                self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
             elif element_type == "embedded_compressible":
-                self._SetUpEmbeddedCompressibleElement(formulation_settings)
+                self.element_name = "EmbeddedCompressiblePotentialFlowElement"
             elif element_type == "perturbation_incompressible":
-                self._SetUpIncompressiblePerturbationElement(formulation_settings)
+                self.element_name = "IncompressiblePerturbationPotentialFlowElement"
             elif element_type == "perturbation_compressible":
-                self._SetUpCompressiblePerturbationElement(formulation_settings)
+                self.element_name = "CompressiblePerturbationPotentialFlowElement"
             elif element_type == "perturbation_transonic":
-                self._SetUpTransonicPerturbationElement(formulation_settings)
+                self.element_name = "TransonicPerturbationPotentialFlowElement"
         else:
             raise RuntimeError("Argument \'element_type\' not found in formulation settings.")
 
     def SetProcessInfo(self, model_part):
         for variable,value in self.process_info_data.items():
             model_part.ProcessInfo[variable] = value
-
-    def _SetUpIncompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "incompressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "IncompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-
-    def _SetUpCompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "compressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "CompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-
-    def _SetUpIncompressiblePerturbationElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "perturbation_incompressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "IncompressiblePerturbationPotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-
-    def _SetUpCompressiblePerturbationElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "perturbation_compressible"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "CompressiblePerturbationPotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-
-    def _SetUpTransonicPerturbationElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "perturbation_transonic"
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "TransonicPerturbationPotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-
-    def _SetUpEmbeddedIncompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_incompressible",
-            "stabilization_factor": 0.0,
-            "penalty_coefficient": 0.0
-
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "EmbeddedIncompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
-
-    def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
-        default_settings = KratosMultiphysics.Parameters(r"""{
-            "element_type": "embedded_compressible",
-            "stabilization_factor": 0.0,
-            "penalty_coefficient": 0.0
-        }""")
-        formulation_settings.ValidateAndAssignDefaults(default_settings)
-
-        self.element_name = "EmbeddedCompressiblePotentialFlowElement"
-        self.condition_name = "PotentialWallCondition"
-        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
-        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
-
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowSolver(model, custom_settings)
@@ -212,9 +147,7 @@ class PotentialFlowSolver(FluidSolver):
     def _GetStrategyType(self):
         element_type = self.settings["formulation"]["element_type"].GetString()
         if "incompressible" in element_type:
-            if not self.settings["formulation"].Has("stabilization_factor"):
-                strategy_type = "linear"
-            elif self.settings["formulation"]["stabilization_factor"].GetDouble() == 0.0:
+            if abs(self.settings["formulation"]["stabilization_factor"].GetDouble() - 0.0) < 1e-4:
                 strategy_type = "linear"
             else:
                 strategy_type = "non_linear"
