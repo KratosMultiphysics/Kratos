@@ -6,8 +6,8 @@ Begin Properties 3
 End Properties
 
 Begin Nodes
-     9   -3.0000000000   -0.5000000000    0.0
-    10   20.0000000000   -0.5000000000    0.0
+     9   -3.0000000000   -0.0100000000    0.0
+    10   20.0000000000   -0.0100000000    0.0
 End Nodes
 
 Begin Conditions RigidEdge2D2N // GUI group identifier: floor
