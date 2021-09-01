@@ -213,7 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
         
-        #Here water volume of the system is calculated considering inlet and outlet flow rate. Qsystem= Q_inlet-Q_oulet+Q_system(previous_dt)
+        #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
     
         # Instantiate the level set convection process
