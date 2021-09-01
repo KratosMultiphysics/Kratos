@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klauss B Sautter
+//                   Carlos E Flores
 //
 //
 
@@ -53,6 +54,13 @@ namespace  Kratos
              * @param rNodes The nodes array of a model part
              */
             void MovePfemMesh(NodesContainerType& rNodes) const;
+
+            /**
+             * @brief This function resets the previous kinematic
+             *        information of the PFEM nodes.
+             * @param rFluidModelPart The fluid model part
+             */
+            void ResetPfemKinematicValues(ModelPart& rFluidModelPart);
         
         /*private:
             ModelPart& mrModelPart;*/
