@@ -825,7 +825,7 @@ namespace Kratos
     }
 
 
-    template<int size1, int size2>
+    template<IndexType size1, IndexType size2>
     BoundedMatrix<double, size1, size2> orthonormalizeMatrixColumns(const BoundedMatrix<double, size1, size2>& A) {
         //Gram Schmidt Orthogonalization
         BoundedMatrix<double, size1, size2> Q = A;
