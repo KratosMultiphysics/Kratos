@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implementation of a linear element for shallow water problems
+///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
 class CrankNicolsonWaveElement : public WaveElement<TNumNodes>
 {
@@ -62,26 +62,25 @@ public:
 
     typedef WaveElement<TNumNodes> WaveElementType;
 
-    typedef typename WaveElementType::LocalVectorType LocalVectorType;
-    typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
-    typedef typename WaveElementType::NodesArrayType NodesArrayType;
-    typedef typename WaveElementType::PropertiesType PropertiesType;
     typedef typename WaveElementType::MatrixType MatrixType;
+
     typedef typename WaveElementType::VectorType VectorType;
+
+    typedef typename WaveElementType::NodesArrayType NodesArrayType;
+
+    typedef typename WaveElementType::PropertiesType PropertiesType;
+
+    typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
+
+    typedef typename WaveElementType::LocalVectorType LocalVectorType;
+
     typedef typename WaveElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
-    // typedef array_1d<double, 3*TNumNodes> LocalVectorType;
-
-    // typedef BoundedMatrix<double, 3*TNumNodes, 3*TNumNodes> LocalMatrixType;
-
-    // typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
-    /// Pointer definition
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrankNicolsonWaveElement);
 
     ///@}
     ///@name Pointer definition
     ///@{
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrankNicolsonWaveElement);
 
     ///@}
     ///@name Life Cycle
@@ -222,11 +221,6 @@ private:
     ///@}
 
 }; // Class CrankNicolsonWaveElement
-
-///@}
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output

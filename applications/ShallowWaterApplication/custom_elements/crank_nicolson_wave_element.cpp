@@ -18,7 +18,6 @@
 
 // Project includes
 #include "utilities/geometry_utilities.h"
-#include "custom_friction_laws/manning_law.h"
 #include "crank_nicolson_wave_element.h"
 
 namespace Kratos
@@ -61,7 +60,7 @@ void CrankNicolsonWaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSide
 template<std::size_t TNumNodes>
 void CrankNicolsonWaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_ERROR << "CrankNicolsonWaveElement: This element integrates in time and CalculateMassMatrix is no needed. Call CalculateLocalSystem instead." << std::endl;
+    KRATOS_ERROR << "CrankNicolsonWaveElement: This element integrates in time and CalculateMassMatrix is not supported. Call CalculateLocalSystem instead." << std::endl;
 }
 
 template class CrankNicolsonWaveElement<3>;
