@@ -9,6 +9,7 @@ from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsc
 
 # CoSimulation imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+import pdb
 
 def Create(*args):
     return ComputeBoundaryForce(*args)
@@ -103,10 +104,27 @@ class ComputeBoundaryForce(CoSimulationCouplingOperation):
             area = geometry.Area()
             unit_normal = geometry.UnitNormal()
 
+            ##### print normal debug information
+            '''pdb.set_trace()
+            KM.Logger.PrintInfo(element)
+            KM.Logger.PrintInfo('Unit normal', unit_normal)
+            node_counter = 0
+            for node in nodes:
+                KM.Logger.PrintInfo(str(node_counter) + ' Node Id', str(node.Id))
+                node_counter += 1'''
+            ##### end print normal debug information
+
             pressure = 0
             c = 0
             for node in nodes:
                 pressure_node = node.GetSolutionStepValue(KM.PRESSURE, 0)
+                # also get the cauchy stress for projection onto structure
+                #pdb.set_trace()
+                #bad_pressure_convergence = node.GetSolutionStepValue(KM.BAD_VELOCITY_CONVERGENCE,0)
+                #cauchy_stress = node.GetSolutionStepValue(KM.CAUCHY_STRESS,0) * unit_normal[0]
+                #tau_stress = node.GetSolutionStepValue(KM.TAU,0) * unit_normal[1]
+
+                #normal_projection = [cauchy_stress, tau_stress, 0.0]
 
                 # if pressure_node > 0:
                     # pressure_node = 0.0
