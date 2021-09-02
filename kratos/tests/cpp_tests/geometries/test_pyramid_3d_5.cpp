@@ -32,19 +32,6 @@ typedef Pyramid3D5<PointType>            Pyramid3D5GeometryType;
 typedef Pyramid3D5GeometryType::Pointer  Pyramid3D5GeometryPtrType;
 
 /** Generates a sample Pyramid3D5.
- * Generates a pyramid defined by three random points in the space.
- * @return Pointer to a Pyramid3D5
- */
-BaseGeometryPtrType GeneratePyramid3D5(
-    PointPtrType PointA = GeneratePoint<PointType>(),
-    PointPtrType PointB = GeneratePoint<PointType>(),
-    PointPtrType PointC = GeneratePoint<PointType>(),
-    PointPtrType PointD = GeneratePoint<PointType>(),
-    PointPtrType PointE = GeneratePoint<PointType>()) {
-    return BaseGeometryPtrType(new Pyramid3D5GeometryType(PointA, PointB, PointC, PointD, PointE));
-}
-
-/** Generates a sample Pyramid3D5.
  * Generates a trirectangular pyramid on the origin with positive volume and side 1.
  * @return Pointer to a Pyramid3D13
  */

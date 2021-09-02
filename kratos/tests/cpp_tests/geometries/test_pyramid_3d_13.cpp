@@ -32,40 +32,6 @@ typedef Pyramid3D13<PointType>            Pyramid3D13GeometryType;
 typedef Pyramid3D13GeometryType::Pointer  Pyramid3D13GeometryPtrType;
 
 /** Generates a sample Pyramid3D5.
- * Generates a pyramid defined by three random points in the space.
- * @return Pointer to a Pyramid3D13
- */
-BaseGeometryPtrType GeneratePyramid3D13(
-    PointPtrType Point1 = GeneratePoint<PointType>(),
-    PointPtrType Point2 = GeneratePoint<PointType>(),
-    PointPtrType Point3 = GeneratePoint<PointType>(),
-    PointPtrType Point4 = GeneratePoint<PointType>(),
-    PointPtrType Point5 = GeneratePoint<PointType>(),
-    PointPtrType Point6 = GeneratePoint<PointType>(),
-    PointPtrType Point7 = GeneratePoint<PointType>(),
-    PointPtrType Point8 = GeneratePoint<PointType>(),
-    PointPtrType Point9 = GeneratePoint<PointType>(),
-    PointPtrType Point10 = GeneratePoint<PointType>(),
-    PointPtrType Point11 = GeneratePoint<PointType>(),
-    PointPtrType Point12 = GeneratePoint<PointType>(),
-    PointPtrType Point13 = GeneratePoint<PointType>()) {
-    return BaseGeometryPtrType(new Pyramid3D13GeometryPtrType(
-        Point1,
-        Point2,
-        Point3,
-        Point4,
-        Point5,
-        Point6,
-        Point7,
-        Point8,
-        Point9,
-        Point10,
-        Point11,
-        Point12,
-        Point13));
-}
-
-/** Generates a sample Pyramid3D5.
  * Generates a trirectangular pyramid on the origin with positive volume and side 1.
  * @return Pointer to a Pyramid3D13
  */
