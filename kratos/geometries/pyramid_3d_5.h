@@ -29,6 +29,27 @@ namespace Kratos {
 ///@{
 
 /**
+ * @class Pyramid3D5
+ * @ingroup KratosCore
+ * @brief A five node pyramid geometry with linear shape functions
+ * @details The node ordering corresponds with:
+ *                     4
+ *                   ,/|\
+ *                 ,/ .'|\
+ *               ,/   | | \
+ *             ,/    .' | `.
+ *           ,/      |  '.  \
+ *         ,/       .' w |   \
+ *       ,/         |  ^ |    \
+ *      0----------.'--|-3    `.
+ *       `\        |   |  `\    \
+ *         `\     .'   +----`\ - \ -> v
+ *           `\   |    `\     `\  \
+ *             `\.'      `\     `\`
+ *                1----------------2
+ *                          `\
+ *                             u
+ * @author Philipp Bucher
  */
 template<class TPointType>
 class Pyramid3D5 : public Geometry<TPointType>
@@ -120,17 +141,18 @@ public:
         typename PointType::Pointer pPoint5)
         : BaseType( PointsArrayType(), &msGeometryData )
     {
-        this->Points().reserve(4);
+        this->Points().reserve(5);
         this->Points().push_back(pPoint1);
         this->Points().push_back(pPoint2);
         this->Points().push_back(pPoint3);
         this->Points().push_back(pPoint4);
+        this->Points().push_back(pPoint5);
     }
 
     explicit Pyramid3D5( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
-        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 5 ) << "Invalid points number. Expected 5, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
@@ -139,7 +161,7 @@ public:
         const PointsArrayType& rThisPoints
     ) : BaseType( GeometryId, rThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF( this->PointsNumber() != 5 ) << "Invalid points number. Expected 5, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Name
@@ -148,7 +170,7 @@ public:
         const PointsArrayType& rThisPoints
     ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
+        KRATOS_ERROR_IF(this->PointsNumber() != 5) << "Invalid points number. Expected 5, given " << this->PointsNumber() << std::endl;
     }
 
     /** Copy constructor.
