@@ -2,7 +2,6 @@ from KratosMultiphysics import Parameters
 from KratosMultiphysics import Vector
 from KratosMultiphysics import Matrix
 from KratosMultiphysics import FileSerializer, StreamSerializer, SerializerTraceType
-import KratosMultiphysics
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
@@ -755,7 +754,7 @@ class TestParameters(KratosUnittest.TestCase):
         }""")
 
         # Populate "valid_vectors" and test Parameters::Append
-        tmp["valid_vectors"].Append(KratosMultiphysics.Vector([1, 2, 3]))
+        tmp["valid_vectors"].Append(Vector([1, 2, 3]))
         tmp["valid_vectors"].Append([4, 5, 6])
         tmp["valid_vectors"].Append([0])
         tmp["valid_vectors"].Append([])
@@ -826,8 +825,8 @@ class TestParameters(KratosUnittest.TestCase):
         }""")
 
         # Populate "valid_matrices" and test Parameters::Append
-        tmp["valid_matrices"].Append(KratosMultiphysics.Matrix([[1, 2, 3], [4, 5, 6]]))
-        tmp["valid_matrices"].Append(KratosMultiphysics.Matrix([[0]]))
+        tmp["valid_matrices"].Append(Matrix([[1, 2, 3], [4, 5, 6]]))
+        tmp["valid_matrices"].Append(Matrix([[0]]))
 
         # Check valid matrices
         for i in range(tmp["valid_matrices"].size()):
@@ -842,7 +841,7 @@ class TestParameters(KratosUnittest.TestCase):
         matrix = tmp["valid_matrices"][3].GetMatrix()
         self.assertEqual(matrix.Size1(), 2)
         self.assertEqual(matrix.Size2(), 3)
-        self.assertMatrixAlmostEqual(matrix, KratosMultiphysics.Matrix([[1, 2, 3], [4, 5, 6]]))
+        self.assertMatrixAlmostEqual(matrix, Matrix([[1, 2, 3], [4, 5, 6]]))
 
         matrix = tmp["valid_matrices"][4].GetMatrix()
         self.assertEqual(matrix.Size1(), 1)
