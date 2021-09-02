@@ -578,6 +578,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
@@ -587,6 +588,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 
