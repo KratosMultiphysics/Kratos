@@ -74,15 +74,16 @@ protected:
 
         //Update Acceleration, Velocity and DtPressure
 
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+
             noalias(rNode.FastGetSolutionStepValue(VELOCITY))     = (  rNode.FastGetSolutionStepValue(DISPLACEMENT)
                                                                      - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1)) / mDeltaTime;
+
             noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) = (  rNode.FastGetSolutionStepValue(VELOCITY)
                                                                      - rNode.FastGetSolutionStepValue(VELOCITY,1) ) / mDeltaTime;
 
-            const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
-                                        - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = DeltaPressure / mDeltaTime;
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) = (  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
+                                                                 - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1)) / mDeltaTime;
         });
 
         KRATOS_CATCH( "" )
