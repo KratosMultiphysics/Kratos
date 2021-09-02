@@ -13,4 +13,3 @@ set(CLIPPER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CLIPPER_LIBRARIES clipper)
 
 message(STATUS "clipper : ${CLIPPER_INCLUDE_DIR}" )
-# install(TARGETS triangle DESTINATION libs )
