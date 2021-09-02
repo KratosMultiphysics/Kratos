@@ -129,6 +129,7 @@ public:
         Kratos_Point3D,
         Kratos_Sphere3D1,
         Kratos_Brep_Surface,
+        Kratos_Brep_Curve_On_Surface,
         Kratos_Brep_Curve
     };
 
