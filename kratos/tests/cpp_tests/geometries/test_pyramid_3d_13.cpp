@@ -24,32 +24,28 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3>                           PointType;
-typedef Node<3>::Pointer                  PointPtrType;
-typedef Geometry<PointType>               BaseGeometryType;
-typedef BaseGeometryType::Pointer         BaseGeometryPtrType;
-typedef Pyramid3D13<PointType>            Pyramid3D13GeometryType;
-typedef Pyramid3D13GeometryType::Pointer  Pyramid3D13GeometryPtrType;
+typedef GeometryType::Pointer             BaseGeometryPtrType;
+typedef Pyramid3D13<NodeType>             Pyramid3D13GeometryType;
 
-/** Generates a sample Pyramid3D5.
+/** Generates a sample Pyramid3D13.
  * Generates a trirectangular pyramid on the origin with positive volume and side 1.
  * @return Pointer to a Pyramid3D13
  */
 BaseGeometryPtrType GenerateRegularPyramid3D13() {
-    return BaseGeometryPtrType(new Pyramid3D13GeometryPtrType(
-        GeneratePoint<PointType>(0.0, 0.0, 0.0),
-        GeneratePoint<PointType>(1.0, 0.0, 0.0),
-        GeneratePoint<PointType>(0.0, 1.0, 0.0),
-        GeneratePoint<PointType>(0.0, 0.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0)
+    return BaseGeometryPtrType(new Pyramid3D13GeometryType(
+        GeneratePoint<NodeType>(0.0, 0.0, 0.0),
+        GeneratePoint<NodeType>(1.0, 0.0, 0.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 0.0),
+        GeneratePoint<NodeType>(0.0, 0.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0)
     ));
 }
 

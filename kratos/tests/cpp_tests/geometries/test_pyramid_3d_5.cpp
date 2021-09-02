@@ -24,12 +24,8 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3>                          PointType;
-typedef Node<3>::Pointer                 PointPtrType;
-typedef Geometry<PointType>              BaseGeometryType;
-typedef BaseGeometryType::Pointer        BaseGeometryPtrType;
-typedef Pyramid3D5<PointType>            Pyramid3D5GeometryType;
-typedef Pyramid3D5GeometryType::Pointer  Pyramid3D5GeometryPtrType;
+typedef GeometryType::Pointer            BaseGeometryPtrType;
+typedef Pyramid3D5<NodeType>             Pyramid3D5GeometryType;
 
 /** Generates a sample Pyramid3D5.
  * Generates a trirectangular pyramid on the origin with positive volume and side 1.
@@ -37,11 +33,11 @@ typedef Pyramid3D5GeometryType::Pointer  Pyramid3D5GeometryPtrType;
  */
 BaseGeometryPtrType GenerateRegularPyramid3D5() {
     return BaseGeometryPtrType(new Pyramid3D5GeometryType(
-        GeneratePoint<PointType>(0.0, 0.0, 0.0),
-        GeneratePoint<PointType>(1.0, 0.0, 0.0),
-        GeneratePoint<PointType>(0.0, 1.0, 0.0),
-        GeneratePoint<PointType>(0.0, 0.0, 1.0),
-        GeneratePoint<PointType>(0.0, 1.0, 1.0)
+        GeneratePoint<NodeType>(0.0, 0.0, 0.0),
+        GeneratePoint<NodeType>(1.0, 0.0, 0.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 0.0),
+        GeneratePoint<NodeType>(0.0, 0.0, 1.0),
+        GeneratePoint<NodeType>(0.0, 1.0, 1.0)
     ));
 }
 
