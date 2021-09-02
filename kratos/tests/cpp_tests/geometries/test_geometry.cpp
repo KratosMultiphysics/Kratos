@@ -129,6 +129,8 @@ namespace Testing {
           return "Kratos_Sphere3D1";
         case GeometryData::Kratos_Brep_Surface:
           return "Kratos_Brep_Surface";
+        case GeometryData::Kratos_Brep_Curve_On_Surface:
+            return "Kratos_Brep_Curve_On_Surface";
         case GeometryData::Kratos_Brep_Curve:
           return "Kratos_Brep_Curve";
       };
