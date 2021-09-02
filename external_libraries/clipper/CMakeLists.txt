@@ -5,10 +5,6 @@ set(CLIPPER_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/clipper.cpp)
 
 add_library(clipper STATIC ${CLIPPER_SOURCES})
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  target_link_libraries(clipper m)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
 set(CLIPPER_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CLIPPER_LIBRARIES clipper)
 
