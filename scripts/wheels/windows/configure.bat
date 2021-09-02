@@ -26,7 +26,7 @@ CALL :add_app %KRATOS_APP_DIR%\SwimmingDEMApplication;
 CALL :add_app %KRATOS_APP_DIR%\EigenSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\ConstitutiveLawsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
+@REM CALL :add_app %KRATOS_APP_DIR%\FemToDemApplication;
 @REM CALL :add_app %KRATOS_APP_DIR%\PfemFluidDynamicsApplication;
 CALL :add_app %KRATOS_APP_DIR%\DelaunayMeshingApplication;
 CALL :add_app %KRATOS_APP_DIR%\MeshingApplication;
