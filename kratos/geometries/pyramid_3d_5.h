@@ -10,8 +10,8 @@
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined (KRATOS_PYRAMID_3D_4_H_INCLUDED)
-#define KRATOS_PYRAMID_3D_4_H_INCLUDED
+#if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
+#define KRATOS_PYRAMID_3D_5_H_INCLUDED
 
 // System includes
 
@@ -31,7 +31,7 @@ namespace Kratos {
 /**
  */
 template<class TPointType>
-class Pyramid3D4 : public Geometry<TPointType>
+class Pyramid3D5 : public Geometry<TPointType>
 {
 public:
     ///@}
@@ -41,8 +41,8 @@ public:
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
 
-    /// Pointer definition of Pyramid3D4
-    KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D4);
+    /// Pointer definition of Pyramid3D5
+    KRATOS_CLASS_POINTER_DEFINITION(Pyramid3D5);
 
     /** Integration methods implemented in geometry.
      */
@@ -112,7 +112,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    explicit Pyramid3D4(
+    explicit Pyramid3D5(
         typename PointType::Pointer pPoint1,
         typename PointType::Pointer pPoint2,
         typename PointType::Pointer pPoint3,
@@ -127,14 +127,14 @@ public:
         this->Points().push_back(pPoint4);
     }
 
-    explicit Pyramid3D4( const PointsArrayType& ThisPoints )
+    explicit Pyramid3D5( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
     {
         KRATOS_ERROR_IF( this->PointsNumber() != 4 ) << "Invalid points number. Expected 4, given " << this->PointsNumber() << std::endl;
     }
 
     /// Constructor with Geometry Id
-    explicit Pyramid3D4(
+    explicit Pyramid3D5(
         const IndexType GeometryId,
         const PointsArrayType& rThisPoints
     ) : BaseType( GeometryId, rThisPoints, &msGeometryData)
@@ -143,7 +143,7 @@ public:
     }
 
     /// Constructor with Geometry Name
-    explicit Pyramid3D4(
+    explicit Pyramid3D5(
         const std::string& rGeometryName,
         const PointsArrayType& rThisPoints
     ) : BaseType(rGeometryName, rThisPoints, &msGeometryData)
@@ -159,7 +159,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    // Pyramid3D4(Pyramid3D4 const& rOther)
+    // Pyramid3D5(Pyramid3D5 const& rOther)
     // : BaseType(rOther)
     // {
     // }
@@ -175,7 +175,7 @@ public:
     obvious that any change to this new geometry's point affect
     source geometry's points too.
     */
-    // template<class TOtherPointType> Pyramid3D4(Pyramid3D4<TOtherPointType> const& rOther)
+    // template<class TOtherPointType> Pyramid3D5(Pyramid3D5<TOtherPointType> const& rOther)
     // : BaseType(rOther)
     // {
     // }
@@ -194,7 +194,7 @@ public:
     @see Clone
     @see ClonePoints
     */
-    Pyramid3D4& operator=(const Pyramid3D4& rOther)
+    Pyramid3D5& operator=(const Pyramid3D5& rOther)
     {
         BaseType::operator=(rOther);
 
@@ -212,7 +212,7 @@ public:
     @see ClonePoints
     */
     template<class TOtherPointType>
-    Pyramid3D4& operator=(Pyramid3D4<TOtherPointType> const & rOther)
+    Pyramid3D5& operator=(Pyramid3D5<TOtherPointType> const & rOther)
     {
         BaseType::operator=(rOther);
 
@@ -234,25 +234,18 @@ public:
     */
     double Volume() const override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        Vector temp;
+        this->DeterminantOfJacobian(temp, msGeometryData.DefaultIntegrationMethod());
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints(msGeometryData.DefaultIntegrationMethod());
+        double vol = 0.00;
+
+        for (std::size_t i=0; i<integration_points.size(); ++i) {
+            vol += temp[i] * integration_points[i].Weight();
+        }
+
+        return vol;
     }
 
-    /** Calculates center of this geometry by a simple averaging algorithm.
-     Each center point component calculated using:
-    \f[
-    c_i = \sum_j^n(x_i^j) / n
-    \f]
-
-    where \f$ c_i \f$ is component i of center point and \f$
-    X_i^j \f$ is component i of j'th point of geometry and n is
-    number of the points in this geometry.
-
-    @return PointType which is the calculated center of this geometry.
-    */
-    Point Center() const override
-    {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
-    }
     /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
@@ -408,7 +401,7 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
     }
 
-    Pyramid3D4() : BaseType( PointsArrayType(), &msGeometryData ) {}
+    Pyramid3D5() : BaseType( PointsArrayType(), &msGeometryData ) {}
 
     ///@}
     ///@name Private Operations
@@ -439,15 +432,15 @@ private:
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_1 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_3 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_4 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_5 )
             }
         };
@@ -462,15 +455,15 @@ private:
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_1 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_2 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_3 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_4 ),
-                Pyramid3D4<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                Pyramid3D5<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::GI_GAUSS_5 )
             }
         };
@@ -491,7 +484,7 @@ private:
     ///@name Private Friends
     ///@{
 
-    template<class TOtherPointType> friend class Pyramid3D4;
+    template<class TOtherPointType> friend class Pyramid3D5;
 
     ///@}
 
@@ -510,12 +503,12 @@ private:
 /// input stream function
 template<class TPointType>
 inline std::istream& operator >> (std::istream& rIStream,
-                    Pyramid3D4<TPointType>& rThis);
+                    Pyramid3D5<TPointType>& rThis);
 
 /// output stream function
 template<class TPointType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                    const Pyramid3D4<TPointType>& rThis)
+                    const Pyramid3D5<TPointType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -526,18 +519,18 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 template<class TPointType> const
-GeometryData Pyramid3D4<TPointType>::msGeometryData(
+GeometryData Pyramid3D5<TPointType>::msGeometryData(
     &msGeometryDimension,
     GeometryData::GI_GAUSS_2,
-    Pyramid3D4<TPointType>::AllIntegrationPoints(),
-    Pyramid3D4<TPointType>::AllShapeFunctionsValues(),
+    Pyramid3D5<TPointType>::AllIntegrationPoints(),
+    Pyramid3D5<TPointType>::AllShapeFunctionsValues(),
     AllShapeFunctionsLocalGradients()
 );
 
 template<class TPointType> const
-GeometryDimension Pyramid3D4<TPointType>::msGeometryDimension(
+GeometryDimension Pyramid3D5<TPointType>::msGeometryDimension(
     3, 3, 3);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PYRAMID_3D_4_H_INCLUDED defined
+#endif // KRATOS_PYRAMID_3D_5_H_INCLUDED defined

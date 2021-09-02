@@ -111,7 +111,7 @@ public:
         Kratos_Prism3D15,
         Kratos_Prism3D6,
         Kratos_Pyramid3D13,
-        Kratos_Pyramid3D4,
+        Kratos_Pyramid3D5,
         Kratos_Quadrilateral2D4,
         Kratos_Quadrilateral2D8,
         Kratos_Quadrilateral2D9,

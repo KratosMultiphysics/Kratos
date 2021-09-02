@@ -219,7 +219,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("Tetrahedra3D10", mTetrahedra3D10Prototype);
     KRATOS_REGISTER_GEOMETRY("Prism3D6", mPrism3D6Prototype);
     KRATOS_REGISTER_GEOMETRY("Prism3D15", mPrism3D15Prototype);
-    KRATOS_REGISTER_GEOMETRY("Pyramid3D4", mPyramid3D4Prototype);
+    KRATOS_REGISTER_GEOMETRY("Pyramid3D5", mPyramid3D5Prototype);
     KRATOS_REGISTER_GEOMETRY("Pyramid3D13", mPyramid3D13Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);

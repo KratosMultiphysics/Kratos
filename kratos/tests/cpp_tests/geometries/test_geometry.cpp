@@ -91,8 +91,8 @@ namespace Testing {
           return "Kratos_Prism3D6";
         case GeometryData::Kratos_Pyramid3D13 :
           return "Kratos_Pyramid3D13";
-        case GeometryData::Kratos_Pyramid3D4 :
-          return "Kratos_Pyramid3D4";
+        case GeometryData::Kratos_Pyramid3D5 :
+          return "Kratos_Pyramid3D5";
         case GeometryData::Kratos_Quadrilateral2D4 :
           return "Kratos_Quadrilateral2D4";
         case GeometryData::Kratos_Quadrilateral2D8 :
