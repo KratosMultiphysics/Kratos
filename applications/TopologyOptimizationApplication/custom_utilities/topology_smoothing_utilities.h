@@ -123,7 +123,6 @@ public:
 		{
 			// Repeat smoothing operation for the selected number of iterations
 			for(int i = 0; i < iterations; ++i){
-				std::cout<<"  Smoothing iteration number "<< i+1 <<std::endl;
 
 				smoothed_coordinates.clear();
 

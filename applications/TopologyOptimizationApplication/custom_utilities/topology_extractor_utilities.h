@@ -158,18 +158,22 @@ public:
 			}
 		}
 
-		// Erase free nodes
-		std::cout<<"  Erasing free nodes and re-numbering kept nodes" <<std::endl;
-		FindGlobalNodalNeighboursProcess nodal_finder = FindGlobalNodalNeighboursProcess(r_comm,rExtractedModelPart,10);
-		nodal_finder.Execute();
-
-		for(NodesContainerType::iterator node_i=rExtractedModelPart.NodesBegin(); node_i!=rExtractedModelPart.NodesEnd(); node_i++)
-		{
-			GlobalPointersVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
-			if(ng_elem.size()==0)
-				node_i->Set(TO_ERASE,true);
+		// finding the "orphan" NODES (NODES that are not belonging to a ELEMENT) and t
+		std::unordered_set<std::size_t> index_ok_nodes;
+		for (auto& r_elem : rExtractedModelPart.Elements()) {
+			for (auto& r_node : r_elem.GetGeometry()) {
+				index_ok_nodes.insert(r_node.Id());
+			}
 		}
-		(NodeEraseProcess(rExtractedModelPart)).Execute();
+		// Set flags in nodes
+		for (auto& r_node : rExtractedModelPart.Nodes()) {
+			if (index_ok_nodes.find(r_node.Id()) == index_ok_nodes.end()) {
+				r_node.Set(TO_ERASE);
+			}
+		}
+
+		// Remove elements
+		rExtractedModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
 		// Renumber nodes in extracted volume mesh (to start from 1)
 		unsigned int new_id = 1;
@@ -275,26 +279,19 @@ public:
 		std::cout<<"  Extracting surface mesh and computing normals" <<std::endl;
 		for(typename hashmap::const_iterator it=n_faces_map.begin(); it!=n_faces_map.end(); it++)
 		{	
-			std::cout<<"  Loop 1" <<std::endl;
 			// If given node set represents face that is not overlapping with a face of another element, add it as skin element
 			if(it->second == 1)
-			{	std::cout<<"  Loop 2" <<std::endl;
+			{
 				// If skin face is a triangle store triangle in with its original orientation in new skin model part
 				if(it->first.size()==3)
-				{	std::cout<<"  Loop 3 Tetrahedral" <<std::endl;
+				{	
 					// Getting original order is important to properly reproduce skin face including its normal orientation
-					std::cout<<"  before constructing vector" <<std::endl;
 					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-					std::cout<<"  after constructing vector" <<std::endl;
 
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-					std::cout<<"  pnode1 done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
-					std::cout<<"  pnode3 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
-					std::cout<<"  Surfacemesh done" <<std::endl;
 
 					// Add skin face as condition
 					Triangle3D3< Node<3> > triangle_c(pnode1, pnode2, pnode3);
@@ -310,30 +307,18 @@ public:
 				// If skin face is a quadrilateral then divide in two triangles and store them with their original orientation in new skin model part
 				if(it->first.size()==4)
 				{	
-					std::cout<<"  Loop 3 Hexahedral" <<std::endl;
 					// Getting original order is important to properly reproduce skin including its normal orientation
-					std::cout<<"  Before constructing vector hexahedral" <<std::endl;
 					vector<IndexType> original_nodes_order = ordered_skin_face_nodes_map[it->first];
-					std::cout<<"  After constructing vector hexahedral" <<std::endl;
 
-					std::cout<<"  before hexahedral pnode1" <<std::endl;
 					Node < 3 >::Pointer pnode1 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[0]);
-					std::cout<<"  pnode1 hexahedral done" <<std::endl;
 					Node < 3 >::Pointer pnode2 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[1]);
-					std::cout<<"  pnode2 done" <<std::endl;
 					Node < 3 >::Pointer pnode3 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[2]);
-					std::cout<<"  pnode3 done" <<std::endl;
 					Node < 3 >::Pointer pnode4 = rExtractedVolumeModelPart.Nodes()(original_nodes_order[3]);
-					std::cout<<"  pnode4 done" <<std::endl;
 					Properties::Pointer properties = rExtractedSurfaceModelPart.rProperties()(0);
-					std::cout<<"  Surfacemesh done" <<std::endl; 
 
 					// Add triangle one as condition
-					std::cout<<"  Step 3" <<std::endl;
 					Triangle3D3< Node<3> > triangle1_c(pnode1, pnode2, pnode3);
-					std::cout<<"  Step 4" <<std::endl;
 					Condition::Pointer p_condition1 = rReferenceTriangleCondition.Create(face_id++, triangle1_c, properties);
-					std::cout<<"  Step 5" <<std::endl;
 					rExtractedSurfaceModelPart.Conditions().push_back(p_condition1);
 
 					// Add triangle two as condition
@@ -353,7 +338,6 @@ public:
 				}
 			}
 		}
-		std::cout<<"  Bis hierher gehts" <<std::endl;
 		// Remove free nodes (nodes which do not have any link to other nodes through a triangle, hence to not belong to the skin)
 		(FindConditionsNeighboursProcess(rExtractedSurfaceModelPart,domain_size, 10)).Execute();
 		for(ModelPart::NodesContainerType::iterator node_i =  rExtractedSurfaceModelPart.NodesBegin(); node_i !=rExtractedSurfaceModelPart.NodesEnd(); node_i++)
@@ -361,7 +345,6 @@ public:
 			GlobalPointersVector<Condition >& ng_cond = node_i->GetValue(NEIGHBOUR_CONDITIONS);
 			if(ng_cond.size()==0)
 				node_i->Set(TO_ERASE,true);
-			std::cout<<"  Schleife 5" <<std::endl;
 		}
 		(NodeEraseProcess(rExtractedSurfaceModelPart)).Execute();
 

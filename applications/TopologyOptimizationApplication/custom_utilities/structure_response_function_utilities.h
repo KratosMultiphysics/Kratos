@@ -119,13 +119,23 @@ public:
 		for( ModelPart::ElementIterator element_i = mr_structure_model_part.ElementsBegin(); element_i!= mr_structure_model_part.ElementsEnd();
 				element_i++ )
 		{
-		/* 	std::cout<< "respones function VOR CALCULATE:" << std::endl;  */
+
 			element_i->Calculate(LOCAL_STRAIN_ENERGY, Out, mr_structure_model_part.GetProcessInfo());
-		/* 	std::cout<< "respones function NACH CALCULATE:" << std::endl;  */
+
 			Global_Strain_Energy += element_i->GetValue(LOCAL_STRAIN_ENERGY);
-			///std::cout<< "Globalstrain ist: " << Global_Strain_Energy << " Wert"<< std::endl; 
-			///std::cout<< "LocalStrain ist: " << element_i->GetValue(LOCAL_STRAIN_ENERGY) << " Wert"<< std::endl;
+			
 		}
+/* 
+		for (ModelPart::NodeIterator node_i = mr_structure_model_part.NodesBegin(); node_i!=mr_structure_model_part.NodesEnd(); node_i++)
+		{
+			double displ_x = 0;
+			double displ_y = 0;
+			double displ_z = 0;
+			displ_x = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
+			displ_y = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);
+			displ_z = node_i->FastGetSolutionStepValue(DISPLACEMENT_Z);
+			std::cout<<"  X:"<< displ_x <<"  Y:"<< displ_y << "  Z:"<< displ_z<< std::endl;
+		} */
 
 		clock_t end = clock();
 		std::cout << "  Strain energy calculated                  [ spent time =  " << double(end - begin) / CLOCKS_PER_SEC << " ] " << std::endl;

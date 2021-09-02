@@ -21,18 +21,11 @@ namespace Kratos
 
 
 MMASolver::MMASolver(int nn, int mm, double ai, double ci, double di)
-/* :albefa(0.1),
-move(0.1),
-raa0(0.00001),
-epsimin(std::sqrt(n + m) * 1e-9),
-xmamieps(1.0e-5) */
 
 
 : nano(nn)
 , m(mm)
-, iter(0)
 , xmamieps(1.0e-5)
-//, epsimin(1e-7)
 , epsimin(std::sqrt(nano + m) * 1e-9)
 , raa0(0.00001)
 , move(0.5)
@@ -46,8 +39,6 @@ xmamieps(1.0e-5) */
 , y(m)
 , lam(m)
 , mu(m), s(2 * m)
-, low(nano)
-, upp(nano)
 , alpha(nano)
 , beta(nano)
 , p0(nano)
@@ -56,8 +47,6 @@ xmamieps(1.0e-5) */
 , qij(nano * m), b(m)
 , grad(m)
 , hess(m * m)
-, xold1(nano)
-, xold2(nano) 
     
     {
     }
@@ -89,19 +78,19 @@ void MMASolver::SetAsymptotes(double init, double decrease, double increase)
     }
 
 void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const double *dgdx,
-	const double *xmin, const double *xmax)
+	const double *xmin, const double *xmax, const double *xold1, const double *xold2, const int iter, double *low, double *upp)
     {
         KRATOS_TRY
 
         // Generate the subproblem
-        GenSub(xval, dfdx, gx, dgdx, xmin, xmax);
+        GenSub(xval, dfdx, gx, dgdx, xmin, xmax, xold1, xold2, iter, low, upp);
 
         // Update xolds
-        xold2 = xold1;
-        std::copy_n(xval, nano, xold1.data());
+        ///xold2 = xold1;
+        ///std::copy_n(xval, nano, xold1.data());
 
         // Solve the dual with an interior point method
-        SolveDIP(xval);
+        SolveDIP(xval, low, upp);
 
 
         // Solve the dual with a steepest ascent method
@@ -109,7 +98,7 @@ void MMASolver::Update(double *xval, const double *dfdx, const double *gx, const
         KRATOS_CATCH( "" );
     }
 
-void MMASolver::SolveDIP(double *x) 
+void MMASolver::SolveDIP(double *x, double *low, double *upp) 
     {
         
 
@@ -129,12 +118,12 @@ void MMASolver::SolveDIP(double *x)
             while (err > 0.9 * epsi && loop < 100) {
                 loop++;
                 // Set up Newton system
-                XYZofLAMBDA(x);
-                DualGrad(x);
+                XYZofLAMBDA(x, low, upp);
+                DualGrad(x, low, upp);
                 for (int j = 0; j < m; j++) {
                     grad[j] = -1.0 * grad[j] - epsi / lam[j];
                 }
-                DualHess(x);
+                DualHess(x, low, upp);
 
                 // Solve Newton system
                 if (m > 1) {
@@ -155,17 +144,17 @@ void MMASolver::SolveDIP(double *x)
                 // Perform linesearch and update lam and mu
                 DualLineSearch();
 
-                XYZofLAMBDA(x);
+                XYZofLAMBDA(x, low, upp);
 
                 // Compute KKT res
-                err = DualResidual(x, epsi);
+                err = DualResidual(x, epsi, low, upp);
             }
             epsi = epsi * 0.1;
         }
         
     }
 
-void MMASolver::SolveDSA(double *x) 
+void MMASolver::SolveDSA(double *x, double *low, double *upp) 
     {
         
 
@@ -180,8 +169,8 @@ void MMASolver::SolveDSA(double *x)
         while (err > tol && loop < 500) 
         {
             loop++;
-            XYZofLAMBDA(x);
-            DualGrad(x);
+            XYZofLAMBDA(x, low, upp);
+            DualGrad(x, low, upp);
             double theta = 1.0;
             err = 0.0;
             for (int j = 0; j < m; j++) {
@@ -193,7 +182,7 @@ void MMASolver::SolveDSA(double *x)
         
     }
 
-double MMASolver::DualResidual(double *x, double epsi) 
+double MMASolver::DualResidual(double *x, double epsi, double *low, double *upp) 
     {
         
 
@@ -244,7 +233,7 @@ void MMASolver::DualLineSearch()
         
     }
 
-void MMASolver::DualHess(double *x) 
+void MMASolver::DualHess(double *x, double *low, double *upp) 
     {
         
 
@@ -334,7 +323,7 @@ void MMASolver::DualHess(double *x)
         
     }
 
-void MMASolver::DualGrad(double *x) 
+void MMASolver::DualGrad(double *x, double *low, double *upp) 
     {
         
 
@@ -347,7 +336,7 @@ void MMASolver::DualGrad(double *x)
         
     }
 
-void MMASolver::XYZofLAMBDA(double *x) 
+void MMASolver::XYZofLAMBDA(double *x, double *low, double *upp) 
     {
         
 
@@ -383,15 +372,16 @@ void MMASolver::XYZofLAMBDA(double *x)
     }
 
 void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx, const double *dgdx, const double *xmin,
-                        const double *xmax)
+                        const double *xmax, const double *xold1, const double *xold2, const int iter,  double *low, double *upp)
     {
         
         KRATOS_TRY
 
         // Forward the iterator
-        iter++;
+       /// iter++;
 
         // Set asymptotes
+        std::cout << "  iter "<< iter << std::endl;
         if (iter < 3) 
         {
 
@@ -440,7 +430,9 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
                     low[i] = xval[i] - (xval[i] - xmi) / 0.9;
                     upp[i] = xval[i] + (xval[i] - xmi) / 0.9;
                 }
+                
             }
+            
             
         }
 
