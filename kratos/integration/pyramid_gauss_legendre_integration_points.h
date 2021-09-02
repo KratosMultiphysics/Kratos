@@ -54,7 +54,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Hexahedron Gauss-Legendre quadrature 1 ";
+        buffer << "Pyramid Gauss-Legendre quadrature 1 ";
         return buffer.str();
     }
 
@@ -97,7 +97,7 @@ public:
     std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "Hexahedron Gauss-Legendre quadrature 2 ";
+        buffer << "Pyramid Gauss-Legendre quadrature 2 ";
         return buffer.str();
     }
 
