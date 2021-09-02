@@ -61,6 +61,7 @@ import test_function_parser_utility
 import test_integration_points
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
+import test_force_and_torque_utils
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -115,11 +116,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixTranspose]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_multiplication.TestSparseMatrixMultiplication]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_component.TestVariableComponent]))
-    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testLinearFunction'))
-    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testSharpCorners'))
-    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testVector'))
-    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testQuadratic'))
-    smallSuite.addTest(test_variable_redistribution.VariableRedistributionTest('testNodalArea'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_object_printing.TestObjectPrinting]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_array_1d_interface.TestArray1DInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_flags.TestFlags]))
@@ -145,6 +142,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_integration_points.TestIntegrationPoints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mls_shape_functions_utility.TestMLSShapeFunctionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

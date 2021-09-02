@@ -73,7 +73,6 @@ public:
     typedef std::size_t SizeType;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStressVector;
-    using SmallStrainUPwDiffOrderElement::mStressVectorFinalized;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
@@ -90,13 +89,6 @@ public:
 
     /// Default Constructor
     UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
-
-    //UpdatedLagrangianUPwDiffOrderElement(IndexType NewId = 0) : SmallStrainUPwDiffOrderElement( NewId ) {}
-
-    /// Constructor using an array of nodes
-    // UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
-    //                                      const NodesArrayType& ThisNodes)
-    //                                      : SmallStrainUPwDiffOrderElement(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType NewId,
@@ -347,7 +339,8 @@ protected:
                                                  IntegrationMethod ThisIntegrationMethod ) const;
 
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables);
+                                                  ElementVariables& rVariables,
+                                                  unsigned int GPoint);
 
     void CalculateStrain( ElementVariables& rVariables ) override;
 

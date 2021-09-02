@@ -149,6 +149,37 @@ namespace Kratos {
         KRATOS_CHECK(r_model_part.NumberOfConditions() == 4);
         KRATOS_CHECK(r_model_part.NumberOfGeometries() == 8);
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddGeometries, KratosCoreFastSuite)
+    {
+        Model current_model;
+        
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
+        
+        // Fill model part
+        GenerateGenericModelPart(r_model_part);
+        
+        // Generate submodelpart (I)
+        auto& r_sub_model_1 = r_model_part.CreateSubModelPart("Sub1");
+        KRATOS_CHECK(r_sub_model_1.NumberOfGeometries() == 0);
+        
+        // Copy one
+        r_sub_model_1.AddGeometries(r_model_part.GeometriesBegin(), r_model_part.GeometriesEnd());
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_1.NumberOfGeometries() == 8);
+
+        // Generate submodelpart (II)
+        auto& r_sub_model_2 = r_model_part.CreateSubModelPart("Sub2");
+        KRATOS_CHECK(r_sub_model_2.NumberOfGeometries() == 0);
+        
+        // Copy one
+        const std::vector<std::size_t> indexes = {1,2,3,4};
+        r_sub_model_2.AddGeometries(indexes);
+
+        // Check results
+        KRATOS_CHECK(r_sub_model_2.NumberOfGeometries() == 4);
+    }
     
     KRATOS_TEST_CASE_IN_SUITE(ModelPartTable, KratosCoreFastSuite)
     {

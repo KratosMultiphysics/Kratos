@@ -22,6 +22,8 @@ from test_soil_structure_interactions import KratosGeoMechanicsSoilStructureInte
 from test_water_pressure import KratosGeoMechanicsWaterPressureTests
 from test_dynamics import KratosGeoMechanicsDynamicsTests
 from test_elements import KratosGeoMechanicsElementTypeTests
+from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGroundWaterFlowTests
+from test_soil_weight import KratosGeoMechanicsSoilWeightTests
 
 
 def AssambleTestSuites(is_team_city):
@@ -50,7 +52,9 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsWaterPressureTests,
         KratosGeoMechanicsBenchmarkSet1,
         KratosGeoMechanicsBenchmarkSet2,
-        KratosGeoMechanicsElementTypeTests
+        KratosGeoMechanicsElementTypeTests,
+        KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
+        KratosGeoMechanicsSoilWeightTests
         ]
 
     # Create an array with the selected tests

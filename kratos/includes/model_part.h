@@ -401,8 +401,20 @@ public:
 
     void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
+    /** Returns if the Node corresponding to it's identifier exists */
+    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasNode(NodeId);
+    }
+
     /** Returns the Node::Pointer  corresponding to it's identifier */
     NodeType::Pointer pGetNode(IndexType NodeId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetNode(NodeId);
+    }
+
+    /** Returns the Node::Pointer corresponding to it's identifier */
+    const NodeType::Pointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetNode(NodeId);
     }
@@ -1064,8 +1076,20 @@ public:
         IndexType Id, typename GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /** Returns if the Element corresponding to it's identifier exists */
+    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasElement(ElementId);
+    }
+
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetElement(ElementId);
+    }
+
+    /** Returns the Element::Pointer  corresponding to it's identifier */
+    const ElementType::Pointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetElement(ElementId);
     }
@@ -1244,8 +1268,20 @@ public:
             IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /** Returns if the Condition corresponding to it's identifier exists */
+    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasCondition(ConditionId);
+    }
+
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetCondition(ConditionId);
+    }
+
+    /** Returns the Condition::Pointer  corresponding to it's identifier */
+    const ConditionType::Pointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetCondition(ConditionId);
     }
@@ -1372,7 +1408,7 @@ public:
         const std::string& rGeometryTypeName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
     /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
@@ -1395,7 +1431,7 @@ public:
         const std::vector<IndexType>& rGeometryNodeIds
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1407,7 +1443,7 @@ public:
         GeometryType::PointsArrayType pGeometryNodes
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1442,7 +1478,7 @@ public:
         const std::string& rGeometryIdentifierName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
         /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added. Must be registered.

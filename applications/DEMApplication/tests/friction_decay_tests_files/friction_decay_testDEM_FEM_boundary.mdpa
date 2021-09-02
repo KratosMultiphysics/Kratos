@@ -3,29 +3,9 @@ Begin ModelPartData
 End ModelPartData
 
 Begin Properties 3
-STATIC_FRICTION 0.6
-DYNAMIC_FRICTION 0.4
-FRICTION_DECAY 500.0
-WALL_COHESION 0.0
-COMPUTE_WEAR 0
-SEVERITY_OF_WEAR 0.001
-IMPACT_WEAR_SEVERITY 0.001
-BRINELL_HARDNESS 200.0
-YOUNG_MODULUS 1e6
-POISSON_RATIO 0.20
 End Properties
 
 Begin Properties 4
-STATIC_FRICTION 0.6
-DYNAMIC_FRICTION 0.4
-FRICTION_DECAY 5.0
-WALL_COHESION 0.0
-COMPUTE_WEAR 0
-SEVERITY_OF_WEAR 0.001
-IMPACT_WEAR_SEVERITY 0.001
-BRINELL_HARDNESS 200.0
-YOUNG_MODULUS 1e6
-POISSON_RATIO 0.20
 End Properties
 
 Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-wall1
@@ -49,7 +29,6 @@ End Conditions
 
 Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall1
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
-  PROPERTIES_ID 3
   IDENTIFIER DEM-wall1
   End SubModelPartData
   Begin SubModelPartNodes
@@ -67,7 +46,6 @@ End SubModelPart
 
 Begin SubModelPart 4 // DEM-FEM-Wall. Group name: DEM-wall2
   Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
-  PROPERTIES_ID 4
   IDENTIFIER DEM-wall2
   End SubModelPartData
   Begin SubModelPartNodes
