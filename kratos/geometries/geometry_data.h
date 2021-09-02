@@ -97,6 +97,7 @@ public:
         Kratos_Tetrahedra,
         Kratos_Hexahedra,
         Kratos_Prism,
+        Kratos_Pyramid,
         Kratos_Brep,
         Kratos_generic_family
     };
@@ -109,6 +110,9 @@ public:
         Kratos_Hexahedra3D8,
         Kratos_Prism3D15,
         Kratos_Prism3D6,
+        Kratos_Pyramid3D14,
+        Kratos_Pyramid3D13,
+        Kratos_Pyramid3D4,
         Kratos_Quadrilateral2D4,
         Kratos_Quadrilateral2D8,
         Kratos_Quadrilateral2D9,
