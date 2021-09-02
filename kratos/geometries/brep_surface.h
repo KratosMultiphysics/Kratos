@@ -281,6 +281,21 @@ public:
         mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
+    /// Access the nested loop of outer loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
+        return mOuterLoopArray;
+    }
+
+    /// Access the nested loop of inner loops.
+    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
+        return mInnerLoopArray;
+    }
+
+    /// Access the array of embedded edges.
+    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
+        return mEmbeddedEdgesArray;
+    }
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
