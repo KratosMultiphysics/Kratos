@@ -107,7 +107,7 @@ namespace Kratos
   //***********************************************************************************
 
   void MomentCondition::GetDofList(DofsVectorType& rConditionDofList,
-				     ProcessInfo& rCurrentProcessInfo)
+				   const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -135,7 +135,7 @@ namespace Kratos
   //***********************************************************************************
 
   void MomentCondition::EquationIdVector(EquationIdVectorType& rResult,
-					  ProcessInfo& rCurrentProcessInfo)
+					 const  ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -509,7 +509,7 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int MomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int MomentCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 

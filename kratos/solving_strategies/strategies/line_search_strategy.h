@@ -23,22 +23,30 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
+
 namespace Kratos
 {
+
 ///@name Kratos Globals
 ///@{
+
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
+
+
 ///@name  Enum's
 ///@{
+
 
 ///@}
 ///@name  Functions
 ///@{
+
+
 
 ///@}
 ///@name Kratos Classes
@@ -82,7 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -386,6 +394,8 @@ private:
     ///@name Protected Operations
     ///@{
 
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -394,9 +404,12 @@ private:
     ///@name Protected Inquiry
     ///@{
 
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
+
+
 
     ///@}
 
@@ -404,11 +417,11 @@ protected:
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<Internals::RegisteredPrototypeBase<SolvingStrategyType>> msPrototypes;
 
     ///@}
     ///@name Member Variables
     ///@{
+
 
     ///@}
     ///@name Private Operators

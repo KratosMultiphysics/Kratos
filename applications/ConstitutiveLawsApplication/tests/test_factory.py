@@ -97,6 +97,9 @@ class BigCubeSmallDeformationPlasticityTTest(TestFactory):
 class SerialParallelRuleOfMixturesCubeDamageTest(TestFactory):
     file_name = "SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
 
+class PlasticDamageTest(TestFactory):
+    file_name = "PlasticDamageModel/plastic_damage_test"
+
 class AnisotropyTest(TestFactory):
     file_name = "AnisotropyCube/anisotropy_test"
 
@@ -114,6 +117,9 @@ class SimpleJ2PlasticityTest(TestFactory):
 
 class TensileTestStructuralTest(TestFactory):
     file_name = "TensileTestStructural/TensileTestStructural"
+
+class HighCycleFatigueTest(TestFactory):
+    file_name = "HighCycleFatigue/high_cycle_fatigue_test"
 
 
 if __name__ == '__main__':

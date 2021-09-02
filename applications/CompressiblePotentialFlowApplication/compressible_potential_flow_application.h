@@ -116,6 +116,8 @@ private:
     const TransonicPerturbationPotentialFlowElement<3, 4> mTransonicPerturbationPotentialFlowElement3D4N;
     const AdjointAnalyticalIncompressiblePotentialFlowElement<IncompressiblePotentialFlowElement<2, 3>> mAdjointAnalyticalIncompressiblePotentialFlowElement2D3N;
     const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>> mAdjointIncompressiblePotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>> mAdjointIncompressiblePerturbationPotentialFlowElement2D3N;
+    const AdjointFiniteDifferencePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>> mAdjointIncompressiblePerturbationPotentialFlowElement3D4N;
     const AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>> mAdjointCompressiblePotentialFlowElement2D3N;
     const EmbeddedIncompressiblePotentialFlowElement<2,3> mEmbeddedIncompressiblePotentialFlowElement2D3N;
     const EmbeddedIncompressiblePotentialFlowElement<3,4> mEmbeddedIncompressiblePotentialFlowElement3D4N;
@@ -128,6 +130,7 @@ private:
     const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
     const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
     const AdjointPotentialWallCondition<PotentialWallCondition<2,2>> mAdjointPotentialWallCondition2D2N;
+    const AdjointPotentialWallCondition<PotentialWallCondition<3,3>> mAdjointPotentialWallCondition3D3N;
 
     ///@}
     ///@name Un accessible methods

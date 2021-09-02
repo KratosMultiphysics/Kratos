@@ -20,34 +20,9 @@
 namespace Kratos
 {
 
-void AddKratosComponent(std::string const& Name, SolvingStrategyType const& ThisComponent)
-{
-    KratosComponents<SolvingStrategyType>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, ExplicitSolvingStrategyType const& ThisComponent)
-{
-    KratosComponents<ExplicitSolvingStrategyType>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, BuilderAndSolverType const& ThisComponent)
-{
-    KratosComponents<BuilderAndSolverType>::Add(Name, ThisComponent);
-}
-
 void AddKratosComponent(std::string const& Name, ExplicitBuilderType const& ThisComponent)
 {
     KratosComponents<ExplicitBuilderType>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, SchemeType const& ThisComponent)
-{
-    KratosComponents<SchemeType>::Add(Name, ThisComponent);
-}
-
-void AddKratosComponent(std::string const& Name, ConvergenceCriteriaType const& ThisComponent)
-{
-    KratosComponents<ConvergenceCriteriaType>::Add(Name, ThisComponent);
 }
 
 }  // namespace Kratos.

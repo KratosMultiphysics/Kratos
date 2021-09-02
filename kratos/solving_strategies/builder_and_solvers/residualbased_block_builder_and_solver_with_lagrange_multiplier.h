@@ -1115,8 +1115,6 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static std::vector<Internals::RegisteredPrototypeBase<BaseBuilderAndSolverType>> msPrototypes;
-
     ///@}
     ///@name Member Variables
     ///@{

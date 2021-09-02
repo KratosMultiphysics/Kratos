@@ -18,6 +18,8 @@
 // External includes
 
 // Project includes
+#include "includes/parallel_environment.h"
+
 #include "custom_python/add_processes_to_python.h"
 
 #include "custom_processes/metis_divide_heterogeneous_input_process.h"
@@ -54,10 +56,28 @@ void AddProcessesToPython(pybind11::module& m)
 
     py::class_<MetisDivideHeterogeneousInputInMemoryProcess, MetisDivideHeterogeneousInputInMemoryProcess::Pointer, Process>(
         m,"MetisDivideHeterogeneousInputInMemoryProcess")
-        .def(py::init<IO&, ModelPartIO&, unsigned int>())
-        .def(py::init<IO&, ModelPartIO&, unsigned int, int>())
-        .def(py::init<IO&, ModelPartIO&, unsigned int, int, int>())
-        .def(py::init<IO&, ModelPartIO&, unsigned int, int, int, bool>())
+        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&>())
+        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int>())
+        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int, int>())
+        .def(py::init<IO&, ModelPartIO&, const DataCommunicator&, int, int, bool>())
+
+        // deprecated legacy interface
+        .def(py::init([](IO& rIO, ModelPartIO& rSerialIO, unsigned int NumberOfPartitions){
+            KRATOS_WARNING("MetisDivideHeterogeneousInputInMemoryProcess") << "Using deprecated constructor. Please use constructor with DataCommunicator!\n";
+            return Kratos::make_shared<MetisDivideHeterogeneousInputInMemoryProcess>(rIO, rSerialIO, ParallelEnvironment::GetDataCommunicator("World"));
+        }))
+        .def(py::init([](IO& rIO, ModelPartIO& rSerialIO, unsigned int NumberOfPartitions, int Dimension){
+            KRATOS_WARNING("MetisDivideHeterogeneousInputInMemoryProcess") << "Using deprecated constructor. Please use constructor with DataCommunicator!\n";
+            return Kratos::make_shared<MetisDivideHeterogeneousInputInMemoryProcess>(rIO, rSerialIO, ParallelEnvironment::GetDataCommunicator("World"), Dimension);
+        }))
+        .def(py::init([](IO& rIO, ModelPartIO& rSerialIO, unsigned int NumberOfPartitions, int Dimension, int Verbosity){
+            KRATOS_WARNING("MetisDivideHeterogeneousInputInMemoryProcess") << "Using deprecated constructor. Please use constructor with DataCommunicator!\n";
+            return Kratos::make_shared<MetisDivideHeterogeneousInputInMemoryProcess>(rIO, rSerialIO, ParallelEnvironment::GetDataCommunicator("World"), Dimension, Verbosity);
+        }))
+        .def(py::init([](IO& rIO, ModelPartIO& rSerialIO, unsigned int NumberOfPartitions, int Dimension, int Verbosity, bool SynchronizeConditions){
+            KRATOS_WARNING("MetisDivideHeterogeneousInputInMemoryProcess") << "Using deprecated constructor. Please use constructor with DataCommunicator!\n";
+            return Kratos::make_shared<MetisDivideHeterogeneousInputInMemoryProcess>(rIO, rSerialIO, ParallelEnvironment::GetDataCommunicator("World"), Dimension, Verbosity, SynchronizeConditions);
+        }))
         ;
 
     py::class_<MortonDivideInputToPartitionsProcess, MortonDivideInputToPartitionsProcess::Pointer, Process>(

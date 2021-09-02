@@ -49,7 +49,7 @@ Make sure that the following lines are properly set in the configure.sh file:
 >
 > -DTRILINOS_LIBRARY_PREFIX="trilinos_" \\
 >
-> -DEXTERNAL_SOLVERS_APPLICATION=ON \\
+> -DLINEAR_SOLVERS_APPLICATION=ON \\
 >
 > -DSTRUCTURAL_MECHANICS_APPLICATION=ON \\
 >

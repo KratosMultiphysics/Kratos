@@ -59,35 +59,30 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
     def _solve(self,mp):
 
-        # Define a minimal newton raphson solver
-        settings = KratosMultiphysics.Parameters("""
-        {
-            "name"                     : "newton_raphson_strategy",
-            "max_iteration"            : 20,
-            "compute_reactions"        : false,
-            "reform_dofs_at_each_step" : true,
-            "move_mesh_flag"           : true,
-            "echo_level"               : 0,
-            "linear_solver_settings" : {
-                "solver_type" : "skyline_lu_factorization"
-            },
-            "scheme_settings" : {
-                "name"          : "bossak_scheme",
-                "damp_factor_m" : -0.01
-            },
-            "convergence_criteria_settings" : {
-                "name"                        : "residual_criteria",
-                "residual_absolute_tolerance" : 1.0e-9,
-                "residual_relative_tolerance" : 1.0e-4,
-                "echo_level"                  : 0
-            },
-            "builder_and_solver_settings" : {
-                "name" : "block_builder_and_solver"
-            }
-        }
-        """)
-        strategy = KratosMultiphysics.StrategyFactory().Create(mp, settings)
+        #define a minimal newton raphson dynamic solver
+        damp_factor_m = -0.01
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+        convergence_criterion.SetEchoLevel(0)
+
+        max_iters = 20
+        compute_reactions = False
+        reform_step_dofs = True
+        move_mesh_flag = True
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
+                                                                        move_mesh_flag)
+        strategy.SetEchoLevel(0)
+
         strategy.Check()
+
         strategy.Solve()
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):

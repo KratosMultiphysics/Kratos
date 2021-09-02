@@ -157,11 +157,11 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -std=c++11 -Wl,--no-as-needed -ldl")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override")
   endif()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
   message(STATUS "additional default options were set for gcc")
   message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -181,8 +181,8 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	  endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	  if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas  ")
-		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas  ")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -funroll-loops -Wall -Wno-unused-local-typedef -Wno-unknown-pragmas ")
+		set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -fPIC -funroll-loops -Wall -Wno-unknown-pragmas ")
 		set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 		message("additional default options were set for clang compiler")
 		message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
@@ -282,8 +282,11 @@ set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 
 # check version of Python, needs to be done after including pybind
 if(${PYTHON_VERSION_MAJOR} LESS 3 OR (${PYTHON_VERSION_MAJOR} EQUAL 3 AND ${PYTHON_VERSION_MINOR} LESS 5))
-    message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
+message( FATAL_ERROR "Kratos only supports Python version 3.5 and above")
 endif()
+set(PYTHON_INTERFACE_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+
+message("Python version used for the interface will be ${PYTHON_INTERFACE_VERSION}")
 
 # Set installation directory. TODO: Delete this and use CMAKE_INSTALL_PREFIX
 if(DEFINED KRATOS_INSTALL_PREFIX)
@@ -471,6 +474,12 @@ if(DEFINED ENV{KRATOS_APPLICATIONS})
     endforeach(APPLICATION_PATH $ENV{KRATOS_APPLICATIONS})
 endif(DEFINED ENV{KRATOS_APPLICATIONS})
 
+# Create custom targets. Not the cleanest solution, but minimizes the changes
+add_custom_target(KratosKernel DEPENDS ${KRATOS_KERNEL})
+add_custom_target(KratosPythonInterface DEPENDS ${KRATOS_PYTHON_INTERFACE})
+
+message("Interface List: ${KRATOS_PYTHON_INTERFACE}")
+
 message("")
 message("***********************************************************************")
 message("")
@@ -501,8 +510,11 @@ message("\t Minor update of import mechanism for applications: https://github.co
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 
-#compiling the triangle library
+# Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
+
+# Compiling the tinyexpr library
+add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr)
 
 # runkratos - compiles "runkratos and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )

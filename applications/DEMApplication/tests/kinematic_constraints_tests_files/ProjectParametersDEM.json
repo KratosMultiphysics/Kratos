@@ -20,7 +20,10 @@
     "CleanIndentationsOption"        : false,
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "sphere_strategy"
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -55,7 +58,7 @@
                     "value"                : [0.0, 0.0, 0.0],
                     "table"                : [null, null, null]
                 },
-                "interval"             : [0.2, 0.4]
+                "interval"             : [0.2, 0.3]
             }
         },{
             "python_module" : "processes.apply_kinematic_constraints_process",
@@ -155,16 +158,16 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 0.0002,
-    "FinalTime"                      : 0.61,
+    "MaxTimeStep"                    : 0.0005,
+    "FinalTime"                      : 0.31,
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
-    "OutputTimeStep"                 : 0.01,
+    "OutputTimeStep"                 : 1.01,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
     "PostDisplacement"               : true,
-    "PostRadius"                     : true,
+    "PostRadius"                     : false,
     "PostVelocity"                   : true,
     "PostAngularVelocity"            : true,
     "PostElasticForces"              : false,

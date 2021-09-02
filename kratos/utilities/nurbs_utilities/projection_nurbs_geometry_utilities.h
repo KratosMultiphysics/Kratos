@@ -19,14 +19,16 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-template<class TPointType> class Geometry;
 template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
-namespace ProjectionNurbsGeometryUtilities
+class ProjectionNurbsGeometryUtilities
 {
+public:
+
     typedef array_1d<double, 3> CoordinatesArrayType;
 
     /*
@@ -46,7 +48,7 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <class TPointType>
-    bool NewtonRaphsonCurve(
+    static bool NewtonRaphsonCurve(
         CoordinatesArrayType& rParameterLocalCoordinates,
         const CoordinatesArrayType& rPointGlobal,
         CoordinatesArrayType& rResultLocal,
@@ -72,7 +74,7 @@ namespace ProjectionNurbsGeometryUtilities
                 2);
             rResultLocal = derivatives[0];
 
-            // Compute the distance vector between the point and its 
+            // Compute the distance vector between the point and its
             // projection on the curve
             distance_vector = rResultLocal - rPointGlobal;
             if (norm_2(distance_vector) < Accuracy)
@@ -93,9 +95,9 @@ namespace ProjectionNurbsGeometryUtilities
             if (norm_2(delta_t * derivatives[1]) < Accuracy)
                 return true;
 
-            // Check if the parameter gets out of its interval of definition and if so clamp it 
+            // Check if the parameter gets out of its interval of definition and if so clamp it
             // back to the boundaries
-            int check = 1;//rGeometry.ClosestPointLocalSpace(rParameterLocalCoordinates);
+            int check = rGeometry.ClosestPointLocalToLocalSpace(rParameterLocalCoordinates, rParameterLocalCoordinates);
             if (check == 0) {
                 if (projection_reset_to_boundary) { return false; }
                 else { projection_reset_to_boundary = true; }
@@ -123,7 +125,7 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <int TDimension, class TPointType>
-    bool NewtonRaphsonSurface(
+    static bool NewtonRaphsonSurface(
         CoordinatesArrayType& rParameterLocalCoordinates,
         const CoordinatesArrayType& rPointGlobal,
         CoordinatesArrayType& rResultLocal,
@@ -229,7 +231,7 @@ namespace ProjectionNurbsGeometryUtilities
             rParameterLocalCoordinates[0] += d_u;
             rParameterLocalCoordinates[1] += d_v;
 
-            // Check if the parametric coordinates get out of their interval of definition 
+            // Check if the parametric coordinates get out of their interval of definition
             // and if so clamp them back to their boundaries
             rNurbsSurface.DomainIntervalU().IsInside(rParameterLocalCoordinates[0]);
             rNurbsSurface.DomainIntervalV().IsInside(rParameterLocalCoordinates[1]);
@@ -237,7 +239,7 @@ namespace ProjectionNurbsGeometryUtilities
 
         return false;
     }
-}
+};
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED
