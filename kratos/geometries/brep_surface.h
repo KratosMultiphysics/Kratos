@@ -124,6 +124,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -136,6 +137,7 @@ public:
         , mpNurbsSurface(rOther.mpNurbsSurface)
         , mOuterLoopArray(rOther.mOuterLoopArray)
         , mInnerLoopArray(rOther.mInnerLoopArray)
+        , mEmbeddedEdgesArray(rOther.mEmbeddedEdgesArray)
         , mIsTrimmed(rOther.mIsTrimmed)
     {
     }
@@ -154,6 +156,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
@@ -166,6 +169,7 @@ public:
         mpNurbsSurface = rOther.mpNurbsSurface;
         mOuterLoopArray = rOther.mOuterLoopArray;
         mInnerLoopArray = rOther.mInnerLoopArray;
+        mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
         return *this;
     }
