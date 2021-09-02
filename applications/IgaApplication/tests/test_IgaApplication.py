@@ -102,7 +102,7 @@ def AssembleTestSuites():
             print("FEAST not available in LinearSolversApplication")
 
     nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
+    # nightSuite.addTests(smallSuite)
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([
         # Membrane tests
         MembraneSinglePatchFourPointSailImplicitDynamic,
