@@ -60,7 +60,8 @@ public:
     {
         Default,
         GAUSS,
-        EXTENDED_GAUSS
+        EXTENDED_GAUSS,
+        GRID
     };
 
     ///@}
@@ -100,12 +101,12 @@ public:
     void SetNumberOfIntegrationPointsPerSpan(IndexType DimensionIndex,
         SizeType NumberOfIntegrationPointsPerSpan);
 
-    QuadratureMethod GetQuadratureMethodVector(IndexType DimensionIndex) const
+    QuadratureMethod GetQuadratureMethod(IndexType DimensionIndex) const
     {
         return mQuadratureMethodVector[DimensionIndex];
     }
 
-    void SetQuadratureMethodVector(IndexType DimensionIndex,
+    void SetQuadratureMethod(IndexType DimensionIndex,
         QuadratureMethod ThisQuadratureMethod);
 
     /* returns the IntegrationMethod to

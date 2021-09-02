@@ -536,7 +536,7 @@ public:
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
