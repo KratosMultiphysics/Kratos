@@ -171,7 +171,7 @@ namespace Kratos
                 std::fill(r_weights.begin(), r_weights.end(), 1.0);
             }
             Vector control_points = ZeroVector(4);
-            for (int j = 0; j < p_curve->size(); ++j) {
+            for (IndexType j = 0; j < p_curve->size(); ++j) {
                 const auto& r_node = p_curve->GetPoint(j);
                 control_points[0] = r_node[0];
                 control_points[1] = r_node[1];
