@@ -89,12 +89,10 @@ namespace Kratos
 
 		/// Default constructor. mPosition should have at least on entry.
         VariablesList()
-		: mReferenceCounter(0)
 		{}
 
         template <class TInputIteratorType>
 		VariablesList(TInputIteratorType First, TInputIteratorType Last)
-		: mReferenceCounter(0)
 		{
 			for (; First != Last; First++)
 				Add(*First);
@@ -108,7 +106,6 @@ namespace Kratos
 			, mVariables(rOther.mVariables)
 			, mDofVariables(rOther.mDofVariables)
 			, mDofReactions(rOther.mDofReactions)
-			, mReferenceCounter(0) 
 			{}
 
 		/// Destructor.
@@ -238,7 +235,7 @@ namespace Kratos
 
 			mDofVariables.swap(rOther.mDofVariables);
 			mDofReactions.swap(rOther.mDofReactions);
-			
+
 			mKeys.swap(rOther.mKeys);
 			mPositions.swap(rOther.mPositions);
 		}
@@ -266,7 +263,7 @@ namespace Kratos
 			if (ThisVariable.SourceKey() == 0)
 				KRATOS_THROW_ERROR(std::logic_error,
 					"Adding uninitialize variable to this variable list. Check if all variables are registered before kernel initialization", "");
-					
+
 
 			if (Has(ThisVariable))
 				return;
@@ -283,7 +280,7 @@ namespace Kratos
 		}
 
 		int AddDof(VariableData const* pThisDofVariable){
-			
+
 			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
 				if(*mDofVariables[dof_index] == *pThisDofVariable){
 					return static_cast<int>(dof_index);
@@ -293,7 +290,7 @@ namespace Kratos
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
-#endif 
+#endif
 			mDofVariables.push_back(pThisDofVariable);
 			mDofReactions.push_back(nullptr);
 
@@ -303,7 +300,7 @@ namespace Kratos
 		}
 
 		int AddDof(VariableData const* pThisDofVariable, VariableData const* pThisDofReaction){
-			
+
 			for(std::size_t dof_index = 0 ; dof_index < mDofVariables.size() ; dof_index++){
 				if(*mDofVariables[dof_index] == *pThisDofVariable){
 					mDofReactions[dof_index] = pThisDofReaction;
@@ -314,7 +311,7 @@ namespace Kratos
 #ifdef KRATOS_DEBUG
         if(OpenMPUtils::IsInParallel() != 0)
             KRATOS_ERROR << "attempting to call AddDof for: " << pThisDofVariable << ". Unfortunately the Dof was not added before and the operations is not threadsafe (this function is being called within a parallel region)" << std::endl;
-#endif 
+#endif
 			mDofVariables.push_back(pThisDofVariable);
 			mDofReactions.push_back(pThisDofReaction);
 
@@ -416,7 +413,7 @@ namespace Kratos
 			for (IndexType i = 0; i < mVariables.size(); ++i)
 				rOStream << "    " << mVariables[i]->Name() << " \t-> " << GetPosition(mVariables[i]->Key()) << std::endl;
 
-			rOStream << " with " << mDofVariables.size() << " Dofs:";	
+			rOStream << " with " << mDofVariables.size() << " Dofs:";
 			for (IndexType i = 0; i < mDofVariables.size(); ++i)
 				rOStream << "    [" << mDofVariables[i]->Name() << " ,  " << ((mDofReactions[i] == nullptr) ? "NONE" : mDofReactions[i]->Name()) << "]" << std::endl;
 		}
@@ -444,7 +441,7 @@ namespace Kratos
 		///@name Private Operators
 		///@{
 		//this block is needed for refcounting
-		mutable std::atomic<int> mReferenceCounter;
+		mutable std::atomic<int> mReferenceCounter{0};
 
 		friend void intrusive_ptr_add_ref(const VariablesList* x)
 		{
