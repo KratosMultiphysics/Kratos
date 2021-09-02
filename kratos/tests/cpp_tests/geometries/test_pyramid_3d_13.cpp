@@ -24,12 +24,12 @@
 namespace Kratos {
 namespace Testing {
 
-typedef Node<3>                       PointType;
-typedef Node<3>::Pointer              PointPtrType;
-typedef Geometry<PointType>           BaseGeometryType;
-typedef BaseGeometryType::Pointer     BaseGeometryPtrType;
-typedef Pyramid3D13<PointType>        PyramidGeometryType;
-typedef PyramidGeometryType::Pointer  PyramidGeometryPtrType;
+typedef Node<3>                           PointType;
+typedef Node<3>::Pointer                  PointPtrType;
+typedef Geometry<PointType>               BaseGeometryType;
+typedef BaseGeometryType::Pointer         BaseGeometryPtrType;
+typedef Pyramid3D13<PointType>            Pyramid3D13GeometryType;
+typedef Pyramid3D13GeometryType::Pointer  Pyramid3D13GeometryPtrType;
 
 /** Generates a sample Pyramid3D5.
  * Generates a pyramid defined by three random points in the space.
@@ -49,7 +49,7 @@ BaseGeometryPtrType GeneratePyramid3D13(
     PointPtrType Point11 = GeneratePoint<PointType>(),
     PointPtrType Point12 = GeneratePoint<PointType>(),
     PointPtrType Point13 = GeneratePoint<PointType>()) {
-    return BaseGeometryPtrType(new PyramidGeometryType(
+    return BaseGeometryPtrType(new Pyramid3D13GeometryPtrType(
         Point1,
         Point2,
         Point3,
@@ -70,7 +70,7 @@ BaseGeometryPtrType GeneratePyramid3D13(
  * @return Pointer to a Pyramid3D13
  */
 BaseGeometryPtrType GenerateRegularPyramid3D13() {
-    return BaseGeometryPtrType(new PyramidGeometryType(
+    return BaseGeometryPtrType(new Pyramid3D13GeometryPtrType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(1.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 0.0),
