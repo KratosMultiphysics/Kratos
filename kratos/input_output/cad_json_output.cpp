@@ -49,7 +49,6 @@ namespace Kratos
         face_parameters.AddBool("swapped_surface_normal", false);
 
         auto r_nurbs_surface_geometry = r_brep_surface_geom.pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
-        const auto& r_aux_geometry2 = r_nurbs_surface_geometry;
         auto r_nurbs_surface_geom = dynamic_pointer_cast<NurbsSurfaceType>(r_nurbs_surface_geometry);
 
         Parameters surface_parameters;
