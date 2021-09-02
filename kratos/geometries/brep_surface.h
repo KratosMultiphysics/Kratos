@@ -506,6 +506,10 @@ public:
         return rResult;
     }
 
+    ///@}
+    ///@name Geometry Classification
+    ///@{
+
     GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
         return GeometryData::Kratos_Brep;
