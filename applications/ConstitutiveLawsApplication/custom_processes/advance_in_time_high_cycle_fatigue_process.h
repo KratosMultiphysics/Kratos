@@ -48,7 +48,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION)AdvanceInTimeHighCycleFatigueProc
 {
     ///@name Type Definitions
     ///@{
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     ///@}
     ///@name  Enum's
@@ -108,5 +107,4 @@ protected:
 }; // Class AdvanceInTimeHighCycleFatigueProcess
 
 } // namespace Kratos
-
-#endif /* KRATOS_COMPUTE_NORMALIZED_FREE_ENERGY_ON_NODES_PROCESS defined */
+#endif

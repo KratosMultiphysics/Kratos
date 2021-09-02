@@ -94,7 +94,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& r_elem) {
+    for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(CYCLE_INDICATOR, cycle_identifier, process_info);
         r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
@@ -111,14 +111,13 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclePeriodPerIntegrationPoint(bool& 
                     if (cycle_identifier[i]) {
                         period[i] = time - previous_cycle_time[i];
                         previous_cycle_time[i] = time;
-                        #pragma omp critical
-                            rCycleFound = true;
+                        rCycleFound = true;
                     }
             }
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, process_info);
             r_elem.SetValuesOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
         }
-    });
+    }
 }
 
 /***********************************************************************************/
@@ -139,7 +138,8 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& r_elem) {   //This loop is done for all the integration points even if the cycle has not changed
+    for (auto& r_elem : mrModelPart.Elements()) {   //This loop is done for all the integration points even if the cycle has not changed
+                                                    //This loop is done for all the integration points even if the cycle has not changed
                                                     //in order to guarantee the stable condition in the WHOLE model (when Smax > Sth)
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error, process_info);
@@ -149,16 +149,12 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
 
         for (unsigned int i = 0; i < number_of_ip; i++) {
             if (max_stress[i] > s_th[i]) {
-                #pragma omp critical
-                {
-                    fatigue_in_course = true;
-                    acumulated_max_stress_rel_error += max_stress_rel_error[i];
-                    acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
-                }
-
+                fatigue_in_course = true;
+                acumulated_max_stress_rel_error += max_stress_rel_error[i];
+                acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
             }
         }
-    });
+    }
     if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
         rAdvancingStrategy = true;
     }
@@ -200,9 +196,9 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     double model_part_advancing_time = model_part_final_time - time;
     min_time_increment = std::min(user_avancing_time, model_part_advancing_time);
 
-    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+    // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& r_elem) {
+    for (auto& r_elem : mrModelPart.Elements()) {
         unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
         r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
         r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
@@ -214,16 +210,15 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
                 double user_avancing_cycles_conversion_to_time = user_avancing_cycles * period[i];
                 if (Nf_conversion_to_time < min_time_increment) {
-                    #pragma omp critical
-                        min_time_increment = Nf_conversion_to_time;
+                    min_time_increment = Nf_conversion_to_time;
                 }
                 if (user_avancing_cycles_conversion_to_time < min_time_increment) {
-                    #pragma omp critical
-                        min_time_increment = user_avancing_cycles_conversion_to_time;
+                    min_time_increment = user_avancing_cycles_conversion_to_time;
+
                 }
             }
         }
-    });
+    }
 	rIncrement = min_time_increment;
 }
 
@@ -234,9 +229,9 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
 {
     auto& r_process_info = mrModelPart.GetProcessInfo();
 
-    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+    // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& r_elem) {
+    for (auto& r_elem : mrModelPart.Elements()) {
         std::vector<bool> cycle_identifier;
         std::vector<int>  local_number_of_cycles;
         std::vector<int>  global_number_of_cycles;
@@ -273,10 +268,10 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeAndCyclesUpdate(const double Incr
             r_elem.SetValuesOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, r_process_info);
             r_elem.SetValuesOnIntegrationPoints(NUMBER_OF_CYCLES, global_number_of_cycles, r_process_info);
             r_elem.SetValuesOnIntegrationPoints(PREVIOUS_CYCLE, previous_cycle_time, r_process_info);
-            #pragma omp critical
+            // #pragma omp critical
             r_process_info[TIME_INCREMENT] = time_increment;
         }
-    });
+    }
 }
 
 } // namespace Kratos
