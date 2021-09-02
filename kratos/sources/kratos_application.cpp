@@ -79,7 +79,7 @@ KratosApplication::KratosApplication(const std::string ApplicationName)
       mElement3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
       mElement3D8N( 0, GeometryType::Pointer(new Hexahedra3D8<NodeType >(GeometryType::PointsArrayType(8)))),
       mElement3D10N( 0, GeometryType::Pointer(new Tetrahedra3D10<NodeType >(GeometryType::PointsArrayType(10)))),
-    //   mElement3D13N( 0, GeometryType::Pointer(new Pyramid3D13<NodeType >(GeometryType::PointsArrayType(13)))),
+      mElement3D13N( 0, GeometryType::Pointer(new Pyramid3D13<NodeType >(GeometryType::PointsArrayType(13)))),
       mElement3D15N( 0, GeometryType::Pointer(new Prism3D15<NodeType >(GeometryType::PointsArrayType(15)))),
       mElement3D20N( 0, GeometryType::Pointer(new Hexahedra3D20<NodeType >(GeometryType::PointsArrayType(20)))),
       mElement3D27N( 0, GeometryType::Pointer(new Hexahedra3D27<NodeType >(GeometryType::PointsArrayType(27)))),
@@ -181,7 +181,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_ELEMENT("Element3D6N", mElement3D6N)
     KRATOS_REGISTER_ELEMENT("Element3D8N", mElement3D8N)
     KRATOS_REGISTER_ELEMENT("Element3D10N", mElement3D10N)
-    // KRATOS_REGISTER_ELEMENT("Element3D13N", mElement3D13N)
+    KRATOS_REGISTER_ELEMENT("Element3D13N", mElement3D13N)
     KRATOS_REGISTER_ELEMENT("Element3D15N", mElement3D15N)
     KRATOS_REGISTER_ELEMENT("Element3D20N", mElement3D20N)
     KRATOS_REGISTER_ELEMENT("Element3D27N", mElement3D27N)
@@ -224,7 +224,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("Prism3D6", mPrism3D6Prototype);
     KRATOS_REGISTER_GEOMETRY("Prism3D15", mPrism3D15Prototype);
     KRATOS_REGISTER_GEOMETRY("Pyramid3D5", mPyramid3D5Prototype);
-    // KRATOS_REGISTER_GEOMETRY("Pyramid3D13", mPyramid3D13Prototype);
+    KRATOS_REGISTER_GEOMETRY("Pyramid3D13", mPyramid3D13Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D8", mHexahedra3D8Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D20", mHexahedra3D20Prototype);
     KRATOS_REGISTER_GEOMETRY("Hexahedra3D27", mHexahedra3D27Prototype);
