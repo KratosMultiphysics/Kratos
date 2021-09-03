@@ -14,8 +14,8 @@ class BenchmarkingUtilities:
 
     @staticmethod
     def GetParametersFromListOfProcesses(processes_list, name):
-        for item, list in processes_list.items():
-            for process in list:
+        for item, processes in processes_list.items():
+            for process in processes:
                 if process['python_module'].GetString() == name:
                     return process['Parameters']
 
@@ -59,7 +59,7 @@ class BenchmarkingUtilities:
             wrn_msg += self.Usage()
             wrn_msg += '\n\n'
             KM.Logger.PrintWarning(wrn_msg)
-    
+
     def Mode(self):
         return self.mode
 
