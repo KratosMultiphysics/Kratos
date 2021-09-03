@@ -54,7 +54,7 @@ namespace Kratos
 
 /// Provides a SystemVector which implements FEM assemble capabilities, as well as some vector operations
 template<class TDataType=double, class TIndexType=std::size_t>
-class SystemVector
+class SystemVector final
 {
 public:
     ///@name Type Definitions
@@ -96,7 +96,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~SystemVector(){}
+    ~SystemVector(){}
 
     const DataCommunicator& GetComm() const
     {
@@ -142,18 +142,6 @@ public:
 
     const TDataType& operator[](IndexType I) const{
         return mData[I];
-    }
-
-    TDataType inner_prod(const SystemVector<TDataType,TIndexType>& rOtherVector) const
-    {
-        KRATOS_ERROR_IF(size() != rOtherVector.size() ) << "size mismatch in inner_prod " << std::endl;
-
-        TDataType sum = IndexPartition<TIndexType>(size()).template for_each<SumReduction<TDataType>>
-            ([&](TIndexType i) -> TDataType {
-             return (*this)[i] * rOtherVector[i];
-            }
-        );
-        return sum;
     }
 
     void Add(const double factor,
@@ -224,9 +212,6 @@ public:
         }
     }
 
-
-
-
     ///@}
     ///@name Access
     ///@{
@@ -242,18 +227,18 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+        std::string Info() const
     {
-std::stringstream buffer;
-    buffer << "SystemVector" ;
-    return buffer.str();
+        std::stringstream buffer;
+        buffer << "SystemVector" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         std::cout << mData << std::endl;
     }
 

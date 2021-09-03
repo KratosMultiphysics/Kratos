@@ -72,28 +72,8 @@ inline void InverseMapScalar(TMapper& mapper,
     mapper.InverseMap(origin_variable, destination_variable);
 }
 
-inline double ComputeL2NormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
-{
-    return utils.ComputeL2NormOfNodalVariable(variable);
-}
-
-inline double ComputeL2NormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
-{
-    return utils.ComputeL2NormOfNodalVariable(variable);
-}
-
-inline double ComputeMaxNormScalar(OptimizationUtilities& utils, const Variable< double >& variable)
-{
-    return utils.ComputeMaxNormOfNodalVariable(variable);
-}
-
-inline double ComputeMaxNormVector(OptimizationUtilities& utils, const Variable< array_1d<double, 3> >& variable)
-{
-    return utils.ComputeMaxNormOfNodalVariable(variable);
-}
-
 inline void AssembleMatrixForVariableList(
-    OptimizationUtilities& utils,
+    ModelPart& rModelPart,
     Matrix& rMatrix,
     pybind11::list& rVariables)
 {
@@ -103,7 +83,7 @@ inline void AssembleMatrixForVariableList(
     {
         variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
     }
-    return utils.AssembleMatrix(rMatrix, variables_vector);
+    return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
 }
 
 // ==============================================================================
@@ -163,30 +143,44 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     // For performing individual steps of an optimization algorithm
     // ========================================================================
     py::class_<OptimizationUtilities >(m, "OptimizationUtilities")
-        .def(py::init<ModelPart&, Parameters>())
         // ----------------------------------------------------------------
         // For running unconstrained descent methods
         // ----------------------------------------------------------------
-        .def("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
+        .def_static("ComputeSearchDirectionSteepestDescent", &OptimizationUtilities::ComputeSearchDirectionSteepestDescent)
         // ----------------------------------------------------------------
         // For running penalized projection method
         // ----------------------------------------------------------------
-        .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
-        .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
-        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
+        .def_static("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
+        .def_static("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------
-        .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
-        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormScalar)
-        .def("ComputeL2NormOfNodalVariable", ComputeL2NormVector)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormScalar)
-        .def("ComputeMaxNormOfNodalVariable", ComputeMaxNormVector)
-        .def("AssembleVector", &OptimizationUtilities::AssembleVector)
-        .def("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
-        .def("AssembleMatrix", &AssembleMatrixForVariableList)
-        .def("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
+        .def_static("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
+        .def_static("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
+        .def_static("ComputeL2NormOfNodalVariable", [](ModelPart& rModelPart, const Variable< double >& rVariable){
+                                                        return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, rVariable);
+                                                    })
+        .def_static("ComputeL2NormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
+                                                        return OptimizationUtilities::ComputeL2NormOfNodalVariable(rModelPart, rVariable);
+                                                    })
+        .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< double >& rVariable){
+                                                        return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
+                                                        })
+        .def_static("ComputeMaxNormOfNodalVariable", [](ModelPart& rModelPart, const Variable< array_1d<double, 3> >& rVariable){
+                                                        return OptimizationUtilities::ComputeMaxNormOfNodalVariable(rModelPart, rVariable);
+                                                        })
+        .def_static("AssembleVector", &OptimizationUtilities::AssembleVector)
+        .def_static("AssignVectorToVariable", &OptimizationUtilities::AssignVectorToVariable)
+        .def_static("AssembleMatrix", [](ModelPart& rModelPart, Matrix& rMatrix, pybind11::list& rVariables){
+                                            std::size_t list_length = pybind11::len(rVariables);
+                                            std::vector<Variable<OptimizationUtilities::array_3d>*> variables_vector(list_length);
+                                            for (std::size_t i = 0; i < list_length; i++)
+                                            {
+                                                variables_vector[i] = (rVariables[i]).cast<Variable<OptimizationUtilities::array_3d>*>();
+                                            }
+                                            return OptimizationUtilities::AssembleMatrix(rModelPart, rMatrix, variables_vector);
+                                        })
+        .def_static("CalculateProjectedSearchDirectionAndCorrection", &OptimizationUtilities::CalculateProjectedSearchDirectionAndCorrection)
         ;
 
     // ========================================================================

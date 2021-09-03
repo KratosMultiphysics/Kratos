@@ -36,7 +36,7 @@ using NodalScalarData = typename TFluidData::NodalScalarData;
 using NodalVectorData = typename TFluidData::NodalVectorData;
 
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-typedef std::vector< Vector > InterfaceNormalsType;
+typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 
 /// Number of edges of the element (simplex elements are assumed)
 constexpr static std::size_t NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;

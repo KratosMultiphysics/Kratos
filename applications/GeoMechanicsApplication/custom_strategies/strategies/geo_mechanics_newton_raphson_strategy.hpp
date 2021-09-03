@@ -116,7 +116,8 @@ public:
                 mVariableNames.resize(rParameters["loads_variable_list"].size());
 
                 if ( mSubModelPartList.size() != mVariableNames.size() )
-                    KRATOS_THROW_ERROR( std::logic_error, "For each SubModelPart there must be a corresponding nodal Variable", "" )
+                    KRATOS_ERROR << "For each SubModelPart there must be a corresponding nodal Variable"
+                                 << std::endl;
 
                 for (unsigned int i = 0; i < mVariableNames.size(); i++)
                 {

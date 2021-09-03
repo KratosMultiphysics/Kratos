@@ -23,7 +23,6 @@
 #include "containers/system_vector.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
-#include "utilities/reduction_utilities.h"
 #include "includes/key_hash.h"
 #include "includes/parallel_environment.h"
 
@@ -56,7 +55,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class CsrMatrix
+class CsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -153,7 +152,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CsrMatrix(){
+    ~CsrMatrix(){
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
         AssignValueData(nullptr,0);        
@@ -593,68 +592,9 @@ public:
     // RightScaling
     // SymmetricScaling
 
-    double GetMaxDiagonal()
-    {
-        double max_diag = IndexPartition<IndexType>(size1()).template for_each<MaxReduction<double> >( [&](IndexType i){
-                    IndexType row_begin = index1_data()[i];
-                    IndexType row_end   = index1_data()[i+1];
-                    for(IndexType k = row_begin; k < row_end; ++k){
-                        if(index2_data()[k] == i) //if it is on the diagonal
-                            return value_data()[k];
-                    }  
-                    return 0.0; //diagonal was not found
-                });
-        return max_diag;
-    }
+    //TODO
+    //void ApplyDirichlet
 
-    double GetDiagonalNorm()
-    {
-        double sum = IndexPartition<IndexType>(size1()).template for_each<SumReduction<double> >( [&](IndexType i){
-                    IndexType row_begin = index1_data()[i];
-                    IndexType row_end   = index1_data()[i+1];
-                    for(IndexType k = row_begin; k < row_end; ++k){
-                        if(index2_data()[k] == i) //if it is on the diagonal
-                            return std::pow(value_data()[k],2);
-                    }  
-                    return 0.0; //diagonal was not found
-                });
-        return sqrt(sum);
-    }
-
-    template<class TVectorType>
-    void ApplyLeftScaling(const TVectorType& rScalingVector)
-    {
-        KRATOS_ERROR_IF(size1() != rScalingVector.size() ) << "ApplyLeftScaling: mismatch between row sizes : " << size1()  << " and scaling vector size " << rScalingVector.size() << std::endl;
-
-        if(nnz() != 0)
-        {
-            IndexPartition<IndexType>(rScalingVector.size()).for_each( [&](IndexType i){
-                IndexType row_begin = index1_data()[i];
-                IndexType row_end   = index1_data()[i+1];
-                for(IndexType k = row_begin; k < row_end; ++k){
-                    value_data()[k] *= rScalingVector[i];
-                }  
-            });
-        }
-    }
-
-    template<class TVectorType>
-    void ApplyRightScaling(const TVectorType& rScalingVector)
-    {
-        KRATOS_ERROR_IF(size2() != rScalingVector.size() ) << "ApplyLeftScaling: mismatch between row sizes : " << size2()  << " and scaling vector size " << rScalingVector.size() << std::endl;
-
-        if(nnz() != 0)
-        {
-            IndexPartition<IndexType>(size1()).for_each( [&](IndexType i){
-                IndexType row_begin = index1_data()[i];
-                IndexType row_end   = index1_data()[i+1];
-                for(IndexType k = row_begin; k < row_end; ++k){
-                    IndexType col = index2_data()[k];
-                    value_data()[k] *= rScalingVector(col);
-                }
-            });
-        }
-    }
     //TODO
     //NormFrobenius
 
@@ -673,7 +613,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "CsrMatrix" ;
@@ -681,10 +621,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         rOStream << "size1 : " << size1() <<std::endl;
         rOStream << "size2 : " << size2() <<std::endl;
         rOStream << "nnz : " << nnz() <<std::endl; 

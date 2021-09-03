@@ -131,12 +131,12 @@ public:
 
     static MatrixPointerType CreateEmptyMatrixPointer()
     {
-        return Kratos::make_shared<TMatrixType>();
+        return MatrixPointerType(new TMatrixType(0, 0));
     }
 
     static VectorPointerType CreateEmptyVectorPointer()
     {
-        return Kratos::make_shared<TVectorType>(); 
+        return VectorPointerType(new TVectorType(0));
     }
 
     /// return size of vector rV
@@ -365,14 +365,36 @@ public:
         rX.SetValue(A);
     }
 
+    static void Resize(MatrixType& rA, SizeType m, SizeType n)
+    {
+        rA.resize(m, n, false);
+    }
+
+    static void Resize(MatrixPointerType& pA, SizeType m, SizeType n)
+    {
+        pA->resize(m, n, false);
+    }
+
+    static void Resize(VectorType& rX, SizeType n)
+    {
+        rX.resize(n, false);
+    }
+
+    static void Resize(VectorPointerType& pX, SizeType n)
+    {
+        pX->resize(n, false);
+    }
+
     static void Clear(MatrixPointerType& pA)
     {
-        pA->Clear();
+        pA->clear();
+        pA->resize(0, 0, false);
     }
 
     static void Clear(VectorPointerType& pX)
     {
-        pX->Clear();
+        pX->clear();
+        pX->resize(0, false);
     }
 
     template<class TOtherMatrixType>
