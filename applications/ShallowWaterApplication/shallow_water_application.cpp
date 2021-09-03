@@ -129,6 +129,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
 
+        KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
+
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)

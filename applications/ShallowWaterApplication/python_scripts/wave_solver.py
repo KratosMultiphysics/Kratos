@@ -41,7 +41,7 @@ class WaveSolver(ShallowWaterBaseSolver):
             condition_name = "WaveCondition"
             buffer_size = 2
             if not order == 2:
-                KM.Logger.PrintWarning('Setting the "time_integration_order" to 2')
+                KM.Logger.PrintWarning('WaveSolver', 'Setting the "time_integration_order" to 2')
         else:
             raise Exception('The possible "time_integration_scheme" are "bdf" and "crank_nicolson"')
         return element_name, condition_name, buffer_size
