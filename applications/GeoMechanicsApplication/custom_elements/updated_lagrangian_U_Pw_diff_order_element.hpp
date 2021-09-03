@@ -384,7 +384,6 @@ private:
      */
     Matrix ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const;
 
-
     // Copy constructor
     UpdatedLagrangianUPwDiffOrderElement(UpdatedLagrangianUPwDiffOrderElement const& rOther);
         // : SmallStrainUPwDiffOrderElement(rOther),

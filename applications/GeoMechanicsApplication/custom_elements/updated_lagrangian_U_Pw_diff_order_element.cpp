@@ -236,7 +236,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
-                                                  Variables.detJ0);
+                                                  Variables.detJ);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -254,7 +254,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
-            Variables.detJ0 =
+            Variables.detJInitialConfiguration =
                 CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
                                                            Variables.DNu_DX,
                                                            GPoint,
@@ -262,10 +262,12 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.DNu_DX, Variables.Nu);
-            Variables.IntegrationCoefficient =
+            Variables.IntegrationCoefficientInitialConfiguration =
                 this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                       GPoint,
-                                                      Variables.detJ0);
+                                                      Variables.detJInitialConfiguration);
+                                                    
+            Variables.IntegrationCoefficient = Variables.IntegrationCoefficientInitialConfiguration;
 
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
         }
@@ -320,7 +322,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
     // calculation of derivative of shape function with respect to reference configuration
     // derivative of shape function (displacement)
     Matrix J0, InvJ0;
-    rVariables.detJ0 =
+    rVariables.detJ =
         CalculateDerivativesOnReferenceConfiguration(this->GetGeometry(),
                                                     J0,
                                                     InvJ0,
@@ -330,17 +332,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     // Calculating operator B
     this->CalculateBMatrix( rVariables.B, rVariables.DNu_DX, rVariables.Nu);
-
-    // derivative of shape function (pore pressure)
-    Matrix Jp0, InvJp0;
-    rVariables.detJp0 =
-        CalculateDerivativesOnReferenceConfiguration(*mpPressureGeometry,
-                                                     Jp0,
-                                                     InvJp0,
-                                                     rVariables.DNp_DX,
-                                                     GPoint,
-                                                     this->GetIntegrationMethod());
-
 
     //Calculating current jacobian in order to find deformation gradient
     Matrix J, InvJ;
@@ -443,7 +434,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
 
     KRATOS_CATCH( "" )
 }
-
 
 //----------------------------------------------------------------------------------------
 double UpdatedLagrangianUPwDiffOrderElement::

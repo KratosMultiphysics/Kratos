@@ -116,8 +116,8 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
-                                     std::vector<int>& rValues,
-                                     const ProcessInfo& rCurrentProcessInfo) override;
+                                      std::vector<int>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<double> &rVariable,
                                       std::vector<double> &rOutput,
@@ -170,9 +170,12 @@ protected:
         Vector Nu; //Contains the displacement shape functions at every node
         Vector Np; //Contains the pressure shape functions at every node
         Matrix DNu_DX; //Contains the global derivatives of the displacement shape functions
+        Matrix DNu_DXInitialConfiguration; //Contains the global derivatives of the displacement shape functions
+
         Matrix DNp_DX; //Contains the global derivatives of the pressure shape functions
         Matrix B;
         double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
         Vector StrainVector;
         Matrix ConstitutiveMatrix;
 
@@ -181,8 +184,8 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ0;  // displacement
-        double detJp0; // pore pressure
+        double detJ;  // displacement
+        double detJInitialConfiguration;  // displacement
 
         //Nodal variables
         Vector BodyAcceleration;
@@ -239,8 +242,6 @@ protected:
     void InitializeBiotCoefficients( ElementVariables& rVariables, const bool &hasBiotCoefficient=false );
 
     virtual void CalculateKinematics(ElementVariables& rVariables, const unsigned int &PointNumber);
-
-    virtual void CalculateKinematicsOnInitialConfiguration(ElementVariables& rVariables, unsigned int PointNumber);
 
     double CalculateDerivativesOnInitialConfiguration(const GeometryType& Geometry,
                                                       Matrix& DN_DX,
