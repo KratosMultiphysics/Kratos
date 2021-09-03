@@ -2432,12 +2432,10 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain( ElementVariable
     const Matrix& F = rVariables.F;
 
     Matrix ETensor;
-    if (Dim == 3)
-    {
+    if (Dim == 3) {
         ETensor = prod(trans(F), F);
     }
-    else
-    {
+    else {
         Matrix F2x2(Dim,Dim);
         for (unsigned int i = 0; i<Dim; ++i)
             for (unsigned int j = 0; j<Dim; ++j)
@@ -2471,12 +2469,10 @@ void SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain(ElementVariabl
     const Matrix& F = rVariables.F;
 
     Matrix LeftCauchyGreen;
-    if (Dim == 3)
-    {
+    if (Dim == 3) {
         LeftCauchyGreen = prod(F, trans(F));
     }
-    else
-    {
+    else {
         Matrix F2x2(Dim, Dim);
         for (unsigned int i = 0; i<Dim; ++i)
             for (unsigned int j = 0; j<Dim; ++j)
