@@ -39,27 +39,23 @@ class InvertTransformationsProcess(NeuralNetworkProcess):
         if  not (self.save_format == "ascii") and  not (self.save_format == "npy"):
             raise Exception("Saving format not supported. Supported formats are ascii and npy.")
 
-    def TransformPredictions(self, processes, data_input = None, data_output = None):
+    def TransformPredictions(self, processes, data_in = None, data_out = None):
         # Load the data
-        if data_input == None:
+        if data_in is None:
             self.data_in = ImportDataFromFile(self.input_file, "InputData")
         else:
-            self.data_in = data_input
-        if data_output == None:
+            self.data_in = data_in
+        if data_out is None:
             self.data_out = ImportDataFromFile(self.predictions_file, "OutputData")
         else:
-            self.data_out = data_output
+            self.data_out = data_out
 
         # Invert the transformations
         for process in reversed(processes):
-            try:
-                if not process.load_from_log:
-                    inversion_settings = process.Invert(self.data_in, self.data_out)
-                    if not inversion_settings is None:
-                        self.data_in = inversion_settings[0]
-                        self.data_out = inversion_settings[1]
-            except AttributeError:
-                continue
+            inversion_settings = process.Invert(self.data_in, self.data_out)
+            if not inversion_settings is None:
+                self.data_in = inversion_settings[0]
+                self.data_out = inversion_settings[1]
 
         # Save the data
         if self.write_output:

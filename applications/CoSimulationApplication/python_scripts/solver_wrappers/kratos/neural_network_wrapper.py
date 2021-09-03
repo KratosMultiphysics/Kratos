@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.NeuralNetworkApplication.input_dataclasses as InputDataclasses
 
 # Importing the Kratos Library
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
@@ -28,6 +29,7 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
         # self.mp.AddNodalSolutionStepVariable(getattr(KM, self.output_variable))
         self.mp.AddNodalSolutionStepVariable(getattr(KM, "DISPLACEMENT_Y"))
         mdpa_file_name = self.settings["solver_wrapper_settings"]["mdpa_file_name"].GetString()
+        self.lookback = self.settings["solver_wrapper_settings"] ["lookback"].GetInt()
     
         # KM.ModelPartIO(mdpa_file_name).ReadModelPart(self.mp)
 
@@ -39,33 +41,53 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
     def SolveSolutionStep(self):
         with self.thread_manager:
             print("Receiving data into the neural network model")
-            input_value =[]
-            # for variable in self.dict_input.items():
-            #         input_value.append(self.GetInterfaceData(variable).GetData())
 
-            output_value =[]
-            # for variable in self.dict_output.items():
-            #         output_value.append(self.GetInterfaceData(variable).SetData())
+            # Restarting preprocessed data if no FinalizeSolutionStep took place
+            try:
+                self.preprocessed_data_structure = self.preprocessed_previous
+            except AttributeError:
+                pass
 
-            input_value.append(self.GetInterfaceData(self.input_variable).GetData())
-            self._analysis_stage.Initialize(data_input = input_value[0])
-            output_value.append(self._analysis_stage.Predict())
-            self.GetInterfaceData(self.output_variable).SetData(output_value[0])
+            # Retrieve input from interface
+            self.input_data_structure.UpdateData(self.GetInterfaceData(self.input_variable).GetData())
+            # Initialize output from interface in first iteration
+            if self.output_data_structure.data == None:
+                self.output_data_structure.UpdateData(self.GetInterfaceData(self.output_variable).GetData())
+            # Initialize preprocessed input to the network in first iteration
+            if self.lookback>0 and not self.preprocessed_data_structure.lookback_state:
+                self.preprocessed_data_structure.CheckLookbackAndUpdate(self.output_data_structure.ExportAsArray())
+            # Preprocess input and output 
+            [self.input_data_structure, self.output_data_structure] = self._analysis_stage.Preprocessing(
+                data_in = self.input_data_structure, data_out = self.output_data_structure)
+            # Update input to the structure with the new preprocessed input
+            self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
+            # Predict (and invert the transformations) from the new input and update it to the output
+            self.output_data_structure.UpdateData(self._analysis_stage.Predict(data_structure_in = self.preprocessed_data_structure))
+            # Export output to the interface
+            self.GetInterfaceData(self.output_variable).SetData(self.output_data_structure.ExportAsArray())
             print("Predicted data using neural network model.")
+            
 
     def Initialize(self):
-        pass
+        self.input_data_structure = InputDataclasses.NeuralNetworkData()
+        if self.lookback>0:
+            self.preprocessed_data_structure = InputDataclasses.DataWithLookback(lookback_index=self.lookback)  
+        else:
+            self.preprocessed_data_structure = InputDataclasses.NeuralNetworkData()
+        self.output_data_structure = InputDataclasses.NeuralNetworkData()
 
     def Finalize(self):
         pass
 
     def InitializeSolutionStep(self):
+        
         pass
 
     def Predict(self):
         pass
 
     def FinalizeSolutionStep(self):
+        self.preprocessed_previous =self.preprocessed_data_structure
         pass
 
     def OutputSolutionStep(self):

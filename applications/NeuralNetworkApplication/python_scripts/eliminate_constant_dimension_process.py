@@ -30,7 +30,9 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
     def Preprocess(self, data_structure_in, data_structure_out):
 
         data_in = data_structure_in.ExportAsArray()
+        # data_in = np.reshape(data_in, (len(data_structure_in),int(data_in.shape[0]/len(data_structure_in)),data_in.shape[1]))
         data_out = data_structure_out.ExportAsArray()
+        # data_out = np.reshape(data_out, (len(data_structure_out),int(data_out.shape[0]/len(data_structure_out)),data_out.shape[1]))
 
         # Setup for input
         if self.objective == 'input':
@@ -70,8 +72,8 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
 
     def Invert(self, data_structure_in, data_structure_out):
         
-        data_in = data_structure_in.ExportAsArray()       
-        data_out = data_structure_out.ExportAsArray()
+        data_in = data_structure_in.ExportDataOnly()       
+        data_out = data_structure_out.ExportDataOnly()
 
         # This only works if the constant dimensions are 0!!
 

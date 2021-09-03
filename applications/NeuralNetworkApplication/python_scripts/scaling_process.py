@@ -138,8 +138,8 @@ class ScalingProcess(PreprocessingProcess):
 
     def Invert(self,data_structure_in,data_structure_out):
         
-        data_in = data_structure_in.ExportAsArray()
-        data_out = data_structure_out.ExportAsArray()
+        data_in = data_structure_in.ExportDataOnly()
+        data_out = data_structure_out.ExportDataOnly()
 
         input_log = ImportDictionaryFromText(self.input_log_name)
         output_log = ImportDictionaryFromText(self.output_log_name)

@@ -1,5 +1,6 @@
 import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities
 import KratosMultiphysics
+from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import NeuralNetworkData
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.NeuralNetworkApplication.neural_network_process_factory import NeuralNetworkProcessFactory
 
@@ -49,7 +50,7 @@ class NeuralNetworkAnalysis(AnalysisStage):
 
         # Preprocessing
         
-        self.Preprocessing()
+        [self.data_in, self.data_out] = self.Preprocessing()
         
         ### TRAINING ###
 
@@ -209,27 +210,42 @@ class NeuralNetworkAnalysis(AnalysisStage):
                 process.ExecuteTuning(self.hypermodel)
             self._PrintInfo("Tuning done.")
 
-    def Predict(self):
+    def Predict(self, data_structure_in = None):
+       
+        data_out = NeuralNetworkData()
         if self.problem_type == "predict":
             self._PrintInfo("Predicting with the Neural Network...")
+            if data_structure_in is None:
+                data_structure_in = self.data_in
             for process in self._GetListOfProcesses():
-                output = process.Predict(self.model, self.data_in, self.data_out)
-                if output != None:
-                    self.data_out = output
+                output = process.Predict(self.model, data_structure_in)
+                if not output is None:
+                    data_out.UpdateData(output)
+            data_structure_in.CheckLookbackAndUpdate(data_out.ExportAsArray())
             for process in self._GetListOfProcesses():
-                process.TransformPredictions(self._GetListOfProcesses(), data_in = self.data_in, data_out = self.data_out)
-            return self.data_out
+               prediction = process.TransformPredictions(self._GetListOfProcesses(), data_in = data_structure_in, data_out = data_out)
+               if not prediction is None:
+                   output_prediction = prediction
+            return output_prediction
         else:
             raise Exception("The problem type for the neural network must be predict.")
 
-    def Preprocessing(self):
+    def Preprocessing(self, data_in = None, data_out = None):
+        if not hasattr(self, '_list_of_processes'):
+            self.__CreateListOfProcesses()
+        if data_in is None:
+            data_in = self.data_in
+        if data_out is None:
+            data_out = self.data_out
         self._PrintInfo("Starting data preprocessing...")
         for process in self._GetListOfProcesses():
-            preprocessing_settings = process.Preprocess(self.data_in, self.data_out)
+            preprocessing_settings = process.Preprocess(data_in, data_out)
             if not preprocessing_settings is None:
-                self.data_in = preprocessing_settings[0]
-                self.data_out = preprocessing_settings[1]
+                data_in = preprocessing_settings[0]
+                data_out = preprocessing_settings[1]
         self._PrintInfo("Data preprocessing done.")
+
+        return [data_in, data_out]
 
     def _GetListOfProcesses(self):
         """This function returns the list of processes involved in this Analysis

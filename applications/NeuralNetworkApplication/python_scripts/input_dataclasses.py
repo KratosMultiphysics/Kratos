@@ -7,16 +7,31 @@ class NeuralNetworkData:
     data: np.ndarray = None
 
     def UpdateData(self, new_data):
-        self.data = new_data
+        if isinstance(new_data, NeuralNetworkData):
+            self.data = new_data.data
+        else:
+            self.data = new_data
     
     def ExportAsArray(self):
         return self.data
 
+    def ExportDataOnly(self):
+        return self.ExportAsArray()
+
     def __len__(self):
-        return len(self.data)
+        if self.data is None:
+            return 0
+        else:
+            try:
+                return len(self.data)
+            except TypeError:
+                return self.data.size
     
     def __getitem__(self, key):
         return self.data[key]
+    
+    def shape(self):
+        return self.data.shape
 
 @dataclass
 class DataWithLookback(NeuralNetworkData):
@@ -31,7 +46,10 @@ class DataWithLookback(NeuralNetworkData):
                 if self.only_lookback:
                     new_array = np.squeeze(self.lookback_data)
                 else:
-                    new_array = np.concatenate((self.data, np.squeeze(self.lookback_data)))
+                    if self.data.size == 1:
+                        new_array = np.concatenate((np.reshape(np.squeeze(self.data), (1,)), np.squeeze(self.lookback_data)))
+                    else:
+                        new_array = np.concatenate((np.squeeze(self.data), np.squeeze(self.lookback_data)))
                 try:
                     new_array = np.reshape(new_array, (1, new_array.shape[0], new_array.shape[1]))
                 except IndexError:
@@ -50,6 +68,9 @@ class DataWithLookback(NeuralNetworkData):
             except IndexError:
                 new_array = np.reshape(new_array, (1, new_array.shape[0], 1))
             return new_array
+
+    def ExportDataOnly(self):
+        return self.data
     
     def UpdateLookbackLast(self, new_data):
         new_array = np.zeros_like(self.lookback_data)
@@ -69,13 +90,15 @@ class DataWithLookback(NeuralNetworkData):
         if self.lookback_state:
             self.UpdateLookbackLast(new_data)
         else:
-            self.lookback_data = new_data
+            self.lookback_data = new_data 
             if self.lookback_index > 1:
                 for i in range(self.lookback_index-1):
                     self.lookback_data = np.vstack([np.zeros_like(new_data), self.lookback_data])
 
             self.lookback_state = True
     
+    # TODO Input with a set value as entry
+
     def ExtendFromNeuralNetworkData(self, data_structure):
         self.data = data_structure.data
     
@@ -100,17 +123,23 @@ class ListNeuralNetworkData:
             try:
                 if len(array)>0 or not isinstance(array, list):
                     new_timestep = self.data_array[i].ExportAsArray()
-                    new_timestep = np.reshape(new_timestep,  tuple((1,))+new_timestep.shape)
                     array = np.vstack([array, new_timestep]) 
                 else:
                     array = self.data_array[i].ExportAsArray()
-                    array = np.reshape(array,tuple((1,)+array.shape))
             except TypeError:
                 array = np.reshape(array,array.shape + tuple((1,)))
                 array = np.vstack([array, self.data_array[i].ExportAsArray()]) 
-                
-        array = np.squeeze(array)
+
+        # THIS CAN BE MORE EFFICIENT, RESHAPE TAKES A LOT OF TIME
+        if not self.data_array[0].shape() == ():
+            try:
+                array = np.reshape(array, (len(self.data_array),self.data_array[0].shape()[0], self.data_array[0].shape()[1]))
+            except IndexError:
+                pass
         return array
+
+    def ExportDataOnly(self):
+        return self.ExportAsArray()
 
     def ImportFromArray(self, array):
         for i in range(array.shape[0]):
@@ -128,6 +157,7 @@ class ListNeuralNetworkData:
     
     def KeepPart(self,key):
         self.data_array = self.data_array[key]
+    
 
 @dataclass
 class ListDataWithLookback(ListNeuralNetworkData):
@@ -170,7 +200,10 @@ class ListDataWithLookback(ListNeuralNetworkData):
     def ExtendFromNeuralNetworkData(self, data_structure):
         for i in range(len(data_structure)):
             new_entry = DataWithLookback(lookback_index=self.lookback_index)
-            new_entry.ExtendFromNeuralNetworkData(data_structure[i])
+            if isinstance(data_structure, NeuralNetworkData):
+                new_entry.ExtendFromNeuralNetworkData(data_structure)
+            else:
+                new_entry.ExtendFromNeuralNetworkData(data_structure[i])
             self.AddToList(new_entry)
     
     def SetOnlyLookback(self, switch_to = True):

@@ -47,20 +47,14 @@ class TestingTimeseriesProcess(NeuralNetworkProcess):
         input = ImportDataFromFile(self.input_file, "InputData",lookback=False).ExportAsArray()
         target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
         input = np.reshape(input, (target.shape[0],input.shape[1],target.shape[1]))
-        # input = np.swapaxes(input, 1, 2)
         # The compiling options of the model do not matter, as it will not be trained
         model = keras.models.load_model(self.model)
         model.compile()
         predictions = []
         initial_length = len(input[:])
         for i in range(self.timesteps):
-            # if len(input[i].shape)>1:
-            #     test = np.reshape(input.T[i],(1,input[i].shape[0],input[i].shape[1]))
-            # else:
-            #     test = np.reshape(input[i],(1,input[i].shape[0],1))
             test = input[i]
             test = np.reshape(test, (1, test.shape[0], test.shape[1]))
-            # test = np.swapaxes(test, 1, 2)
             predictions.append(model.predict(test)[0])
             if i > initial_length - 2:
                 for j in range(self.lookback-1):

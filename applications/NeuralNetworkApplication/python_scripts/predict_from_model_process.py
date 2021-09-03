@@ -36,7 +36,7 @@ class PredictFromModelProcess(NeuralNetworkProcess):
 
     def Predict(self, model, data_in):
 
-        predictions = model.predict(data_in)
+        predictions = model.predict(data_in.ExportAsArray())
 
         if self.write_output:
 
