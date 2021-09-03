@@ -46,20 +46,22 @@ class BenchmarkingUtilities:
         parameters = cls.GetParametersFromListOfModelers(processes_list, python_module)
         cls.ReplaceSettings(parameters, setting, value)
 
-    def ParseArguments(self, argv):
+    def ParseArguments(self, argv, default_mode = 'regular_analysis'):
         if len(argv) > 2:
             err_msg  = 'Too many input arguments.\n'
             err_msg += self.Usage()
             raise Exception(err_msg)
         elif len(argv) == 2:
-            mode = argv[1]
+            self.mode = argv[1]
         else:
-            mode = "regular_analysis"
-            wrn_msg  = 'Setting the analysis to "{}"\n\n'.format(mode)
+            self.mode = default_mode
+            wrn_msg  = 'Setting the analysis mode to "{}"\n\n'.format(self.mode)
             wrn_msg += self.Usage()
             wrn_msg += '\n\n'
             KM.Logger.PrintWarning(wrn_msg)
-        return mode
+    
+    def Mode(self):
+        return self.mode
 
     def Usage(self):
         usage  = 'Usage of this script:\n'
@@ -71,7 +73,7 @@ class BenchmarkingUtilities:
     def PrintUsage(self):
         KM.Logger.PrintInfo(self.Usage())
 
-    def PrintUnknownModeMessage(self, mode = None):
-        msg  = 'Unknown mode. The specified value is "{}"\n'.format(mode)
+    def PrintUnknownModeMessage(self):
+        msg  = 'Unknown mode. The specified value is "{}"\n'.format(self.mode)
         msg += self.Usage()
         KM.Logger.PrintInfo(msg)
