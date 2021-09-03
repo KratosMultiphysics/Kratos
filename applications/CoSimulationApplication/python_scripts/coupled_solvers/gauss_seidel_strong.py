@@ -80,10 +80,10 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 conv_crit.InitializeNonLinearIteration()
 
             for solver_name, solver in self.solver_wrappers.items():
-                # Check if the solver is the pfem, as this doesn't implement the reset to the buffer.
+                '''# Check if the solver is the pfem, as this doesn't implement the reset to the buffer.
                 if solver_name == "pfem": #k > 0 and 
                     # pdb.set_trace()
-                    KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(solver._analysis_stage._GetSolver().model["PfemFluidModelPart.Fluid"])
+                    KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(solver._analysis_stage._GetSolver().model["PfemFluidModelPart.Fluid"])'''
 
                 self._SynchronizeInputData(solver_name)
                 solver.SolveSolutionStep()
@@ -107,7 +107,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 - refactor
                 - initialize the file to write its the heading
             """
-            plot_file_iter_aitken = "iterations_Aitken.txt"
+            '''plot_file_iter_aitken = "iterations_Aitken.txt"
             with open(plot_file_iter_aitken, "a") as f:
                 #f.write("#TIME[s]" + "\t" + "AITKEN_ITERATION_NUMBER\n")
                 for solver_name, solver in self.solver_wrappers.items():
@@ -120,7 +120,7 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
                 if k < self.num_coupling_iterations:
                     f.write("{0:.4e}".format(time).rjust(11) + "\t" + str(k) + "\n")
                 else:
-                    f.write("{0:.4e}".format(time).rjust(11) + "\t" + str(k) + "  MAX iterations reached!" + "\n")
+                    f.write("{0:.4e}".format(time).rjust(11) + "\t" + str(k) + "  MAX iterations reached!" + "\n")'''
 
             if is_converged:
                 if self.echo_level > 0:
