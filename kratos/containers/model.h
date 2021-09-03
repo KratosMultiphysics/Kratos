@@ -56,7 +56,7 @@ namespace Kratos
 * @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that purpose
 * @author Riccardo Rossi
 */
-class KRATOS_API(KRATOS_CORE) Model
+class KRATOS_API(KRATOS_CORE) Model final
 {
 public:
     ///@name Type Definitions
@@ -76,7 +76,7 @@ public:
     Model(){};
 
     /// Destructor.
-    virtual ~Model()
+    ~Model()
     {
         mRootModelPartMap.clear();
     }
@@ -167,13 +167,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
