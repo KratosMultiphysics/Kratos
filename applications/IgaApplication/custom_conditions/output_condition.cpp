@@ -27,20 +27,46 @@ namespace Kratos
         const SizeType nb_nodes = r_geometry.size();
 
         // Integration Points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+        Vector determinants_of_jacobian;
+        r_geometry.DeterminantOfJacobian(determinants_of_jacobian);
         // Shape function values
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        if (rOutput.size() != integration_points.size())
-            rOutput.resize(integration_points.size());
+        if (rOutput.size() != r_integration_points.size())
+            rOutput.resize(r_integration_points.size());
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
-        {
-            rOutput[point_number] = 0.0;
-            for (IndexType i = 0; i < nb_nodes; ++i)
+
+        if (rVariable == DISPLACEMENT_X || rVariable == DISPLACEMENT_Y || rVariable == DISPLACEMENT_Z) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = 0.0;
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    rOutput[point_number] += r_geometry[i].FastGetSolutionStepValue(rVariable) * r_N(point_number, i);
+                }
+            }
+        }
+        else if (rVariable == INTEGRATION_COORDINATES_X || rVariable == INTEGRATION_COORDINATES_Y) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                if (rVariable == INTEGRATION_COORDINATES_X) {
+                    rOutput[point_number] = r_integration_points[point_number][0];
+                }
+                else {
+                    rOutput[point_number] = r_integration_points[point_number][1];
+                }
+            }
+        }
+        else {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
             {
-                double output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
-                rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                rOutput[point_number] = 0.0;
+                for (IndexType i = 0; i < nb_nodes; ++i)
+                {
+                    double output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
+                    rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                }
+                rOutput[point_number] *= r_integration_points[point_number].Weight() * determinants_of_jacobian[point_number];
             }
         }
     }
@@ -54,20 +80,31 @@ namespace Kratos
         const SizeType nb_nodes = r_geometry.size();
 
         // Integration Points
-        const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+        const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints();
+        Vector determinants_of_jacobian;
+        r_geometry.DeterminantOfJacobian(determinants_of_jacobian);
         // Shape function values
         const Matrix& r_N = r_geometry.ShapeFunctionsValues();
 
-        if (rOutput.size() != integration_points.size())
-            rOutput.resize(integration_points.size());
+        if (rOutput.size() != r_integration_points.size())
+            rOutput.resize(r_integration_points.size());
 
-        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+        if (rVariable == PENALTY_REACTION)
         {
-            rOutput[point_number] = ZeroVector(3);
-            for (IndexType i = 0; i < nb_nodes; ++i)
+            SupportPenaltyCondition::CalculatePenaltyReaction(rOutput,
+                GetProperties()[PENALTY_FACTOR], GetProperties()[DISPLACEMENT],
+                r_integration_points, r_N, r_geometry);
+        }
+        else {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
             {
-                array_1d<double, 3> output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
-                rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < nb_nodes; ++i)
+                {
+                    array_1d<double, 3> output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
+                    rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                }
+                rOutput[point_number] *= r_integration_points[point_number].Weight() * determinants_of_jacobian[point_number];
             }
         }
     }

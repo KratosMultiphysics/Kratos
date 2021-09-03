@@ -953,9 +953,7 @@ void Parameters::Append(const Vector& rValue)
 
     nlohmann::json j_array(0.0, size);
 
-    for (IndexType i = 0; i < size; ++i) {
-        j_array = rValue[i];
-    }
+    j_array = rValue;
 
     mpValue->push_back(j_array);
 }

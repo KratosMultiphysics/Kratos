@@ -111,11 +111,9 @@ namespace Kratos
             mUniaxialStressCompression = 0.0;
 
             mInitialCharacteristicLength0 = this->ComputeCharacteristicLength(
-                rGeometry,
-                0);
+                rGeometry, 0);
             mInitialCharacteristicLength1 = this->ComputeCharacteristicLength(
-                rGeometry,
-                1);
+                rGeometry, 1);
 
             mInitializeDamageLaw = true;
         }
@@ -127,6 +125,9 @@ namespace Kratos
         // save converged values
         mCurrentThresholdTension = mThresholdTension;
         mCurrentThresholdCompression = mThresholdCompression;
+
+        mCurrentDamageTension = mDamageTension;
+        mCurrentDamageCompression = mDamageCompression;
     }
 
     void MasonryOrthotropicDamagePlaneStress2DLaw::CalculateMaterialResponseCauchy(
@@ -147,9 +148,7 @@ namespace Kratos
 
         noalias(data.EffectiveStressVector) = prod(ElasticityMatrix, r_strain_vector);
 
-        this->CalculateMaterialResponseInternal(
-            r_stress_vector,
-            data);
+        this->CalculateMaterialResponseInternal(r_stress_vector, data);
 
         bool is_damaging_tension = false;
         bool is_damaging_compression = false;
@@ -157,12 +156,13 @@ namespace Kratos
 
         // Computation of the Constitutive Tensor
         if (rParameters.GetOptions().Is(COMPUTE_CONSTITUTIVE_TENSOR)) {
-            if (is_damaging_tension || is_damaging_compression) {
-                this->CalculateTangentTensor(rParameters);
-            }
-            else {
+            //if (is_damaging_tension || is_damaging_compression) {
+            //    this->CalculateTangentTensor(rParameters);
+            //    //this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
+            //}
+            //else {
                 this->CalculateSecantTensor(rParameters, ElasticityMatrix, data);
-            }
+            //}
         }
     }
     /***********************************************************************************/
@@ -261,12 +261,18 @@ namespace Kratos
         const GeometryType& rGeometry,
         const ProcessInfo& rProcessInfo)
     {
+        auto detJ = rGeometry.DeterminantOfJacobian(0);
+
         const DirectionalMaterialProperties MaterialProperties1(
             mInitialCharacteristicLength0,
+            //this->ComputeCharacteristicLength(
+            //    rGeometry, 0),
             *rProperties.GetSubProperties().begin());
 
         const DirectionalMaterialProperties MaterialProperties2(
             mInitialCharacteristicLength1,
+            //this->ComputeCharacteristicLength(
+            //    rGeometry, 1),
             *(rProperties.GetSubProperties().begin() + 1));
 
         CalculationData data(MaterialProperties1, MaterialProperties2);
@@ -388,7 +394,7 @@ namespace Kratos
 
         // Yield Strain
         rProjectedProperties.YieldStrainCompression = rMaterialProperties1.YieldStrainCompression * pow(cos(AngleToDamage), 2) +
-            ((rProjectedProperties.ResidualStressCompression / rProjectedProperties.E)/ (rMaterialProperties2.ResidualStressCompression / rMaterialProperties2.E))
+            ((rProjectedProperties.YieldStressCompression / rProjectedProperties.E)/ (rMaterialProperties2.YieldStressCompression / rMaterialProperties2.E))
             * rMaterialProperties2.YieldStrainCompression * pow(sin(AngleToDamage), 2);
 
         // C1
@@ -630,7 +636,7 @@ namespace Kratos
         double& rDamageCompression) const
     {
         if (TresholdCompression <= rMaterialProperties.ElasticLimitStressCompression) {
-            rDamageCompression = 0.0;
+            return;
         }
         else {
             // extract material parameters
@@ -764,8 +770,8 @@ namespace Kratos
     {
         array_1d<double, 3> characteristic_lengthness;
         rGeometry.Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_lengthness);
-        //SizeType polynomial_degree = rGeometry.PolynomialDegree(DirectionIndex);
-        return characteristic_lengthness[DirectionIndex];// / std::sqrt(polynomial_degree);
+        SizeType polynomial_degree = rGeometry.PolynomialDegree(DirectionIndex);
+        return characteristic_lengthness[DirectionIndex] / polynomial_degree;//std::sqrt(polynomial_degree);
     }
     /***********************************************************************************/
     /***********************************************************************************/
@@ -809,7 +815,7 @@ namespace Kratos
         this->CalculateEquivalentStressCompression(data,
             projected_material, effective_stress_mapped_isotropic, principal_stresses_mapped_isotropic, mUniaxialStressCompression);
 
-        if (mUniaxialStressTension > mThresholdTension)
+        if (mUniaxialStressTension > mCurrentThresholdTension)
             mThresholdTension = mUniaxialStressTension;
         this->CalculateDamageTension(projected_material, mThresholdTension, mDamageTension);
 
@@ -817,9 +823,10 @@ namespace Kratos
             mThresholdCompression = mUniaxialStressCompression;
         this->CalculateDamageCompression(projected_material, mThresholdCompression, mDamageCompression);
 
-        mCurrentThresholdTension = mThresholdTension;
-        mCurrentThresholdCompression = mThresholdCompression;
+        //mCurrentThresholdTension = mThresholdTension;
+        //mCurrentThresholdCompression = mThresholdCompression;
 
+        // if tesion damage should be considered similarly to tension damages
         //mDamageTension = std::max(mDamageTension, mDamageCompression);
 
         // Compute the stresses to isotropic space
@@ -837,8 +844,8 @@ namespace Kratos
         bool& is_damaging_tension,
         bool& is_damaging_compression)
     {
-        const double F_tension = mUniaxialStressTension - mCurrentThresholdTension;
-        const double F_compression = mUniaxialStressCompression - mCurrentThresholdCompression;
+        const double F_tension = mUniaxialStressTension - mThresholdTension;
+        const double F_compression = mUniaxialStressCompression - mThresholdCompression;
 
         is_damaging_tension = (F_tension > 0.0)
             ? true : false;
@@ -863,14 +870,17 @@ namespace Kratos
             // Already stored in rValues.GetConstitutiveMatrix()...
         }
         else if (tangent_operator_estimation == TangentOperatorEstimation::FirstOrderPerturbation) {
+            KRATOS_WATCH("TangentOperatorEstimation::FirstOrderPerturbation")
             // Calculates the Tangent Constitutive Tensor by perturbation (first order)
             TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 1);
         }
         else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbation) {
             // Calculates the Tangent Constitutive Tensor by perturbation (second order)
+            KRATOS_WATCH("TangentOperatorEstimation::SecondOrderPerturbation")
             TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 2);
         }
         else if (tangent_operator_estimation == TangentOperatorEstimation::SecondOrderPerturbationV2) {
+            KRATOS_WATCH("TangentOperatorEstimation::SecondOrderPerturbationV2")
             // Calculates the Tangent Constitutive Tensor by perturbation (second order)
             TangentOperatorCalculatorUtility::CalculateTangentTensor(rValues, this, ConstitutiveLaw::StressMeasure_Cauchy, consider_perturbation_threshold, 4);
         }
@@ -887,7 +897,7 @@ namespace Kratos
             constitutive_matrix.resize(VoigtSize, VoigtSize);
 
         Matrix DamageMatrix(IdentityMatrix(3, 3));
-        noalias(DamageMatrix) -= mDamageTension * data.ProjectionTensorTension;
+        noalias(DamageMatrix) -= mCurrentDamageTension * data.ProjectionTensorTension;
         noalias(DamageMatrix) -= mDamageCompression * data.ProjectionTensorCompression;
 
         noalias(constitutive_matrix) = prod(DamageMatrix, rElasticityMatrix);

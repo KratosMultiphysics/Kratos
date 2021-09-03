@@ -20,6 +20,9 @@
 // Project includes
 #include "iga_application_variables.h"
 
+// Application includes
+#include "support_penalty_condition.h"
+
 namespace Kratos
 {
 

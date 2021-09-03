@@ -283,6 +283,18 @@ public:
         mEmbeddedEdgesArray = EmbeddedEdges;
     }
 
+    const BrepCurveOnSurfaceLoopArrayType& GetOuterLoops() const {
+        return mOuterLoopArray;
+    }
+
+    const BrepCurveOnSurfaceLoopArrayType& GetInnerLoops() const {
+        return mInnerLoopArray;
+    }
+
+    const BrepCurveOnSurfaceArrayType& GetEmbeddedEdges() const {
+        return mEmbeddedEdgesArray;
+    }
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
@@ -557,6 +569,7 @@ private:
         rSerializer.save("NurbsSurface", mpNurbsSurface);
         rSerializer.save("OuterLoopArray", mOuterLoopArray);
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
     }
 
@@ -566,6 +579,7 @@ private:
         rSerializer.load("NurbsSurface", mpNurbsSurface);
         rSerializer.load("OuterLoopArray", mOuterLoopArray);
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
+        rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
     }
 

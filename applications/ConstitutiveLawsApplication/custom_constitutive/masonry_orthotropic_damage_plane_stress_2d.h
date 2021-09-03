@@ -321,7 +321,9 @@ namespace Kratos
 
         // Damage Parameters & Uniaxial Stresses
         double mDamageTension = 0.0;
+        double mCurrentDamageTension = 0.0;
         double mDamageCompression = 0.0;
+        double mCurrentDamageCompression = 0.0;
         double mUniaxialStressTension = 0.0;
         double mUniaxialStressCompression = 0.0;
 

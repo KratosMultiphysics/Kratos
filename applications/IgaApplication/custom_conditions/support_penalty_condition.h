@@ -200,6 +200,18 @@ namespace Kratos
             Vector& rDeterminantOfJacobian);
 
         ///@}
+        ///@name Static evaluations
+        ///@{
+
+        static void CalculatePenaltyReaction(
+            std::vector<array_1d<double, 3>>& rOutput,
+            double penalty_factor,
+            const array_1d<double, 3>& enforced_displacement,
+            const GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+            const Matrix& rN,
+            const GeometryType& rGeometry);
+
+        ///@}
         ///@name Check
         ///@{
 

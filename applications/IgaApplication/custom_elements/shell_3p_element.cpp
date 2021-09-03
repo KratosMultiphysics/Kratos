@@ -116,6 +116,26 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
+        if (rVariable == DISPLACEMENT_X || rVariable == DISPLACEMENT_Y || rVariable == DISPLACEMENT_Z) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = 0.0;
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    rOutput[point_number] += r_geometry[i].FastGetSolutionStepValue(rVariable) * r_N(point_number, i);
+                }
+            }
+        }
+        if (rVariable == INTEGRATION_COORDINATES_X || rVariable == INTEGRATION_COORDINATES_Y) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                if (rVariable == INTEGRATION_COORDINATES_X) {
+                    rOutput[point_number] = r_integration_points[point_number][0];
+                }
+                else {
+                    rOutput[point_number] = r_integration_points[point_number][1];
+                }
+            }
+        }
         if(rVariable==SHEAR_FORCE_1 || rVariable==SHEAR_FORCE_2)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -251,7 +271,25 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
-        if (rVariable==PK2_STRESS)
+        if (rVariable == COORDINATES) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    rOutput[point_number] += r_geometry[i].Coordinates() * r_N(point_number, i);
+                }
+            }
+        }
+        else if (rVariable == INITIAL_COORDINATES) {
+            const auto& r_N = r_geometry.ShapeFunctionsValues();
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                    rOutput[point_number] += r_geometry[i].GetInitialPosition() * r_N(point_number, i);
+                }
+            }
+        }
+        else if (rVariable==PK2_STRESS)
         {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
