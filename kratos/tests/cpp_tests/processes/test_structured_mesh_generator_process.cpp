@@ -18,7 +18,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/kernel.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -28,8 +27,6 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessHexahedra, KratosCoreFastSuite)
         {
-            Kernel kernel;
-
             Model current_model;
 
             Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
@@ -80,8 +77,6 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCoreFastSuite)
         {
-            Kernel kernel;
-
             Model current_model;
 
             Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
