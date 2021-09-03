@@ -133,7 +133,9 @@ class XMCAlgorithm:
                 input_dict["models"].append(self.predictor(coord)._valueForParameters)
                 # TODO This should get self.predictor(coord).oldParameters
                 # and default to self.predictor(coord).parameters if they are None
-                params = get_value_from_remote(self.predictor(coord).parameters)
+                params = get_value_from_remote(self.predictor(coord).oldParameters)
+                if params is None:
+                    params = get_value_from_remote(self.predictor(coord).parameters)
                 input_dict["parametersForModel"].append(params)
 
         # Sample cost
@@ -148,9 +150,10 @@ class XMCAlgorithm:
             input_dict["costModel"] = self.costPredictor()._valueForParameters
             # TODO This should get self.costPredictor().oldParameters
             # and default to self.costPredictor().parameters if they are None
-            input_dict["costParameters"] = get_value_from_remote(
-                self.costPredictor().parameters
-            )
+            params = get_value_from_remote(self.costPredictor().oldParameters)
+            if params is None:
+                params = get_value_from_remote(self.costPredictor().parameters)
+            params = input_dict["costParameters"]
 
         # Error parameters
         # TODO - Triple dereference below!! Add method to get errorEstimator parameters

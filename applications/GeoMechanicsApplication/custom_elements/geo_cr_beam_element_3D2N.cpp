@@ -61,6 +61,18 @@ void GeoCrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
+//----------------------------------------------------------------------------------------
+void GeoCrBeamElement3D2N::
+    ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    mLocalForcesFinalized = ZeroVector(msElementSize);
+    mLocalForcesFinalizedPrevious = ZeroVector(msElementSize);
+
+    KRATOS_CATCH( "" )
+}
+
 //-------------------------------------------------------------------------------------------------
 void GeoCrBeamElement3D2N::
     ConstCalculateRightHandSide( VectorType& rRightHandSideVector,

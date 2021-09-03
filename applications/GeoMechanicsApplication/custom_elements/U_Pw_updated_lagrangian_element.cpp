@@ -123,7 +123,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
-        UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] = 
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -200,9 +200,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //Compute constitutive tensor and stresses
-        UpdateElementalVariableStressVector(Variables, GPoint);
+        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-        UpdateStressVector(Variables, GPoint);
 
         this->CalculateRetentionResponse(Variables, RetentionParameters, GPoint);
 
@@ -211,9 +210,10 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, BulkModulus);
 
         // Calculating weights for integration on the reference configuration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[GPoint].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ0);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -223,7 +223,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
             /* Geometric stiffness matrix */
             if (Variables.ConsiderGeometricStiffness)
-                this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables );
+                this->CalculateAndAddGeometricStiffnessMatrix( rLeftHandSideMatrix, Variables, GPoint );
         }
 
         if (CalculateResidualVectorFlag)
@@ -236,13 +236,15 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                            this->GetIntegrationMethod());
 
             // Calculating operator B
-            this->CalculateBMatrix( Variables.B, Variables.GradNpT);
-            this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                                   Variables.detJ0,
-                                                   IntegrationPoints[GPoint].Weight() );
+            this->CalculateBMatrix( Variables.B, Variables.GradNpT, Variables.Np);
+            Variables.IntegrationCoefficient =
+                this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                      GPoint,
+                                                      Variables.detJ0);
+
 
             //Contributions to the right hand side
-            this->CalculateAndAddRHS(rRightHandSideVector, Variables);
+            this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
         }
     }
 
@@ -253,11 +255,12 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                             ElementVariables& rVariables )
+                                             ElementVariables& rVariables,
+                                             unsigned int GPoint )
 {
     KRATOS_TRY
 
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( mStressVector[GPoint] );
     Matrix ReducedKgMatrix = prod( rVariables.GradNpT,
                                    rVariables.IntegrationCoefficient *
                                    Matrix( prod( StressTensor, trans(rVariables.GradNpT) ) ) ); //to be optimized
@@ -289,7 +292,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
                                                            this->GetIntegrationMethod());
 
     // Calculating operator B
-    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT);
+    this->CalculateBMatrix( rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     // Calculating jacobian
     Matrix J, InvJ;

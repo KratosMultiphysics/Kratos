@@ -191,6 +191,13 @@ public:
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Calculate the elemental mass matrix
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -210,7 +217,7 @@ public:
      */
     std::string Info() const override
     {
-        return "Wave condition";
+        return "WaveCondition";
     }
 
     /**
@@ -218,7 +225,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << " : " << Id();
     }
 
     /**
@@ -226,7 +233,7 @@ public:
      */
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << GetGeometry();
     }
 
     ///@}
@@ -250,6 +257,9 @@ protected:
     {
         double gravity;
         double height;
+        double length;
+        double stab_factor;
+        double relative_dry_height;
         array_1d<double,3> velocity;
         array_1d<double,3> normal;
 
@@ -287,6 +297,16 @@ protected:
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight = 1.0);
+
+    void AddMassTerms(
+        LocalMatrixType& rMatrix,
+        const ConditionData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const double Weight);
+
+    double StabilizationParameter(const ConditionData& rData) const;
+
+    double InverseHeight(const ConditionData& rData) const;
 
     ///@}
 

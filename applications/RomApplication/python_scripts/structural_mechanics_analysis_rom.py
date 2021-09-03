@@ -55,20 +55,19 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 counter+=1
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().get_solution_scheme())
 
     def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 print('\n\n\n\nGenerating matrix of residuals')
                 ResMat = self.ResidualUtilityObject.GetResiduals()
                 NP_ResMat = np.array(ResMat, copy=False)
                 self.time_step_residual_matrix_container.append(NP_ResMat)
+        super().FinalizeSolutionStep()
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
