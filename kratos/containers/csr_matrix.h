@@ -55,7 +55,7 @@ namespace Kratos
 
 /// This class implements "serial" CSR matrix, including capabilities for FEM assembly
 template< class TDataType=double, class TIndexType=std::size_t>
-class CsrMatrix
+class CsrMatrix final
 {
 public:
     ///@name Type Definitions
@@ -152,7 +152,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~CsrMatrix(){
+    ~CsrMatrix(){
         AssignIndex1Data(nullptr,0);
         AssignIndex2Data(nullptr,0);
         AssignValueData(nullptr,0);        
@@ -613,7 +613,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "CsrMatrix" ;
@@ -621,10 +621,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "CsrMatrix";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const {
         rOStream << "size1 : " << size1() <<std::endl;
         rOStream << "size2 : " << size2() <<std::endl;
         rOStream << "nnz : " << nnz() <<std::endl; 

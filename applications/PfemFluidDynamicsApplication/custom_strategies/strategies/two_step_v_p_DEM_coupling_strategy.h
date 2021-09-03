@@ -16,7 +16,7 @@
 #include "utilities/openmp_utils.h"
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "custom_utilities/mesher_utilities.hpp"
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
 

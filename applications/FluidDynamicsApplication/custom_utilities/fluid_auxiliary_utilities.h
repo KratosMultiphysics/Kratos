@@ -241,7 +241,7 @@ private:
         const ModifiedShapeFunctions::UniquePointer& rpModShapeFunc,
         const std::size_t FaceId,
         Matrix& rShapeFunctions,
-        std::vector<Vector>& rNormals,
+        std::vector<array_1d<double,3>>& rNormals,
         Vector& rWeights);
 
 };
