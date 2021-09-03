@@ -176,4 +176,3 @@ class GaussSeidelStrongCoupledSolver(CoSimulationCoupledSolver):
 
         for solver in self.solver_wrappers.values():
             solver.ExportData(export_config)
-
