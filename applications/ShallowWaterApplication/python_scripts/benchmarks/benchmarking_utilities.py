@@ -1,4 +1,3 @@
-from sys import argv
 import KratosMultiphysics as KM
 
 from KratosMultiphysics.ShallowWaterApplication.shallow_water_analysis import ShallowWaterAnalysis
