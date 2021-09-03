@@ -14,15 +14,16 @@ class BenchmarkingUtilities:
 
     @staticmethod
     def GetParametersFromListOfProcesses(processes_list, name):
-        for item in processes_list:
-            if item['python_module'].GetString() == name:
-                return item['Parameters']
+        for item, list in processes_list.items():
+            for process in list:
+                if process['python_module'].GetString() == name:
+                    return process['Parameters']
 
     @staticmethod
     def GetParametersFromListOfModelers(modelers_list, name):
-        for item in modelers_list:
-            if item['modeler_name'].GetString() == name:
-                return item['Parameters']
+        for modeler in modelers_list:
+            if modeler['modeler_name'].GetString() == name:
+                return modeler['Parameters']
 
     @staticmethod
     def ReplaceSettings(parameters, setting, value):
