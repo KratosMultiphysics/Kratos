@@ -32,26 +32,55 @@ void CrankNicolsonWaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSide
     if(rRightHandSideVector.size() != mLocalSize)
         rRightHandSideVector.resize(mLocalSize, false);
 
-    LocalMatrixType lhs = ZeroMatrix(mLocalSize, mLocalSize);
-    LocalVectorType rhs = ZeroVector(mLocalSize);
+    // Integrated system
+    LocalMatrixType lhs;
+    LocalVectorType rhs;
+
+    // Mass matrix
+    LocalMatrixType m = ZeroMatrix(mLocalSize, mLocalSize);
+
+    // Current time step
+    LocalMatrixType k_0 = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType f_0 = ZeroVector(mLocalSize);
+    LocalVectorType u_0;
+
+    // Previous time step
+    LocalMatrixType k_1 = ZeroMatrix(mLocalSize, mLocalSize);
+    LocalVectorType f_1 = ZeroVector(mLocalSize);
+    LocalVectorType u_1;
 
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
+    const double dt_inv = 1.0 / rCurrentProcessInfo[DELTA_TIME];
 
+    // Geometry data
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
 
+    // Evaluate at the current time step
+    GetNodalData(data, GetGeometry(), 0);
     CalculateGaussPointData(data, N);
+    u_0 = data.unknown;
+    AddMassTerms(m, data, N, DN_DX);
+    AddWaveTerms(k_0, f_0, data, N, DN_DX);
+    AddFrictionTerms(k_0, f_0, data, N, DN_DX);
 
-    AddWaveTerms(lhs, rhs, data, N, DN_DX);
-    AddFrictionTerms(lhs, rhs, data, N, DN_DX);
+    // Evaluate at the previous time step
+    GetNodalData(data, GetGeometry(), 1);
+    CalculateGaussPointData(data, N);
+    u_1 = data.unknown;
+    AddWaveTerms(k_1, f_1, data, N, DN_DX);
+    AddFrictionTerms(k_1, f_1, data, N, DN_DX);
+
+    // Assembly the system
+    noalias(lhs) = dt_inv * m + 0.5 * k_0;
+    noalias(rhs) = dt_inv * prod(m, u_1) - 0.5 * prod(k_1, u_1) + 0.5 * f_0 + 0.5 * f_1;
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
-    noalias(rhs) -= prod(lhs, data.unknown);
+    noalias(rhs) -= prod(lhs, u_0);
 
     noalias(rLeftHandSideMatrix) = area * lhs;
     noalias(rRightHandSideVector) = area * rhs;
