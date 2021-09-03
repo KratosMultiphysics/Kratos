@@ -11,9 +11,7 @@ def CreateSolver(model, custom_settings):
 class WaveSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
-        self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
-        self.element_name = "WaveElement"
-        self.condition_name = "WaveCondition"
+        self.element_name, self.condition_name, self.min_buffer_size = self._GetFormulationSettings()
 
     def AddDofs(self):
         KM.VariableUtils().AddDof(KM.VELOCITY_X, self.main_model_part)
@@ -31,14 +29,36 @@ class WaveSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.RELATIVE_DRY_HEIGHT, self.settings["relative_dry_height"].GetDouble())
 
-    def _CreateScheme(self):
+    def _GetFormulationSettings(self):
+        scheme = self.settings["time_integration_scheme"].GetString()
         order = self.settings["time_integration_order"].GetInt()
-        time_scheme = SW.VelocityHeightResidualBasedBDFScheme(order)
+        if scheme == "bdf":
+            element_name = "WaveElement"
+            condition_name = "WaveCondition"
+            buffer_size = order + 1
+        elif scheme == "crank_nicolson":
+            element_name = "CrankNicolsonWaveElement"
+            condition_name = "WaveCondition"
+            buffer_size = 2
+            if not order == 2:
+                KM.Logger.PrintWarning('Setting the "time_integration_order" to 2')
+        else:
+            raise Exception('The possible "time_integration_scheme" are "bdf" and "crank_nicolson"')
+        return element_name, condition_name, buffer_size
+
+    def _CreateScheme(self):
+        scheme = self.settings["time_integration_scheme"].GetString()
+        order = self.settings["time_integration_order"].GetInt()
+        if scheme == "bdf":
+            time_scheme = SW.VelocityHeightResidualBasedBDFScheme(order)
+        else:
+            time_scheme = KM.ResidualBasedIncrementalUpdateStaticScheme()
         return time_scheme
 
     @classmethod
     def GetDefaultParameters(cls):
         default_settings = KM.Parameters("""{
+            "time_integration_scheme"    : "bdf",
             "time_integration_order"     : 2,
             "relative_dry_height"        : 0.1,
             "stabilization_factor"       : 0.01
