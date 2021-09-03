@@ -45,8 +45,8 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     model_part.AddNodalSolutionStepVariable(HEIGHT);
     model_part.AddNodalSolutionStepVariable(FREE_SURFACE_ELEVATION);
     model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR1);
-    model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
+    model_part.AddNodalSolutionStepVariable(PROJECTED_VECTOR);
+    model_part.AddNodalSolutionStepVariable(PROJECTED_SCALAR);
     model_part.AddNodalSolutionStepVariable(RAIN);
     model_part.AddNodalSolutionStepVariable(MANNING);
 
@@ -88,7 +88,7 @@ KRATOS_TEST_CASE_IN_SUITE(SWE2D3N, ShallowWaterApplicationFastSuite)
     {
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) = free_surface(i);
         element->GetGeometry()[i].FastGetSolutionStepValue(FREE_SURFACE_ELEVATION, 1) = free_surface(i) + 1;
-        element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR1   ) = free_surface(i) + 1;
+        element->GetGeometry()[i].FastGetSolutionStepValue(PROJECTED_SCALAR   ) = free_surface(i) + 1;
         element->GetGeometry()[i].FastGetSolutionStepValue(TOPOGRAPHY) = topography(i);
         element->GetGeometry()[i].FastGetSolutionStepValue(MANNING) = manning;
     }
