@@ -153,6 +153,13 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     // calculation of the "missing" water volume
     const double water_volume_error = mTheoreticalNegativeVolume - neg_vol;
 
+    ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+    #pragma omp parallel for
+    for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
+        ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
+        i_node->SetValue(DISTANCE_AUX2, 0.0);
+    }
+
     double shift_for_correction = 0.0;
     // check if it is time for a correction (if wished for)
     if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 10e-15){
@@ -721,7 +728,7 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
         //if (i_node->GetValue(IS_STRUCTURE) == 0.0){
             i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
-            i_node->SetValue( DISTANCE_AUX2, -deltaDist);
+            i_node->GetValue(DISTANCE_AUX2) = -deltaDist;
         //}
     }
 }
