@@ -37,16 +37,16 @@ namespace Kratos
  *        from outside.
  *        The parent pointer can provide the adress to the owner of this quadrature point.
  */
-template<class TPointType>
+template<class TPointType, IndexType TWorkingSpaceDimension = 3>
 class QuadraturePointCurveOnSurfaceGeometry
-    : public QuadraturePointGeometry<TPointType, 3, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveOnSurfaceGeometry);
 
-    typedef QuadraturePointGeometry<TPointType, 3, 2, 1> BaseType;
+    typedef QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 2, 1> BaseType;
     typedef Geometry<TPointType> GeometryType;
 
     typedef typename GeometryType::IndexType IndexType;

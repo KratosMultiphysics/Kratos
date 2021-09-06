@@ -101,19 +101,34 @@ namespace Kratos
 
 
         static GeometryPointerType CreateQuadraturePointCurveOnSurface(
+            IndexType WorkingSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
             PointsArrayType rPoints,
             double LocalTangentU,
             double LocalTangentV,
             GeometryType* pGeometryParent)
         {
-            return Kratos::make_shared<
-                QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
+            if (WorkingSpaceDimension == 3){
+                return Kratos::make_shared<QuadraturePointCurveOnSurfaceGeometry<TPointType>>(
                     rPoints,
                     rShapeFunctionContainer,
                     LocalTangentU,
                     LocalTangentV,
                     pGeometryParent);
+            }
+            else if (WorkingSpaceDimension == 2)
+            {
+                return Kratos::make_shared<
+                    QuadraturePointCurveOnSurfaceGeometry<TPointType, 2>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        LocalTangentU,
+                        LocalTangentV,
+                        pGeometryParent);
+            }
+            else {
+                KRATOS_ERROR << "";
+            }
         }
 
         static GeometryPointerType CreateQuadraturePointCurveOnSurface(
