@@ -405,9 +405,9 @@ namespace Kratos
                 dn(j, 2) -=   rActualKinematic.a3_tilde[2] * a3da3la3;
             }
 
-            subrange(b, 0, 1, index, 3) = -(r_DDN_DDe(node, 0)* trans(rActualKinematic.a3) + prod(dn, column(H, 0)));
-            subrange(b, 1, 1, index, 3) = -(r_DDN_DDe(node, 2)* trans(rActualKinematic.a3) + prod(dn, column(H, 1)));
-            subrange(b, 2, 1, index, 3) = -(r_DDN_DDe(node, 1)* trans(rActualKinematic.a3) + prod(dn, column(H, 2)));
+            project(b, range(0, 0), range(index, index + 2)) = -(r_DDN_DDe(node, 0)* trans(rActualKinematic.a3) + prod(dn, column(H, 0)));
+            project(b, range(1, 1), range(index, index + 2)) = -(r_DDN_DDe(node, 2)* trans(rActualKinematic.a3) + prod(dn, column(H, 1)));
+            project(b, range(2, 2), range(index, index + 2)) = -(r_DDN_DDe(node, 1)* trans(rActualKinematic.a3) + prod(dn, column(H, 2)));
 
         }
 
