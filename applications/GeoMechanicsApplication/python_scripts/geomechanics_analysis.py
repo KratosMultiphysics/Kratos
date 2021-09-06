@@ -5,9 +5,6 @@ import sys
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
-# Linear solver is not working as expected
-import KratosMultiphysics.LinearSolversApplication
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
@@ -64,9 +61,10 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def Initialize(self):
-        super(GeoMechanicsAnalysisBase,self).Initialize()
+        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
+
+        super().Initialize()
         if (self.reset_displacements):
-            self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = True
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT,self._GetSolver().GetComputingModelPart().Nodes)
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION,self._GetSolver().GetComputingModelPart().Nodes)
 
@@ -78,11 +76,9 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
             KratosMultiphysics.VariableUtils().UpdateCurrentToInitialConfiguration(self._GetSolver().GetComputingModelPart().Nodes)
 
-        else:
-            self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = False
 
     def Finalize(self):
-        super(GeoMechanicsAnalysisBase,self).Finalize()
+        super().Finalize()
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
@@ -102,7 +98,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
     def __init__(self, model, project_parameters):
-        super(GeoMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         self.reduction_factor    = project_parameters["solver_settings"]["reduction_factor"].GetDouble()
         self.increase_factor     = project_parameters["solver_settings"]["increase_factor"].GetDouble()
@@ -135,7 +131,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
 
         while self.KeepAdvancingSolutionLoop():
-            if(self.delta_time > self.max_delta_time):
+            if (self.delta_time > self.max_delta_time):
                 self.delta_time = self.max_delta_time
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
             t = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]

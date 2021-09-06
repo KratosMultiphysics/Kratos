@@ -33,10 +33,19 @@ VALUE: true
 HELP: Define gap/closure conditions to automatically activation of interface elements.
 
 TITLE:Solver_Settings
-QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic,K0-Procedure)
+QUESTION: Solution_Type#CB#(Quasi-Static,Dynamic,K0-Procedure,Transient_Groundwater_Flow,Steady_State_Groundwater_Flow)
 VALUE: Quasi-Static
-QUESTION: Scheme_Type#CB#(Newmark)
+DEPENDENCIES: (Quasi-Static,                  RESTORE,Scheme_Type,Backward_Euler, RESTORE,Convergence_Criterion,displacement_criterion)
+DEPENDENCIES: (Dynamic,                       RESTORE,Scheme_Type,Newmark,        RESTORE,Convergence_Criterion,displacement_criterion)
+DEPENDENCIES: (Transient_Groundwater_Flow,    RESTORE,Scheme_Type,Backward_Euler, RESTORE,Convergence_Criterion,water_pressure_criterion)
+DEPENDENCIES: (Steady_State_Groundwater_Flow, RESTORE,Scheme_Type,Backward_Euler, RESTORE,Convergence_Criterion,water_pressure_criterion)
+
+QUESTION: Scheme_Type#CB#(Newmark,Backward_Euler,Newmark_Flow)
 VALUE: Newmark
+DEPENDENCIES: (Newmark,        RESTORE,Newmark_Beta,#CURRENT#, RESTORE,Newmark_Gamma,#CURRENT#, RESTORE,Newmark_Theta,#CURRENT#, RESTORE,Rayleigh_Mass,#CURRENT#, RESTORE,Rayleigh_Stiffness,#CURRENT#)
+DEPENDENCIES: (Backward_Euler, HIDE,   Newmark_Beta,#CURRENT#, HIDE,   Newmark_Gamma,#CURRENT#, HIDE,   Newmark_Theta,#CURRENT#, HIDE,Rayleigh_Mass,#CURRENT#,    HIDE,Rayleigh_Stiffness,#CURRENT#)
+DEPENDENCIES: (Newmark_Flow,   HIDE,   Newmark_Beta,#CURRENT#, HIDE,   Newmark_Gamma,#CURRENT#, RESTORE,Newmark_Theta,#CURRENT#, HIDE,Rayleigh_Mass,#CURRENT#,    HIDE,Rayleigh_Stiffness,#CURRENT#)
+
 QUESTION: Newmark_Beta
 VALUE: 0.25
 QUESTION: Newmark_Gamma
@@ -54,9 +63,15 @@ DEPENDENCIES: (newton_raphson, RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_
 DEPENDENCIES: (arc_length,     RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_Of_Cycles,#CURRENT#, RESTORE,Desired_Iterations,#CURRENT#, RESTORE,Max_Radius_Factor,#CURRENT#, RESTORE,Min_Radius_Factor,#CURRENT#, RESTORE,Increase_Factor,#CURRENT#, RESTORE,Reduction_Factor,#CURRENT#, HIDE,Realised_Factor,#CURRENT#, HIDE,Max_Line_Search_Iterations,#CURRENT#,    HIDE,First_Alpha_Value,#CURRENT#,    HIDE,Second_Alpha_Value,#CURRENT#,    HIDE,Min_Alpha,#CURRENT#,    HIDE,Max_Alpha,#CURRENT#,    HIDE,Line_Search_Tolerance,#CURRENT#,RESTORE,Calculate_Reactions,#CURRENT#)
 DEPENDENCIES: (line_search,    RESTORE,Min_Iterations,#CURRENT#, RESTORE,Number_Of_Cycles,#CURRENT#, HIDE,Desired_Iterations,#CURRENT#,    HIDE,Max_Radius_Factor,#CURRENT#,    HIDE,Min_Radius_Factor,#CURRENT#,    RESTORE,Increase_Factor,#CURRENT#, RESTORE,Reduction_Factor,#CURRENT#, HIDE,Realised_Factor,#CURRENT#, RESTORE,Max_Line_Search_Iterations,#CURRENT#, RESTORE,First_Alpha_Value,#CURRENT#, RESTORE,Second_Alpha_Value,#CURRENT#, RESTORE,Min_Alpha,#CURRENT#, RESTORE,Max_Alpha,#CURRENT#, RESTORE,Line_Search_Tolerance,#CURRENT#,RESTORE,Calculate_Reactions,#CURRENT#)
 
-QUESTION: Convergence_Criterion#CB#(displacement_criterion,residual_criterion,and_criterion,or_criterion)
+QUESTION: Convergence_Criterion#CB#(displacement_criterion,residual_criterion,and_criterion,or_criterion,water_pressure_criterion,displacement_and_water_pressure_criterion)
 VALUE: displacement_criterion
-DEPENDENCIES: (displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(and_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (displacement_criterion,                    RESTORE,Displacement_Relative_Tolerance,#CURRENT#,  RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,   HIDE,Residual_Relative_Tolerance,#CURRENT#,    HIDE,Residual_Absolute_Tolerance,#CURRENT#,    HIDE,Water_Pressure_Relative_Tolerance,#CURRENT#,    HIDE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (residual_criterion,                        HIDE,Displacement_Relative_Tolerance,#CURRENT#,     HIDE,Displacement_Absolute_Tolerance,#CURRENT#,      RESTORE,Residual_Relative_Tolerance,#CURRENT#, RESTORE,Residual_Absolute_Tolerance,#CURRENT#, HIDE,Water_Pressure_Relative_Tolerance,#CURRENT#,    HIDE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (and_criterion,                             RESTORE,Displacement_Relative_Tolerance,#CURRENT#,  RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,   RESTORE,Residual_Relative_Tolerance,#CURRENT#, RESTORE,Residual_Absolute_Tolerance,#CURRENT#, HIDE,Water_Pressure_Relative_Tolerance,#CURRENT#,    HIDE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (or_criterion,                              RESTORE,Displacement_Relative_Tolerance,#CURRENT#,  RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,   RESTORE,Residual_Relative_Tolerance,#CURRENT#, RESTORE,Residual_Absolute_Tolerance,#CURRENT#, HIDE,Water_Pressure_Relative_Tolerance,#CURRENT#,    HIDE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (water_pressure_criterion,                  HIDE,Displacement_Relative_Tolerance,#CURRENT#,     HIDE,Displacement_Absolute_Tolerance,#CURRENT#, HIDE,Residual_Relative_Tolerance,#CURRENT#,    HIDE,Residual_Absolute_Tolerance,#CURRENT#,    RESTORE,Water_Pressure_Relative_Tolerance,#CURRENT#, RESTORE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+DEPENDENCIES: (displacement_and_water_pressure_criterion, RESTORE,Displacement_Relative_Tolerance,#CURRENT#,  RESTORE,Displacement_Absolute_Tolerance,#CURRENT#, HIDE,Residual_Relative_Tolerance,#CURRENT#,    HIDE,Residual_Absolute_Tolerance,#CURRENT#,    RESTORE,Water_Pressure_Relative_Tolerance,#CURRENT#, RESTORE,Water_Pressure_Displacement_Absolute_Tolerance,#CURRENT#)
+
 QUESTION: Displacement_Relative_Tolerance
 VALUE: 1.0E-4
 QUESTION: Displacement_Absolute_Tolerance
@@ -65,6 +80,11 @@ QUESTION: Residual_Relative_Tolerance
 VALUE: 1.0E-4
 QUESTION: Residual_Absolute_Tolerance
 VALUE: 1.0E-9
+QUESTION: Water_Pressure_Relative_Tolerance
+VALUE: 1.0E-4
+QUESTION: Water_Pressure_Displacement_Absolute_Tolerance
+VALUE: 1.0E-9
+
 QUESTION: Min_Iterations
 VALUE: 6
 HELP: If the number of iterations is less than this value, up-scaling is applied for the next load step.
@@ -156,7 +176,7 @@ VALUE: false
 QUESTION: Write_Normal_Fluid_Flux#CB#(true,false)
 VALUE: false
 QUESTION: Write_Body_Acceleration#CB#(true,false)
-VALUE: false
+VALUE: true
 
 QUESTION: Write_Strain#CB#(true,false)
 VALUE: true
@@ -184,6 +204,8 @@ QUESTION: Write_Local_Permeability#CB#(true,false)
 VALUE: false
 QUESTION: Nodal_Smoothing#CB#(true,false)
 VALUE: false
+QUESTION: Write_Hydraulic_Head#CB#(true,false)
+VALUE: true
 
 QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
 VALUE: GiD_PostBinary

@@ -69,9 +69,9 @@ public:
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
         if (mGravityDirection == mOutOfPlaneDirection)
         {
-            KRATOS_THROW_ERROR(std::invalid_argument, 
-                               "Gravity direction cannot be the same as Out-of-Plane directions",
-                                rParameters)
+            KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions "
+                         << rParameters
+                         << std::endl;
         }
         for (unsigned int i=0; i<N_DIM_3D; ++i)
            if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
@@ -84,9 +84,9 @@ public:
 
         if (!(mMaxHorizontalCoordinate > mMinHorizontalCoordinate))
         {
-            KRATOS_THROW_ERROR(std::invalid_argument, 
-                               "First and second point on the phreatic line have the same horizontal coordinate",
-                                rParameters)
+            KRATOS_ERROR << "First and second point on the phreatic line have the same horizontal coordinate"
+                         << rParameters
+                         << std::endl;
         }
 
         mSlope = (mSecondReferenceCoordinate[mGravityDirection] - mFirstReferenceCoordinate[mGravityDirection])

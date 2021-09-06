@@ -15,10 +15,12 @@ def centralMomentWrapper(dimension,order,*args):
     elif dimension==1:
         if order==1:
             return computeCentralMomentsOrderOneDimensionOne(*args)
+        elif order==2:
+            return computeCentralMomentsOrderTwoDimensionOne(*args)
         else:
-            raise ValueError('Moments of order > 0 are not supported yet for dimension 1.')
+            raise ValueError('Moments of order > 2 are not supported yet for dimension 1.')
     else:
-        raise ValueError('Index sets of dimension > 0 are not supported yet.')
+        raise ValueError('Index sets of dimension > 1 are not supported yet.')
 
 @task(keep=True, returns=1)
 def centralMomentWrapper_Task(*args):

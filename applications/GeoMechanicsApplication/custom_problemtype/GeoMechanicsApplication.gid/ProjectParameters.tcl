@@ -7,7 +7,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
 
-    set IsK0 [GiD_AccessValue get gendata Solution_Type]
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
 
     puts $FileVar "\{"
 
@@ -23,7 +23,11 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     ## solver_settings
     puts $FileVar "    \"solver_settings\": \{"
-    puts $FileVar "        \"solver_type\":                        \"U_Pw\","
+    if {$SolutionType eq "Steady_State_Groundwater_Flow" || $SolutionType eq "Transient_Groundwater_Flow"} {
+        puts $FileVar "        \"solver_type\":                        \"Pw\","
+    } else {
+        puts $FileVar "        \"solver_type\":                        \"U_Pw\","
+    }
     puts $FileVar "        \"model_part_name\":                    \"PorousDomain\","
     puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
     puts $FileVar "        \"start_time\":                         [GiD_AccessValue get gendata Start_Time],"
@@ -67,8 +71,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"displacement_absolute_tolerance\":    [GiD_AccessValue get gendata Displacement_Absolute_Tolerance],"
     puts $FileVar "        \"residual_relative_tolerance\":        [GiD_AccessValue get gendata Residual_Relative_Tolerance],"
     puts $FileVar "        \"residual_absolute_tolerance\":        [GiD_AccessValue get gendata Residual_Absolute_Tolerance],"
-    puts $FileVar "        \"min_iterations\":                      [GiD_AccessValue get gendata Min_Iterations],"   
-    puts $FileVar "        \"max_iterations\":                      [GiD_AccessValue get gendata Max_Iterations],"
+    puts $FileVar "        \"water_pressure_relative_tolerance\":  [GiD_AccessValue get gendata Water_Pressure_Relative_Tolerance],"
+    puts $FileVar "        \"water_pressure_absolute_tolerance\":  [GiD_AccessValue get gendata Water_Pressure_Displacement_Absolute_Tolerance],"
+    puts $FileVar "        \"min_iterations\":                     [GiD_AccessValue get gendata Min_Iterations],"   
+    puts $FileVar "        \"max_iterations\":                     [GiD_AccessValue get gendata Max_Iterations],"
     puts $FileVar "        \"number_cycles\":                      [GiD_AccessValue get gendata Number_Of_Cycles],"
     puts $FileVar "        \"reduction_factor\":                   [GiD_AccessValue get gendata Reduction_Factor],"   
     puts $FileVar "        \"increase_factor\":                    [GiD_AccessValue get gendata Increase_Factor],"   
@@ -139,6 +145,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Soil_undrained
     # Non_porous part
     AppendGroupNames PutStrings Non_porous
+    # Soil_Groundwater_Flow part
+    AppendGroupNames PutStrings Soil_Groundwater_Flow
     # Beam part
     AppendGroupNames PutStrings Beam
     # Shell_thin_corotational part
@@ -221,6 +229,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     AppendGroupNames PutStrings Soil_drained
     AppendGroupNames PutStrings Soil_undrained
     AppendGroupNames PutStrings Non_porous
+    AppendGroupNames PutStrings Soil_Groundwater_Flow
     AppendGroupNames PutStrings Beam
     AppendGroupNames PutStrings Shell_thin_corotational
     AppendGroupNames PutStrings Shell_thick_corotational
@@ -344,20 +353,31 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     # gauss_point_results
     set PutStrings \[
     set iGroup 0
-    AppendOutputVariables PutStrings iGroup Write_Structural_Moment MOMENT
-    AppendOutputVariables PutStrings iGroup Write_Structural_Force FORCE
-    AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
-    AppendOutputVariables PutStrings iGroup Write_Effective_Stress CAUCHY_STRESS_TENSOR
-    AppendOutputVariables PutStrings iGroup Write_Total_Stress TOTAL_STRESS_TENSOR
-    AppendOutputVariables PutStrings iGroup Write_Von_Mises_Stress VON_MISES_STRESS
-    AppendOutputVariables PutStrings iGroup Write_Fluid_Flux FLUID_FLUX_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Permeability PERMEABILITY_MATRIX
-    AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_VARIABLE
-    AppendOutputVariables PutStrings iGroup Write_Joint_Width JOINT_WIDTH
-    AppendOutputVariables PutStrings iGroup Write_Local_Stress_Vector LOCAL_STRESS_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Local_Relative_Displacement LOCAL_RELATIVE_DISPLACEMENT_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Local_Fluid_Flux LOCAL_FLUID_FLUX_VECTOR
-    AppendOutputVariables PutStrings iGroup Write_Local_Permeability LOCAL_PERMEABILITY_MATRIX
+    if {$SolutionType eq "Steady_State_Groundwater_Flow" || $SolutionType eq "Transient_Groundwater_Flow"} {
+        AppendOutputVariables PutStrings iGroup Write_Fluid_Flux FLUID_FLUX_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Permeability PERMEABILITY_MATRIX
+        AppendOutputVariables PutStrings iGroup Write_Joint_Width JOINT_WIDTH
+        AppendOutputVariables PutStrings iGroup Write_Local_Fluid_Flux LOCAL_FLUID_FLUX_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Local_Permeability LOCAL_PERMEABILITY_MATRIX
+        AppendOutputVariables PutStrings iGroup Write_Hydraulic_Head HYDRAULIC_HEAD
+    } else {
+        AppendOutputVariables PutStrings iGroup Write_Structural_Moment MOMENT
+        AppendOutputVariables PutStrings iGroup Write_Structural_Force FORCE
+        AppendOutputVariables PutStrings iGroup Write_Strain GREEN_LAGRANGE_STRAIN_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Effective_Stress CAUCHY_STRESS_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Total_Stress TOTAL_STRESS_TENSOR
+        AppendOutputVariables PutStrings iGroup Write_Von_Mises_Stress VON_MISES_STRESS
+        AppendOutputVariables PutStrings iGroup Write_Fluid_Flux FLUID_FLUX_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Permeability PERMEABILITY_MATRIX
+        AppendOutputVariables PutStrings iGroup Write_Damage DAMAGE_VARIABLE
+        AppendOutputVariables PutStrings iGroup Write_Joint_Width JOINT_WIDTH
+        AppendOutputVariables PutStrings iGroup Write_Local_Stress_Vector LOCAL_STRESS_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Local_Relative_Displacement LOCAL_RELATIVE_DISPLACEMENT_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Local_Fluid_Flux LOCAL_FLUID_FLUX_VECTOR
+        AppendOutputVariables PutStrings iGroup Write_Local_Permeability LOCAL_PERMEABILITY_MATRIX
+        AppendOutputVariables PutStrings iGroup Write_Hydraulic_Head HYDRAULIC_HEAD
+    }
+
     if {$iGroup > 0} {
         set PutStrings [string trimright $PutStrings ,]
     }

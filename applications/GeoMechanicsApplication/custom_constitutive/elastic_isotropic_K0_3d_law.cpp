@@ -257,8 +257,8 @@ int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                     << "POISSON_RATIO is not availabe in material parameters" << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = static_cast<bool>((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
-    KRATOS_ERROR_IF(check) << "POISSON_RATIO is invalid value " << std::endl;
+    const bool check = ((nu >0.499 && nu<0.501) || (nu < -0.999 && nu > -1.01));
+    KRATOS_ERROR_IF(check) << "POISSON_RATIO has invalid value " << std::endl;
 
     return 0;
 }

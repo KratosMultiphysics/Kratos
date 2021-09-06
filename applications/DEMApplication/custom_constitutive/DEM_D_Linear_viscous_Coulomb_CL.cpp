@@ -31,6 +31,7 @@ namespace Kratos {
     /////////////////////////
 
     void DEM_D_Linear_viscous_Coulomb::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+        
         //Get equivalent Radius
         const double my_radius       = element1->GetRadius();
         const double other_radius    = element2->GetRadius();
@@ -50,10 +51,6 @@ namespace Kratos {
         const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
         const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
-        //Normal and Tangent elastic constants
-        //const double sqrt_equiv_radius = sqrt(equiv_radius);
-
-        //const double alpha = 0.05;   // a = sqrt(s(2r-s)) chord formula for a fixed sagita ratio  s/r = 5% s=0.05r
         const double beta = 1.432;
         const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
         mKn = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;

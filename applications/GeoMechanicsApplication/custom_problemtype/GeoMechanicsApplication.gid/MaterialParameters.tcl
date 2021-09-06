@@ -11,13 +11,13 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
     puts $FileVar "   \"properties\": \[\{"
 
-    set IsK0 [GiD_AccessValue get gendata Solution_Type]
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
     set Dim [GiD_AccessValue get gendata Domain_Size]
 
     # Soil_two_phase part
     set Groups [GiD_Info conditions Soil_two_phase groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {$IsK0 eq "K0-Procedure"} {
+        if {$SolutionType eq "K0-Procedure"} {
             if {$Dim eq 3} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -382,6 +382,9 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
+        if {[lindex [lindex $Groups $i] 147] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 148],"
+        }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
@@ -398,7 +401,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
     # Soil_drained part
     set Groups [GiD_Info conditions Soil_drained groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {$IsK0 eq "K0-Procedure"} {
+        if {$SolutionType eq "K0-Procedure"} {
             if {$Dim eq 3} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -771,6 +774,9 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
+        if {[lindex [lindex $Groups $i] 147] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 148],"
+        }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
@@ -787,7 +793,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
     # Soil_undrained part
     set Groups [GiD_Info conditions Soil_undrained groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {$IsK0 eq "K0-Procedure"} {
+        if {$SolutionType eq "K0-Procedure"} {
             if {$Dim eq 3} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1150,6 +1156,9 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
 
             }
         }
+        if {[lindex [lindex $Groups $i] 147] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 148],"
+        }
         puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 140]\","
         puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 141],"
         puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 142],"
@@ -1166,7 +1175,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
     # Non_porous part
     set Groups [GiD_Info conditions Non_porous groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {$IsK0 eq "K0-Procedure"} {
+        if {$SolutionType eq "K0-Procedure"} {
             if {$Dim eq 3} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1488,6 +1497,80 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
         }
     }
 
+
+    # Soil_Groundwater_Flow part
+    set Groups [GiD_Info conditions Soil_Groundwater_Flow groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        if {[lindex [lindex $Groups $i] 3] eq "LinearElastic3DLaw"} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            if {$PropertyId > 1} {
+                puts $FileVar "   \},\{"
+            }
+            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+            puts $FileVar "      \"properties_id\":           $PropertyId,"
+            puts $FileVar "      \"Material\": \{"
+            puts $FileVar "          \"constitutive_law\": \{"
+            puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 3]\" "
+            puts $FileVar "          \},"
+            puts $FileVar "          \"Variables\": \{"
+            puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 4],"
+            puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 5],"
+            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 6],"
+            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 7],"
+            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 8],"
+            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 9],"
+            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 10],"
+            puts $FileVar "              \"PERMEABILITY_XX\"          :  [lindex [lindex $Groups $i] 11],"
+            puts $FileVar "              \"PERMEABILITY_YY\"          :  [lindex [lindex $Groups $i] 12],"
+            puts $FileVar "              \"PERMEABILITY_ZZ\"          :  [lindex [lindex $Groups $i] 13],"
+            puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 14],"
+            puts $FileVar "              \"PERMEABILITY_YZ\"          :  [lindex [lindex $Groups $i] 15],"
+            puts $FileVar "              \"PERMEABILITY_ZX\"          :  [lindex [lindex $Groups $i] 16],"
+            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 17],"
+        } elseif {[lindex [lindex $Groups $i] 3] eq "GeoLinearElasticPlaneStrain2DLaw"} {
+            incr PropertyId
+            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+            if {$PropertyId > 1} {
+                puts $FileVar "   \},\{"
+            }
+            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+            puts $FileVar "      \"properties_id\":           $PropertyId,"
+            puts $FileVar "      \"Material\": \{"
+            puts $FileVar "          \"constitutive_law\": \{"
+            puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 3]\" "
+            puts $FileVar "          \},"
+            puts $FileVar "          \"Variables\": \{"
+            puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 4],"
+            puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 5],"
+            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 6],"
+            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 7],"
+            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 8],"
+            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 9],"
+            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 10],"
+            puts $FileVar "              \"PERMEABILITY_XX\"          :  [lindex [lindex $Groups $i] 11],"
+            puts $FileVar "              \"PERMEABILITY_YY\"          :  [lindex [lindex $Groups $i] 12],"
+            puts $FileVar "              \"PERMEABILITY_XY\"          :  [lindex [lindex $Groups $i] 14],"
+            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 17],"
+            puts $FileVar "              \"THICKNESS\"                :  1.0,"
+        }
+        if {[lindex [lindex $Groups $i] 25] eq true} {
+            puts $FileVar "              \"BIOT_COEFFICIENT\"         :  [lindex [lindex $Groups $i] 26],"
+        }
+        puts $FileVar "              \"RETENTION_LAW\"                    : \"[lindex [lindex $Groups $i] 18]\","
+        puts $FileVar "              \"SATURATED_SATURATION\"             :  [lindex [lindex $Groups $i] 19],"
+        puts $FileVar "              \"RESIDUAL_SATURATION\"              :  [lindex [lindex $Groups $i] 20],"
+        puts $FileVar "              \"VAN_GENUCHTEN_AIR_ENTRY_PRESSURE\" :  [lindex [lindex $Groups $i] 21],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GN\"                 :  [lindex [lindex $Groups $i] 22],"
+        puts $FileVar "              \"VAN_GENUCHTEN_GL\"                 :  [lindex [lindex $Groups $i] 23],"
+        puts $FileVar "              \"MINIMUM_RELATIVE_PERMEABILITY\"    :  [lindex [lindex $Groups $i] 24]"
+
+        puts $FileVar "         \},"
+        puts $FileVar "         \"Tables\": \{\}"
+        puts $FileVar "      \}"
+    }
+
+
     # Beam part
     set Groups [GiD_Info conditions Beam groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -1616,183 +1699,73 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
     # Interface drained part
     set Groups [GiD_Info conditions Interface_drained groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
-        if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw"} {
-            incr PropertyId
-            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-            if {$PropertyId > 1} {
-                puts $FileVar "   \},\{"
-            }
-            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
-            puts $FileVar "      \"properties_id\":           $PropertyId,"
-            puts $FileVar "      \"Material\": \{"
-            puts $FileVar "          \"constitutive_law\": \{"
-            puts $FileVar "              \"name\"             :  \"BilinearCohesive3DLaw\" "
-            puts $FileVar "          \},"
-            puts $FileVar "          \"Variables\": \{"
-            puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-            puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
-            puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
-            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
-            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
-            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
-            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
-            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
-            puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
-            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-            puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
-            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-            puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-            puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
-            puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
-            puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
-            puts $FileVar "         \},"
-            puts $FileVar "         \"Tables\": \{\}"
-            puts $FileVar "      \}"
-        } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
-            incr PropertyId
-            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-            if {$PropertyId > 1} {
-                puts $FileVar "   \},\{"
-            }
-            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
-            puts $FileVar "      \"properties_id\":           $PropertyId,"
-            puts $FileVar "      \"Material\": \{"
-            puts $FileVar "          \"constitutive_law\": \{"
-            puts $FileVar "              \"name\"             :  \"BilinearCohesive2DLaw\" "
-            puts $FileVar "          \},"
-            puts $FileVar "          \"Variables\": \{"
-            puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-            puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
-            puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
-            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
-            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
-            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
-            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
-            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
-            puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
-            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-            puts $FileVar "              \"THICKNESS\"                :  [lindex [lindex $Groups $i] 14],"
-            puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
-            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
-            puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
-            puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
-            puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
-            puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
-            puts $FileVar "         \},"
-            puts $FileVar "         \"Tables\": \{\}"
-            puts $FileVar "      \}"
-        } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {
-            incr PropertyId
-            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-            if {$PropertyId > 1} {
-                puts $FileVar "   \},\{"
-            }
-            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
-            puts $FileVar "      \"properties_id\":           $PropertyId,"
-            puts $FileVar "      \"Material\": \{"
-            puts $FileVar "          \"constitutive_law\": \{"
-            puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
-            puts $FileVar "          \},"
-            puts $FileVar "          \"Variables\": \{"
-            puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-            puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
-
-            puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
-            puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
-            puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
-
-            set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
-            puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
-
-            for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                set j [expr {$iParam+1}]
-                set k [expr {$j+26}]
-                if {$j eq $nParameters} {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
-                } else {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+        if {$SolutionType eq "K0-Procedure"} {
+            if {$Dim eq 3} {
+                incr PropertyId
+                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                if {$PropertyId > 1} {
+                    puts $FileVar "   \},\{"
                 }
-            }
-
-            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
-            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
-            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
-            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
-            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
-            puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
-            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
-
-            puts $FileVar "         \},"
-            puts $FileVar "         \"Tables\": \{\}"
-            puts $FileVar "      \}"
-        } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUMAT2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUMAT3DInterfaceLaw"} {
-            incr PropertyId
-            dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
-            if {$PropertyId > 1} {
-                puts $FileVar "   \},\{"
-            }
-            puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
-            puts $FileVar "      \"properties_id\":           $PropertyId,"
-            puts $FileVar "      \"Material\": \{"
-            puts $FileVar "          \"constitutive_law\": \{"
-            puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
-            puts $FileVar "          \},"
-            puts $FileVar "          \"Variables\": \{"
-            puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
-            puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
-
-            puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
-            puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
-            puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
-
-            set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
-            puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
-
-            for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
-                set j [expr {$iParam+1}]
-                set k [expr {$j+26}]
-                if {$j eq $nParameters} {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
-                } else {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                puts $FileVar "      \"properties_id\":           $PropertyId,"
+                puts $FileVar "      \"Material\": \{"
+                puts $FileVar "          \"constitutive_law\": \{"
+                puts $FileVar "              \"name\"             :  \"LinearElastic3DInterfaceLaw\" "
+                puts $FileVar "          \},"
+                puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  1.0e-30,"
+                puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                puts $FileVar "         \},"
+                puts $FileVar "         \"Tables\": \{\}"
+                puts $FileVar "      \}"
+            } else {
+                incr PropertyId
+                dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                if {$PropertyId > 1} {
+                    puts $FileVar "   \},\{"
                 }
+                puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                puts $FileVar "      \"properties_id\":           $PropertyId,"
+                puts $FileVar "      \"Material\": \{"
+                puts $FileVar "          \"constitutive_law\": \{"
+                puts $FileVar "              \"name\"             :  \"LinearElastic2DInterfaceLaw\" "
+                puts $FileVar "          \},"
+                puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  1e-30,"
+                puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                puts $FileVar "         \},"
+                puts $FileVar "         \"Tables\": \{\}"
+                puts $FileVar "      \}"
             }
-
-            set nStateVariables [expr {[lindex [lindex $Groups $i] 77]}]
-            puts $FileVar "              \"STATE_VARIABLES\"          :  \["
-
-            for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
-                set j [expr {$iStateVar+1}]
-                set k [expr {$j+77}]
-                if {$j eq $nStateVariables} {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
-                } else {
-                    puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
-                }
-            }
-
-
-            puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
-            puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
-            puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
-            puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
-            puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
-            puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
-            puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
-            puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
-
-            puts $FileVar "         \},"
-            puts $FileVar "         \"Tables\": \{\}"
-            puts $FileVar "      \}"
-        }
-    }
-
-
-    # Interface two-phase or undrained part
-    set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_undrained groups]]
-    foreach Groups $interface_Groups {
-        for {set i 0} {$i < [llength $Groups]} {incr i} {
+        } else {
             if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw"} {
                 incr PropertyId
                 dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
@@ -1806,6 +1779,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"BilinearCohesive3DLaw\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
                 puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
                 puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
@@ -1837,6 +1811,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"BilinearCohesive2DLaw\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
                 puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
                 puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
@@ -1869,6 +1844,8 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
 
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
@@ -1881,13 +1858,12 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     set j [expr {$iParam+1}]
                     set k [expr {$j+26}]
                     if {$j eq $nParameters} {
-                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
                     } else {
-                       puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
                     }
                 }
 
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                 puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
                 puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -1913,6 +1889,9 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
                 puts $FileVar "          \},"
                 puts $FileVar "          \"Variables\": \{"
+                puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+
                 puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
                 puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
                 puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
@@ -1943,7 +1922,7 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                     }
                 }
 
-                puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+
                 puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
                 puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
                 puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
@@ -1956,6 +1935,249 @@ proc WriteMaterialParameters {basename dir problemtypedir TableDict} {
                 puts $FileVar "         \},"
                 puts $FileVar "         \"Tables\": \{\}"
                 puts $FileVar "      \}"
+            }
+        }
+
+    }
+
+
+    # Interface two-phase or undrained part
+    set interface_Groups [list [GiD_Info conditions Interface_two_phase groups] [GiD_Info conditions Interface_undrained groups]]
+    foreach Groups $interface_Groups {
+        for {set i 0} {$i < [llength $Groups]} {incr i} {
+            if {$SolutionType eq "K0-Procedure"} {
+                if {$Dim eq 3} {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"LinearElastic3DInterfaceLaw\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+                    puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                    puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                    puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  1e-30,"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                    puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                    puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+                } else {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"LinearElastic2DInterfaceLaw\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+                    puts $FileVar "              \"IGNORE_UNDRAINED\"         :  true,"
+                    puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                    puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  1e-30,"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                    puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                    puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+
+                }
+            } else {
+                if {[lindex [lindex $Groups $i] 4] eq "BilinearCohesive3DLaw"} {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"BilinearCohesive3DLaw\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+                    puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                    puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                    puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                    puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+                } elseif {[lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStrain2DLaw" || [lindex [lindex $Groups $i] 4] eq "BilinearCohesivePlaneStress2DLaw"} {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"BilinearCohesive2DLaw\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+                    puts $FileVar "              \"YOUNG_MODULUS\"            :  [lindex [lindex $Groups $i] 5],"
+                    puts $FileVar "              \"POISSON_RATIO\"            :  [lindex [lindex $Groups $i] 6],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"THICKNESS\"                :  [lindex [lindex $Groups $i] 14],"
+                    puts $FileVar "              \"DAMAGE_THRESHOLD\"         :  [lindex [lindex $Groups $i] 15],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16],"
+                    puts $FileVar "              \"CRITICAL_DISPLACEMENT\"    :  [lindex [lindex $Groups $i] 17],"
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"YIELD_STRESS\"             :  [lindex [lindex $Groups $i] 18],"
+                    puts $FileVar "              \"FRICTION_COEFFICIENT\"     :  [lindex [lindex $Groups $i] 19]"
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+                } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUDSM3DInterfaceLaw"} {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+
+                    puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
+                    puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
+                    puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
+
+                    set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+                    puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
+                    for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                        set j [expr {$iParam+1}]
+                        set k [expr {$j+26}]
+                        if {$j eq $nParameters} {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                        } else {
+                        puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                        }
+                    }
+
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
+
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+                } elseif {[lindex [lindex $Groups $i] 4] eq "SmallStrainUMAT2DInterfaceLaw" || [lindex [lindex $Groups $i] 4] eq "SmallStrainUMAT3DInterfaceLaw"} {
+                    incr PropertyId
+                    dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+                    if {$PropertyId > 1} {
+                        puts $FileVar "   \},\{"
+                    }
+                    puts $FileVar "      \"model_part_name\":         \"PorousDomain.[lindex [lindex $Groups $i] 1]\","
+                    puts $FileVar "      \"properties_id\":           $PropertyId,"
+                    puts $FileVar "      \"Material\": \{"
+                    puts $FileVar "          \"constitutive_law\": \{"
+                    puts $FileVar "              \"name\"             :  \"[lindex [lindex $Groups $i] 4]\" "
+                    puts $FileVar "          \},"
+                    puts $FileVar "          \"Variables\": \{"
+                    puts $FileVar "              \"UDSM_NAME\"                :  \"[lindex [lindex $Groups $i] 20]\","
+                    puts $FileVar "              \"UDSM_NUMBER\"              :  [lindex [lindex $Groups $i] 21],"
+                    puts $FileVar "              \"IS_FORTRAN_UDSM\"          :  [lindex [lindex $Groups $i] 22],"
+
+                    set nParameters [expr {[lindex [lindex $Groups $i] 26]}]
+                    puts $FileVar "              \"UMAT_PARAMETERS\"          :  \["
+
+                    for {set iParam 0} {$iParam < $nParameters} {incr iParam} {
+                        set j [expr {$iParam+1}]
+                        set k [expr {$j+26}]
+                        if {$j eq $nParameters} {
+                            puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                        } else {
+                            puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                        }
+                    }
+
+                    set nStateVariables [expr {[lindex [lindex $Groups $i] 77]}]
+                    puts $FileVar "              \"STATE_VARIABLES\"          :  \["
+
+                    for {set iStateVar 0} {$iStateVar < $nStateVariables} {incr iStateVar} {
+                        set j [expr {$iStateVar+1}]
+                        set k [expr {$j+77}]
+                        if {$j eq $nStateVariables} {
+                            puts $FileVar "                                              [lindex [lindex $Groups $i] $k]\],"
+                        } else {
+                            puts $FileVar "                                              [lindex [lindex $Groups $i] $k],"
+                        }
+                    }
+
+                    puts $FileVar "              \"CONSIDER_GAP_CLOSURE\"     :  [lindex [lindex $Groups $i] 135],"
+                    puts $FileVar "              \"DENSITY_SOLID\"            :  [lindex [lindex $Groups $i] 7],"
+                    puts $FileVar "              \"DENSITY_WATER\"            :  [lindex [lindex $Groups $i] 8],"
+                    puts $FileVar "              \"POROSITY\"                 :  [lindex [lindex $Groups $i] 9],"
+                    puts $FileVar "              \"BULK_MODULUS_SOLID\"       :  [lindex [lindex $Groups $i] 10],"
+                    puts $FileVar "              \"BULK_MODULUS_FLUID\"       :  [lindex [lindex $Groups $i] 11],"
+                    puts $FileVar "              \"TRANSVERSAL_PERMEABILITY\" :  [lindex [lindex $Groups $i] 12],"
+                    puts $FileVar "              \"DYNAMIC_VISCOSITY\"        :  [lindex [lindex $Groups $i] 13],"
+                    puts $FileVar "              \"MINIMUM_JOINT_WIDTH\"      :  [lindex [lindex $Groups $i] 16]"
+
+                    puts $FileVar "         \},"
+                    puts $FileVar "         \"Tables\": \{\}"
+                    puts $FileVar "      \}"
+                }
+
             }
         }
     }

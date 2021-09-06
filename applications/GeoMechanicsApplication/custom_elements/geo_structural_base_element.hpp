@@ -14,17 +14,11 @@
 #define  KRATOS_GEO_STRUCTURAL_BASE_ELEMENT_H_INCLUDED
 
 // Project includes
-#include "containers/array_1d.h"
-#include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
-#include "geometries/geometry.h"
-#include "utilities/math_utils.h"
-#include "includes/constitutive_law.h"
+#include "includes/define.h"
+#include "includes/variables.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -118,6 +112,9 @@ public:
 
 protected:
 
+    static constexpr SizeType N_DOF_ELEMENT = (TDim == 2 ? 3 * TNumNodes: 6 * TNumNodes);
+    static constexpr SizeType VoigtSize = (TDim == 3 ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRESS);
+
     /// Member Variables
     struct ElementVariables
     {
@@ -161,24 +158,15 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    std::vector<std::vector<double>> mStressVector;
+    std::vector<Vector> mStressVector;
 
     virtual SizeType GetIntegrationPointsNumber() const;
-
-    virtual SizeType GetNumberOfDOF() const;
-    virtual SizeType GetVoigtSize() const;
 
     virtual void InitializeElementVariables( ElementVariables& rVariables,
                                              ConstitutiveLaw::Parameters& rConstitutiveParameters,
                                              const GeometryType& Geom,
                                              const PropertiesType& Prop,
                                              const ProcessInfo& CurrentProcessInfo ) const;
-
-
-    virtual void UpdateElementalVariableStressVector(ElementVariables &rVariables, unsigned int PointNumber);
-    virtual void UpdateElementalVariableStressVector(Vector &StressVector, unsigned int PointNumber);
-    virtual void UpdateStressVector(const ElementVariables &rVariables, unsigned int PointNumber);
-    virtual void UpdateStressVector(const Vector &StressVector, unsigned int PointNumber);
 
     virtual void GetNodalDofValuesVector(Vector &rNodalVariableVector,
                                          const GeometryType &Geom,

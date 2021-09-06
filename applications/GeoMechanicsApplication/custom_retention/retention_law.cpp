@@ -44,7 +44,8 @@ bool RetentionLaw::Has(const Variable<bool> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<bool> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<bool> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -54,7 +55,8 @@ bool RetentionLaw::Has(const Variable<int> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<int> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<int> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -64,7 +66,8 @@ bool RetentionLaw::Has(const Variable<double> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<double> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<double> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -74,7 +77,8 @@ bool RetentionLaw::Has(const Variable<Vector> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<Vector> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<Vector> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -84,7 +88,8 @@ bool RetentionLaw::Has(const Variable<Matrix> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<Matrix> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<Matrix> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -94,7 +99,8 @@ bool RetentionLaw::Has(const Variable<array_1d<double, 3>> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<array_1d<double, 3>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<array_1d<double, 3>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -104,7 +110,8 @@ bool RetentionLaw::Has(const Variable<array_1d<double, 6>> &rThisVariable)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling Has<array_1d<double, 6>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling Has<array_1d<double, 6>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -114,7 +121,8 @@ bool& RetentionLaw::GetValue(const Variable<bool> &rThisVariable, bool &rValue)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<bool> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<bool> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -124,7 +132,8 @@ int& RetentionLaw::GetValue(const Variable<int> &rThisVariable, int &rValue)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<int> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<int> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -134,7 +143,8 @@ double& RetentionLaw::GetValue(const Variable<double> &rThisVariable, double &rV
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<double> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<double> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -144,7 +154,8 @@ Vector& RetentionLaw::GetValue(const Variable<Vector> &rThisVariable, Vector &rV
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<Vector> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<Vector> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -154,7 +165,8 @@ Matrix& RetentionLaw::GetValue(const Variable<Matrix> &rThisVariable, Matrix &rV
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<Matrix> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<Matrix> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -166,7 +178,8 @@ array_1d<double, 3>& RetentionLaw::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<array_1d<double, 3>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<array_1d<double, 3>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -178,7 +191,8 @@ array_1d<double, 6>& RetentionLaw::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling GetValue<array_1d<double, 6>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling GetValue<array_1d<double, 6>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -190,7 +204,8 @@ void RetentionLaw::SetValue(const Variable<bool> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<bool> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<bool> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -202,7 +217,8 @@ void RetentionLaw::SetValue(const Variable<int> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<int> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR <<"calling SetValue<int> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -214,7 +230,8 @@ void RetentionLaw::SetValue(const Variable<double> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<double> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<double> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -226,7 +243,8 @@ void RetentionLaw::SetValue(const Variable<Vector> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<Vector> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<Vector> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -238,7 +256,8 @@ void RetentionLaw::SetValue(const Variable<Matrix> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<Matrix> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<Matrix> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -250,7 +269,8 @@ void RetentionLaw::SetValue(const Variable<array_1d<double, 3>> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<array_1d<double, 3>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<array_1d<double, 3>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -262,7 +282,8 @@ void RetentionLaw::SetValue(const Variable<array_1d<double, 6>> &rVariable,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling SetValue<array_1d<double, 6>> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling SetValue<array_1d<double, 6>> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -274,7 +295,8 @@ bool& RetentionLaw::CalculateValue(Parameters &rParameters,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<bool> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<bool> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -286,7 +308,8 @@ int& RetentionLaw::CalculateValue(Parameters &rParameters,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<int> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<int> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -298,7 +321,8 @@ double& RetentionLaw::CalculateValue(Parameters &rParameters,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<double> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<double> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -334,7 +358,8 @@ Vector& RetentionLaw::CalculateValue(Parameters &rParameters,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<Vector> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<Vector> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -346,7 +371,8 @@ Matrix& RetentionLaw::CalculateValue(Parameters &rParameters,
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<Matrix> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<Matrix> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -359,7 +385,8 @@ array_1d<double, 3>& RetentionLaw::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<double, 3> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<double, 3> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -372,7 +399,8 @@ array_1d<double, 6>& RetentionLaw::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateValue<double, 6> function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateValue<double, 6> function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -382,7 +410,8 @@ double RetentionLaw::CalculateSaturation(Parameters &rParameters)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateSaturation function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateSaturation function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -392,7 +421,8 @@ double RetentionLaw::CalculateEffectiveSaturation(Parameters &rParameters)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateEffectiveSaturation function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateEffectiveSaturation function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -402,7 +432,8 @@ double RetentionLaw::CalculateDerivativeOfSaturation(Parameters &rParameters)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateDerivativeOfSaturation function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateDerivativeOfSaturation function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -412,7 +443,8 @@ double RetentionLaw::CalculateRelativePermeability(Parameters &rParameters)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateRelativePermeability function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateRelativePermeability function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -422,7 +454,8 @@ double RetentionLaw::CalculateBishopCoefficient(Parameters &rParameters)
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling CalculateBishopCoefficient function from base class ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling CalculateBishopCoefficient function from base class ... illegal operation!!"
+                 << std::endl;
 
     KRATOS_CATCH( "" )
 }

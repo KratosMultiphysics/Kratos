@@ -73,7 +73,6 @@ public:
     typedef std::size_t SizeType;
     using SmallStrainUPwDiffOrderElement::mConstitutiveLawVector;
     using SmallStrainUPwDiffOrderElement::mStressVector;
-    using SmallStrainUPwDiffOrderElement::mStressVectorFinalized;
     using SmallStrainUPwDiffOrderElement::mStateVariablesFinalized;
     using SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix;
     using SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain;
@@ -340,7 +339,8 @@ protected:
                                                  IntegrationMethod ThisIntegrationMethod ) const;
 
     void CalculateAndAddGeometricStiffnessMatrix( MatrixType& rLeftHandSideMatrix,
-                                                  ElementVariables& rVariables);
+                                                  ElementVariables& rVariables,
+                                                  unsigned int GPoint);
 
     void CalculateStrain( ElementVariables& rVariables ) override;
 
@@ -383,7 +383,6 @@ private:
      * @return The reference configuration deformation gradient
      */
     Matrix ReferenceConfigurationDeformationGradient(const IndexType PointNumber) const;
-
 
     // Copy constructor
     UpdatedLagrangianUPwDiffOrderElement(UpdatedLagrangianUPwDiffOrderElement const& rOther);

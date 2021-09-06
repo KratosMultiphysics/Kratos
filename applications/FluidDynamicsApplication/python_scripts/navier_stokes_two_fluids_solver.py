@@ -65,6 +65,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             },
             "periodic": "periodic",
             "move_mesh_flag": false,
+            "acceleration_limitation": true,
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false
@@ -142,6 +143,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         smoothing_coefficient = self.settings["distance_smoothing_coefficient"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.SMOOTHING_COEFFICIENT, smoothing_coefficient)
 
+        self._apply_acceleration_limitation = self.settings["acceleration_limitation"].GetBool()
+
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
@@ -214,9 +217,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
         self._GetLevelSetConvectionProcess()
-        eulerian_error_compensation = self.settings["levelset_convection_settings"]["eulerian_error_compensation"].GetBool()
-        conv_elem_requires_dist_grad = self.settings["levelset_convection_settings"]["element_settings"]["requires_distance_gradient"].GetBool()
-        self._convection_requires_distance_gradient = eulerian_error_compensation or conv_elem_requires_dist_grad
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
@@ -286,13 +286,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().FinalizeSolutionStep()
 
             # Limit the obtained acceleration for the next step
-            self._GetAccelerationLimitationUtility().Execute()
+            # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
+            # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
+            if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
+                self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
-        # Calculate the nodal gradient of the distance if required by the levelset convection algorithm
-        if self._convection_requires_distance_gradient:
-            self._GetLevelsetGradientProcess().Execute()
-
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
@@ -400,11 +399,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
         return self._level_set_convection_process
 
-    def _GetLevelsetGradientProcess(self):
-        if not hasattr(self, '_levelset_gradient_process'):
-            self._levelset_gradient_process = self._CreateLevelsetGradientProcess()
-        return self._levelset_gradient_process
-
     def _GetDistanceReinitializationProcess(self):
         if not hasattr(self, '_distance_reinitialization_process'):
             self._distance_reinitialization_process = self._CreateDistanceReinitializationProcess()
@@ -461,15 +455,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 levelset_convection_settings)
 
         return level_set_convection_process
-
-    def _CreateLevelsetGradientProcess(self):
-        levelset_gradient_process = KratosMultiphysics.ComputeNonHistoricalNodalGradientProcess(
-                self.main_model_part,
-                self._levelset_variable,
-                self._levelset_gradient_variable,
-                KratosMultiphysics.NODAL_AREA)
-
-        return levelset_gradient_process
 
     def _CreateDistanceReinitializationProcess(self):
         # Construct the variational distance calculation process

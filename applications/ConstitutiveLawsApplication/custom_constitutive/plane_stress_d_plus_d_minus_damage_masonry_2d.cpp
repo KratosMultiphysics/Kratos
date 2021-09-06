@@ -22,7 +22,7 @@
 #include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "constitutive_laws_application_variables.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 
@@ -564,9 +564,9 @@ void DamageDPlusDMinusMasonry2DLaw::TensionCompressionSplit(
 	array_1d<double,3>& effective_tension_stress_vector 	= data.EffectiveTensionStressVector;
 	array_1d<double,3>& effective_compression_stress_vector = data.EffectiveCompressionStressVector;
 
-	ConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
+	AdvancedConstitutiveLawUtilities<3>::CalculatePrincipalStresses(
 		principal_stress_vector, effective_stress_vector);
-	ConstitutiveLawUtilities<3>::SpectralDecomposition(
+	AdvancedConstitutiveLawUtilities<3>::SpectralDecomposition(
 		effective_stress_vector, effective_tension_stress_vector, effective_compression_stress_vector);
 }
 /***********************************************************************************/
@@ -683,8 +683,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressTension(Calculation
 			double I1, J2;
 			array_1d<double, 3> deviator = ZeroVector(3);
 
-			ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-			ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+			AdvancedConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
+			AdvancedConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
 
 			const double beta 	= yield_compression / yield_tension * (1.0 - alpha) - (1.0 + alpha);
 			const double smax 	= std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);
@@ -711,8 +711,8 @@ void DamageDPlusDMinusMasonry2DLaw::CalculateEquivalentStressCompression(Calcula
 		double I1, J2;
 		array_1d<double, 3> deviator = ZeroVector(3);
 
-		ConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
-		ConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
+		AdvancedConstitutiveLawUtilities<3>::CalculateI1Invariant(data.EffectiveStressVector, I1);
+		AdvancedConstitutiveLawUtilities<3>::CalculateJ2Invariant(data.EffectiveStressVector, I1, deviator, J2);
 
 		const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 		const double smax = std::max(std::max(data.PrincipalStressVector(0), data.PrincipalStressVector(1)),0.0);

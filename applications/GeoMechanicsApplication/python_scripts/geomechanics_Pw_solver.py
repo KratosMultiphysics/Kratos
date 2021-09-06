@@ -15,11 +15,7 @@ class PwSolver(UPwSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
-        super(PwSolver,self).__init__(model, custom_settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
+        super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "Construction of Solver finished.")
 
@@ -99,7 +95,7 @@ class PwSolver(UPwSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(PwSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddDofs(self):
@@ -111,7 +107,7 @@ class PwSolver(UPwSolver):
 
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_Pw_Solver]:: ", "Initialisation ...")
-        super(PwSolver, self).Initialize()
+        super().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver", "solver.Initialize is set successfully")
 
@@ -128,9 +124,7 @@ class PwSolver(UPwSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
-        if (scheme_type.lower() == "newmark"):
-            beta = self.settings["newmark_beta"].GetDouble()
-            gamma = self.settings["newmark_gamma"].GetDouble()
+        if (scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow"):
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
@@ -138,10 +132,21 @@ class PwSolver(UPwSolver):
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, solution_type", solution_type)
             if (solution_type.lower() == "transient-groundwater-flow" or solution_type.lower() == "transient_groundwater_flow"):
-                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Transient groundwater flow.")
-                scheme = scheme = KratosGeo.NewmarkQuasistaticPwScheme(beta,gamma,theta)
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Newmark Transient groundwater flow.")
+                scheme = scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
+            elif (solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Newmark Steady-state groundwater flow.")
+                scheme = scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
+
             else:
               raise Exception("Undefined solution type", solution_type)
+        elif (scheme_type.lower() == "backward_euler"):
+            if (solution_type.lower() == "transient-groundwater-flow" or solution_type.lower() == "transient_groundwater_flow"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Backward Euler Transient groundwater flow.")
+                scheme = scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
+            elif (solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Backward Euler Steady-state groundwater flow.")
+                scheme = scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
@@ -173,6 +178,10 @@ class PwSolver(UPwSolver):
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, WaterPressure)
+        else:
+            err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"water_pressure_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\""
+            raise Exception(err_msg)
 
         return convergence_criterion
 

@@ -36,7 +36,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsRammArcLengthNonlocalStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> Grandx2MotherType;
     typedef PoromechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef PoromechanicsRammArcLengthStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
@@ -157,6 +157,8 @@ public:
 	bool SolveSolutionStep() override
 	{
         // ********** Prediction phase **********
+
+        KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "INITIAL ARC-LENGTH RADIUS: " << mRadius_0 << std::endl;
 
         KRATOS_INFO("Ramm's Arc Length Nonlocal Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 

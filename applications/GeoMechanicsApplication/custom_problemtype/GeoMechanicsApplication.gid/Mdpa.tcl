@@ -86,6 +86,16 @@ proc WriteMdpa { basename dir problemtypedir } {
         puts $FileVar ""
     }
 
+    # Soil_Groundwater_Flow part
+    set Groups [GiD_Info conditions Soil_Groundwater_Flow groups]
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr PropertyId
+        dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
+        puts $FileVar "Begin Properties $PropertyId"
+        puts $FileVar "End Properties"
+        puts $FileVar ""
+    }
+
 
     # Beam part
     set Groups [GiD_Info conditions Beam groups]
@@ -173,6 +183,7 @@ proc WriteMdpa { basename dir problemtypedir } {
     set IsQuadratic [GiD_Info Project Quadratic]
     set Dim [GiD_AccessValue get gendata Domain_Size]
     set IsMoveMesh [GiD_AccessValue get gendata Move_Mesh]
+    set SolutionType [GiD_AccessValue get gendata Solution_Type]
 
     # Soil_two_phase part
     set Groups [GiD_Info conditions Soil_two_phase groups]
@@ -529,6 +540,78 @@ proc WriteMdpa { basename dir problemtypedir } {
                 WriteElements FileVar [lindex $Groups $i] tetrahedra UpdatedLagrangianElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
                 # UpdatedLagrangianElement3D20N
                 WriteElements FileVar [lindex $Groups $i] hexahedra UpdatedLagrangianElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+            }
+        }
+    }
+
+    # Soil_Groundwater_Flow part
+    set Groups [GiD_Info conditions Soil_Groundwater_Flow groups]
+    if {$SolutionType eq "Steady_State_Groundwater_Flow"} {
+        if {$IsQuadratic eq 0} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # SteadyStatePwElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle SteadyStatePwElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # SteadyStatePwElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyStatePwElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # SteadyStatePwElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SteadyStatePwElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # SteadyStatePwElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SteadyStatePwElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                # SteadyStatePwElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle SteadyStatePwElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # SteadyStatePwElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyStatePwElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # SteadyStatePwElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral SteadyStatePwElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+
+                # SteadyStatePwElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra SteadyStatePwElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # SteadyStatePwElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SteadyStatePwElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+                # SteadyStatePwElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra SteadyStatePwElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
+            }
+        }
+    } else {
+        if {$IsQuadratic eq 0} {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+
+                # TransientPwElement2D3N
+                WriteElements FileVar [lindex $Groups $i] triangle TransientPwElement2D3N $BodyElemsProp Triangle2D3Connectivities
+                # TransientPwElement2D4N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral TransientPwElement2D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # TransientPwElement3D4N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra TransientPwElement3D4N $BodyElemsProp Quadrilateral2D4Connectivities
+                # TransientPwElement3D8N
+                WriteElements FileVar [lindex $Groups $i] hexahedra TransientPwElement3D8N $BodyElemsProp Hexahedron3D8Connectivities
+            }
+        } else {
+            for {set i 0} {$i < [llength $Groups]} {incr i} {
+                # Elements Property
+                set BodyElemsProp [dict get $PropertyDict [lindex [lindex $Groups $i] 1]]
+                # TransientPwElement2D6N
+                WriteElements FileVar [lindex $Groups $i] triangle TransientPwElement2D6N $BodyElemsProp Triangle2D6Connectivities
+                # TransientPwElement2D8N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral TransientPwElement2D8N $BodyElemsProp Hexahedron3D8Connectivities
+                # TransientPwElement2D9N
+                WriteElements FileVar [lindex $Groups $i] quadrilateral TransientPwElement2D9N $BodyElemsProp Quadrilateral2D9Connectivities
+
+                # TransientPwElement3D10N
+                WriteElements FileVar [lindex $Groups $i] tetrahedra TransientPwElement3D10N $BodyElemsProp Tetrahedron3D10Connectivities
+                # TransientPwElement3D20N
+                WriteElements FileVar [lindex $Groups $i] hexahedra TransientPwElement3D20N $BodyElemsProp Hexahedron3D20Connectivities
+                # TransientPwElement3D27N
+                WriteElements FileVar [lindex $Groups $i] hexahedra TransientPwElement3D27N $BodyElemsProp Hexahedron3D27Connectivities
             }
         }
     }
@@ -982,6 +1065,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     WriteElementSubmodelPart FileVar Soil_undrained
     # Non_porous part
     WriteElementSubmodelPart FileVar Non_porous
+    # Soil_Groundwater_Flow part
+    WriteElementSubmodelPart FileVar Soil_Groundwater_Flow
     # Beam part
     WriteElementSubmodelPart FileVar Beam
     # Shell_thin_corotational part

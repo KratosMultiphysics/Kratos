@@ -33,7 +33,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsRammArcLengthStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                           BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
     typedef GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>       MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                      TConvergenceCriteriaType;
@@ -612,7 +612,9 @@ protected:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
+                KRATOS_ERROR << "One variable of the applied loads has a non supported type. Variable: "
+                             << VariableName
+                             << std::endl;
             }
         }
 

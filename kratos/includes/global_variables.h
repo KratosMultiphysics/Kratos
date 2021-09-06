@@ -12,22 +12,16 @@
 //
 //
 
-
 #if !defined(KRATOS_GLOBAL_VARIABLES_H_INCLUDED )
 #define  KRATOS_GLOBAL_VARIABLES_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
 
-
 // Project includes
-
 
 namespace Kratos
 {
@@ -53,20 +47,9 @@ namespace Globals
 
     ///@}
     ///@}
-
-/*		class VariableData;
-		class Element;
-		class Condition;
-	*/
 ///@name Kratos Globals
 ///@{
-//
-// This variable is NOT synchronized between different applications threads
-/*
-		extern KratosComponents<VariableData> VariableDataComponents;
-		extern KratosComponents<Condition> ConditionComponents;
-		extern KratosComponents<Element> ElementComponents;
-  */
+
 ///@}
 ///@name Type Definitions
 ///@{

@@ -129,6 +129,10 @@ public:
 
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
 
+    void FinalizeMaterialResponse(Parameters& rValues, const StressMeasure& rStressMeasure) override
+    {
+        // nothing
+    };
 
     void FinalizeMaterialResponsePK2(Parameters& rValues) override
     {
@@ -142,6 +146,20 @@ public:
     //this functions calculates the current stress based on an element given (set)
     //strain
     double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues);
+
+      /// Turn back information as a string.
+      virtual std::string Info() const override
+      {
+         std::stringstream buffer;
+         buffer << "TrussConstitutiveLaw";
+         return buffer.str();
+      }
+
+      /// Print information about this object.
+      virtual void PrintInfo(std::ostream& rOStream) const override
+      {
+         rOStream << "TrussConstitutiveLaw";
+      }
 
 protected:
 

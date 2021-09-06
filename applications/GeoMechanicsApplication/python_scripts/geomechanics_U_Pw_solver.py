@@ -16,11 +16,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
-        super(UPwSolver,self).__init__(model, custom_settings)
-
-        # There is only a single rank in OpenMP, we always print
-        self._is_printing_rank = True
-
+        super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Construction of Solver finished.")
 
@@ -59,6 +55,8 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
             "convergence_criterion": "Displacement_criterion",
+            "water_pressure_relative_tolerance": 1.0e-4,
+            "water_pressure_absolute_tolerance": 1.0e-9,
             "displacement_relative_tolerance": 1.0e-4,
             "displacement_absolute_tolerance": 1.0e-9,
             "residual_relative_tolerance": 1.0e-4,
@@ -100,7 +98,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "loads_variable_list": []
         }""")
 
-        this_defaults.AddMissingParameters(super(UPwSolver, cls).GetDefaultParameters())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def PrepareModelPart(self):
@@ -346,6 +344,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
+            elif (solution_type.lower() == "k0-procedure" or solution_type.lower() == "k0_procedure"):
+                KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
+                scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
               raise Exception("Undefined/uncompatible solution type with Backward Euler", solution_type)
         else:
@@ -379,6 +380,16 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
+        elif(convergence_criterion.lower() == "water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        elif(convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
+            convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
+            convergence_criterion.SetEchoLevel(echo_level)
+        else:
+            err_msg =  "The requested convergence criterion \"" + convergence_criterion + "\" is not available!\n"
+            err_msg += "Available options are: \"displacement_criterion\", \"residual_criterion\", \"and_criterion\", \"or_criterion\", \"water_pressure_criterion\", \"displacement_and_water_pressure_criterion\""
+            raise Exception(err_msg)
 
         return convergence_criterion
 
@@ -408,7 +419,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
                                                                            move_mesh_flag)
         elif strategy_type.lower() == "line_search":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("max_iteration",             self.settings["max_iterations"])
+            self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
             self.strategy_params.AddValue("compute_reactions",          self.settings["compute_reactions"])
             self.strategy_params.AddValue("max_line_search_iterations", self.settings["max_line_search_iterations"])
             self.strategy_params.AddValue("first_alpha_value",          self.settings["first_alpha_value"])
@@ -416,6 +427,11 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
             self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
             self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
+            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
+            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
+            self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
+            self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
+
             solving_strategy = KratosMultiphysics.LineSearchStrategy(self.computing_model_part,
                                                                      self.scheme,
                                                                      self.linear_solver,

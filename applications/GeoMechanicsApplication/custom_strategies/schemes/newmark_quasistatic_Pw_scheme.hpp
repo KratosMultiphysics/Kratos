@@ -48,8 +48,8 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     ///Constructor
-    NewmarkQuasistaticPwScheme(double beta, double gamma, double theta) : 
-        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
+    NewmarkQuasistaticPwScheme(double theta) : 
+        NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
     { }
 
     //------------------------------------------------------------------------------------
@@ -59,31 +59,41 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check(const ModelPart& r_model_part) const override
+    int Check(const ModelPart& rModelPart) const override
     {
         KRATOS_TRY
 
-        BaseType::Check(r_model_part);
+        BaseType::Check(rModelPart);
 
         //check that variables are correctly allocated
-        for (ModelPart::NodesContainerType::const_iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
+        for (const auto& rNode : rModelPart.Nodes())
         {
-            if(it->SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "WATER_PRESSURE variable is not allocated for node ", it->Id() )
-            if(it->SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::logic_error, "DT_WATER_PRESSURE variable is not allocated for node ", it->Id() )
+            if (rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
+                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
+                             << rNode.Id()
+                             << std::endl;
 
-            if(it->HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_THROW_ERROR( std::invalid_argument,"missing WATER_PRESSURE dof on node ",it->Id() )
+            if (rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
+                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
+                             << rNode.Id()
+                             << std::endl;
+
+            if (rNode.HasDofFor(WATER_PRESSURE) == false)
+                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
+                             << rNode.Id()
+                             << std::endl;
         }
 
         //check for minimum value of the buffer index.
-        if (r_model_part.GetBufferSize() < 2)
-            KRATOS_THROW_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
+        if (rModelPart.GetBufferSize() < 2)
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
+                         << rModelPart.GetBufferSize()
+                         << std::endl;
 
         // Check beta, gamma and theta
         if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_THROW_ERROR( std::invalid_argument,"Some of the scheme variables: beta, gamma or theta has an invalid value ", "" )
+            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value "
+                         << std::endl;
 
         return 0;
 
@@ -100,7 +110,7 @@ public:
     {
         KRATOS_TRY
 
-        BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
 
         KRATOS_CATCH("")
     }
@@ -113,7 +123,7 @@ protected:
     /// Member Variables
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part) override
+    inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -121,8 +131,8 @@ protected:
 
         double DeltaPressure;
 
-        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
-        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+        const int NNodes = static_cast<int>(rModelPart.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
         #pragma omp parallel for private(DeltaPressure)
         for(int i = 0; i < NNodes; i++)

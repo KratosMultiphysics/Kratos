@@ -566,6 +566,15 @@ QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
+
 END CONDITION
 
 CONDITION: Soil_drained
@@ -1135,6 +1144,15 @@ QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
+
 END CONDITION
 
 CONDITION: Soil_undrained
@@ -1702,6 +1720,15 @@ QUESTION: Minimum_Relative_Permeability
 VALUE: 0.0001
 HELP: Mimimum allowed relative permeability to prevent singular matrix. 
 
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
+
 END CONDITION
 
 CONDITION: Non_porous
@@ -2218,6 +2245,93 @@ QUESTION: STATE_VARIABLE_49
 VALUE: 0.0
 QUESTION: STATE_VARIABLE_50
 VALUE: 0.0
+
+END CONDITION
+
+
+CONDITION: Soil_Groundwater_Flow
+CONDTYPE: over groups
+CONDMESHTYPE: over body elements
+GROUPALLOW: surfaces volumes
+QUESTION: Constitutive_Law#CB#(GeoLinearElasticPlaneStrain2DLaw,LinearElastic3DLaw)
+VALUE: GeoLinearElasticPlaneStrain2DLaw
+DEPENDENCIES: (GeoLinearElasticPlaneStrain2DLaw, RESTORE,Young_Modulus,#CURRENT#, RESTORE,Poisson_Ratio,#CURRENT#, HIDE,Intrinsic_Permeability_ZZ,#CURRENT#,   HIDE,Intrinsic_Permeability_YZ,#CURRENT#,   HIDE,Intrinsic_Permeability_ZX,#CURRENT#)
+DEPENDENCIES: (LinearElastic3DLaw,               RESTORE,Young_Modulus,#CURRENT#, RESTORE,Poisson_Ratio,#CURRENT#, RESTORE,Intrinsic_Permeability_ZZ,#CURRENT#,RESTORE,Intrinsic_Permeability_YZ,#CURRENT#,RESTORE,Intrinsic_Permeability_ZX,#CURRENT#)
+
+QUESTION: Young_Modulus
+VALUE: 10000
+HELP: Units in kPa
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Solid_Density
+VALUE: 2.65
+HELP: Units in Ton/m3
+QUESTION: Fluid_Density
+VALUE: 1.0
+HELP: Units in Ton/m3
+QUESTION: Porosity
+VALUE: 0.3
+QUESTION: Solid_Bulk_Modulus
+VALUE: 1.0e9
+HELP: Units in kPa
+QUESTION: Fluid_Bulk_Modulus
+VALUE: 2.0e6
+HELP: Units in kPa
+QUESTION: Intrinsic_Permeability_XX
+VALUE: 4.5e-13
+HELP: Units in m2
+QUESTION: Intrinsic_Permeability_YY
+VALUE: 4.5e-13
+HELP: Units in m2
+QUESTION: Intrinsic_Permeability_ZZ
+VALUE: 4.5e-13
+HELP: Units in m2
+QUESTION: Intrinsic_Permeability_XY
+VALUE: 0.0
+HELP: Units in m2
+QUESTION: Intrinsic_Permeability_YZ
+VALUE: 0.0
+HELP: Units in m2
+QUESTION: Intrinsic_Permeability_ZX
+VALUE: 0.0
+HELP: Units in m2
+QUESTION: Dynamic_Viscosity
+VALUE: 8.90e-7
+HELP: Units in kN/m2·s
+
+QUESTION: Retention_Law#CB#(SaturatedLaw,VanGenuchtenLaw)
+VALUE: SaturatedLaw
+HELP: Retention model for flow
+DEPENDENCIES: (SaturatedLaw,    RESTORE, Saturated_Saturation,#CURRENT#, HIDE,   Residual_Saturation, #CURRENT#, HIDE,   Air_Entry_Pressure,#CURRENT#, HIDE,   Gn,#CURRENT#, HIDE,   Gl,#CURRENT#, HIDE,   Minimum_Relative_Permeability,#CURRENT#)
+DEPENDENCIES: (VanGenuchtenLaw, RESTORE, Saturated_Saturation,#CURRENT#, RESTORE,Residual_Saturation, #CURRENT#, RESTORE,Air_Entry_Pressure,#CURRENT#, RESTORE,Gn,#CURRENT#, RESTORE,Gl,#CURRENT#, RESTORE,Minimum_Relative_Permeability,#CURRENT#)
+QUESTION: Saturated_Saturation
+VALUE: 1.0
+HELP: Maximum degree of saturation.
+QUESTION: Residual_Saturation
+VALUE: 0.06203
+HELP: Minimum degree of saturation.
+QUESTION: Air_Entry_Pressure
+VALUE: 2.561
+HELP: Air entry pressure in kPa.
+QUESTION: Gn
+VALUE: 1.377
+HELP: Gn power in Van Genuchten model.
+QUESTION: Gl
+VALUE: 1.25
+HELP: Gl power in Van Genuchten model to calcualte relative permeability.
+QUESTION: Minimum_Relative_Permeability
+VALUE: 0.0001
+HELP: Mimimum allowed relative permeability to prevent singular matrix. 
+
+
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
 
 END CONDITION
 
@@ -2870,6 +2984,15 @@ DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_
 QUESTION: Gap_Width_Threshold
 VALUE: 0.01
 
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
+
 END CONDITION
 
 CONDITION: Interface_drained
@@ -3406,6 +3529,15 @@ DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_
 QUESTION: Gap_Width_Threshold
 VALUE: 0.01
 
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
+
 END CONDITION
 
 CONDITION: Interface_undrained
@@ -3941,6 +4073,15 @@ HELP: True means that the interface (joint) will be activated during the calcula
 DEPENDENCIES: (true,RESTORE,Gap_Width_Threshold,#CURRENT#)(false,HIDE,Gap_Width_Threshold,#CURRENT#)
 QUESTION: Gap_Width_Threshold
 VALUE: 0.01
+
+QUESTION: Use_Biot_Coefficiet#CB#(true,false)
+VALUE: true
+HELP: Biot coefficient is used instead of calculating it from bulk modulus of solid and bulk modulus of skeleton.
+DEPENDENCIES: (true,    RESTORE,Biot_Coefficient,#CURRENT#)
+DEPENDENCIES: (false,   HIDE,   Biot_Coefficient,#CURRENT#)
+QUESTION: Biot_Coefficient
+VALUE: 1.0
+HELP: Biot coefficient is used to relate effective stress to total stress and pore pressure (0<= alpha <=1).
 
 END CONDITION
 
