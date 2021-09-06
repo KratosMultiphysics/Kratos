@@ -753,11 +753,29 @@ class TestParameters(KratosUnittest.TestCase):
             ]
         }""")
 
-        # Check the IsVector Method
+        # Populate "valid_vectors" and test Parameters::Append
+        tmp["valid_vectors"].Append(Vector([1, 2, 3]))
+        tmp["valid_vectors"].Append([4, 5, 6])
+        tmp["valid_vectors"].Append([0])
+        tmp["valid_vectors"].Append([])
+
+        # Check valid vectors
         for i in range(tmp["valid_vectors"].size()):
             valid_vector = tmp["valid_vectors"][i]
             self.assertTrue(valid_vector.IsVector())
 
+        self.assertEqual(tmp["valid_vectors"][0].size(), 0)
+
+        self.assertEqual(tmp["valid_vectors"][1].size(), 3)
+        self.assertVectorAlmostEqual(tmp["valid_vectors"][1].GetVector(), [1, 2, 3])
+
+        self.assertEqual(tmp["valid_vectors"][2].size(), 3)
+        self.assertVectorAlmostEqual(tmp["valid_vectors"][2].GetVector(), [4, 5, 6])
+
+        self.assertEqual(tmp["valid_vectors"][3].size(), 1)
+        self.assertEqual(tmp["valid_vectors"][3].GetVector()[0], 0)
+
+        # Check invalid vectors
         for i in range(tmp["false_vectors"].size()):
             false_vector = tmp["false_vectors"][i]
             self.assertFalse(false_vector.IsVector())
@@ -806,11 +824,31 @@ class TestParameters(KratosUnittest.TestCase):
             ]
         }""")
 
-        # Check the IsMatrix Method
+        # Populate "valid_matrices" and test Parameters::Append
+        tmp["valid_matrices"].Append(Matrix([[1, 2, 3], [4, 5, 6]]))
+        tmp["valid_matrices"].Append(Matrix([[0]]))
+
+        # Check valid matrices
         for i in range(tmp["valid_matrices"].size()):
             valid_matrix = tmp["valid_matrices"][i]
             self.assertTrue(valid_matrix.IsMatrix())
 
+        # Check matrix values
+        matrix = tmp["valid_matrices"][0].GetMatrix()
+        self.assertEqual(matrix.Size1(), 1) # Number of rows in an empty matrix is non-zero! Is this intentional?
+        self.assertEqual(matrix.Size2(), 0)
+
+        matrix = tmp["valid_matrices"][3].GetMatrix()
+        self.assertEqual(matrix.Size1(), 2)
+        self.assertEqual(matrix.Size2(), 3)
+        self.assertMatrixAlmostEqual(matrix, Matrix([[1, 2, 3], [4, 5, 6]]))
+
+        matrix = tmp["valid_matrices"][4].GetMatrix()
+        self.assertEqual(matrix.Size1(), 1)
+        self.assertEqual(matrix.Size2(), 1)
+        self.assertAlmostEqual(matrix[0, 0], 0)
+
+        # Check invalid matrices
         for i in range(tmp["false_matrices"].size()):
             false_matrix = tmp["false_matrices"][i]
             self.assertFalse(false_matrix.IsMatrix())

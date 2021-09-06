@@ -18,6 +18,7 @@ file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive_thermal/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
 
 ## ConstitutiveLaws testing sources
