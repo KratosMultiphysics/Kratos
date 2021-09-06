@@ -735,24 +735,6 @@ namespace Kratos
         }
     }
 
-
-    Matrix DiagonalCrossProductOrDiagonalCrossProduct(const double& rN, const array_1d<double, 3>& a2)
-    {
-        Matrix Result(3, 3);
-
-        Result(0, 0) = 0;
-        Result(0, 1) = -rN * a2[2] ;
-        Result(0, 2) = rN * a2[1] ;
-
-        Result(1, 0) = rN * a2[2] ;
-        Result(1, 1) = 0;
-        Result(1, 2) = -rN * a2[0] ;
-
-        Result(2, 0) = -rN * a2[1];
-        Result(2, 1) = rN * a2[0] ;
-        Result(2, 2) = 0;
-       }
-
     ///@}
 
 } // Namespace Kratos
