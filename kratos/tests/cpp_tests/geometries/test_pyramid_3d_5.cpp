@@ -187,7 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
     KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    const double expected_vol = 0.5;
+    const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_1), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_1);
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
     KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    const double expected_vol = 0.5;
+    const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_2), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_2);
@@ -215,7 +215,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite)
     KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    const double expected_vol = 0.5;
+    const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_3), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_3);
@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite)
     KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    const double expected_vol = 0.5;
+    const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_4), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_4);
@@ -243,7 +243,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
     KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
-    const double expected_vol = 0.5;
+    const double expected_vol = 2.0;
 
     KRATOS_CHECK_NEAR(CalculateAreaByIntegration(*geom, GeometryData::GI_GAUSS_5), expected_vol, TOLERANCE);
     VerifyStrainExactness(*geom, GeometryData::GI_GAUSS_5);
