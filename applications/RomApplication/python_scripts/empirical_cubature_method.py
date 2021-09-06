@@ -306,21 +306,19 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                             hyperReducedSubmodelpart.AddElement(originalElement,0)
                             print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the element with the Id {originalElement.Id} is assigned the key {key}')
                 for originalCondition in originalSubmodelpart.Conditions:
-                    for key in HR_data["Conditions"].keys():
-                        if originalCondition.Id == int(key)+1:
-                            hyperReducedSubmodelpart.AddCondition(originalCondition,0)
-                            print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
+                    hyperReducedSubmodelpart.AddCondition(originalCondition,0)
+                    print(f'For the submodelpart {hyperReducedSubmodelpart.Name}, the condition with the Id {originalCondition.Id} is assigned the key {key}')
 
 
-        # Building the VISUALIZE_HROM submodel part
-        print('Adding skin for visualization...')
-        hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
-        for condition in computing_model_part.Conditions:
-            for node in condition.GetNodes():
-                hyper_reduced_model_part2.AddNode(node, 0)
-            hyper_reduced_model_part2.AddCondition(condition, 0)
-        for node in computing_model_part.Nodes:
-            hyper_reduced_model_part2.AddNode(node, 0)
+        # # Building the VISUALIZE_HROM submodel part
+        # print('Adding skin for visualization...')
+        # hyper_reduced_model_part2 = HROM_Model_Part.CreateSubModelPart("VISUALIZE_HROM")
+        # for condition in computing_model_part.Conditions:
+        #     for node in condition.GetNodes():
+        #         hyper_reduced_model_part2.AddNode(node, 0)
+        #     hyper_reduced_model_part2.AddCondition(condition, 0)
+        # for node in computing_model_part.Nodes:
+        #     hyper_reduced_model_part2.AddNode(node, 0)
 
         ## Creating the mdpa file using ModelPartIO object
         print('About to print ...')

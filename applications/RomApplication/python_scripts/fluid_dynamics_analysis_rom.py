@@ -2,14 +2,26 @@ import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
+from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 import json
+import numpy as np
 
 class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters):
+    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
         super().__init__(model,project_parameters)
+        if hyper_reduction_element_selector != None :
+            if hyper_reduction_element_selector == "EmpiricalCubature":
+                self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+                self.time_step_residual_matrix_container = []
+            else:
+                err_msg =  "The requested element selection method \"" + hyper_reduction_element_selector + "\" is not in the rom application\n"
+                err_msg += "Available options are: \"EmpiricalCubature\""
+                raise Exception(err_msg)
+        else:
+            self.hyper_reduction_element_selector = None
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -41,3 +53,24 @@ class FluidDynamicsAnalysisROM(FluidDynamicsAnalysis):
                         aux[j,i] = nodal_modes[Counter][j][i]
                 node.SetValue(romapp.ROM_BASIS, aux ) # ROM basis
                 counter+=1
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver()._GetScheme())
+
+    def FinalizeSolutionStep(self):
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                print('\n\n\n\nGenerating matrix of residuals')
+                ResMat = self.ResidualUtilityObject.GetResiduals()
+                NP_ResMat = np.array(ResMat, copy=False)
+                self.time_step_residual_matrix_container.append(NP_ResMat)
+        super().FinalizeSolutionStep()
+
+    def Finalize(self):
+        super().Finalize()
+        if self.hyper_reduction_element_selector != None:
+            if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
+                OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
+                ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
+                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                self.hyper_reduction_element_selector.Run()
