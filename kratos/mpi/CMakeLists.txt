@@ -6,13 +6,9 @@ message("**** configuring Kratos to be compiled with MPI-Support ****")
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Kratos MPI extension sources
-set( KRATOS_MPI_SOURCES
-   sources/mpi_data_communicator.cpp
-   sources/mpi_manager.cpp
-   utilities/data_communicator_factory.cpp
-   utilities/gather_modelpart_utility.cpp
-   utilities/mpi_normal_calculation_utilities.cpp;
-   utilities/parallel_fill_communicator.cpp
+file(GLOB_RECURSE KRATOS_MPI_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
 )
 
 ## Kratos MPI extension Python interface
@@ -35,16 +31,6 @@ pybind11_add_module(KratosMPI MODULE THIN_LTO ${KRATOS_MPI_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
-
-
-###############################################################################
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMPICore)
-    cotire(KratosMPI)
-endif(USE_COTIRE MATCHES ON)
-
-###############################################################################
 
 # Install library
 install(TARGETS KratosMPICore DESTINATION libs )

@@ -26,8 +26,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
 #include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
@@ -131,6 +129,8 @@ namespace Kratos
   //KRATOS_DEFINE_VARIABLE( double, DETERMINANT_F )
   //KRATOS_DEFINE_VARIABLE( Vector, DEFORMATION_GRADIENT);
   KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRAIN_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Vector, INITIAL_STRESS_VECTOR )
+  KRATOS_DEFINE_VARIABLE( Matrix, INITIAL_DEFORMATION_GRADIENT_MATRIX )
 
   KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_VECTOR )
   //KRATOS_DEFINE_VARIABLE( Vector, GREEN_LAGRANGE_STRAIN_TENSOR )

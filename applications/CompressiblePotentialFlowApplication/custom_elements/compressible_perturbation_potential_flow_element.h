@@ -67,7 +67,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of CompressiblePerturbationPotentialFlowElement
-    KRATOS_CLASS_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CompressiblePerturbationPotentialFlowElement);
 
     ///@}
     ///@name Life Cycle
@@ -152,33 +152,31 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo) override;
+                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo) override;
+                                const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                               ProcessInfo& rCurrentProcessInfo) override;
+                               const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                      std::vector<double>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
                                      std::vector<int>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
                                      std::vector<array_1d<double, 3>>& rValues,
                                      const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -186,7 +184,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -203,11 +201,6 @@ public:
 
     ///@}
 protected:
-
-    double ComputeDensity(const ProcessInfo& rCurrentProcessInfo) const;
-
-    double ComputeDensityDerivative(const double density,
-                                    const ProcessInfo& rCurrentProcessInfo) const;
 
 private:
     ///@name Private Operators
@@ -236,8 +229,27 @@ private:
     void CalculateLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
                                          const ProcessInfo& rCurrentProcessInfo);
 
+    BoundedMatrix<double, NumNodes, NumNodes> CalculateLeftHandSideWakeConditions(
+                                            const ElementalData<NumNodes, Dim>& rData,
+                                            const ProcessInfo& rCurrentProcessInfo);
+
     void CalculateRightHandSideWakeElement(VectorType& rRightHandSideVector,
                                          const ProcessInfo& rCurrentProcessInfo);
+
+    BoundedVector<double, NumNodes> CalculateRightHandSideWakeConditions(
+                                            const ElementalData<NumNodes, Dim>& rData,
+                                            const ProcessInfo& rCurrentProcessInfo,
+                                            const array_1d<double, Dim>& rDiff_velocity);
+
+    void CalculateLeftHandSideContribution(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, Dim>& rVelocity,
+                                         const ElementalData<NumNodes, Dim>& rData);
+
+    void CalculateRightHandSideContribution(BoundedVector<double, NumNodes>& rRhs_total,
+                                         const ProcessInfo& rCurrentProcessInfo,
+                                         const array_1d<double, Dim>& rVelocity,
+                                         const ElementalData<NumNodes, Dim>& rData);
 
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
@@ -253,17 +265,23 @@ private:
     void AssignLeftHandSideSubdividedElement(Matrix& rLeftHandSideMatrix,
                                              Matrix& lhs_positive,
                                              Matrix& lhs_negative,
-                                             const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                             const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                              const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                      const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data) const;
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                    const ElementalData<NumNodes, Dim>& rData) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
-                                   const BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
-                                   const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row) const;
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
+                                    const ElementalData<NumNodes, Dim>& rData,
+                                    unsigned int row) const;
 
     void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
                                    const BoundedVector<double, NumNodes>& rUpper_rhs,
@@ -271,8 +289,6 @@ private:
                                    const BoundedVector<double, NumNodes>& rWake_rhs,
                                    const ElementalData<NumNodes, Dim>& rData,
                                    unsigned int& rRow) const;
-
-    void ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private Operations

@@ -1,10 +1,5 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Import applications
-import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -20,6 +15,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
     Conditions are added from the processes sub model parts.
     """
     def __init__(self, main_model_part, Parameters):
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()

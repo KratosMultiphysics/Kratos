@@ -187,7 +187,7 @@ public:
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -233,6 +233,11 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+
+    void Calculate(
+        const Variable<double>& rVariable,
+        double& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void ComputeGaussPointLHSContribution(
         TElementData& rData,

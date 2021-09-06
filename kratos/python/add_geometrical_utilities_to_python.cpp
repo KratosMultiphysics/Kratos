@@ -39,6 +39,7 @@
 #include "utilities/interval_utility.h"
 #include "utilities/convect_particles_utilities.h"
 #include "utilities/delaunator_utilities.h"
+#include "utilities/mls_shape_functions_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -107,28 +108,22 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
 
-    // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,const std::size_t);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,const std::size_t);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,const std::size_t,Variable<double>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,const std::size_t,Variable<int>&);
-    typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,const std::size_t,Variable<double>&,const double,const double);
-
-    CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithDoubleVarType CalcOnSimplexWithDoubleVar = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
-    CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;
-
     py::class_<NormalCalculationUtils > (m,"NormalCalculationUtils")
         .def(py::init<>())
-        .def("CalculateOnSimplex", CalcOnSimplex_Cond)
-        .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
-        .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
-        .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
-        .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)
+        .def("CalculateNormalsInConditions", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ConditionsContainerType>)
+        .def("CalculateNormalsInElements", &NormalCalculationUtils::CalculateNormalsInContainer<ModelPart::ElementsContainerType>)
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateNormals<Condition>(rModelPart);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart, const bool EnforceGenericAlgorithm){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart, EnforceGenericAlgorithm);})
+        .def("CalculateUnitNormals", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateUnitNormals<Condition>(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, NormalCalculationUtils::ConditionsArrayType& rConditions,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rConditions, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart){rNormalCalculationUtils.CalculateOnSimplex(rModelPart);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<int>& rVariable){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable);})
+        .def("CalculateOnSimplex", [](NormalCalculationUtils& rNormalCalculationUtils, ModelPart& rModelPart,const std::size_t Dimension,Variable<double>& rVariable,const double Zero,const double Alpha){rNormalCalculationUtils.CalculateOnSimplex(rModelPart, Dimension, rVariable, Zero, Alpha);})
+        .def("CalculateNormalShapeDerivativesOnSimplex", &NormalCalculationUtils::CalculateNormalShapeDerivativesOnSimplex)
         .def("SwapNormals", &NormalCalculationUtils::SwapNormals)
-    //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
         ;
 
     py::class_<BodyNormalCalculationUtils > (m,"BodyNormalCalculationUtils")
@@ -172,6 +167,11 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
         .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        ;
+
+    py::enum_<Globals::Configuration>( m, "Configuration" )
+        .value( "Initial", Globals::Configuration::Initial )
+        .value( "Current", Globals::Configuration::Current )
         ;
 
     //brute force point locator
@@ -310,6 +310,14 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
     auto mod_geom_trans_utils = m.def_submodule("GeometricalTransformationUtilities");
     mod_geom_trans_utils.def("CalculateTranslationMatrix", &GeometricalTransformationUtilities::CalculateTranslationMatrix );
     mod_geom_trans_utils.def("CalculateRotationMatrix", &GeometricalTransformationUtilities::CalculateRotationMatrix );
+
+    // MLS shape functions utility
+    py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
+        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
+        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
+        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
+        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        ;
 }
 
 } // namespace Python.

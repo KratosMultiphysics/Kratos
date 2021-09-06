@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 
 import KratosMultiphysics
@@ -11,7 +10,6 @@ import KratosMultiphysics.FemToDemApplication.FEMDEMParticleCreatorDestructor as
 import math
 import os
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication as Solid
 import KratosMultiphysics.MeshingApplication.mmg_process as MMG
 
 def Wait():
@@ -20,10 +18,17 @@ def Wait():
 #============================================================================================================================
 class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCoupledFemDem_Solution):
 #============================================================================================================================
-    def __init__(self, Model):
+    def __init__(self, Model, path = ""):
         # Initialize solutions
-        self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model)
-        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model)
+
+        if path == "":
+            DEMProjectParametersFile = open("ProjectParametersDEM.json", 'r')
+        else:
+            DEMProjectParametersFile = open(os.path.join(path, "ProjectParametersDEM.json"), 'r')
+        DEM_project_parameters = KratosMultiphysics.Parameters(DEMProjectParametersFile.read())
+
+        self.FEM_Solution = FEM.FEM_for_PFEM_coupling_Solution(Model, path)
+        self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
         # Initialize Remeshing files
         self.DoRemeshing = self.FEM_Solution.ProjectParameters["AMR_data"]["activate_AMR"].GetBool()
@@ -31,10 +36,11 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
             self.mmg_parameter_file = open("MMGParameters.json",'r')
             self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
+        self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         self.InitializePlotsFiles()
         self.echo_level = 0
         self.is_slave = False
-        self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
 
 #============================================================================================================================
     def Initialize(self):
@@ -88,7 +94,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else:
             self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
         self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-        
+
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -148,3 +154,5 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()
+
+        self.FindNeighboursIfNecessary()

@@ -144,6 +144,16 @@ public:
         return mInterfaceInfos.size() > 0;
     }
 
+    virtual MapperLocalSystemUniquePointer Create(NodePointerType pNode) const
+    {
+        KRATOS_ERROR << "Create is not implemented for NodePointerType!" << std::endl;
+    }
+
+    virtual MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const
+    {
+        KRATOS_ERROR << "Create is not implemented for GeometryPointerType!" << std::endl;
+    }
+
 
     virtual void Clear()
     {

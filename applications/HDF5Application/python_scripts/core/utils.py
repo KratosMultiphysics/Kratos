@@ -7,7 +7,7 @@ license: HDF5Application/license.txt
 __all__ = ['ParametersWrapper']
 
 
-from collections import Mapping
+from collections.abc import Mapping
 
 
 import KratosMultiphysics

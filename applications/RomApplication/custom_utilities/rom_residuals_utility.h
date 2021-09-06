@@ -132,9 +132,6 @@ namespace Kratos
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
                         GetPhiElemental(PhiElemental, dofs, geom);
                         noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                        // clean local elemental me overridemory
-                        mpScheme->CleanMemory(*it_el);
                     }
 
                 }
@@ -158,9 +155,6 @@ namespace Kratos
                             PhiElemental.resize(dofs.size(), mRomDofs,false);
                         GetPhiElemental(PhiElemental, dofs, geom);
                         noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
-
-                        // clean local elemental memory
-                        mpScheme->CleanMemory(*it);
                     }
                 }
             }
@@ -171,8 +165,8 @@ namespace Kratos
             std::vector< std::string > mNodalVariablesNames;
             int mNodalDofs;
             unsigned int mRomDofs;
-            BaseSchemeType::Pointer mpScheme;
             ModelPart& mpModelPart;
+            BaseSchemeType::Pointer mpScheme;
             std::unordered_map<Kratos::VariableData::KeyType,int> MapPhi;
         };
 

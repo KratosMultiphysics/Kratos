@@ -12,7 +12,6 @@ import sys
 
 class CoSimulationAnalysis(AnalysisStage):
     """AnalysisStage of the CoSimulationApplication.
-    It contains all necessary modifications to make CoSimulation work both with Kratos and pyKratos
     It does NOT override the "RunSolutionLoop" method!
     """
     def __init__(self, cosim_settings, models=None):
@@ -59,7 +58,6 @@ class CoSimulationAnalysis(AnalysisStage):
 
     def Initialize(self):
         self._GetSolver().Initialize()
-        self._GetSolver().InitializeCouplingInterfaceData()
         self._GetSolver().Check()
 
         if self.echo_level > 0:

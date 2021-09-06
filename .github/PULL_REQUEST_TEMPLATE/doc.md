@@ -12,6 +12,3 @@ Please summarize the change in one line to generate the changelog:
 E.g.
 - Added doc for X
 - Code style for Y
-
-**Additional info**
-Add any other releavant information here.

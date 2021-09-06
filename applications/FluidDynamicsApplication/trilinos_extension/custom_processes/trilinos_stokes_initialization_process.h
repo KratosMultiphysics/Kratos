@@ -80,7 +80,7 @@ public:
         ModelPart& rReferenceModelPart = BaseType::mrReferenceModelPart;
         typename TLinearSolver::Pointer& pBaseLinearSolver = BaseType::mpLinearSolver;
         unsigned int BaseDomainSize = BaseType::mDomainSize;
-        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
+        typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
         if(rModelPart.GetModel().HasModelPart("StokesModelPart"))
@@ -130,9 +130,9 @@ public:
 
         // Builder and solver
         int guess_row_size;
-        if(BaseDomainSize == 2) 
+        if(BaseDomainSize == 2)
             guess_row_size = 15;
-        else 
+        else
             guess_row_size = 40;
 
         auto pBuildAndSolver = Kratos::make_shared<TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> >(
@@ -151,7 +151,6 @@ public:
         pSolutionStrategy = Kratos::make_shared< ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             rStokesModelPart,
             pScheme,
-            pBaseLinearSolver,
             pBuildAndSolver,
             ReactionFlag,
             ReformDofSetFlag,

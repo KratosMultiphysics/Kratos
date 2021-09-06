@@ -142,11 +142,6 @@ public:
         mpPrimalElement->ResetConstitutiveLaw();
     }
 
-    void CleanMemory() override
-    {
-        mpPrimalElement->CleanMemory();
-    }
-
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
@@ -183,28 +178,10 @@ public:
                                                rCurrentProcessInfo);
     }
 
-    void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrices,
-                                               rLHSVariables,
-                                               rCurrentProcessInfo);
-    }
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         const ProcessInfo& rCurrentProcessInfo) override
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
-                                                rCurrentProcessInfo);
-    }
-
-    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalElement->CalculateRightHandSide(rRightHandSideVectors,
-                                                rRHSVariables,
                                                 rCurrentProcessInfo);
     }
 

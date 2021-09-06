@@ -1,6 +1,5 @@
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
 from importlib import import_module
@@ -93,13 +92,6 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     else:
         kratos_module = "KratosMultiphysics.StructuralMechanicsApplication"
-
-        if solver_settings.Has("use_computing_model_part"):
-            if solver_settings["use_computing_model_part"].GetBool():
-                kratos_utils.IssueDeprecationWarning('MechanicalSolver', 'Using ["use_computing_model_part" : True] is deprecated, please remove this setting')
-        elif not (solver_settings.Has("problem_domain_sub_model_part_list") or solver_settings.Has("processes_sub_model_part_list")):
-            solver_settings.AddEmptyValue("use_computing_model_part").SetBool(False)
-
 
     solver = import_module(kratos_module + "." + solver_module_name).CreateSolver(model, solver_settings)
 

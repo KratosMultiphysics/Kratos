@@ -27,15 +27,15 @@ class CustomScipyBaseSolver(MechanicalSolver):
     """
     def __init__(self, main_model_part, custom_settings):
         # Construct the base solver.
-        super(CustomScipyBaseSolver, self).__init__(main_model_part, custom_settings)
+        super().__init__(main_model_part, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[CustomScipyBaseSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic"
         }""")
-        this_defaults.AddMissingParameters(super(CustomScipyBaseSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     #### Private functions ####
@@ -60,18 +60,16 @@ class CustomScipyBaseSolver(MechanicalSolver):
         return KratosMultiphysics.LinearSolver()
 
     def _create_mechanical_solution_strategy(self):
-        if self.settings["block_builder"].GetBool():
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             warn_msg = "In case an eigenvalue problem is computed an elimantion builder shall be used to ensure boundary conditions are applied correctly!"
             KratosMultiphysics.Logger.PrintWarning("CustomScipyBaseSolver", warn_msg)
 
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices
         computing_model_part = self.GetComputingModelPart()
         builder_and_solver = self.get_builder_and_solver()
-        linear_solver = self.get_linear_solver()
 
         return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
                                                               eigen_scheme,
-                                                              linear_solver,
                                                               builder_and_solver,
                                                               False,
                                                               False,

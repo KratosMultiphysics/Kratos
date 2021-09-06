@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -157,9 +158,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -249,9 +248,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -361,9 +358,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -455,9 +450,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -591,9 +584,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(ref_Dx[i], Dx[i], tolerance);
-            }
+            KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -694,9 +685,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-            }
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -854,9 +843,7 @@ namespace Kratos
             pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
             pmixed_solver->Solve(A, Dx, b);
 
-            for (std::size_t i = 0; i < system_size; ++i) {
-                KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-            }
+            KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
         }
 
         /**
@@ -972,9 +959,7 @@ namespace Kratos
                 pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
                 pmixed_solver->Solve(A, Dx, b);
 
-                for (std::size_t i = 0; i < system_size; ++i) {
-                    KRATOS_CHECK_NEAR(std::abs(ref_Dx[i] - Dx[i])/std::abs(ref_Dx[i]), 0.0, tolerance);
-                }
+                KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
             }
         }
     } // namespace Testing

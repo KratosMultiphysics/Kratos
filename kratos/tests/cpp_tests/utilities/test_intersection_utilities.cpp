@@ -357,6 +357,126 @@ namespace Testing {
         KRATOS_CHECK_NEAR(int_pt[2], 0.5, 1e-6);
     }
 
+        KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesPlaneLineCenteredIntersection, KratosCoreFastSuite)
+    {
+        // Set the plane to be intersected
+        const Point plane_base_pt(0.0,0.0,0.0);
+        const Point plane_normal(1.0,0.0,0.0);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(1.0,0.25,0.25);
+        const Point line_pt_2(-1.0,0.25,0.25);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputePlaneLineIntersection(
+            plane_base_pt.Coordinates(), plane_normal.Coordinates(),
+            line_pt_1.Coordinates(),line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Compute and check the obtained intersection point coordinates
+        KRATOS_CHECK_EQUAL(int_id, 1);
+        const std::vector<double> expected_values = {0.0,0.25,0.25};
+        KRATOS_CHECK_VECTOR_NEAR(int_pt.Coordinates(), expected_values, 1e-10);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesPlaneLineSkewedIntersection, KratosCoreFastSuite)
+    {
+        // Set the plane to be intersected
+        const Point plane_base_pt(1.0,0.0,0.0);
+        const Point plane_normal(-1.0,0.0-0.5,-1.0);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(2.0,0.0,0.0);
+        const Point line_pt_2(-1.0,0.25,0.25);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputePlaneLineIntersection(
+            plane_base_pt.Coordinates(), plane_normal.Coordinates(),
+            line_pt_1.Coordinates(), line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Compute and check the obtained intersection point coordinates
+        KRATOS_CHECK_EQUAL(int_id, 1);
+        const std::vector<double> expected_values = {0.857143,0.0952381,0.0952381};
+        KRATOS_CHECK_VECTOR_NEAR(int_pt.Coordinates(), expected_values, 1e-6);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesPlaneLineNoIntersection, KratosCoreFastSuite)
+    {
+        // Set the plane to be intersected
+        const Point plane_base_pt(0.0,0.0,0.0);
+        const Point plane_normal(1.0,0.0,0.0);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(1.0,0.25,0.25);
+        const Point line_pt_2(0.1,0.25,0.25);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputePlaneLineIntersection(
+            plane_base_pt.Coordinates(), plane_normal.Coordinates(),
+            line_pt_1.Coordinates(), line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Check that there is no intersection
+        KRATOS_CHECK_EQUAL(int_id, 0);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesPlaneLineThroughPoint, KratosCoreFastSuite)
+    {
+        // Set the plane to be intersected
+        const Point plane_base_pt(0.0,0.0,0.0);
+        const Point plane_normal(1.0,0.0,0.0);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(1.0,1.0,0.0);
+        const Point line_pt_2(0.0,1.0,0.0);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputePlaneLineIntersection(
+            plane_base_pt.Coordinates(), plane_normal.Coordinates(),
+            line_pt_1.Coordinates(), line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Compute and check the obtained intersection point passes through the node
+        KRATOS_CHECK_EQUAL(int_id, 1);
+        KRATOS_CHECK_VECTOR_NEAR(int_pt.Coordinates(), line_pt_2.Coordinates(), 1e-10);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesPlaneLineCoplanar, KratosCoreFastSuite)
+    {
+        // Set the plane to be intersected
+        const Point plane_base_pt(0.0,0.0,0.0);
+        const Point plane_normal(1.0,0.0,0.0);
+
+        // Set the points that define the intersection line
+        const Point line_pt_1(0.0,0.0,0.0);
+        const Point line_pt_2(0.0,1.0,0.0);
+
+        // Initialize the intersection point
+        Point int_pt(0.0,0.0,0.0);
+
+        // Call the intersection utility
+        const int int_id = IntersectionUtilities::ComputePlaneLineIntersection(
+            plane_base_pt.Coordinates(), plane_normal.Coordinates(),
+            line_pt_1.Coordinates(), line_pt_2.Coordinates(),
+            int_pt.Coordinates());
+
+        // Check that there is no intersection
+        KRATOS_CHECK_EQUAL(int_id, 2);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(IntersectionUtilitiesLineBoxIntersectionNoHitpoint, KratosCoreFastSuite)
     {
         // Set the origin and endpoint of the segment

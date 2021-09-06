@@ -34,7 +34,7 @@ class KRATOS_API(FLUID_TRANSPORT_APPLICATION) TransientConvectionDiffusionFICExp
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( TransientConvectionDiffusionFICExplicitElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientConvectionDiffusionFICExplicitElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;

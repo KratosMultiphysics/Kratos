@@ -20,6 +20,7 @@
 // #include "includes/gid_io.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/normal_calculation_utils.h"
 #include "utilities/cpp_tests_utilities.h"
 
 /* Processes */
@@ -144,9 +145,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             // We compute the normal
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part.GetSubModelPart("Upper_"));
-            MortarUtilities::ComputeNodesMeanNormalModelPart(this_model_part.GetSubModelPart("Lower_"));
-
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part.GetSubModelPart("Upper_"), true);
+            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part.GetSubModelPart("Lower_"), true);
+            
 //             // DEBUG
 //             ShellToSolidShellProcessGiDIODebug(this_model_part);
 
