@@ -315,8 +315,10 @@ public:
         SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
 
         // Initialize dummy vectors
-        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+
         auto& rDx = *pDx;
         auto& rb = *pb;
 
@@ -356,9 +358,9 @@ public:
         }
         else
         {
-            SparseSpaceType::Resize(rb, SparseSpaceType::Size1(rStiffnessMatrix));
+            // SparseSpaceType::Resize(rb, SparseSpaceType::Size1(rStiffnessMatrix));
             SparseSpaceType::Set(rb, 0.0);
-            SparseSpaceType::Resize(rDx, SparseSpaceType::Size1(rStiffnessMatrix));
+            // SparseSpaceType::Resize(rDx, SparseSpaceType::Size1(rStiffnessMatrix));
             SparseSpaceType::Set(rDx, 0.0);
         }
 
@@ -392,7 +394,7 @@ public:
 
         // Initialize dummy rhs vector
         SparseVectorType b;
-        SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
+        // SparseSpaceType::Resize(b,SparseSpaceType::Size1(rMassMatrix));
         SparseSpaceType::Set(b,0.0);
 
         // if the size of the Matrix is the same as the size of the dofset, then also the dirichlet-dofs are in the matrix
@@ -474,8 +476,9 @@ public:
             <<  "Entering FinalizeSolutionStep" << std::endl;
 
         SparseMatrixType& rStiffnessMatrix = this->GetStiffnessMatrix();
-        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer();
-        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer();
+        const DataCommunicator &r_comm = BaseType::GetModelPart().GetCommunicator().GetDataCommunicator();
+        SparseVectorPointerType pDx = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
+        SparseVectorPointerType pb = SparseSpaceType::CreateEmptyVectorPointer(r_comm);
         pGetBuilderAndSolver()->FinalizeSolutionStep(
             BaseType::GetModelPart(), rStiffnessMatrix, *pDx, *pb);
         pGetScheme()->FinalizeSolutionStep(BaseType::GetModelPart(),
