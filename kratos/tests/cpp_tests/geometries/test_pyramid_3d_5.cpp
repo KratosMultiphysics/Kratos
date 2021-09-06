@@ -33,30 +33,43 @@ typedef Pyramid3D5<NodeType>             Pyramid3D5GeometryType;
  */
 BaseGeometryPtrType GenerateRegularPyramid3D5() {
     return BaseGeometryPtrType(new Pyramid3D5GeometryType(
-        GeneratePoint<NodeType>(0.0, 0.0, 0.0),
-        GeneratePoint<NodeType>(1.0, 0.0, 0.0),
-        GeneratePoint<NodeType>(0.0, 1.0, 0.0),
-        GeneratePoint<NodeType>(0.0, 0.0, 1.0),
-        GeneratePoint<NodeType>(0.0, 1.0, 1.0)
+        GeneratePoint<NodeType>(-1.0,  1.0, 0.0),
+        GeneratePoint<NodeType>(-1.0, -1.0, 0.0),
+        GeneratePoint<NodeType>( 1.0, -1.0, 0.0),
+        GeneratePoint<NodeType>( 1.0,  1.0, 0.0),
+        GeneratePoint<NodeType>( 0.0,  0.0, 1.5)
     ));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5EdgesNumber, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5EdgesNumber, KratosCoreGeometriesFastSuite)
+{
     auto geomRegular = GenerateRegularPyramid3D5();
 
     KRATOS_CHECK_EQUAL(geomRegular->EdgesNumber(), 8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5FacesNumber, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5FacesNumber, KratosCoreGeometriesFastSuite)
+{
     auto geomRegular = GenerateRegularPyramid3D5();
 
     KRATOS_CHECK_EQUAL(geomRegular->FacesNumber(), 5);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Volume, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Volume, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geomRegular = GenerateRegularPyramid3D5();
 
-    KRATOS_CHECK_NEAR(geomRegular->Volume(),  0.5, TOLERANCE);
+    KRATOS_CHECK_NEAR(geomRegular->Volume(), 2.0, TOLERANCE);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Center, KratosCoreGeometriesFastSuite)
+{
+    auto geomRegular = GenerateRegularPyramid3D5();
+
+    array_1d<double, 3> center{0, 0, 0.3};
+
+    KRATOS_CHECK_VECTOR_NEAR(geomRegular->Center(), center, TOLERANCE);
 }
 
 /** Checks the inside test for a given point respect to the pyramid
@@ -67,7 +80,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5Volume, KratosCoreGeometriesFastSuite) {
 * A Point over a vertex of the pyramid: Expected result TRUE
 * A Point over an edge of the pyramid: Expected result TRUE
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     Point PointInside(0.1666, 0.1666, 0.1666);
@@ -87,7 +102,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5IsInside, KratosCoreGeometriesFastSuite) {
 * pyramid. The centre of the pyramid is selected due to its known
 * solution.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     // Compute the global coordinates of the centre
@@ -104,7 +121,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesF
     KRATOS_CHECK_NEAR(centre_local_coords(2), 1.0/2.0, TOLERANCE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
     array_1d<double, 3> coord(3);
     coord[0] = 1.0 / 2.0;
@@ -118,7 +137,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsValues, KratosCoreGeometriesFa
     KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.015625, TOLERANCE);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
     Matrix gradient;
 
@@ -161,7 +182,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5ShapeFunctionsLocalGradients, KratosCoreGeom
 /** Tests the area using 'GI_GAUSS_1' integration method.
 * Tests the area using 'GI_GAUSS_1' integration method.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 0.5;
@@ -173,7 +196,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint1, KratosCoreGeometriesFastSuite) 
 /** Tests the area using 'GI_GAUSS_2' integration method.
 * Tests the area using 'GI_GAUSS_2' integration method.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 0.5;
@@ -185,7 +210,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint2, KratosCoreGeometriesFastSuite) 
 /** Tests the area using 'GI_GAUSS_3' integration method.
 * Tests the area using 'GI_GAUSS_3' integration method.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 0.5;
@@ -197,7 +224,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint3, KratosCoreGeometriesFastSuite) 
 /** Tests the area using 'GI_GAUSS_4' integration method.
 * Tests the area using 'GI_GAUSS_4' integration method.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 0.5;
@@ -209,7 +238,9 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint4, KratosCoreGeometriesFastSuite) 
 /** Tests the area using 'GI_GAUSS_5' integration method.
 * Tests the area using 'GI_GAUSS_5' integration method.
 */
-KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5GaussPoint5, KratosCoreGeometriesFastSuite)
+{
+    KRATOS_SKIP_TEST << "NOT IMPLEMENTED!";
     auto geom = GenerateRegularPyramid3D5();
 
     const double expected_vol = 0.5;
