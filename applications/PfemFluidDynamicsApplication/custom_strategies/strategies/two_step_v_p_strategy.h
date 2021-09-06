@@ -138,7 +138,7 @@ namespace Kratos
 
       this->mpMomentumStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pVelocityLinearSolver, vel_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
-      this->mpMomentumStrategy->SetEchoLevel(BaseType::GetEchoLevel());
+      this->mpMomentumStrategy->SetEchoLevel(1);
 
       vel_build->SetCalculateReactionsFlag(false);
 
@@ -147,7 +147,7 @@ namespace Kratos
 
       this->mpPressureStrategy = typename BaseType::Pointer(new GaussSeidelLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pPressureLinearSolver, pressure_build, ReformDofAtEachIteration, CalculateNormDxFlag));
 
-      this->mpPressureStrategy->SetEchoLevel(BaseType::GetEchoLevel());
+      this->mpPressureStrategy->SetEchoLevel(1);
 
       pressure_build->SetCalculateReactionsFlag(false);
 
