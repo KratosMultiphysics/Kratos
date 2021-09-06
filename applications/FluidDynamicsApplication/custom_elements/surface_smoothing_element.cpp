@@ -353,9 +353,20 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         double positive_viscosity = 0.0;
         double negative_viscosity = 0.0;
 
+        double contact_angle = 0.0;
+        double contact_angle_weight = 0.0;
+        Vector solid_normal = ZeroVector(num_dim);
+
         for (unsigned int i=0; i < num_face_nodes; ++i){
             if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
                 contact_node++;
+                const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
+                if (contact_angle_i > 1.0e-12)
+                {
+                    contact_angle += contact_angle_i;
+                    contact_angle_weight += 1.0;
+                }
+                solid_normal += r_face[i].FastGetSolutionStepValue(NORMAL);
             }
             if ( r_face[i].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 n_pos++;
@@ -367,6 +378,16 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
         if (contact_node == num_face_nodes){
             not_found_surface = false;
+
+            double minus_cos_contact_angle = 0.0;
+            const double norm_solid_normal = Kratos::norm_2(solid_normal);
+            solid_normal = (1.0/norm_solid_normal)*solid_normal;
+
+            if (contact_angle_weight > 0.0){
+                minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
+            } else{
+                Kratos::inner_prod(solid_normal, grad_phi_old);
+            }
 
             //MatrixType FaceShapeFunctions;
             //GeometryType::ShapeFunctionsGradientsType FaceShapeFunctionsGradients;
@@ -415,113 +436,114 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
                 double temp_value = 0.0;
 
+                // for (unsigned int i = 0; i < num_nodes; i++){
+
+                //     Vector solid_normal = ZeroVector(num_dim);
+                //     Vector corrected_gradient = ZeroVector(num_dim);
+
+                //     if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0){
+                //         if (n_pos > 0 && n_pos < num_face_nodes){ //cut solid surface element
+                //             solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
+                //             const double norm = Kratos::norm_2(solid_normal);
+                //             solid_normal = (1.0/norm)*solid_normal;
+
+                //             const double norm_grad_phi = norm_2(GradPHIold[i]);
+                //             const Vector normal = GradPHIold[i]/norm_grad_phi;
+
+                //             Vector contact_tangential = ZeroVector(num_dim);
+                //             MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
+                //             Vector slip_vector = ZeroVector(num_dim);
+                //             MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
+
+                //             double slip_velocity = inner_prod(slip_vector,
+                //                 GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+
+                //             Vector contact_vector_macro = ZeroVector(num_dim);
+                //             MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
+                //             const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
+                //             const double theta_macro = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_ANGLE);//std::acos(cos_theta_macro);
+
+                //             double theta_equilibrium = theta_receding;
+                //             if (theta_macro > theta_equilibrium){
+                //                 if (theta_macro >= theta_advancing){
+                //                     theta_equilibrium = theta_advancing;
+                //                 } else {
+                //                     theta_equilibrium = theta_macro;
+                //                     slip_velocity = 0.0;
+                //                 }
+                //             }
+                //             double cos_theta_equilibrium = std::cos(theta_equilibrium);
+
+                //             const double cos_theta_d = cos_theta_equilibrium - zeta/gamma * slip_velocity;//Check the sign of slip velocity
+
+                //             KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
+                //                 << "cos_theta_d is larger than one." << std::endl;
+
+                //             double theta_d = 0.0;
+                //             if (std::abs(cos_theta_d) <= 1.0){
+                //                 theta_d = std::acos(cos_theta_d);
+                //             } else if (cos_theta_d > 1.0){
+                //                 theta_d = 0.0;
+                //             } else { //if (cos_theta_d < -1.0){
+                //                 theta_d = PI;
+                //             }
+
+                //             const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
+                //             const double capilary_number = effective_viscosity*slip_velocity/gamma;
+
+                //             if ( std::abs(theta_d - theta_equilibrium) < 6.0e-1 &&
+                //                 capilary_number < 3.0e-1){
+
+                //                 double contact_angle_macro = 0.0;
+
+                //                 const double cubic_contact_angle_macro = std::pow(theta_d, 3.0)
+                //                     + 9*capilary_number*std::log(he/micro_length_scale);
+
+                //                 KRATOS_WARNING_IF("SurfaceSmooting", cubic_contact_angle_macro < 0.0 ||
+                //                     cubic_contact_angle_macro > 31.0)
+                //                     << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
+                //                     << std::endl;
+
+                //                 if (cubic_contact_angle_macro >= 0.0 &&
+                //                         cubic_contact_angle_macro <= 31.0) //std::pow(PI, 3.0))
+                //                     contact_angle_macro = std::pow(cubic_contact_angle_macro, 1.0/3.0);
+                //                 else if (cubic_contact_angle_macro < 0.0)
+                //                     contact_angle_macro = 0.0; //contact_angle_equilibrium;
+                //                 else //if (cubic_contact_angle_micro_gp > 31.0){
+                //                     contact_angle_macro = PI; //contact_angle_equilibrium;
+                //                 //}
+
+                //                 const double cos_contact_angle_macro = std::cos(contact_angle_macro);
+                //                 const double sin_contact_angle_macro = std::sqrt( 1.0 -
+                //                     cos_contact_angle_macro*cos_contact_angle_macro );
+
+                //                 corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
+                //                     + sin_contact_angle_macro*slip_vector );
+
+                //             } /* else */ {
+                //                 if (std::abs(cos_theta_d) <= 1.0){
+                //                     const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
+                //                     corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
+                //                 } else if (cos_theta_d > 1.0){
+                //                     corrected_gradient = -norm_grad_phi*solid_normal;
+                //                 } else //if (cos_theta_d < -1.0){
+                //                     corrected_gradient = norm_grad_phi*solid_normal;
+                //                 //}
+                //             }
+
+                //             //corrected_gradient = GradPHIold[i];
+
+                //         } else { //not a cut solid surface element
+                //             corrected_gradient = GradPHIold[i];
+                //         }
+                //     }
+
+                //     temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);
+                // }
+
                 for (unsigned int i = 0; i < num_nodes; i++){
-
-                    Vector solid_normal = ZeroVector(num_dim);
-                    Vector corrected_gradient = ZeroVector(num_dim);
-
-                    if (GetGeometry()[i].GetValue(IS_STRUCTURE) == 1.0){
-                        if (n_pos > 0 && n_pos < num_face_nodes){ //cut solid surface element
-                            solid_normal = GetGeometry()[i].FastGetSolutionStepValue(NORMAL);
-                            const double norm = Kratos::norm_2(solid_normal);
-                            solid_normal = (1.0/norm)*solid_normal;
-
-                            const double norm_grad_phi = norm_2(GradPHIold[i]);
-                            const Vector normal = GradPHIold[i]/norm_grad_phi;
-
-                            Vector contact_tangential = ZeroVector(num_dim);
-                            MathUtils<double>::UnitCrossProduct(contact_tangential, normal, solid_normal);
-                            Vector slip_vector = ZeroVector(num_dim);
-                            MathUtils<double>::UnitCrossProduct(slip_vector, solid_normal, contact_tangential);
-
-                            double slip_velocity = inner_prod(slip_vector,
-                                GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
-
-                            Vector contact_vector_macro = ZeroVector(num_dim);
-                            MathUtils<double>::UnitCrossProduct(contact_vector_macro, contact_tangential, normal);
-                            const double cos_theta_macro = inner_prod(slip_vector,contact_vector_macro);
-                            const double theta_macro = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_ANGLE);//std::acos(cos_theta_macro);
-
-                            double theta_equilibrium = theta_receding;
-                            if (theta_macro > theta_equilibrium){
-                                if (theta_macro >= theta_advancing){
-                                    theta_equilibrium = theta_advancing;
-                                } else {
-                                    theta_equilibrium = theta_macro;
-                                    slip_velocity = 0.0;
-                                }
-                            }
-                            double cos_theta_equilibrium = std::cos(theta_equilibrium);
-
-                            const double cos_theta_d = cos_theta_equilibrium - zeta/gamma * slip_velocity;//Check the sign of slip velocity
-
-                            KRATOS_WARNING_IF("SurfaceSmooting", std::abs(cos_theta_d) > 1.0)
-                                << "cos_theta_d is larger than one." << std::endl;
-
-                            double theta_d = 0.0;
-                            if (std::abs(cos_theta_d) <= 1.0){
-                                theta_d = std::acos(cos_theta_d);
-                            } else if (cos_theta_d > 1.0){
-                                theta_d = 0.0;
-                            } else { //if (cos_theta_d < -1.0){
-                                theta_d = PI;
-                            }
-
-                            const double effective_viscosity = 0.5*(positive_viscosity + negative_viscosity);
-                            const double capilary_number = effective_viscosity*slip_velocity/gamma;
-
-                            if ( std::abs(theta_d - theta_equilibrium) < 6.0e-1 &&
-                                capilary_number < 3.0e-1){
-
-                                double contact_angle_macro = 0.0;
-
-                                const double cubic_contact_angle_macro = std::pow(theta_d, 3.0)
-                                    + 9*capilary_number*std::log(he/micro_length_scale);
-
-                                KRATOS_WARNING_IF("SurfaceSmooting", cubic_contact_angle_macro < 0.0 ||
-                                    cubic_contact_angle_macro > 31.0)
-                                    << "Hydrodynamics theory failed to estimate micro contact-angle (large slip velocity)." 
-                                    << std::endl;
-
-                                if (cubic_contact_angle_macro >= 0.0 &&
-                                        cubic_contact_angle_macro <= 31.0) //std::pow(PI, 3.0))
-                                    contact_angle_macro = std::pow(cubic_contact_angle_macro, 1.0/3.0);
-                                else if (cubic_contact_angle_macro < 0.0)
-                                    contact_angle_macro = 0.0; //contact_angle_equilibrium;
-                                else //if (cubic_contact_angle_micro_gp > 31.0){
-                                    contact_angle_macro = PI; //contact_angle_equilibrium;
-                                //}
-
-                                const double cos_contact_angle_macro = std::cos(contact_angle_macro);
-                                const double sin_contact_angle_macro = std::sqrt( 1.0 -
-                                    cos_contact_angle_macro*cos_contact_angle_macro );
-
-                                corrected_gradient = norm_grad_phi*( -cos_contact_angle_macro*solid_normal
-                                    + sin_contact_angle_macro*slip_vector );
-
-                            } /* else */ {
-                                if (std::abs(cos_theta_d) <= 1.0){
-                                    const double sin_theta_d = std::sqrt( 1.0 - cos_theta_d*cos_theta_d );
-                                    corrected_gradient = norm_grad_phi*( -cos_theta_d*solid_normal + sin_theta_d*slip_vector );
-                                } else if (cos_theta_d > 1.0){
-                                    corrected_gradient = -norm_grad_phi*solid_normal;
-                                } else //if (cos_theta_d < -1.0){
-                                    corrected_gradient = norm_grad_phi*solid_normal;
-                                //}
-                            }
-
-                            //corrected_gradient = GradPHIold[i];
-
-                        } else { //not a cut solid surface element
-                            corrected_gradient = GradPHIold[i];
-                        }
-                    }
-
-                    temp_value += face_shape_func(i)*Kratos::inner_prod(solid_normal, corrected_gradient);
-                }
-
-                for (unsigned int i = 0; i < num_nodes; i++){
-                    tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
+                    // tempBCRHS[i] += epsilon * temp_value * face_weight * face_shape_func(i);
+                    tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
                 }
             }
         }
