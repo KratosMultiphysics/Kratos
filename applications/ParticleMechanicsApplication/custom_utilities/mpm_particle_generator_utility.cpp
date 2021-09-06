@@ -218,6 +218,7 @@ namespace MPMParticleGeneratorUtility
         std::vector<array_1d<double, 3>> mpc_contact_force = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> point_load = { ZeroVector(3) };
 
+        std::vector<array_1d<double, 3>> weighted_vector_residual = { ZeroVector(3) };
         std::vector<double> mpc_area(1);
         std::vector<double> mpc_penalty_factor(1);
 
@@ -335,13 +336,19 @@ namespace MPMParticleGeneratorUtility
                                 if(boundary_condition_type==1)
                                     condition_type_name = "MPMParticlePenaltyDirichletCondition";
                                 else if (boundary_condition_type ==2)
+
                                     condition_type_name = "MPMParticleLagrangeDirichletCondition";
+
                                 else 
                                     KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
                             }
                             else{
+                                if(boundary_condition_type==1)
                                     condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition";
+                                else if (boundary_condition_type ==2)
+                                    condition_type_name = "MPMParticleLagrangeDirichletCondition";
                                 }
+
                         }
                         else{
                             if( i->Has( POINT_LOAD ) ){
@@ -398,7 +405,8 @@ namespace MPMParticleGeneratorUtility
                             p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                             p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area, process_info);
                             p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
-                            
+                            // Mark as boundary condition
+                            p_condition->Set(BOUNDARY, true);
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -449,7 +457,9 @@ namespace MPMParticleGeneratorUtility
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                                 p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
-
+                                // Mark as boundary condition
+                                p_condition->Set(BOUNDARY, true);
+                                
                                 if (boundary_condition_type == 1)
                                 {
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
@@ -467,16 +477,25 @@ namespace MPMParticleGeneratorUtility
                                     // cp_condition->SetValuesOnIntegrationPoints(MPC_LAGRANGE_NODE,p_new_node, process_info);
                                     p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
                                 }
-                                    
+                    //    KRATOS_WATCH(boundary_condition_type)
 
                                 if (is_slip)
                                     p_condition->Set(SLIP);
                                 if (is_contact)
                                     p_condition->Set(CONTACT);
                                 if (is_interface)
-                                {
+                                { 
+                                 if (boundary_condition_type == 1)
+                                   {
                                     p_condition->Set(INTERFACE);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+                                   }
+                                else if (boundary_condition_type == 2)
+                                  {
+                                    p_condition->Set(INTERFACE);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+                                   }
+
                                 }
 
                                 // Add the MP Condition to the model part

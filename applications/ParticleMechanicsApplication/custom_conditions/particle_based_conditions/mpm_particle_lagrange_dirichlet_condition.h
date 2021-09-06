@@ -271,6 +271,7 @@ private:
     ///@name Private Operators
     ///@{
 
+    array_1d<double, 3> m_contact_force;
     ///@}
     ///@name Private Operations
     ///@{

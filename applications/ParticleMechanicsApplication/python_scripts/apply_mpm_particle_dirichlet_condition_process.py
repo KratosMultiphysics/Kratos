@@ -38,6 +38,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
         self.option = settings["option"].GetString()
+        self.condition_particle_counter=1
 
         """
         Set boundary_condition_type:
@@ -141,6 +142,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
         self.ExecuteInitializeSolutionStep()
+        
 
     def ExecuteInitializeSolutionStep(self):
         """ This method is executed in order to initialize the current step
@@ -168,3 +170,28 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                             
                         
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
+
+
+        self.model_part_3=self.model["MPM_Material"]
+        #for element in self.model_part_3.Element:
+        #elementIdVector[element] = element.GetGeometry().PartentId() 
+
+
+
+        oldValue=0.0
+        particleCounter=0
+        self.model_part_2=self.model["MPM_Material.Slip2D_Slip_Auto1"]
+        for mpc in self.model_part_2.Conditions:
+            id_parent = mpc.GetGeometry().GeometryParentId()
+            if id_parent==oldValue:
+               particleCounter +=1
+            else:
+                particleCounter=1
+                oldValue=id_parent
+            if particleCounter >2: #set inactive   
+                mpc.Set(KratosMultiphysics.ACTIVE,False)
+         #   if id_parent in elementIdVector   
+          #      mpc.Set(KratosMultiphysics.ACTIVE,False)
+            else:
+                mpc.Set(KratosMultiphysics.ACTIVE,True)
+        
