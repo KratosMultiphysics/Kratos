@@ -140,9 +140,21 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
     // Calculating shape function
     MPMShapeFunctionPointValues(Variables.N);
     Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+    bool apply_constraints = false;
+    GeometryType& r_geometry = GetGeometry();
+    int counter =0;
+    
+    //Check matrix singularities
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+        if (nodal_mass > std::numeric_limits<double>::epsilon() )
+            counter+=1;
+            if(counter>number_of_nodes-2)
+                apply_constraints=true;
+    }
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
-    bool apply_constraints = true;
     if (Is(CONTACT))
     {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
