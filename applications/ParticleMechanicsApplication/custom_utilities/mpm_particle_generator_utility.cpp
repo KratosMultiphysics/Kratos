@@ -339,7 +339,8 @@ namespace MPMParticleGeneratorUtility
                                 condition_type_name = "MPMParticlePointLoadCondition";
                             }
                             else{
-                                KRATOS_ERROR << "Particle line load / surface load condition is not yet implemented." << std::endl;
+                                condition_type_name = "MPMLagrangianMovingParticle";
+                                // KRATOS_ERROR << "Particle line load / surface load condition is not yet implemented." << std::endl;
                             }   
                         }
                         // Get new condition
@@ -394,6 +395,59 @@ namespace MPMParticleGeneratorUtility
 
                             // Add the MP Condition to the model part
                             rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+
+                        }
+                        else if (condition_type_name == "MPMLagrangianMovingParticle" ){
+                            // create point load condition
+                            mpc_area[0] = 1;
+                            
+
+                            // Create new material point condition
+                            new_condition_id = last_condition_id+1;
+                        
+                            mpc_xg[0].clear();
+                            
+                            for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                                mpc_xg[0][dimension] = r_geometry[0].Coordinates()[dimension];
+                            }
+                            
+                            typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
+                            Element::Pointer pelem;
+                            Vector N;
+                            
+
+                            // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                            bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
+                            if (!is_found) KRATOS_WARNING("MPM particle generator utility") << "::search failed." << std::endl;
+
+                            auto p_new_geometry = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+                                pelem->pGetGeometry(), mpc_xg[0],
+                                mpc_area[0]);
+
+
+                            Condition::Pointer p_condition = new_condition.Create(
+                                new_condition_id, p_new_geometry, properties);
+
+                            
+                            KRATOS_WATCH(new_condition_id)
+
+                            ProcessInfo process_info = ProcessInfo();
+                            
+
+                            // Setting particle condition's initial condition
+                            p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                            p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                            // Mark as boundary condition
+                            p_condition->Set(BOUNDARY, true);
+                            
+
+                            // Add the MP Condition to the model part
+                            
+                            rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                            last_condition_id +=1;
+                            
 
                         }
                         // Loop over the conditions to create inner particle condition (except point load condition)
@@ -979,6 +1033,57 @@ namespace MPMParticleGeneratorUtility
 
         // Get shape function values
         if (!IsEqualVolumes) rN = rGeom.ShapeFunctionsValues(rIntegrationMethod);
+
+        // TODO: Distribute boundary particles equally for line in 2D (only hardcoded....)
+        if (geo_type == GeometryData::Kratos_Line2D2  || geo_type == GeometryData::Kratos_Line3D2)
+        {
+            IsEqualVolumes = true;
+            switch (ParticlesPerCondition)
+            {
+            case 1:
+                rN(0,0) = 0.5;
+                rN(0,1) = 0.5;
+                break;
+            case 2:
+                rN(0,0) = 0.75;
+                rN(0,1) = 0.25;
+                rN(1,0) = 0.25;
+                rN(1,1) = 0.75;
+                break;
+            case 3:
+                rN(0,0) = 0.8;
+                rN(0,1) = 0.2;
+                rN(1,0) = 0.5;
+                rN(1,1) = 0.5;
+                rN(2,0) = 0.4;
+                rN(2,1) = 0.6;
+                break;
+            case 4:
+                rN(0,0) = 0.8;
+                rN(0,1) = 0.2;
+                rN(1,0) = 0.6;
+                rN(1,1) = 0.4;
+                rN(2,0) = 0.4;
+                rN(2,1) = 0.6;
+                rN(3,0) = 0.2;
+                rN(3,1) = 0.8;
+                break;
+            case 5:
+                rN(0,0) = 0.9;
+                rN(0,1) = 0.1;
+                rN(1,0) = 0.7;
+                rN(1,1) = 0.3;
+                rN(2,0) = 0.5;
+                rN(2,1) = 0.5;
+                rN(3,0) = 0.3;
+                rN(3,1) = 0.7;
+                rN(4,0) = 0.1;
+                rN(4,1) = 0.9;
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     //
