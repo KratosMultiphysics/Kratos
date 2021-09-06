@@ -50,6 +50,7 @@ namespace Kratos {
                 .def("Initialize", &EffectiveStressesCommunicatorUtility::Initialize)
                 .def("CopyWallCurrentEffectiveStressesToOldEffectiveStresses", &EffectiveStressesCommunicatorUtility::CopyWallCurrentEffectiveStressesToOldEffectiveStresses)
                 .def("CommunicateCurrentRadialEffectiveStressesToDemWalls", &EffectiveStressesCommunicatorUtility::CommunicateCurrentRadialEffectiveStressesToDemWalls)
+                .def("CommunicateGivenRadialEffectiveStressesToDemWalls", &EffectiveStressesCommunicatorUtility::CommunicateGivenRadialEffectiveStressesToDemWalls)
             ;
 
             class_<PorePressureCommunicatorUtility> (m, "PorePressureCommunicatorUtility")

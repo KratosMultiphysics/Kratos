@@ -109,6 +109,38 @@ namespace Kratos {
             KRATOS_CATCH("")
         }
 
+        void CommunicateGivenRadialEffectiveStressesToDemWalls(const Matrix stress_tensor) {
+
+            KRATOS_TRY
+
+            #pragma omp parallel
+            {
+                Vector unitary_radial_vector = ZeroVector(2);
+
+                #pragma omp for
+                for (int i=0; i<(int)mrDestinationModelPart.Nodes().size(); i++) {
+                    auto node_it = mrDestinationModelPart.NodesBegin() + i;
+                    auto& particle_coordinates = node_it->Coordinates();
+                    const double norm = MathUtils<double>::Norm(particle_coordinates);
+                    if (norm > std::numeric_limits<double>::epsilon()) {
+                        const double inv_norm = 1.0 / norm;
+                        unitary_radial_vector[0] = particle_coordinates[0] * inv_norm;
+                        unitary_radial_vector[1] = particle_coordinates[1] * inv_norm;
+                    }
+                    else {
+                        continue; //In the DEM walls modelpart there is a node which represents the center of gravity of the solid...
+                        //KRATOS_ERROR<<"Radial stresses cannot be trasferred to a point which is in the origin of coordinates."<<std::endl;
+                    }
+
+                    Vector tempV = prod(stress_tensor, unitary_radial_vector);
+                    double radial_stress = MathUtils<double>::Dot(tempV, unitary_radial_vector);
+                    node_it->SetValue(RADIAL_NORMAL_STRESS_COMPONENT, radial_stress);
+                }
+            }
+
+            KRATOS_CATCH("")
+        }
+
         virtual std::string Info() const { return "";}
 
         virtual void PrintInfo(std::ostream& rOStream) const {}
