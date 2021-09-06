@@ -348,11 +348,11 @@ namespace Kratos
 
             Matrix dE_curvilinear(3,3);
             // strain
-            subrange(dE_curvilinear,0,1,0,3) = r_DN_De(node, 0)*trans(rActualKinematic.a1);
-            subrange(dE_curvilinear,1,1,0,3) = r_DN_De(node, 1)*trans(rActualKinematic.a2);
-            subrange(dE_curvilinear,2,1,0,3) = 0.5 * (r_DN_De(node, 0) * trans(rActualKinematic.a2) + trans(rActualKinematic.a1) * r_DN_De(node, 1));
+            project(dE_curvilinear,range(0,0),range(0,2)) = r_DN_De(node, 0)*trans(rActualKinematic.a1);
+            project(dE_curvilinear,range(1,1),range(0,2)) = r_DN_De(node, 1)*trans(rActualKinematic.a2);
+            project(dE_curvilinear,range(2,2),range(0,2)) = 0.5 * (r_DN_De(node, 0) * trans(rActualKinematic.a2) + trans(rActualKinematic.a1) * r_DN_De(node, 1));
 
-            subrange(rB, 0, 1, index, 3) = prod(m_T_vector[IntegrationPointIndex], dE_curvilinear);
+            project(rB, range(0, 0), range(index, index + 2)) = prod(m_T_vector[IntegrationPointIndex], dE_curvilinear);
         }
 
     }
