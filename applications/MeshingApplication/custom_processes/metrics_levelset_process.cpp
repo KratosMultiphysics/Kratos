@@ -105,10 +105,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             const double size_reference = rNode.FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
             if (((element_size > nodal_h) && mEnforceCurrent) || (std::abs(size_reference) > mSizeBoundLayer))
-                element_size = mMaxSize;
+                element_size = nodal_h;
         } else {
             if (((element_size > nodal_h) && mEnforceCurrent))
-                element_size = mMaxSize;
+                element_size = nodal_h;
         }
 
         // For postprocess pourposes
@@ -243,7 +243,6 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
         }
 
     }
-
 
 
     return size;
