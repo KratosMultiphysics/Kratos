@@ -36,6 +36,7 @@
 #include "custom_utilities/random_variable.h"
 #include "custom_utilities/piecewise_linear_random_variable.h"
 #include "custom_utilities/discrete_random_variable.h"
+#include "custom_utilities/parallel_bond_utilities.h"
 
 
 namespace Kratos {
@@ -322,6 +323,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ComputePoisson", &PostUtilities::ComputePoisson)
         .def("ComputePoisson2D", &PostUtilities::ComputePoisson2D)
         .def("ComputeEulerAngles", &PostUtilities::ComputeEulerAngles)
+        ;
+
+    py::class_<ParallelBondUtilities, ParallelBondUtilities::Pointer>(m, "ParallelBondUtilities")
+        .def(py::init<>())
+        .def("SetCurrentIndentationAsAReferenceInParallelBonds", &ParallelBondUtilities::SetCurrentIndentationAsAReferenceInParallelBonds)
         ;
 
     py::class_<DEMFEMUtilities, DEMFEMUtilities::Pointer>(m, "DEMFEMUtilities")

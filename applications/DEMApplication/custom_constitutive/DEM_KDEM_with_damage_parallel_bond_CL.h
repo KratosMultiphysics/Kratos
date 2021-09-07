@@ -127,6 +127,7 @@ namespace Kratos {
         double mDamageEnergyCoeff = 0.0;
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;
+        double mInitialIndentationForBondedPart = 0.0;
 
     private:
 
