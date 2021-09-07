@@ -523,7 +523,7 @@ public:
         // assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
+        //#pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
         {
             Matrix PhiElemental;
             Matrix tempA = ZeroMatrix(mRomDofs,mRomDofs);
@@ -592,6 +592,10 @@ public:
             }
 
         }
+
+        KRATOS_WATCH(nelements)
+        KRATOS_WATCH(nconditions)
+
 
         KRATOS_INFO_IF("ROMBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 

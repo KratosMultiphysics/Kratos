@@ -94,9 +94,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
 
     def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
         self._GetSolver().get_builder_and_solver().UpdateZMatrix()
-
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 print('\n\n\n\nGenerating matrix of residuals')
@@ -105,6 +103,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 NP_ResMat = np.array(ResMat, copy=False)
                 #self.time_step_residual_matrix_container[self._GetSolver().get_builder_and_solver().GetCurrentCluster()].append(NP_ResMat)
                 self.time_step_residual_matrix_container.append(NP_ResMat)
+        super().FinalizeSolutionStep()
 
 
     def Finalize(self):

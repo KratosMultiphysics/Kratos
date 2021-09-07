@@ -44,6 +44,7 @@ class EmpiricalCubatureMethod():
     def SetUp(self, LeftSingularVectorsOfResidualProjected, InitialCandidatesSet = None, MaximumMumberUnsuccesfulIterations = 10):
         #super().SetUp()
         self.G = LeftSingularVectorsOfResidualProjected
+        self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
         self.y = InitialCandidatesSet
         self.MaximumMumberUnsuccesfulIterations = MaximumMumberUnsuccesfulIterations
         self.b = np.sum(self.G, axis = 1 )
@@ -233,7 +234,7 @@ class EmpiricalCubatureMethod():
         with open('ElementsAndWeights.json', 'w') as f:
             json.dump(ElementsAndWeights,f, indent=2)
         print('\n\n Elements and conditions selected have been saved in a json file\n\n')
-        self._CreateHyperReducedModelPart()
+        #self._CreateHyperReducedModelPart()
 
 
     """
