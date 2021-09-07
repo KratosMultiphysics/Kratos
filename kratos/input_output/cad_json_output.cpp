@@ -152,9 +152,9 @@ namespace Kratos
             Vector knots_full = ZeroVector(knots.size() + 2);
             knots_full[0] = knots[0];
             knots_full[knots_full.size() - 1] = knots[knots.size() - 1];
-            for (IndexType i = 0; i < knots.size(); ++i)
+            for (IndexType j = 0; j < knots.size(); ++j)
             {
-                knots_full[i + 1] = knots[i];
+                knots_full[j + 1] = knots[j];
             }
 
             parameter_curve_parameters.AddVector("knot_vector", knots_full);
