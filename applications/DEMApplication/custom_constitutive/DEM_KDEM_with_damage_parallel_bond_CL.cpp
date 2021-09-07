@@ -340,9 +340,11 @@ namespace Kratos {
 
         double BondedLocalElasticContactForce2 = 0.0;
 
-        if (indentation >= 0.0) { //COMPRESSION
+        const double bonded_indentation = indentation - mInitialIndentationForBondedPart;
+
+        if (bonded_indentation >= 0.0) { //COMPRESSION
             if (!failure_type) {
-                BondedLocalElasticContactForce2 = kn_updated * indentation;
+                BondedLocalElasticContactForce2 = kn_updated * bonded_indentation;
             } else {
                 BondedLocalElasticContactForce2 = 0.0;
             }
@@ -355,7 +357,7 @@ namespace Kratos {
                     limit_force = initial_limit_force;
                 }
 
-                BondedLocalElasticContactForce2 = kn_updated * indentation;
+                BondedLocalElasticContactForce2 = kn_updated * bonded_indentation;
 
                 if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
