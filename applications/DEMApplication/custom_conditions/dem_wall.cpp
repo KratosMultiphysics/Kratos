@@ -4,7 +4,7 @@
 
 // Project includes
 #include "custom_conditions/dem_wall.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
 
 namespace Kratos
@@ -147,10 +147,9 @@ void DEMWall::CalculateElasticForces(VectorType& rElasticForces, const ProcessIn
 
         for (unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
         {
-            int Contact_Type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
+            const int& contact_type = rNeighbours[i]->mContactConditionContactTypes[i_nei];
 
-            if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
-            {
+            if ( (rRFnei[i_nei] != nullptr) && ( rRFnei[i_nei]->Id() == this->Id() ) && (contact_type > 0 ) ) {
                 const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double ContactElasticForce[3] = {0.0};
 
@@ -252,12 +251,8 @@ void DEMWall::CalculateNormal(array_1d<double, 3>& rnormal){
     KRATOS_CATCH( "" )
 }
 
-
 double DEMWall::GetYoung() const                    { return GetProperties()[YOUNG_MODULUS];    }
 double DEMWall::GetPoisson() const                  { return GetProperties()[POISSON_RATIO];    }
-double DEMWall::GetTgOfStaticFrictionAngle() const  { return GetProperties()[STATIC_FRICTION];  }
-double DEMWall::GetTgOfDynamicFrictionAngle() const { return GetProperties()[DYNAMIC_FRICTION]; }
-
 
 void DEMWall::FinalizeSolutionStep(const ProcessInfo& r_process_info)
 {

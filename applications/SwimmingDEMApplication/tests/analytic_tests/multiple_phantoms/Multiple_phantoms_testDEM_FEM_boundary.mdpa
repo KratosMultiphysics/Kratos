@@ -4,24 +4,8 @@ End ModelPartData
 
 
 Begin Properties 3
-  FRICTION 0.5773502691896257
-  WALL_COHESION 0.0
-  COMPUTE_WEAR 0
-  SEVERITY_OF_WEAR 0.001
-  IMPACT_WEAR_SEVERITY 0.001
-  BRINELL_HARDNESS 200.0
-  YOUNG_MODULUS 1e+20
-  POISSON_RATIO 0.25
 End Properties
 Begin Properties 4
-  FRICTION 0.5773502691896257
-  WALL_COHESION 0.0
-  COMPUTE_WEAR 0
-  SEVERITY_OF_WEAR 0.001
-  IMPACT_WEAR_SEVERITY 0.001
-  BRINELL_HARDNESS 200.0
-  YOUNG_MODULUS 1e+20
-  POISSON_RATIO 0.25
 End Properties
 
 Begin Nodes
@@ -59,41 +43,41 @@ End Nodes
 
 
 Begin Conditions AnalyticRigidFace3D3N// GUI group identifier: Phantom Walls Auto1
-  239          3     5    10    11 
-  240          3    10    33    22 
-  241          3    33    79    86 
-  242          3    86    99    68 
-  243          3    99   108   100 
-  244          3   100    87    63 
-  245          3    87    80    34 
-  246          3    22    33    86 
-  247          3    10    22    11 
-  248          3    68    99    63 
-  249          3    86    68    22 
-  250          3    22    68    63 
-  251          3    63    99   100 
-  252          3    63    87    34 
-  253          3    11    22    34 
-  254          3    22    63    34 
+  239          3     5    10    11
+  240          3    10    33    22
+  241          3    33    79    86
+  242          3    86    99    68
+  243          3    99   108   100
+  244          3   100    87    63
+  245          3    87    80    34
+  246          3    22    33    86
+  247          3    10    22    11
+  248          3    68    99    63
+  249          3    86    68    22
+  250          3    22    68    63
+  251          3    63    99   100
+  252          3    63    87    34
+  253          3    11    22    34
+  254          3    22    63    34
 End Conditions
 
 Begin Conditions AnalyticRigidFace3D3N// GUI group identifier: Phantom Walls Auto2
-  255          4     4     8     9 
-  256          4     8    30    21 
-  257          4    30    77    84 
-  258          4    84    97    66 
-  259          4    97   107    98 
-  260          4    98    85    62 
-  261          4    85    78    31 
-  262          4    21    30    84 
-  263          4     8    21     9 
-  264          4    66    97    62 
-  265          4    84    66    21 
-  266          4    21    66    62 
-  267          4    62    97    98 
-  268          4    62    85    31 
-  269          4     9    21    31 
-  270          4    21    62    31 
+  255          4     4     8     9
+  256          4     8    30    21
+  257          4    30    77    84
+  258          4    84    97    66
+  259          4    97   107    98
+  260          4    98    85    62
+  261          4    85    78    31
+  262          4    21    30    84
+  263          4     8    21     9
+  264          4    66    97    62
+  265          4    84    66    21
+  266          4    21    66    62
+  267          4    62    97    98
+  268          4    62    85    31
+  269          4     9    21    31
+  270          4    21    62    31
 End Conditions
 
 Begin SubModelPart 1 // Phantom-Wall - group identifier: Phantom Walls Auto1

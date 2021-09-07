@@ -9,8 +9,32 @@ except:
 # Import Kratos, XMC, distributed environment
 import KratosMultiphysics
 from KratosMultiphysics.MultilevelMonteCarloApplication.adaptive_refinement_utilities import AdaptiveRefinement
-from xmc.distributedEnvironmentFramework import *
+from exaqute import *
 
+try:
+    computing_units_mlmc_execute_0 = int(os.environ["computing_units_mlmc_execute_0"])
+except:
+    computing_units_mlmc_execute_0 = 1
+try:
+    computing_units_mlmc_execute_1 = int(os.environ["computing_units_mlmc_execute_1"])
+except:
+    computing_units_mlmc_execute_1 = 1
+try:
+    computing_units_mlmc_execute_2 = int(os.environ["computing_units_mlmc_execute_2"])
+except:
+    computing_units_mlmc_execute_2 = 1
+try:
+    computing_units_mlmc_execute_3 = int(os.environ["computing_units_mlmc_execute_3"])
+except:
+    computing_units_mlmc_execute_3 = 1
+try:
+    computing_units_mlmc_execute_4 = int(os.environ["computing_units_mlmc_execute_4"])
+except:
+    computing_units_mlmc_execute_4 = 1
+try:
+    computing_units_mlmc_execute_5 = int(os.environ["computing_units_mlmc_execute_5"])
+except:
+    computing_units_mlmc_execute_5 = 1
 
 ####################################################################################################
 ############################################ WRAPPERS ##############################################
@@ -93,12 +117,12 @@ def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_p
 
 ############################### StochasticAdaptiveRefinementAllAtOnce ##############################
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev0_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -112,12 +136,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev0_Task(current_ind
             del(pickled_current_model)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev1_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -131,12 +155,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev1_Task(current_ind
             del(pickled_current_model)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev2_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -152,12 +176,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev2_Task(current_ind
             pass
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev3_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -171,12 +195,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev3_Task(current_ind
             del(pickled_current_model)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev4_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -190,12 +214,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev4_Task(current_ind
             del(pickled_current_model)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True, returns=2)
 def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev5_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_analysis,time_for_qoi,mapping_flag,adaptive_refinement_jump_to_finest_level,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -212,12 +236,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementAllAtOnceAuxLev5_Task(current_ind
 
 ############################# StochasticAdaptiveRefinementMultipleTasks ############################
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev0_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -225,12 +249,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev0_Task(current
         ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,open_mp_threads,mapping_flag,pickled_mapping_reference_model,print_to_file,filename)
     return qoi,pickled_current_model,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev1_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -238,12 +262,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev1_Task(current
         ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,open_mp_threads,mapping_flag,pickled_mapping_reference_model,print_to_file,filename)
     return qoi,pickled_current_model,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev2_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -251,12 +275,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev2_Task(current
         ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,open_mp_threads,mapping_flag,pickled_mapping_reference_model,print_to_file,filename)
     return qoi,pickled_current_model,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev3_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -264,12 +288,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev3_Task(current
         ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,open_mp_threads,mapping_flag,pickled_mapping_reference_model,print_to_file,filename)
     return qoi,pickled_current_model,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev4_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -277,12 +301,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev4_Task(current
         ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,open_mp_threads,mapping_flag,pickled_mapping_reference_model,print_to_file,filename)
     return qoi,pickled_current_model,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=3)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=3)
+# @task(filename=FILE_OUT,returns=3)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True, returns=3)
 def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev5_Task(current_index,pickled_coarse_model,pickled_coarse_project_parameters,pickled_custom_metric_refinement_parameters,pickled_custom_remesh_refinement_parameters,random_variable,current_local_index,current_analysis,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -293,12 +317,12 @@ def ExecuteInstanceStochasticAdaptiveRefinementMultipleTasksAuxLev5_Task(current
 
 ########################################## DeterministicAdaptiveRefinement ########################################
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -306,12 +330,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev0_Task(pickled_model,pic
         ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -319,12 +343,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev1_Task(pickled_model,pic
         ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -332,12 +356,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev2_Task(pickled_model,pic
         ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev3_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -345,12 +369,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev3_Task(pickled_model,pic
         ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev4_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -358,12 +382,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev4_Task(pickled_model,pic
         ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True, returns=2)
 def executeInstanceDeterministicAdaptiveRefinementAuxLev5_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -374,12 +398,12 @@ def executeInstanceDeterministicAdaptiveRefinementAuxLev5_Task(pickled_model,pic
 
 ########################################## ReadingFromFile #########################################
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_0}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_0)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_0"])
+        open_mp_threads = computing_units_mlmc_execute_0
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -387,12 +411,12 @@ def executeInstanceReadingFromFileAuxLev0_Task(pickled_model,pickled_project_par
         ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_1}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_1)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_1"])
+        open_mp_threads = computing_units_mlmc_execute_1
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -400,12 +424,12 @@ def executeInstanceReadingFromFileAuxLev1_Task(pickled_model,pickled_project_par
         ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_2}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_2)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev2_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_2"])
+        open_mp_threads = computing_units_mlmc_execute_2
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -413,12 +437,12 @@ def executeInstanceReadingFromFileAuxLev2_Task(pickled_model,pickled_project_par
         ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_3}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_3)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev3_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_3"])
+        open_mp_threads = computing_units_mlmc_execute_3
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -426,12 +450,12 @@ def executeInstanceReadingFromFileAuxLev3_Task(pickled_model,pickled_project_par
         ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_4}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_4)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev4_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_4"])
+        open_mp_threads = computing_units_mlmc_execute_4
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -439,12 +463,12 @@ def executeInstanceReadingFromFileAuxLev4_Task(pickled_model,pickled_project_par
         ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename,open_mp_threads)
     return qoi,time_for_qoi
 
-# @ExaquteTask(filename=FILE_OUT,returns=2)
-@constraint(ComputingUnits="${computing_units_mlmc_execute_5}")
-@ExaquteTask(returns=2)
+# @task(filename=FILE_OUT,returns=2)
+@constraint(computing_units=computing_units_mlmc_execute_5)
+@task(keep=True, returns=2)
 def executeInstanceReadingFromFileAuxLev5_Task(pickled_model,pickled_project_parameters,current_analysis,random_variable,time_for_qoi,mapping_flag,pickled_mapping_reference_model,print_to_file,filename):
     try:
-        open_mp_threads = int(os.environ["computing_units_mlmc_execute_5"])
+        open_mp_threads = computing_units_mlmc_execute_5
         threadpool_limits(limits=open_mp_threads)
     except:
         open_mp_threads = 1
@@ -455,19 +479,25 @@ def executeInstanceReadingFromFileAuxLev5_Task(pickled_model,pickled_project_par
 
     ############################################# ZeroTask #############################################
 
-@ExaquteTask(returns=2)
+@task(keep=True, returns=2)
 def returnZeroQoiAndTime_Task(estimators, size_vector):
     """
     Auxiliary method returning zero values quantities of interest and zero value computational cost.
     It is called by multi-level methods as level "-1".
 
     Inputs:
-    - estimators: list of strings. Each string is the moment estimator corresponding to the specific quantity of interest.
-    - size_vector: length of multi moment estimators. Namely, the field dimension of each multi quantity of interest.
+
+    estimators: list of strings.
+        Each string is the moment estimator corresponding to the specific quantity of interest.
+    size_vector: integer.
+        It defines the length of multi moment estimators. Namely, the field dimension of each multi quantity of interest.
 
     Outputs:
-    - qoi: list containing null moment estimators in the required order.
-    - time_for_qoi: null time to solution.
+
+    qoi: list.
+        It contains null moment estimators in the required order.
+    time_for_qoi: scalar.
+        Null time to solution.
     """
     qoi = []
     for estimator in estimators:
@@ -493,20 +523,31 @@ def ExecuteInstanceDeterministicAdaptiveRefinementAux_Functionality(pickled_mode
     Auxiliary method to the solve method of the KratosSolverWrapper class. The problem is solved calling Kratos. To be called if the selected refinement strategy is deterministic_adaptive_refinement.
 
     Inputs:
-    - pickled_model: serialization of the model.
-    - pickled_project_parameters: serialization of the parameters.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - random_variable: list containing all random variables.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
+
+    pickled_model: serialization of the KratosMultiphysics.Model.
+    pickled_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage.
+    random_variable: list.
+        List containing all random variables.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model
+        KratosMultiphysics.Model to which mapping is performed, if required.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string
+        It defines the name of the file the task will write, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
 
     Outputs:
-    - qoi: list containing all the quantities of interest.
-    - computational_time: time to solution up to current index.
+
+    qoi: list.
+        It contains all the quantities of interest.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()
@@ -568,25 +609,36 @@ def ExecuteInstanceStochasticAdaptiveRefinementAux_Functionality(current_global_
     Auxiliary method to the solve method of the KratosSolverWrapper class. Firstly, if needed, adaptive refinement is performed. Then the problem is solved calling Kratos. To be called if the selected refinement strategy is stochastic_adaptive_refinement.
 
     Inputs:
-    - current_global_index: index we are interested in and for which we have called the solve method of the solver wrapper.
-    - pickled_coarse_model: serialization of the model.
-    - pickled_coarse_project_parameters: serialization of the parameters.
-    - pickled_custom_metric_refinement_parameters: serialization of metric adaptive refinement parameters.
-    - pickled_custom_remesh_refinement_parameters: serialization of remeshing adaptive refinement parameters.
-    - random_variable: list containing all random variables.
-    - current_index: index we are currently solving at this moment. May be different from current_global_index for "stocharstic_adaptive_refinement" strategy.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
+    current_global_index: integer.
+        Index we are interested in and for which we have called the solve method of the solver wrapper.
+    pickled_coarse_model: serialization of the KratosMultiphysics.Model.
+    pickled_coarse_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    pickled_custom_metric_refinement_parameters: serialization of metric adaptive refinement parameters.
+    pickled_custom_remesh_refinement_parameters: serialization of remeshing adaptive refinement parameters.
+    random_variable: list.
+        List containing all random variables.
+    current_index: integer.
+        Index we are currently solving at this moment. May be different from current_global_index for "stocharstic_adaptive_refinement" strategy.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage of the problem.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model
+        Model to which mapping is performed, if required.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string.
+        String which defines the name of the file the task will write, if any.
 
     Outputs:
-    - qoi: quantities of interest.
-    - pickled_finer_model: serialized adaptively refined model, used at current index.
-    - computational_time: time to solution up to current index.
+    qoi: list.
+        List of quantities of interest.
+    pickled_finer_model: serialized adaptively refined KratosMultiphysics.Model, used at current index.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()
@@ -659,20 +711,28 @@ def ExecuteInstanceReadingFromFileAux_Functionality(pickled_model,pickled_projec
     Auxiliary method to the solve method of the KratosSolverWrapper class. The problem is solved calling Kratos. To be called if the selected refinement strategy is reading_from_file.
 
     Inputs:
-    - pickled_model: serialization of the model.
-    - pickled_project_parameters: serialization of the parameters.
-    - current_analysis_stage: Kratos analysis stage of the problem.
-    - random_variable: list containing all random variables.
-    - previous_computational_time: time to solution of previous indices, if any.
-    - mapping_flag: booleans. Defines if in current_analysis_stage = SimulationScenario class mapping is required.
-    - pickled_mapping_reference_model: Kratos Model to which mapping is performed.
-    - print_to_file: boolean. If true, the specific filename is passed to the analysis stage.
-    - filename: string which defines the name of the file the task will write, if any.
-    - open_mp_threads: number of threads we are exploiting to solve current task.
+    pickled_model: serialization of the KratosMultiphysics.Model.
+    pickled_project_parameters: serialization of the KratosMultiphysics.Parameters.
+    current_analysis_stage: KratosMultiphysics.AnalysisStage of the problem.
+    random_variable: list.
+        List containing all random variables.
+    previous_computational_time: scalar.
+        Time to solution of previous indices, if any.
+    mapping_flag: boolean.
+        It defines if in current_analysis_stage = SimulationScenario class mapping is required.
+    pickled_mapping_reference_model: KratosMultiphysics.Model to which mapping is performed.
+    print_to_file: boolean.
+        If true, the specific filename is passed to the analysis stage.
+    filename: string.
+        String which defines the name of the file the task will write, if any.
+    open_mp_threads: integer.
+        Number of threads we are exploiting to solve current task.
 
     Outputs:
-    - qoi: quantities of interest.
-    - computational_time: time to solution up to current index.
+    qoi: list.
+        List of quantities of interest.
+    computational_time: scalar.
+        Time to solution up to current index.
     """
 
     start_time = time.time()

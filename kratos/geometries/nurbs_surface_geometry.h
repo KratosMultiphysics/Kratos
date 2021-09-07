@@ -136,17 +136,7 @@ public:
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// Assignment operator.
     NurbsSurfaceGeometry& operator=(const NurbsSurfaceGeometry& rOther)
     {
         BaseType::operator=(rOther);
@@ -158,17 +148,7 @@ public:
         return *this;
     }
 
-    /**
-     * @brief Assignment operator for geometries with different point type.
-     *
-     * @note This operator don't copy the points and this
-     * geometry shares points with given source geometry. It's
-     * obvious that any change to this geometry's point affect
-     * source geometry's points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
+    /// @brief Assignment operator for geometries with different point type.
     template<class TOtherContainerPointType>
     NurbsSurfaceGeometry& operator=(
         NurbsSurfaceGeometry<TWorkingSpaceDimension, TOtherContainerPointType> const & rOther)
@@ -230,16 +210,53 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            const CoordinatesArrayType local_coordinates = rOutput;
+            CalculateEstimatedKnotLengthness(rOutput, local_coordinates);
+        }
+    }
+
+    ///@}
     ///@name Get and Set functions
     ///@{
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    void SetInternals(
+        const PointsArrayType& rThisPoints,
+        const SizeType PolynomialDegreeU,
+        const SizeType PolynomialDegreeV,
+        const Vector& rKnotsU,
+        const Vector& rKnotsV,
+        const Vector& rWeights)
+    {
+        this->Points() = rThisPoints;
+        mPolynomialDegreeU = PolynomialDegreeU;
+        mPolynomialDegreeV = PolynomialDegreeV;
+        mKnotsU = rKnotsU;
+        mKnotsV = rKnotsV;
+        mWeights = rWeights;
+
+        CheckAndFitKnotVectors();
+
+        KRATOS_ERROR_IF(rWeights.size() != rThisPoints.size())
+            << "Number of control points and weights do not match!" << std::endl;
+    }
+
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeU() const
     {
         return mPolynomialDegreeU;
     }
 
-    /* @return returns the polynomial degree 'p' in u direction. */
+    /// @return returns the polynomial degree 'p' in u direction.
     SizeType PolynomialDegreeV() const
     {
         return mPolynomialDegreeV;
@@ -261,30 +278,37 @@ public:
         return mKnotsV;
     }
 
-    /* @return Gives the size of the knot vector in u-direction.
-    */
+    /// @return Gives the size of the knot vector in u-direction.
     SizeType NumberOfKnotsU() const
     {
         return mKnotsU.size();
     }
 
-    /* @return Gives the size of the knot vector in v-direction.
-    */
+    /// @return Gives the size of the knot vector in v-direction.
     SizeType NumberOfKnotsV() const
     {
         return mKnotsV.size();
     }
 
     /* Checks if shape functions are rational or not.
-    @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
+     * @return true if NURBS, false if B-Splines only (all weights are considered as 1) */
     bool IsRational() const
     {
-        return mWeights.size() != 0;
+        if (mWeights.size() == 0)
+            return false;
+        else {
+            for (IndexType i = 0; i < mWeights.size(); ++i) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /* Get Weights vector. All values are 1.0 for B-Splines, for NURBS those can be unequal 1.0.
-    @return weights vector.
-    */
+     * @return weights vector.
+     */
     const Vector& Weights() const
     {
         return mWeights;
@@ -328,7 +352,7 @@ public:
      * @param return vector of span intervals.
      * @param index of direction: 0: U; 1: V.
      */
-    void Spans(std::vector<double>& rSpans, IndexType DirectionIndex) const
+    void SpansLocalSpace(std::vector<double>& rSpans, IndexType DirectionIndex) const override
     {
         rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
 
@@ -360,8 +384,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+     * @return domain interval.
+     */
     NurbsInterval DomainIntervalU() const
     {
         return NurbsInterval(
@@ -370,8 +394,8 @@ public:
     }
 
     /* Provides the natural boundaries of the NURBS/B-Spline surface.
-    @return domain interval.
-    */
+     * @return domain interval.
+     */
     NurbsInterval DomainIntervalV() const
     {
         return NurbsInterval(
@@ -380,8 +404,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-    @return vector of knot span intervals.
-    */
+     * @return vector of knot span intervals.
+     */
     std::vector<NurbsInterval> KnotSpanIntervalsU() const
     {
         const SizeType first_span = mPolynomialDegreeU - 1;
@@ -402,8 +426,8 @@ public:
     }
 
     /* Provides all knot span intervals of the surface in u-direction.
-    @return vector of knot span intervals.
-    */
+     * @return vector of knot span intervals.
+     */
     std::vector<NurbsInterval> KnotSpanIntervalsV() const
     {
         const SizeType first_span = mPolynomialDegreeV - 1;
@@ -423,6 +447,53 @@ public:
         return result;
     }
 
+    void CalculateEstimatedKnotLengthness(
+        CoordinatesArrayType& rKnotLengthness,
+        const CoordinatesArrayType& rLocalCoordinates) const
+    {
+        const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), KnotsU(), rLocalCoordinates[0]);
+        const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), KnotsV(), rLocalCoordinates[1]);
+
+        CoordinatesArrayType p1, p2, p3, p4;
+        CoordinatesArrayType gp1, gp2, gp3, gp4;
+        p1[0] = mKnotsU[SpanU];
+        p1[1] = mKnotsV[SpanV];
+        p1[2] = 0;
+
+        p2[0] = mKnotsU[SpanU + 1];
+        p2[1] = mKnotsV[SpanV];
+        p2[2] = 0;
+
+        p3[0] = mKnotsU[SpanU + 1];
+        p3[1] = mKnotsV[SpanV + 1];
+        p3[2] = 0;
+
+        p4[0] = mKnotsU[SpanU];
+        p4[1] = mKnotsV[SpanV + 1];
+        p4[2] = 0;
+
+        GlobalCoordinates(gp1, p1);
+        GlobalCoordinates(gp2, p2);
+        GlobalCoordinates(gp3, p3);
+        GlobalCoordinates(gp4, p4);
+
+        rKnotLengthness[0] = (norm_2(gp1 - gp2) + norm_2(gp3 - gp4)) / 2;
+        rKnotLengthness[1] = (norm_2(gp1 - gp4) + norm_2(gp2 - gp3)) / 2;
+        rKnotLengthness[2] = 0;
+    }
+
+    ///@}
+    ///@name Integration Info
+    ///@{
+
+    /// Provides the default integration dependent on the polynomial degree of the underlying surface.
+    IntegrationInfo GetDefaultIntegrationInfo() const override
+    {
+        return IntegrationInfo(
+            { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1 },
+            { IntegrationInfo::QuadratureMethod::GAUSS, IntegrationInfo::QuadratureMethod::GAUSS });
+    }
+
     ///@}
     ///@name Integration Points
     ///@{
@@ -431,7 +502,8 @@ public:
      * @param return integration points.
      */
     void CreateIntegrationPoints(
-        IntegrationPointsArrayType& rIntegrationPoints) const override
+        IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) const override
     {
         const SizeType points_in_u = PolynomialDegreeU() + 1;
         const SizeType points_in_v = PolynomialDegreeV() + 1;
@@ -491,7 +563,8 @@ public:
     void CreateQuadraturePointGeometries(
         GeometriesArrayType& rResultGeometries,
         IndexType NumberOfShapeFunctionDerivatives,
-        const IntegrationPointsArrayType& rIntegrationPoints) override
+        const IntegrationPointsArrayType& rIntegrationPoints,
+        IntegrationInfo& rIntegrationInfo) override
     {
         // shape function container.
         NurbsSurfaceShapeFunction shape_function_container(
@@ -529,10 +602,8 @@ public:
                 nonzero_control_points(j) = pGetPoint(cp_indices[j]);
             }
             /// Get Shape Functions N
-            if (NumberOfShapeFunctionDerivatives >= 0) {
-                for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                    N(0, j) = shape_function_container(j, 0);
-                }
+            for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                N(0, j) = shape_function_container(j, 0);
             }
 
             /// Get Shape Function Derivatives DN_De, ...

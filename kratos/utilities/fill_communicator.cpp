@@ -13,12 +13,19 @@
 #include "includes/model_part.h"
 #include "includes/data_communicator.h"
 #include "includes/fill_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
 
 FillCommunicator::FillCommunicator(ModelPart& rModelPart)
-    : mrBaseModelPart(rModelPart)
+    : FillCommunicator(rModelPart, ParallelEnvironment::GetDefaultDataCommunicator())
+{}
+
+FillCommunicator::FillCommunicator(
+    ModelPart& rModelPart,
+    const DataCommunicator& rDataComm)
+    : mrDataComm(rDataComm), mrBaseModelPart(rModelPart)
 {}
 
 void FillCommunicator::Execute()

@@ -24,6 +24,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "ibqn_mvqn_convergence_accelerator.h"
 
 namespace Kratos
 {
@@ -217,6 +218,8 @@ public:
     ///@name Friends
     ///@{
 
+    friend class IBQNMVQNConvergenceAccelerator<TSparseSpace, TDenseSpace>;
+
     ///@}
 protected:
     ///@name Protected  Operations
@@ -374,7 +377,6 @@ private:
     double mOmega_0;                                                // Relaxation factor for the initial fixed point iteration
     double mAbsCutOff;                                              // Tolerance for the absolute cut-off criterion
     bool mUsedInBlockNewtonEquations;                               // Indicates if the current MVQN is to be used in the interface block Newton equations
-
     unsigned int mProblemSize = 0;                                  // Residual to minimize size
     unsigned int mConvergenceAcceleratorIteration = 0;              // Convergence accelerator iteration counter
     bool mJacobiansAreInitialized = false;                          // Indicates that the Jacobian matrices have been already initialized

@@ -17,8 +17,8 @@
 #include "includes/serializer.h"
 #include "includes/condition.h"
 //#include "includes/variables.h"
-//#include "../custom_elements/spheric_particle.h"
-// #include "../custom_strategies/schemes/glued_to_wall_scheme.h"
+//#include "custom_elements/spheric_particle.h"
+// #include "custom_strategies/schemes/glued_to_wall_scheme.h"
 
 class GluedToWallScheme;
 
@@ -90,8 +90,6 @@ public:
 
     double GetYoung() const;
     double GetPoisson() const;
-    double GetTgOfStaticFrictionAngle() const;
-    double GetTgOfDynamicFrictionAngle() const;
 
     std::vector<SphericParticle*> mNeighbourSphericParticles;
     std::vector<array_1d <double, 3> > mRightHandSideVector;

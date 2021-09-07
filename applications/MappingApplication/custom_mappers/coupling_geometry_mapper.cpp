@@ -18,7 +18,7 @@
 // Project includes
 #include "coupling_geometry_mapper.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_typedefs.h"
+#include "mappers/mapper_define.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "utilities/variable_utils.h"
@@ -190,7 +190,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_slave, num_nodes_interface_master);
 
     // TODO Philipp I am pretty sure we should separate the vector construction from the matrix construction, should be independent otherwise no clue what is happening
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixSlave,
         mpInterfaceVectorContainerSlave->pGetVector(),
         mpInterfaceVectorContainerSlave->pGetVector(),
@@ -199,7 +199,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         mMapperLocalSystemsSlave,
         0); // The echo-level is no longer neeed here, refactor in separate PR
 
-    MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
+    MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrix(
         mpMappingMatrixProjector,
         mpInterfaceVectorContainerMaster->pGetVector(),
         mpInterfaceVectorContainerSlave->pGetVector(),
@@ -234,7 +234,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
         SparseMatrixMultiplicationUtility::MatrixMultiplication(*mpMappingMatrixSlave, *mpMappingMatrixProjector, *mpMappingMatrix);
     }
     else {
-        MappingMatrixUtilities::InitializeSystemVector<TSparseSpace, TDenseSpace>(mpTempVector, mpInterfaceVectorContainerSlave->GetModelPart().NumberOfNodes());
+        MappingMatrixUtilities<TSparseSpace, TDenseSpace>::InitializeSystemVector(mpTempVector, mpInterfaceVectorContainerSlave->GetModelPart().NumberOfNodes());
         if (precompute_mapping_matrix)  CalculateMappingMatrixWithSolver(*mpMappingMatrixSlave, *mpMappingMatrixProjector);
     }
 
@@ -242,7 +242,7 @@ void CouplingGeometryMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krat
     if (precompute_mapping_matrix || dual_mortar) {
         const std::string base_file_name = "O_" + mrModelPartOrigin.Name() + "__D_" + mrModelPartDestination.Name() + ".mm";
         const double row_sum_tolerance = mMapperSettings["row_sum_tolerance"].GetDouble();
-        MappingMatrixUtilities::CheckRowSum<TSparseSpace, TDenseSpace>(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
+        MappingMatrixUtilities<TSparseSpace, TDenseSpace>::CheckRowSum(*mpMappingMatrix, base_file_name, true, row_sum_tolerance);
     }
 }
 

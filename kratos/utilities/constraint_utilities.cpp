@@ -18,6 +18,7 @@
 // Project includes
 #include "utilities/constraint_utilities.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -226,8 +227,7 @@ void PreComputeExplicitConstraintConstribution(
                 if (variable_map.find(master_variable_key) != variable_map.end()) {
                     const auto& r_aux_var = *(variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->FastGetSolutionStepValue(r_aux_var);
-                    #pragma omp atomic
-                    aux_value += master_solution_vector[counter];
+                    AtomicAdd(aux_value, master_solution_vector[counter]);
                 }
 
                 ++counter;
@@ -340,9 +340,7 @@ void PreComputeExplicitConstraintMassAndInertia(
                 if (mass_mass_map_counter.find(dof_id) == mass_mass_map_counter.end()) {
                     const auto& r_aux_var = *(displacement_variable_map.find(master_variable_key)->second);
                     double& aux_value = p_master_node->GetValue(r_aux_var);
-
-                    #pragma omp atomic
-                    aux_value += master_solution_vector[counter];
+                    AtomicAdd(aux_value, master_solution_vector[counter]);
 
                     mass_mass_map_counter.insert(dof_id);
                 }

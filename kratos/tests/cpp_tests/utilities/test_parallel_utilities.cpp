@@ -271,6 +271,28 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitionerThreadLocalStorage, KratosCoreFastSuit
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ParallelUtilsContinue, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<double> data_vector(nsize, -1.0), output(nsize, 3.3);
+
+    IndexPartition<unsigned int>(data_vector.size()).for_each(
+        [&](unsigned int i){
+            if (i%4 == 0) return; // this is the equivalent of "continue" in a regular loop
+
+            output[i] = 2.0*data_vector[i];
+            }
+        );
+
+    for(unsigned int i=0; i<output.size(); ++i) {
+        if (i%4 == 0) {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], 3.3);
+        } else {
+            KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0);
+        }
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
 {
     int nsize = 1e3;
