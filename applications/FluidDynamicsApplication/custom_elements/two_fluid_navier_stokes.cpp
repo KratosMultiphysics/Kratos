@@ -3987,11 +3987,28 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     VectorType rhs = ZeroVector(NumNodes*(NumDim+1));
     MatrixType lhs_acc_correction = ZeroMatrix(NumNodes*(NumDim+1),NumNodes*(NumDim+1));
 
+    const double mu_eff = negative_viscosity - positive_viscosity;
+    //rData.ComputeStrain() should have been called previously
+    Vector strain_rate = rData.StrainRate; // constant inside a linear element similar to the normal vector
+    Vector traction = ZeroVector(NumDim);
+    const Vector normal_int = rIntNormalsNeg[0];
+
+    if (NumDim == 3)
+    {
+        traction[0] = mu_eff*(normal_int[0]*2*strain_rate[0] + normal_int[1]*strain_rate[3] + normal_int[2]*strain_rate[5]);
+        traction[1] = mu_eff*(normal_int[1]*2*strain_rate[1] + normal_int[0]*strain_rate[3] + normal_int[2]*strain_rate[4]);
+        traction[2] = mu_eff*(normal_int[2]*2*strain_rate[2] + normal_int[1]*strain_rate[4] + normal_int[0]*strain_rate[5]);
+    }
+
+    const Vector interfacial_traction = traction - Kratos::inner_prod(traction, normal_int)*normal_int;
+    //KRATOS_WATCH(interfacial_traction);
+
     for (unsigned int intgp = 0; intgp < NumIntGP; intgp++){
         double u_dot_n = 0.0;
         for (unsigned int i = 0; i < NumNodes; i++){
             for (unsigned int dim = 0; dim < NumDim; dim++){
                 rhs[ i*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
+                rhs[ i*(NumDim+1) + dim ] -= 40.0*interfacial_traction[dim]*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
 
                 // u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
             }
