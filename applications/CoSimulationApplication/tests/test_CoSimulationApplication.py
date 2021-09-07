@@ -88,6 +88,7 @@ def AssembleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCoSimulationCases]))
+    validationSuite.addTest(TestMokFSI('test_mok_fsi_jacobi'))
     validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure'))
     validationSuite.addTest(TestMokFSI('test_mok_fsi_mvqn_external_structure_remote_controlled'))
     # if numpy_available:
