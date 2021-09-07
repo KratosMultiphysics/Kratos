@@ -36,6 +36,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
     if (mSizeInterpolation == Interpolation::PIECEWISE_LINEAR) {
+        // Reading size distribution, with format [DISTANCE, SIZE]
         Matrix size_distribution = ThisParameters["sizing_parameters"]["size_distribution"].GetMatrix();
         KRATOS_ERROR_IF(size_distribution.size1() == 0 || size_distribution.size2() == 0) << "Empty input size_distribution table!" << std::endl;
         mSizeDistributionTable = Table<double>(size_distribution);

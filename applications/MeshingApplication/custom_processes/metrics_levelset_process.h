@@ -212,7 +212,7 @@ private:
     double mAnisotropicRatio;                             /// The minimal anisotropic ratio (0 < ratio < 1)
     double mBoundLayer;                                   /// The boundary layer limit Distance for the anisotropic ratio
     double mSizeBoundLayer;                               /// The boundary layer limit Distance for the element size
-    Table<double> mSizeDistributionTable;                               /// The boundary layer limit Distance for the element size
+    Table<double> mSizeDistributionTable;                 /// Table containing the [DISTANCE, SIZE] for the piecewise linear interpolation
     Interpolation mInterpolation;                         /// The interpolation type for the anisotropic ratio
     Interpolation mSizeInterpolation;                     /// The interpolation type for the element size
 
