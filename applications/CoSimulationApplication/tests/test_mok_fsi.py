@@ -35,7 +35,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
+            self.__AddTestingToCFD(self.accelerator_type)
             self.__DumpUpdatedCFDSettings()
             self._runTest()
 
@@ -46,7 +46,19 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
+            self.__AddTestingToCFD(self.accelerator_type)
+            self.__DumpUpdatedCFDSettings()
+            self._runTest()
+
+    def test_mok_fsi_jacobi(self):
+        self.accelerator_type = "mvqn"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi")
+            self.__ManipulateCFDSettings()
+            self.cosim_parameters["solver_settings"]["type"].SetString("coupled_solvers.jacobi_strong")
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD("jacobi")
             self.__DumpUpdatedCFDSettings()
             self._runTest()
 
@@ -59,7 +71,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.external_solver_wrapper")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
+            self.__AddTestingToCFD(self.accelerator_type)
             self.__DumpUpdatedCFDSettings()
             self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
 
@@ -72,7 +84,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
             self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.remote_controlled_solver_wrapper")
             self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
-            self.__AddTestingToCFD()
+            self.__AddTestingToCFD(self.accelerator_type)
             self.__DumpUpdatedCFDSettings()
             self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_remote_controlled.py", ext_parameter_file_name])
 
@@ -101,9 +113,9 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         structure_settings.AddValue("solver_wrapper_settings", solver_wrapper_settings)
         structure_settings.AddValue("io_settings", io_settings)
 
-    def __AddTestingToCFD(self):
-        disp_ref_file_name = "fsi_mok/fsi_mok_cfd_results_disp_ref_{}.dat".format(self.accelerator_type)
-        fluid_ref_file_name = "fsi_mok/fsi_mok_cfd_results_fluid_ref_{}.dat".format(self.accelerator_type)
+    def __AddTestingToCFD(self, res_file_identifier):
+        disp_ref_file_name = "fsi_mok/fsi_mok_cfd_results_disp_ref_{}.dat".format(res_file_identifier)
+        fluid_ref_file_name = "fsi_mok/fsi_mok_cfd_results_fluid_ref_{}.dat".format(res_file_identifier)
 
         self.cfd_parameters["processes"].AddValue("testing_processes", KM.Parameters("""[{
             "kratos_module"   : "KratosMultiphysics",
