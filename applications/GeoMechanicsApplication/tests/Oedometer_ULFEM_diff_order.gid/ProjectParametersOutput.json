@@ -162,7 +162,7 @@
         "line_search_tolerance": 0.5,
         "linear_solver_settings": {
             "scaling": true,
-            "solver_type": "sparse_lu"
+            "solver_type": "LinearSolversApplication.sparse_lu"
         },
         "loads_sub_model_part_list": [],
         "loads_variable_list": [],

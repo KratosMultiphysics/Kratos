@@ -55,6 +55,7 @@
 #include "utilities/coordinate_transformation_utilities.h"
 #include "utilities/file_name_data_collector.h"
 #include "utilities/sensitivity_utilities.h"
+#include "utilities/dense_qr_decomposition.h"
 #include "utilities/dense_svd_decomposition.h"
 #include "utilities/force_and_torque_utils.h"
 #include "utilities/sub_model_part_entities_boolean_operation_utility.h"
@@ -645,6 +646,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
+    ;
+
+    typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
+    py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
     ;
 
     typedef DenseSingularValueDecomposition<LocalSpaceType> DenseSingularValueDecompositionType;
