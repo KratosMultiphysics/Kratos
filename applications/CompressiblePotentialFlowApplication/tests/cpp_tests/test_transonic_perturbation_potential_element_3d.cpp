@@ -93,6 +93,10 @@ void ComputeElementalSensitivitiesTransonic3D(Matrix& rLHS_finite_diference, Mat
     Element::Pointer pUpwindElement = model_part.pGetElement(2);
     const unsigned int number_of_nodes = pElement->GetGeometry().size();
 
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    pElement->GetGeometry()[0].SetValue(KUTTA, true);
+
     FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
     find_nodal_neighbours_process.Execute();
 
@@ -1066,6 +1070,32 @@ KRATOS_TEST_CASE_IN_SUITE(WakeStructureTransonicPerturbationPotentialFlowElement
             KRATOS_CHECK_NEAR(LHS(i, j), reference[8 * i + j], 1e-16);
         }
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHS3DPenalty,
+                          CompressiblePotentialApplicationFastSuite)
+{
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement3D(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    p_element->SetFlags(INLET);
+
+    std::array<double, 4> potential{1.39572, 110.69275, 221.1549827, 304.284736};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 } // namespace Testing

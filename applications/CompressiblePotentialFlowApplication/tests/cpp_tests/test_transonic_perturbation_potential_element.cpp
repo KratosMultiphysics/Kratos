@@ -19,6 +19,8 @@
 #include "custom_elements/transonic_perturbation_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "tests/cpp_tests/test_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
 namespace Testing {
@@ -631,6 +633,117 @@ KRATOS_TEST_CASE_IN_SUITE(WakeTransonicPerturbationPotentialFlowElementLHS, Comp
             KRATOS_CHECK_NEAR(LHS(i, j), reference[6 * i + j], 1e-16);
         }
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowElementLHSPenalty, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    p_element->SetFlags(INLET);
+
+    std::array<double, 3> potential{1.0, 100.0, 150.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingTransonicPerturbationPotentialFlowSupersonicElementLHSPenalty, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateTransonicPerturbationElement(model_part);
+    GenerateTransonicPerturbationUpwindElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    Element::Pointer pUpwindElement = model_part.pGetElement(2);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    FindNodalNeighboursProcess find_nodal_neighbours_process(model_part);
+    find_nodal_neighbours_process.Execute();
+
+    const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
+    p_element->Initialize(r_current_process_info);
+    pUpwindElement->SetFlags(INLET);
+
+    std::array<double, 3> high_potential{1.0, 200.0, 100.0};  // node id order 23 74 55
+    std::array<double, 3> low_potential{1.0, 100.0, 150.0};   // node id order 23 55 67
+    // mach number 1.92516
+    AssignPerturbationPotentialsToTransonicElement(*p_element, high_potential);
+    // mach number 0.39943
+    AssignPerturbationPotentialsToTransonicElement(*pUpwindElement, low_potential);
+
+    for (auto& r_node : model_part.Nodes()){
+        r_node.AddDof(VELOCITY_POTENTIAL);
+    }
+
+    Element::DofsVectorType CurrentElementalDofList;
+    p_element->GetDofList(CurrentElementalDofList, r_current_process_info);
+
+    Element::DofsVectorType UpwindElementalDofList;
+    pUpwindElement->GetDofList(UpwindElementalDofList, r_current_process_info);
+
+    std::vector<int> current_ids{23, 74, 55}; // 1 2 3
+    std::vector<int> upwind_ids{23, 55, 67};  // 1 3 4
+    for (int i = 0; i < 3; i++) {
+        CurrentElementalDofList[i]->SetEquationId(current_ids[i]);
+        UpwindElementalDofList[i]->SetEquationId(upwind_ids[i]);
+    }
+
+    Vector RHS_original = ZeroVector(number_of_nodes + 1);
+    Matrix LHS_original = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+
+    // Compute original RHS and LHS
+    p_element->CalculateLocalSystem(LHS_original, RHS_original, r_current_process_info);
+
+    double delta = 1e-3;
+    for(unsigned int i = 0; i < 4; i++){
+        // Pinging
+        if (i < 3) {
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        }
+        else {
+            pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) += delta;
+        }
+
+        Vector RHS_pinged = ZeroVector(number_of_nodes + 1);
+        Matrix LHS_pinged = ZeroMatrix(number_of_nodes + 1, number_of_nodes + 1);
+        // Compute pinged LHS and RHS
+        p_element->CalculateLocalSystem(LHS_pinged, RHS_pinged, r_current_process_info);
+
+        for(unsigned int k = 0; k < number_of_nodes + 1; k++){
+            // Compute the finite difference estimate of the sensitivity
+            LHS_finite_diference( k, i) = -(RHS_pinged(k)-RHS_original(k)) / delta;
+            // Compute the average of the original and pinged analytic sensitivities
+            LHS_analytical( k, i) = 0.5 * (LHS_original(k,i) + LHS_pinged(k,i));
+        }
+
+        // Unpinging
+        if (i < 3) {
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        }
+        else {
+            pUpwindElement->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY_POTENTIAL) -= delta;
+        }
+    }
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
 }
 
 } // namespace Testing

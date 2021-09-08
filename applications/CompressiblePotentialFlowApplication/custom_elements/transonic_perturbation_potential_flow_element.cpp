@@ -87,6 +87,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateRightH
     else { // Wake element
         CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
     }
+
+    if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<TDim, TNumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
+    }
 }
 
 template <int TDim, int TNumNodes>
@@ -119,6 +123,10 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::CalculateLeftHa
     }
     else { // Wake element
         CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+    }
+
+    if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<TDim, TNumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
     }
 }
 
