@@ -43,7 +43,7 @@
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
 

@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "small_strain_udsm_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
 
 namespace Kratos
 {
@@ -201,7 +201,6 @@ namespace Kratos
       ///@name Protected  Access
       ///@{
       void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues) override;
-      void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues) override;
       void SetExternalStressVector(Vector& rStressVector) override;
       void SetInternalStressVector(const Vector& rStressVector) override;
       void SetInternalStrainVector(const Vector& rStrainVector) override;

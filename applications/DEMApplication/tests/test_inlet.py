@@ -3,6 +3,7 @@ import numpy as np
 import KratosMultiphysics as Kratos
 from Kratos import Logger
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 import KratosMultiphysics.DEMApplication.DEM_analysis_stage as dem_analysis
 
 import random_variable_tests_files.random_variable as rv
@@ -69,6 +70,11 @@ class TestDEMPiecewiseInletAnalysis(dem_analysis.DEMAnalysisStage):
             self.error_norm = TestDEMPiecewiseInletAnalysis.Error(self.empirical_pdf, self.pdf_expected, interval_widths)
             TestDEMPiecewiseInletAnalysis.Say('Error = ' + '{:.4f}'.format(self.error_norm), '( self.tolerance = ' + '{:.4f}'.format(self.tolerance), ')')
 
+
+            inlet_sub_model_part = self.dem_inlet_model_part.GetSubModelPart('Inlet_inlet')
+            self.max_radius = self.DEM_inlet.GetMaxRadius(inlet_sub_model_part)
+            self.max_radius_expected = breakpoints[np.where(pdf_values)[0].max()]
+
         super().FinalizeSolutionStep()
 
     def Finalize(self):
@@ -128,6 +134,11 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletAnalysis):
             error = self.histogram_expected - self.histogram / sum(self.histogram)
             self.error_norm = sum(abs(p) for p in error)
 
+            inlet_sub_model_part = self.dem_inlet_model_part.GetSubModelPart('Inlet_inlet')
+            self.max_radius = self.DEM_inlet.GetMaxRadius(inlet_sub_model_part)
+            self.max_radius_expected = self.possible_values[np.where(self.probabilities)[0].max()]
+
+
         TestDEMPiecewiseInletAnalysis.Say('Error = ' + '{:.2e}'.format(self.error_norm) + ' (Error tolerance = ' + '{:.2e}'.format(self.tolerance) + ')')
 
         dem_analysis.DEMAnalysisStage.FinalizeSolutionStep(self)
@@ -141,7 +152,11 @@ class TestDEMDiscreteInletAnalysis(TestDEMPiecewiseInletAnalysis):
             import matplotlib.pyplot as plt
             normalization_factor = sum(self.histogram) / sum(self.probabilities)
             support_diameter = self.possible_values[-1] - self.possible_values[0]
-            column_width = 0.1 * support_diameter
+
+            min_distance_between_possible_values = min(self.possible_values[i] - self.possible_values[i-1]
+                                                       for i in range(1, len(self.possible_values)))
+
+            column_width = 0.4 * max(min_distance_between_possible_values, 0.05 * support_diameter / len(self.possible_values))
             plt.bar(self.possible_values - 0.5 * column_width, self.probabilities * normalization_factor, width=column_width, label='desired')
             plt.bar(self.possible_values + 0.5 * column_width, self.histogram, width=column_width,
                     label='obtained' + ' (error = ' + '{:.2e}'.format(self.error_norm) + ')')
@@ -167,7 +182,10 @@ class TestPieceWiseLinearDEMInlet(KratosUnittest.TestCase):
         with open(parameters_file_name, 'r') as parameter_file:
             project_parameters = Kratos.Parameters(parameter_file.read())
 
-        self.analysis(model, project_parameters).Run()
+        analysis = self.analysis(model, project_parameters)
+        analysis.Run()
+        self.assertAlmostEqual(analysis.max_radius_expected, analysis.max_radius)
+
 
 class TestDiscreteDEMInlet(TestPieceWiseLinearDEMInlet):
     def setUp(self):

@@ -423,6 +423,10 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshCondition mSurfaceCondition3D4N;
     const MeshCondition mSurfaceCondition3D8N;
     const MeshCondition mSurfaceCondition3D9N;
+    //prisms
+    const MeshCondition mPrismCondition2D4N;
+    const MeshCondition mPrismCondition3D6N;
+
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;

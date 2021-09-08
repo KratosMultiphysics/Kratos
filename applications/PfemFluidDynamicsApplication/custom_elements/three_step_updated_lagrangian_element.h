@@ -199,21 +199,9 @@ namespace Kratos
     void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     /// Calculate the element's local contribution to the system for the current step.
-    void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                              VectorType &rRightHandSideVector,
-                              const ProcessInfo &rCurrentProcessInfo) override;
-
-    void CalculateFirstVelocitySystem(MatrixType &rLeftHandSideMatrix,
+    virtual void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                       VectorType &rRightHandSideVector,
-                                      const ProcessInfo &rCurrentProcessInfo);
-
-    void CalculateLocalPressureSystem(MatrixType &rLeftHandSideMatrix,
-                                      VectorType &rRightHandSideVector,
-                                      const ProcessInfo &rCurrentProcessInfo);
-
-    void CalculateLastVelocitySystem(MatrixType &rLeftHandSideMatrix,
-                                     VectorType &rRightHandSideVector,
-                                     const ProcessInfo &rCurrentProcessInfo);
+                                      const ProcessInfo &rCurrentProcessInfo) override{};
 
     void AddMomentumMassTerm(Matrix &rMassMatrix,
                              const ShapeFunctionsType &rN,
@@ -241,11 +229,6 @@ namespace Kratos
                                const double TimeStep,
                                const double BoundRHSCoeffAcc,
                                const double BoundRHSCoeffDev);
-
-    void ComputeBoundaryTermForPressure(VectorType &BoundRHSVector,
-                                        const double TimeStep,
-                                        const double BoundRHSCoeff,
-                                        const VectorType SpatialDefRate);
 
     void ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
                                        const double TimeStep,
@@ -278,9 +261,9 @@ namespace Kratos
          * @param Output (unused)
          * @param rCurrentProcessInfo Process info instance (unused)
          */
-    void Calculate(const Variable<array_1d<double, 3>> &rVariable,
-                   array_1d<double, 3> &rOutput,
-                   const ProcessInfo &rCurrentProcessInfo) override;
+    virtual void Calculate(const Variable<array_1d<double, 3>> &rVariable,
+                           array_1d<double, 3> &rOutput,
+                           const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateRightHandSide(VectorType &rRightHandSideVector,
                                 const ProcessInfo &rCurrentProcessInfo) override{};
@@ -376,42 +359,25 @@ namespace Kratos
                                                  VectorType &rRightHandSideVector,
                                                  const ProcessInfo &rCurrentProcessInfo) override{};
 
-    void CalculatePSPGLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                   VectorType &rRightHandSideVector,
-                                                   const ProcessInfo &rCurrentProcessInfo);
+    void CalculatePSPGPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                     VectorType &rRightHandSideVector,
+                                     const ProcessInfo &rCurrentProcessInfo);
 
-    void CalculateFICLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
-                                                  VectorType &rRightHandSideVector,
-                                                  const ProcessInfo &rCurrentProcessInfo);
+    // void CalculateFICPressureSystem(MatrixType &rLeftHandSideMatrix,
+    //                                 VectorType &rRightHandSideVector,
+    //                                 const ProcessInfo &rCurrentProcessInfo);
+
+    void ComputeBoundaryTermsForPressureSystem(MatrixType &rLeftHandSideMatrix,
+                                               VectorType &rRightHandSideVector,
+                                               const ShapeFunctionsType &rN,
+                                               const double lagMultiplier);
+
     void CalculateTauPSPG(double &TauOne,
                           double ElemSize,
                           const double Density,
                           const double Viscosity,
                           const ProcessInfo &rCurrentProcessInfo);
-
-    void AddStabilizationNodalTermsRHS(VectorType &rRightHandSideVector,
-                                       const double Tau,
-                                       const double Density,
-                                       const double Weight,
-                                       const ShapeFunctionDerivativesType &rDN_DX,
-                                       const SizeType i);
-
-    void AddPspgDynamicPartStabilization(VectorType &rRightHandSideVector,
-                                         const double Tau,
-                                         const double Density,
-                                         const double Weight,
-                                         const double TimeStep,
-                                         const ShapeFunctionDerivativesType &rDN_DX,
-                                         const ShapeFunctionsType &rN,
-                                         const SizeType i);
-
-    void ComputeBulkMatrixLump(MatrixType &BulkMatrix,
-                               const double Weight) override;
-
-    virtual void CalculateExplicitContinuityEquation(MatrixType &rLeftHandSideMatrix,
-                                                     VectorType &rRightHandSideVector,
-                                                     const ProcessInfo &rCurrentProcessInfo) override{};
-
+                          
     virtual double GetThetaMomentum() override
     {
       std::cout << "I SHOULD NOT ENTER HERE!" << std::endl;

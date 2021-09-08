@@ -90,7 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
