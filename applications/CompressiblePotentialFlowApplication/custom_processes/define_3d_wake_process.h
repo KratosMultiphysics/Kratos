@@ -175,6 +175,8 @@ private:
 
     void MarkKuttaElements() const;
 
+    void MarkStructureElements() const;
+
     unsigned int CountNumberOfTrailindEdgeNodesInElement(const Geometry<NodeType>& rGeometry) const;
 
     void CountNumberOfPositiveAndNegativeDistances(

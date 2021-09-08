@@ -106,6 +106,9 @@ void Define3DWakeProcess::ExecuteInitialize()
 
         MarkKuttaElements();
     }
+    else {
+        MarkStructureElements();
+    }
 
     SaveLocalWakeNormalInElements();
 
@@ -705,6 +708,27 @@ void Define3DWakeProcess::MarkKuttaElements() const
     ModelPart& wake_sub_model_part = root_model_part.GetSubModelPart("wake_elements_model_part");
     wake_sub_model_part.RemoveElements(TO_ERASE);
     KRATOS_INFO("MarkKuttaElements") << "...Selecting kutta elements finished..." << std::endl;
+}
+
+// This function selects the structure elements for blunt trailing edge bodies. Structure elements are touching the
+// trailing edge
+void Define3DWakeProcess::MarkStructureElements() const
+{
+    KRATOS_INFO("MarkStructureElements") << "...Selecting structure elements..." << std::endl;
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    ModelPart& trailing_edge_sub_model_part =
+        root_model_part.GetSubModelPart("trailing_edge_elements_model_part");
+
+    // TO DISCUSS: Is it worth it to run this loop in parallel?
+    // So far not much different in terms of speed has been noted.
+    block_for_each(trailing_edge_sub_model_part.Elements(), [&](Element& rElement)
+    {
+        if (rElement.GetValue(WAKE)){
+            rElement.Set(STRUCTURE);
+        }
+    });
+
+    KRATOS_INFO("MarkStructureElements") << "...Selecting structure elements finished..." << std::endl;
 }
 
 // This function returns the number of trailing edge nodes
