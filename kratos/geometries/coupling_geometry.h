@@ -404,7 +404,7 @@ public:
     {
         if (this->Dimension() == 1) {
             std::vector<double> spans;
-            this->SpansLocalSpace(spans, 0)
+            this->SpansLocalSpace(spans, 0);
 
             IntegrationPointUtilities::CreateIntegrationPoints1D(
                 rIntegrationPoints, spans, rIntegrationInfo);
