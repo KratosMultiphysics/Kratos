@@ -61,25 +61,19 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ShallowWaterUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
-
     typedef Node<3> NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
     ///@}
-    ///@name Life Cycle
+    ///@name Pointer definition
     ///@{
 
-    /// Default constructor.
-
-    /// Destructor.
+    KRATOS_CLASS_POINTER_DEFINITION(ShallowWaterUtilities);
 
     ///@}
-    ///@name Operators
+    ///@name Life Cycle
     ///@{
-
 
     ///@}
     ///@name Operations
