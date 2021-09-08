@@ -137,7 +137,7 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
         // }
         if (r_node.Id() == 244){
             r_node.SetValue(KUTTA, true);
-            // r_node.SetValue(TRAILING_EDGE, true);
+            r_node.SetValue(TRAILING_EDGE, true);
         }
         // if (r_node.Id() == 285){
         //     r_node.SetValue(KUTTA, true);
