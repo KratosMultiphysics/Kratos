@@ -471,13 +471,11 @@ public:
         IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) const override
     {
-        const SizeType points_per_span = rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0);
-
         std::vector<double> spans;
         SpansLocalSpace(spans);
 
         IntegrationPointUtilities::CreateIntegrationPoints1D(
-            rIntegrationPoints, spans, points_per_span);
+            rIntegrationPoints, spans, rIntegrationInfo);
     }
 
     ///@}
