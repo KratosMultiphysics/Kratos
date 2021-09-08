@@ -93,7 +93,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     // Buoyancy laws
     py::class_<BuoyancyLaw, BuoyancyLaw::Pointer>(m, "BuoyancyLaw")
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def(py::init<>())
         .def("Clone", &BuoyancyLaw::Clone)
         .def("SetBuoyancyLawInProperties", &BuoyancyLaw::SetBuoyancyLawInProperties)
@@ -102,14 +102,14 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<ArchimedesBuoyancyLaw, ArchimedesBuoyancyLaw::Pointer, BaseBuoyancyLawType>(m, "ArchimedesBuoyancyLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // Drag laws
 
     py::class_<DragLaw, DragLaw::Pointer>(m, "DragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &DragLaw::Clone)
         .def("SetDragLawInProperties", &DragLaw::SetDragLawInProperties)
         .def("GetTypeOfLaw", &DragLaw::GetTypeOfLaw)
@@ -117,49 +117,49 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<StokesDragLaw, StokesDragLaw::Pointer, BaseDragLawType>(m, "StokesDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<BeetstraDragLaw, BeetstraDragLaw::Pointer, BaseDragLawType>(m, "BeetstraDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<SchillerAndNaumannDragLaw, SchillerAndNaumannDragLaw::Pointer, BaseDragLawType>(m, "SchillerAndNaumannDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<HaiderAndLevenspielDragLaw, HaiderAndLevenspielDragLaw::Pointer, BaseDragLawType>(m, "HaiderAndLevenspielDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<ChienDragLaw, ChienDragLaw::Pointer, BaseDragLawType>(m, "ChienDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
 
     py::class_<GanserDragLaw, GanserDragLaw::Pointer, BaseDragLawType>(m, "GanserDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<ShahDragLaw, ShahDragLaw::Pointer, BaseDragLawType>(m, "ShahDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<NewtonDragLaw, NewtonDragLaw::Pointer, BaseDragLawType>(m, "NewtonDragLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // Inviscid force laws
     py::class_<InviscidForceLaw, InviscidForceLaw::Pointer>(m, "InviscidForceLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &InviscidForceLaw::Clone)
         .def("SetInviscidForceLawInProperties", &InviscidForceLaw::SetInviscidForceLawInProperties)
         .def("GetTypeOfLaw", &InviscidForceLaw::GetTypeOfLaw)
@@ -167,18 +167,18 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<AutonHuntPrudhommeInviscidForceLaw, AutonHuntPrudhommeInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "AutonHuntPrudhommeInviscidForceLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<ZuberInviscidForceLaw, ZuberInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "ZuberInviscidForceLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // History force laws
     py::class_<HistoryForceLaw, HistoryForceLaw::Pointer>(m, "HistoryForceLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &HistoryForceLaw::Clone)
         .def("SetHistoryForceLawInProperties", &HistoryForceLaw::SetHistoryForceLawInProperties)
         .def("GetTypeOfLaw", &HistoryForceLaw::GetTypeOfLaw)
@@ -186,13 +186,13 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<BoussinesqBassetHistoryForceLaw, BoussinesqBassetHistoryForceLaw::Pointer, BaseHistoryForceLaw>(m, "BoussinesqBassetHistoryForceLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // Vorticity-induced lift laws
     py::class_<VorticityInducedLiftLaw, VorticityInducedLiftLaw::Pointer>(m, "VorticityInducedLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &VorticityInducedLiftLaw::Clone)
         .def("SetVorticityInducedLiftLawInProperties", &VorticityInducedLiftLaw::SetVorticityInducedLiftLawInProperties)
         .def("GetTypeOfLaw", &VorticityInducedLiftLaw::GetTypeOfLaw)
@@ -200,23 +200,23 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<ElSamniLiftLaw, ElSamniLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "ElSamniLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<SaffmanLiftLaw, SaffmanLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "SaffmanLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<MeiLiftLaw, MeiLiftLaw::Pointer, BaseVorticityInducedLiftLawType>(m, "MeiLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // Rotation-induced lift laws
     py::class_<RotationInducedLiftLaw, RotationInducedLiftLaw::Pointer>(m, "RotationInducedLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &RotationInducedLiftLaw::Clone)
         .def("SetRotationInducedLiftLawInProperties", &RotationInducedLiftLaw::SetRotationInducedLiftLawInProperties)
         .def("GetTypeOfLaw", &RotationInducedLiftLaw::GetTypeOfLaw)
@@ -224,23 +224,23 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<RubinowAndKellerLiftLaw, RubinowAndKellerLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "RubinowAndKellerLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<OesterleAndDinhLiftLaw, OesterleAndDinhLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "OesterleAndDinhLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<LothRotationInducedLiftLaw, LothRotationInducedLiftLaw::Pointer, BaseRotationInducedLiftLawType>(m, "LothRotationInducedLiftLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     // Steady viscous torque laws
     py::class_<SteadyViscousTorqueLaw, SteadyViscousTorqueLaw::Pointer>(m, "SteadyViscousTorqueLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         .def("Clone", &SteadyViscousTorqueLaw::Clone)
         .def("SetSteadyViscousTorqueLawInProperties", &SteadyViscousTorqueLaw::SetSteadyViscousTorqueLawInProperties)
         .def("GetTypeOfLaw", &SteadyViscousTorqueLaw::GetTypeOfLaw)
@@ -248,12 +248,12 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<RubinowAndKellerTorqueLaw, RubinowAndKellerTorqueLaw::Pointer, BaseSteadyViscousTorqueLaw>(m, "RubinowAndKellerTorqueLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
 
     py::class_<LothSteadyViscousTorqueLaw, LothSteadyViscousTorqueLaw::Pointer, BaseSteadyViscousTorqueLaw>(m, "LothSteadyViscousTorqueLaw")
         .def(py::init<>())
-        .def(py::init<Parameters&>())
+        .def(py::init<Parameters>())
         ;
   }
 
