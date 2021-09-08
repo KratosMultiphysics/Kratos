@@ -7,9 +7,9 @@ from KratosMultiphysics.process_factory import Factory as ProcessFactory
 def Factory(settings, model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return MacDonaldTranscriticalBenchmark(model, settings["Parameters"])
+    return MacDonaldTransitionBenchmark(model, settings["Parameters"])
 
-class MacDonaldTranscriticalBenchmark(MacDonaldShockBenchmark):
+class MacDonaldTransitionBenchmark(MacDonaldShockBenchmark):
     """Mac Donald's transcritical flow.
 
     This is a Mac Donald's type solution with a smooth transition to supercritical flow in a
