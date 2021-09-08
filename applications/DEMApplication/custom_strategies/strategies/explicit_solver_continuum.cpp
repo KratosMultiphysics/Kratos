@@ -208,6 +208,7 @@ namespace Kratos {
                     BoundingBoxUtility();
                 } else {
                     GetParticleCreatorDestructor()->DestroyParticles(r_model_part);
+                    GetParticleCreatorDestructor()->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
                     GetParticleCreatorDestructor()->DestroyContactElements(*mpContact_model_part);
                 }
 

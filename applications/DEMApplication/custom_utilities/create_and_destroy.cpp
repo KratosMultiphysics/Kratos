@@ -1079,15 +1079,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         KRATOS_CATCH("")
     }
 
-    void ParticleCreatorDestructor::DestroyParticlesModelPartType(ModelPart& r_model_part)
-    {
-        KRATOS_TRY
-
-        DestroyParticles(r_model_part);
-
-        KRATOS_CATCH("")
-    }
-
     void ParticleCreatorDestructor::DestroyParticleElements(ModelPart& r_model_part, Flags flag_for_destruction)
     {
         KRATOS_TRY
@@ -1154,24 +1145,24 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
         ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        int good_elems_counter = 0;
+        int elems_to_keep_counter = 0;
 
         for (int k = 0; k < (int)rElements.size(); k++) {
             Configure::ElementsContainerType::ptr_iterator element_pointer_it = rElements.ptr_begin() + k;
 
             if ((*element_pointer_it)->IsNot(TO_ERASE)) {
-                if (k != good_elems_counter) {
-                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
+                if (k != elems_to_keep_counter) {
+                    *(rElements.ptr_begin() + elems_to_keep_counter) = std::move(*element_pointer_it);
                 }
-                good_elems_counter++;
+                elems_to_keep_counter++;
             }
             else {
                 (*element_pointer_it).reset();
             }
         }
 
-        if ((int)rElements.size() != good_elems_counter) {
-            rElements.erase(rElements.ptr_begin() + good_elems_counter, rElements.ptr_end());
+        if ((int)rElements.size() != elems_to_keep_counter) {
+            rElements.erase(rElements.ptr_begin() + elems_to_keep_counter, rElements.ptr_end());
         }
         KRATOS_CATCH("")
     }

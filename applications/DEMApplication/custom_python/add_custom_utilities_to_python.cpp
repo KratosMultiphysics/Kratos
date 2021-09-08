@@ -179,7 +179,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CreateSphericParticle", CreateSphericParticle5)
         .def("CreateSphericParticle", CreateSphericParticle6)
         .def("DestroyMarkedParticles", &ParticleCreatorDestructor::DestroyMarkedParticles)
-        .def("DestroyParticlesModelPartType", &ParticleCreatorDestructor::DestroyParticlesModelPartType)
         .def("MarkContactElementsForErasing", &ParticleCreatorDestructor::MarkContactElementsForErasing)
         .def("DestroyContactElements", &ParticleCreatorDestructor::DestroyContactElements)
         .def("MarkIsolatedParticlesForErasing", &ParticleCreatorDestructor::MarkIsolatedParticlesForErasing)
