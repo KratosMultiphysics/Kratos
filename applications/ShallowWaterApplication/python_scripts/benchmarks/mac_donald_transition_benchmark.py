@@ -41,7 +41,7 @@ class MacDonaldTransitionBenchmark(MacDonaldShockBenchmark):
             {
                 "discharge"             : 2,
                 "manning"               : 0.0328,
-                "upstream_model_part"   : "model_part.upstream",
+                "upstream_model_part"   : "model_part.upstream"
             }
             """)
 
@@ -52,6 +52,12 @@ class MacDonaldTransitionBenchmark(MacDonaldShockBenchmark):
     def _dH(self, x):
         g = self.g
         return (4/g)**(1/3) * (x/15000 - 5/600)
+
+    def _InitialH(self, x):
+        if x > self.x0:
+            return 1e-6
+        else:
+            return self.h0
 
     def _CreateListOfBoundaryConditionsProcesses(self):
         self.upstream_settings = KM.Parameters("""{
