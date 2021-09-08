@@ -1092,11 +1092,23 @@ void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
     {
         if (rElement.GetGeometry()[i].GetValue(KUTTA))
         {
+            // First we clear the LHS
+            for (unsigned int j = 0; j < rLeftHandSideMatrix.size2(); ++j)
+            {
+                rLeftHandSideMatrix(i, j) = 0.0;
+            }
+            // We apply the condition
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
                 rLeftHandSideMatrix(i, j) = lhs_kutta(i, j);
             }
             if (wake)  {
+                // First we clear the LHS
+                for (unsigned int j = 0; j < rLeftHandSideMatrix.size2(); ++j)
+                {
+                    rLeftHandSideMatrix(i+NumNodes, j) = 0.0;
+                }
+                // We apply the condition
                 for (unsigned int j = 0; j < NumNodes; ++j)
                 {
                     rLeftHandSideMatrix(i+NumNodes, j+NumNodes) = lhs_kutta(i, j);
