@@ -70,6 +70,10 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRight
         CalculateRightHandSideNormalElement(rRightHandSideVector, rCurrentProcessInfo);
     else // Wake element
         CalculateRightHandSideWakeElement(rRightHandSideVector, rCurrentProcessInfo);
+
+    if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<Dim, NumNodes>(r_this,rRightHandSideVector,rCurrentProcessInfo);
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -83,6 +87,10 @@ void CompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftH
         CalculateLeftHandSideNormalElement(rLeftHandSideMatrix, rCurrentProcessInfo);
     else // Wake element
         CalculateLeftHandSideWakeElement(rLeftHandSideMatrix, rCurrentProcessInfo);
+
+    if (std::abs(rCurrentProcessInfo[PENALTY_COEFFICIENT]) > std::numeric_limits<double>::epsilon()) {
+        PotentialFlowUtilities::AddKuttaConditionPenaltyTermPerturbation<Dim, NumNodes>(r_this,rLeftHandSideMatrix,rCurrentProcessInfo);
+    }
 }
 
 template <int Dim, int NumNodes>

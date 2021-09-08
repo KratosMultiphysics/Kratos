@@ -18,6 +18,8 @@
 #include "fluid_dynamics_application_variables.h"
 #include "custom_elements/compressible_perturbation_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "tests/cpp_tests/test_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos {
 namespace Testing {
@@ -684,6 +686,54 @@ KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlow
 
     p_element->Set(STRUCTURE);
     p_element->GetGeometry()[number_of_nodes-1].SetValue(TRAILING_EDGE, true);
+
+    const std::array<double, 6> potential{1.285837, 170.29384, 135.1583, 6.0, 196.345, 114.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(2*number_of_nodes, 2*number_of_nodes);
+
+    ComputeWakeElementalSensitivities(model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    PrintTestElementInfo(model_part);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingCompressiblePerturbationPotentialFlowElementLHSPenalty, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressiblePerturbationElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    std::array<double, 3> potential{1.0, 20.0, 50.0};
+
+    Matrix LHS_finite_diference = ZeroMatrix(number_of_nodes, number_of_nodes);
+    Matrix LHS_analytical = ZeroMatrix(number_of_nodes, number_of_nodes);
+
+    PotentialFlowTestUtilities::ComputeElementalSensitivities<3>(
+        model_part, LHS_finite_diference, LHS_analytical, potential);
+
+    KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PingWakeStructureCompressiblePerturbationPotentialFlowElementLHSClampingPenalty, CompressiblePotentialApplicationFastSuite) {
+    Model this_model;
+    ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+    GenerateCompressiblePerturbationElement(model_part);
+    model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
+    model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
+    Element::Pointer p_element = model_part.pGetElement(1);
+    p_element->GetGeometry()[0].SetValue(KUTTA, true);
+    const unsigned int number_of_nodes = p_element->GetGeometry().size();
+
+    p_element->Set(STRUCTURE);
+    p_element->GetGeometry()[0].SetValue(TRAILING_EDGE, true);
 
     const std::array<double, 6> potential{1.285837, 170.29384, 135.1583, 6.0, 196.345, 114.0};
 
