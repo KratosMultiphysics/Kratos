@@ -98,12 +98,25 @@ void ShallowWaterUtilities::ComputeMomentum(ModelPart& rModelPart)
     });
 }
 
+template<bool THistorical>
+void ShallowWaterUtilities::ComputeFroude(ModelPart& rModelPart, const double Epsilon)
+{
+    const double g = rModelPart.GetProcessInfo()[GRAVITY_Z];
+    block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+        const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+        const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+        const double inverse_c = std::sqrt(InverseHeight(height, Epsilon) / g);
+        GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
+    });
+}
+
+template<bool THistorical>
 void ShallowWaterUtilities::ComputeEnergy(ModelPart& rModelPart)
 {
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         const double height = rNode.FastGetSolutionStepValue(HEIGHT);
         const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
-        rNode.FastGetSolutionStepValue(INTERNAL_ENERGY) = height + 0.5 * std::pow(velocity, 2);
+        GetValue<THistorical>(rNode, INTERNAL_ENERGY) = height + 0.5 * std::pow(velocity, 2);
     });
 }
 
@@ -192,6 +205,42 @@ void ShallowWaterUtilities::SetMeshZCoordinate(ModelPart& rModelPart, const Vari
     block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
         rNode.Z() = rNode.FastGetSolutionStepValue(rVariable);
     });
+}
+
+template<bool THistorical>
+double ShallowWaterUtilities::ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
+{
+    double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
+        double partial_l2_norm = 0.0;
+        for (auto& r_node : rElem.GetGeometry()) {
+            partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
+        }
+        partial_l2_norm *= rElem.GetGeometry().Area();
+        partial_l2_norm /= rElem.GetGeometry().size();
+        return partial_l2_norm;
+    });
+    return std::sqrt(l2_norm);
+}
+
+template<bool THistorical>
+double ShallowWaterUtilities::ComputeL2NormAABB(
+    ModelPart& rModelPart,
+    const Variable<double>& rVariable,
+    Point& rLow,
+    Point& rHigh)
+{
+    double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
+        double partial_l2_norm = 0.0;
+        if (rElem.GetGeometry().HasIntersection(rLow, rHigh)) {
+            for (auto& r_node : rElem.GetGeometry()) {
+                partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
+            }
+            partial_l2_norm *= rElem.GetGeometry().Area();
+            partial_l2_norm /= rElem.GetGeometry().size();
+        }
+        return partial_l2_norm;
+    });
+    return std::sqrt(l2_norm);
 }
 
 double ShallowWaterUtilities::InverseHeight(const double Height, const double Epsilon)
@@ -315,5 +364,16 @@ array_1d<double,3> ShallowWaterUtilities::EvaluateHydrostaticForce<ModelPart::El
     return -Density * Gravity * Height * Area * rNormal;
 }
 
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeFroude<true>(ModelPart&, const double);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeFroude<false>(ModelPart&, const double);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeEnergy<true>(ModelPart&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) void ShallowWaterUtilities::ComputeEnergy<false>(ModelPart&);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2Norm<true>(ModelPart&, const Variable<double>&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2Norm<false>(ModelPart&, const Variable<double>&);
+
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2NormAABB<true>(ModelPart&, const Variable<double>&, Point&, Point&);
+template KRATOS_API(SHALLOW_WATER_APPLICATION) double ShallowWaterUtilities::ComputeL2NormAABB<false>(ModelPart&, const Variable<double>&, Point&, Point&);
 
 }  // namespace Kratos.

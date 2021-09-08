@@ -95,6 +95,10 @@ public:
 
     void ComputeMomentum(ModelPart& rModelPart);
 
+    template<bool THistorical>
+    void ComputeFroude(ModelPart& rModelPart, const double Epsilon);
+
+    template<bool THistorical>
     void ComputeEnergy(ModelPart& rModelPart);
 
     double InverseHeight(const double Height, const double Epsilon);
@@ -106,18 +110,6 @@ public:
     void IdentifySolidBoundary(ModelPart& rModelPart, double SeaWaterLevel, Flags SolidBoundaryFlag);
 
     void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = 0.1);
-
-    template<bool THistorical>
-    void ComputeFroude(ModelPart& rModelPart, const double Epsilon)
-    {
-        const double g = rModelPart.GetProcessInfo()[GRAVITY_Z];
-        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
-            const double height = rNode.FastGetSolutionStepValue(HEIGHT);
-            const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
-            const double inverse_c = std::sqrt(InverseHeight(height, Epsilon) / g);
-            GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
-        });
-    }
 
     template<class TContainerType>
     void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
@@ -139,64 +131,38 @@ public:
 
     void SetMinimumValue(ModelPart& rModelPart, const Variable<double>& rVariable, double MinValue);
 
-    /*
+    /**
      * @brief Set the z-coordinate of the mesh to zero
      */
     void SetMeshZCoordinateToZero(ModelPart& rModelPart);
 
-    /*
+    /**
      * @brief Set the z0-coordinate of the mesh to zero
      */
     void SetMeshZ0CoordinateToZero(ModelPart& rModelPart);
 
-    /*
+    /**
      * @brief Move the z-coordinate of the mesh according to a variable
      */
     void SetMeshZCoordinate(ModelPart& rModelPart, const Variable<double>& rVariable);
 
-    /*
-     *@brief Compute the L-2 norm for the given double variable
+    /**
+     * @brief Compute the L-2 norm for the given double variable
      */
     template<bool THistorical>
-    double ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable)
-    {
-        double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
-            double partial_l2_norm = 0.0;
-            for (auto& r_node : rElem.GetGeometry()) {
-                partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
-            }
-            partial_l2_norm *= rElem.GetGeometry().Area();
-            partial_l2_norm /= rElem.GetGeometry().size();
-            return partial_l2_norm;
-        });
-        return std::sqrt(l2_norm);
-    }
+    double ComputeL2Norm(ModelPart& rModelPart, const Variable<double>& rVariable);
 
-    /*
-     *@brief Compute the L-2 norm for the given double variable inside an axis-aligned bounding box
+    /**
+     * @brief Compute the L-2 norm for the given double variable inside an axis-aligned bounding box
      */
     template<bool THistorical>
     double ComputeL2NormAABB(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
         Point& rLow,
-        Point& rHigh)
-    {
-        double l2_norm = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](Element& rElem){
-            double partial_l2_norm = 0.0;
-            if (rElem.GetGeometry().HasIntersection(rLow, rHigh)) {
-                for (auto& r_node : rElem.GetGeometry()) {
-                    partial_l2_norm += std::pow(GetValue<THistorical>(r_node, rVariable), 2);
-                }
-                partial_l2_norm *= rElem.GetGeometry().Area();
-                partial_l2_norm /= rElem.GetGeometry().size();
-            }
-            return partial_l2_norm;
-        });
-        return std::sqrt(l2_norm);
-    }
+        Point& rHigh);
 
-    /*
+    /**
      * @brief Compute the horizontal hydrostatic pressures
      */
     template<class TContainerType>
@@ -238,27 +204,9 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
 
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
 private:
+
     ///@name Operations
     ///@{
 
