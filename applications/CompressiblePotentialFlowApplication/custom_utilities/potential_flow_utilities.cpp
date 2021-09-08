@@ -1094,12 +1094,12 @@ void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
         {
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
-                rLeftHandSideMatrix(i, j) += lhs_kutta(i, j);
+                rLeftHandSideMatrix(i, j) = lhs_kutta(i, j);
             }
             if (wake)  {
                 for (unsigned int j = 0; j < NumNodes; ++j)
                 {
-                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) += lhs_kutta(i, j);
+                    rLeftHandSideMatrix(i+NumNodes, j+NumNodes) = lhs_kutta(i, j);
                 }
             }
         }
@@ -1133,7 +1133,7 @@ void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
     {
         if (rElement.GetGeometry()[i].GetValue(KUTTA))
         {
-            rRightHandSideVector(i) += upper_rhs(i);
+            rRightHandSideVector(i) = upper_rhs(i);
             if (wake)
             {
                 const array_1d<double, Dim> lower_velocity =
@@ -1141,7 +1141,7 @@ void AddKuttaConditionPenaltyTermPerturbation(const Element& rElement,
                         rElement, rCurrentProcessInfo);
                 BoundedVector<double, NumNodes> lower_rhs =
                     -penalty * data.vol * free_stream_density * prod(aux, lower_velocity);
-                rRightHandSideVector(i + NumNodes) += lower_rhs(i);
+                rRightHandSideVector(i + NumNodes) = lower_rhs(i);
             }
         }
     }
