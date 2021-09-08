@@ -1349,9 +1349,9 @@ namespace Kratos {
     }
 
     void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
-        
+
         KRATOS_TRY
-        
+
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
@@ -1621,6 +1621,10 @@ namespace Kratos {
 
     void ExplicitSolverStrategy::SearchRigidFaceNeighbours() {
         KRATOS_TRY
+
+        if (!mDoSearchNeighbourFEMElements) {
+            return;
+        }
 
         ElementsArrayType& pElements = mpDem_model_part->GetCommunicator().LocalMesh().Elements();
         ConditionsArrayType& pTConditions = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();

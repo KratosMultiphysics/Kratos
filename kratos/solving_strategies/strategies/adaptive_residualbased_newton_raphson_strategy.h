@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/matrix_market_interface.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //default builder and solver
@@ -87,7 +87,7 @@ template<class TSparseSpace,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
 class AdaptiveResidualBasedNewtonRaphsonStrategy
-    : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
     /**@name Type Definitions */
@@ -97,7 +97,9 @@ public:
     /** Counted pointer of ClassName */
     KRATOS_CLASS_POINTER_DEFINITION( AdaptiveResidualBasedNewtonRaphsonStrategy );
 
-    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
     typedef AdaptiveResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -391,7 +393,7 @@ public:
     * @param rModelPart The model part of the problem
     * @param ThisParameters The configuration parameters
     */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override

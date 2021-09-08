@@ -160,7 +160,6 @@ using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::comp
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<ExplicitSolvingStrategy<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<ExplicitBuilder<RealSparseSpace, RealDenseSpace>>;
 
 // Specialize array of compenents for VariableData

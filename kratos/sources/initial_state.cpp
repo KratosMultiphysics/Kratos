@@ -11,7 +11,6 @@
 //
 //
 
-
 // System includes
 
 // External includes
@@ -26,7 +25,6 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-
 
     /// Only defining Dimension constructor.
     InitialState::InitialState(const SizeType Dimension)
