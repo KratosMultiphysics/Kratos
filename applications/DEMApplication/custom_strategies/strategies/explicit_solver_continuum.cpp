@@ -833,6 +833,34 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    void ContinuumExplicitSolverStrategy::BreakAllBonds() {
+
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int i = 0; i < (int) mListOfSphericContinuumParticles.size(); i++) {
+            for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+                mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 8;
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    void ContinuumExplicitSolverStrategy::HealAllBonds() {
+
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int i = 0; i < (int) mListOfSphericContinuumParticles.size(); i++) {
+            for (int j = 0; j < (int) mListOfSphericContinuumParticles[i]->mContinuumInitialNeighborsSize; j++) {
+                mListOfSphericContinuumParticles[i]->mIniNeighbourFailureId[j] = 0;
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void ContinuumExplicitSolverStrategy::SetInitialDemContacts() {
         KRATOS_TRY
 

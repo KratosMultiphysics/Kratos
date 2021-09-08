@@ -76,6 +76,8 @@ namespace Kratos {
         virtual void MeshRepairOperations();
         virtual void DestroyMarkedParticlesRebuildLists();
         void CalculateMeanContactArea();
+        void BreakAllBonds();
+        void HealAllBonds();
         void SetInitialDemContacts();
         void SetInitialFemContacts();
         void FinalizeSolutionStep() override;

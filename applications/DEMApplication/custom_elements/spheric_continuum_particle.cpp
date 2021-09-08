@@ -561,7 +561,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < mContinuumInitialNeighborsSize; i++) {
 
-            if (mNeighbourElements[i] == NULL) {
+            if (mNeighbourElements[i] == NULL || mIniNeighbourFailureId[i]) {
                 *mSkinSphere = 1.0;
                 break;
             }
