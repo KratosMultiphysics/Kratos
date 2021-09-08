@@ -236,7 +236,7 @@ namespace Kratos {
         ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
         GenerateIncompressiblePerturbationElement3D(model_part);
-        model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1e6;
+        model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
         model_part.GetProcessInfo()[ROTATION_ANGLE] = 5.0;
         BoundedVector<double, 3> wake_normal = ZeroVector(3);
         wake_normal(1) = 1.0;
@@ -254,7 +254,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-5);
+        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(PingIncompressiblePerturbationPotentialFlowElementLHSWake3DPenalty,
@@ -264,7 +264,7 @@ namespace Kratos {
         ModelPart& model_part = this_model.CreateModelPart("Main", 3);
 
         GenerateIncompressiblePerturbationElement3D(model_part);
-        model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1e6;
+        model_part.GetProcessInfo()[PENALTY_COEFFICIENT] = 1.0;
         model_part.GetProcessInfo()[ROTATION_ANGLE] = 0.0;
         BoundedVector<double, 3> wake_normal = ZeroVector(3);
         wake_normal(1) = 1.0;
@@ -272,7 +272,8 @@ namespace Kratos {
 
         Element::Pointer p_element = model_part.pGetElement(1);
         p_element->GetGeometry()[0].SetValue(KUTTA, true);
-        p_element->SetValue(ALL_TRAILING_EDGE, true);
+        p_element->Set(STRUCTURE);
+        p_element->GetGeometry()[0].SetValue(TRAILING_EDGE, true);
         const unsigned int number_of_nodes = p_element->GetGeometry().size();
 
         std::array<double, 8> potential{1.39572,     110.69275, 121.1549827,
@@ -285,7 +286,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-5);
+        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
   } // namespace Testing
