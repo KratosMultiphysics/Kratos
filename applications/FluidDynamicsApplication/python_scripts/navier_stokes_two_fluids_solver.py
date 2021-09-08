@@ -357,7 +357,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
 
             # Recompute the distance field according to the new level-set position
-            if (TimeStep % 10 == 0):
+            if (TimeStep % 1 == 0):
                 print("Redistancing")
                 print(time.time())
 
@@ -365,7 +365,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = int(4000/100000*self.main_model_part.NumberOfElements())
+                layers = 50#int(4000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,

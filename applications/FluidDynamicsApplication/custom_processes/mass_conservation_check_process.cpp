@@ -677,7 +677,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
                         // if( norm_2( normal ) < epsilon ){ continue; }
                         // else { normal /= norm_2( normal ); }
-                        inflow_over_boundary += wGauss * inner_prod( normal, interpolated_velocity );
+                        inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
 
                 // --- the condition is cut

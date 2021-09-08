@@ -4008,7 +4008,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
         for (unsigned int i = 0; i < NumNodes; i++){
             for (unsigned int dim = 0; dim < NumDim; dim++){
                 rhs[ i*(NumDim+1) + dim ] -= coefficient*(rIntNormalsNeg[intgp])[dim]*rCurvature(intgp)*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
-                rhs[ i*(NumDim+1) + dim ] -= 0.0*interfacial_traction[dim]*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
+                // rhs[ i*(NumDim+1) + dim ] -= 0.0*interfacial_traction[dim]*rIntWeights(intgp)*rIntShapeFunctions(intgp,i);
 
                 // u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
             }
