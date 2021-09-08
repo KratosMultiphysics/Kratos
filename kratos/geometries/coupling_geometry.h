@@ -317,7 +317,7 @@ public:
      */
     virtual void SpansLocalSpace(
         std::vector<double>& rSpans,
-        IndexType LocalDirectionIndex = 0) const
+        IndexType LocalDirectionIndex = 0) const override
     {
         if (this->Dimension() == 1) {
             std::vector<double> master_span_intersections_in_master_local_space;
