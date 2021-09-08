@@ -44,6 +44,15 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
         return 0.0 # TODO find a better solution here... maybe get time from solver through IO
 
     def SolveSolutionStep(self):
+        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
+            data_config = {
+                "type" : "coupling_interface_data",
+                "interface_data" : self.GetInterfaceData(data_name)
+            }
+            self.ImportData(data_config)
+
+        super().SolveSolutionStep()
+
         for data_name in self.settings["solver_wrapper_settings"]["export_data"].GetStringArray():
             data_config = {
                 "type" : "coupling_interface_data",
@@ -51,14 +60,6 @@ class OpenFOAMWrapper(CoSimulationSolverWrapper):
             }
             self.ExportData(data_config)
 
-        super().SolveSolutionStep()
-
-        for data_name in self.settings["solver_wrapper_settings"]["import_data"].GetStringArray():
-            data_config = {
-                "type" : "coupling_interface_data",
-                "interface_data" : self.GetInterfaceData(data_name)
-            }
-            self.ImportData(data_config)
 
     def _GetIOType(self):
         return self.settings["io_settings"]["type"].GetString()
