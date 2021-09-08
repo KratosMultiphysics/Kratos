@@ -60,6 +60,9 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         self.u_inf = self.free_stream_mach * self.free_stream_speed_of_sound
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
 
+        # Convert AOA to radians:
+        self.angle_of_attack *= math.pi / 180
+
         self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         if self.domain_size == 2:
             # By convention 2D airfoils are in the xy plane
