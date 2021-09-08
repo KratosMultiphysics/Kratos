@@ -102,10 +102,14 @@ public:
     {
         ConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mUserNumberOfModes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
-        mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
+        mAutomaticJacobianModes = ConvAcceleratorParameters["automatic_jacobian_modes"].GetBool();
+        mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool(); //TODO: THIS FIELD MUST BE RENAMED TO SOMETHING LIKE "restart_random_matrix"
         mMinRandSVDExtraModes = ConvAcceleratorParameters["min_rand_svd_extra_modes"].GetInt();
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
         BaseType::SetCutOffTolerance(ConvAcceleratorParameters["cut_off_tol"].GetDouble());
+
+        KRATOS_WARNING_IF("MVQNRandomizedSVDConvergenceAccelerator", mAutomaticJacobianModes && mUserNumberOfModes != 0)
+            << "Custom and automatic number of modes have been selected. Automatic will be used." << std::endl;
     }
 
     /**
@@ -135,20 +139,25 @@ public:
 
         // If required, calculate the SVD of the inverse Jacobian approximation
         // It is important to check if the residual minimization has been done to avoid throwing errors in the first do nothing steps
+        // Note that in the IBQN case we avoid doing the decomposition as we reuse the last iteration one
         if (!BaseType::IsUsedInBlockNewtonEquations() && BaseType::IsFirstCorrectionPerformed()) {
             CalculateInverseJacobianRandomizedSVD();
+        }
+
+        // Save the current (last) inverse Jacobian decomposition data for the next step
+        // Note that the current decomposition is checked in case the current step converges in one iteration with the old Jacobian
+        if (mpJacQU != nullptr && mpJacSigmaV != nullptr) {
+            mpOldJacQU = mpJacQU;
+            mpOldJacSigmaV = mpJacSigmaV;
+            std::size_t n_obs = BaseType::GetNumberOfObservations();
+            if (n_obs > mOldMaxRank) {
+                mOldMaxRank = n_obs;
+            }
         }
 
         // Call the base class FinalizeSolutionStep
         // Note that this clears the observation matrices so it needs to be called after the inverse Jacobian SVD
         BaseType::FinalizeSolutionStep();
-
-        // Save the current (last) inverse Jacobian decomposition for the next step
-        // Note that the current decomposition is checked in case the current step converges in one iteration with the old Jacobian
-        if (mpJacQU != nullptr && mpJacSigmaV != nullptr) {
-            mpOldJacQU = mpJacQU;
-            mpOldJacSigmaV = mpJacSigmaV;
-        }
 
         // Clear the current step Jacobian decomposition pointers
         mpJacQU = nullptr;
@@ -164,7 +173,8 @@ public:
     {
         Parameters mvqn_randomized_svd_default_parameters(R"({
             "solver_type"               : "MVQN_randomized_SVD",
-            "jacobian_modes"            : 10,
+            "automatic_jacobian_modes"  : true,
+            "jacobian_modes"            : 0,
             "w_0"                       : 0.825,
             "cut_off_tol"               : 1e-8,
             "interface_block_newton"    : false,
@@ -215,6 +225,7 @@ protected:
     explicit MVQNRandomizedSVDConvergenceAccelerator(
         DenseQRPointerType pDenseQR,
         DenseSVDPointerType pDenseSVD,
+        const bool AutomaticJacobianModes,
         const unsigned int JacobianModes,
         const double CutOffTolerance,
         const bool LimitModesToIterations,
@@ -222,10 +233,13 @@ protected:
     : BaseType(CutOffTolerance)
     , mUserNumberOfModes(JacobianModes)
     , mMinRandSVDExtraModes(MinRandSVDExtraModes)
+    , mAutomaticJacobianModes(AutomaticJacobianModes)
     , mLimitModesToIterations(LimitModesToIterations)
     , mpDenseQR(pDenseQR)
     , mpDenseSVD(pDenseSVD)
     {
+        KRATOS_WARNING_IF("MVQNRandomizedSVDConvergenceAccelerator", mAutomaticJacobianModes && mUserNumberOfModes != 0)
+            << "Custom and automatic number of modes have been selected. Automatic will be used." << std::endl;
     }
 
     ///@}
@@ -404,7 +418,8 @@ private:
     SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
     SizeType mNumberOfExtraModes; // Number of extra modes used in the randomization
     SizeType mMinRandSVDExtraModes; // Minimum number of extra modes used in the randomization
-    SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD
+    SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD //TODO: I THINK WE CAN REMOVE THIS MEMBER VAR
+    bool mAutomaticJacobianModes = true; // Automatic selection of randomized SVD number of modes
     bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
 
@@ -412,10 +427,12 @@ private:
     DenseSVDPointerType mpDenseSVD; // Pointer to the dense SVD utility
 
     MatrixPointerType mpOmega = nullptr; // Matrix with random values for truncated SVD
-    MatrixPointerType mpJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
-    MatrixPointerType mpJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
+    MatrixPointerType mpJacQU = nullptr; // Left DOFs x modes matrix from the current Jacobian decomposition
+    MatrixPointerType mpJacSigmaV = nullptr; // Right modes x DOFs matrix from the current Jacobian decomposition
     MatrixPointerType mpOldJacQU = nullptr; // Left DOFs x modes matrix from the previous Jacobian decomposition
     MatrixPointerType mpOldJacSigmaV = nullptr; // Right modes x DOFs matrix from the previous Jacobian decomposition
+
+    SizeType mOldMaxRank = 0; // Previous Jacobian rank (computed from the SVD decomposition)
 
     ///@}
     ///@name Private Operators
@@ -428,25 +445,28 @@ private:
 
     void InitializeRandomValuesMatrix()
     {
-        // Initialize auxiliary variables
-        bool is_number_of_modes_limited = false;
-        const std::size_t aux_extra_modes = std::ceil(0.2 * mUserNumberOfModes);
-        mNumberOfExtraModes = mMinRandSVDExtraModes > aux_extra_modes ? mMinRandSVDExtraModes : aux_extra_modes;
-
-        // Check if the user-defined number of modes exceeds the iteration number
-        // Note that we check it with the current number of observations rather than using the iteration counter
-        // This is important in case some iteration information has been dropped because its linear dependency
-        // Note that we also add in here the extra modes
-        if (mLimitModesToIterations) {
-            // Note that we check the current number of iterations and the previous step one
-            // This is because the rank of the matrix to be decomposed is indeed the maximum between the old Jacobian information and the current one
-            const SizeType n_obs = BaseType::GetNumberOfObservations();
-            const SizeType req_modes = mpOldJacQU ? std::max(n_obs, TDenseSpace::Size2(*mpOldJacQU)) : n_obs;
-            mCurrentNumberOfModes = req_modes < mUserNumberOfModes ? req_modes + mNumberOfExtraModes : mUserNumberOfModes + mNumberOfExtraModes;
-            is_number_of_modes_limited = true;
+        // Initialize the number of modes
+        // Note that if automatic modes are selected we set the previous step rank plus the current number of observations
+        // This comes from the additivity property rank(A+B) \leq rank(A) + rank(B). Hence, the current Jacobian rank is at
+        // most the summation of the old Jacobian rank plus the number of current of observations
+        const SizeType n_obs = BaseType::GetNumberOfObservations();
+        const SizeType full_rank_modes = mOldMaxRank + n_obs;
+        SizeType n_modes;
+        if (mAutomaticJacobianModes) {
+            n_modes = full_rank_modes;
         } else {
-            mCurrentNumberOfModes = mUserNumberOfModes + mNumberOfExtraModes;
+            // If the number of modes is not automatic we need to check if it needs to be limited to the number of iterations (e.g. IBQN)
+            // Note that we check it with the current number of observations rather than using the iteration counter
+            // This is important in case some iteration information has been dropped because its linear dependency
+            // Also note that we consider the previous Jacobian (via the full_rank_modes variable) as this contributes to the rank
+            //TODO: HERE WE SHOULD SET A CHECK IF MAXIMUM MODES IS NOT ZERO DO THIS. THE AUTOMATIC IS SAME AS LIMIT MODES TO ITERATIONS
+            n_modes = mLimitModesToIterations ? std::min(full_rank_modes, mUserNumberOfModes) : mUserNumberOfModes;
         }
+
+        // Initialize auxiliary variables
+        const SizeType aux_extra_modes = std::ceil(0.2 * n_modes);
+        mNumberOfExtraModes = mMinRandSVDExtraModes > aux_extra_modes ? mMinRandSVDExtraModes : aux_extra_modes;
+        mCurrentNumberOfModes = n_modes + mNumberOfExtraModes;
 
         // Set the random values matrix pointer
         const SizeType n_dofs = BaseType::GetProblemSize();
@@ -468,7 +488,7 @@ private:
         }
 
         // Set the flag to avoid performing this operation again (the random values are stored)
-        mRandomValuesAreInitialized = !is_number_of_modes_limited;
+        mRandomValuesAreInitialized = !mLimitModesToIterations;
     }
 
     void MultiplyRight(

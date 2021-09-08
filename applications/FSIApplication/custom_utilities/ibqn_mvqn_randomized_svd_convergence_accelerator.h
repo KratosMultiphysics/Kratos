@@ -132,7 +132,8 @@ public:
     {
         Parameters ibqn_mvqn_default_parameters(R"({
             "solver_type"               : "IBQN_MVQN_randomized_SVD",
-            "jacobian_modes"            : 10,
+            "automatic_jacobian_modes"  : true,
+            "jacobian_modes"            : 0,
             "w_0"                       : 0.825,
             "cut_off_tol"               : 1e-8,
             "limit_modes_to_iterations" : true,
@@ -373,6 +374,7 @@ private:
         // Set the subdomains MVQN randomized SVD convergence accelerator pointers
         // Note that we call the simplified constructor with default zero relaxation omega and IBQN switch
         const double cut_off_tol = ConvAcceleratorParameters["cut_off_tol"].GetDouble();
+        const bool automatic_jacobian_modes = ConvAcceleratorParameters["automatic_jacobian_modes"].GetBool();
         const unsigned int jacobian_modes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
         const bool limit_modes_to_iterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
         const unsigned int min_rand_svd_extra_modes = ConvAcceleratorParameters["min_rand_svd_extra_modes"].GetInt();
@@ -385,6 +387,7 @@ private:
             make_unique_enabler(
                 DenseQRPointerType pDenseQR,
                 DenseSVDPointerType pDenseSVD,
+                const bool AutomaticJacobianModes,
                 const unsigned int JacobianModes,
                 const double CutOffTolerance,
                 const bool LimitModesToIterations,
@@ -392,6 +395,7 @@ private:
             : MVQNType(
                 pDenseQR,
                 pDenseSVD,
+                AutomaticJacobianModes,
                 JacobianModes,
                 CutOffTolerance,
                 LimitModesToIterations,
@@ -400,7 +404,15 @@ private:
         };
 
         // Create and return the convergence accelerator pointer
-        MVQNPointerType p_convergence_accelerator = Kratos::make_unique<make_unique_enabler>(pDenseQR, pDenseSVD, jacobian_modes, cut_off_tol, limit_modes_to_iterations, min_rand_svd_extra_modes);
+        MVQNPointerType p_convergence_accelerator = Kratos::make_unique<make_unique_enabler>(
+            pDenseQR,
+            pDenseSVD,
+            automatic_jacobian_modes,
+            jacobian_modes,
+            cut_off_tol,
+            limit_modes_to_iterations,
+            min_rand_svd_extra_modes);
+
         return p_convergence_accelerator;
     }
 
