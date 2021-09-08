@@ -260,13 +260,13 @@ void ShallowWaterUtilities::CalculateMassMatrix(Matrix& rMassMatrix, const Geome
 }
 
 template<>
-double ShallowWaterUtilities::GetValue<true>(NodeType& rNode, const Variable<double>& rVariable)
+double& ShallowWaterUtilities::GetValue<true>(NodeType& rNode, const Variable<double>& rVariable)
 {
     return rNode.FastGetSolutionStepValue(rVariable);
 }
 
 template<>
-double ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<double>& rVariable)
+double& ShallowWaterUtilities::GetValue<false>(NodeType& rNode, const Variable<double>& rVariable)
 {
     return rNode.GetValue(rVariable);
 }

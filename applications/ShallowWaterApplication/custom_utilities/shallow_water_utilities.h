@@ -107,6 +107,18 @@ public:
 
     void IdentifyWetDomain(ModelPart& rModelPart, Flags WetFlag, double RelativeDryHeight = 0.1);
 
+    template<bool THistorical>
+    void ComputeFroude(ModelPart& rModelPart, const double Epsilon)
+    {
+        const double g = rModelPart.GetProcessInfo()[GRAVITY_Z];
+        block_for_each(rModelPart.Nodes(), [&](NodeType& rNode){
+            const double height = rNode.FastGetSolutionStepValue(HEIGHT);
+            const double velocity = norm_2(rNode.FastGetSolutionStepValue(VELOCITY));
+            const double inverse_c = std::sqrt(InverseHeight(height, Epsilon) / g);
+            GetValue<THistorical>(rNode, FROUDE) = velocity * inverse_c;
+        });
+    }
+
     template<class TContainerType>
     void CopyFlag(Flags OriginFlag, Flags DestinationFlag, TContainerType& rContainer)
     {
@@ -253,7 +265,7 @@ private:
     void CalculateMassMatrix(Matrix& rMassMatrix, const GeometryType& rGeometry);
 
     template<bool THistorical>
-    double GetValue(NodeType& rNode, const Variable<double>& rVariable);
+    double& GetValue(NodeType& rNode, const Variable<double>& rVariable);
 
     template<class TContainerType>
     void IdentifyWetEntities(TContainerType& rContainer, Flags WetFlag, double RelativeDryHeight)
