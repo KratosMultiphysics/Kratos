@@ -322,7 +322,7 @@ private:
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
                 Vector pos_int_w;
                 Matrix pos_int_N;
-                std::vector<Vector> pos_int_n;
+                std::vector<array_1d<double,3>> pos_int_n;
                 typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
                 //TODO: Add a method without the interface gradients
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
@@ -485,7 +485,7 @@ private:
                 auto p_mod_sh_func = p_mod_sh_func_factory(p_geom, nodal_distances);
                 Vector pos_int_w;
                 Matrix pos_int_N;
-                std::vector<Vector> pos_int_n;
+                std::vector<array_1d<double,3>> pos_int_n;
                 typename ModifiedShapeFunctions::ShapeFunctionsGradientsType pos_int_DN_DX;
                 //TODO: Add a method without the interface gradients
                 p_mod_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(pos_int_N, pos_int_DN_DX, pos_int_w, GeometryData::GI_GAUSS_2);
