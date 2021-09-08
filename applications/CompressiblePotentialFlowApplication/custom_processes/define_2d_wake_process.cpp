@@ -137,6 +137,7 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
         // }
         if (r_node.Id() == 244){
             r_node.SetValue(KUTTA, true);
+            // r_node.SetValue(TRAILING_EDGE, true);
         }
         // if (r_node.Id() == 285){
         //     r_node.SetValue(KUTTA, true);
@@ -167,6 +168,7 @@ void Define2DWakeProcess::SaveTrailingEdgeNode()
     }
 
     p_trailing_edge_node->SetValue(TRAILING_EDGE, true);
+    p_trailing_edge_node->SetValue(KUTTA, true);
     mpTrailingEdgeNode = p_trailing_edge_node;
 }
 
