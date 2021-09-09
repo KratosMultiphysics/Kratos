@@ -200,11 +200,7 @@ namespace Kratos
             array_1d<double, 3> displacement = ZeroVector(3);
             for (IndexType i = 0; i < nb_nodes; ++i)
             {
-                displacement += rN(point_number, i) * rGeometry[i].GetSolutionStepValue(DISPLACEMENT, 0);
-
-                KRATOS_WATCH(displacement)
-                KRATOS_WATCH(enforced_displacement)
-                KRATOS_WATCH(penalty_factor)
+                displacement += rN(point_number, i) * rGeometry[i].GetSolutionStepValue(DISPLACEMENT, 0) * rIntegrationPoints[point_number].Weight();
 
                 rOutput[point_number] = (enforced_displacement - displacement) * penalty_factor;
             }

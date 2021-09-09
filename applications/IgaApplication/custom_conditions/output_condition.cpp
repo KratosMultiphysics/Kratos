@@ -95,6 +95,27 @@ namespace Kratos
                 GetProperties()[PENALTY_FACTOR], GetProperties()[DISPLACEMENT],
                 r_integration_points, r_N, r_geometry);
         }
+        else if (rVariable == PENALTY_REACTION_FORCE)
+        {
+            SupportPenaltyCondition::CalculatePenaltyReaction(rOutput,
+                GetProperties()[PENALTY_FACTOR], GetProperties()[DISPLACEMENT],
+                r_integration_points, r_N, r_geometry);
+            for (IndexType i = 0; i < r_integration_points.size(); ++i) {
+                rOutput[i] *= determinants_of_jacobian[i];
+            }
+        }
+        else if (rVariable == REACTION) {
+            for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
+            {
+                rOutput[point_number] = ZeroVector(3);
+                for (IndexType i = 0; i < nb_nodes; ++i)
+                {
+                    array_1d<double, 3> output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(rVariable);
+                    rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+                }
+                rOutput[point_number] *= r_integration_points[point_number].Weight();
+            }
+        }
         else {
             for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number)
             {

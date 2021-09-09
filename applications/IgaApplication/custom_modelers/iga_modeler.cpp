@@ -93,6 +93,10 @@ namespace Kratos
                 || geometry_type == "GeometryCurveNodes"
                 || geometry_type == "GeometryCurveVariationNodes") {
                 GetPointsAt(geometry_list, geometry_type, rParameters["parameters"], sub_model_part);
+                //KRATOS_WATCH(sub_model_part)
+                //for (auto node_it = sub_model_part.NodesBegin(); node_it != sub_model_part.NodesEnd(); ++node_it) {
+                //    KRATOS_WATCH(*node_it)
+                //}
             }
             else {
                 CreateQuadraturePointGeometries(
@@ -124,6 +128,10 @@ namespace Kratos
                 << "shape_function_derivatives_order is not provided and thus being considered as 1. " << std::endl;
         }
 
+        std::string quadrature_method = rParameters.Has("quadrature_method")
+            ? rParameters["quadrature_method"].GetString()
+            : "GAUSS";
+
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
             << "Creating " << name << "s of type: " << type
             << " for " << rGeometryList.size() << " geometries"
@@ -133,6 +141,25 @@ namespace Kratos
         {
             GeometriesArrayType geometries;
             IntegrationInfo integration_info = rGeometryList[i].GetDefaultIntegrationInfo();
+            for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                if (quadrature_method == "GAUSS") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GAUSS);
+                }
+                else if (quadrature_method == "GRID") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+                }
+                else {
+                    KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
+                        << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                }
+            }
+
+            if (rParameters.Has("number_of_integration_points_per_span")) {
+                for (IndexType i = 0; i < integration_info.LocalSpaceDimension(); ++i) {
+                    integration_info.SetNumberOfIntegrationPointsPerSpan(i, rParameters["number_of_integration_points_per_span"].GetInt());
+                }
+            }
+
             rGeometryList[i].CreateQuadraturePointGeometries(
                 geometries, shape_function_derivatives_order, integration_info);
 

@@ -85,7 +85,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             triangle_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
@@ -229,7 +229,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             triangle_ausas_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,

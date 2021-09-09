@@ -164,9 +164,9 @@ protected:
                                const bool CalculateStiffnessMatrixFlag,
                                const bool CalculateResidualVectorFlag);
 
-    void CalculateIntegrationCoefficient( double& rIntegrationCoefficient,
-                                          const double& detJ,
-                                          const double& weight );
+    virtual double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                                    const IndexType& PointNumber,
+                                                    const double& detJ);
 
     /**
      * @brief This methods gives us a matrix with the increment of displacement

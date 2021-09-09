@@ -248,19 +248,17 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     if ( mStateVariablesFinalized.size() != IntegrationPoints.size() )
-       mStateVariablesFinalized.resize(IntegrationPoints.size());
+        mStateVariablesFinalized.resize(IntegrationPoints.size());
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
     {
         int nStateVariables = 0;
         nStateVariables = mConstitutiveLawVector[i]->GetValue( NUMBER_OF_UMAT_STATE_VARIABLES,
-                                                               nStateVariables);
-        if (nStateVariables > 0)
-        {
-            ProcessInfo EmptyProcessInfo;
+                                                               nStateVariables );
+        if (nStateVariables > 0) {
             mConstitutiveLawVector[i]->SetValue( STATE_VARIABLES,
                                                  mStateVariablesFinalized[i],
-                                                 EmptyProcessInfo );
+                                                 rCurrentProcessInfo );
         }
     }
 
@@ -525,9 +523,10 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateKinematicsOnInitialConfiguration(Variables,PointNumber);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
-                                              Variables.detJ0,
-                                              IntegrationPoints[PointNumber].Weight());
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         CalculateRetentionResponse(Variables, RetentionParameters, PointNumber);
 
@@ -1528,9 +1527,10 @@ void SmallStrainUPwDiffOrderElement::CalculateAll( MatrixType& rLeftHandSideMatr
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[PointNumber].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -1583,9 +1583,10 @@ void SmallStrainUPwDiffOrderElement::
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
-        this->CalculateIntegrationCoefficient( Variables.IntegrationCoefficient,
-                                               Variables.detJ0,
-                                               IntegrationPoints[PointNumber].Weight() );
+        Variables.IntegrationCoefficient =
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  PointNumber,
+                                                  Variables.detJ0);
 
         //Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
@@ -1703,37 +1704,46 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables&
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    SizeType Local_i;
     Vector BodyAccelerationAux    = ZeroVector(3);
     (rVariables.BodyAcceleration).resize(NumUNodes * Dim,false);
     (rVariables.DisplacementVector).resize(NumUNodes * Dim,false);
     (rVariables.VelocityVector).resize(NumUNodes * Dim,false);
 
-    for (SizeType i=0; i<NumUNodes; i++)
-    {
-        Local_i = i * Dim;
-        BodyAccelerationAux = rGeom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    if (Dim > 2) {
+        for (SizeType i=0; i<NumUNodes; ++i) {
+            SizeType Local_i = i * Dim;
+            BodyAccelerationAux = rGeom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 
-        rVariables.BodyAcceleration[Local_i]   = BodyAccelerationAux[0];
-        rVariables.DisplacementVector[Local_i] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X);
-        rVariables.VelocityVector[Local_i]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+            rVariables.BodyAcceleration[Local_i]   = BodyAccelerationAux[0];
+            rVariables.DisplacementVector[Local_i] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+            rVariables.VelocityVector[Local_i]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
 
-        rVariables.BodyAcceleration[Local_i+1]   = BodyAccelerationAux[1];
-        rVariables.DisplacementVector[Local_i+1] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
-        rVariables.VelocityVector[Local_i+1]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
+            rVariables.BodyAcceleration[Local_i+1]   = BodyAccelerationAux[1];
+            rVariables.DisplacementVector[Local_i+1] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+            rVariables.VelocityVector[Local_i+1]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
 
-        if (Dim >2)
-        {
             rVariables.BodyAcceleration[Local_i+2]   = BodyAccelerationAux[2];
             rVariables.DisplacementVector[Local_i+2] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Z);
             rVariables.VelocityVector[Local_i+2]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Z);
+        }
+    } else {
+        for (SizeType i=0; i<NumUNodes; ++i) {
+            SizeType Local_i = i * Dim;
+            BodyAccelerationAux = rGeom[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+
+            rVariables.BodyAcceleration[Local_i]   = BodyAccelerationAux[0];
+            rVariables.DisplacementVector[Local_i] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_X);
+            rVariables.VelocityVector[Local_i]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_X);
+
+            rVariables.BodyAcceleration[Local_i+1]   = BodyAccelerationAux[1];
+            rVariables.DisplacementVector[Local_i+1] = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT_Y);
+            rVariables.VelocityVector[Local_i+1]     = rGeom[i].FastGetSolutionStepValue(VELOCITY_Y);
         }
     }
 
     (rVariables.PressureVector).resize(NumPNodes,false);
     (rVariables.PressureDtVector).resize(NumPNodes,false);
-    for (SizeType i=0; i<NumPNodes; i++)
-    {
+    for (SizeType i=0; i<NumPNodes; ++i) {
         rVariables.PressureVector[i]   = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
@@ -1847,7 +1857,7 @@ void SmallStrainUPwDiffOrderElement::CalculateKinematics( ElementVariables& rVar
     rVariables.detJ0 = rVariables.detJuContainer[PointNumber];
 
     //Compute the deformation matrix B
-    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
+    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX, rVariables.Nu);
 
     //KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
@@ -1874,7 +1884,7 @@ void SmallStrainUPwDiffOrderElement::
                                                    this->GetIntegrationMethod());
 
     // Calculating operator B
-    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX);
+    this->CalculateBMatrix(rVariables.B, rVariables.DNu_DX, rVariables.Nu);
 
     rVariables.detJp0 =
         CalculateDerivativesOnInitialConfiguration(*mpPressureGeometry,
@@ -1917,7 +1927,9 @@ double SmallStrainUPwDiffOrderElement::
 
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
-    CalculateBMatrix(Matrix& rB, const Matrix& DNp_DX)
+    CalculateBMatrix(Matrix& rB,
+                     const Matrix& DNp_DX,
+                     const Vector& Np)
 {
     KRATOS_TRY
     //KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
@@ -1987,13 +1999,14 @@ void SmallStrainUPwDiffOrderElement::
 
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::
-    CalculateIntegrationCoefficient( double& rIntegrationCoefficient,
-                                     double detJu,
-                                     double weight )
+//----------------------------------------------------------------------------------------
+double SmallStrainUPwDiffOrderElement::
+    CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+                                    const IndexType& PointNumber,
+                                    const double& detJ)
+
 {
-    rIntegrationCoefficient = detJu * weight;
+    return IntegrationPoints[PointNumber].Weight() * detJ;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2102,11 +2115,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for (SizeType i = 0; i<NumUNodes; i++)
-    {
+    for (SizeType i = 0; i<NumUNodes; i++) {
         SizeType Index_i = i * Dim;
-        for (SizeType j = 0; j<NumPNodes; j++)
-        {
+        for (SizeType j = 0; j<NumPNodes; j++) {
             for (unsigned int idim = 0; idim < Dim; ++idim)
                 rLeftHandSideMatrix(Index_i+idim,NumUNodes*Dim+j) += CouplingMatrix(Index_i+idim,j);
         }
@@ -2120,10 +2131,8 @@ void SmallStrainUPwDiffOrderElement::
 
     //Distribute transposed coupling block matrix into the elemental matrix
 
-    for (SizeType i = 0; i<NumPNodes; i++)
-    {
-        for (SizeType j = 0; j<NumUNodes; j++)
-        {
+    for (SizeType i = 0; i<NumPNodes; i++) {
+        for (SizeType j = 0; j<NumUNodes; j++) {
             SizeType Index_j = j * Dim;
             for (unsigned int idim = 0; idim < Dim; ++idim)
                 rLeftHandSideMatrix(NumUNodes*Dim+i, Index_j+idim) += CouplingMatrixT(i, Index_j+idim);
@@ -2155,10 +2164,8 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for (SizeType i = 0; i < NumPNodes; i++)
-    {
-        for (SizeType j=0; j < NumPNodes; j++)
-        {
+    for (SizeType i = 0; i < NumPNodes; i++) {
+        for (SizeType j=0; j < NumPNodes; j++) {
             rLeftHandSideMatrix(NumUNodes*Dim+i,NumUNodes*Dim+j) += CompressibilityMatrix(i,j);
         }
     }
@@ -2188,10 +2195,8 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    for (SizeType i = 0; i < NumPNodes; i++)
-    {
-        for (SizeType j=0; j < NumPNodes; j++)
-        {
+    for (SizeType i = 0; i < NumPNodes; i++) {
+        for (SizeType j=0; j < NumPNodes; j++) {
             rLeftHandSideMatrix(NumUNodes*Dim+i,NumUNodes*Dim+j) += PermeabilityMatrix(i,j);
         }
     }
@@ -2216,8 +2221,7 @@ void SmallStrainUPwDiffOrderElement::
 
     this->CalculateAndAddCouplingTerms(rRightHandSideVector, rVariables);
 
-    if (!rVariables.IgnoreUndrained)
-    {
+    if (!rVariables.IgnoreUndrained) {
         this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
 
         this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
