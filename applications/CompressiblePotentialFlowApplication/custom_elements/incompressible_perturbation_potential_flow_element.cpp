@@ -106,14 +106,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::EquationIdVe
     }
     else // Wake element
     {
-        // if(this->GetValue(WING_TIP_ELEMENT)){
-        //     if (rResult.size() != 2 * NumNodes + 1)
-        //         rResult.resize(2 * NumNodes + 1, false);
-        // }
-        // else{
-        //     if (rResult.size() != 2 * NumNodes)
-        //         rResult.resize(2 * NumNodes, false);
-        // }
         if (rResult.size() != 2 * NumNodes)
             rResult.resize(2 * NumNodes, false);
 
@@ -142,14 +134,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofList(D
     }
     else // wake element
     {
-        // if(this->GetValue(WING_TIP_ELEMENT)){
-        //     if (rElementalDofList.size() != 2 * NumNodes + 1)
-        //         rElementalDofList.resize(2 * NumNodes + 1);
-        // }
-        // else{
-        //     if (rElementalDofList.size() != 2 * NumNodes)
-        //         rElementalDofList.resize(2 * NumNodes);
-        // }
         if (rElementalDofList.size() != 2 * NumNodes)
             rElementalDofList.resize(2 * NumNodes);
 
@@ -247,14 +231,12 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateOnI
         rValues.resize(1);
     if (rVariable == TRAILING_EDGE)
         rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if (rVariable == WAKE)
-        rValues[0] = this->GetValue(WAKE);
     else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
-    else if (rVariable == NORMAL_ELEMENT)
-        rValues[0] = this->GetValue(NORMAL_ELEMENT);
-    else if (rVariable == WING_TIP_ELEMENT)
-        rValues[0] = this->GetValue(WING_TIP_ELEMENT);
+    else if (rVariable == WAKE)
+        rValues[0] = this->GetValue(WAKE);
+    else if (rVariable == ZERO_VELOCITY_CONDITION)
+        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == TRAILING_EDGE_ELEMENT)
         rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
     else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
@@ -314,12 +296,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::PrintData(st
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
-{
-    noalias(distances) = GetValue(WAKE_ELEMENTAL_DISTANCES);
-}
-
-template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -343,8 +319,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -366,18 +341,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetEquationI
             rResult[NumNodes + i] =
                 GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
-
-    // for (unsigned int i = 0; i < NumNodes; i++){
-    //     rResult[2*NumNodes + i] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_0).EquationId();
-    // }
-
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     for (unsigned int i = 0; i < NumNodes; i++){
-    //         if(GetGeometry()[i].GetValue(WING_TIP)){
-    //             rResult[2*NumNodes] = GetGeometry()[i].GetDof(LAGRANGE_MULTIPLIER_0).EquationId();
-    //         }
-    //     }
-    // }
 }
 
 template <int Dim, int NumNodes>
@@ -404,8 +367,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListKu
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
 {
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Positive part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -425,18 +387,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::GetDofListWa
             rElementalDofList[NumNodes + i] =
                 GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
-
-    // for (unsigned int i = 0; i < NumNodes; i++){
-    //     rElementalDofList[2*NumNodes + i] = GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_0);
-    // }
-
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     for (unsigned int i = 0; i < NumNodes; i++){
-    //         if(GetGeometry()[i].GetValue(WING_TIP)){
-    //             rElementalDofList[2*NumNodes] = GetGeometry()[i].pGetDof(LAGRANGE_MULTIPLIER_0);
-    //         }
-    //     }
-    // }
 }
 
 template <int Dim, int NumNodes>
@@ -486,16 +436,6 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
     MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the lhs and rhs have double the size
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     if (rLeftHandSideMatrix.size1() != 2 * NumNodes + 1 ||
-    //         rLeftHandSideMatrix.size2() != 2 * NumNodes + 1)
-    //         rLeftHandSideMatrix.resize(2 * NumNodes + 1, 2 * NumNodes + 1, false);
-    // }
-    // else{
-    //     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
-    //         rLeftHandSideMatrix.size2() != 2 * NumNodes)
-    //         rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
-    // }
     if (rLeftHandSideMatrix.size1() != 2 * NumNodes ||
         rLeftHandSideMatrix.size2() != 2 * NumNodes)
         rLeftHandSideMatrix.resize(2 * NumNodes, 2 * NumNodes, false);
@@ -506,216 +446,56 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-
-    GetWakeDistances(data.distances);
-
     BoundedMatrix<double, NumNodes, NumNodes> lhs_total = ZeroMatrix(NumNodes, NumNodes);
-
-    ComputeLHSGaussPointContribution(data.vol*free_stream_density, lhs_total, data);
-
-    // Wake condition matrix
-    BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
-    condition_matrix(0,0) = 1.0;
-    condition_matrix(1,1) = 0.0;
-    condition_matrix(2,2) = 1.0;
-
-    auto xzfilter = prod(condition_matrix, trans(data.DN_DX));
-
     BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition = ZeroMatrix(NumNodes, NumNodes);
 
-    for (unsigned int i = 0; i < NumNodes; i++){
-        for(unsigned int j = 0; j < NumNodes; j++){
-            for(unsigned int k = 0; k < Dim; k++){
-                lhs_wake_condition(i,j) += data.vol*free_stream_density*data.DN_DX(i,k)*xzfilter(k,j);
-            }
-        }
-    }
+    CalculateBlockLeftHandSideWakeElement(lhs_total, lhs_wake_condition, data, rCurrentProcessInfo);
 
-    BoundedMatrix<double, Dim, Dim> lagrange_condition_matrix = IdentityMatrix(Dim,Dim);
-    lagrange_condition_matrix(0,0) = 1.0;
-    lagrange_condition_matrix(1,1) = 0.0;
-    lagrange_condition_matrix(2,2) = 0.0;
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
-    auto xzfilter_lagrange = prod(lagrange_condition_matrix, trans(data.DN_DX));
-
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_wake_condition_lagrange = ZeroMatrix(NumNodes, NumNodes);
-
-    for (unsigned int i = 0; i < NumNodes; i++){
-        for(unsigned int j = 0; j < NumNodes; j++){
-            for(unsigned int k = 0; k < Dim; k++){
-                lhs_wake_condition_lagrange(i,j) += data.vol*free_stream_density*data.DN_DX(i,k)*xzfilter_lagrange(k,j);
-            }
-        }
-    }
-
-    const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
-    array_1d<double, Dim> lower_velocity = PotentialFlowUtilities::ComputeVelocityLowerWakeElement<Dim,NumNodes>(*this);
-
-    for (unsigned int i = 0; i < Dim; i++){
-        upper_velocity[i] += free_stream_velocity[i];
-        lower_velocity[i] += free_stream_velocity[i];
-    }
-
-    BoundedVector<double, NumNodes> dU2dPhi_upper = 2*data.vol*prod(data.DN_DX, upper_velocity);
-    BoundedVector<double, NumNodes> dU2dPhi_lower = 2*data.vol*prod(data.DN_DX, lower_velocity);
-
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_upper = ZeroMatrix(NumNodes, NumNodes);
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_pressure_lower = ZeroMatrix(NumNodes, NumNodes);
-
-    for(unsigned int row = 0; row < NumNodes; ++row){
-        for(unsigned int column = 0; column < NumNodes; ++column){
-            lhs_pressure_upper(row, column) = data.N[row] * dU2dPhi_upper[column];
-            lhs_pressure_lower(row, column) = data.N[row] * dU2dPhi_lower[column];
-        }
-    }
-
-    if (this->Is(STRUCTURE)){
+    if (this->Is(STRUCTURE))
+    {
         BoundedMatrix<double, NumNodes, NumNodes> lhs_positive = ZeroMatrix(NumNodes, NumNodes);
         BoundedMatrix<double, NumNodes, NumNodes> lhs_negative = ZeroMatrix(NumNodes, NumNodes);
 
         CalculateLeftHandSideSubdividedElement(lhs_positive, lhs_negative, rCurrentProcessInfo);
-        const auto& r_geometry = this->GetGeometry();
-        for (unsigned int row = 0; row < NumNodes; ++row){
-            // The TE node takes the contribution of the subdivided element and
-            // we do not apply the wake condition on the TE node
-            if (r_geometry[row].GetValue(TRAILING_EDGE)){
-                for (unsigned int column = 0; column < NumNodes; ++column){
-                    // Conservation of mass
-                    rLeftHandSideMatrix(row, column) = lhs_positive(row, column);
-                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_negative(row, column);
-
-                    // // Wake condition below
-                    // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
-                    // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
-                }
-            }
-            else{
-                // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
-                if (data.distances[row] < 0.0){
-                    for (unsigned int column = 0; column < NumNodes; ++column){
-                        // Conservation of mass
-                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
-                        // Wake condition
-                        rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
-                        rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
-                        // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column); // Diagonal
-                        // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Off diagonal
-                    }
-                }
-                else{ // else if (data.distances[row] > 0.0)
-                    for (unsigned int column = 0; column < NumNodes; ++column){
-                        // Conservation of mass
-                        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-                        // Wake condition
-                        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
-                        rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
-                        // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column); // Diagonal
-                        // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_upper(row, column); // Off diagonal
-                    }
-                }
-            }
-        }
+        AssignLeftHandSideSubdividedElement(rLeftHandSideMatrix, lhs_positive,
+                                           lhs_negative, lhs_total, lhs_wake_condition, data);
     }
-    else{
-        for (unsigned int row = 0; row < NumNodes; ++row){
-            // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
-            if (data.distances[row] < 0.0){
-                for (unsigned int column = 0; column < NumNodes; ++column){
-                    // Conservation of mass
-                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
-                    // Wake condition
-                    rLeftHandSideMatrix(row, column) = lhs_wake_condition(row, column); // Diagonal
-                    rLeftHandSideMatrix(row, column + NumNodes) = -lhs_wake_condition(row, column); // Off diagonal
-                    // rLeftHandSideMatrix(row, column) = lhs_pressure_upper(row, column); // Diagonal
-                    // rLeftHandSideMatrix(row, column + NumNodes) = -lhs_pressure_lower(row, column); // Off diagonal
-                }
-            }
-            else{ // else if (data.distances[row] > 0.0)
-                for (unsigned int column = 0; column < NumNodes; ++column){
-                    // Conservation of mass
-                    rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-                    // Wake condition
-                    rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_wake_condition(row, column); // Diagonal
-                    rLeftHandSideMatrix(row + NumNodes, column) = -lhs_wake_condition(row, column); // Off diagonal
-                    // rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_pressure_lower(row, column); // Diagonal
-                    // rLeftHandSideMatrix(row + NumNodes, column) = -lhs_pressure_upper(row, column); // Off diagonal
-                }
-            }
-        }
+    else
+        AssignLeftHandSideWakeElement(rLeftHandSideMatrix, lhs_total, lhs_wake_condition, data);
+}
 
-        // // Apply wake condition with lagrange multipliers
-        // for (unsigned int row = 0; row < NumNodes; ++row){
-        //     if(!GetGeometry()[row].GetValue(WING_TIP)){
-        //         for (unsigned int column = 0; column < NumNodes; ++column){
-        //             rLeftHandSideMatrix(2*NumNodes + row, column) = -lhs_wake_condition_lagrange(row, row);
-        //             rLeftHandSideMatrix(2*NumNodes + row, column + NumNodes) = lhs_wake_condition_lagrange(row, row);
+// In 2D
+template <>
+void IncompressiblePerturbationPotentialFlowElement<2, 3>::CalculateBlockLeftHandSideWakeElement( BoundedMatrix<double, 3, 3>& rLhs_total, BoundedMatrix<double, 3, 3>& rLhs_wake_condition, const ElementalData<3, 2>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    ComputeLHSGaussPointContribution(rData.vol*free_stream_density, rLhs_total, rData);
+    rLhs_wake_condition = rLhs_total;
+}
 
-        //             rLeftHandSideMatrix(column, 2*NumNodes + row) = -lhs_wake_condition_lagrange(row, column);
-        //             rLeftHandSideMatrix(column + NumNodes, 2*NumNodes + row) = lhs_wake_condition_lagrange(row, column);
-        //         }
-        //     }
-        // }
-    }
+// In 3D
+template <>
+void IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateBlockLeftHandSideWakeElement( BoundedMatrix<double, 4, 4>& rLhs_total, BoundedMatrix<double, 4, 4>& rLhs_wake_condition, const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    ComputeLHSGaussPointContribution(rData.vol*free_stream_density, rLhs_total, rData);
 
-    // const double wake_tip_condition_factor = rCurrentProcessInfo[LAMBDA];
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     // KRATOS_WATCH(this->Id())
-    //     for (unsigned int row = 0; row < NumNodes; ++row){
-    //         if(GetGeometry()[row].GetValue(WING_TIP)){
-    //             rLeftHandSideMatrix(2*NumNodes + row, row) = -wake_tip_condition_factor*lhs_total(row, row);
-    //             rLeftHandSideMatrix(2*NumNodes + row, row + NumNodes) = wake_tip_condition_factor*lhs_total(row, row);
+    // Computing linearized pressure equality condition lhs
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const BoundedVector<double, 4> DNv = prod(rData.DN_DX, free_stream_velocity_direction);
+    const BoundedMatrix<double, 4, 4> pressure_equality_lhs = outer_prod(DNv,trans(DNv));
 
-    //             rLeftHandSideMatrix(row, 2*NumNodes + row) = -wake_tip_condition_factor*lhs_total(row, row);
-    //             rLeftHandSideMatrix(row + NumNodes, 2*NumNodes + row) = wake_tip_condition_factor*lhs_total(row, row);
-    //         }
-    //     }
-    // }
+    // Computing wake normal condition lhs
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const BoundedVector<double, 4> DNn = prod(rData.DN_DX, wake_normal);
+    const BoundedMatrix<double, 4, 4> normal_condition_lhs = outer_prod(DNn,trans(DNn));
 
-    // Print lhs
-    std::cout.precision(5);
-    std::cout << std::scientific;
-    std::cout << std::showpos;
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     KRATOS_WATCH(this->Id())
-    // }
-    // if(this->Id()==12750 || this->Id()==26346 || this->Id()==265451 || this->Id()==87225){
-    if(this->Id()==161405){//} || this->Id()==79624){
-    //if(this->GetValue(WING_TIP_ELEMENT) || this->Id()==94253 || this->Id()==1){
-        std::cout << std::endl;
-        for(unsigned int row = 0; row < rLeftHandSideMatrix.size1(); ++row){
-            for(unsigned int column = 0; column < rLeftHandSideMatrix.size2(); column++){
-                if(column == 3 || column == 7){
-                    std::cout << " " << rLeftHandSideMatrix(row, column) << " |";
-                }
-                else{
-                    std::cout << " " << rLeftHandSideMatrix(row, column) << " ";
-                }
-            }
-
-            std::cout << std::endl;
-
-            if(row ==3|| row == 7){
-                for(unsigned int j = 0; j < 14*rLeftHandSideMatrix.size1(); j++){
-                std::cout << "_" ;
-                }
-                std::cout << " " << std::endl;
-            }
-            else{
-                for(unsigned int i = 0; i < 3; i++){
-                    for(unsigned int j = 0; j < 14*4; j++){
-                        std::cout << " " ;
-                    }
-                    if(i != 2){
-                        std::cout << "|" ;
-                    }
-                }
-            }
-            std::cout << std::endl;
-        }
-        std::cout << std::endl;
-    }
+    // Adding contributions
+    rLhs_wake_condition = rData.vol * (pressure_equality_lhs + normal_condition_lhs);
 }
 
 template <int Dim, int NumNodes>
@@ -723,17 +503,8 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
     VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Note that the rhs has double the size
-    // if(this->GetValue(WING_TIP_ELEMENT)){
-    //     if (rRightHandSideVector.size() != 2 * NumNodes + 1)
-    //         rRightHandSideVector.resize(2 * NumNodes + 1, false);
-    // }
-    // else{
-    //     if (rRightHandSideVector.size() != 2 * NumNodes)
-    //         rRightHandSideVector.resize(2 * NumNodes, false);
-    // }
     if (rRightHandSideVector.size() != 2 * NumNodes)
-            rRightHandSideVector.resize(2 * NumNodes, false);
-
+        rRightHandSideVector.resize(2 * NumNodes, false);
     rRightHandSideVector.clear();
 
     ElementalData<NumNodes, Dim> data;
@@ -744,7 +515,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
     array_1d<double, Dim> upper_velocity = PotentialFlowUtilities::ComputeVelocityUpperWakeElement<Dim,NumNodes>(*this);
@@ -757,24 +528,8 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
 
     const BoundedVector<double, NumNodes> upper_rhs = - data.vol * free_stream_density * prod(data.DN_DX, upper_velocity);
     const BoundedVector<double, NumNodes> lower_rhs = - data.vol * free_stream_density * prod(data.DN_DX, lower_velocity);
+    const BoundedVector<double, NumNodes> wake_rhs = CalculateRightHandSideWakeCondition(data, rCurrentProcessInfo, diff_velocity);
 
-    // Wake condition matrix
-    BoundedMatrix<double, Dim, Dim> condition_matrix = IdentityMatrix(Dim,Dim);
-    condition_matrix(0,0) = 1.0;
-    condition_matrix(1,1) = 0.0;
-    condition_matrix(2,2) = 1.0;
-
-    const auto xzfilter = prod(data.DN_DX, condition_matrix);
-
-    BoundedVector<double, NumNodes> wake_rhs = ZeroVector(NumNodes);
-    wake_rhs = - data.vol * free_stream_density * prod(xzfilter, diff_velocity);
-
-    // const double velocity_upper_2 = inner_prod(upper_velocity, upper_velocity);
-    // const double velocity_lower_2 = inner_prod(lower_velocity, lower_velocity);
-
-    // for(unsigned int row = 0; row < NumNodes; ++row){
-    //     wake_rhs(row) = - data.N[row] * (velocity_upper_2 - velocity_lower_2) * data.vol;
-    // }
 
     if (this->Is(STRUCTURE))
     {
@@ -799,6 +554,33 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateRig
     }
 }
 
+// In 2D
+template <>
+BoundedVector<double, 3> IncompressiblePerturbationPotentialFlowElement<2, 3>::CalculateRightHandSideWakeCondition(const ElementalData<3, 2>& rData, const ProcessInfo& rCurrentProcessInfo, const array_1d<double, 2>& rDiff_velocity)
+{
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
+    return - rData.vol * free_stream_density * prod(rData.DN_DX, rDiff_velocity);
+}
+
+// In 3D
+template <>
+BoundedVector<double, 4> IncompressiblePerturbationPotentialFlowElement<3, 4>::CalculateRightHandSideWakeCondition(const ElementalData<4, 3>& rData, const ProcessInfo& rCurrentProcessInfo, const array_1d<double, 3>& rDiff_velocity)
+{
+    // Computing linearized pressure equality condition
+    const array_1d<double, 3>& free_stream_velocity_direction = rCurrentProcessInfo[FREE_STREAM_VELOCITY_DIRECTION];
+    const double pressure_equality_condition = inner_prod(free_stream_velocity_direction, rDiff_velocity);
+    const array_1d<double, 3> vp = free_stream_velocity_direction * pressure_equality_condition;
+
+    // Computing wake normal flux condition
+    // Attention: this only works for straight trailing edges
+    // TODO: Make it work for curved trailing edges, i.e., find the way to store the local normal vector of the skin in the element.
+    const array_1d<double, 3>& wake_normal = rCurrentProcessInfo[WAKE_NORMAL];
+    const double wake_normal_condition = inner_prod(wake_normal, rDiff_velocity);
+    const array_1d<double, 3> nn = wake_normal * wake_normal_condition;
+
+    return - rData.vol * prod(rData.DN_DX, vp + nn);
+}
+
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLeftHandSideSubdividedElement(
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
@@ -812,7 +594,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateLef
 
     const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -860,7 +642,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::CalculateVol
     // Calculate shape functions
     GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    GetWakeDistances(data.distances);
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
@@ -912,6 +694,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHa
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_positive,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_negative,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data) const
 {
     const auto& r_geometry = this->GetGeometry();
@@ -928,7 +711,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHa
             }
         }
         else
-            AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, i);
+            AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, rLhs_wake_condition, data, i);
     }
 }
 
@@ -936,33 +719,40 @@ template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeElement(
     MatrixType& rLeftHandSideMatrix,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
-        AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
+        AssignLeftHandSideWakeNode(rLeftHandSideMatrix, lhs_total, rLhs_wake_condition, data, row);
 }
 
 template <int Dim, int NumNodes>
 void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::AssignLeftHandSideWakeNode(
     MatrixType& rLeftHandSideMatrix,
     BoundedMatrix<double, NumNodes, NumNodes>& lhs_total,
+    BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
     const ElementalData<NumNodes, Dim>& data,
     unsigned int& row) const
 {
-    // Filling the diagonal blocks (i.e. decoupling upper and lower dofs)
-    for (unsigned int column = 0; column < NumNodes; ++column)
-    {
-        rLeftHandSideMatrix(row, column) = lhs_total(row, column);
-        rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
-    }
-
-    // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
     if (data.distances[row] < 0.0)
-        for (unsigned int column = 0; column < NumNodes; ++column)
-            rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); // Side 1
+        for (unsigned int column = 0; column < NumNodes; ++column){
+            // Applying conservation of mass in VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
+
+            // Applying wake condition in AUXILIARY_VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row, column) = rLhs_wake_condition(row, column);
+            rLeftHandSideMatrix(row, column + NumNodes) = -rLhs_wake_condition(row, column); // Side 1
+        }
+
     else if (data.distances[row] > 0.0)
-        for (unsigned int column = 0; column < NumNodes; ++column)
-            rLeftHandSideMatrix(row + NumNodes, column) = -lhs_total(row, column); // Side 2
+        for (unsigned int column = 0; column < NumNodes; ++column){
+            // Applying conservation of mass in VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row, column) = lhs_total(row, column);
+
+            // Applying wake condition in AUXILIARY_VELOCITY_POTENTIAL dofs
+            rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = rLhs_wake_condition(row, column);
+            rLeftHandSideMatrix(row + NumNodes, column) = -rLhs_wake_condition(row, column); // Side 2
+        }
 }
 
 template <int Dim, int NumNodes>
@@ -991,8 +781,7 @@ void IncompressiblePerturbationPotentialFlowElement<Dim, NumNodes>::ComputePoten
     const double free_stream_velocity_norm = sqrt(inner_prod(free_stream_velocity, free_stream_velocity));
     const double reference_chord = rCurrentProcessInfo[REFERENCE_CHORD];
 
-    array_1d<double, NumNodes> distances;
-    GetWakeDistances(distances);
+    const array_1d<double, NumNodes>& distances = PotentialFlowUtilities::GetWakeDistances<Dim,NumNodes>(*this);
 
     auto r_geometry = GetGeometry();
     for (unsigned int i = 0; i < NumNodes; i++){
