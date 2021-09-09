@@ -378,7 +378,7 @@ public:
         KRATOS_TRY
 
         // Finalizes non-linear iteration for all of the elements, conditions and constraints
-        EntitiesUtilities::InitialzeNonLinearIterationAllEntities(rModelPart);
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
 
         KRATOS_CATCH("")
     }
