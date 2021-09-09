@@ -276,7 +276,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             volume_error = (water_volume_after_transport - system_volume) / system_volume
             mass_source = False
-            if (self.settings["formulation"].Has("mass_source")):
+            if self.settings["formulation"].Has("mass_source"):
                 mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
