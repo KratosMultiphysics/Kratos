@@ -144,5 +144,3 @@ class TwoFluidMassConservationInletTest(UnitTest.TestCase):
 
 if __name__ == "__main__":
     UnitTest.main()
-    # test=TwoFluidMassConservationInletTest()
-    # test.testTwoFluidMassConservationTestInlet3D()
