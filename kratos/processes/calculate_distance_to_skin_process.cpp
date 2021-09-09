@@ -72,6 +72,8 @@ namespace Kratos
 		std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
 		// Compute the discontinuous (elemental) distance field
+		auto start = std::chrono::steady_clock::now();
+
 		const bool use_base_elemental_distance = false;
 		if (use_base_elemental_distance) {
 			// Use the base class elemental distance computation (includes plane optimization)
@@ -80,10 +82,21 @@ namespace Kratos
 			// Use a naive elemental distance computation (without plane optimization)
 			this->CalculateElementalDistances(rIntersectedObjects);
 		}
+
+		std::chrono::duration<double> elapsed_seconds = std::chrono::steady_clock::now()-start;
+    	KRATOS_INFO("CalculateDistanceToSkinProcess.CalculateDistancesDisc():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
+		start = std::chrono::steady_clock::now();
 		// Get the minimum elemental distance value for each node
 		this->CalculateNodalDistances();
+		elapsed_seconds = std::chrono::steady_clock::now()-start;
+    	KRATOS_INFO("CalculateDistanceToSkinProcess.CalculateNodalDistances():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
+		start = std::chrono::steady_clock::now();
 		// Perform raycasting to sign the previous distance field
 		this->CalculateRayDistances();
+		elapsed_seconds = std::chrono::steady_clock::now()-start;
+
+    	KRATOS_INFO("CalculateDistanceToSkinProcess.CalculateRayDistances():") << "Elapsed time: "<< elapsed_seconds.count() << "s\n";
+
 	}
 
 	template<std::size_t TDim>
