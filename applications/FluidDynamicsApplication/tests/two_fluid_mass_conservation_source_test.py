@@ -10,24 +10,52 @@ import os
 import sys
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+import KratosMultiphysics.kratos_utilities as KratosUtilities
+
+class FluidDynamicsAnalysisSloshingTank(FluidDynamicsAnalysis):
+
+    def __init__(self,model,project_parameters,flush_frequency=10.0):
+        super().__init__(model,project_parameters)
+        self.flush_frequency = flush_frequency
+        self.last_flush = time.time()
+
+    def ModifyInitialGeometry(self):
+
+        h0=0.5
+        hmax=0.1
+        for node in self._GetSolver().GetComputingModelPart().Nodes:            
+            d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        if self.parallel_type == "OpenMP":
+            now = time.time()
+            if now - self.last_flush > self.flush_frequency:
+                sys.stdout.flush()
+                self.last_flush = now
 
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidMassConservationTest(UnitTest.TestCase):
 
-    def __init__(self):
-        self.work_folder = "TwoFluidMassConservationTest"
+    def setUp(self):
+        self.work_folder = "TwoFluidMassConservationSourceTest"
         self.check_absolute_tolerance = 1.0e-7
         self.check_relative_tolerance = 1.0e-5
-        self.print_output = True
-        self.print_reference_values = True
+        self.print_output = False
+        self.print_reference_values = False
 
     # runs the two dimensinal test case
-    def runTwoFluidMassConservationTest2D(self):
+    def testTwoFluidMassConservationTest2D(self):
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     # runs the three dimensional test case
-    def runTwoFluidMassConservationTest3D(self):
-        self._AuxiliaryRunTest("3Dtest.json")
+    def testTwoFluidMassConservationTest3D(self):
+        self._AuxiliaryRunTest("ProjectParameter3D.json")
+
+    def tearDown(self):
+        with UnitTest.WorkFolderScope(self.work_folder, __file__):
+            KratosUtilities.DeleteFileIfExisting('.time')
 
     def _AuxiliaryRunTest(self, project_parameters_name):
         with UnitTest.WorkFolderScope(self.work_folder,__file__):
@@ -90,7 +118,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
             "Parameters"    : {
                 "output_variables" : ["DISTANCE"],
                 "output_file_name" : "TO_BE_DEFINED",
-                "model_part_name"  : "FluidModelPart.FluidParts_Boundaries-Fluid",
+                "model_part_name"  : "FluidModelPart.FluidParts_Fluid",
                 "time_frequency"   : 0.01
             }
         }""")
@@ -107,7 +135,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
             "Parameters"    : {
                 "check_variables"      : ["DISTANCE"],
                 "input_file_name"      : "TO_BE_DEFINED",
-                "model_part_name"      : "FluidModelPart.FluidParts_Boundaries-Fluid",
+                "model_part_name"      : "FluidModelPart.FluidParts_Fluid",
                 "tolerance"            : 0.0,
                 "relative_tolerance"   : 0.0,
                 "time_frequency"       : 0.01
@@ -119,28 +147,9 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)
         self.parameters["processes"]["json_check_process_list"].Append(json_check_settings)
 
-class FluidDynamicsAnalysisSloshingTank(FluidDynamicsAnalysis):
-
-    def __init__(self,model,project_parameters,flush_frequency=10.0):
-        super().__init__(model,project_parameters)
-        self.flush_frequency = flush_frequency
-        self.last_flush = time.time()
-
-    def ModifyInitialGeometry(self):
-
-        h0=0.5
-        hmax=0.1
-        for node in self._GetSolver().GetComputingModelPart().Nodes:            
-            d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
-
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        if self.parallel_type == "OpenMP":
-            now = time.time()
-            if now - self.last_flush > self.flush_frequency:
-                sys.stdout.flush()
-                self.last_flush = now
 
 if __name__ == "__main__":
-    KratosUnittest.main()
+    UnitTest.main()
+    test=TwoFluidMassConservationTest()
+    test.testTwoFluidMassConservationTest2D()
+    test.testTwoFluidMassConservationTest3D()

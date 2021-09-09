@@ -77,10 +77,6 @@ std::string MassConservationCheckProcess::Initialize(){
     double inter_area = 0.0;
     const auto& r_comm = mrModelPart.GetCommunicator().GetDataCommunicator();
 
-    ModelPart& non_const_model_part = const_cast<ModelPart&>(mrModelPart);
-    auto nodal_h_process = FindNodalHProcess<false>(non_const_model_part);
-    nodal_h_process.Execute();
-
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
     this->mInitialPositiveVolume = r_comm.SumAll(pos_vol);

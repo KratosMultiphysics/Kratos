@@ -4,22 +4,22 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 0.07
+        "end_time"      : 1
     },
-    "output_processes" : {
-        "gid_output" : []
-    },
-    "solver_settings"  : {
-        "model_part_name"             : "FluidModelPart",
-        "domain_size"                 : 2,
-        "solver_type"                 : "TwoFluids",
-        "model_import_settings"       : {
-            "input_type"     : "mdpa",
-            "input_filename" : "SloshingTank2D"
+        "output_processes" : {
+            "gid_output" : []
         },
-        "material_import_settings"    : {
-            "materials_filename" : "TwoFluidMassConservation2DTestMaterials.json"
-        },
+        "solver_settings"  : {
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "TwoFluids",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "2D_geometry"
+            },
+            "material_import_settings"    : {
+                "materials_filename" : "TwoFluidMassConservation2DTestMaterials.json"
+            },
         "echo_level"                  : 1,
         "compute_reactions"           : false,
         "maximum_iterations"          : 20,
@@ -27,14 +27,17 @@
         "absolute_velocity_tolerance" : 1e-5,
         "relative_pressure_tolerance" : 0.001,
         "absolute_pressure_tolerance" : 1e-5,
-        "volume_model_part_name"      : "FluidParts_Boundaries-Fluid",
-        "skin_parts"                  : ["Outlet2D_Boundaries-Point","NoSlip2D_Boundaries-Wall_Izquierda","NoSlip2D_Boundaries-Wall_derecha","NoSlip2D_Boundaries-Wall_arriba","NoSlip2D_Boundaries-Wall_abajo"],
-        "no_skin_parts"               : [],
-        "time_stepping"               : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.01
+        "volume_model_part_name"      : "FluidParts_Fluid",
+        "skin_parts"                  : ["AutomaticInlet2D_Inlet","Slip2D_Floor","Slip2D_Top","Outlet2D_Outlet","VELOCITY_Point"],
+        "no_skin_parts"              	: [],
+        "move_mesh_flag"				: false,
+        "time_stepping"  : {
+            "automatic_time_step" 	: false,
+            "time_step"           	: 0.1
         },
-        "reform_dofs_at_each_step"    : false
+        "linear_solver_settings": {
+            "solver_type": "amgcl"
+        }
     },
     "processes"        : {
         "initial_conditions_process_list"  : [],
@@ -43,7 +46,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.Outlet2D_Boundaries-Point",
+                "model_part_name"    : "FluidModelPart.VELOCITY_Point",
                 "variable_name"      : "PRESSURE",
                 "constrained"        : true,
                 "value"              : 0.0
@@ -53,7 +56,27 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.NoSlip2D_Boundaries-Wall_Izquierda",
+                "model_part_name"    : "FluidModelPart.Slip2D_Top",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.Slip2D_Floor",
+                "variable_name"      : "VELOCITY",
+                "constrained"        : [false,true,false],
+                "value"              : [null,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.AutomaticInlet2D_Inlet",
                 "variable_name"      : "VELOCITY",
                 "constrained"        : [true,false,false],
                 "value"              : [0.0,null,null]
@@ -63,30 +86,10 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.NoSlip2D_Boundaries-Wall_derecha",
+                "model_part_name"    : "FluidModelPart.Outlet2D_Outlet",
                 "variable_name"      : "VELOCITY",
                 "constrained"        : [true,false,false],
                 "value"              : [0.0,null,null]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
-            "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.NoSlip2D_Boundaries-Wall_arriba",
-                "variable_name"      : "VELOCITY",
-                "constrained"        : [false,true,false],
-                "value"              : [null,0,null]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
-            "Parameters"    : {
-                "model_part_name"    : "FluidModelPart.NoSlip2D_Boundaries-Wall_abajo",
-                "variable_name"      : "VELOCITY",
-                "constrained"        : [false,true,false],
-                "value"              : [null,0,null]
             }        
         }],
         "gravity"                          : [{
@@ -94,11 +97,11 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorByDirectionProcess",
             "Parameters"    : {
-                "model_part_name" : "FluidModelPart.FluidParts_Boundaries-Fluid",
+                "model_part_name" : "FluidModelPart.FluidParts_Fluid",
                 "variable_name"   : "BODY_FORCE",
                 "modulus"         : 10,
                 "constrained"     : false,
-                "direction"       : [0.0,-1.0,0.0]
+                "direction"       : [0.0,-1,0.0]
             }
         }],
         "auxiliar_process_list" : [],

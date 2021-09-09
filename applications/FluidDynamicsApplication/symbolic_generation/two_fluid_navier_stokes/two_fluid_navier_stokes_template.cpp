@@ -13,8 +13,6 @@
 
 #include "two_fluid_navier_stokes.h"
 #include "custom_utilities/two_fluid_navier_stokes_data.h"
-#include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
-#include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 
 namespace Kratos
 {
@@ -431,7 +429,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSC
     // Mass correction term
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        const double volume_error =-rData.VolumeError;
         volume_error_ratio = volume_error / dt;
     }
 
@@ -481,7 +479,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSC
     // Mass correction term
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        const double volume_error = -rData.VolumeError;
         volume_error_ratio = volume_error / dt;
     }
 
@@ -535,7 +533,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnri
     // Mass correction term
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        const double volume_error = -rData.VolumeError;
         volume_error_ratio = volume_error / dt;
     }
 
@@ -603,7 +601,7 @@ void TwoFluidNavierStokes<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnri
     // Mass correction term
     double volume_error_ratio = 0.0;
     if (rData.IsCut()) {
-        const double volume_error = rData.IsAir() ? rData.VolumeError : -rData.VolumeError;
+        const double volume_error =-rData.VolumeError;
         volume_error_ratio = volume_error / dt;
     }
 
@@ -741,8 +739,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+   return Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <>
@@ -750,8 +747,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokes< TwoFluidNavierStokes
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
-    auto p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
-    return p_modified_sh_func;
+    return Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(pGeometry, rDistances);
 }
 
 template <class TElementData>
@@ -824,8 +820,10 @@ void TwoFluidNavierStokes<TElementData>::PressureGradientStabilization(
         } else{
             enr_pos_interp(i, i) = 1.0;
             negative_density = rData.NodalDensity[i];
+            negative_viscosity = rData.NodalDynamicViscosity[i];
         }
     }
+
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesPos = rInterfaceShapeDerivatives;
     GeometryType::ShapeFunctionsGradientsType EnrichedInterfaceShapeDerivativesNeg = rInterfaceShapeDerivatives;
 

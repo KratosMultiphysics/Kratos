@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-import os
+
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
@@ -68,7 +68,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "acceleration_limitation": true,
             "formulation": {
                 "dynamic_tau": 1.0,
-                "surface_tension": false
+                "surface_tension": false,
+                "mass_source":true
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -274,10 +275,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
 
             volume_error = (water_volume_after_transport - system_volume) / system_volume
-            
-            # By setting VOLUME_ERROR to 0 the mass conservation source is set to 0. grad_v=0 
-            # self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = 0
-            self.GetComputingModelPart().ProcessInfo[KratosCFD.VOLUME_ERROR] = volume_error
+            mass_source = False
+            if (self.settings["formulation"].Has("mass_source")):
+                mass_source = self.settings["formulation"]["mass_source"].GetBool()
+
+            self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
+
 
 
     def FinalizeSolutionStep(self):
@@ -308,7 +311,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Finalize the solver current step
             self._GetSolutionStrategy().FinalizeSolutionStep()
-                self._GetAccelerationLimitationUtility().Execute()
             # Limit the obtained acceleration for the next step
             # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
             # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions

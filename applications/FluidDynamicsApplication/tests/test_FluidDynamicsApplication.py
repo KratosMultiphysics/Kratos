@@ -35,6 +35,8 @@ from test_flows_measuring_utility import FlowsMeasuringUtilityTest
 from levelset_consistent_nodal_gradient_test import ConsistentLevelsetNodalGradientTest
 from adjoint_conditions import TestAdjointMonolithicWallCondition
 from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
+from two_fluid_mass_conservation_inlet_test import TwoFluidMassConservationInletTest
+from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -108,6 +110,8 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([CFLOutputProcessTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
+    nightSuite.addTest(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationInletTest])
+    nightSuite.addTest(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest])
 
     # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
