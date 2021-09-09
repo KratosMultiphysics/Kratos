@@ -79,43 +79,28 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
+        ini_time=time.time()
         self._InitializeSkinModelPart()
+        self.wake_model_part = self.model.CreateModelPart("aux_wake")
+        self.target_h_wake = 0.1
+        self._DefineWakeModelPart()
+
+
+        self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
         self._CalculateDistance()
 
-        ini_time=time.time()
         while self.step < self.max_iter and self.do_remeshing:
             self.step += 1
             KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
             self._ExtendDistance()
 
-            gid_output = GiDOutputProcess(self.main_model_part,
-                                        "extended_"+str(self.step),
-                                        KratosMultiphysics.Parameters("""
-                                            {
-                                                "result_file_configuration" : {
-                                                    "gidpost_flags": {
-                                                        "GiDPostMode": "GiD_PostBinary",
-                                                        "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                        "WriteConditionsFlag": "WriteConditions",
-                                                        "MultiFileFlag": "SingleFile"
-                                                    },
-                                                    "nodal_results" : ["GEOMETRY_DISTANCE", "DISTANCE"],
-                                                    "nodal_nonhistorical_results": ["METRIC_TENSOR_2D","TEMPERATURE"]
-                                                }
-                                            }
-                                            """)
-                                        )
-
-            gid_output.ExecuteInitialize()
-            gid_output.ExecuteBeforeSolutionLoop()
-            gid_output.ExecuteInitializeSolutionStep()
-            gid_output.PrintOutput()
-            gid_output.ExecuteFinalizeSolutionStep()
-            gid_output.ExecuteFinalize()
-
             self._RefineMesh()
+            self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
             self._CalculateDistance()
             self._UpdateParameters()
+
+            print("NUMBER OF NODES:", self.main_model_part.NumberOfNodes())
+            print("NUMBER OF ELEMENTS:", self.main_model_part.NumberOfElements())
 
             gid_output = GiDOutputProcess(self.main_model_part,
                                         "remeshed_"+str(self.step),
@@ -142,8 +127,13 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalizeSolutionStep()
             gid_output.ExecuteFinalize()
 
+            KratosMultiphysics.ModelPartIO('./Meshes/remeshed_'+str(self.step), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
+
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
+        self.model.DeleteModelPart("skin")
+        self.model.DeleteModelPart("aux_wake")
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
 
     def _InitializeSkinModelPart(self):
@@ -178,7 +168,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             remesh the background mesh.'''
         ini_time=time.time()
         # Construct the variational distance calculation process
-        maximum_iterations = 3 #TODO: Make this user-definable
+        maximum_iterations = 2 #TODO: Make this user-definable
 
         ###Defining linear solver to be used by the variational distance process###
         from KratosMultiphysics import python_linear_solver_factory #Linear solver for variational distance process
@@ -228,10 +218,37 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
 
-        KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,self.main_model_part.Nodes)
-
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess3D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.metric_parameters)
         metric_process.Execute()
+
+        for node in self.main_model_part.Nodes:
+            tensor = node.GetValue(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D)
+            node.SetValue(KratosMultiphysics.TEMPERATURE, tensor.norm_2())
+        gid_output = GiDOutputProcess(self.main_model_part,
+                                    "metric_"+str(self.step),
+                                    KratosMultiphysics.Parameters("""
+                                        {
+                                            "result_file_configuration" : {
+                                                "gidpost_flags": {
+                                                    "GiDPostMode": "GiD_PostBinary",
+                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                    "WriteConditionsFlag": "WriteConditions",
+                                                    "MultiFileFlag": "SingleFile"
+                                                },
+                                                "nodal_results" : ["GEOMETRY_DISTANCE", "DISTANCE"],
+                                                "nodal_nonhistorical_results": ["TEMPERATURE"]
+                                            }
+                                        }
+                                        """)
+                                    )
+
+        gid_output.ExecuteInitialize()
+        gid_output.ExecuteBeforeSolutionLoop()
+        gid_output.ExecuteInitializeSolutionStep()
+        gid_output.PrintOutput()
+        gid_output.ExecuteFinalizeSolutionStep()
+        gid_output.ExecuteFinalize()
+
 
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
@@ -240,6 +257,12 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             "preserve_flags"                   : false,
             "interpolate_nodal_values"         : false,
             "initialize_entities"              : false,
+            "advanced_parameters"                  : {
+                "force_hausdorff_value"               : false,
+                "hausdorff_value"                     : 0.001,
+                "force_gradation_value"               : false,
+                "gradation_value"                     : 2.3
+            },
             "echo_level"                       : 0
         }
         """)
@@ -269,8 +292,15 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
             "discretization_type"                  : "STANDARD",
-            "save_external_files"              : false,
+            "save_external_files"              : true,
             "initialize_entities"              : false,
+            "interpolate_nodal_values"              : false,
+            "advanced_parameters"                  : {
+                "force_hausdorff_value"               : false,
+                "hausdorff_value"                     : 0.001,
+                "force_gradation_value"               : false,
+                "gradation_value"                     : 2.3
+            }
             "echo_level"                       : 0
         }
         """)
@@ -292,6 +322,9 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         ''' This process updates remeshing parameters in case more than one iteration is performed'''
         previous_size=self.metric_parameters["minimal_size"].GetDouble()
         self.metric_parameters["minimal_size"].SetDouble(previous_size*self.update_coefficient)
+        current_matrix = self.metric_parameters["sizing_parameters"]["size_distribution"].GetMatrix()
+        current_matrix[2, 1] =  current_matrix[2, 1]*self.update_coefficient
+        self.metric_parameters["sizing_parameters"]["size_distribution"].SetMatrix(current_matrix)
 
     def _ModifyFinalDistance(self):
         ''' This function modifies the distance field to avoid ill defined cuts.
@@ -306,3 +339,44 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         '''
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.GEOMETRY_DISTANCE, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISTANCE, self.main_model_part.Nodes)
+
+    def _DefineWakeModelPart(self):
+        ''' This function generates the modelpart of the wake. TODO: make end of the domain user-definable.
+        '''
+        self.wake_model_part.CreateNewNode(1, 0.0, -0.01, 0.0)
+        self.wake_model_part.CreateNewNode(2, 0.0, 2.0, 0.0)
+
+        # self.wake_model_part.CreateNewNode(3, 200.0*math.cos(math.radians(-5.0)), 2.0, 200.0*math.sin(math.radians(-5.0)))
+        # self.wake_model_part.CreateNewNode(4, 200.0*math.cos(math.radians(-5.0)), 0.0, 200.0*math.sin(math.radians(-5.0)))
+        # self.wake_model_part.CreateNewElement("Element3D3N", 1, [1,3,2], KratosMultiphysics.Properties(0))
+        # self.wake_model_part.CreateNewElement("Element3D3N", 2, [1,4,3], KratosMultiphysics.Properties(0))
+
+        self.wake_model_part.CreateNewNode(3, 0.498097, 2.0, -0.0435779)
+        self.wake_model_part.CreateNewNode(4, 0.498097, -0.01, -0.0435779)
+        self.wake_model_part.CreateNewNode(5, 200.0, 2.0, 0.0)
+        self.wake_model_part.CreateNewNode(6, 200.0, 0.0, 0.0)
+
+        self.wake_model_part.CreateNewElement("Element3D3N", 1, [1,3,2], KratosMultiphysics.Properties(0))
+        self.wake_model_part.CreateNewElement("Element3D3N", 2, [1,4,3], KratosMultiphysics.Properties(0))
+        self.wake_model_part.CreateNewElement("Element3D3N", 3, [4,5,3], KratosMultiphysics.Properties(0))
+        self.wake_model_part.CreateNewElement("Element3D3N", 4, [4,6,5], KratosMultiphysics.Properties(0))
+
+    def _CalculateDiscontinuousDistanceAndComputeWakeMetric(self):
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,self.main_model_part.Nodes)
+
+
+            ini_time=time.time()
+            KratosMultiphysics.CalculateDiscontinuousDistanceToSkinProcess3D(self.main_model_part, self.wake_model_part).Execute()
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.main_model_part).Execute()
+            CompressiblePotentialFlow.PotentialFlowUtilities.ComputeWakeMetrics(self.main_model_part, self.target_h_wake)
+            KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(CompressiblePotentialFlow.POTENTIAL_METRIC_TENSOR_3D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D, self.main_model_part.Nodes)
+
+            KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Wake metric time ',time.time()-ini_time)
+    # @staticmethod
+    # def _HasSplitNeighbour(elem):
+    #     for node in elem.GetNodes():
+    #         neigh_elems = node.GetValue(KratosMultiphysics.NEIGHBOUR_ELEMENTS)
+    #         for neigh_elem in neigh_elems:
+    #             if neigh_elem.Is(KratosMultiphysics.TO_SPLIT):
+    #                 return True
+    #     return False
