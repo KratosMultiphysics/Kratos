@@ -28,14 +28,15 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
+            "multi_point_constraints_used": false,
             "linear_solver_settings" : {
                 "solver_type" : "amesos",
                 "amesos_solver_type" : "Amesos_Klu"
             }
         }""")
-        this_defaults.AddMissingParameters(super().GetDefaultSettings())
+        this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
     def AddVariables(self):
@@ -69,7 +70,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
     #### Private functions ####
 
     def _create_epetra_communicator(self):
-        return TrilinosApplication.CreateCommunicator()
+        return TrilinosApplication.CreateEpetraCommunicator(self.main_model_part.GetCommunicator().GetDataCommunicator())
 
     def _create_convergence_criterion(self):
         convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
@@ -91,7 +92,7 @@ class TrilinosMechanicalSolver(MechanicalSolver):
             guess_row_size = 15
         else:
             guess_row_size = 45
-        if(self.settings["block_builder"].GetBool() == True):
+        if self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool():
             builder_and_solver = TrilinosApplication.TrilinosBlockBuilderAndSolver(epetra_communicator,
                                                                                    guess_row_size,
                                                                                    linear_solver)
@@ -108,7 +109,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver()
         return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
                                                           mechanical_scheme,
-                                                          linear_solver,
                                                           builder_and_solver,
                                                           self.settings["compute_reactions"].GetBool(),
                                                           self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -123,7 +123,6 @@ class TrilinosMechanicalSolver(MechanicalSolver):
         builder_and_solver = self.get_builder_and_solver()
         return TrilinosApplication.TrilinosNewtonRaphsonStrategy(computing_model_part,
                                                                  solution_scheme,
-                                                                 linear_solver,
                                                                  convergence_criterion,
                                                                  builder_and_solver,
                                                                  self.settings["max_iteration"].GetInt(),

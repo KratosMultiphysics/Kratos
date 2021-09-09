@@ -18,34 +18,13 @@
 // Project includes
 #include "includes/define_python.h"
 #include "python/add_deprecated_variables_to_python.h"
-// #include "includes/ublas_interface.h"
-// #include "containers/data_value_container.h"
-//#include "containers/hash_data_value_container.h"
-// #include "containers/variables_list_data_value_container.h"
-// #include "containers/vector_component_adaptor.h"
-// #include "containers/flags.h"
-//#include "containers/all_variables_data_value_container.h"
-// #include "includes/kratos_flags.h"
 #include "includes/deprecated_variables.h"
-// #include "includes/constitutive_law.h"
-
-// #include "python/variable_indexing_python.h"
-// #include "python/vector_python_interface.h"
-// #include "python/vector_scalar_operator_python.h"
-// #include "python/vector_vector_operator_python.h"
-// #include "python/bounded_vector_python_interface.h"
-
-#include "includes/convection_diffusion_settings.h"
-#include "includes/radiation_settings.h"
-// #include "utilities/timer.h"
 
 namespace Kratos
 {
-//KRATOS_CREATE_FLAG(STRUCTURE,   63);
 
 namespace Python
 {
-namespace py = pybind11;
 
 void  AddDeprecatedVariablesToPython(pybind11::module& m)
 {

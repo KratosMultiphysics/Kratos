@@ -30,9 +30,9 @@ class LinearDerivativeBasedPredictor(CoSimulationPredictor):
         self._UpdateData(data)
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "derivative_data_name" : "UNSPECIFIED"
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults

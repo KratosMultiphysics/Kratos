@@ -20,7 +20,10 @@
     "CleanIndentationsOption"        : false,
     "solver_settings"                : {
         "RemoveBallsInitiallyTouchingWalls" : false,
-        "strategy"                          : "sphere_strategy"
+        "strategy"                          : "sphere_strategy",
+        "material_import_settings"           : {
+            "materials_filename" : "MaterialsDEM.json"
+        }
     },
     "processes"        : {
         "constraints_process_list" : [{
@@ -30,11 +33,13 @@
                 "model_part_name" : "SpheresPart.Ball1",
 		"velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0]
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
                 },
                 "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0]
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
                 },
                 "interval"             : [0.0, 0.2]
             }
@@ -45,13 +50,15 @@
                 "model_part_name" : "SpheresPart.Ball2",
 		"velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : ["-10.0*t", 0.0, 0.0]
+                    "value"                : ["-10.0*t", 0.0, 0.0],
+                    "table"                : [null, null, null]
                 },
                 "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, 0.0]
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
                 },
-                "interval"             : [0.2, 0.4]
+                "interval"             : [0.2, 0.3]
             }
         },{
             "python_module" : "processes.apply_kinematic_constraints_process",
@@ -60,11 +67,13 @@
                 "model_part_name" : "SpheresPart.Ball3",
 		"velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : [-5.0, 0.0, 0.0]
+                    "value"                : [-5.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
                 },
                 "angular_velocity_constraints_settings" : {
                     "constrained"          : [true,true,true],
-                    "value"                : [0.0, 0.0, -10.0]
+                    "value"                : [0.0, 0.0, -10.0],
+                    "table"                : [null, null, null]
                 },
                 "interval"             : [0.0, 0.1]
             }
@@ -75,13 +84,66 @@
                 "model_part_name" : "SpheresPart.Ball4",
 		"velocity_constraints_settings" : {
                     "constrained"          : [false, false, true],
-                    "value"                : [10000.0, 3000.0, 0.0]
+                    "value"                : [10000.0, 3000.0, 0.0],
+                    "table"                : [null, null, null]
                 },
                 "angular_velocity_constraints_settings" : {
                     "constrained"          : [false, false, false],
-                    "value"                : [1000.0, "3000.0*t", "x+y+1000.0"]
+                    "value"                : [1000.0, "3000.0*t", "x+y+1000.0"],
+                    "table"                : [null, null, null]
                 },
                 "interval"             : [0.0, 1e30]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.Ball5",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [false, false, true],
+                    "value"                : [null, null, null],
+                    "table"                : [1, 2, 3]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [false, false, false],
+                    "value"                : [null, null, null],
+                    "table"                : [4, 5, 6]
+                },
+                "interval"             : [0.0, 1e30]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube1",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : ["-0.5*t", 0.6, "(x+y)"],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : ["(y**2+z)", "-2.0*t", 1.0],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0, 1.0e30]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.Cube2",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [7, 8, 9]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [null, null, null],
+                    "table"                : [10, 11, 12]
+                },
+                "interval"                 : [0.0, 1.0e30]
             }
         }],
         "loads_process_list"       : [],
@@ -96,16 +158,16 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 0.0002,
-    "FinalTime"                      : 0.61,
+    "MaxTimeStep"                    : 0.0005,
+    "FinalTime"                      : 0.31,
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
-    "OutputTimeStep"                 : 0.01,
+    "OutputTimeStep"                 : 1.01,
     "PostBoundingBox"                : false,
     "PostLocalContactForce"          : false,
     "PostDisplacement"               : true,
-    "PostRadius"                     : true,
+    "PostRadius"                     : false,
     "PostVelocity"                   : true,
     "PostAngularVelocity"            : true,
     "PostElasticForces"              : false,

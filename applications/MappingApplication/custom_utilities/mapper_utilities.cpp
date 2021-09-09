@@ -47,18 +47,34 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
+template <typename T>
+double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 {
-    double search_safety_factor = 1.2;
+    double max_element_size = 0.0;
+    // Loop through each edge of a geometrical entity ONCE
+    for (const auto& r_entity : rEntityContainer) {
+        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
+            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
+                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
+                                                        r_entity.GetGeometry()[j].Coordinates());
+                max_element_size = std::max(max_element_size, edge_length);
+            }
+        }
+    }
+    return max_element_size;
+}
+
+double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
+{
+    static constexpr double search_safety_factor = 1.2;
     double max_element_size = 0.0;
 
-    int num_conditions_global = ComputeNumberOfConditions(rModelPart);
-    int num_elements_global = ComputeNumberOfElements(rModelPart);
+    const auto r_comm = rModelPart.GetCommunicator();
 
-    if (num_conditions_global > 0) {
+    if (r_comm.GlobalNumberOfConditions() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
     }
-    else if (num_elements_global > 0) {
+    else if (r_comm.GlobalNumberOfElements() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
     }
     else {
@@ -68,11 +84,31 @@ double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
             << "(less efficient, because search radius will be larger)\n"
             << "It is recommended to specify the search-radius manually\n"
             << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
-        max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
+
+        const auto bounding_box = ComputeGlobalBoundingBox(rModelPart);
+        const double dx = bounding_box[0] - bounding_box[1];
+        const double dy = bounding_box[2] - bounding_box[3];
+        const double dz = bounding_box[4] - bounding_box[5];
+
+        const double nominator = std::sqrt((dx*dx) + (dy*dy) + (dz*dz));
+        const double denominator = std::sqrt(static_cast<double>(r_comm.GlobalNumberOfNodes()));
+
+        max_element_size = nominator / denominator;
     }
 
-    max_element_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
+    max_element_size = r_comm.GetDataCommunicator().MaxAll(max_element_size); // Compute the maximum among the partitions
     return max_element_size * search_safety_factor;
+}
+
+double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel)
+{
+    double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
+                                    ComputeSearchRadius(rModelPart2, EchoLevel));
+
+    KRATOS_INFO_IF("Mapper", EchoLevel > 0) << "Computed search-radius: "
+        << search_radius << std::endl;
+
+    return search_radius;
 }
 
 void CheckInterfaceModelParts(const int CommRank)
@@ -131,9 +167,9 @@ void CheckInterfaceModelParts(const int CommRank)
     // }
 }
 
-std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
+BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart)
 {
-    std::vector<double> local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
+    BoundingBoxType local_bounding_box {-1e10, 1e10, -1e10, 1e10, -1e10, 1e10}; // initialize "inverted"
     // xmax, xmin,  ymax, ymin,  zmax, zmin
 
     // loop over all nodes (local and ghost(necessary if conditions have only ghost nodes) )
@@ -146,6 +182,34 @@ std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart)
         local_bounding_box[5] = std::min(r_node.Z(), local_bounding_box[5]);
     }
     return local_bounding_box;
+}
+
+BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
+{
+    BoundingBoxType local_bounding_box = ComputeLocalBoundingBox(rModelPart);
+
+    array_1d<double,3> max_vals;
+    array_1d<double,3> min_vals;
+
+    // fill buffers for MPI
+    for (std::size_t i=0; i<3; ++i) {
+        max_vals[i] = local_bounding_box[i*2];
+        min_vals[i] = local_bounding_box[i*2+1];
+    }
+
+    // compute global values
+    const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+    max_vals = r_data_comm.MaxAll(max_vals);
+    min_vals = r_data_comm.MinAll(min_vals);
+
+    BoundingBoxType global_bounding_box;
+    // extract information from buffers
+    for (std::size_t i=0; i<3; ++i) {
+        global_bounding_box[i*2] = max_vals[i];
+        global_bounding_box[i*2+1] = min_vals[i];
+    }
+
+    return global_bounding_box;
 }
 
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
@@ -171,7 +235,7 @@ void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes
     }
 }
 
-std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
+std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
 {
     // xmax, xmin,  ymax, ymin,  zmax, zmin
     std::stringstream buffer;
@@ -184,7 +248,7 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox)
     return buffer.str();
 }
 
-bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
                               const array_1d<double, 3>& rCoords)
 {   // The Bounding Box should have some tolerance already!
     if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
@@ -192,6 +256,25 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
             if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
                 return true;
     return false;
+}
+
+void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                            const Communicator& rModelPartCommunicator,
+                                            std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_conditions = rModelPartCommunicator.LocalMesh().NumberOfConditions();
+    const auto cond_begin = rModelPartCommunicator.LocalMesh().ConditionsBegin();
+
+    if (rLocalSystems.size() != num_conditions) rLocalSystems.resize(num_conditions);
+
+    IndexPartition<std::size_t>(num_conditions).for_each([&](std::size_t i){
+        InterfaceObject::GeometryPointerType p_geom = &((cond_begin+i)->GetGeometry());
+        rLocalSystems[i] = rMapperLocalSystemPrototype.Create(p_geom);
+    });
+
+    const int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+    KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
 }
 
 void SaveCurrentConfiguration(ModelPart& rModelPart)
@@ -230,7 +313,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 {
     const SizeType comm_size = rSendBuffer.size();
 
-    std::vector<double> bounding_box(6);
+    BoundingBoxType bounding_box;
     KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(rBoundingBoxes.size(), 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 

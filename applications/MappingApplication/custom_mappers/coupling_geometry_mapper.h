@@ -19,14 +19,15 @@
 // External includes
 
 // Project includes
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 #include "custom_utilities/mapping_intersection_utilities.h"
 #include "custom_modelers/mapping_geometries_modeler.h"
 #include "modeler/modeler_factory.h"
+
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -39,11 +40,13 @@ public:
 
     explicit CouplingGeometryLocalSystem(GeometryPointerType pGeom,
                                          const bool IsProjection,
-                                         const bool IsDualMortar
+                                         const bool IsDualMortar,
+                                         const bool IsDestinationIsSlave
                                          )
         : mpGeom(pGeom),
           mIsProjection(IsProjection),
-          mIsDualMortar(IsDualMortar)
+          mIsDualMortar(IsDualMortar),
+          mIsDestinationIsSlave(IsDestinationIsSlave)
         {}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -58,6 +61,11 @@ public:
         KRATOS_ERROR << "not implemented, needs checking" << std::endl;
     }
 
+    MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
+    {
+        return Kratos::make_unique<CouplingGeometryLocalSystem>(pGeometry, mIsProjection, mIsDualMortar, mIsDestinationIsSlave);
+    }
+
     /// Turn back information as a string.
     std::string PairingInfo(const int EchoLevel) const override;
 
@@ -66,8 +74,21 @@ private:
     bool mIsProjection; // Set to true is we are projecting the master onto the slave.
                         // Set to false if we are projecting the slave onto the slave.
     bool mIsDualMortar = false;
+    bool mIsDestinationIsSlave = true;
 
 };
+
+// CouplingGeometryMapper
+//
+// The mapper always forward maps from the master to the slave.
+// Normally:
+//      master  =   interface origin
+//      slave   =   interface destination
+//
+// However, this can be reversed by setting 'destination_is_slave' = false.
+// This yields:
+//      master  =   interface destination
+//      slave   =   interface origin
 
 template<class TSparseSpace, class TDenseSpace>
 class CouplingGeometryMapper : public Mapper<TSparseSpace, TDenseSpace>
@@ -93,11 +114,14 @@ public:
     typedef std::size_t IndexType;
 
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
-    typedef typename BaseType::TMappingMatrixType TMappingMatrixType;
-    typedef Kratos::unique_ptr<TMappingMatrixType> TMappingMatrixUniquePointerType;
+    typedef typename BaseType::TMappingMatrixType MappingMatrixType;
+    typedef Kratos::unique_ptr<MappingMatrixType> MappingMatrixUniquePointerType;
 
-    typedef Matrix DenseMappingMatrixType;
-    typedef Kratos::unique_ptr<DenseMappingMatrixType> DenseMappingMatrixUniquePointerType;
+    typedef LinearSolver<TSparseSpace, TDenseSpace> LinearSolverType;
+    typedef Kratos::shared_ptr<LinearSolverType> LinearSolverSharedPointerType;
+
+    typedef typename TSparseSpace::VectorType TSystemVectorType;
+    typedef Kratos::unique_ptr<TSystemVectorType> TSystemVectorUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -112,34 +136,7 @@ public:
 
     CouplingGeometryMapper(ModelPart& rModelPartOrigin,
                          ModelPart& rModelPartDestination,
-                         Parameters JsonParameters)
-                        : mrModelPartOrigin(rModelPartOrigin),
-                          mrModelPartDestination(rModelPartDestination),
-                          mMapperSettings(JsonParameters)
-    {
-        mpModeler = (ModelerFactory::Create(
-            mMapperSettings["modeler_name"].GetString(),
-            rModelPartOrigin.GetModel(),
-            mMapperSettings["modeler_parameters"]));
-
-        // adds destination model part
-        mpModeler->GenerateNodes(rModelPartDestination);
-
-        mpModeler->SetupGeometryModel();
-        mpModeler->PrepareGeometryModel();
-
-        // here use whatever ModelPart(s) was created by the Modeler
-        mpCouplingMP = &(rModelPartOrigin.GetModel().GetModelPart("coupling"));
-        mpCouplingInterfaceOrigin = mpCouplingMP->pGetSubModelPart("interface_origin");
-        mpCouplingInterfaceDestination = mpCouplingMP->pGetSubModelPart("interface_destination");
-
-        mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceOrigin);
-        mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(*mpCouplingInterfaceDestination);
-
-        mpCouplingMP->GetMesh().SetValue(IS_DUAL_MORTAR, mMapperSettings["dual_mortar"].GetBool());
-
-        this->InitializeInterface();
-    }
+                         Parameters JsonParameters);
 
     /// Destructor.
     ~CouplingGeometryMapper() override = default;
@@ -225,9 +222,10 @@ public:
     ///@name Access
     ///@{
 
-    TMappingMatrixType* pGetMappingMatrix() override
+    MappingMatrixType& GetMappingMatrix() override
     {
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        if (mMapperSettings["precompute_mapping_matrix"].GetBool() || mMapperSettings["dual_mortar"].GetBool()) return *(mpMappingMatrix.get());
+        else KRATOS_ERROR << "'precompute_mapping_matrix' or 'dual_mortar' must be 'true' in your parameters to retrieve the computed mapping matrix!" << std::endl;
     }
 
     MapperUniquePointerType Clone(ModelPart& rModelPartOrigin,
@@ -266,6 +264,19 @@ public:
         BaseType::PrintData(rOStream);
     }
 
+    // Get values
+    // Always returns the true origin/destination regardless of 'destination_is_slave'
+    ModelPart& GetInterfaceModelPartOrigin() override
+    {
+
+        return mpCouplingMP->GetSubModelPart("interface_origin");
+    }
+
+    ModelPart& GetInterfaceModelPartDestination() override
+    {
+        return mpCouplingMP->GetSubModelPart("interface_destination");
+    }
+
 private:
 
     ///@name Private Operations
@@ -275,27 +286,34 @@ private:
     ModelPart& mrModelPartOrigin;
     ModelPart& mrModelPartDestination;
     ModelPart* mpCouplingMP = nullptr;
-    ModelPart* mpCouplingInterfaceOrigin = nullptr;
-    ModelPart* mpCouplingInterfaceDestination = nullptr;
+    ModelPart* mpCouplingInterfaceMaster = nullptr;
+    ModelPart* mpCouplingInterfaceSlave = nullptr;
 
     Parameters mMapperSettings;
 
     MapperUniquePointerType mpInverseMapper = nullptr;
 
-    DenseMappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrix;
+    MappingMatrixUniquePointerType mpMappingMatrixProjector;
+    MappingMatrixUniquePointerType mpMappingMatrixSlave;
 
-    MapperLocalSystemPointerVector mMapperLocalSystems;
+    TSystemVectorUniquePointerType mpTempVector;
 
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
-    InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+    MapperLocalSystemPointerVector mMapperLocalSystemsProjector;
+    MapperLocalSystemPointerVector mMapperLocalSystemsSlave;
+
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerMaster;
+    InterfaceVectorContainerPointerType mpInterfaceVectorContainerSlave;
+
+    LinearSolverSharedPointerType mpLinearSolver = nullptr;
 
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags());
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceSlave->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIds(mpCouplingInterfaceMaster->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
@@ -314,37 +332,27 @@ private:
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
 
-    void CreateMapperLocalSystems(
-        const Communicator& rModelPartCommunicator,
-        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
-    {
-        MapperUtilities::CreateMapperLocalSystemsFromGeometries<CouplingGeometryLocalSystem>(
-            rModelPartCommunicator,
-            rLocalSystems);
-    }
-
-    void EnforceConsistencyWithScaling(const Matrix& rInterfaceMatrixSlave,
-        Matrix& rInterfaceMatrixProjected,
+    void EnforceConsistencyWithScaling(
+        const MappingMatrixType& rInterfaceMatrixSlave,
+        MappingMatrixType& rInterfaceMatrixProjected,
         const double scalingLimit = 1.1);
 
-    void CheckMappingMatrixConsistency()
-    {
-        for (size_t row = 0; row < mpMappingMatrix->size1(); ++row) {
-            double row_sum = 0.0;
-            for (size_t col = 0; col < mpMappingMatrix->size2(); ++col) row_sum += (*mpMappingMatrix)(row, col);
-            if (std::abs(row_sum - 1.0) > 1e-12) {
-                KRATOS_WATCH(*mpMappingMatrix)
-                KRATOS_WATCH(row_sum)
-                KRATOS_ERROR << "mapping matrix is not consistent\n";
-            }
-        }
-    }
+    void CreateLinearSolver();
+
+    void CalculateMappingMatrixWithSolver(MappingMatrixType& rConsistentInterfaceMatrix, MappingMatrixType& rProjectedInterfaceMatrix);
 
     Parameters GetMapperDefaultSettings() const
     {
-        // @tobiasteschemachen
-        return Parameters( R"({
-            "echo_level" : 0
+        return Parameters(R"({
+            "echo_level"                    : 0,
+            "dual_mortar"                   : false,
+            "precompute_mapping_matrix"     : false,
+            "modeler_name"                  : "UNSPECIFIED",
+            "modeler_parameters"            : {},
+            "consistency_scaling"           : true,
+            "row_sum_tolerance"             : 1e-12,
+            "destination_is_slave"          : true,
+            "linear_solver_settings"        : {}
         })");
     }
 

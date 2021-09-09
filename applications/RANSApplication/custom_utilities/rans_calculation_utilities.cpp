@@ -18,6 +18,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "rans_application_variables.h"
 
 // Include base h
@@ -283,7 +284,10 @@ double CalculateWallHeight(
 {
     KRATOS_TRY
 
-    const auto& normal = rNormal / norm_2(rNormal);
+    // for some weird reason, I cannot make the following array_1d<double, 3> to auto.
+    // Clang is compiling fine, and it works as it suppose to be. But in gcc, it compiles
+    // but all the tests start to fail not by crashing, but giving false values.
+    const array_1d<double, 3>& normal = rNormal / norm_2(rNormal);
     const auto& r_parent_element = rCondition.GetValue(NEIGHBOUR_ELEMENTS)[0];
 
     const auto& r_parent_geometry = r_parent_element.GetGeometry();
@@ -315,9 +319,10 @@ array_1d<double, 3> CalculateWallVelocity(
     const Vector& gauss_parent_shape_functions = row(parent_shape_functions, 0);
 
     array_1d<double, 3> parent_center_velocity, parent_center_mesh_velocity;
-    EvaluateInPoint(r_parent_geometry, gauss_parent_shape_functions,
-                    std::tie(parent_center_velocity, VELOCITY),
-                    std::tie(parent_center_mesh_velocity, MESH_VELOCITY));
+    FluidCalculationUtilities::EvaluateInPoint(
+        r_parent_geometry, gauss_parent_shape_functions,
+        std::tie(parent_center_velocity, VELOCITY),
+        std::tie(parent_center_mesh_velocity, MESH_VELOCITY));
 
     const auto& parent_center_effective_velocity =
         parent_center_velocity - parent_center_mesh_velocity;
@@ -414,7 +419,7 @@ void CalculateNumberOfNeighbourEntities(
 
     auto& r_container = GetContainer<TContainerType>(rModelPart);
 
-    BlockPartition<TContainerType>(r_container).for_each([&](typename TContainerType::value_type& rEntity) {
+    block_for_each(r_container, [&](typename TContainerType::value_type& rEntity) {
         auto& r_geometry = rEntity.GetGeometry();
         for (IndexType i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node) {
             auto& r_node = r_geometry[i_node];
@@ -427,18 +432,6 @@ void CalculateNumberOfNeighbourEntities(
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputVariable);
 
     KRATOS_CATCH("");
-}
-
-template<>
-void UpdateValue(double& rOutput, const double& rInput)
-{
-    rOutput += rInput;
-}
-
-template<class TDataType>
-void UpdateValue(TDataType& rOutput, const TDataType& rInput)
-{
-    noalias(rOutput) += rInput;
 }
 
 // template instantiations
@@ -489,8 +482,6 @@ template Vector GetVector<2>(
 
 template Vector GetVector<3>(
     const array_1d<double, 3>&);
-
-template void UpdateValue<array_1d<double, 3>>(array_1d<double, 3>& rOutput, const array_1d<double, 3>& rInput);
 
 template void CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
     ModelPart&,

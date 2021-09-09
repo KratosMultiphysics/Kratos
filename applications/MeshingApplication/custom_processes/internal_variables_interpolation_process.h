@@ -18,13 +18,14 @@
 // External includes
 
 // Project includes
-#include "utilities/openmp_utils.h"
 #include "meshing_application_variables.h"
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "includes/kratos_components.h"
 #include "custom_includes/gauss_point_item.h"
+#include "utilities/atomic_utilities.h"
+#include "utilities/parallel_utilities.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
 // Include the trees
@@ -229,21 +230,41 @@ protected:
     ///@}
 
 private:
-    ///@name Static Member Variables
+    ///@name Private Type Definitions
+    ///@{
+
+    // Auxiliar search struct
+    template<std::size_t TDim>
+    struct auxiliar_search
+    {
+        auxiliar_search(ModelPart& rModelPart)
+            : point_locator(rModelPart)
+        {
+            // We create the locator
+            point_locator.UpdateSearchDatabase();
+        }
+
+        BinBasedFastPointLocator<TDim> point_locator;
+        Vector N;
+        Element::Pointer p_element;
+    };
+
+    ///@}
+    ///@name Private Static Member Variables
     ///@{
 
     ///@}
-    ///@name Member Variables
+    ///@name Private Member Variables
     ///@{
 
     // The model parts
     ModelPart& mrOriginMainModelPart;                    /// The origin model part
     ModelPart& mrDestinationMainModelPart;               /// The destination model part
-    const unsigned int mDimension;                       /// Dimension size of the space
+    const std::size_t mDimension;                        /// Dimension size of the space
 
     // The allocation parameters
-    unsigned int mAllocationSize;                   /// Allocation size for the vectors and max number of potential results
-    unsigned int mBucketSize;                       /// Bucket size for kd-tree
+    std::size_t mAllocationSize;                    /// Allocation size for the vectors and max number of potential results
+    std::size_t mBucketSize;                        /// Bucket size for kd-tree
 
     // The seatch variables
     double mSearchFactor;                           /// The search factor to be considered
@@ -301,7 +322,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void SaveValuesOnGaussPoint(
+    static inline void SaveValuesOnGaussPoint(
         const Variable<TVarType>& rThisVar,
         PointTypePointer pPointOrigin,
         ElementsArrayType::iterator itElemOrigin,
@@ -322,7 +343,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void GetAndSetDirectVariableOnConstitutiveLaw(
+    static inline void GetAndSetDirectVariableOnConstitutiveLaw(
         const Variable<TVarType>& rThisVar,
         ConstitutiveLaw::Pointer pOriginConstitutiveLaw,
         ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
@@ -344,7 +365,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void GetAndSetDirectVariableOnElements(
+    static inline void GetAndSetDirectVariableOnElements(
         const Variable<TVarType>& rThisVar,
         PointTypePointer pPointOrigin,
         ElementsArrayType::iterator itElemDestination,
@@ -370,7 +391,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void GetAndSetWeightedVariableOnConstitutiveLaw(
+    static inline void GetAndSetWeightedVariableOnConstitutiveLaw(
         const Variable<TVarType>& rThisVar,
         const std::size_t NumberOfPointsFound,
         PointVector& PointsFound,
@@ -414,7 +435,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void GetAndSetWeightedVariableOnElements(
+    static inline void GetAndSetWeightedVariableOnElements(
         const Variable<TVarType>& rThisVar,
         const std::size_t NumberOfPointsFound,
         PointVector& PointsFound,
@@ -459,54 +480,34 @@ private:
      * @param Weight The integration weight
      */
     template<class TVarType>
-    inline void InterpolateAddVariableOnConstitutiveLaw(
+    static inline void InterpolateAddVariableOnConstitutiveLaw(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
         ConstitutiveLaw::Pointer& pConstitutiveLaw,
         const double Weight
-        )
-    {
-        TVarType origin_value;
-        origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
-
-        // We sum all the contributions
-        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-            #pragma omp critical
-            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_value * Weight;
-        }
-    }
+        );
 
     /**
      * @brief This method interpolates and add values from the element using shape functions
      * @param rThisGeometry The geometry of the element
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param rElement The origin element to save on the auxiliar point
      * @param GaussPointId The index of te current GaussPoint computed
      * @param Weight The integration weight
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void InterpolateAddVariableOnElement(
+    static inline void InterpolateAddVariableOnElement(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        ElementsArrayType::iterator itElemOrigin,
+        Element& rElement,
         const IndexType GaussPointId,
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        std::vector<TVarType> origin_values;
-        itElemOrigin->CalculateOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
-
-        // We sum all the contributions
-        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-            #pragma omp critical
-            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_values[GaussPointId] * Weight;
-        }
-    }
+        );
 
     /**
      * @brief This method ponderates a value by the total integration weight
@@ -515,30 +516,24 @@ private:
      * @param TotalWeight The total integration weight
      */
     template<class TVarType>
-    inline void PonderateVariable(
+    static inline void PonderateVariable(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const double TotalWeight
-        )
-    {
-        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
-            #pragma omp critical
-            rThisGeometry[i_node].GetValue(rThisVar) /= TotalWeight;
-        }
-    }
+        );
 
     /**
      * @brief This method interpolates using shape functions and the values from the elemental nodes
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param pNode The pointer to teh current node
-     * @param pElement The pointer to teh current element
+     * @param rNode The current node
+     * @param pElement The pointer to the current element
      */
     template<class TVarType>
-    inline void InterpolateToNode(
+    static inline void InterpolateToNode(
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        NodeType::Pointer pNode,
+        NodeType& rNode,
         Element::Pointer pElement
         )
     {
@@ -550,7 +545,7 @@ private:
         for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
             aux_value += N[i_node] * pElement->GetGeometry()[i_node].GetValue(rThisVar);
 
-        pNode->SetValue(rThisVar, aux_value);
+        rNode.SetValue(rThisVar, aux_value);
     }
 
     /**
@@ -562,7 +557,7 @@ private:
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void SetInterpolatedValueOnConstitutiveLaw(
+    static inline void SetInterpolatedValueOnConstitutiveLaw(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
@@ -586,16 +581,16 @@ private:
      * @param rThisGeometry The geometry of the element
      * @param rThisVar The variable to transfer
      * @param N The shape function used
-     * @param itElemDestination The destination element iterato where to set the values
+     * @param rElement The destination element where to set the values
      * @param GaussPointId The index of te current GaussPoint computed
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void SetInterpolatedValueOnElement(
+    static inline void SetInterpolatedValueOnElement(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
-        ElementsArrayType::iterator itElemDestination,
+        Element& rElement,
         const IndexType GaussPointId,
         const ProcessInfo& rCurrentProcessInfo
         )
@@ -609,9 +604,9 @@ private:
             destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
 
         std::vector<TVarType> values;
-        itElemDestination->CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        rElement.CalculateOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         values[GaussPointId] = destination_value;
-        itElemDestination->SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        rElement.SetValuesOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
 
     /**
@@ -621,51 +616,40 @@ private:
     template<std::size_t TDim>
     void InterpolateToNodes()
     {
-        // We create the locator
-        BinBasedFastPointLocator<TDim> point_locator(mrOriginMainModelPart);
-        point_locator.UpdateSearchDatabase();
-
         // Iterate over nodes
         NodesArrayType& r_nodes_array = mrDestinationMainModelPart.Nodes();
-        const int num_nodes = static_cast<int>(r_nodes_array.size());
-        const auto it_node_begin = r_nodes_array.begin();
-
-        // Auxiliar
-        Vector N;
-        Element::Pointer p_element;
 
         /* Nodes */
-        #pragma omp parallel for firstprivate(point_locator, N, p_element)
-        for(int i = 0; i < num_nodes; ++i) {
-            auto it_node = it_node_begin + i;
+        block_for_each(r_nodes_array, auxiliar_search<TDim>(mrOriginMainModelPart),
+        [this](Node<3>& rNode, auxiliar_search<TDim>& aux) {
 
-            const bool old_entity = it_node->IsDefined(OLD_ENTITY) ? it_node->Is(OLD_ENTITY) : false;
+            const bool old_entity = rNode.IsDefined(OLD_ENTITY) ? rNode.Is(OLD_ENTITY) : false;
             if (!old_entity) {
-                const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
+                const bool found = aux.point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux.N, aux.p_element, mAllocationSize);
 
                 if (!found) {
-                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" <<  "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< rNode.Id() << " not found (interpolation not posible)" <<  "\t X:"<< rNode.X() << "\t Y:"<< rNode.Y() << "\t Z:"<< rNode.Z() << std::endl;
                 } else {
                     for (auto& variable_name : mInternalVariableList) {
                         if (KratosComponents<DoubleVarType>::Has(variable_name)) {
-                            const DoubleVarType& this_var = KratosComponents<DoubleVarType>::Get(variable_name);
-                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                            const auto& r_variable = KratosComponents<DoubleVarType>::Get(variable_name);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<ArrayVarType>::Has(variable_name)) {
-                            const ArrayVarType& this_var = KratosComponents<ArrayVarType>::Get(variable_name);
-                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                            const auto& r_variable = KratosComponents<ArrayVarType>::Get(variable_name);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
-                            const VectorVarType& this_var = KratosComponents<VectorVarType>::Get(variable_name);
-                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                            const auto& r_variable = KratosComponents<VectorVarType>::Get(variable_name);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
-                            const MatrixVarType& this_var = KratosComponents<MatrixVarType>::Get(variable_name);
-                            InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                            const auto& r_variable = KratosComponents<MatrixVarType>::Get(variable_name);
+                            InterpolateToNode(r_variable, aux.N, rNode, aux.p_element);
                         } else {
                             KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
                         }
                     }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -692,10 +676,113 @@ private:
 }; // Class InternalVariablesInterpolationProcess
 
 ///@}
-
 ///@name Type Definitions
 ///@{
 
+template<> 
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<double>(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    );
+template<> 
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<array_1d<double, 3>>(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    );
+template<> 
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<Vector>(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    );
+template<> 
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnConstitutiveLaw<Matrix>(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const Vector& N,
+    ConstitutiveLaw::Pointer& pConstitutiveLaw,
+    const double Weight
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const Vector& N,
+    Element& rElement,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const Vector& N,
+    Element& rElement,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const Vector& N,
+    Element& rElement,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::InterpolateAddVariableOnElement(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const Vector& N,
+    Element& rElement,
+    const IndexType GaussPointId,
+    const double Weight,
+    const ProcessInfo& rCurrentProcessInfo
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<double>& rThisVar,
+    const double TotalWeight
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<array_1d<double, 3>>& rThisVar,
+    const double TotalWeight
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<Vector>& rThisVar,
+    const double TotalWeight
+    );
+
+template<>
+void InternalVariablesInterpolationProcess::PonderateVariable(
+    GeometryType& rThisGeometry,
+    const Variable<Matrix>& rThisVar,
+    const double TotalWeight
+    );
 
 ///@}
 ///@name Input and output

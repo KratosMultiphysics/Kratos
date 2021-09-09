@@ -13,9 +13,8 @@ set CC=cl.exe
 set CXX=cl.exe
 
 rem Set variables
-set KRATOS_SOURCE=~0,-1%/..
-set KRATOS_BUILD=%KRATOS_SOURCE%/build
-set KRATOS_APP_DIR=applications
+if not defined KRATOS_SOURCE set KRATOS_SOURCE=%~dp0..
+if not defined KRATOS_BUILD set KRATOS_BUILD=%KRATOS_SOURCE%/build
 
 rem Warning: In windows this option only works if you run through a terminal with admin privileges
 rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
@@ -26,6 +25,7 @@ if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
 if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 
 rem Set applications to compile
+set KRATOS_APP_DIR=applications
 set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;

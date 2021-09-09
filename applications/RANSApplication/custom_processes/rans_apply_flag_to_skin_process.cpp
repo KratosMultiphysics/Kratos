@@ -105,20 +105,19 @@ void RansApplyFlagToSkinProcess::ApplyConditionFlags(
     auto& r_conditions = rModelPart.Conditions();
     const auto& r_flag = KratosComponents<Flags>::Get(mFlagVariableName);
 
-    BlockPartition<ModelPart::ConditionsContainerType>(r_conditions)
-        .for_each([&](ModelPart::ConditionType& rCondition) {
-            auto& r_condition_geometry = rCondition.GetGeometry();
-            const int number_of_nodes = r_condition_geometry.PointsNumber();
+    block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
+        auto& r_condition_geometry = rCondition.GetGeometry();
+        const int number_of_nodes = r_condition_geometry.PointsNumber();
 
-            bool condition_flag = mFlagVariableValue;
-            for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
-                if (r_condition_geometry[i_node].Is(r_flag) != mFlagVariableValue) {
-                    condition_flag = !condition_flag;
-                    break;
-                }
+        bool condition_flag = mFlagVariableValue;
+        for (int i_node = 0; i_node < number_of_nodes; ++i_node) {
+            if (r_condition_geometry[i_node].Is(r_flag) != mFlagVariableValue) {
+                condition_flag = !condition_flag;
+                break;
             }
-            rCondition.Set(r_flag, condition_flag);
-        });
+        }
+        rCondition.Set(r_flag, condition_flag);
+    });
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 1)
         << mFlagVariableName << " flags set for conditions in "

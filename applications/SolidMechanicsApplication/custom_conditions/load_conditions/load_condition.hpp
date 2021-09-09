@@ -115,7 +115,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access
@@ -147,7 +147,7 @@ protected:
     /**
      * Check dof for a vector variable
      */
-    bool HasVariableDof(VariableVectorType& rVariable) override
+    bool HasVariableDof(VariableVectorType& rVariable) const override
     {
       if(rVariable == ROTATION)
         return false;

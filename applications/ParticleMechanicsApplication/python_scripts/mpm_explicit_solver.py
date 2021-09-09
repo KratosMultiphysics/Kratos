@@ -21,7 +21,7 @@ class MPMExplicitSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMExplicitSolver]:: ", "Construction is finished.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
             "time_integration_method"   : "explicit",
             "scheme_type"   : "central_difference",
@@ -31,7 +31,7 @@ class MPMExplicitSolver(MPMSolver):
             "is_make_normal_mp_if_pqmpm_fails" : true,
             "pqmpm_subpoint_min_volume_fraction" : 0.0
         }""")
-        this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMExplicitSolver, cls).GetDefaultParameters())
         return this_defaults
 
 

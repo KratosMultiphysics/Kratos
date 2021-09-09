@@ -285,13 +285,7 @@ class FluidSolver(PythonSolver):
         return self._solution_strategy
 
     def _CreateEstimateDtUtility(self):
-        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if domain_size == 2:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility2D(
-                self.GetComputingModelPart(),
-                self.settings["time_stepping"])
-        else:
-            estimate_dt_utility = KratosCFD.EstimateDtUtility3D(
+        estimate_dt_utility = KratosCFD.EstimateDtUtility(
                 self.GetComputingModelPart(),
                 self.settings["time_stepping"])
 
@@ -385,13 +379,11 @@ class FluidSolver(PythonSolver):
     def _CreateLinearStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         builder_and_solver = self._GetBuilderAndSolver()
         calculate_norm_dx = False
         return KratosMultiphysics.ResidualBasedLinearStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             builder_and_solver,
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
@@ -401,13 +393,11 @@ class FluidSolver(PythonSolver):
     def _CreateNewtonRaphsonStrategy(self):
         computing_model_part = self.GetComputingModelPart()
         time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
         convergence_criterion = self._GetConvergenceCriterion()
         builder_and_solver = self._GetBuilderAndSolver()
         return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
             computing_model_part,
             time_scheme,
-            linear_solver,
             convergence_criterion,
             builder_and_solver,
             self.settings["maximum_iterations"].GetInt(),

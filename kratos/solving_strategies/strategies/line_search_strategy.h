@@ -90,7 +90,7 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(LineSearchStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> SolvingStrategyType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef LineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> ClassType;
 
@@ -164,8 +164,34 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        const Parameters default_settings_const = this->GetDefaultParameters();
-        Parameters default_settings(default_settings_const);
+        Parameters default_settings = this->GetDefaultParameters();
+        OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
+        this->AssignSettings(default_settings);
+    }
+
+    /**
+     * @brief Constructor specifying the builder and solver
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param pNewBuilderAndSolver The builder and solver employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
+     */
+    explicit LineSearchStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false
+        ) : BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+    {
+        Parameters default_settings = this->GetDefaultParameters();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -182,6 +208,7 @@ public:
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
+    KRATOS_DEPRECATED_MESSAGE("Constructor deprecated, please use the constructor without linear solver")
     explicit LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
@@ -194,8 +221,7 @@ public:
         bool MoveMeshFlag = false
         ) : BaseType(rModelPart, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
     {
-        const Parameters default_settings_const = this->GetDefaultParameters();
-        Parameters default_settings(default_settings_const);
+        Parameters default_settings = this->GetDefaultParameters();
         OverrideDefaultSettingsWithParameters(default_settings, MaxIterations, ReformDofSetAtEachStep, CalculateReactions);
         this->AssignSettings(default_settings);
     }
@@ -225,7 +251,6 @@ public:
      * Constructor with Settings and pointer to BuilderAndSolver
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
-     * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
      * @param ThisParameters Settings used in the strategy
@@ -233,11 +258,10 @@ public:
     LineSearchStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
         Parameters ThisParameters
-        ): BaseType(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, BaseType::GetDefaultParameters())
+        ): BaseType(rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, BaseType::GetDefaultParameters())
     {
         // Validate and assign defaults
         ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
@@ -274,7 +298,7 @@ public:
     {
         return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
     }
-    
+
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      * @return The default parameters
@@ -538,7 +562,7 @@ protected:
         const bool CalculateReactions
         )
     {
-        rDefaultSettings["max_iterations"].SetInt(MaxIterations);
+        rDefaultSettings["max_iteration"].SetInt(MaxIterations);
         rDefaultSettings["reform_dofs_at_each_step"].SetBool(ReformDofSetAtEachStep);
         rDefaultSettings["compute_reactions"].SetBool(CalculateReactions);
     }

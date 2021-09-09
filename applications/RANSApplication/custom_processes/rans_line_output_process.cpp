@@ -283,7 +283,8 @@ void RansLineOutputProcess::UpdateSamplePoints()
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    const auto& r_direction_vector = mEndPoint - mStartPoint;
+    const double coeff = 1.0 / (mNumberOfSamplingPoints - 1.0);
+    const array_1d<double, 3>& r_direction_vector = (mEndPoint - mStartPoint) * coeff;
 
     mSamplingPoints.resize(mNumberOfSamplingPoints * 3);
     mSamplingPointElementIds.resize(mNumberOfSamplingPoints, 0);
@@ -295,10 +296,7 @@ void RansLineOutputProcess::UpdateSamplePoints()
     if (r_communicator.Rank() == 0) {
         SizeType local_index = 0;
         for (SizeType i = 0; i < mNumberOfSamplingPoints; ++i) {
-            const auto& current_point =
-                mStartPoint + r_direction_vector *
-                                  (static_cast<double>(i) /
-                                   static_cast<double>(mNumberOfSamplingPoints - 1));
+            const auto& current_point = mStartPoint + (r_direction_vector * i);
             mSamplingPoints[local_index++] = current_point[0];
             mSamplingPoints[local_index++] = current_point[1];
             mSamplingPoints[local_index++] = current_point[2];
@@ -326,7 +324,7 @@ void RansLineOutputProcess::UpdateSamplePoints()
         std::vector<int> found_global_points(mNumberOfSamplingPoints, -1);
         for (const auto& current_index_list : mSamplePointLocalIndexListMaster) {
             for (const auto sample_index : current_index_list) {
-                KRATOS_ERROR_IF(sample_index > mNumberOfSamplingPoints)
+                KRATOS_ERROR_IF(static_cast<SizeType>(sample_index) > mNumberOfSamplingPoints)
                     << "Sampling index error.\n";
                 KRATOS_ERROR_IF(found_global_points[sample_index] != -1)
                     << "Two or more partitions found enclosed element for "
@@ -430,7 +428,7 @@ void RansLineOutputProcess::WriteOutputFile() const
     {
         // check for vector sizes
         const auto& r_node = *(r_model_part.NodesBegin() + iNode);
-        SizeType local_index = vector_start_indices[0];
+        int local_index = vector_start_indices[0];
         for (int i = 0; i < number_of_vector_variables; ++i) {
             const auto& r_variable = *(mVectorVariablesList[i]);
             const auto& r_value = (*get_vector)(r_node, r_variable);

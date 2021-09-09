@@ -12,6 +12,8 @@
 
 
 #include "move_model_part_process.h"
+#include "utilities/geometrical_transformation_utilities.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -26,6 +28,7 @@ MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
     {
         "origin"                        : [0.0,0.0,0.0],
         "rotation_point"                : [0.0,0.0,0.0],
+        "rotation_axis"                 : [0.0,0.0,1.0],
         "rotation_angle"                : 0.0,
         "sizing_multiplier"             : 1.0
 
@@ -45,6 +48,7 @@ MoveModelPartProcess::MoveModelPartProcess(ModelPart& rModelPart,
         mRotationPoint = mOrigin;
     }
     mRotationAngle = ThisParameters["rotation_angle"].GetDouble();
+    mRotationAxis = ThisParameters["rotation_axis"].GetVector();
     mSizingMultiplier = ThisParameters["sizing_multiplier"].GetDouble();
 }
 
@@ -52,24 +56,35 @@ void MoveModelPartProcess::Execute()
 {
     KRATOS_TRY;
 
-    #pragma omp parallel for
-    for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfNodes()); ++i) {
-        auto it_node=mrModelPart.NodesBegin()+i;
-        auto &r_coordinates = it_node->Coordinates();
+    Matrix translation_matrix = ZeroMatrix(4,4);
+    GeometricalTransformationUtilities::CalculateTranslationMatrix(1.0, translation_matrix, mOrigin);
 
-        for (std::size_t i_dim = 0; i_dim<3;i_dim++){
-            r_coordinates[i_dim] = mSizingMultiplier*r_coordinates[i_dim]+mOrigin[i_dim];
+    Matrix rotation_matrix = ZeroMatrix(4,4);
+    GeometricalTransformationUtilities::CalculateRotationMatrix(mRotationAngle, rotation_matrix, mRotationAxis, mRotationPoint);
+
+    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        auto &r_coordinates = rNode.Coordinates();
+        for (std::size_t i_dim = 0; i_dim < r_coordinates.size(); i_dim++){
+            if (mSizingMultiplier > std::numeric_limits<double>::epsilon()){
+                r_coordinates[i_dim] *= mSizingMultiplier;
+            }
+            if (norm_2(mOrigin) > std::numeric_limits<double>::epsilon()) {
+                r_coordinates[i_dim] += translation_matrix(i_dim, 3);
+            }
         }
 
-        if (mRotationAngle != 0.0){
-            array_1d<double, 3> old_coordinates = r_coordinates;
-            // X-Y plane rotation
-            r_coordinates[0] = mRotationPoint[0]+cos(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])-
-                            sin(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
-            r_coordinates[1] = mRotationPoint[1]+sin(mRotationAngle)*(old_coordinates[0]-mRotationPoint[0])+
-                            cos(mRotationAngle)*(old_coordinates[1]-mRotationPoint[1]);
+        if (std::abs(mRotationAngle) > 0.0){
+            Vector aux_coordinates_copy = r_coordinates;
+            aux_coordinates_copy.resize(4, true);
+            aux_coordinates_copy[3] = 1.0;
+            Vector rotated_coordinates = prod(rotation_matrix, aux_coordinates_copy);
+
+            for (std::size_t i_dim = 0; i_dim < 3; i_dim++){
+                r_coordinates[i_dim] = rotated_coordinates[i_dim];
+            }
         }
-    }
+    });
 
     KRATOS_CATCH("");
 }

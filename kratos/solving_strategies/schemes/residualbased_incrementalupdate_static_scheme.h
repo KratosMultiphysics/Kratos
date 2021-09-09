@@ -20,6 +20,7 @@
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -181,6 +182,56 @@ public:
         KRATOS_TRY
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief It initializes a non-linear iteration (for the element)
+     * @param rModelPart The model of the problem to solve
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
+     */
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        KRATOS_TRY;
+
+        // Initializes non-linear iteration for all of the elements, conditions and constraints
+        EntitiesUtilities::InitializeNonLinearIterationAllEntities(rModelPart);
+
+        KRATOS_CATCH( "" );
+    }
+
+    /**
+     * @brief It initializes a non-linear iteration (for an individual condition)
+     * @param rCurrentConditiont The condition to compute
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void InitializeNonLinearIteration(
+        Condition::Pointer rCurrentCondition,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        (rCurrentCondition)->InitializeNonLinearIteration(r_const_process_info);
+    }
+
+    /**
+     * @brief It initializes a non-linear iteration (for an individual element)
+     * @param pCurrentElement The element to compute
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void InitializeNonLinearIteration(
+        Element::Pointer pCurrentElement,
+        ProcessInfo& rCurrentProcessInfo
+        ) override
+    {
+        const auto& r_const_process_info = rCurrentProcessInfo;
+        (pCurrentElement)->InitializeNonLinearIteration(r_const_process_info);
     }
 
     /**

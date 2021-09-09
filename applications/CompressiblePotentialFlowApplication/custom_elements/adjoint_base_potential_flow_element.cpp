@@ -12,6 +12,7 @@
 //
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
+#include "incompressible_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
@@ -75,6 +76,14 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+            std::vector<int>& rValues,
+            const ProcessInfo& rCurrentProcessInfo)
+    {
+        mpPrimalElement->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
+
+    template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
             const ProcessInfo& rCurrentProcessInfo)
@@ -91,7 +100,7 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step)
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
     {
         KRATOS_TRY
         const AdjointBasePotentialFlowElement& r_this = *this;
@@ -259,12 +268,13 @@ namespace Kratos
     }
 
     template <class TPrimalElement>
-    int AdjointBasePotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo)
+    int AdjointBasePotentialFlowElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
 
         KRATOS_TRY
 
-        int Check = mpPrimalElement -> Check(rCurrentProcessInfo);
+        const auto& const_elem_ref = *mpPrimalElement;
+        int Check = const_elem_ref.Check(rCurrentProcessInfo);
 
         if (Check != 0)
         {
@@ -319,7 +329,7 @@ namespace Kratos
     /*PROTECTED*/
 
     template <class TPrimalElement>
-    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances )
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances ) const
     {
 
         for (unsigned int i = 0; i < NumNodes; i++)
@@ -359,8 +369,9 @@ namespace Kratos
     // Template class instantiation
 
     template class AdjointBasePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.
-

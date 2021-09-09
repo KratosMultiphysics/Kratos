@@ -63,12 +63,12 @@ class RelativeNormInitialResidualConvergenceCriteria(CoSimulationConvergenceCrit
         pass
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "abs_tolerance" : 1e-5,
             "rel_tolerance" : 1e-5,
             "label"         : ""
         }""")
-        this_defaults.AddMissingParameters(super()._GetDefaultSettings())
+        this_defaults.AddMissingParameters(super()._GetDefaultParameters())
         return this_defaults
 

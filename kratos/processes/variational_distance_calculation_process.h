@@ -80,7 +80,7 @@ public:
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
     ///@}
     ///@name Pointer Definitions
@@ -143,7 +143,7 @@ public:
 
         auto p_builder_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(pLinearSolver);
 
-        InitializeSolutionStrategy(pLinearSolver, p_builder_solver);
+        InitializeSolutionStrategy(p_builder_solver);
 
         KRATOS_CATCH("")
     }
@@ -179,7 +179,7 @@ public:
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         ReGenerateDistanceModelPart(rBaseModelPart);
 
-        InitializeSolutionStrategy(pLinearSolver, pBuilderAndSolver);
+        InitializeSolutionStrategy(pBuilderAndSolver);
 
         KRATOS_CATCH("")
     }
@@ -447,9 +447,7 @@ protected:
         VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
-    void InitializeSolutionStrategy(
-        typename TLinearSolver::Pointer pLinearSolver,
-        BuilderSolverPointerType pBuilderAndSolver)
+    void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
     {
         // Generate a linear strategy
         auto p_scheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -463,7 +461,6 @@ protected:
         mpSolvingStrategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             p_scheme,
-            pLinearSolver,
             pBuilderAndSolver,
             CalculateReactions,
             ReformDofAtEachIteration,
@@ -487,6 +484,8 @@ protected:
         ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
+
+        r_distance_model_part.GetNodalSolutionStepVariablesList() = rBaseModelPart.GetNodalSolutionStepVariablesList();
 
         ConnectivityPreserveModeler modeler;
         modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_distance_element);

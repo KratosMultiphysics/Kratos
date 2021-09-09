@@ -250,8 +250,8 @@ namespace Kratos
       KRATOS_TRY
 
       //properties to be used in the generation
-      int number_properties = rModelPart.GetParentModelPart()->NumberOfProperties();
-      Properties::Pointer properties = rModelPart.GetParentModelPart()->pGetProperties(number_properties - 1);
+      int number_properties = rModelPart.GetParentModelPart().NumberOfProperties();
+      Properties::Pointer properties = rModelPart.GetParentModelPart().pGetProperties(number_properties - 1);
 
       ModelPart::ElementsContainerType::iterator elements_begin = mrModelPart.ElementsBegin();
       ModelPart::ElementsContainerType::iterator elements_end = mrModelPart.ElementsEnd();

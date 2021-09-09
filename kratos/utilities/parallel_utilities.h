@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
+//                   Philipp Bucher
 //
 
 #if !defined(KRATOS_PARALLEL_UTILITIES_H_INCLUDED)
@@ -25,17 +26,90 @@
 #include <thread>
 
 // External includes
+#ifdef KRATOS_SMP_OPENMP
 #include <omp.h>
+#endif
 
 // Project includes
 #include "includes/define.h"
 #include "includes/global_variables.h"
+#include "includes/lock_object.h"
 #include "utilities/reduction_utilities.h"
 
 
 namespace Kratos
 {
 ///@addtogroup KratosCore
+
+/// Shared memory parallelism related helper class
+/** Provides access to functionalities for shared memory parallelism
+ * such as the number of threads in usa.
+*/
+class KRATOS_API(KRATOS_CORE) ParallelUtilities
+{
+public:
+    ///@name Life Cycle
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /** @brief Returns the current number of threads
+     * @return number of threads
+     */
+    static int GetNumThreads();
+
+    /** @brief Sets the current number of threads
+     * @param NumThreads - the number of threads to be used
+     */
+    static void SetNumThreads(const int NumThreads);
+
+    /** @brief Returns the number of processors available to this device
+     * This can include the multiple threads per processing unit
+     * @return number of processors
+     */
+    static int GetNumProcs();
+
+    ///@}
+
+    /** @brief Returns the global lock
+     * Global lock that can be used for critical sections
+     * @return global lock
+     */
+    static LockObject& GetGlobalLock();
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static LockObject* mspGlobalLock;
+
+    static int* mspNumThreads;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /// Default constructor.
+    ParallelUtilities() = delete;
+
+    /** @brief Initializes the number of threads to be used.
+     * @return number of threads
+     */
+    static int InitializeNumberOfThreads();
+    ///@}
+
+    ///@name Private Access
+    ///@{
+
+    static int& GetNumberOfThreads();
+
+    ///@}
+}; // Class ParallelUtilities
+
 
 //***********************************************************************************
 //***********************************************************************************
@@ -47,24 +121,23 @@ namespace Kratos
  */
 template<
         class TContainerType,
-        class TIteratorType=typename TContainerType::iterator,
+        class TIteratorType=decltype(std::declval<TContainerType>().begin()),
         int TMaxThreads=Globals::MaxAllowedThreads
         >
 class BlockPartition
 {
 public:
-
     /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
     BlockPartition(TIteratorType it_begin,
                    TIteratorType it_end,
-                   int Nchunks = omp_get_max_threads())
+                   int Nchunks = ParallelUtilities::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
-        const ptrdiff_t size_container = it_end-it_begin;
+        const std::ptrdiff_t size_container = it_end-it_begin;
 
         if (size_container == 0) {
             mNchunks = Nchunks;
@@ -72,7 +145,7 @@ public:
             // in case the container is smaller than the number of chunks
             mNchunks = std::min(static_cast<int>(size_container), Nchunks);
         }
-        const ptrdiff_t block_partition_size = size_container / mNchunks;
+        const std::ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
         mBlockPartition[mNchunks] = it_end;
         for (int i=1; i<mNchunks; i++) {
@@ -83,8 +156,8 @@ public:
     /** @param rData - the continer to be iterated upon
      *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
      */
-    BlockPartition(TContainerType& rData,
-                   int Nchunks = omp_get_max_threads())
+    template <class TData>
+    BlockPartition(TData &&rData, int Nchunks = ParallelUtilities::GetNumThreads())
         : BlockPartition(rData.begin(), rData.end(), Nchunks)
     {}
 
@@ -104,13 +177,13 @@ public:
         }
     }
 
-    /** @brie loop allowing reductions. f called on every entry in rData
+    /** @brief loop allowing reductions. f called on every entry in rData
      * the function f needs to return the values to be used by the reducer
      * @param TReducer template parameter specifying the reduction operation to be done
      * @param f - must be a unary function accepting as input TContainerType::value_type&
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
+    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -124,6 +197,59 @@ public:
         return global_reducer.GetValue();
     }
 
+    /** @brief loop with thread local storage (TLS). f called on every entry in rData
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
+     */
+    template <class TThreadLocalStorage, class TFunction>
+    inline void for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for(int i=0; i<mNchunks; ++i){
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
+                    f(*it, thread_local_storage); // note that we pass the value to the function, not the iterator
+                }
+            }
+        }
+    }
+
+    /** @brief loop with thread local storage (TLS) allowing reductions. f called on every entry in rData
+     * the function f needs to return the values to be used by the reducer
+     * @param TReducer template parameter specifying the reduction operation to be done
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a function accepting as input TContainerType::value_type& and the thread local storage
+     */
+    template <class TReducer, class TThreadLocalStorage, class TFunction>
+    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        TReducer global_reducer;
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                TReducer local_reducer;
+                for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
+                    local_reducer.LocalReduce(f(*it, thread_local_storage));
+                }
+                global_reducer.ThreadSafeReduce(local_reducer);
+            }
+        }
+        return global_reducer.GetValue();
+    }
+
 private:
     int mNchunks;
     std::array<TIteratorType, TMaxThreads> mBlockPartition;
@@ -132,19 +258,43 @@ private:
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
  * @param v - containers to be looped upon
  * @param func - must be a unary function accepting as input TContainerType::value_type&
- *
  */
 template <class TContainerType, class TFunctionType>
 void block_for_each(TContainerType &&v, TFunctionType &&func)
 {
-    BlockPartition<typename std::decay<TContainerType>::type>(std::forward<TContainerType>(v)).for_each(std::forward<TFunctionType>(func));
+    BlockPartition<TContainerType>(v.begin(), v.end()).for_each(std::forward<TFunctionType>(func));
 }
 
+/** @brief simplified version of the basic loop with reduction to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param func - must be a unary function accepting as input TContainerType::value_type&
+ */
 template <class TReducer, class TContainerType, class TFunctionType>
-typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &&func)
+typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
 {
-    return BlockPartition<typename std::decay<TContainerType>::type>
-        (std::forward<TContainerType>(v)).template for_each<TReducer>(std::forward<TFunctionType>(func));
+    return  BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(std::forward<TFunctionType>(func));
+}
+
+/** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param tls - thread local storage
+ * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ */
+template <class TContainerType, class TThreadLocalStorage, class TFunctionType>
+void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+{
+     BlockPartition<TContainerType>(v.begin(), v.end()).for_each(tls, std::forward<TFunctionType>(func));
+}
+
+/** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
+ * @param v - containers to be looped upon
+ * @param tls - thread local storage
+ * @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ */
+template <class TReducer, class TContainerType, class TThreadLocalStorage, class TFunctionType>
+typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+{
+    return BlockPartition<TContainerType>(v.begin(), v.end()).template for_each<TReducer>(tls, std::forward<TFunctionType>(func));
 }
 
 //***********************************************************************************
@@ -155,7 +305,7 @@ typename TReducer::value_type block_for_each(TContainerType &&v, TFunctionType &
  *  @param TMaxThreads - maximum number of threads allowed in the partitioning.
  *                       must be known at compile time to avoid heap allocations in the partitioning
  */
-template<class TIndexType, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIndexType=std::size_t, int TMaxThreads=Globals::MaxAllowedThreads>
 class IndexPartition
 {
 public:
@@ -165,7 +315,7 @@ public:
  *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = omp_get_max_threads())
+                   int Nchunks = ParallelUtilities::GetNumThreads())
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
@@ -238,7 +388,7 @@ public:
      * @param f - must be a unary function accepting as input IndexType
      */
     template <class TReducer, class TUnaryFunction>
-    inline typename TReducer::value_type for_each(TUnaryFunction &&f)
+    inline typename TReducer::return_type for_each(TUnaryFunction &&f)
     {
         TReducer global_reducer;
         #pragma omp parallel for
@@ -248,6 +398,60 @@ public:
                 local_reducer.LocalReduce(f(k));
             }
             global_reducer.ThreadSafeReduce(local_reducer);
+        }
+        return global_reducer.GetValue();
+    }
+
+
+    /** @brief loop with thread local storage (TLS). f called on every entry in rData
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a function accepting as input IndexType and the thread local storage
+     */
+    template <class TThreadLocalStorage, class TFunction>
+    inline void for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
+                    f(k, thread_local_storage); //note that we pass a reference to the value, not the iterator
+                }
+            }
+        }
+    }
+
+    /** version with reduction and thread local storage (TLS) to be called for each index in the partition
+     * function f is expected to return the values to be reduced
+     * @param TReducer - template parameter specifying the type of reducer to be applied
+     * @param TThreadLocalStorage template parameter specifying the thread local storage
+     * @param f - must be a function accepting as input IndexType and the thread local storage
+     */
+    template <class TReducer, class TThreadLocalStorage, class TFunction>
+    inline typename TReducer::return_type for_each(const TThreadLocalStorage& rThreadLocalStoragePrototype, TFunction &&f)
+    {
+        static_assert(std::is_copy_constructible<TThreadLocalStorage>::value, "TThreadLocalStorage must be copy constructible!");
+
+        TReducer global_reducer;
+
+        #pragma omp parallel
+        {
+            // copy the prototype to create the thread local storage
+            TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
+
+            #pragma omp for
+            for (int i=0; i<mNchunks; ++i) {
+                TReducer local_reducer;
+                for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
+                    local_reducer.LocalReduce(f(k, thread_local_storage));
+                }
+                global_reducer.ThreadSafeReduce(local_reducer);
+            }
         }
         return global_reducer.GetValue();
     }

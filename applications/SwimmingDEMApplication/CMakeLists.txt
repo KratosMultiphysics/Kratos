@@ -7,12 +7,12 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 
 include(pybind11Tools)
 
-include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## Dependecies on other applications
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/SwimmingDEMApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/DEMApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/SwimmingDEMApplication )
 
 ## Generate variables with the sources
 set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
@@ -69,6 +69,10 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/steady_viscous_torque_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/rubinow_and_keller_torque_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/steady_viscous_torque_laws/loth_steady_viscous_torque_law.cpp
+
+    #Process
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/transient_spatial_dependant_porosity_solution_body_force_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/spatial_dependant_porosity_solution_body_force_process.cpp
 
     ## Elements
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/monolithic_dem_coupled.cpp
@@ -128,6 +132,12 @@ pybind11_add_module(KratosSwimmingDEMApplication MODULE ${KRATOS_SWIMMING_DEM_AP
 target_link_libraries(KratosSwimmingDEMApplication PUBLIC KratosSwimmingDEMCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosSwimmingDEMCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+    set_target_properties(KratosSwimmingDEMApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
 # changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .pyd)
@@ -138,18 +148,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosSwimmingDEMApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-# Cotire
-if(USE_COTIRE MATCHES ON)
-  cotire(KratosSwimmingDEMCore)
-  cotire(KratosSwimmingDEMApplication)
-endif(USE_COTIRE MATCHES ON)
-
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/SwimmingDEMApplication.py KratosMultiphysics/SwimmingDEMApplication/__init__.py )
 
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/tests KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
@@ -166,3 +171,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## Install targets
 install(TARGETS KratosSwimmingDEMCore DESTINATION libs )
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosSwimmingDEMCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosSwimmingDEMApplication" PARENT_SCOPE)

@@ -26,6 +26,7 @@
 
 /* Element include */
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
@@ -78,7 +79,7 @@ namespace Kratos
         typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
 
         // The strategies
-        typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+        typedef ImplicitSolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
         typedef ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedLinearStrategyType;
         typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
         typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >LineSearchStrategyType;
@@ -100,11 +101,15 @@ namespace Kratos
             ModelPart.AddNodalSolutionStepVariable(VELOCITY);
             ModelPart.AddNodalSolutionStepVariable(ACCELERATION);
 
+            Properties::Pointer p_prop = ModelPart.CreateNewProperties(0);
+            TestConstitutiveLaw r_clone_cl = TestConstitutiveLaw();
+            p_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
             NodeType::Pointer pnode = ModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
             std::vector<NodeType::Pointer> geom(1);
             geom[0] = pnode;
             GeometryType::Pointer pgeom = Kratos::make_shared<GeometryType>(PointerVector<NodeType>{geom});
-            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, ThisResidualType);
+            Element::Pointer pelem = Kratos::make_intrusive<TestElement>(1, pgeom, p_prop, ThisResidualType);
             ModelPart.AddElement(pelem);
 
             pnode->AddDof(DISPLACEMENT_X, REACTION_X);
@@ -148,7 +153,7 @@ namespace Kratos
             LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, pbuildandsolve, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::LINEAR);
 
@@ -189,7 +194,7 @@ namespace Kratos
             ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
             BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, 10, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
 
@@ -243,7 +248,7 @@ namespace Kratos
                 "line_search_tolerance"      : 0.5
             })");
 
-            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, settings));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new LineSearchStrategyType(model_part, pscheme, pcriteria, pbuildandsolve, settings));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
 
