@@ -76,8 +76,10 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
 
         # This is a reference value for the wake normal
         self.wake_normal = self.wake_process_cpp_parameters["wake_normal"].GetVector()
-        if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
-            raise Exception('The wake normal should be a unitary vector')
+        print('wake_normal = ', self.wake_normal)
+        print('dot = ', DotProduct(self.wake_normal,self.wake_normal))
+        # if( abs(DotProduct(self.wake_normal,self.wake_normal) - 1) > self.epsilon ):
+        #     raise Exception('The wake normal should be a unitary vector')
 
         trailing_edge_model_part_name = settings["model_part_name"].GetString()
         if trailing_edge_model_part_name == "":
@@ -148,16 +150,16 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         KratosMultiphysics.Logger.PrintInfo(
             'DefineWakeProcess3D', 'Executing Define3DWakeProcess took ', round(exe_time/60, 2), ' min')
 
-        if self.refinement_iterations > 0:
-            for section in sections:
-                section_model_part = self.body_model_part.GetRootModelPart().GetSubModelPart(GetSectionName(section))
-                for condition in section_model_part.Conditions:
-                    condition.Set(KratosMultiphysics.TO_ERASE)
-                self.body_model_part.GetRootModelPart().RemoveSubModelPart(GetSectionName(section))
-            self.body_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
+        # if self.refinement_iterations > 0:
+        #     for section in sections:
+        #         section_model_part = self.body_model_part.GetRootModelPart().GetSubModelPart(GetSectionName(section))
+        #         for condition in section_model_part.Conditions:
+        #             condition.Set(KratosMultiphysics.TO_ERASE)
+        #         self.body_model_part.GetRootModelPart().RemoveSubModelPart(GetSectionName(section))
+        #     self.body_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
         #self._BlockDomain()
-        self.number_of_sweeps = 0
+        self.number_of_sweeps = 2
         self.remove_modelparts = True
 
         for _ in range(self.refinement_iterations):
@@ -169,7 +171,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             # Option 3 - Remesh everything, setting a metric for the wake and domain
             # self._CalculateMetricWake()
             self._CallMMG()
-            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("Wake3D_Wake_Auto1")
+            # self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("Wake3D_Wake_Auto1")
             CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
                                    self.wake_model_part, self.wake_process_cpp_parameters).ExecuteInitialize()
             #self.target_h_wake /= 2.0
@@ -198,9 +200,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         from stl import mesh #this requires numpy-stl
         wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
 
-        z = 0.0#-1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
+        z = -1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
         y = 0.0
-        x = 0.0#-3e-4
+        x = -3e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
@@ -398,7 +400,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             self.body_model_part.GetRootModelPart().RemoveSubModelPart("trailing_edge_elements_model_part")
             self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_elements_model_part")
             # self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_model_part")
-            self.body_model_part.GetRootModelPart().RemoveSubModelPart("Wake3D_Wake_Auto1")
+            # self.body_model_part.GetRootModelPart().RemoveSubModelPart("Wake3D_Wake_Auto1")
 
     def _CallMMG(self):
 
