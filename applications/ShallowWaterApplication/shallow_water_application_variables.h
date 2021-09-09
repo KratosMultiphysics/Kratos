@@ -38,6 +38,7 @@ namespace Kratos
     // Physical variables
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, BATHYMETRY)                // Topographic definition of the marine domain
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, TOPOGRAPHY)                // Topographic definition of the domain
+    KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, FROUDE)                    // Ratio of the flow inertia to the gravity forces
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, RAIN)                      // Source term
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, MANNING)                   // Friction coefficient
     KRATOS_DEFINE_APPLICATION_VARIABLE(SHALLOW_WATER_APPLICATION, double, CHEZY)                     // Friction coefficient
