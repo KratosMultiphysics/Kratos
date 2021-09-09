@@ -5,11 +5,11 @@
 #       /___/\____/_/  |_| Application
 
 import KratosMultiphysics as KM
-import KratosMultiphysics.IgaApplication as IGA
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import os
 
 
 def GetFilePath(fileName):
@@ -43,7 +43,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
         element_id = 1
-        for i in range(0, len(quadrature_point_geometries)):
+        for i in enumerate(quadrature_point_geometries):
             model_part.CreateNewElement('Shell3pElement', element_id, quadrature_point_geometries[i], shell_properties)
             element_id += 1
 
