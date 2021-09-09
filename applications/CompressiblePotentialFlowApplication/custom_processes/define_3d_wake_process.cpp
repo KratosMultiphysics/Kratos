@@ -183,32 +183,68 @@ void Define3DWakeProcess::InitializeWakeSubModelpart() const
 // This function marks the trailing edge nodes and finds the wingtip nodes
 void Define3DWakeProcess::MarkTrailingEdgeNodesAndFindWingtipNodes()
 {
-    double max_span_position = std::numeric_limits<double>::lowest();
-    double min_span_position = std::numeric_limits<double>::max();
+    KRATOS_WATCH(mrTrailingEdgeModelPart.NumberOfNodes())
+    // chord at the root
+    const double A = 0.8104915;
 
-    auto p_right_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
-    auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
+    // pi
+    const double pi = 3.14159265358979;
 
-    for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
-        r_node.SetValue(KUTTA, true);
-        r_node.SetValue(TRAILING_EDGE, true);
-        const auto& r_coordinates = r_node.Coordinates();
-        const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
+    // trailing edge sweep in degrees
+    const double te_sweep = 15.69175411;
+    const double te_sweep_rad = te_sweep * pi / 180.0;
 
-        // Wingtip nodes have maximum and minimum span positions
-        if(distance_projection > max_span_position){
-            p_right_wing_tip_node = &r_node;
-            max_span_position = distance_projection;
-        }
-        if(distance_projection < min_span_position){
-            p_left_wing_tip_node = &r_node;
-            min_span_position = distance_projection;
+    // angle of attack in degrees
+    const double aoa = 3.06;
+    const double aoa_rad = aoa * pi / 180.0;
+
+    std::vector<std::size_t> te_nodes_ordered_ids;
+    for (auto& r_node : mrBodyModelPart.Nodes()) {
+        const double new_x = ( r_node.Y() * tan(te_sweep_rad) + A ) * cos(aoa_rad);
+        if( r_node.X() > new_x - 0.0001){
+            r_node.SetValue(TRAILING_EDGE, true);
+            r_node.SetValue(KUTTA, 5.0);
+            r_node.SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS, 0.0);
+            // r_node.SetValue(TE_ELEMENT_COUNTER, 0);
+            te_nodes_ordered_ids.push_back(r_node.Id());
         }
     }
 
-    // Marking wingtip nodes
-    p_right_wing_tip_node->SetValue(WING_TIP, true);
-    p_left_wing_tip_node->SetValue(WING_TIP, true);
+    std::sort(te_nodes_ordered_ids.begin(),
+              te_nodes_ordered_ids.end());
+    mrTrailingEdgeModelPart.AddNodes(te_nodes_ordered_ids);
+    KRATOS_WATCH(mrTrailingEdgeModelPart.NumberOfNodes())
+
+    KRATOS_ERROR_IF(mrTrailingEdgeModelPart.NumberOfNodes() == 0) << "There are no nodes in the mrTrailingEdgeModelPart!"<< std::endl;
+
+    /////////////////////////////////////////////////////////
+
+    // double max_span_position = std::numeric_limits<double>::lowest();
+    // double min_span_position = std::numeric_limits<double>::max();
+
+    // auto p_right_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
+    // auto p_left_wing_tip_node = &*mrTrailingEdgeModelPart.NodesBegin();
+
+    // for (auto& r_node : mrTrailingEdgeModelPart.Nodes()) {
+    //     r_node.SetValue(KUTTA, true);
+    //     r_node.SetValue(TRAILING_EDGE, true);
+    //     const auto& r_coordinates = r_node.Coordinates();
+    //     const double distance_projection = inner_prod(r_coordinates, mSpanDirection);
+
+    //     // Wingtip nodes have maximum and minimum span positions
+    //     if(distance_projection > max_span_position){
+    //         p_right_wing_tip_node = &r_node;
+    //         max_span_position = distance_projection;
+    //     }
+    //     if(distance_projection < min_span_position){
+    //         p_left_wing_tip_node = &r_node;
+    //         min_span_position = distance_projection;
+    //     }
+    // }
+
+    // // Marking wingtip nodes
+    // p_right_wing_tip_node->SetValue(WING_TIP, true);
+    // p_left_wing_tip_node->SetValue(WING_TIP, true);
 }
 
 // This function computes the wing lower surface normals and marks the upper
