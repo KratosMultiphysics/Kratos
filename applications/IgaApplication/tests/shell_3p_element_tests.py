@@ -43,7 +43,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
         element_id = 1
-        for i in enumerate(quadrature_point_geometries):
+        for i in range(0, len(quadrature_point_geometries)):
             model_part.CreateNewElement('Shell3pElement', element_id, quadrature_point_geometries[i], shell_properties)
             element_id += 1
 
