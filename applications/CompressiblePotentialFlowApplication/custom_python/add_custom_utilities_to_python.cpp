@@ -33,6 +33,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     mod_potential_flow_utilities.def("CheckIfWakeConditionsAreFulfilled3D",&PotentialFlowUtilities::CheckIfWakeConditionsAreFulfilled<3>);
     mod_potential_flow_utilities.def("CalculateArea",&PotentialFlowUtilities::CalculateArea<ModelPart::ElementsContainerType>);
     mod_potential_flow_utilities.def("CalculateArea",&PotentialFlowUtilities::CalculateArea<ModelPart::ConditionsContainerType>);
+    mod_potential_flow_utilities.def("ComputeWakeMetrics",&PotentialFlowUtilities::ComputeWakeMetrics);
 }
 
 }  // namespace Python.

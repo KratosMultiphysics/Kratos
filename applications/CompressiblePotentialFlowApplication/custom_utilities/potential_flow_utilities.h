@@ -200,6 +200,8 @@ void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+void ComputeWakeMetrics(ModelPart& rModelPart, const double rWakeH);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

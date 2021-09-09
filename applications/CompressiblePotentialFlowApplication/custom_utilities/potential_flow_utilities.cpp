@@ -114,8 +114,21 @@ array_1d<double, Dim> ComputeVelocity(const Element& rElement)
 
     if (wake == 0)
         return ComputeVelocityNormalElement<Dim,NumNodes>(rElement);
-    else
-        return ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+    else {
+        std::size_t n_upper = 0;
+        std::size_t n_lower = 0;
+        auto& r_geometry = rElement.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            if (r_node.GetValue(UPPER_SURFACE))
+                n_upper++;
+            if (r_node.GetValue(LOWER_SURFACE))
+                n_lower++;
+        }
+        if (n_upper >= n_lower)
+            return ComputeVelocityUpperWakeElement<Dim,NumNodes>(rElement);
+        else
+            return ComputeVelocityLowerWakeElement<Dim,NumNodes>(rElement);
+    }
 }
 
 template <int Dim, int NumNodes>
@@ -971,6 +984,7 @@ Vector ComputeKuttaNormal<3>(const double angle)
     kutta_normal[0]=sin(angle);
     kutta_normal[1]=0;
     kutta_normal[2]=cos(angle);
+
     return kutta_normal;
 }
 
@@ -1000,6 +1014,8 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
     data.potentials = PotentialFlowUtilities::GetPotentialOnNormalElement<Dim,NumNodes>(rElement);
 
     const double angle_in_deg = rCurrentProcessInfo[ROTATION_ANGLE];
+
+
 
     BoundedVector<double, Dim> n_angle = PotentialFlowUtilities::ComputeKuttaNormal<Dim>(angle_in_deg*Globals::Pi/180);
 
@@ -1126,6 +1142,39 @@ void AddPotentialGradientStabilizationTerm(
     noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
+void ComputeWakeMetrics(ModelPart& rModelPart, const double rWakeH) {
+
+    for (auto& r_node : rModelPart.Nodes()) {
+        r_node.SetValue(POTENTIAL_METRIC_TENSOR_3D, ZeroVector(6));
+
+    }
+    const auto is_neighbour = [&](Element& rElem) {
+        auto& r_geometry = rElem.GetGeometry();
+        for (auto& r_node : r_geometry) {
+            auto& neighbour_elem_list = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+            KRATOS_ERROR_IF(neighbour_elem_list.size()==0) << "Neighbours not calculated!" << std::endl;
+            for (const auto& r_elem : neighbour_elem_list) {
+                if (r_elem.Is(TO_SPLIT)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    for (auto& r_elem : rModelPart.Elements()) {
+        if (r_elem.Is(TO_SPLIT) || is_neighbour(r_elem)) {
+            auto& r_geometry = r_elem.GetGeometry();
+            for (auto& r_node : r_geometry) {
+                array_1d<double, 6> tensor_3d = ZeroVector(6);
+                tensor_3d[0] = 1/(rWakeH*rWakeH);
+                tensor_3d[1] = 1/(rWakeH*rWakeH);
+                tensor_3d[2] = 1/(rWakeH*rWakeH);
+                r_node.SetValue(POTENTIAL_METRIC_TENSOR_3D, tensor_3d);
+            }
+        }
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
