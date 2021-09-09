@@ -32,65 +32,72 @@ void Timer::TimerData::PrintData(
         if(GlobalElapsedTime <= 0.0) {
             rOStream.precision(6);
             rOStream
+            << std::setw(4)
+            << std::setiosflags(std::ios::fixed)
             << mRepeatNumber
+            << std::resetiosflags(std::ios::fixed)
             << "\t\t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMaximumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMinimumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
-            << "s    \t" ;
+            << "     \t" ;
         } else {
             rOStream.precision(6);
             rOStream
+            << std::setw(4)
+            << std::setiosflags(std::ios::fixed)
             << mRepeatNumber
             << "\t\t"
+            << std::resetiosflags(std::ios::fixed)
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMaximumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mMinimumTime
-            << "s    \t"
+            << "     \t"
             << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::setprecision(4)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(4)
             << mTotalElapsedTime/static_cast<double>(mRepeatNumber)
-            << "s    \t"
-            << std::setiosflags(std::ios::scientific)
-            << std::setprecision(6)
+            << std::resetiosflags(std::ios::scientific)
+            << "     \t"
+            << std::setiosflags(std::ios::fixed)
+            << std::setprecision(3)
             << std::uppercase
-            << std::setw(6)
+            << std::setw(3)
             << (mTotalElapsedTime/GlobalElapsedTime)*100.00 << "%" ;
         }
     }
@@ -101,19 +108,26 @@ Timer::Timer(){}
 
 void Timer::Start(std::string const& rIntervalName)
 {
-    const auto it_internal_name = msInternalNameDatabase.find(rIntervalName);
+    GetLabelsStackInstance().push_back(rIntervalName);
+    auto full_name = CreateFullLabel();
+    const auto it_internal_name = msInternalNameDatabase.find(full_name);
     if(it_internal_name == msInternalNameDatabase.end()) {
-        const std::string internal_name = GetInternalName(rIntervalName);
-        msInternalNameDatabase.insert(std::pair<std::string, std::string>(rIntervalName, internal_name));
+        const std::string internal_name = GetInternalName(full_name);
+        msInternalNameDatabase.insert(std::pair<std::string, std::string>(full_name, internal_name));
         msTimeTable[internal_name].SetStartTime(GetTime());
         ++msCounter;
     }
+    const std::string& r_name = msInternalNameDatabase[full_name];
+    ContainerType::iterator it_time_data = msTimeTable.find(r_name);
+    it_time_data->second.SetStartTime(GetTime());
 }
 
 void Timer::Stop(std::string const& rIntervalName)
 {
+    auto full_name = CreateFullLabel();
+    GetLabelsStackInstance().pop_back();
     const double stop_time = GetTime();
-    const std::string& r_name = msInternalNameDatabase[rIntervalName];
+    const std::string& r_name = msInternalNameDatabase[full_name];
     ContainerType::iterator it_time_data = msTimeTable.find(r_name);
 
     if(it_time_data == msTimeTable.end())
@@ -187,19 +201,19 @@ void Timer::PrintIntervalInformation(std::ostream& rOStream, std::string const& 
     rOStream.precision(6);
     rOStream << " "
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StartTime << "s\t\t"
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StopTime << "s\t\t"
     << std::setiosflags(std::ios::scientific)
-    << std::setprecision(6)
+    << std::setprecision(4)
     << std::uppercase
-    << std::setw(6)
+    << std::setw(4)
     << StopTime - StartTime <<"s" << std::endl;
 }
 
@@ -213,11 +227,21 @@ void Timer::PrintTimingInformation()
 
 void Timer::PrintTimingInformation(std::ostream& rOStream)
 {
+    std::size_t max_string_length = 40;
+    for(auto& r_time_data : msTimeTable) {
+        if (r_time_data.first.size() > max_string_length) {
+            max_string_length = r_time_data.first.size();
+        }
+    }
     const double global_elapsed_time = ElapsedSeconds(mStartTime);
-    rOStream << "                                 Repeat #\t\tTotal           \tMax             \tMin             \tAverage           \tTime%" << std::endl;
+    std::string header = "   Repeat #\t\tTotal       \tMax         \tMin         \tAverage       \tTime%";
+    for (std::size_t i = 0; i < max_string_length - 6; i++) {
+        header.insert(0, " ");
+    }
+    rOStream << header << std::endl;
     for(auto& r_time_data : msTimeTable) {
         rOStream << r_time_data.first;
-        for(int i =  r_time_data.first.size() + 1 ; i < 40 ; i++)
+        for(int i =  r_time_data.first.size() ; i < static_cast<int>(max_string_length) ; i++)
             rOStream << ".";
 
         rOStream << " ";
@@ -247,4 +271,3 @@ bool Timer::msPrintIntervalInformation = true;
 const std::chrono::steady_clock::time_point Timer::mStartTime = std::chrono::steady_clock::now();
 
 } /// namespace Kratos
-

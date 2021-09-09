@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -15,6 +16,7 @@
 
 // Project includes
 #include "custom_utilities/mortar_explicit_contribution_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -26,7 +28,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
     const bool ComputeDualLM,
-    Variable<double>& rAreaVariable
+    const Variable<double>& rAreaVariable
     )
 {
     KRATOS_TRY
@@ -47,7 +49,9 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
+    const auto& r_properties = pCondition->GetProperties();
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
 
     // The master geometry
     GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
@@ -123,8 +127,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                #pragma omp atomic
-                r_nodal_area += DOperator(i_node, i_node);
+                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
             }
         }
 
@@ -144,8 +147,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            #pragma omp atomic
-            r_weighted_gap += inner_prod(aux_array, - aux_normal);
+            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - aux_normal));
         }
 
         // We reset the flag
@@ -172,7 +174,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
     const bool ComputeDualLM,
-    Variable<double>& rAreaVariable,
+    const Variable<double>& rAreaVariable,
     const bool ConsiderObjetiveFormulation
     )
 {
@@ -194,10 +196,12 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
+    const auto& r_properties = pCondition->GetProperties();
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
 
     // The master geometry
-    GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
+    const GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
     const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
@@ -227,9 +231,10 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
+        // Iterate over segmented conditions
         PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of pCondition points
+        PointType global_point;
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-            PointType global_point;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
                 r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
@@ -270,8 +275,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
         if (ComputeNodalArea && dual_LM) {
             for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
                 double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-                #pragma omp atomic
-                r_nodal_area += DOperator(i_node, i_node);
+                AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
             }
         }
 
@@ -314,8 +318,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
 
             double& r_weighted_gap = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
-            #pragma omp atomic
-            r_weighted_gap += inner_prod(aux_array, - normal);
+            AtomicAdd(r_weighted_gap, inner_prod(aux_array, - normal));
 
             // We compute the tangent component
             const array_1d<double, TDim>& r_slip_time_derivative_node = row(slip_time_derivative, i_node);
@@ -325,8 +328,7 @@ typename MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormal
             array_1d<double, 3>& r_weighted_slip = r_slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_SLIP);
 
             for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
-                #pragma omp atomic
-                r_weighted_slip[i_dim] += slip_node[i_dim];
+                AtomicAdd(r_weighted_slip[i_dim], slip_node[i_dim]);
             }
         }
 
@@ -349,7 +351,7 @@ template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TF
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ComputeNodalArea(
     PairedCondition* pCondition,
     const ProcessInfo& rCurrentProcessInfo,
-    Variable<double>& rAreaVariable,
+    const Variable<double>& rAreaVariable,
     const IndexType IntegrationOrder,
     const bool AxisymmetricCase
     )
@@ -371,7 +373,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     const bool AxisymmetricCase,
     const bool ComputeNodalArea,
     const bool ComputeDualLM,
-    Variable<double>& rAreaVariable
+    const Variable<double>& rAreaVariable
     )
 {
     // We "save" the mortar operator for the next step
@@ -388,10 +390,12 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     // We call the exact integration utility
     const double distance_threshold = rCurrentProcessInfo.Has(DISTANCE_THRESHOLD) ? rCurrentProcessInfo[DISTANCE_THRESHOLD] : 1.0e24;
     const double zero_tolerance_factor = rCurrentProcessInfo.Has(ZERO_TOLERANCE_FACTOR) ? rCurrentProcessInfo[ZERO_TOLERANCE_FACTOR] : 1.0e0;
-    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor);
+    const auto& r_properties = pCondition->GetProperties();
+    const bool consider_tessellation = r_properties.Has(CONSIDER_TESSELLATION) ? r_properties[CONSIDER_TESSELLATION] : false;
+    IntegrationUtility integration_utility = IntegrationUtility (IntegrationOrder, distance_threshold, 0, zero_tolerance_factor, consider_tessellation);
 
     // The master geometry
-    GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
+    const GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     // The normal of the master condition
     const array_1d<double, 3>& r_normal_master = pCondition->GetPairedNormal();
@@ -421,11 +425,12 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
             dual_LM = ExplicitCalculateAe(r_slave_geometry, kinematic_variables, conditions_points_slave, Ae, this_integration_method, axisymmetric_coefficient);
         }
 
+        // Iterate over segmented conditions
+        PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+        array_1d<BelongType, TDim> belong_array;
+        PointType global_point;
         for (IndexType i_geom = 0; i_geom < conditions_points_slave.size(); ++i_geom) {
-            PointerVector<PointType> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-            array_1d<BelongType, TDim> belong_array;
             for (IndexType i_node = 0; i_node < TDim; ++i_node) {
-                PointType global_point;
                 r_slave_geometry.GlobalCoordinates(global_point, conditions_points_slave[i_geom][i_node]);
                 points_array(i_node) = Kratos::make_shared<PointType>(PointType(global_point));
                 belong_array[i_node] = conditions_points_slave[i_geom][i_node].GetBelong();
@@ -465,8 +470,7 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
         const BoundedMatrix<double, TNumNodes, TNumNodes>& DOperator = rPreviousMortarOperators.DOperator;
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             double& r_nodal_area = r_slave_geometry[i_node].GetValue(rAreaVariable);
-            #pragma omp atomic
-            r_nodal_area += DOperator(i_node, i_node);
+            AtomicAdd(r_nodal_area, DOperator(i_node, i_node));
         }
     }
 
@@ -480,7 +484,7 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ExplicitCalculateAe(
     const GeometryType& rSlaveGeometry,
     GeneralVariables& rVariables,
-    ConditionArrayListType& rConditionsPointsSlave,
+    const ConditionArrayListType& rConditionsPointsSlave,
     BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
     const IntegrationMethod& rIntegrationMethod,
     const double AxiSymCoeff
@@ -493,9 +497,10 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
     AeData Ae_data;
     Ae_data.Initialize();
 
+    // Iterate over segmented conditions
+    std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
+    PointType global_point;
     for (IndexType i_geom = 0; i_geom < rConditionsPointsSlave.size(); ++i_geom) {
-        std::vector<PointType::Pointer> points_array (TDim); // The points are stored as local coordinates, we calculate the global coordinates of this points
-        PointType global_point;
         for (IndexType i_node = 0; i_node < TDim; ++i_node) {
             rSlaveGeometry.GlobalCoordinates(global_point, rConditionsPointsSlave[i_geom][i_node]);
             points_array[i_node] = Kratos::make_shared<PointType>( global_point );
@@ -534,13 +539,13 @@ bool MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::ExplicitCalculateKinematics(
-    PairedCondition* pCondition,
+    const PairedCondition* pCondition,
     GeneralVariables& rVariables,
     const BoundedMatrix<double, TNumNodes, TNumNodes>& rAe,
     const array_1d<double, 3>& rNormalMaster,
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
-    GeometryPointType& rGeometryDecomp,
+    const GeometryPointType& rGeometryDecomp,
     const bool DualLM
     )
 {
@@ -568,13 +573,13 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::CalculateKinematics(
-    PairedCondition* pCondition,
+    const PairedCondition* pCondition,
     GeneralVariables& rVariables,
     const DerivativeDataType& rDerivativeData,
     const array_1d<double, 3>& rNormalMaster,
     const PointType& rLocalPointDecomp,
     const PointType& rLocalPointParent,
-    GeometryPointType& rGeometryDecomp,
+    const GeometryPointType& rGeometryDecomp,
     const bool DualLM
     )
 {
@@ -602,14 +607,14 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 
 template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
 void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::MasterShapeFunctionValue(
-    PairedCondition* pCondition,
+    const PairedCondition* pCondition,
     GeneralVariables& rVariables,
     const array_1d<double, 3>& rNormalMaster,
     const PointType& rLocalPoint
     )
 {
-    GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
-    GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
+    const GeometryType& r_slave_geometry = pCondition->GetParentGeometry();
+    const GeometryType& r_master_geometry = pCondition->GetPairedGeometry();
 
     PointType projected_gp_global;
     const array_1d<double,3> gp_normal = MortarUtilities::GaussPointUnitNormal(rVariables.NSlave, r_slave_geometry);
@@ -635,7 +640,7 @@ void MortarExplicitContributionUtilities<TDim,TNumNodes,TFrictional, TNormalVari
 /***********************************************************************************/
 
 double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
-    PairedCondition* pCondition,
+    const PairedCondition* pCondition,
     const Vector& rNSlave
     )
 {
@@ -648,7 +653,7 @@ double AuxiliarOperationsUtilities::GetAxisymmetricCoefficient(
 /***********************************************************************************/
 
 double AuxiliarOperationsUtilities::CalculateRadius(
-    PairedCondition* pCondition,
+    const PairedCondition* pCondition,
     const Vector& rNSlave
     )
 {

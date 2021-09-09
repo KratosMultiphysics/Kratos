@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 
@@ -28,10 +26,10 @@ class TestCompareElementsAndConditionsUtility(KratosUnittest.TestCase):
         model_part.CreateNewNode(2, 1.00,0.00,0.00)
         model_part.CreateNewNode(3, 1.00,1.00,0.00)
         model_part.AddProperties(KM.Properties(1))
-        pcond = model_part.CreateNewCondition("Condition3D", 1, [1,2,3], model_part.GetProperties()[1])
+        pcond = model_part.CreateNewCondition("SurfaceCondition3D3N", 1, [1,2,3], model_part.GetProperties()[1])
 
-        self.assertEqual(KM.CompareElementsAndConditionsUtility.GetRegisteredName(pcond), "Condition3D")
-        self.assertNotEqual(KM.CompareElementsAndConditionsUtility.GetRegisteredName(pcond), "NotCondition3D")
+        self.assertEqual(KM.CompareElementsAndConditionsUtility.GetRegisteredName(pcond), "SurfaceCondition3D3N")
+        self.assertNotEqual(KM.CompareElementsAndConditionsUtility.GetRegisteredName(pcond), "NotSurfaceCondition3D3N")
 
 if __name__ == '__main__':
     KratosUnittest.main()

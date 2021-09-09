@@ -6,7 +6,7 @@ import KratosMultiphysics.ShapeOptimizationApplication as KSO
 # Additional imports
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory
-from KratosMultiphysics.ShapeOptimizationApplication.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import time
 from decimal import Decimal
@@ -24,6 +24,7 @@ kratos_response_settings = KM.Parameters("""
     "stress_treatment"  : "mean",
     "primal_settings"   : "primal_parameters.json",
     "adjoint_settings"  : "auto",
+    "primal_data_transfer_with_python": true,
     "sensitivity_settings" : {
         "sensitivity_model_part_name"     : "Parts_structure",
         "nodal_solution_step_sensitivity_variables"     : ["SHAPE_SENSITIVITY"],
@@ -96,7 +97,7 @@ for move_node_id in list_of_move_nodes:
     response.Finalize()
 
     # Perform mapping
-    WriteDictionaryDataOnNodalVariable(response.GetShapeGradient(), model_part, KSO.DF1DX)
+    WriteDictionaryDataOnNodalVariable(response.GetNodalGradient(KM.SHAPE_SENSITIVITY), model_part, KSO.DF1DX)
     vm_mapper = KSO.MapperVertexMorphingMatrixFree(model_part, model_part, mapper_settings)
     vm_mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 

@@ -11,9 +11,9 @@
 import time as timer
 import KratosMultiphysics as KM
 from KratosMultiphysics import Logger
-from .response_function import ResponseFunctionBase
+from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
-class PackagingResponseBase(ResponseFunctionBase):
+class PackagingResponseBase(ResponseFunctionInterface):
     """
     A base class for packaging response functions that agglomerate the nodal violations
     into a single response function.
@@ -32,21 +32,21 @@ class PackagingResponseBase(ResponseFunctionBase):
     def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
 
-        response_settings.ValidateAndAssignDefaults(self.GetDefaultSettings())
+        response_settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.response_settings = response_settings
         self.model = model
 
-        model_part_name = response_settings["model_part_name"].GetString()
+        self._model_part_name = response_settings["model_part_name"].GetString()
         input_type = response_settings["model_import_settings"]["input_type"].GetString()
         if input_type == "mdpa":
-            self.model_part = self.model.CreateModelPart(model_part_name)
+            self.model_part = self.model.CreateModelPart(self._model_part_name)
             domain_size = response_settings["domain_size"].GetInt()
             if domain_size not in [2, 3]:
                 raise Exception("PackagingResponseBase: Invalid 'domain_size': {}".format(domain_size))
             self.model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, domain_size)
         elif input_type == "use_input_model_part":
-            self.model_part = self.model.GetModelPart(model_part_name)
+            self.model_part = None  # will be retrieved in Initialize()
         else:
             raise Exception("PackagingResponseBase: '{}' model part input type not implemented.".format(input_type))
 
@@ -61,7 +61,7 @@ class PackagingResponseBase(ResponseFunctionBase):
         self.exponent = 2
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "response_type"         : "UNKNOWN_TYPE",
             "model_part_name"       : "UNKNOWN_NAME",
@@ -79,6 +79,8 @@ class PackagingResponseBase(ResponseFunctionBase):
             file_name = self.response_settings["model_import_settings"]["input_filename"].GetString()
             model_part_io = KM.ModelPartIO(file_name)
             model_part_io.ReadModelPart(self.model_part)
+        else:
+            self.model_part = self.model.GetModelPart(self._model_part_name)
 
     def InitializeSolutionStep(self):
         self.value = None
@@ -119,9 +121,11 @@ class PackagingResponseBase(ResponseFunctionBase):
     def GetValue(self):
         return self.value
 
-    def GetShapeGradient(self):
+    def GetNodalGradient(self, variable):
         if not self.gradient:
             raise RuntimeError("Gradient was not calculated")
+        if variable != KM.SHAPE_SENSITIVITY:
+            raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
     def _CalculateDistances(self):

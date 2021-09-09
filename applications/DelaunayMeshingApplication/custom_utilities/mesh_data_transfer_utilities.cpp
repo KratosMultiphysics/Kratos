@@ -8,6 +8,7 @@
 //
 
 // System includes
+#include <algorithm>
 
 // External includes
 
@@ -130,7 +131,7 @@ void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element* rCurrentEle
   //double
   for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); ++i)
   {
-    rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),rVariableArrays.DoubleVariableArray,rCurrentProcessInfo);
+    rCurrentElement->CalculateOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),rVariableArrays.DoubleVariableArray,rCurrentProcessInfo);
 
     //if there is more than one integration point, an average or an interpolation is need
     rVariables.DoubleVariable = rVariableArrays.DoubleVariableArray[0];
@@ -145,7 +146,7 @@ void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element* rCurrentEle
   //array_1d
   for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); ++i)
   {
-    rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),rVariableArrays.Array1DVariableArray,rCurrentProcessInfo);
+    rCurrentElement->CalculateOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),rVariableArrays.Array1DVariableArray,rCurrentProcessInfo);
 
     //if there is more than one integration point, an average or an interpolation is need
     rVariables.Array1DVariable = rVariableArrays.Array1DVariableArray[0];
@@ -161,7 +162,7 @@ void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element* rCurrentEle
   for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
   {
 
-    rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),rVariableArrays.VectorVariableArray,rCurrentProcessInfo);
+    rCurrentElement->CalculateOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),rVariableArrays.VectorVariableArray,rCurrentProcessInfo);
 
     //if there is more than one integration point, an average or an interpolation is need
     rVariables.VectorVariable = rVariableArrays.VectorVariableArray[0];
@@ -177,7 +178,7 @@ void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element* rCurrentEle
   for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
   {
 
-    rCurrentElement->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),rVariableArrays.MatrixVariableArray,rCurrentProcessInfo);
+    rCurrentElement->CalculateOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),rVariableArrays.MatrixVariableArray,rCurrentProcessInfo);
 
     //if there is more than one integration point, an average or an interpolation is need
     rVariables.MatrixVariable = rVariableArrays.MatrixVariableArray[0];
@@ -388,7 +389,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
     {
 
       //elemental value
-      i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
+      i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
 
       std::fill(NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0 );
 
@@ -408,7 +409,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
     }
 
@@ -417,7 +418,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
     {
 
       //elemental value
-      i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+      i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
 
       for(unsigned int j=0; j<integration_points_number; ++j)
       {
@@ -441,7 +442,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
     }
 
@@ -450,7 +451,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
     {
 
       //elemental value
-      i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+      i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 
 
       for(unsigned int j=0; j<integration_points_number; ++j)
@@ -477,7 +478,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
     }
 
@@ -488,7 +489,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
     {
 
       //elemental value
-      i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+      i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 
 
       for(unsigned int j=0; j<integration_points_number; ++j)
@@ -516,7 +517,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       }
 
 
-      i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+      i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
     }
 
@@ -558,7 +559,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
 
   for(auto& i_elem : rModelPart.Elements())
   {
-    i_elem.GetValueOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
+    i_elem.CalculateOnIntegrationPoints(rCriticalVariable,ComputedValues,CurrentProcessInfo);
 
     computed_value = ComputedValues[0];
 
@@ -618,7 +619,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       {
 
         //elemental value
-        i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
+        i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
 
         std::fill(NodesDoubleVariableArray.begin(), NodesDoubleVariableArray.end(), 0.0 );
 
@@ -640,7 +641,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
 
         //std::cout<<" transfer ["<<i_elem.Id()<<"] "<<NodesDoubleVariableArray[0]<<" element "<<ElementDoubleVariableArray[0]<<std::endl;
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),NodesDoubleVariableArray,CurrentProcessInfo);
 
       }
 
@@ -649,7 +650,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       {
 
         //elemental value
-        i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+        i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
         for(unsigned int j=0; j<integration_points_number; ++j)
         {
           NodesArray1DVariableArray[j].clear();
@@ -671,7 +672,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),NodesArray1DVariableArray,CurrentProcessInfo);
 
       }
 
@@ -680,7 +681,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       {
 
         //elemental value
-        i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+        i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 
         for(unsigned int j=0; j<integration_points_number; ++j)
         {
@@ -706,7 +707,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),NodesVectorVariableArray,CurrentProcessInfo);
 
       }
 
@@ -717,7 +718,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
       {
 
         //elemental value
-        i_elem.GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+        i_elem.CalculateOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 
         for(unsigned int j=0; j<integration_points_number; ++j)
         {
@@ -743,7 +744,7 @@ void MeshDataTransferUtilities::TransferNodalValuesToElements(const TransferPara
         }
 
 
-        i_elem.SetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
+        i_elem.SetValuesOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),NodesMatrixVariableArray,CurrentProcessInfo);
 
       }
 
@@ -820,7 +821,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
       //Vector
       for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
       {
-        (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+        (rModelPart.Elements().begin())->CalculateOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
         if( ElementVectorVariableArray[i].size() != 0)
           NodesVectorVariableArray[i] = ZeroVector(ElementVectorVariableArray[i].size());
         else
@@ -830,7 +831,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
       //Matrix
       for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
       {
-        (rModelPart.Elements().begin())->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+        (rModelPart.Elements().begin())->CalculateOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
         if( ElementMatrixVariableArray[i].size1() != 0  && ElementMatrixVariableArray[i].size2() != 0 )
           NodesMatrixVariableArray[i] = ZeroMatrix(ElementMatrixVariableArray[i].size1(),ElementMatrixVariableArray[i].size2());
         else
@@ -849,7 +850,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
+          i_nelem.CalculateOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number);
@@ -860,7 +861,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+          i_nelem.CalculateOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j] * ElementArea/double(integration_points_number);
@@ -871,7 +872,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+          i_nelem.CalculateOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesVectorVariableArray[i] += ElementVectorVariableArray[j] * ElementArea/double(integration_points_number);
@@ -882,7 +883,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToNodes( const TransferPa
         for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
         {
           //elemental value
-          i_nelem.GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+          i_nelem.CalculateOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
           for(unsigned int j=0; j<integration_points_number; ++j)
           {
             NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j] * ElementArea/double(integration_points_number);
@@ -1311,6 +1312,48 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     //new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
     new_element->AssignFlags(*(*pe.base()));
 
+    // In case of interaction of two or more fluids with different properties, the property
+    // of the new element is retrivied from the nodes using the PROPERTY_ID variable.
+    if (rModelPart.NumberOfProperties() > 1) {
+        typedef Node<3> NodeType;
+        typedef Geometry<NodeType> GeometryType;
+        GeometryType& r_geometry = new_element->GetGeometry();
+        std::vector<int> array_of_properties;
+        // unsigned int max_count = 1, curr_count = 1;
+
+        for (unsigned int i = 0; i < list_of_new_vertices[i_center->Id() - 1].size(); i++) {
+            if (r_geometry[i].IsNot(RIGID)) {
+                array_of_properties.push_back(r_geometry[i].FastGetSolutionStepValue(PROPERTY_ID, 0));
+            }
+        }
+        std::sort(array_of_properties.begin(), array_of_properties.end());
+        unsigned int property_id = array_of_properties[0];
+
+        // for (unsigned int i = 0; i < array_of_properties.size(); i++) {
+        //    if (array_of_properties[i+1] == array_of_properties[i]) {
+        //        curr_count++;
+        //    } else {
+        //        if (curr_count > max_count) {
+        //            max_count = curr_count;
+        //            property_id = array_of_properties[i];
+        //        }
+        //        curr_count = 1;
+        //    }
+        //}
+        // if (curr_count > max_count) {
+        //    property_id = array_of_properties.back();
+        //}
+        Properties::Pointer p_new_property = rModelPart.pGetProperties(property_id);
+        new_element->SetProperties(p_new_property);
+    }
+
+    // Clone the constitutive law
+    const PropertiesType& rProperties = new_element->GetProperties();
+    if (rProperties.Has(CONSTITUTIVE_LAW)) {
+        const ConstitutiveLaw::Pointer& pConstitutiveLaw = rProperties[CONSTITUTIVE_LAW];
+        new_element->SetValue(CONSTITUTIVE_LAW, pConstitutiveLaw->Clone());
+    }
+
     //check
     //new_element->PrintInfo(std::cout);
 
@@ -1329,7 +1372,7 @@ void MeshDataTransferUtilities::TransferElementalValuesToElements(ModelPart& rMo
     // Stress.clear();
     // StressMatrix.push_back(Stress);
     // ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-    // new_element->GetValueOnIntegrationPoints(CAUCHY_STRESS_TENSOR,StressMatrix,CurrentProcessInfo);
+    // new_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR,StressMatrix,CurrentProcessInfo);
     // std::cout<<StressMatrix[0]<<std::endl;
     //ELEMENT TRANSFER CHECK//
   }

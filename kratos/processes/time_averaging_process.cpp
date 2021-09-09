@@ -30,19 +30,7 @@ TimeAveragingProcess::TimeAveragingProcess(Model& rModel, Parameters rParameters
 {
     KRATOS_TRY
 
-    Parameters default_parameters = Parameters(R"(
-        {
-            "model_part_name"                               : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "variables_list"                                : [],
-            "averaged_variables_list"                       : [],
-            "time_averaging_container"                      : "NodalHistorical",
-            "time_averaging_method"                         : "Average",
-            "integration_start_point_control_variable_name" : "TIME",
-            "integration_start_point_control_value"         : 0.0,
-            "echo_level"                                    : 0
-        })");
-
-    mrParameters.ValidateAndAssignDefaults(default_parameters);
+    mrParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     mEchoLevel = mrParameters["echo_level"].GetInt();
     mModelPartName = mrParameters["model_part_name"].GetString();
@@ -283,6 +271,23 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep()
     KRATOS_CATCH("");
 }
 
+const Parameters TimeAveragingProcess::GetDefaultParameters() const
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "variables_list"                                : [],
+        "averaged_variables_list"                       : [],
+        "time_averaging_container"                      : "NodalHistorical",
+        "time_averaging_method"                         : "Average",
+        "integration_start_point_control_variable_name" : "TIME",
+        "integration_start_point_control_value"         : 0.0,
+        "echo_level"                                    : 0
+    })");
+
+    return default_parameters;
+}
+
 bool TimeAveragingProcess::IsIntegrationStep() const
 {
     const ProcessInfo& r_process_info =
@@ -369,15 +374,11 @@ void TimeAveragingProcess::CalculateTimeIntegratedNodalHistoricalQuantity(
     const std::function<void(const TDataType&, TDataType&, const double)> averaging_method =
         this->GetTimeAveragingMethod<TDataType>();
 
-    const int number_of_nodes = rNodes.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        NodeType& r_node = *(rNodes.begin() + i_node);
-        const TDataType& r_temporal_value = r_node.FastGetSolutionStepValue(rVariable);
-        TDataType& r_integrated_value = r_node.GetValue(rAveragedVariable);
+    block_for_each(rNodes, [&](Node<3>& rNode){
+        const TDataType& r_temporal_value = rNode.FastGetSolutionStepValue(rVariable);
+        TDataType& r_integrated_value = rNode.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
-    }
+    });
 }
 
 template <typename TDataType, typename TContainerType>
@@ -391,14 +392,13 @@ void TimeAveragingProcess::CalculateTimeIntegratedNonHistoricalQuantity(
         this->GetTimeAveragingMethod<TDataType>();
 
     const int number_of_nodes = rContainer.size();
-#pragma omp parallel for
-    for (int i_node = 0; i_node < number_of_nodes; ++i_node)
-    {
-        auto& r_container_element = *(rContainer.begin() + i_node);
+
+    IndexPartition<std::size_t>(number_of_nodes).for_each([&](std::size_t Index){
+        auto& r_container_element = *(rContainer.begin() + Index);
         const TDataType& r_temporal_value = r_container_element.GetValue(rVariable);
         TDataType& r_integrated_value = r_container_element.GetValue(rAveragedVariable);
         averaging_method(r_temporal_value, r_integrated_value, DeltaTime);
-    }
+    });
 }
 
 template <typename TDataType>

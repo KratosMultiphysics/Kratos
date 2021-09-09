@@ -106,11 +106,11 @@ namespace Kratos {
             r_skin_part.CreateNewNode(6, 0.6, 0.5, 0.0);
             Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
             Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-            r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
-            r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_properties_0);
+            r_skin_part.CreateNewCondition("LineCondition2D2N", 5, {{ 5,6 }}, p_properties_1);
             FindIntersectedGeometricalObjectsProcess find_intersections(r_surface_part, r_skin_part);
             find_intersections.Execute();
 
@@ -169,11 +169,11 @@ namespace Kratos {
             r_skin_part.CreateNewNode(6, -0.1, 1.0, 0.0);
             Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
             Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-            r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
-            r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_properties_0);
+            r_skin_part.CreateNewCondition("LineCondition2D2N", 5, {{ 5,6 }}, p_properties_1);
             FindIntersectedGeometricalObjectsProcess find_intersections(r_surface_part, r_skin_part);
             find_intersections.Execute();
 
@@ -205,11 +205,11 @@ namespace Kratos {
             r_skin_part.CreateNewNode(6, -0.1, 1.0, 0.0);
             Properties::Pointer p_properties_0 = Kratos::make_shared<Properties>(0);
             Properties::Pointer p_properties_1 = Kratos::make_shared<Properties>(1);
-            r_surface_part.CreateNewCondition("Condition2D2N", 1, {{1, 2}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 2, {{2, 3}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 3, {{3, 4}}, p_properties_0);
-            r_surface_part.CreateNewCondition("Condition2D2N", 4, {{4, 1}}, p_properties_0);
-            r_skin_part.CreateNewCondition("Condition2D2N", 5, {{ 5,6 }}, p_properties_1);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 3, {{3, 4}}, p_properties_0);
+            r_surface_part.CreateNewCondition("LineCondition2D2N", 4, {{4, 1}}, p_properties_0);
+            r_skin_part.CreateNewCondition("LineCondition2D2N", 5, {{ 5,6 }}, p_properties_1);
 
             Parameters parameters = Parameters(R"(
             {

@@ -190,7 +190,7 @@ protected:
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
-    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer) const;
+    std::size_t DetermineVtkCellListSize(const TContainerType& rContainer) const;
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in

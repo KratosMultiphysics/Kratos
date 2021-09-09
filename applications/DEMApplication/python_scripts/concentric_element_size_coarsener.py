@@ -8,13 +8,19 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 def ComputeMeanRadiusOfThisParticle(x, y, z, fine_radius):
 
     distance_to_origin = math.sqrt(x*x + y*y)
-    max_distance_for_fine_radius = 0.00762
+
+    specimen_type = 1 # 1: CTW16, # 2: CTW10
+    if specimen_type == 1:
+        max_distance_for_fine_radius = 0.00762
+    else:
+        max_distance_for_fine_radius = 0.01651
+
     slope = 0.01
     if distance_to_origin < max_distance_for_fine_radius:
         radius = fine_radius
     else:
         radius = fine_radius + slope * (distance_to_origin - max_distance_for_fine_radius)
-        
+
     return radius
 
 class ElementSizeModifier(DEMAnalysisStage):
@@ -41,7 +47,8 @@ class ElementSizeModifier(DEMAnalysisStage):
                 "tolerance": 0.001
             },
             "material_settings":{
-            "friction": 0.0,
+            "static_friction": 0.0,
+            "dynamic_friciton": 0.0,
             "young_modulus": 5.0e7,
             "density_for_artificial_concentric_weight": 2500
             }
@@ -49,7 +56,8 @@ class ElementSizeModifier(DEMAnalysisStage):
         """)
         self.size_modifier_parameters.ValidateAndAssignDefaults(default_input_parameters)
         self.eraser_counter = 0
-        self.list_of_frictions_at_start = []
+        self.list_of_static_frictions_at_start = []
+        self.list_of_dynamic_frictions_at_start = []
         self.list_of_young_modulus_at_start = []
         self.list_of_coefficients_of_restittution_at_start = []
         self.list_of_damping_gammas_at_start = []
@@ -57,52 +65,61 @@ class ElementSizeModifier(DEMAnalysisStage):
         project_parameters["GravityX"].SetDouble(0.0)
         project_parameters["GravityY"].SetDouble(0.0)
         project_parameters["GravityZ"].SetDouble(0.0)
+        project_parameters["RollingFrictionOption"].SetBool(False)
+        project_parameters["OutputFileType"].SetString("Ascii")
         project_parameters["MaxTimeStep"].SetDouble(self.size_modifier_parameters["time_step"].GetDouble())
-        super(ElementSizeModifier, self).__init__(model, project_parameters)
+        total_needed_time = self.size_modifier_parameters["initiation_time"].GetDouble() + self.size_modifier_parameters["process_duration"].GetDouble()
+        if project_parameters["FinalTime"].GetDouble() < total_needed_time:
+            project_parameters["FinalTime"].SetDouble(total_needed_time)
+        super().__init__(model, project_parameters)
 
     def Initialize(self):
-        super(ElementSizeModifier, self).Initialize()
+        super().Initialize()
         self._SaveInitialRadiusOfAllParticles()
         self._GetDeviationFromMeanSizeOfAllParticles()
         for props in self.spheres_model_part.Properties:
-            self.list_of_frictions_at_start.append(props[DEM.FRICTION])
-            props.SetValue(DEM.FRICTION, self.size_modifier_parameters["material_settings"]["friction"].GetDouble())
+            self.list_of_static_frictions_at_start.append(props[DEM.STATIC_FRICTION])
+            props.SetValue(DEM.STATIC_FRICTION, self.size_modifier_parameters["material_settings"]["static_friction"].GetDouble())
+            self.list_of_dynamic_frictions_at_start.append(props[DEM.DYNAMIC_FRICTION])
+            props.SetValue(DEM.DYNAMIC_FRICTION, self.size_modifier_parameters["material_settings"]["dynamic_friciton"].GetDouble())
             self.list_of_young_modulus_at_start.append(props[KratosMultiphysics.YOUNG_MODULUS])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.size_modifier_parameters["material_settings"]["young_modulus"].GetDouble())
             self.list_of_coefficients_of_restittution_at_start.append(props[DEM.COEFFICIENT_OF_RESTITUTION])
-            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())            
+            props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.size_modifier_parameters["material_settings"]["coefficient_of_restitution"].GetDouble())
 
     def InitializeSolutionStep(self):
-        super(ElementSizeModifier, self).InitializeSolutionStep()
+        super().InitializeSolutionStep()
         center = KratosMultiphysics.Array3()
         center[0] = center[1] = center[2] = 0.0 #TODO: input
         density = self.size_modifier_parameters["material_settings"]["density_for_artificial_concentric_weight"].GetDouble()
         self.PreUtilities.ApplyConcentricForceOnParticles(self.spheres_model_part, center, density)
 
     def FinalizeSolutionStep(self):
-        super(ElementSizeModifier, self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         self._ModifyRadiusOfAllParticles()
         self._EraseElementsOutsideDomainAndMarkSkin()
 
     def Finalize(self):
         counter = 0
         for props in self.spheres_model_part.Properties:
-            props.SetValue(DEM.FRICTION, self.list_of_frictions_at_start[counter])
+            props.SetValue(DEM.STATIC_FRICTION, self.list_of_static_frictions_at_start[counter])
+            props.SetValue(DEM.DYNAMIC_FRICTION, self.list_of_dynamic_frictions_at_start[counter])
             props.SetValue(KratosMultiphysics.YOUNG_MODULUS, self.list_of_young_modulus_at_start[counter])
             props.SetValue(DEM.COEFFICIENT_OF_RESTITUTION, self.list_of_young_modulus_at_start[counter])
             counter += 1
-        super(ElementSizeModifier, self).Finalize()
+        super().Finalize()
 
     def _GetDeviationFromMeanSizeOfAllParticles(self):
         min_radius = (self.size_modifier_parameters["max_diameter_of_particles"].GetDouble())/ 2.0
         max_radius = (self.size_modifier_parameters["min_diameter_of_particles"].GetDouble())/ 2.0
+        mean_radius_of_particles = 0.5 * self.size_modifier_parameters["mean_diameter_of_particles"].GetDouble()
         radius_standard_deviation = self.size_modifier_parameters["standard_deviation"].GetDouble() / 2.0
 
-        distribution = stats.truncnorm(min_radius / radius_standard_deviation, max_radius / radius_standard_deviation, loc=0.0, scale=radius_standard_deviation)
+        distribution = stats.truncnorm((min_radius - mean_radius_of_particles)/ radius_standard_deviation, (max_radius - mean_radius_of_particles) / radius_standard_deviation, loc=mean_radius_of_particles, scale=radius_standard_deviation)
 
         for node in self.spheres_model_part.Nodes:
             random_radius = distribution.rvs(1)
-            deviation = random_radius[0] - node.GetSolutionStepValue(KratosMultiphysics.RADIUS)
+            deviation = random_radius[0] - mean_radius_of_particles
             node.SetValue(DEM.DEVIATION, deviation)
 
     def _SaveInitialRadiusOfAllParticles(self):

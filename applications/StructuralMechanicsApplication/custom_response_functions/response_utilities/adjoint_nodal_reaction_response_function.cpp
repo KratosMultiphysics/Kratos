@@ -43,7 +43,7 @@ namespace Kratos
         this->PerformResponseVariablesCheck();
 
         // Find neighbour elements and conditions because they are needed to construct the partial derivatives
-        FindNodalNeighboursProcess neigbhor_elements_finder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
+        FindNodalNeighboursProcess neigbhor_elements_finder(mrModelPart);
         FindConditionsNeighboursProcess neigbhor_conditions_finder = FindConditionsNeighboursProcess(mrModelPart, 10, 10);
         neigbhor_elements_finder.Execute();
         neigbhor_conditions_finder.Execute();
@@ -57,8 +57,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_corresponding_adjoint_dof =
-            KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
+        const Variable<double>& r_corresponding_adjoint_dof =
+            KratosComponents<Variable<double>>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
 
         // check if the given node is really fixed in the direction of the traced reaction.
         if((mpTracedNode->GetDof(r_corresponding_adjoint_dof)).IsFree())
@@ -79,8 +79,8 @@ namespace Kratos
         */
         if(mAdjustAdjointDisplacement)
         {
-            const VariableComponentType& r_corresponding_adjoint_dof =
-                KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
+            const Variable<double>& r_corresponding_adjoint_dof =
+                KratosComponents<Variable<double>>::Get(std::string("ADJOINT_") + mTracedDisplacementLabel);
             mpTracedNode->FastGetSolutionStepValue(r_corresponding_adjoint_dof) = -1.0;
         }
 
@@ -104,10 +104,9 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
                 Matrix left_hand_side;
-                ng_elem_i.CalculateLeftHandSide(left_hand_side, process_info);
-                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                ng_elem_i.CalculateLeftHandSide(left_hand_side, rProcessInfo);
+                auto dof_index = this->GetDofIndex(ng_elem_i, rProcessInfo);
                 rResponseGradient = -1.0 * (this->GetColumnCopy(left_hand_side, dof_index));
             }
         }
@@ -231,8 +230,8 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        const VariableComponentType& r_traced_reaction =
-            KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
+        const Variable<double>& r_traced_reaction =
+            KratosComponents<Variable<double>>::Get(mTracedReactionLabel);
 
         return rModelPart.GetNode(mpTracedNode->Id()).FastGetSolutionStepValue(r_traced_reaction, 0);
 
@@ -252,8 +251,7 @@ namespace Kratos
 
             if( rAdjointElement.Id() == ng_elem_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
-                auto dof_index = this->GetDofIndex(ng_elem_i, process_info);
+                auto dof_index = this->GetDofIndex(ng_elem_i, rProcessInfo);
                 rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }
@@ -274,8 +272,7 @@ namespace Kratos
 
             if( rAdjointCondition.Id() == ng_cond_i.Id() )
             {
-                ProcessInfo process_info = rProcessInfo;
-                auto dof_index = this->GetDofIndex(ng_cond_i, process_info);
+                auto dof_index = this->GetDofIndex(ng_cond_i, rProcessInfo);
                 rSensitivityGradient = -1.0 * (this->GetColumnCopy(rSensitivityMatrix, dof_index));
             }
         }
@@ -339,29 +336,29 @@ namespace Kratos
         KRATOS_TRY;
 
         // Check if variable for traced reaction is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedReactionLabel)) )
+        if( !( KratosComponents< Variable<double> >::Has(mTracedReactionLabel)) )
             KRATOS_ERROR << mTracedReactionLabel << " is not available!" << std::endl;
         else
         {
-            const VariableComponentType& r_traced_reaction =
-                KratosComponents<VariableComponentType>::Get(mTracedReactionLabel);
+            const Variable<double>& r_traced_reaction =
+                KratosComponents<Variable<double>>::Get(mTracedReactionLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_traced_reaction) )
                 << mTracedReactionLabel << " is not available at traced node." << std::endl;
         }
 
         // Check if the displacement variable corresponding to the chosen reaction is valid
-        if( !( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mTracedDisplacementLabel)) )
+        if( !( KratosComponents< Variable<double> >::Has(mTracedDisplacementLabel)) )
             KRATOS_ERROR << mTracedDisplacementLabel << " is not available!" << std::endl;
         else
         {
-            const VariableComponentType& r_corresponding_dof =
-                KratosComponents<VariableComponentType>::Get(mTracedDisplacementLabel);
+            const Variable<double>& r_corresponding_dof =
+                KratosComponents<Variable<double>>::Get(mTracedDisplacementLabel);
             KRATOS_ERROR_IF_NOT( mpTracedNode->SolutionStepsDataHas(r_corresponding_dof) )
                 << mTracedDisplacementLabel << " is not available at traced node." << std::endl;
         }
 
         // Check if the adjoint displacement variable corresponding to the chosen reaction is valid
-        if(!(KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(std::string("ADJOINT_") + mTracedDisplacementLabel)))
+        if(!(KratosComponents< Variable<double> >::Has(std::string("ADJOINT_") + mTracedDisplacementLabel)))
         {
             KRATOS_ERROR << (std::string("ADJOINT_") + mTracedDisplacementLabel) << " is not available!" << std::endl;
         }

@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 
 # Importing the base class
-from KratosMultiphysics.from_json_check_result_process import FromJsonCheckResultProcess
+from KratosMultiphysics.from_json_check_result_process import LegacyFromJsonCheckResultProcess # TODO: This must be updated to the new C++ version
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
 # Import KratosUnittest
@@ -14,7 +14,7 @@ def Factory(settings, Model):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     return ParticleFromJsonCheckResultProcess(Model, settings["Parameters"])
 
-class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnittest.TestCase):
+class ParticleFromJsonCheckResultProcess(LegacyFromJsonCheckResultProcess, KratosUnittest.TestCase):
 
     def __init__(self, model_part, params):
         super(ParticleFromJsonCheckResultProcess, self).__init__(model_part, params)
@@ -41,33 +41,23 @@ class ParticleFromJsonCheckResultProcess(FromJsonCheckResultProcess, KratosUnitt
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
-                        value = mp.GetValue(variable)
+                        value = mp.CalculateOnIntegrationPoints(variable,self.model_part.ProcessInfo)[0]
 
                         # Scalar variable
-                        if (variable_type == "Double" or variable_type == "Component"):
+                        if (variable_type == "Double" or variable_type == "Integer" or variable_type == "Component"):
                             values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name]
                             value_json = self.__linear_interpolation(time, input_time_list, values_json)
                             isclosethis = t_isclose(value, value_json, rel_tol=reltol, abs_tol=tol)
                             self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
                         # Array variable
                         elif variable_type == "Array":
-                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
-                                # X-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_X"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[0], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value) + " != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
-                                # Y-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_Y"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[1], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
-                                # Z-component
-                                values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name + "_Z"]
-                                value_json = self.__linear_interpolation(time, input_time_list, values_json)
-                                isclosethis = t_isclose(value[2], value_json, rel_tol=reltol, abs_tol=tol)
-                                self.assertTrue(isclosethis, msg=(str(value)+" != " + str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
 
+                            if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Double"):
+                                for component_index, component in enumerate(["_X", "_Y", "_Z"]):
+                                    values_json = self.data["PARTICLE_" + str(mp.Id)][variable_name +component]
+                                    value_json = self.__linear_interpolation(time, input_time_list, values_json)
+                                    isclosethis = t_isclose(value[component_index], value_json, rel_tol=reltol, abs_tol=tol)
+                                    self.assertTrue(isclosethis, msg=(str(value[component_index]) + " != "+str(value_json) + ", rel_tol = " + str(reltol) + ", abs_tol = " + str(tol) + " : Error checking particle " + str(mp.Id) + " " + variable_name + " results."))
                             else:
                                 values_json = self.data["PARTICLE_"+str(mp.Id)][variable_name][step - 1]
                                 for index in range(len(value)):

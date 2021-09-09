@@ -1,0 +1,77 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    5        5.00000        2.00000        0.00000
+   10        5.00000        1.00000        0.00000
+   11        4.00000        2.00000        0.00000
+   12        4.00000        1.00000        0.00000
+   17        5.00000        0.00000        0.00000
+   18        3.00000        2.00000        0.00000
+   20        4.00000        0.00000        0.00000
+   22        3.00000        1.00000        0.00000
+   26        2.00000        2.00000        0.00000
+   29        3.00000        0.00000        0.00000
+   33        2.00000        1.00000        0.00000
+   36        2.00000        0.00000        0.00000
+   38        1.00000        2.00000        0.00000
+   41        1.00000        1.00000        0.00000
+   44        1.00000        0.00000        0.00000
+   47        0.00000        2.00000        0.00000
+   49        0.00000        1.00000        0.00000
+   52        0.00000        0.00000        0.00000
+End Nodes
+
+
+Begin Elements UpdatedLagrangianAxisymmetry2D4N// GUI group identifier: disk
+        1          0         44         41         49         52 
+        2          0         36         33         41         44 
+        3          0         29         22         33         36 
+        4          0         20         12         22         29 
+        5          0         17         10         12         20 
+        6          0         41         38         47         49 
+        7          0         33         26         38         41 
+        8          0         22         18         26         33 
+        9          0         12         11         18         22 
+       10          0         10          5         11         12 
+End Elements
+
+Begin SubModelPart Parts_disk // Group disk // Subtree Parts
+    Begin SubModelPartNodes
+            5
+           10
+           11
+           12
+           17
+           18
+           20
+           22
+           26
+           29
+           33
+           36
+           38
+           41
+           44
+           47
+           49
+           52
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

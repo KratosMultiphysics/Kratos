@@ -55,7 +55,7 @@ CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
 
 void CrBeamElementLinear2D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     // Kt
@@ -72,7 +72,7 @@ void CrBeamElementLinear2D2N::CalculateLocalSystem(
 }
 
 void CrBeamElementLinear2D2N::CalculateRightHandSide(
-    VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+    VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     Vector nodal_deformation = ZeroVector(msElementSize);
@@ -84,7 +84,7 @@ void CrBeamElementLinear2D2N::CalculateRightHandSide(
 }
 
 void CrBeamElementLinear2D2N::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+    MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     rLeftHandSideMatrix = CreateElementStiffnessMatrix_Total();
@@ -207,16 +207,6 @@ void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
         rOutput[2][2] = 0.00;
     }
 
-    KRATOS_CATCH("")
-}
-
-void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
-    const Variable<array_1d<double, 3>>& rVariable,
-    std::vector<array_1d<double, 3>>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-    CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     KRATOS_CATCH("")
 }
 

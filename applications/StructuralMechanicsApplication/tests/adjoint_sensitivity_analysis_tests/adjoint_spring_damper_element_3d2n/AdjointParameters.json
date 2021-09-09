@@ -20,7 +20,7 @@
         "rotation_dofs"           : true,
         "model_import_settings"   : {
             "input_type"          : "mdpa",
-            "input_filename"      : "Spring_structure"
+            "input_filename"      : "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/Spring_structure"
         },
         "response_function_settings" : {
             "response_type"       : "adjoint_nodal_displacement",
@@ -28,8 +28,9 @@
             "gradient_mode"       : "semi_analytic",
             "step_size"           : 1.0e-6,
             "adapt_step_size"     : true,
-            "traced_node_id"      : 2,
-            "traced_dof"          : "DISPLACEMENT_Z"
+            "response_part_name": "response_mp",
+            "direction"         : [0.0,0.0,1.0],
+            "traced_dof"          : "DISPLACEMENT"
         },
         "sensitivity_settings" : {
             "sensitivity_model_part_name" :"Parts_spring",
@@ -131,7 +132,7 @@
             "Parameters"            : {
                 "check_variables"  : ["ADJOINT_DISPLACEMENT"],
                 "gauss_points_check_variables" : ["NODAL_DISPLACEMENT_STIFFNESS_SENSITIVITY"],
-                "input_file_name"  : "spring_structure_adjoint_results.json",
+                "input_file_name"  : "adjoint_sensitivity_analysis_tests/adjoint_spring_damper_element_3d2n/spring_structure_adjoint_results.json",
                 "model_part_name"  : "Structure",
                 "tolerance"            : 1e-5,
                 "time_frequency"   : -2.0

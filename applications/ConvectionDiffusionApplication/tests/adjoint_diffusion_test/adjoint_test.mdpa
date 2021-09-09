@@ -29,12 +29,12 @@ Begin Elements Element2D3N// GUI group identifier: solid
         8          0          6          2          4 
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: right
+Begin Conditions LineCondition2D2N// GUI group identifier: right
     1 0 9 8
     2 0 8 6
 End Conditions
 
-Begin Conditions Condition2D2N// GUI group identifier: left
+Begin Conditions LineCondition2D2N// GUI group identifier: left
     3 0 5 3
     4 0 3 1
 End Conditions

@@ -7,6 +7,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosExaquteSandboxGeneralTests
+from test_divergencefree_refinement_process import TimeAveragingProcessTests
+from test_perturbation_initial_conditions import PerturbedDivergenceFreeInitialConditionProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -28,6 +30,8 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTest(KratosExaquteSandboxGeneralTests('testSmallExample'))
+    smallSuite.addTest(TimeAveragingProcessTests('testDivergenceFreeRefinementProcess'))
+    smallSuite.addTest(PerturbedDivergenceFreeInitialConditionProcessTest('testPerturbedDivergenceFreeInitialConditionProcess'))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
@@ -40,11 +44,8 @@ def AssembleTestSuites():
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosExaquteSandboxGeneralTests
-        ])
-    )
+    allSuite.addTests(smallSuite)
+    allSuite.addTests(nightSuite)
 
     return suites
 

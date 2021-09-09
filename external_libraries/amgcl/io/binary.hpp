@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2020 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,7 +53,7 @@ bool read(std::ifstream &f, std::vector<T> &vec) {
     return static_cast<bool>(f.read((char*)&vec[0], sizeof(T) * vec.size()));
 }
 
-/// Get CRS matrix size a binary file.
+/// Get size of the CRS matrix stored in a binary file
 template <typename IndexType>
 IndexType crs_size(const std::string &fname) {
     std::ifstream f(fname.c_str(), std::ios::binary);
@@ -119,6 +119,15 @@ void read_crs(
         Ptr end = ptr[i + 1];
         amgcl::detail::sort_row(&col[beg], &val[beg], end - beg);
     }
+}
+
+template <typename SizeT>
+void dense_size(const std::string &fname, SizeT &n, SizeT &m) {
+    std::ifstream f(fname.c_str(), std::ios::binary);
+    precondition(f, "Failed to open matrix file");
+
+    precondition(read(f, n), "File I/O error");
+    precondition(read(f, m), "File I/O error");
 }
 
 template <typename SizeT, typename Val>

@@ -270,7 +270,7 @@ namespace Kratos
 
 			std::stringstream secondary_stream;
 			std::streambuf* original_buffer = nullptr;
-			if (ParallelEnvironment::GetDefaultRank() != 0) {
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
 				original_buffer = std::cout.rdbuf(secondary_stream.rdbuf());
 			}
 
@@ -298,7 +298,7 @@ namespace Kratos
 
 			auto tmp = ReportResults(std::cout, number_of_run_tests, elapsed.count());
 
-			if (ParallelEnvironment::GetDefaultRank() != 0) {
+			if (GetInstance().mVerbosity != Verbosity::TESTS_OUTPUTS && ParallelEnvironment::GetDefaultRank() != 0) {
 				std::cout.rdbuf(original_buffer);
 			}
 			return tmp;
@@ -346,6 +346,7 @@ namespace Kratos
 			if (GetInstance().mVerbosity >= Verbosity::TESTS_LIST)
 			{
 				std::cout << pTheTestCase->Name();
+				std::cout << std::flush;
 			}
 		}
 

@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -1004,7 +1005,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
                 int Section;
@@ -1058,7 +1059,7 @@ protected:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> StateVariableVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
+                itElem->CalculateOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoOld);
                 int Row;
                 int Column;
                 int Section;
@@ -1187,7 +1188,7 @@ protected:
                         StateVariableVector[GPoint] = DamageThreshold;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
         
@@ -1293,7 +1294,7 @@ protected:
                         StateVariableVector[GPoint] = PropagationDamage;
                 }
                 // Set stateVariable of new GaussPoints
-                itElem->SetValueOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
+                itElem->SetValuesOnIntegrationPoints(STATE_VARIABLE,StateVariableVector,CurrentProcessInfoNew);
             }
         }
     }
@@ -1345,7 +1346,7 @@ private:
         ModelPart& rModelPart)
     {
         // Compute X, Y and Z limits of the current geometry
-        unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+        unsigned int NumThreads = ParallelUtilities::GetNumThreads();
         std::vector<double> X_max_partition(NumThreads);
         std::vector<double> X_min_partition(NumThreads);
         std::vector<double> Y_max_partition(NumThreads);
@@ -1486,7 +1487,7 @@ private:
                 Vector detJContainer(NumGPoints);
                 rGeom.DeterminantOfJacobian(detJContainer,MyIntegrationMethod);
                 std::vector<double> DamageVector(NumGPoints);
-                itElem->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                itElem->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                 int Row;
                 int Column;
                 int Section;
@@ -1628,7 +1629,7 @@ private:
         if (IsInside == true)
         {
             std::vector<double> DamageVector;
-            pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+            pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
             unsigned int NumGPoints = DamageVector.size();
             double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
             double ElementDamage = 0.0;
@@ -1702,7 +1703,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;
@@ -1737,7 +1738,7 @@ private:
                 if (IsInside == true)
                 {
                     std::vector<double> DamageVector;
-                    pElement->GetValueOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
+                    pElement->CalculateOnIntegrationPoints(DAMAGE_VARIABLE,DamageVector,CurrentProcessInfo);
                     unsigned int NumGPoints = DamageVector.size();
                     double InvNumGPoints = 1.0/static_cast<double>(NumGPoints);
                     double ElementDamage = 0.0;

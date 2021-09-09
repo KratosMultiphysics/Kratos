@@ -1,0 +1,162 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 2
+End Properties
+
+Begin Table 7 TIME VALUE
+    0.0 0.0
+    0.1 10000.0
+End Table
+
+Begin Table 8 TIME VALUE
+    0.0 0.0
+    0.1 300.0
+End Table
+
+Begin Table 9 TIME VALUE
+    0.0 0.0
+    0.1 6000.0
+End Table
+
+Begin Table 10 TIME VALUE
+    0.0 0.0
+    0.1 50000.0
+End Table
+
+Begin Table 11 TIME VALUE
+    0.0 0.0
+    0.1 600.0
+End Table
+
+Begin Table 12 TIME VALUE
+    0.0 0.0
+    0.1 7000.0
+End Table
+
+Begin Nodes
+   3   1.0000000000   1.0000000000  -1.0000000000
+   4   1.0000000000  -1.0000000000  -1.0000000000
+   5  -1.0000000000   1.0000000000  -1.0000000000
+   6   1.0000000000   1.0000000000   1.0000000000
+   7  -1.0000000000  -1.0000000000  -1.0000000000
+   8   1.0000000000  -1.0000000000   1.0000000000
+   9  -1.0000000000   1.0000000000   1.0000000000
+  10  -1.0000000000  -1.0000000000   1.0000000000
+  13  11.0000000000   1.0000000000  -1.0000000000
+  14  11.0000000000  -1.0000000000  -1.0000000000
+  15   9.0000000000   1.0000000000  -1.0000000000
+  16  11.0000000000   1.0000000000   1.0000000000
+  17   9.0000000000  -1.0000000000  -1.0000000000
+  18  11.0000000000  -1.0000000000   1.0000000000
+  19   9.0000000000   1.0000000000   1.0000000000
+  20   9.0000000000  -1.0000000000   1.0000000000
+End Nodes
+
+Begin Conditions RigidFace3D3N// GUI group identifier: Cube
+  3          2     4     3     7
+  4          2     3     5     7
+  5          2     4     8     7
+  6          2     8    10     7
+  7          2     3     6     4
+  8          2     6     8     4
+  9          2     5     9     3
+  10         2     9     6     3
+  11         2     7    10     5
+  12         2    10     9     5
+  13         2     8     6    10
+  14         2     6     9    10
+  15         2    14    13    17
+  16         2    13    15    17
+  17         2    14    18    17
+  18         2    18    20    17
+  19         2    13    16    14
+  20         2    16    18    14
+  21         2    15    19    13
+  22         2    19    16    13
+  23         2    17    20    15
+  24         2    20    19    15
+  25         2    18    16    20
+  26         2    16    19    20
+End Conditions
+
+Begin SubModelPart Cube1
+  Begin SubModelPartData
+    RIGID_BODY_MASS 1.0
+    RIGID_BODY_CENTER_OF_MASS [3] (0.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.66667,0.66667,0.66667)
+    FREE_BODY_MOTION 1
+    IDENTIFIER Cube
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+        3
+        4
+        5
+        6
+        7
+        8
+        9
+       10
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+       3
+       4
+       5
+       6
+       7
+       8
+       9
+       10
+       11
+       12
+       13
+       14
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
+End SubModelPart
+
+Begin SubModelPart Cube2
+  Begin SubModelPartData
+    RIGID_BODY_MASS 1.0
+    RIGID_BODY_CENTER_OF_MASS [3] (10.0,0.0,0.0)
+    RIGID_BODY_INERTIAS [3] (0.66667,0.66667,0.66667)
+    FREE_BODY_MOTION 1
+    IDENTIFIER Cube
+    FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+       13
+       14
+       15
+       16
+       17
+       18
+       19
+       20
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+       15
+       16
+       17
+       18
+       19
+       20
+       21
+       22
+       23
+       24
+       25
+       26
+  End SubModelPartConditions
+  Begin SubModelPartTables
+        7
+        8
+        9
+        10
+        11
+        12
+  End SubModelPartTables
+End SubModelPart

@@ -20,34 +20,26 @@
 /* Custom utilities */
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/normal_calculation_utils.h"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::AVERAGE_NORMAL(Kratos::Flags::Create(0));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_AVERAGE_NORMAL(Kratos::Flags::Create(0, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DISCONTINOUS_INTERFACE(Kratos::Flags::Create(1));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DISCONTINOUS_INTERFACE(Kratos::Flags::Create(1, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_IS_HISTORICAL(Kratos::Flags::Create(2, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_IS_HISTORICAL(Kratos::Flags::Create(3, false));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_ORIGIN_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(4, false));
-template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
 const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5));
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::NOT_DESTINATION_SKIN_IS_CONDITION_BASED(Kratos::Flags::Create(5, false));
+const Kratos::Flags SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::CONSIDER_TESELLATION(Kratos::Flags::Create(6));
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -66,7 +58,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
         mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -76,6 +68,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -100,7 +93,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
         mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -110,6 +103,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -135,7 +129,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
        mpThisLinearSolver(pThisLinearSolver)
 {
     // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
+    const Parameters default_parameters = GetDefaultParameters();
     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     // Setting flags
@@ -145,6 +139,7 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::SimpleMor
     mOptions.Set(DESTINATION_IS_HISTORICAL, mThisParameters["destination_variable_historical"].GetBool());
     mOptions.Set(ORIGIN_SKIN_IS_CONDITION_BASED, mThisParameters["origin_are_conditions"].GetBool());
     mOptions.Set(DESTINATION_SKIN_IS_CONDITION_BASED, mThisParameters["destination_are_conditions"].GetBool());
+    mOptions.Set(CONSIDER_TESELLATION, mThisParameters["consider_tessellation"].GetBool());
 
     // We set some values
     mMappingCoefficient = mThisParameters["mapping_coefficient"].GetDouble();
@@ -742,8 +737,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         // First we assemble the RHS
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            #pragma omp atomic
-            aux_b += rResidualMatrix(i_node, i_var);
+            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
         }
 
         SizeType left_limit = index1_vector[pos_i_id];
@@ -751,8 +745,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
         while(pos_i_id != index2_vector[last_pos]) last_pos++;
         double& a_value = values_vector[last_pos];
 
-        #pragma omp atomic
-        a_value += rThisMortarOperators.DOperator(i_node, i_node);
+        AtomicAdd(a_value, rThisMortarOperators.DOperator(i_node, i_node));
     }
 }
 
@@ -770,12 +763,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Asse
 {
     // First we assemble the RHS
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const int node_i_id = rSlaveGeometry[i_node].Id();
-        const int pos_i_id = rInverseConectivityDatabase[node_i_id];
+        const SizeType node_i_id = rSlaveGeometry[i_node].Id();
+        const SizeType pos_i_id = rInverseConectivityDatabase[node_i_id];
         for (IndexType i_var = 0; i_var < VariableSize; ++i_var) {
             double& aux_b = rb[i_var][pos_i_id];
-            #pragma omp atomic
-            aux_b += rResidualMatrix(i_node, i_var);
+            AtomicAdd(aux_b, rResidualMatrix(i_node, i_var));
         }
     }
 }
@@ -789,8 +781,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+    }
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+    }
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -832,7 +832,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // We reset the nodal area
     ResetNodalArea();
@@ -964,8 +964,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
             }
             for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
                 const double value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-                #pragma omp atomic
-                residual_norm[i_size] += std::pow(value, 2);
+                AtomicAdd(residual_norm[i_size], std::pow(value, 2));
             }
         }
 
@@ -998,8 +997,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mOriginModelPart, mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED));
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mDestinationModelPart, mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED));
+    if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mOriginModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mOriginModelPart, true);
+    }
+    if (mOptions.Is(DESTINATION_SKIN_IS_CONDITION_BASED)) {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(mDestinationModelPart, true);
+    } else {
+        NormalCalculationUtils().CalculateUnitNormals<Element>(mDestinationModelPart, true);
+    }
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -1042,7 +1049,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     MortarOperatorType this_mortar_operators;
 
     // We call the exact integration utility
-    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor);
+    ExactMortarIntegrationUtilityType integration_utility = ExactMortarIntegrationUtilityType(TDim, distance_threshold, 0, zero_tolerance_factor, mOptions.Is(CONSIDER_TESELLATION));
 
     // Check if the pairs has been created
     CheckAndPerformSearch();
@@ -1229,11 +1236,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             } else {
@@ -1241,11 +1248,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_cond->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_cond->Id());
                     }
                 }
             }
@@ -1264,11 +1271,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
 
                 }
@@ -1277,11 +1284,11 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Crea
                 for (auto it_pair = p_indexes_pairs->begin(); it_pair != p_indexes_pairs->end(); ++it_pair ) {
                     const IndexType master_id = p_indexes_pairs->GetId(it_pair);
                     if (mOptions.Is(ORIGIN_SKIN_IS_CONDITION_BASED)) {
-                        auto p_cond_master = mOriginModelPart.pGetCondition(master_id); // MASTER
-                        (p_cond_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_cond_master = mOriginModelPart.GetCondition(master_id); // MASTER
+                        (r_cond_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     } else {
-                        auto p_elem_master = mOriginModelPart.pGetElement(master_id); // MASTER
-                        (p_elem_master->GetValue(INDEX_SET))->AddId(it_elem->Id());
+                        auto& r_elem_master = mOriginModelPart.GetElement(master_id); // MASTER
+                        (r_elem_master.GetValue(INDEX_SET))->AddId(it_elem->Id());
                     }
                 }
             }
@@ -1334,11 +1341,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Upda
 /***********************************************************************************/
 
 template<SizeType TDim, SizeType TNumNodes, class TVarType, const SizeType TNumNodesMaster>
-Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetDefaultParameters()
+const Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::GetDefaultParameters() const
 {
-    Parameters default_parameters = Parameters(R"(
+    const Parameters default_parameters = Parameters(R"(
     {
         "echo_level"                       : 0,
+        "consider_tessellation"            : false,
         "using_average_nodal_normal"       : true,
         "discontinuous_interface"          : false,
         "discontinous_interface_factor"    : 1.0e-4,

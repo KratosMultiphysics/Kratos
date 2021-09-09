@@ -232,7 +232,7 @@ public:
   {
       if(rSerializer.Is(Serializer::SHALLOW_GLOBAL_POINTERS_SERIALIZATION))
       {
-        rSerializer.save("D", reinterpret_cast<const std::size_t>(mDataPointer));
+        rSerializer.save("D", reinterpret_cast<std::size_t>(mDataPointer));
       }
       else
       {
@@ -281,7 +281,7 @@ struct GlobalPointerHasher
 };
 
 /**
- * @brief This is a key comparer between two dof pointers
+ * @brief This is a key comparer between two dof pointers checking for equal keys
  * @details Used for example for the B&S
  */
 template< class TDataType >
@@ -298,6 +298,29 @@ struct GlobalPointerComparor
         return ( &(*pGp1) == &(*pGp2)  &&  pGp1.GetRank() == pGp2.GetRank()  );
 #else
         return ( &(*pGp1) == &(*pGp2) );
+#endif
+    }
+};
+
+/**
+ * @brief This is a key compare between two pointers to the object object
+ * @details This should be used in std::sort or any other algorithm requiring weak ordering
+ * https://en.cppreference.com/w/cpp/named_req/Compare
+ */
+template< class TDataType >
+struct GlobalPointerCompare
+{
+    /**
+     * @brief The () operator
+     * @param pDoF1 The first DoF pointer
+     * @param pDoF2 The second DoF pointer
+     */
+    bool operator()(const GlobalPointer<TDataType>& pGp1, const GlobalPointer<TDataType>& pGp2) const
+    {
+#ifdef KRATOS_USING_MPI
+        return (pGp1.GetRank() == pGp2.GetRank()) ? (pGp1.get() < pGp2.get()) : (pGp1.GetRank() < pGp2.GetRank());
+#else
+        return (pGp1.get() < pGp2.get());
 #endif
     }
 };

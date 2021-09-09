@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
@@ -8,6 +6,35 @@ from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_anal
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+def SelectAndVerifyLinearSolver(settings, skiptest):
+    # The mechanical solver selects automatically the fastest linear-solver available
+    # this might not be appropriate for a test, therefore in case nothing is specified,
+    # the previous default linear-solver is set
+    if not settings["solver_settings"].Has("linear_solver_settings"):
+        # check if running in MPI because there we use a different default linear solver
+        if IsDistributedRun():
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type" : "amesos",
+                "amesos_solver_type" : "Amesos_Klu"
+            }""")
+
+        else:
+            default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type": "LinearSolversApplication.sparse_lu"
+            }""")
+        settings["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
+    solver_type = settings["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
+    solver_type_splitted = solver_type.split(".")
+    if len(solver_type_splitted) == 2:
+        # this means that we use a solver from an application
+        # hence we have to check if it exists, otherwise skip the test
+        app_name = solver_type_splitted[0]
+        solver_name = solver_type_splitted[1]
+        if not kratos_utils.CheckIfApplicationsAvailable(app_name):
+            skiptest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
+
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
@@ -18,33 +45,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-            # The mechanical solver selects automatically the fastest linear-solver available
-            # this might not be appropriate for a test, therefore in case nothing is specified,
-            # the previous default linear-solver is set
-            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
-                # check if running in MPI because there we use a different default linear solver
-                if IsDistributedRun():
-                    default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type" : "amesos",
-                        "amesos_solver_type" : "Amesos_Klu"
-                    }""")
-
-                else:
-                    default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type": "EigenSolversApplication.sparse_lu"
-                    }""")
-                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
-
-            solver_type = ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString()
-            solver_type_splitted = solver_type.split(".")
-            if len(solver_type_splitted) == 2:
-                # this means that we use a solver from an application
-                # hence we have to check if it exists, otherwise skip the test
-                app_name = solver_type_splitted[0]
-                solver_name = solver_type_splitted[1]
-                if not kratos_utils.CheckIfApplicationsAvailable(app_name):
-                    self.skipTest('Application "{}" is needed for the specified solver "{}" but is not available'.format(app_name, solver_name))
-
+            SelectAndVerifyLinearSolver(ProjectParameters, self.skipTest)
 
             self.modify_parameters(ProjectParameters)
 
@@ -174,9 +175,11 @@ class Fofi4PointTentCableTests(StructuralMechanicsTestFactory):
 class MembraneHemisphereTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_hemisphere_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_diagonal_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class MembraneOrthotropicHorizontalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_orthotropic_horizontal_test"
 
@@ -185,6 +188,10 @@ class MembranePreStressHorizontalTests(StructuralMechanicsTestFactory):
 
 class MembranePreStressDiagonalTests(StructuralMechanicsTestFactory):
     file_name = "membrane_test/Membrane_prestress_diagonal_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
+class MembraneMultiLinearIsotropicPlaneStressTests(StructuralMechanicsTestFactory):
+    file_name = "membrane_test/multi_linear_plane_stress_isotropic_membrane_test"
 
 class Simple3D2NTrussTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_test"
@@ -195,18 +202,22 @@ class Simple3D2NTrussLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NTrussDynamicTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/dynamic_3D2NTruss_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearCompressionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_compression_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/linear_3D2NTruss_plastic_tension_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearSnapthroughPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_snapthrough_test"
 
 class Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_displacementcontrol_snapthrough_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class Simple3D2NTrussNonLinearTensionPlasticTest(StructuralMechanicsTestFactory):
     file_name = "truss_test/nonlinear_3D2NTruss_plastic_tension_test"
 
@@ -225,38 +236,8 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
-
-class SimpleSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_VM_test"
-
-class SimpleSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_DP_test"
-
-class SimpleSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_T_test"
-
-class BigCubeSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_MC_test"
-
-class BigCubeSmallDeformationPlasticityVMTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_VM_test"
-
-class BigCubeSmallDeformationPlasticityDPTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_DP_test"
-
-class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/BigCubeSmallDeformationPlasticity/bigcube_small_deformation_plasticity_T_test"
-
-class SerialParallelRuleOfMixturesCubeDamageTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SerialParallelRuleOfMixturesCube/serial_parallel_damage_test"
-
-class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
-
-class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
+class InitialStateElasticityTest(StructuralMechanicsTestFactory):
+    file_name = "InitialStateElasticity/initial_state_test"
 
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
@@ -305,24 +286,31 @@ class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
 class ShellQ4ThickDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__DrillingRollUp_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellQ4ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick_orthotropic_laminate_linear_static_test"
 class ShellT3ThinBendingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__BendingRollUp_test"
 class ShellT3ThinDrillingRollUpTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin__DrillingRollUp_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellT3ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thin_orthotropic_laminate_linear_static_test"
 class ShellT3IsotropicScordelisTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Isotropic_Scordelis_test"
 class ShellT3ThickLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_linear_static_test"
+
 class ShellT3ThickNonLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_nonlinear_static_test"
 class ShellT3ThickLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_linear_dynamic_test"
 class ShellT3ThickNonLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_nonlinear_dynamic_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellT3ThickOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
 class ShellQ4ThinLinearStaticTests(StructuralMechanicsTestFactory):
@@ -333,6 +321,8 @@ class ShellQ4ThinLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_linear_dynamic_test"
 class ShellQ4ThinNonLinearDynamicTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_nonlinear_dynamic_test"
+
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_Q4_Thin_orthotropic_laminate_linear_static_test"
 ### ---| OLD Tests End
@@ -340,9 +330,11 @@ class ShellQ4ThinOrthotropicLaminateLinearStaticTests(StructuralMechanicsTestFac
 class SprismPanTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/pan_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class PendulusTLTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_TL_test"
 
+@KratosUnittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
 
@@ -385,8 +377,8 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
 
-class TensileTestStructuralTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/TensileTestStructural/TensileTestStructural"
+class Solid2p5DElementTest(StructuralMechanicsTestFactory):
+    file_name = "solid_2p5d_test/solid_2p5d"
 
 if __name__ == '__main__':
     KratosUnittest.main()

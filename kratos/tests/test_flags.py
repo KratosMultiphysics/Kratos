@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 
@@ -100,8 +98,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagAndEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | (RIGID).AsFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).AsFalse()
+        flag2 = ACTIVE    | (RIGID).AsFalse()  | (STRUCTURE).AsFalse() |                              INLET       | (OUTLET).AsFalse()
 
         flag1 &= flag2
         # true (defined) & true (defined) = true (defined)
@@ -131,8 +129,8 @@ class TestFlags(KratosUnittest.TestCase):
 
     def testFlagOrEqual(self):
         #       both true | both false | opposite sets | first true   | first false | second true | second false
-        flag1 = ACTIVE    | NOT_RIGID  | STRUCTURE     | MPI_BOUNDARY | NOT_PERIODIC
-        flag2 = ACTIVE    | NOT_RIGID  | NOT_STRUCTURE |                              INLET       | NOT_OUTLET
+        flag1 = ACTIVE    | (RIGID).AsFalse()  | STRUCTURE     | MPI_BOUNDARY | (PERIODIC).AsFalse()
+        flag2 = ACTIVE    | (RIGID).AsFalse()  | (STRUCTURE).AsFalse() |                              INLET       | (OUTLET).AsFalse()
 
         flag1 |= flag2
         # true (defined) | true (defined) = true (defined)

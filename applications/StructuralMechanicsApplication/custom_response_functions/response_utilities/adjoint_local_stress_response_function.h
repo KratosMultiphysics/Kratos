@@ -56,7 +56,7 @@ public:
     ///@{
 
     typedef Element::DofsVectorType DofsVectorType;
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >* Array1DComponentsPointerType;
+    typedef Variable<double>* Array1DComponentsPointerType;
 
     ///@}
     ///@name Pointer Definitions
@@ -198,7 +198,7 @@ private:
                                       const std::string& rVariableName,
                                       const Matrix& rSensitivityMatrix,
                                       Vector& rSensitivityGradient,
-                                      ProcessInfo& rProcessInfo);
+                                      const ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 

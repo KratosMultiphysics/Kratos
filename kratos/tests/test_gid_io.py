@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics
+﻿import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
@@ -13,7 +11,6 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
-
 
     def __WriteOutput(self, model_part, output_file):
 
@@ -30,7 +27,7 @@ class TestGidIO(KratosUnittest.TestCase):
                                                 },
                                                 "file_label": "time",
                                                 "output_control_type": "step",
-                                                "output_frequency": 1.0,
+                                                "output_interval": 1.0,
                                                 "body_output": true,
                                                 "node_output": false,
                                                 "skin_output": false,
@@ -56,6 +53,7 @@ class TestGidIO(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read")).ReadModelPart(model_part)
         model_part.SetBufferSize(2)
         return model_part

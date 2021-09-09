@@ -3,7 +3,7 @@ import KratosMultiphysics
 def CreateManufacturedSolution(custom_settings):
     return ManufacturedSolution(custom_settings)
 
-class ManufacturedSolution(object):
+class ManufacturedSolution():
     def __init__(self, settings):
         '''
         This is a base class to build manufactured fluid solutions.
@@ -71,7 +71,7 @@ class ManufacturedSolution(object):
         """ Velocity
         """
         raise Exception("Method not implemented")
-    
+
     def u2(self, x1, x2, t):
         """ Velocity
         """
@@ -82,7 +82,7 @@ class ManufacturedSolution(object):
 
     def du1dt(self, x1, x2, t):
         raise Exception("Method not implemented")
-    
+
     def du2dt(self, x1, x2, t):
         raise Exception("Method not implemented")
 
@@ -117,13 +117,13 @@ class ManufacturedSolution(object):
         By default, pressure is 0
         '''
         return 0.0
-    
+
     def dp1(self, x1, x2, t):
         '''
         By default, pressure is 0
         '''
         return 0.0
-    
+
     def dp2(self, x1, x2, t):
         '''
         By default, pressure is 0

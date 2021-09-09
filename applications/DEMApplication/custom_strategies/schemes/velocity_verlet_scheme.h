@@ -2,8 +2,8 @@
 // Author: Miquel Santasusana msantasusana@cimne.upc.edu
 //
 
-#if !defined(KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED )
-#define  KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED
+#if !defined(KRATOS_VELOCITY_VERLET_SCHEME_H_INCLUDED )
+#define  KRATOS_VELOCITY_VERLET_SCHEME_H_INCLUDED
 
 // System includes
 #include <string>
@@ -168,4 +168,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_VERLET_VELOCITY_SCHEME_H_INCLUDED  defined
+#endif // KRATOS_VELOCITY_VERLET_SCHEME_H_INCLUDED  defined

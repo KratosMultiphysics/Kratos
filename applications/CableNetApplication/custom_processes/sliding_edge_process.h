@@ -33,7 +33,7 @@ namespace Kratos
 {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
+class SlidingEdgeProcess
     : public Process
 {
   public:
@@ -46,7 +46,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
     typedef std::vector<double> DoubleVector;
     typedef DoubleVector::iterator DoubleVectorIterator;
     typedef std::size_t SizeType;
-    typedef ModelPart::VariableComponentType VariableComponentType;
+    typedef Variable<double> VariableType;
     typedef ModelPart::MasterSlaveConstraintType::Pointer ConstraintPointer;
 
     // Type definitions for tree-search
@@ -222,8 +222,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         {
             for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
             {
-                VariableComponentType current_dof =
-                KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
+                const auto& current_dof =
+                KratosComponents<VariableType>::Get(mParameters["variable_names"][dof_iterator].GetString());
 
                 for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
                 {
@@ -251,9 +251,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             const auto node_i = rNeighborNodes[0];
             const auto node_j = rNeighborNodes[1];
 
-            const VariableComponentType check_dof_z = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
-            const VariableComponentType check_dof_y = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
-            const VariableComponentType check_dof_x = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+            const auto& check_dof_z = KratosComponents<VariableType>::Get("DISPLACEMENT_Z");
+            const auto& check_dof_y = KratosComponents<VariableType>::Get("DISPLACEMENT_Y");
+            const auto& check_dof_x = KratosComponents<VariableType>::Get("DISPLACEMENT_X");
 
             const double dx = (node_j->FastGetSolutionStepValue(DISPLACEMENT_X)+node_j->X0()) -
                 (node_i->FastGetSolutionStepValue(DISPLACEMENT_X)+node_i->X0());
@@ -335,8 +335,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
         for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
         {
-            VariableComponentType current_dof =
-            KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
+            const auto& current_dof =
+            KratosComponents<VariableType>::Get(mParameters["variable_names"][dof_iterator].GetString());
 
             for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
@@ -478,9 +478,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         const auto node_i = rNeighborNodes[0];
         const auto node_j = rNeighborNodes[1];
 
-        const VariableComponentType check_dof_z = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
-        const VariableComponentType check_dof_y = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
-        const VariableComponentType check_dof_x = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+        const auto& check_dof_z = KratosComponents<VariableType>::Get("DISPLACEMENT_Z");
+        const auto& check_dof_y = KratosComponents<VariableType>::Get("DISPLACEMENT_Y");
+        const auto& check_dof_x = KratosComponents<VariableType>::Get("DISPLACEMENT_X");
 
         const double ua = node_i->FastGetSolutionStepValue(DISPLACEMENT_X);
         const double va = node_i->FastGetSolutionStepValue(DISPLACEMENT_Y);

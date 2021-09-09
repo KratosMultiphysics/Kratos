@@ -69,7 +69,7 @@
             }
         },
         "output" : {
-            "design_output_mode" : "WriteOptimizationModelPart",
+            "design_output_mode" : "none",
             "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid",

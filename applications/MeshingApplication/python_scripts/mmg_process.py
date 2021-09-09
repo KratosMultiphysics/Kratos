@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
@@ -55,7 +54,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "minimal_size"                     : 0.1,
                 "maximal_size"                     : 10.0
             },
-            "strategy"                         : "LevelSet",
+            "strategy"                         : "levelset",
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
                 "gradient_variable"                : "DISTANCE_GRADIENT"
@@ -96,6 +95,8 @@ class MmgProcess(KratosMultiphysics.Process):
                 "metric_variable"                  : ["DISTANCE"],
                 "non_historical_metric_variable"   : [false],
                 "normalization_factor"             : [1.0],
+                "normalization_alpha"              : [0.0],
+                "normalization_method"             : ["constant"],
                 "estimate_interpolation_error"     : false,
                 "interpolation_error"              : 0.04,
                 "mesh_dependent_constant"          : 0.28125
@@ -137,6 +138,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "no_surf_mesh"                        : false,
                 "no_insert_mesh"                      : false,
                 "no_swap_mesh"                        : false,
+                "mesh_optimization_only"              : false,
                 "deactivate_detect_angle"             : false,
                 "force_gradation_value"               : false,
                 "gradation_value"                     : 1.3
@@ -154,8 +156,13 @@ class MmgProcess(KratosMultiphysics.Process):
             "save_external_files"              : false,
             "save_colors_files"                : false,
             "save_mdpa_file"                   : false,
+            "remesh_at_finalize"               : false,
+            "output_final_mesh"                : false,
+            "sub_model_part_names_to_remove"   : [],
+            "output_mesh_file_name"            : "final_refined_mesh",
             "max_number_of_searchs"            : 1000,
             "preserve_flags"                   : true,
+            "interpolate_nodal_values"         : true,
             "interpolate_non_historical"       : true,
             "extrapolate_contour_values"       : true,
             "surface_elements"                 : false,
@@ -207,6 +214,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         # Getting some settings
+        self.strategy = _check_strategy(self.settings["strategy"].GetString())
         self.enforce_current = self.settings["enforce_current"].GetBool()
         self.initial_remeshing = self.settings["initial_remeshing"].GetBool()
         self.remesh_control_type = self.settings["remesh_control_type"].GetString()
@@ -272,16 +280,19 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.settings["anisotropy_parameters"]["boundary_layer_max_distance"].SetDouble(self.settings["minimal_size"].GetDouble() * self.settings["anisotropy_parameters"]["boundary_layer_min_size_ratio"].GetDouble())
 
         # Select the remeshing strategy
-        self.strategy = self.settings["strategy"].GetString()
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["scalar_variable"].GetString() )
             self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.settings["level_set_strategy_parameters"]["gradient_variable"].GetString() )
-        elif self.strategy == "Hessian":
+        elif self.strategy == "hessian":
             self.metric_variables, variable_types = self.__generate_variable_list_from_input(self.settings["hessian_strategy_parameters"]["metric_variable"])
             self.non_historical_metric_variable = self.__generate_boolean_list_from_input(self.settings["hessian_strategy_parameters"]["non_historical_metric_variable"])
             self.non_historical_metric_variable = self.__list_extender(self.non_historical_metric_variable, variable_types)
             self.normalization_factor = self.__generate_double_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_factor"])
             self.normalization_factor = self.__list_extender(self.normalization_factor, variable_types)
+            self.normalization_alpha = self.__generate_double_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_alpha"])
+            self.normalization_alpha = self.__list_extender(self.normalization_alpha, variable_types)
+            self.normalization_method = self.__generate_string_list_from_input(self.settings["hessian_strategy_parameters"]["normalization_method"])
+            self.normalization_method = self.__list_extender(self.normalization_method, variable_types)
             len_metric_variables = len(self.metric_variables)
             len_non_historical_metric_variable = len(self.non_historical_metric_variable)
             if len_metric_variables > len_non_historical_metric_variable:
@@ -291,10 +302,18 @@ class MmgProcess(KratosMultiphysics.Process):
             if len_metric_variables > len_normalization_factor:
                 for i in range(len_normalization_factor, len_metric_variables):
                     self.normalization_factor.append(1.0)
+            len_normalization_alpha = len(self.normalization_alpha)
+            if len_metric_variables > len_normalization_alpha:
+                for i in range(len_normalization_alpha, len_metric_variables):
+                    self.normalization_alpha.append(0.0)
+            len_normalization_method = len(self.normalization_method)
+            if len_metric_variables > len_normalization_method:
+                for i in range(len_normalization_method, len_metric_variables):
+                    self.normalization_method.append("constant")
             mesh_dependent_constant = self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
             if mesh_dependent_constant == 0.0:
                 self.settings["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.domain_size/(self.domain_size + 1))**2.0)
-        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "spr":
             self.error_threshold = self.settings["error_strategy_parameters"]["error_metric_parameters"]["error_threshold"].GetDouble()
             self.error_ratio = 0
 
@@ -321,7 +340,7 @@ class MmgProcess(KratosMultiphysics.Process):
         for submodelpart in fix_elements_model_parts:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BLOCKED, True, submodelpart.Elements)
 
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             self._CreateGradientProcess()
 
         if self.domain_size == 2:
@@ -345,6 +364,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("save_mdpa_file",self.settings["save_mdpa_file"])
         mmg_parameters.AddValue("max_number_of_searchs",self.settings["max_number_of_searchs"])
         mmg_parameters.AddValue("preserve_flags",self.settings["preserve_flags"])
+        mmg_parameters.AddValue("interpolate_nodal_values",self.settings["interpolate_nodal_values"])
         mmg_parameters.AddValue("interpolate_non_historical",self.settings["interpolate_non_historical"])
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
@@ -356,6 +376,9 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("debug_result_mesh",self.settings["debug_result_mesh"])
         mmg_parameters.AddValue("initialize_entities",self.settings["initialize_entities"])
         mmg_parameters.AddValue("echo_level",self.settings["echo_level"])
+        if self.strategy == "optimization":
+            mmg_parameters["advanced_parameters"]["mesh_optimization_only"].SetBool(True)
+
         if self.domain_size == 2:
             self.mmg_process = MeshingApplication.MmgProcess2D(self.main_model_part, mmg_parameters)
         else:
@@ -396,7 +419,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     if self.interval.IsInInterval(current_time):
                         # We remesh if needed
                         if self.__execute_remesh():
-                            if self.strategy == "Hessian" or self.strategy == "LevelSet":
+                            if self.strategy in ["hessian", "levelset", "optimization"]:
                                 if self.settings["blocking_threshold_size"].GetBool():
                                     MeshingApplication.BlockThresholdSizeElements(self.main_model_part, self.settings["threshold_sizes"])
                                 self._ExecuteRefinement()
@@ -404,13 +427,31 @@ class MmgProcess(KratosMultiphysics.Process):
                                 self.step = 0  # Reset
                                 self.time = 0.0  # Reset
 
+    def ExecuteFinalize(self):
+        """ This method is executed in order to finalize the simulation and save the refined mesh in a new .mdpa file
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        remesh_at_finalize = self.settings["remesh_at_finalize"].GetBool()
+        output_final_mesh = self.settings["output_final_mesh"].GetBool()
+        output_mesh_file_name = self.settings["output_mesh_file_name"].GetString()
+        sub_model_part_names_to_remove = self.settings["sub_model_part_names_to_remove"].GetStringArray()
+        if remesh_at_finalize:
+            for sub_model_part_name in sub_model_part_names_to_remove:
+                if self.main_model_part.HasSubModelPart(sub_model_part_name):
+                    self.main_model_part.RemoveSubModelPart(sub_model_part_name)
+            self._ExecuteRefinement()
+        if output_final_mesh:
+            KratosMultiphysics.ModelPartIO(output_mesh_file_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "spr":
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if self.interval.IsInInterval(current_time):
                 if self.__execute_remesh():
@@ -430,7 +471,7 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+        if self.strategy == "superconvergent_patch_recovery" or self.strategy == "spr":
             current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             if self.interval.IsInInterval(current_time):
                 self._ErrorCalculation()
@@ -450,7 +491,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         """
         self.metric_processes = []
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             level_set_parameters = KratosMultiphysics.Parameters("""{}""")
             level_set_parameters.AddValue("minimal_size",self.settings["minimal_size"])
             level_set_parameters.AddValue("maximal_size",self.settings["maximal_size"])
@@ -464,7 +505,7 @@ class MmgProcess(KratosMultiphysics.Process):
             else:
                 self.metric_processes.append(MeshingApplication.ComputeLevelSetSolMetricProcess3D(self.main_model_part, self.gradient_variable, level_set_parameters))
 
-        elif self.strategy == "Hessian":
+        elif self.strategy == "hessian":
             hessian_parameters = KratosMultiphysics.Parameters("""{}""")
             hessian_parameters.AddValue("minimal_size",self.settings["minimal_size"])
             hessian_parameters.AddValue("maximal_size",self.settings["maximal_size"])
@@ -475,15 +516,21 @@ class MmgProcess(KratosMultiphysics.Process):
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("non_historical_metric_variable")
             hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_factor")
             hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_factor")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_alpha")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_alpha")
+            hessian_parameters["hessian_strategy_parameters"].RemoveValue("normalization_method")
+            hessian_parameters["hessian_strategy_parameters"].AddEmptyValue("normalization_method")
             hessian_parameters.AddValue("anisotropy_remeshing",self.settings["anisotropy_remeshing"])
             hessian_parameters.AddValue("enforce_anisotropy_relative_variable",self.settings["enforce_anisotropy_relative_variable"])
             hessian_parameters.AddValue("enforced_anisotropy_parameters",self.settings["anisotropy_parameters"])
             hessian_parameters["enforced_anisotropy_parameters"].RemoveValue("boundary_layer_min_size_ratio")
-            for current_metric_variable, non_historical_metric_variable, normalization_factor in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor):
+            for current_metric_variable, non_historical_metric_variable, normalization_factor, normalization_alpha, normalization_method in zip(self.metric_variables, self.non_historical_metric_variable, self.normalization_factor, self.normalization_alpha, self.normalization_method):
                 hessian_parameters["hessian_strategy_parameters"]["non_historical_metric_variable"].SetBool(non_historical_metric_variable)
                 hessian_parameters["hessian_strategy_parameters"]["normalization_factor"].SetDouble(normalization_factor)
+                hessian_parameters["hessian_strategy_parameters"]["normalization_alpha"].SetDouble(normalization_alpha)
+                hessian_parameters["hessian_strategy_parameters"]["normalization_method"].SetString(normalization_method)
                 self.metric_processes.append(MeshingApplication.ComputeHessianSolMetricProcess(self.main_model_part, current_metric_variable, hessian_parameters))
-        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "SPR":
+        elif self.strategy == "superconvergent_patch_recovery" or self.strategy == "spr":
             # Generate SPR process
             self.error_compute = self._GenerateErrorProcess()
 
@@ -520,7 +567,7 @@ class MmgProcess(KratosMultiphysics.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             # Calculate the gradient
             self.local_gradient.Execute()
 
@@ -528,7 +575,7 @@ class MmgProcess(KratosMultiphysics.Process):
         self.find_nodal_h.Execute()
 
         # Initialize metric
-        if self.strategy == "Hessian" or self.strategy == "LevelSet":
+        if self.strategy == "hessian" or self.strategy == "levelset":
             self.initialize_metric.Execute()
 
         KratosMultiphysics.Logger.PrintInfo("MMG Remeshing Process", "Calculating the metrics")
@@ -558,7 +605,7 @@ class MmgProcess(KratosMultiphysics.Process):
         elif self.settings["debug_mode"].GetString() == "VTK": # VTK
             self._debug_output_vtk(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP], "", "AFTER_")
 
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             self.local_gradient.Execute() # Recalculate gradient after remeshing
 
         # Recalculate NODAL_H
@@ -706,6 +753,20 @@ class MmgProcess(KratosMultiphysics.Process):
 
       return double_list
 
+    def __generate_string_list_from_input(self,param):
+      '''Parse a list of strings from input.'''
+      # At least verify that the input is an array
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve the boolean from the arrays
+      string_list = []
+
+      for i in range( 0,param.size()):
+          string_list.append(param[i].GetString())
+
+      return string_list
+
     def __generate_submodelparts_list_from_input(self,param):
         '''Parse a list of variables from input.'''
         # At least verify that the input is a string
@@ -770,10 +831,10 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.main_model_part.Nodes, label, 0)
 
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             gid_io.WriteNodalResults(self.scalar_variable, self.main_model_part.Nodes, label, 0)
             gid_io.WriteNodalResults(self.gradation_value, self.main_model_part.Nodes, label, 0)
-        elif self.strategy == "Hessian":
+        elif self.strategy == "hessian":
             variables = self.settings["hessian_strategy_parameters"]["metric_variable"].GetStringArray()
             for i in range(len(variables)):
                 aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variables[i] )
@@ -812,10 +873,10 @@ class MmgProcess(KratosMultiphysics.Process):
         else:
             vtk_settings["nodal_solution_step_data_variables"].Append("VELOCITY")
 
-        if self.strategy == "LevelSet":
+        if self.strategy == "levelset":
             vtk_settings["nodal_solution_step_data_variables"].Append(self.scalar_variable.Name())
             vtk_settings["nodal_solution_step_data_variables"].Append(self.gradation_value.Name())
-        elif self.strategy == "Hessian":
+        elif self.strategy == "hessian":
             variables = self.settings["hessian_strategy_parameters"]["metric_variable"].GetStringArray()
             for i in range(len(variables)):
                 aux_var = KratosMultiphysics.KratosGlobals.GetVariable( variables[i] )
@@ -860,3 +921,25 @@ def _normvalf(prob, mean, sd):
         z = - _linear_interpolation(1.0 - prob, prob_list, z_list)
     x = z * sd + mean
     return x
+
+def _check_strategy(strategy):
+    strategies_list = [
+        "hessian",
+        "levelset",
+        "optimization",
+        "superconvergent_patch_recovery",
+        "spr"
+    ]
+    if strategy in strategies_list:
+        return strategy
+    elif strategy.lower() in strategies_list:
+        depr_msg  = 'The input strategy string is not in lower case letters. '
+        depr_msg += 'Please change it from "' + strategy + '" to "' +  strategy.lower() + '"'
+        KratosMultiphysics.Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
+        return strategy.lower()
+    else:
+        err_msg  = 'The input strategy "' + strategy + '" does not exit. The available options are:\n'
+        err_msg  += 'Available strategies: '
+        for avail_strategy in strategies_list:
+            err_msg += '"'+avail_strategy+'" '
+        raise Exception(err_msg)

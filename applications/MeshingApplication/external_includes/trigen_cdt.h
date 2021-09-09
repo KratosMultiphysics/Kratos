@@ -17,10 +17,8 @@
 #include <iostream>
 #include <stdlib.h>
 
-#if !defined(KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TRIANGLE_EXTERNAL_H_INCLUDED
+// External includes
 #include "triangle.h"
-#endif
 
 // Project includes
 #include "includes/define.h"

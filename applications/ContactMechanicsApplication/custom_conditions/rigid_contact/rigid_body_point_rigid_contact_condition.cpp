@@ -93,13 +93,13 @@ RigidBodyPointRigidContactCondition::~RigidBodyPointRigidContactCondition()
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::GetDofList(DofsVectorType& rConditionDofList,
-				    ProcessInfo& rCurrentProcessInfo)
+				    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     rConditionDofList.resize(0);
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetDofList(rConditionDofList, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -109,13 +109,13 @@ void RigidBodyPointRigidContactCondition::GetDofList(DofsVectorType& rConditionD
 //***********************************************************************************
 
 void RigidBodyPointRigidContactCondition::EquationIdVector(EquationIdVectorType& rResult,
-					  ProcessInfo& rCurrentProcessInfo)
+					  const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
     rResult.resize( 0, false );
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.EquationIdVector(rResult, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -125,11 +125,11 @@ void RigidBodyPointRigidContactCondition::EquationIdVector(EquationIdVectorType&
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step)
+void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetValuesVector(rValues, Step);
 
 
@@ -139,11 +139,11 @@ void RigidBodyPointRigidContactCondition::GetValuesVector(Vector& rValues, int S
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetFirstDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
@@ -153,11 +153,11 @@ void RigidBodyPointRigidContactCondition::GetFirstDerivativesVector( Vector& rVa
 //***********************************************************************************
 //***********************************************************************************
 
-void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
 
-    Element& MasterElement = mMasterElements.back();
+    const Element& MasterElement = mMasterElements.back();
     MasterElement.GetSecondDerivativesVector(rValues, Step);
 
     KRATOS_CATCH( "" )
@@ -168,7 +168,7 @@ void RigidBodyPointRigidContactCondition::GetSecondDerivativesVector( Vector& rV
 
 void RigidBodyPointRigidContactCondition::AddExplicitContribution(const VectorType& rRHSVector,
 						 const Variable<VectorType>& rRHSVariable,
-						 Variable<array_1d<double,3> >& rDestinationVariable,
+						 const Variable<array_1d<double,3> >& rDestinationVariable,
 						 const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -794,7 +794,7 @@ void RigidBodyPointRigidContactCondition::VectorToSkewSymmetricTensor( const Vec
 //***********************************************************************************
 
 
-int RigidBodyPointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int RigidBodyPointRigidContactCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
   return 0;
 }

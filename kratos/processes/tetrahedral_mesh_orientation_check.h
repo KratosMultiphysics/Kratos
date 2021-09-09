@@ -68,16 +68,16 @@ public:
 
     /// The definition of the index type
     typedef std::size_t IndexType;
-    
+
     /// The definition of the size type
     typedef std::size_t SizeType;
-    
+
     /// Definition of the node type
     typedef Node<3> NodeType;
-    
+
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -90,7 +90,7 @@ public:
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
         bool ThrowErrors,
-        Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS | NOT_ALLOW_REPEATED_CONDITIONS
+        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(ThrowErrors), //to be changed to a flag
@@ -101,7 +101,7 @@ public:
 
     TetrahedralMeshOrientationCheck(
         ModelPart& rModelPart,
-        Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS | NOT_ALLOW_REPEATED_CONDITIONS
+        Flags options = COMPUTE_NODAL_NORMALS.AsFalse() | COMPUTE_CONDITION_NORMALS.AsFalse() | ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS.AsFalse() | ALLOW_REPEATED_CONDITIONS.AsFalse()
         ):  Process(),
             mrModelPart(rModelPart),
             mThrowErrors(false),

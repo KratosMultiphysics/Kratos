@@ -16,7 +16,7 @@
 #include "spatial_containers/spatial_search.h"
 #include "includes/dem_variables.h"
 #include "DEM_application_variables.h"
-#include "../custom_elements/spheric_particle.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {

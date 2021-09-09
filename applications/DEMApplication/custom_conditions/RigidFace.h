@@ -11,7 +11,7 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 #include "dem_wall.h"
-#include "../custom_strategies/schemes/glued_to_wall_scheme.h"
+#include "custom_strategies/schemes/glued_to_wall_scheme.h"
 
 namespace Kratos
 
@@ -67,22 +67,19 @@ public:
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info ) override;
-    void ComputeForceAndWeightsOfSphereOnThisFace(SphericParticle* p_particle, array_1d<double, 3>& force, std::vector<double>& weights_vector);
-    void CalculateElasticForces(VectorType& rElasticForces, ProcessInfo& r_process_info) override;
     void CalculateNormal(array_1d<double, 3>& rnormal) override;
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& r_process_info) override;
-    void FinalizeSolutionStep(ProcessInfo& r_process_info) override;
+    void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
     int CheckSide(SphericParticle* p_particle) override;
     virtual bool CheckProjectionFallsInside(SphericParticle *p_particle);
     void ComputeConditionRelativeData(int rigid_neighbour_index,
-                                      SphericParticle* const particle,
-                                      double LocalCoordSystem[3][3],
-                                      double& DistPToB,
-                                      array_1d<double, 4>& Weight,
-                                      array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                      array_1d<double, 3>& wall_velocity_at_contact_point,
-                                      int& ContactType) override;
+                                    SphericParticle* const particle,
+                                    double LocalCoordSystem[3][3],
+                                    double& DistPToB,
+                                    array_1d<double, 4>& Weight,
+                                    array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                    array_1d<double, 3>& wall_velocity_at_contact_point,
+                                    int& ContactType) override;
 
     array_1d<double, 3> GetVelocity();
 

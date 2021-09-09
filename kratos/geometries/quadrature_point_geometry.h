@@ -18,16 +18,16 @@
 // External includes
 
 // Project includes
+#include "includes/variables.h"
 #include "geometries/geometry.h"
 #include "geometries/geometry_dimension.h"
-
 
 namespace Kratos
 {
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A sinlge quadrature point, that can be used for geometries without
+ * @brief A single quadrature point, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
  *        at a single quadrature point.
@@ -56,6 +56,7 @@ public:
     typedef typename GeometryType::PointsArrayType PointsArrayType;
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
+    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
     typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 
     typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
@@ -69,7 +70,7 @@ public:
     /// using base class functions
     using BaseType::Jacobian;
     using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues; 
+    using BaseType::ShapeFunctionsValues;
     using BaseType::ShapeFunctionsLocalGradients;
     using BaseType::InverseOfJacobian;
 
@@ -81,8 +82,8 @@ public:
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
         const IntegrationPointsContainerType& rIntegrationPoints,
-        ShapeFunctionsValuesContainerType& rShapeFunctionValues,
-        ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
+        const ShapeFunctionsValuesContainerType& rShapeFunctionValues,
+        const ShapeFunctionsLocalGradientsContainerType& rShapeFunctionsDerivativesVector)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -114,17 +115,18 @@ public:
     /// Constructor with points and geometry shape function container
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
             ThisGeometryShapeFunctionContainer)
     {
     }
+
     /// Constructor with points, geometry shape function container, parent
     QuadraturePointGeometry(
         const PointsArrayType& ThisPoints,
-        GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
+        const GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,
         GeometryType* pGeometryParent)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
@@ -134,7 +136,45 @@ public:
     {
     }
 
-    explicit QuadraturePointGeometry(const PointsArrayType& ThisPoints)
+    /// Constructor with points, N, Vector<DN_De, ...>
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
+    {
+    }
+
+    /// Constructor with points, N, Vector<DN_De, ...>, parent
+    QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints,
+        const IntegrationPointType& ThisIntegrationPoint,
+        const Matrix& ThisShapeFunctionsValues,
+        const DenseVector<Matrix>& ThisShapeFunctionsDerivatives,
+        GeometryType* pGeometryParent)
+        : BaseType(ThisPoints, &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryShapeFunctionContainerType(
+                GeometryData::GI_GAUSS_1,
+                ThisIntegrationPoint,
+                ThisShapeFunctionsValues,
+                ThisShapeFunctionsDerivatives))
+        , mpGeometryParent(pGeometryParent)
+    {
+    }
+
+    /// Constructor.
+    explicit QuadraturePointGeometry(
+        const PointsArrayType& ThisPoints)
         : BaseType(ThisPoints, &mGeometryData)
         , mGeometryData(
             &msGeometryDimension,
@@ -143,78 +183,54 @@ public:
     {
     }
 
-    /**
-     * Copy constructor.
-     * Constructs this geometry as a copy of given geometry.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
-    QuadraturePointGeometry( QuadraturePointGeometry const& rOther )
-        : BaseType( rOther )
+    /// Constructor with Geometry Id
+    explicit QuadraturePointGeometry(
+        const IndexType GeometryId,
+        const PointsArrayType& ThisPoints
+    ) : BaseType( GeometryId, ThisPoints, &mGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
     {
     }
 
-    /**
-     * Copy constructor from a geometry with other point type.
-     * Construct this geometry as a copy of given geometry which
-     * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
-     * geometry PointType.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     */
-    template<class TOtherPointType>
-    QuadraturePointGeometry( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const& rOther )
-        : BaseType( rOther )
+    /// Constructor with Geometry Name
+    explicit QuadraturePointGeometry(
+        const std::string& GeometryName,
+        const PointsArrayType& ThisPoints
+    ) : BaseType( GeometryName, ThisPoints, &mGeometryData )
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
     {
     }
 
-    /// Destructor. Does nothing!!!
-    ~QuadraturePointGeometry() override {}
+    /// Destructor.
+    ~QuadraturePointGeometry() override = default;
+
+    /// Copy constructor.
+    QuadraturePointGeometry(
+        QuadraturePointGeometry const& rOther )
+        : BaseType( rOther )
+        , mGeometryData(rOther.mGeometryData)
+        , mpGeometryParent(rOther.mpGeometryParent)
+    {
+    }
 
     ///@}
     ///@name Operators
     ///@{
 
-    /**
-     * Assignment operator.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
-    QuadraturePointGeometry& operator=( const QuadraturePointGeometry& rOther )
+    /// Assignment operator.
+    QuadraturePointGeometry& operator=(
+        const QuadraturePointGeometry& rOther )
     {
         BaseType::operator=( rOther );
 
-        return *this;
-    }
-
-    /**
-     * Assignment operator for geometries with different point type.
-     *
-     * @note This copy constructor does not copy the points, thus,
-     * the new geometry shares points with the source geometry.
-     * Any changes to the new geometry points affect the source
-     * geometry points too.
-     *
-     * @see Clone
-     * @see ClonePoints
-     */
-    template<class TOtherPointType>
-    QuadraturePointGeometry& operator=( QuadraturePointGeometry<TOtherPointType, TWorkingSpaceDimension, TLocalSpaceDimension, TDimension> const & rOther )
-    {
-        BaseType::operator=( rOther );
+        mGeometryData = rOther.mGeometryData;
+        mpGeometryParent = rOther.mpGeometryParent;
 
         return *this;
     }
@@ -223,9 +239,75 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Creates a new geometry pointer
+     * @param ThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const override
     {
-        return typename BaseType::Pointer( new QuadraturePointGeometry( ThisPoints ) );
+        KRATOS_ERROR << "QuadraturePointGeometry cannot be created with 'PointsArrayType const& PointsArrayType'. "
+            << "This constructor is not allowed as it would remove the evaluated shape functions as the ShapeFunctionContainer is not being copied."
+            << std::endl;
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rThisPoints the nodes of the new geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        PointsArrayType const& rThisPoints
+        ) const override
+    {
+        return typename BaseType::Pointer( new QuadraturePointGeometry( NewGeometryId, rThisPoints ) );
+    }
+
+    /**
+     * @brief Creates a new geometry pointer
+     * @param NewGeometryId the ID of the new geometry
+     * @param rGeometry reference to an existing geometry
+     * @return Pointer to the new geometry
+     */
+    typename BaseType::Pointer Create(
+        const IndexType NewGeometryId,
+        const BaseType& rGeometry
+    ) const override
+    {
+        auto p_geometry = typename BaseType::Pointer( new QuadraturePointGeometry( NewGeometryId, rGeometry.Points() ) );
+        p_geometry->SetData(rGeometry.GetData());
+        return p_geometry;
+    }
+
+    ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with array_1d<double, 3>
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput) const override
+    {
+        if (rVariable == CHARACTERISTIC_GEOMETRY_LENGTH)
+        {
+            rOutput = this->IntegrationPoints()[0];
+            mpGeometryParent->Calculate(rVariable, rOutput);
+        }
+    }
+
+    ///@}
+    ///@name  Geometry Shape Function Container
+    ///@{
+
+    /* @brief SetGeometryShapeFunctionContainer updates the GeometryShapeFunctionContainer within
+     *        the GeometryData. This function works only for geometries with a non-const GeometryData.
+     */
+    void SetGeometryShapeFunctionContainer(
+        const GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rGeometryShapeFunctionContainer) override
+    {
+        mGeometryData.SetGeometryShapeFunctionContainer(rGeometryShapeFunctionContainer);
     }
 
     ///@}
@@ -243,6 +325,20 @@ public:
     }
 
     ///@}
+    ///@name Dynamic access to internals
+    ///@{
+
+    /// Calculate with Vector
+    void Calculate(
+        const Variable<Vector>& rVariable,
+        Vector& rOutput) const override
+    {
+        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT) {
+            DeterminantOfJacobianParent(rOutput);
+        }
+    }
+
+    ///@}
     ///@name Geometrical Operations
     ///@{
 
@@ -250,7 +346,7 @@ public:
     double DomainSize() const override
     {
         Vector temp;
-        temp = this->DeterminantOfJacobian(temp, GeometryData::GI_GAUSS_1);
+        temp = this->DeterminantOfJacobian(temp);
         const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints();
         double domain_size = 0.0;
 
@@ -285,6 +381,20 @@ public:
     }
 
     ///@}
+    ///@name Mathematical Informations
+    ///@{
+
+    /// Returns the polynomial degree of the parent geometry
+    SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpGeometryParent)
+            << "Trying to call PolynomialDegree(LocalDirectionIndex) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->PolynomialDegree(LocalDirectionIndex);
+    }
+
+    ///@}
     ///@name Coordinates
     ///@{
 
@@ -305,6 +415,12 @@ public:
         return mpGeometryParent->GlobalCoordinates(rResult, LocalCoordinates);
     }
 
+    /* @brief returns the respective segment domain size of this
+     *        quadrature point, computed on the parent of this geometry.
+     *        Required for reduced quadrature point geometries (Not all
+     *        nodes are part of this geometry - used for mapping).
+     * @param rResult vector of results of this quadrature point.
+     */
     CoordinatesArrayType& GlobalCoordinates(
         CoordinatesArrayType& rResult,
         CoordinatesArrayType const& LocalCoordinates,
@@ -359,6 +475,22 @@ public:
             << "Pointer to parent is not assigned." << std::endl;
 
         return mpGeometryParent->DeterminantOfJacobian(rPoint);
+    }
+
+
+    /* @brief returns the respective segment length of this
+     *        quadrature point. Length of vector always 1.
+     * @param rResult vector of results of this quadrature point.
+     */
+    Vector& DeterminantOfJacobianParent(
+        Vector& rResult) const
+    {
+        if (rResult.size() != 1)
+            rResult.resize(1, false);
+
+        rResult[0] = this->GetGeometryParent(0).DeterminantOfJacobian(this->IntegrationPoints()[0]);
+
+        return rResult;
     }
 
     Matrix& InverseOfJacobian(
@@ -423,6 +555,25 @@ public:
     }
     ///@}
 
+protected:
+
+    ///@name Constructor
+    ///@{
+
+    /// Standard Constructor
+    QuadraturePointGeometry()
+        : BaseType(
+            PointsArrayType(),
+            &mGeometryData)
+        , mGeometryData(
+            &msGeometryDimension,
+            GeometryData::GI_GAUSS_1,
+            {}, {}, {})
+    {
+    }
+
+    ///@}
+
 private:
     ///@name Static Member Variables
     ///@{
@@ -437,7 +588,7 @@ private:
 
     // quatrature point can be related to a parent geometry. To keep the connection,
     // this geometry is related to the integration point.
-    GeometryType* mpGeometryParent;
+    GeometryType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Serialization
@@ -448,34 +599,31 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.save("pGeometryParent", mpGeometryParent);
-        rSerializer.save("GeometryData", mGeometryData);
+
+        rSerializer.save("IntegrationPoints", mGeometryData.IntegrationPoints());
+        rSerializer.save("ShapeFunctionsValues", mGeometryData.ShapeFunctionsValues());
+        rSerializer.save("ShapeFunctionsLocalGradients", mGeometryData.ShapeFunctionsLocalGradients());
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
-        rSerializer.load("pGeometryParent", mpGeometryParent);
 
-        GeometryDimension local(3, 3, 3);
-        GeometryDimension *temp = &local;
-        rSerializer.load("pGeometryDimension", temp);
+        IntegrationPointsContainerType integration_points;
+        ShapeFunctionsValuesContainerType shape_functions_values;
+        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
 
-        rSerializer.load("GeometryData", mGeometryData);
+        rSerializer.load("IntegrationPoints", integration_points[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("ShapeFunctionsValues", shape_functions_values[GeometryData::GI_GAUSS_1]);
+        rSerializer.load("ShapeFunctionsLocalGradients", shape_functions_local_gradients[GeometryData::GI_GAUSS_1]);
 
-        mGeometryData.SetGeometryDimension(&msGeometryDimension);
-
-    }
-
-    QuadraturePointGeometry()
-        : BaseType(
-            PointsArrayType(),
-            &mGeometryData)
-        , mGeometryData(
-            &msGeometryDimension,
+        mGeometryData.SetGeometryShapeFunctionContainer(GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(
             GeometryData::GI_GAUSS_1,
-            {}, {}, {})
-    {
+            integration_points,
+            shape_functions_values,
+            shape_functions_local_gradients));
+
+
     }
 
     ///@}
@@ -522,7 +670,7 @@ const GeometryDimension QuadraturePointGeometry<
     TWorkingSpaceDimension,
     TLocalSpaceDimension,
     TDimension>::msGeometryDimension(
-        TLocalSpaceDimension,
+        TDimension,
         TWorkingSpaceDimension,
         TLocalSpaceDimension);
 

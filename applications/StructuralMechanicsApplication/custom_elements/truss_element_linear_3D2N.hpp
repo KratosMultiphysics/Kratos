@@ -32,7 +32,7 @@ namespace Kratos {
  * @author Klaus B Sautter
  */
 
-class TrussElementLinear3D2N : public TrussElement3D2N
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrussElementLinear3D2N : public TrussElement3D2N
 {
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TrussElementLinear3D2N);
@@ -75,11 +75,11 @@ public:
 
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function adds forces from prestressing to the force vector
@@ -100,7 +100,7 @@ public:
      * @brief This function calculates the total stiffness matrix for the element
      */
     BoundedMatrix<double,msLocalSize,msLocalSize>
-    CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
+    CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This function calculates the original nodal postion for the transformation matrix
@@ -121,16 +121,9 @@ public:
      */
 
     void UpdateInternalForces(
-        BoundedVector<double,msLocalSize>& rInternalForces) override;
+        BoundedVector<double,msLocalSize>& rInternalForces, const ProcessInfo& rCurrentProcessInfo) override;
 
-    /**
-     * @brief This function calls the constitutive law to get stresses
-     * @param rCurrentProcessInfo Current process info
-     * @param rSaveInternalVariables Boolean to save internal constit. law variables
-     */
-    BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-        const ProcessInfo& rCurrentProcessInfo) override;
-
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 

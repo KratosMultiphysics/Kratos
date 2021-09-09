@@ -38,7 +38,7 @@ class SteadyConvectionDiffusionFICElement : public Element
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SteadyConvectionDiffusionFICElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SteadyConvectionDiffusionFICElement );
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
@@ -115,7 +115,11 @@ protected:
         double lv;
         double lsc;
         double OmegaV;
+        double OmegaVt;
+        double OmegaVBarra;
         double SigmaV;
+        double SigmaVt;
+        double SigmaVBarra;
         double LambdaV;
         double XiV;
         double Residual;
