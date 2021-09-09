@@ -66,6 +66,7 @@
 #include "processes/time_averaging_process.h"
 #include "processes/from_json_check_result_process.h"
 #include "processes/set_initial_state_process.h"
+#include "processes/split_internal_interfaces_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -667,6 +668,10 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
+    .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<SplitInternalInterfacesProcess, SplitInternalInterfacesProcess::Pointer, Process>(m, "SplitInternalInterfacesProcess")
     .def(py::init<Model&, Parameters>())
     ;
 

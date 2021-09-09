@@ -165,6 +165,32 @@ public:
         KRATOS_CATCH("")
     }
 
+    // /**
+    //  * @brief This is the place to initialize the elements.
+    //  * @details This is intended to be called just once when the strategy is initialized
+    //  * @param rModelPart The model part of the problem to solve
+    //  */
+    void InitializeElements( ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        int NElems = static_cast<int>(rModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
+
+        // #pragma omp parallel for
+        for(int i = 0; i < NElems; i++)
+        {
+            ModelPart::ElementsContainerType::iterator itElem = el_begin + i;
+            itElem -> Initialize(CurrentProcessInfo);
+        }
+
+        this->SetElementsAreInitialized();
+
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief This method initializes some rutines related with the explicit scheme
      * @param rModelPart The model of the problem to solve
@@ -197,6 +223,10 @@ public:
             r_flux_residual = 0.0;
             noalias(r_external_force) = ZeroVector(3);
             noalias(r_internal_force) = ZeroVector(3);
+            Matrix& rInitialStress = it_node->FastGetSolutionStepValue(INITIAL_STRESS_TENSOR);
+            if(rInitialStress.size1() != 3)
+                rInitialStress.resize(3,3,false);
+            noalias(rInitialStress) = ZeroMatrix(3,3);
         }
 
         KRATOS_CATCH("")
@@ -448,7 +478,6 @@ public:
         noalias(displacement_aux) = r_displacement;
         array_1d<double, 3>& r_displacement_old = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT_OLD);
         // array_1d<double, 3>& r_displacement_older = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT_OLDER);
-        const array_1d<double, 3>& r_actual_previous_displacement = itCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,2);
         const double nodal_mass = itCurrentNode->GetValue(NODAL_MASS);
 
         double& r_current_water_pressure = itCurrentNode->FastGetSolutionStepValue(WATER_PRESSURE);
@@ -603,8 +632,6 @@ public:
 
         if(rModelPart.GetProcessInfo()[NODAL_SMOOTHING] == true)
         {
-            unsigned int Dim = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
-
             const int NNodes = static_cast<int>(rModelPart.Nodes().size());
             ModelPart::NodesContainerType::iterator node_begin = rModelPart.NodesBegin();
 
@@ -616,9 +643,9 @@ public:
 
                 itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
                 Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
-                if(rNodalStress.size1() != Dim)
-                    rNodalStress.resize(Dim,Dim,false);
-                noalias(rNodalStress) = ZeroMatrix(Dim,Dim);
+                if(rNodalStress.size1() != 3)
+                    rNodalStress.resize(3,3,false);
+                noalias(rNodalStress) = ZeroMatrix(3,3);
                 array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
                 noalias(r_nodal_grad_pressure) = ZeroVector(3);
                 itNode->FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
@@ -641,10 +668,10 @@ public:
                     const double InvNodalArea = 1.0/NodalArea;
                     Matrix& rNodalStress = itNode->FastGetSolutionStepValue(NODAL_EFFECTIVE_STRESS_TENSOR);
                     array_1d<double,3>& r_nodal_grad_pressure = itNode->FastGetSolutionStepValue(NODAL_WATER_PRESSURE_GRADIENT);
-                    for(unsigned int i = 0; i<Dim; i++)
+                    for(unsigned int i = 0; i<3; i++)
                     {
                         r_nodal_grad_pressure[i] *= InvNodalArea;
-                        for(unsigned int j = 0; j<Dim; j++)
+                        for(unsigned int j = 0; j<3; j++)
                         {
                             rNodalStress(i,j) *= InvNodalArea;
                         }

@@ -128,7 +128,7 @@ class BuildModelPartBoundaryProcess
 
     bool success=false;
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     unsigned int NumberOfSubModelParts=mrModelPart.NumberOfSubModelParts();
 
@@ -148,14 +148,14 @@ class BuildModelPartBoundaryProcess
         {
           std::cout<<"  ERROR: BOUNDARY CONSTRUCTION FAILED ModelPart : ["<<i_mp.Name()<<"] "<<std::endl;
         }
-        else
-        {
-          if( mEchoLevel >= 1 ){
-            double end_time = OpenMPUtils::GetCurrentTime();
-            std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-          }
-          //PrintSkin(i_mp);
-        }
+        // else
+        // {
+        //   if( mEchoLevel >= 1 ){
+        //     double end_time = OpenMPUtils::GetCurrentTime();
+        //     std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+        //   }
+        //   //PrintSkin(i_mp);
+        // }
       }
     }
     else{
@@ -170,14 +170,14 @@ class BuildModelPartBoundaryProcess
       {
         std::cout<<"  ERROR: BOUNDARY CONSTRUCTION FAILED on ModelPart : ["<<rModelPart.Name()<<"] "<<std::endl;
       }
-      else
-      {
-        if( mEchoLevel >= 1 ){
-          double end_time = OpenMPUtils::GetCurrentTime();
-          std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
-        }
-        //PrintSkin(rModelPart);
-      }
+      // else
+      // {
+      //   if( mEchoLevel >= 1 ){
+      //     double end_time = OpenMPUtils::GetCurrentTime();
+      //     std::cout<<" [ Performed in Time = "<<end_time-begin_time<<" ]"<<std::endl;
+      //   }
+      //   //PrintSkin(rModelPart);
+      // }
     }
 
     if( NumberOfSubModelParts > 1 ){

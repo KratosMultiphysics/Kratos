@@ -30,6 +30,11 @@ def CreateSolver(model, custom_settings):
             custom_settings["solver_settings"]["time_stepping"].AddValue("end_time", custom_settings["problem_data"]["end_time"])
             solver_module_name = "geomechanics_U_Pw_solver"
 
+        elif (solver_type.lower() == "pw" or solver_type.lower() == "geomechanics_pw_solver" or
+              solver_type.lower() == "twophase"):
+            custom_settings["solver_settings"]["time_stepping"].AddValue("end_time", custom_settings["problem_data"]["end_time"])
+            solver_module_name = "geomechanics_Pw_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"geomechanics_U_Pw_solver\""

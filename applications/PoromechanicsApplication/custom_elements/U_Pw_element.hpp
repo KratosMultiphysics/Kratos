@@ -96,6 +96,9 @@ public:
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
@@ -129,6 +132,10 @@ protected:
     GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
+    Matrix mIntrinsicPermeability;
+
+    std::vector<double> mImposedZStrainVector; /// The vector containing the imposed z strains (for 2.5D element: 2D geom with 3D CL)
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
