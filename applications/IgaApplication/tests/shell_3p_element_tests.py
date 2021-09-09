@@ -5,8 +5,8 @@
 #       /___/\____/_/  |_| Application
 
 import KratosMultiphysics as KM
-from KratosMultiphysics.IgaApplication import *
-from KratosMultiphysics.StructuralMechanicsApplication import *
+import KratosMultiphysics.IgaApplication as IGA
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -24,7 +24,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
 
         model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KM.REACTION)
-        model_part.AddNodalSolutionStepVariable(POINT_LOAD)
+        model_part.AddNodalSolutionStepVariable(SMA.POINT_LOAD)
 
         # create property for shell elements
 
@@ -32,7 +32,7 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         shell_properties.SetValue(KM.THICKNESS, 0.1)
         shell_properties.SetValue(KM.YOUNG_MODULUS, 200000000)
         shell_properties.SetValue(KM.POISSON_RATIO, 0)
-        shell_properties.SetValue(KM.CONSTITUTIVE_LAW, LinearElasticPlaneStress2DLaw())
+        shell_properties.SetValue(KM.CONSTITUTIVE_LAW, SMA.LinearElasticPlaneStress2DLaw())
 
         # create a nurbs surface
         surface = create_geometry(model_part)
@@ -42,10 +42,10 @@ class Shell3pElementTests(KratosUnittest.TestCase):
 
         surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
-        id = 1
+        element_id = 1
         for i in range(0, len(quadrature_point_geometries)):
-            model_part.CreateNewElement('Shell3pElement', id, quadrature_point_geometries[i], shell_properties)
-            id += 1
+            model_part.CreateNewElement('Shell3pElement', element_id, quadrature_point_geometries[i], shell_properties)
+            element_id += 1
 
         # add dofs
         KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
@@ -74,13 +74,13 @@ class Shell3pElementTests(KratosUnittest.TestCase):
         prop = model_part.GetProperties()[2]
 
         model_part.CreateNewCondition('PointLoadCondition3D1N', 1, [3], prop)
-        surface[2].SetSolutionStepValue(POINT_LOAD_Z, -50)
+        surface[2].SetSolutionStepValue(SMA.POINT_LOAD_Z, -50)
 
         model_part.CreateNewCondition('PointLoadCondition3D1N', 2, [6], prop)
-        surface[5].SetSolutionStepValue(POINT_LOAD_Z, -100)
+        surface[5].SetSolutionStepValue(SMA.POINT_LOAD_Z, -100)
 
         model_part.CreateNewCondition('PointLoadCondition3D1N', 3, [9], prop)
-        surface[8].SetSolutionStepValue(POINT_LOAD_Z, -50)
+        surface[8].SetSolutionStepValue(SMA.POINT_LOAD_Z, -50)
 
         # setup solver
         model_part.SetBufferSize(1)
