@@ -205,6 +205,7 @@ protected:
     {
         KRATOS_TRY;
 
+        rItem.CalculateLocalSystem(rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         rItem.CalculateLocalVelocityContribution(
             mDampingMatrix[ThreadId], rRHS_Contribution, rCurrentProcessInfo);
         rItem.EquationIdVector(rEquationIdVector, rCurrentProcessInfo);
