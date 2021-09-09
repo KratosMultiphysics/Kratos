@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -309,3 +309,4 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
 } // namespace Kratos
 
 #undef REAL
+diff --git a/kratos/utilities/delaunator_utilities.cpp b/kratos/utilities/delaunator_utilities.cpp

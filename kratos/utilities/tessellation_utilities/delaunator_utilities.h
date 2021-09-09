@@ -86,3 +86,4 @@ namespace DelaunatorUtilities
 }; // namespace DelaunatorUtilities
 }  // namespace Kratos
 #endif /* KRATOS_DELAUNATOR_UTILITIES defined */
+diff --git a/kratos/utilities/delaunator_utilities.h b/kratos/utilities/delaunator_utilities.h

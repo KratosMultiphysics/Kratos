@@ -19,7 +19,7 @@
 #include "containers/model.h"
 #include "utilities/geometrical_projection_utilities.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 // DEBUG
 #include "includes/gid_io.h"
 #include "input_output/vtk_output.h"
