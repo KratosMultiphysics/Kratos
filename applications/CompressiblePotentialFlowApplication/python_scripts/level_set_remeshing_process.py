@@ -95,7 +95,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
             self._ExtendDistance()
 
             self._RefineMesh()
-            self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
+            if self.step < self.max_iter:
+                self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
             self._CalculateDistance()
             self._UpdateParameters()
 
