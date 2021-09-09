@@ -53,7 +53,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(geometry_distances);
 
         if (is_embedded && it_elem->Is(ACTIVE)){
-
+            it_elem->Set(SOLID);
             ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
 
             // Computing Normal
@@ -77,6 +77,18 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
     mrResultantForce[0] = fx;
     mrResultantForce[1] = fy;
     mrResultantForce[2] = fz;
+
+    std::ofstream outfile_solid;
+    outfile_solid.open("solid_elements_id.txt");
+    for (auto& r_element : mrModelPart.Elements()){
+        if(r_element.Is(SOLID)){
+            if (r_element.GetGeometry().Center().X() > 0.4) {
+                outfile_solid << r_element.Id();
+                outfile_solid << " ";
+            }
+        }
+    }
+    outfile_solid.close();
 
     KRATOS_CATCH("");
 }

@@ -132,28 +132,61 @@ void EmbeddedIncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateKuttaWa
     rLeftHandSideMatrix.clear();
     rRightHandSideVector.clear();
 
-    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
 
-    // Calculate shape functions
-    GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
 
-    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
-
-    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
-
-    BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol*free_stream_density*prod(data.DN_DX, trans(data.DN_DX));
-
-    for (unsigned int i = 0; i < NumNodes; ++i)
-    {
-        for (unsigned int j = 0; j < NumNodes; ++j)
-        {
-            rLeftHandSideMatrix(i, j) = lhs_total(i, j);
-            rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
-        }
+    BoundedVector<double,NumNodes> distances;
+    for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+        distances[i_node] = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
     }
+    const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<Dim,NumNodes>(distances);
 
+    PotentialFlowUtilities::ElementalData<NumNodes,Dim> data;
+    data.distances = PotentialFlowUtilities::GetWakeDistances<Dim, NumNodes>(*this);
+    const double free_stream_density = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     BoundedVector<double, 2*NumNodes> split_element_values;
     split_element_values = PotentialFlowUtilities::GetPotentialOnWakeElement<Dim, NumNodes>(*this, data.distances);
+    // if (true) {
+    if (!is_embedded) {
+        GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+        BoundedMatrix<double, NumNodes, NumNodes> lhs_total = data.vol*free_stream_density*prod(data.DN_DX, trans(data.DN_DX));
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            for (unsigned int j = 0; j < NumNodes; ++j)
+            {
+                rLeftHandSideMatrix(i, j) = lhs_total(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total(i, j);
+            }
+        }
+    } else {
+        BoundedMatrix<double, NumNodes, NumNodes> lhs_total_embedded = ZeroMatrix(NumNodes, NumNodes);
+
+        Vector distances(NumNodes);
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+            distances(i_node) = this->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+
+        ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(distances);
+        Matrix positive_side_sh_func;
+        ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+        Vector positive_side_weights;
+        pModifiedShFunc -> ComputePositiveSideShapeFunctionsAndGradientsValues(
+            positive_side_sh_func,
+            positive_side_sh_func_gradients,
+            positive_side_weights,
+            GeometryData::GI_GAUSS_1);
+
+        BoundedMatrix<double,NumNodes,Dim> DN_DX;
+        for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
+            DN_DX=positive_side_sh_func_gradients(i_gauss);
+            noalias(lhs_total_embedded) += free_stream_density*prod(DN_DX,trans(DN_DX))*positive_side_weights(i_gauss);
+        }
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int j = 0; j < NumNodes; ++j)
+            {
+                rLeftHandSideMatrix(i, j) = lhs_total_embedded(i, j);
+                rLeftHandSideMatrix(i + NumNodes, j + NumNodes) = lhs_total_embedded(i, j);
+            }
+        }
+    }
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, split_element_values);
 }
 

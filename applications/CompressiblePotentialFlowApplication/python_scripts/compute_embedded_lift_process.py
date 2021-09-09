@@ -63,6 +63,10 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
             self.te = node
             break
 
-    def _ComputeLiftFromJumpCondition3D(self):
-        self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_sub_model_part")
-        super()._ComputeLiftFromJumpCondition3D()
+    def ExecuteFinalizeSolutionStep(self):
+        if self.fluid_model_part.HasSubModelPart("trailing_edge_sub_model_part"):
+            self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_sub_model_part")
+            self.compute_lift_from_jump_3d = True
+        else:
+            self.compute_lift_from_jump_3d = False
+        super().ExecuteFinalizeSolutionStep()
