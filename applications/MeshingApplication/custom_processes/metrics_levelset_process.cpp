@@ -35,6 +35,12 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     mSizeBoundLayer = ThisParameters["sizing_parameters"]["boundary_layer_max_distance"].GetDouble();
     mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
+    if (mSizeInterpolation == Interpolation::PIECEWISE_LINEAR) {
+        Matrix size_distribution = ThisParameters["sizing_parameters"]["size_distribution"].GetMatrix();
+        KRATOS_ERROR_IF(size_distribution.size1() == 0 || size_distribution.size2() == 0) << "Empty input size_distribution table!" << std::endl;
+        mSizeDistributionTable = Table<double>(size_distribution);
+    }
+
 
     // In case we have isotropic remeshing (default values)
     if (ThisParameters["anisotropy_remeshing"].GetBool() == false) {
@@ -99,10 +105,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             const double size_reference = rNode.FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
             if (((element_size > nodal_h) && mEnforceCurrent) || (std::abs(size_reference) > mSizeBoundLayer))
-                element_size = nodal_h;
+                element_size = mMaxSize;
         } else {
             if (((element_size > nodal_h) && mEnforceCurrent))
-                element_size = nodal_h;
+                element_size = mMaxSize;
         }
 
         // For postprocess pourposes
@@ -232,7 +238,12 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
             size = - std::log(1-std::abs(Distance)/mSizeBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
             if (size > mMaxSize) size = mMaxSize;
         }
+        else if (mSizeInterpolation == Interpolation::PIECEWISE_LINEAR) {
+            size = mSizeDistributionTable.GetValue(Distance);
+        }
+
     }
+
 
 
     return size;
@@ -252,6 +263,7 @@ const Parameters ComputeLevelSetSolMetricProcess<TDim>::GetDefaultParameters() c
         {
             "reference_variable_name"          : "DISTANCE",
             "boundary_layer_max_distance"      : 1.0,
+            "size_distribution"                : [[]],
             "interpolation"                    : "constant"
         },
         "enforce_current"                      : true,
