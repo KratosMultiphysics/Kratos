@@ -20,6 +20,7 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 
 #include "structural_mechanics_application_variables.h"
+#include "utilities/atomic_utilities.h"
 
 namespace Kratos
 {
@@ -401,8 +402,7 @@ void NodalConcentratedElement::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
-        #pragma omp atomic
-        r_nodal_mass += rconst_this.GetValue(NODAL_MASS);
+        AtomicAdd(r_nodal_mass, rconst_this.GetValue(NODAL_MASS));
     }
 
     KRATOS_CATCH("")
@@ -427,8 +427,7 @@ void NodalConcentratedElement::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(local_size);
         GetFirstDerivativesVector(current_nodal_velocities);
         Matrix damping_matrix;
-        ProcessInfo temp_process_information; // cant pass const ProcessInfo
-        CalculateDampingMatrix(damping_matrix, temp_process_information);
+        CalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
         // current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
@@ -436,14 +435,12 @@ void NodalConcentratedElement::AddExplicitContribution(
             SizeType index = dimension * i;
             array_1d<double, 3>& r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
             for (size_t j = 0; j < dimension; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                AtomicAdd(r_force_residual[j], (rRHSVector[index + j] - damping_residual_contribution[index + j]));
             }
         }
     } else if (rDestinationVariable == NODAL_INERTIA) {
         double& r_nodal_mass = GetGeometry()[0].GetValue(NODAL_MASS);
-        #pragma omp atomic
-        r_nodal_mass += rconst_this.GetValue(NODAL_MASS);
+        AtomicAdd(r_nodal_mass, rconst_this.GetValue(NODAL_MASS));
         // no contribution for GetGeometry()[0].GetValue(NODAL_INERTIA);
     }
 

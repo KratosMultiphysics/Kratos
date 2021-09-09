@@ -93,7 +93,7 @@ ThermalElement::IntegrationMethod ThermalElement::GetIntegrationMethod() const
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     rElementalDofList.resize( 0 );
 
@@ -107,7 +107,7 @@ void ThermalElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::EquationIdVector( EquationIdVectorType& rResult,const  ProcessInfo& rCurrentProcessInfo ) const
 {
     unsigned int number_of_nodes  = GetGeometry().size();
 
@@ -173,7 +173,7 @@ void ThermalElement::GetSecondDerivativesVector( Vector& rValues, int Step ) con
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
-                                                  std::vector<double>& rValues,
+                                                  const std::vector<double>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -185,7 +185,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<double>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                  std::vector<Vector>& rValues,
+                                                  const std::vector<Vector>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -197,7 +197,7 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVari
 //************************************************************************************
 
 void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                  std::vector<Matrix>& rValues,
+                                                  const std::vector<Matrix>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -205,47 +205,13 @@ void ThermalElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVari
     KRATOS_CATCH( "" )
 }
 
-//*********************************GET DOUBLE VALUE***********************************
-//************************************************************************************
 
-void ThermalElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-                                                  std::vector<double>& rValues,
-                                                  const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-}
-
-//**********************************GET VECTOR VALUE**********************************
-//************************************************************************************
-
-void ThermalElement::GetValueOnIntegrationPoints( const Variable<Vector>& rVariable,
-                                                  std::vector<Vector>& rValues,
-                                                  const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-}
-
-//***********************************GET MATRIX VALUE*********************************
-//************************************************************************************
-
-void ThermalElement::GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
-                                                  std::vector<Matrix>& rValues,
-                                                  const ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )
-}
 
 //************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::Initialize()
+void ThermalElement::Initialize( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -258,7 +224,7 @@ void ThermalElement::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -270,7 +236,7 @@ void ThermalElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -441,7 +407,7 @@ void ThermalElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 
 void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 					       VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo,
+					       const ProcessInfo& rCurrentProcessInfo,
 					       Flags& rCalculationFlags )
 {
     KRATOS_TRY
@@ -468,7 +434,7 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
-      MechanicalElement.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
+      MechanicalElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
 
     }
     else {
@@ -591,7 +557,7 @@ void ThermalElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, Genera
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     Flags CalculationFlags;
@@ -612,7 +578,7 @@ void ThermalElement::CalculateRightHandSide( VectorType& rRightHandSideVector, P
 //************************************************************************************
 
 
-void ThermalElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     //calculation flags
     Flags CalculationFlags;
@@ -632,7 +598,7 @@ void ThermalElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Pro
 //************************************************************************************
 
 
-void ThermalElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
 
     //calculation flags
@@ -652,7 +618,7 @@ void ThermalElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, Vect
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -662,7 +628,7 @@ void ThermalElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& 
 //************************************************************************************
 //************************************************************************************
 
-void ThermalElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void ThermalElement::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -917,19 +883,9 @@ void ThermalElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVar
  * or that no common error is found.
  * @param rCurrentProcessInfo
  */
-int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  ThermalElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
      KRATOS_TRY
-
-     // Check that all required variables have been registered
-     KRATOS_CHECK_VARIABLE_KEY(TEMPERATURE);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CAPACITY);
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_CONDUCTIVITY);
-
-     KRATOS_CHECK_VARIABLE_KEY(HEAT_SOURCE);
-     KRATOS_CHECK_VARIABLE_KEY(PLASTIC_DISSIPATION);
-     KRATOS_CHECK_VARIABLE_KEY(DELTA_PLASTIC_DISSIPATION);
 
      return 0;
 

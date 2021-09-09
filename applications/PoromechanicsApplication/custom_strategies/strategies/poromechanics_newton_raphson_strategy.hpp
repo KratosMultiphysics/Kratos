@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "includes/kratos_parameters.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 #include "poromechanics_application_variables.h"
@@ -37,7 +38,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PoromechanicsNewtonRaphsonStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
@@ -167,22 +168,6 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int Check() override
-    {
-        KRATOS_TRY
-
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        KRATOS_CHECK_VARIABLE_KEY(IS_CONVERGED);
-
-        return ierr;
-
-        KRATOS_CATCH( "" )
-    }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual bool CheckConvergence()
     {
         // ********** Prediction phase **********
@@ -256,7 +241,7 @@ protected:
     {
         double ReferenceDofsNorm = 0.0;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

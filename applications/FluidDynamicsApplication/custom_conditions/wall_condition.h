@@ -413,9 +413,10 @@ namespace Kratos
 //        }
 
 
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-                                                 std::vector<array_1d<double, 3 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector<array_1d<double, 3 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             if (rVariable == NORMAL)
@@ -437,9 +438,10 @@ namespace Kratos
 
 
 
-        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                                                 std::vector<double>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             /*
@@ -453,9 +455,10 @@ namespace Kratos
         }
 
 
-        void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-                                                 std::vector<array_1d<double, 6 > >& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 6 > >& rVariable,
+            std::vector<array_1d<double, 6 > >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);
@@ -463,9 +466,10 @@ namespace Kratos
         }
 
 
-        void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                 std::vector<Vector>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector>& rVariable,
+            std::vector<Vector>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);
@@ -473,9 +477,10 @@ namespace Kratos
         }
 
 
-        void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                                 std::vector<Matrix>& rValues,
-                                                 const ProcessInfo& rCurrentProcessInfo) override
+        void CalculateOnIntegrationPoints(
+            const Variable<Matrix>& rVariable,
+            std::vector<Matrix>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
         {
             rValues.resize(1);
             const WallCondition* const_this = static_cast< const WallCondition* >(this);

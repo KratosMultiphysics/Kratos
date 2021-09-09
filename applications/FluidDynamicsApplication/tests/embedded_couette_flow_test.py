@@ -30,12 +30,15 @@ class EmbeddedCouetteTestFluidDynamicsAnalysis(FluidDynamicsAnalysis):
         # Set the ELEMENTAL_DISTANCES value
         # This is required for the discontinuous elements tests
         n_nodes = len(computing_model_part.Elements[1].GetNodes())
+        n_edges = computing_model_part.Elements[1].GetGeometry().EdgesNumber()
+        elem_edge_dist = KratosMultiphysics.Vector(n_edges, -1.0)
         for element in computing_model_part.Elements:
             elem_dist = KratosMultiphysics.Vector(n_nodes)
             elem_nodes = element.GetNodes()
             for i_node in range(n_nodes):
                 elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_EDGE_DISTANCES, elem_edge_dist)
 
         # Set up the initial velocity condition
         if self.slip_interface:
@@ -150,7 +153,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
             "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
             "is_slip": true,
             "slip_length": 1.0e8,
-            "penalty_coefficient": 10.0,
+            "penalty_coefficient": 0.1,
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
@@ -164,7 +167,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
             "element_type": "embedded_weakly_compressible_navier_stokes_discontinuous",
             "is_slip": true,
             "slip_length": 1.0e8,
-            "penalty_coefficient": 10.0,
+            "penalty_coefficient": 0.1,
             "dynamic_tau": 1.0
         }""")
         self._ReadAndCustomizeTestSettings()
@@ -176,7 +179,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         self.check_relative_tolerance = 1.0e-8
         self.print_reference_values = False
         self.work_folder = "embedded_couette_flow_test"
-        
+
     def _RunEmbeddedCouetteFlowTest(self):
         # Create the test simulation
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
@@ -193,7 +196,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(self.work_folder,__file__):
             with open(self.settings_filename,'r') as parameter_file:
                 self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
-    
+
         # Customize simulation settings
         self.parameters["solver_settings"]["formulation"] = self.formulation_settings
 
@@ -242,7 +245,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         output_name = gid_output_settings["Parameters"]["output_name"].GetString()
         output_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag: 
+        if self.slip_flag:
             output_name += "_slip"
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
@@ -262,7 +265,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         output_file_name = json_output_settings["Parameters"]["output_file_name"].GetString()
         output_file_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag: 
+        if self.slip_flag:
             output_file_name += "_slip"
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
@@ -284,7 +287,7 @@ class EmbeddedCouetteFlowTest(KratosUnittest.TestCase):
         domain_size = self.parameters["solver_settings"]["domain_size"].GetInt()
         input_file_name = json_check_settings["Parameters"]["input_file_name"].GetString()
         input_file_name += "_{0}_{1}d".format(self.formulation_settings["element_type"].GetString(), domain_size)
-        if self.slip_flag: 
+        if self.slip_flag:
             input_file_name += "_slip"
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_tolerance)

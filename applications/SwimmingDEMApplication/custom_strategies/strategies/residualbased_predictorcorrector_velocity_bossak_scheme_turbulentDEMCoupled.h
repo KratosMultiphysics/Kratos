@@ -32,7 +32,7 @@
 #include "processes/process.h"
 
 // Application includes
-#include "../FluidDynamicsApplication/custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 
 namespace Kratos {
 
@@ -114,7 +114,7 @@ public:
 
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMass.resize(NumThreads);
         mDamp.resize(NumThreads);
         mvel.resize(NumThreads);
@@ -141,7 +141,7 @@ public:
 
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMass.resize(NumThreads);
         mDamp.resize(NumThreads);
         mvel.resize(NumThreads);
@@ -170,7 +170,7 @@ public:
 
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMass.resize(NumThreads);
         mDamp.resize(NumThreads);
         mvel.resize(NumThreads);
@@ -199,7 +199,7 @@ public:
 
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMass.resize(NumThreads);
         mDamp.resize(NumThreads);
         mvel.resize(NumThreads);

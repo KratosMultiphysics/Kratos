@@ -8,7 +8,7 @@ namespace Kratos
 
 void MonolithicAutoSlipInlet3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
-                                      ProcessInfo& rCurrentProcessInfo)
+                                      const ProcessInfo& rCurrentProcessInfo)
     {
         const SizeType BlockSize = 1;
         unsigned int TNumNodes = GetGeometry().size();
@@ -47,7 +47,7 @@ void MonolithicAutoSlipInlet3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     }
 
 void MonolithicAutoSlipInlet3D::CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo)
 {
         const SizeType BlockSize = 1;
         unsigned int TNumNodes = GetGeometry().size();
@@ -61,7 +61,7 @@ void MonolithicAutoSlipInlet3D::CalculateRightHandSide(VectorType& rRightHandSid
     
 	
 void MonolithicAutoSlipInlet3D::EquationIdVector(EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 3;
@@ -80,7 +80,7 @@ void MonolithicAutoSlipInlet3D::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void MonolithicAutoSlipInlet3D::GetDofList(DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 3;

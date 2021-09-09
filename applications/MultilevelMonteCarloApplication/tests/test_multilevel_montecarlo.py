@@ -6,7 +6,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 import os
 
-@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication","MeshingApplication")
 class KratosMultilevelMonteCarloGeneralTestsAuxiliary(KratosUnittest.TestCase):
 
     def MonteCarloTest(self):

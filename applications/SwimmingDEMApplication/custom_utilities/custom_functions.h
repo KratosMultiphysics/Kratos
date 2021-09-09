@@ -28,12 +28,12 @@
 //Database includes
 #include "custom_utilities/search/discrete_particle_configure.h"
 #include "includes/define.h"
-#include "../../DEMApplication/custom_elements/discrete_element.h"
+#include "custom_elements/discrete_element.h"
 #include "custom_elements/swimming_particle.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
-#include "../../DEMApplication/custom_elements/spheric_particle.h"
-#include "../swimming_DEM_application.h"
-#include "../../../kratos/utilities/geometry_utilities.h"
+#include "custom_elements/spheric_particle.h"
+#include "swimming_DEM_application.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -179,12 +179,12 @@ bool AssessStationarity(ModelPart& r_model_part, const double& tol)
 //**************************************************************************************************************************************************
 double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             added_volume += CalculateElementalVolume(it->GetGeometry());
@@ -200,17 +200,17 @@ double CalculateDomainVolume(ModelPart& r_fluid_model_part)
 
 void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, array_1d <double, 3>& force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_dem_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_dem_model_part, k); it != GetElementPartitionEnd(r_dem_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -241,12 +241,12 @@ void CalculateTotalHydrodynamicForceOnParticles(ModelPart& r_dem_model_part, arr
 
 void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array_1d <double, 3>& instantaneous_force, array_1d <double, 3>& mean_force)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     std::vector<array_1d <double, 3> > added_force_vect;
-    added_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_force_vect.resize(ParallelUtilities::GetNumThreads());
     std::vector<array_1d <double, 3> > added_mean_force_vect;
-    added_mean_force_vect.resize(OpenMPUtils::GetNumThreads());
+    added_mean_force_vect.resize(ParallelUtilities::GetNumThreads());
 
     for (unsigned int k = 0; k < added_force_vect.size(); ++k){
         added_force_vect[k] = ZeroVector(3);
@@ -254,7 +254,7 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
     }
 
     #pragma omp parallel for
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
@@ -298,12 +298,12 @@ void CalculateTotalHydrodynamicForceOnFluid(ModelPart& r_fluid_model_part, array
 
 double CalculateGlobalFluidVolume(ModelPart& r_fluid_model_part)
 {
-    OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
+    OpenMPUtils::CreatePartition(ParallelUtilities::GetNumThreads(), r_fluid_model_part.GetCommunicator().LocalMesh().Elements().size(), mElementsPartition);
 
     double added_fluid_volume = 0.0;
 
     #pragma omp parallel for reduction(+ : added_fluid_volume)
-    for (int k = 0; k < OpenMPUtils::GetNumThreads(); ++k){
+    for (int k = 0; k < ParallelUtilities::GetNumThreads(); ++k){
 
         for (ElementIterator it = GetElementPartitionBegin(r_fluid_model_part, k); it != GetElementPartitionEnd(r_fluid_model_part, k); ++it){
             Geometry< Node<3> >& geom = it->GetGeometry();
