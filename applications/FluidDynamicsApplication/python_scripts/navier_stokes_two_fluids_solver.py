@@ -271,7 +271,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
 
-            # Accumulative Water volume error ratio due to level Set .Adding source term 
+            # Accumulative water volume error ratio due to level set. Adding source term 
             water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
 
             volume_error = (water_volume_after_transport - system_volume) / system_volume
