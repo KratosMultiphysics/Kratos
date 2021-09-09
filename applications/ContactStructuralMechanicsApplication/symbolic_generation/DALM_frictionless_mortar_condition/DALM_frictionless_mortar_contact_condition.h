@@ -103,7 +103,7 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type              DecompositionType;
 
-    typedef DerivativeData<TDim, TNumNodes, TNormalVariation>                               DerivativeDataType;
+    typedef DerivativeData<TDim, TNumNodes>                                                 DerivativeDataType;
 
     static constexpr std::size_t MatrixSize = TDim * (TNumNodes + TNumNodes) + 2 * TNumNodes;
 

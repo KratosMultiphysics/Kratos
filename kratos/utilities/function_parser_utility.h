@@ -172,11 +172,11 @@ protected:
     ///@name Member Variables
     ///@{
 
-    array_1d<double, 7> mValues = ZeroVector(7); /// The variables values considered on the function
-    te_expr* mpTinyExpr = nullptr;               /// The function parser
-    std::string mFunctionBody;                   /// The function body
+    array_1d<double, 7> mValues = ZeroVector(7);                          /// The variables values considered on the function
+    std::vector<te_expr*> mpTinyExpr = std::vector<te_expr*>(1, nullptr); /// The function parser
+    std::string mFunctionBody;                                            /// The function body
 
-    bool mDependsOnSpace = true;                 /// If it depends on space
+    bool mDependsOnSpace = true;                                          /// If it depends on space
 
     ///@}
     ///@name Protected Operations

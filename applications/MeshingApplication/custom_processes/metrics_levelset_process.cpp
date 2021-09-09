@@ -36,6 +36,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     mSizeInterpolation = ConvertInter(ThisParameters["sizing_parameters"]["interpolation"].GetString());
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
     if (mSizeInterpolation == Interpolation::PIECEWISE_LINEAR) {
+        // Reading size distribution, with format [DISTANCE, SIZE]
         Matrix size_distribution = ThisParameters["sizing_parameters"]["size_distribution"].GetMatrix();
         KRATOS_ERROR_IF(size_distribution.size1() == 0 || size_distribution.size2() == 0) << "Empty input size_distribution table!" << std::endl;
         mSizeDistributionTable = Table<double>(size_distribution);
@@ -105,10 +106,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             const double size_reference = rNode.FastGetSolutionStepValue(r_size_reference_var);
             element_size = CalculateElementSize(size_reference, nodal_h);
             if (((element_size > nodal_h) && mEnforceCurrent) || (std::abs(size_reference) > mSizeBoundLayer))
-                element_size = mMaxSize;
+                element_size = nodal_h;
         } else {
             if (((element_size > nodal_h) && mEnforceCurrent))
-                element_size = mMaxSize;
+                element_size = nodal_h;
         }
 
         // For postprocess pourposes

@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_modelers_to_python.h"
 
 
 namespace Kratos
@@ -45,6 +46,7 @@ namespace Python
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomStrategiesToPython(m);
+    AddCustomModelersToPython(m);
 
     // Adding enums
     py::enum_<Framework>(m, "Framework")
@@ -73,6 +75,7 @@ namespace Python
     // Physical variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BATHYMETRY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TOPOGRAPHY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FROUDE);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAIN);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MANNING);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CHEZY);
@@ -95,10 +98,10 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, TOPOGRAPHY_GRADIENT);
 
     // Specific variables for PFEM2
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DELTA_SCALAR1)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PROJECTED_SCALAR1)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,DELTA_VECTOR1)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PROJECTED_VECTOR1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DELTA_SCALAR)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PROJECTED_SCALAR)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,DELTA_VECTOR)
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,PROJECTED_VECTOR)
 
     // Variables for Algebraic Flux Corrected Transport algorithm
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, POSITIVE_FLUX)
