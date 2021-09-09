@@ -150,6 +150,3 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
 
 if __name__ == "__main__":
     UnitTest.main()
-    test=TwoFluidMassConservationTest()
-    test.testTwoFluidMassConservationTest2D()
-    test.testTwoFluidMassConservationTest3D()
