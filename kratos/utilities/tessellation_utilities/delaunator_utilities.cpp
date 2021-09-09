@@ -309,4 +309,3 @@ std::pair<std::vector<std::size_t>, std::vector<double>> ComputeTrianglesConnect
 } // namespace Kratos
 
 #undef REAL
-diff --git a/kratos/utilities/delaunator_utilities.cpp b/kratos/utilities/delaunator_utilities.cpp
