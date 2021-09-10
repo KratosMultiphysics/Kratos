@@ -40,7 +40,7 @@ class AnalysisStage(object):
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
         list_additional_vars = self._GetListOfAdditionalHistoricalVariables()
-        self._GetSolver().AddAdditionalVariables(list_additional_vars)
+        self._GetSolver().AddAdditionalHistoricalVariables(list_additional_vars)
 
     def Run(self):
         """This function executes the entire AnalysisStage
