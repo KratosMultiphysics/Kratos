@@ -874,6 +874,7 @@ void ShallowWater2D3::AlgebraicResidual(
     flow_acc *= lumping_factor;
     height_acc *= lumping_factor;
     rain *= lumping_factor;
+    mesh_acc *= lumping_factor;
 
     const double c2 = rData.gravity * rData.height;
     const array_1d<double,3> friction = rData.gravity * rData.height * rData.pBottomFriction->CalculateRHS(rData.height, rData.velocity);
