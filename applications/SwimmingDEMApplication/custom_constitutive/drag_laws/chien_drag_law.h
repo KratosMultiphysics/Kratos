@@ -13,7 +13,7 @@ namespace Kratos {
 
         ChienDragLaw(): StokesDragLaw(){}
 
-        ChienDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        ChienDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~ChienDragLaw(){}
 
