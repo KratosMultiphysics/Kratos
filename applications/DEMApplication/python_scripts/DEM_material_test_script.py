@@ -72,15 +72,11 @@ class MaterialTest():
             self.diameter = self.parameters["material_test_settings"]["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["material_test_settings"]["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["material_test_settings"]["TestType"].GetString()
-            self.y_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["YCoordinateOfCylinderBottomBase"].GetDouble()
-            self.z_coordinate_of_cylinder_bottom_base = self.parameters["material_test_settings"]["ZCoordinateOfCylinderBottomBase"].GetDouble()
         else:
             self.height = self.parameters["SpecimenLength"].GetDouble()
             self.diameter = self.parameters["SpecimenDiameter"].GetDouble()
             self.ConfinementPressure = self.parameters["ConfinementPressure"].GetDouble()
             self.test_type = self.parameters["TestType"].GetString()
-            self.y_coordinate_of_cylinder_bottom_base = self.parameters["YCoordinateOfCylinderBottomBase"].GetDouble()
-            self.z_coordinate_of_cylinder_bottom_base = self.parameters["ZCoordinateOfCylinderBottomBase"].GetDouble()
 
         self.ComputeLoadingVelocity()
         self.ComputeMeasuringSurface()
@@ -112,7 +108,6 @@ class MaterialTest():
         if self.test_type == "Oedometric":
 
             for node in self.LAT:
-
                 node.SetSolutionStepValue(VELOCITY_X, 0.0)
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 node.Fix(VELOCITY_X)
@@ -196,6 +191,26 @@ class MaterialTest():
 
     def ComputeMeasuringSurface(self):
         self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
+    
+    def FindMinimumYcoordinate(self):
+
+        minimum_Y_coordinate = 0.0
+
+        for node in self.rigid_face_model_part.Nodes:
+            y = node.Y
+            minimum_Y_coordinate = y if y < minimum_Y_coordinate else minimum_Y_coordinate
+            
+        return minimum_Y_coordinate
+
+    def FindMinimumZcoordinate(self):
+
+        minimum_Z_coordinate = 0.0
+
+        for node in self.rigid_face_model_part.Nodes:
+            z = node.Z
+            minimum_Z_coordinate = z if z < minimum_Z_coordinate else minimum_Z_coordinate
+            
+        return minimum_Z_coordinate
 
     def CylinderSkinDetermination(self): #model_part, solver, DEM_parameters):
 
@@ -205,7 +220,7 @@ class MaterialTest():
         # Cylinder dimensions
         h = self.height
         d = self.diameter
-        y_min = self.y_coordinate_of_cylinder_bottom_base
+        y_min = self.FindMinimumYcoordinate()
 
         eps = 3.0 #2.0
 
@@ -285,6 +300,7 @@ class MaterialTest():
 
                         self.XTOP.append(node)
                         xtop_area = xtop_area + cross_section
+        
         #checks:
         if len(self.XLAT)==0:
             self.Procedures.KratosPrintWarning("ERROR! in Cylinder Skin Determination - NO LATERAL PARTICLES" + "\n")
@@ -300,7 +316,7 @@ class MaterialTest():
         h = self.height
         d = self.diameter
         eps = 3.0 #2.0
-        z_min = self.z_coordinate_of_cylinder_bottom_base
+        z_min = self.FindMinimumZcoordinate()
 
         for element in self.spheres_model_part.Elements:
 
@@ -325,19 +341,19 @@ class MaterialTest():
         self.total_check = 0
 
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == "TOP":
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[0] = 1
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == "BOT":
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[1] = 1
 
         for smp in self.spheres_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == "TOP":
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[2] = -1
 
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == "BOT":
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 
