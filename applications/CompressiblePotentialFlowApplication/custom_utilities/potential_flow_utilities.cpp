@@ -1211,7 +1211,7 @@ void ComputeMeshMetrics(ModelPart& rModelPart) {
 
     block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
         array_1d<double, 6> tensor_3d = ZeroVector(6);
-        const double nodal_h = rNode.GetValue(NODAL_H));
+        const double nodal_h = rNode.GetValue(NODAL_H);
         tensor_3d[0] = 1/(nodal_h*nodal_h);
         tensor_3d[1] = 1/(nodal_h*nodal_h);
         tensor_3d[2] = 1/(nodal_h*nodal_h);
