@@ -74,6 +74,7 @@ namespace Kratos
         void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
         const double& GetTemperature();
         void SetTemperature(const double temperature);
+        const double& GetAmbientTemperature();
         virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
         void ComputeConductiveHeatFlux(const ProcessInfo& r_process_info);
         void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
@@ -109,7 +110,6 @@ namespace Kratos
     protected:
        //thermal sphere neighbor information
 
-        double mTemperature;
         double mConductiveHeatFlux;
         double mThermalConductivity;
         double mSpecificHeat;

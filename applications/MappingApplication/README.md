@@ -41,7 +41,7 @@ The _Mapper_ is constructed using the _MapperFactory_. See the following basic e
 ~~~py
 # import the Kratos Core
 import KratosMultiphysics as KM
-# import the MappingApplication
+# import the MappingApplication to load the mappers
 import KratosMultiphysics.MappingApplication as KratosMapping
 
 # create ModelParts
@@ -53,18 +53,19 @@ mapper_settings = KM.Parameters("""{
 }""")
 
 # creating a mapper for shared memory
-mapper = KratosMapping.MapperFactory.CreateMapper(
+mapper = KM.MapperFactory.CreateMapper(
     model_part_origin,
     model_part_destination,
     mapper_settings
 )
 ~~~
 
-For constructing an _MPI-Mapper_ use `CreateMPIMapper` instead:
+For constructing an _MPI-Mapper_ use the `MPIExtension` instead:
 
 ~~~py
 # creating a mapper for distributed memory
-mpi_mapper = KratosMapping.MapperFactory.CreateMPIMapper(
+from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+mpi_mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
     model_part_origin,
     model_part_destination,
     mapper_settings
@@ -117,7 +118,7 @@ By default the mapping functions **Map** and **InverseMap** will overwrite the v
 ~~~py
 # Instead of overwriting, this will add the values to the existing ones
 
-mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.ADD_VALUES)
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.ADD_VALUES)
 ~~~
 
 Sometimes it can be necessary to swap the signs of quantites that are to be mapped. This can be done with the following:
@@ -125,18 +126,18 @@ Sometimes it can be necessary to swap the signs of quantites that are to be mapp
 ~~~py
 # Swapping the sign, i.e. multiplying the values with (-1)
 
-mapper.Map(KM.DISPLACEMENT, KM.MESH_DISPLACEMENT, KratosMapping.Mapper.SWAP_SIGN)
+mapper.Map(KM.DISPLACEMENT, KM.MESH_DISPLACEMENT, KM.Mapper.SWAP_SIGN)
 ~~~
 
 The flags can also be combined:
 ~~~py
-mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
 ~~~
 
 Many _Mappers_ internally construct a mapping matrix. It is possible to use the transpose of this matrix for mapping with `USE_TRANSPOSE`. This is often used for conservative mapping of forces in FSI, when the virtual work on both interfaces should be preserved.
 
 ~~~py
-mapper.Map(KM.REACTION, KM.FORCE, KratosMapping.Mapper.USE_TRANSPOSE)
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.USE_TRANSPOSE)
 ~~~
 
 #### Updating the Interface
@@ -154,16 +155,16 @@ mapper.UpdateInterface()
 The following can be used to see which _Mappers_ are available:
 ~~~py
 # available mappers for shared memory
-KratosMapping.MapperFactory.GetRegisteredMapperNames()
+KM.MapperFactory.GetRegisteredMapperNames()
 
 # available mappers for distributed memory
-KratosMapping.MapperFactory.GetRegisteredMPIMapperNames()
+MappingMPIExtension.MPIMapperFactory.GetRegisteredMapperNames()
 
 # check if mapper for shared memory exists
-KratosMapping.MapperFactory.HasMapper("mapper_name")
+KM.MapperFactory.HasMapper("mapper_name")
 
 # check if mapper for distributed memory exists
-KratosMapping.MapperFactory.HasMPIMapper("mapper_name")
+MappingMPIExtension.MPIMapperFactory.HasMapper("mapper_name")
 ~~~
 
 

@@ -20,7 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
@@ -62,7 +62,7 @@ template <class TSparseSpace,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
 class ResidualBasedNewtonRaphsonStrategy
-    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    : public ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
   public:
     ///@name Type Definitions
@@ -72,7 +72,9 @@ class ResidualBasedNewtonRaphsonStrategy
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedNewtonRaphsonStrategy);
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> SolvingStrategyType;
+
+    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
@@ -615,7 +617,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param rModelPart The model part of the problem
      * @param ThisParameters The configuration parameters
      */
-    typename BaseType::Pointer Create(
+    typename SolvingStrategyType::Pointer Create(
         ModelPart& rModelPart,
         Parameters ThisParameters
         ) const override
@@ -655,15 +657,12 @@ class ResidualBasedNewtonRaphsonStrategy
         if(global_number_of_constraints != 0) {
             const auto& r_process_info = BaseType::GetModelPart().GetProcessInfo();
 
-            const auto it_const_begin = r_constraints_array.begin();
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                (it_const_begin + i)->ResetSlaveDofs(r_process_info);
-
-            #pragma omp parallel for
-            for(int i=0; i<static_cast<int>(local_number_of_constraints); ++i)
-                 (it_const_begin + i)->Apply(r_process_info);
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.ResetSlaveDofs(r_process_info);
+            });
+            block_for_each(r_constraints_array, [&r_process_info](MasterSlaveConstraint& rConstraint){
+                rConstraint.Apply(r_process_info);
+            });
 
             // The following is needed since we need to eventually compute time derivatives after applying
             // Master slave relations
@@ -1354,7 +1353,7 @@ class ResidualBasedNewtonRaphsonStrategy
 
             std::stringstream dof_data_name;
             unsigned int rank=BaseType::GetModelPart().GetCommunicator().MyPID();
-            dof_data_name << "dofdata_" << BaseType::GetModelPart().GetProcessInfo()[TIME] 
+            dof_data_name << "dofdata_" << BaseType::GetModelPart().GetProcessInfo()[TIME]
                 << "_" << IterationNumber << "_rank_"<< rank << ".csv";
             WriteDofInfo(dof_data_name.str(), rDx);
         }
@@ -1402,12 +1401,12 @@ class ResidualBasedNewtonRaphsonStrategy
     void WriteDofInfo(std::string FileName, const TSystemVectorType& rDX)
     {
         std::ofstream out(FileName);
-        
+
         out.precision(15);
         out << "EquationId,NodeId,VariableName,IsFixed,Value,coordx,coordy,coordz" << std::endl;
         for(const auto& rdof : GetBuilderAndSolver()->GetDofSet()) {
             const auto& coords = BaseType::GetModelPart().Nodes()[rdof.Id()].Coordinates();
-            out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << "," 
+            out << rdof.EquationId() << "," << rdof.Id() << "," << rdof.GetVariable().Name() << "," << rdof.IsFixed() << ","
                         << rdof.GetSolutionStepValue() << "," <<  "," << coords[0]  << "," << coords[1]  << "," << coords[2]<< "\n";
         }
         out.close();

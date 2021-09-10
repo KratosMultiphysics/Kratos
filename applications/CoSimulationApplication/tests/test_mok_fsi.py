@@ -1,8 +1,8 @@
-from __future__ import print_function, absolute_import, division
 import KratosMultiphysics as KM
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
+from KratosMultiphysics.testing.utilities import GetPython3Command
 
 import co_simulation_test_case
 import os
@@ -33,7 +33,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
-            self.__ManipulateSettings()
+            self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
@@ -44,7 +44,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
 
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
-            self.__ManipulateSettings()
+            self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
@@ -56,28 +56,50 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self._createTest("fsi_mok", "cosim_mok_fsi")
             ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
-            self.__ManipulateSettings(external_structure=True)
+            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.external_solver_wrapper")
+            self.__ManipulateCFDSettings()
             self.__RemoveOutputFromCFD() # comment to get output
             self.__AddTestingToCFD()
             self.__DumpUpdatedCFDSettings()
-            self._runTestWithExternal(["python3", "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
+            self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_with_co_sim_io.py", ext_parameter_file_name])
 
-    def __ManipulateSettings(self, external_structure=False):
+    def test_mok_fsi_mvqn_external_structure_remote_controlled(self):
+        self.accelerator_type = "mvqn"
+
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            self._createTest("fsi_mok", "cosim_mok_fsi")
+            ext_parameter_file_name = os.path.join(self.problem_dir_name, "ProjectParametersCSM.json")
+            self.__ManipulateCSMSettingsToRunExternally("solver_wrappers.external.remote_controlled_solver_wrapper")
+            self.__ManipulateCFDSettings()
+            self.__RemoveOutputFromCFD() # comment to get output
+            self.__AddTestingToCFD()
+            self.__DumpUpdatedCFDSettings()
+            self._runTestWithExternal([GetPython3Command(), "structural_mechanics_analysis_remote_controlled.py", ext_parameter_file_name])
+
+    def __ManipulateCFDSettings(self):
         self.cosim_parameters["solver_settings"]["convergence_accelerators"][0]["type"].SetString(self.accelerator_type)
         self.cosim_parameters["solver_settings"]["solvers"]["fluid"]["solver_wrapper_settings"]["input_file"].SetString(self.cfd_tes_file_name)
 
-        if external_structure: # if running the structural problem separately and using IO to communicate
-            structure_settings = self.cosim_parameters["solver_settings"]["solvers"]["structure"]
-            structure_settings.RemoveValue("solver_wrapper_settings")
-
-            structure_settings["type"].SetString("solver_wrappers.external.external_solver_wrapper")
-            solver_wrapper_settings = KM.Parameters("""{ "import_meshes" : ["Structure.GENERIC_FSI"] }""")
-            io_settings = KM.Parameters("""{ "type" : "kratos_co_sim_io" }""")
-            structure_settings.AddValue("solver_wrapper_settings", solver_wrapper_settings)
-            structure_settings.AddValue("io_settings", io_settings)
-
         with open("fsi_mok/ProjectParametersCFD.json",'r') as parameter_file:
             self.cfd_parameters = KM.Parameters(parameter_file.read())
+
+    def __ManipulateCSMSettingsToRunExternally(self, solver_wrapper_name):
+        structure_settings = self.cosim_parameters["solver_settings"]["solvers"]["structure"]
+        structure_settings.RemoveValue("solver_wrapper_settings")
+
+        structure_settings["type"].SetString(solver_wrapper_name)
+        solver_wrapper_settings = KM.Parameters("""{
+            "import_meshes" : ["Structure.GENERIC_FSI"],
+            "export_data"   : ["load"],
+            "import_data"   : ["disp"]
+        }""")
+        io_settings = KM.Parameters("""{
+            "type" : "kratos_co_sim_io",
+            "echo_level" : 3,
+            "connect_to" : "ext_structure"
+        }""")
+        structure_settings.AddValue("solver_wrapper_settings", solver_wrapper_settings)
+        structure_settings.AddValue("io_settings", io_settings)
 
     def __AddTestingToCFD(self):
         disp_ref_file_name = "fsi_mok/fsi_mok_cfd_results_disp_ref_{}.dat".format(self.accelerator_type)
@@ -93,7 +115,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_disp.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "MESH_DISPLACEMENT_X",
@@ -121,7 +143,7 @@ class TestMokFSI(co_simulation_test_case.CoSimulationTestCase):
                 "model_part_name"  : "FluidModelPart",
                 "output_file_settings": {
                     "file_name"  : "fsi_mok_cfd_results_fluid.dat",
-                    "folder_name": "fsi_mok"
+                    "output_path": "fsi_mok"
                 },
                 "output_variables" : [
                     "VELOCITY_X",

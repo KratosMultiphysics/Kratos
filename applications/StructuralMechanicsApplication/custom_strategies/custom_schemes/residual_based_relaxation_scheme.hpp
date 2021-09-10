@@ -21,6 +21,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -122,11 +123,11 @@ public:
 
         mdamping_factor = damping_factor;
 
-        //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        mMass.resize(NumThreads);
-        mDamp.resize(NumThreads);
-        mvel.resize(NumThreads);
+        // Allocate auxiliary memory
+        const int num_threads = ParallelUtilities::GetNumThreads();
+        mMass.resize(num_threads);
+        mDamp.resize(num_threads);
+        mvel.resize(num_threads);
 
         //std::cout << "using the Relaxation Time Integration Scheme" << std::endl;
     }
@@ -430,15 +431,6 @@ public:
 
         int err = Scheme<TSparseSpace, TDenseSpace>::Check(r_model_part);
         if (err != 0) return err;
-
-        //check for variables keys
-        //verify that the variables are correctly initialized
-        if (DISPLACEMENT.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
-        if (VELOCITY.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
-        if (ACCELERATION.Key() == 0)
-            KRATOS_THROW_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for (const auto& r_node : r_model_part.Nodes())

@@ -223,6 +223,17 @@ public:
         const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
+     * @brief Calculate the lumped mass vector
+     * This is called during the assembling process in order
+     * to calculate the elemental lumped mass vector
+     * @param rLumpedMassVector the elemental lumped mass vector
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void CalculateLumpedMassVector(
+        VectorType& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -21,9 +21,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "mapping_application.h"
-#include "custom_python/add_custom_mappers_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
 
 namespace Kratos {
 namespace Python {
@@ -39,7 +37,6 @@ PYBIND11_MODULE(KratosMappingApplication, m)
         .def(py::init<>())
         ;
 
-    AddCustomMappersToPython(m);
     AddCustomUtilitiesToPython(m);
 }
 

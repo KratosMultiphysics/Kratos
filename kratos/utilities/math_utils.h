@@ -191,6 +191,7 @@ public:
      * @return DetA: The determinant of the matrix
      */
     template<class TMatrixType>
+    KRATOS_DEPRECATED_MESSAGE("Please use Det() instead")
     static inline TDataType DetMat(const TMatrixType& rInputMatrix)
     {
         static_assert(std::is_same<typename TMatrixType::value_type, TDataType>::value, "Bad value type.");
@@ -249,7 +250,7 @@ public:
 #else
         boost::numeric::ublas::matrix_indirect<const TMatrixType, IndirectArrayType> sub_mat(rMat, ia1, ia2);
 #endif // KRATOS_USE_AMATRIX
-        const TDataType first_minor = DetMat(sub_mat);
+        const TDataType first_minor = Det(sub_mat);
         return ((i + j) % 2) ? -first_minor : first_minor;
     }
 
@@ -291,7 +292,7 @@ public:
         BoundedMatrix<TDataType, TDim, TDim> inverted_matrix;
 
         /* Compute Determinant of the matrix */
-        rInputMatrixDet = DetMat(rInputMatrix);
+        rInputMatrixDet = Det(rInputMatrix);
 
         if(TDim == 1) {
             inverted_matrix(0,0) = 1.0/rInputMatrix(0,0);
@@ -429,6 +430,8 @@ public:
         const TDataType Tolerance = ZeroTolerance
         )
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         const SizeType size = rInputMatrix.size2();
 
         if(size == 1) {
@@ -476,10 +479,10 @@ public:
        } else { // Bounded-matrix case
             const SizeType size1 = rInputMatrix.size1();
             const SizeType size2 = rInputMatrix.size2();
-            
+
             Matrix A(rInputMatrix);
             Matrix invA(rInvertedMatrix);
-            
+
  #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
             AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
             rInputMatrixDet = lu_factorization.determinant();
@@ -501,12 +504,12 @@ public:
                 rInputMatrixDet *= (ki == 0) ? A(i,i) : -A(i,i);
             }
  #endif // ifdef KRATOS_USE_AMATRIX
-            
+
             for (IndexType i = 0; i < size1;++i) {
                 for (IndexType j = 0; j < size2;++j) {
                     rInvertedMatrix(i,j) = invA(i,j);
                 }
-            } 
+            }
        }
 
        // Checking condition number
@@ -529,6 +532,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 2 || rInvertedMatrix.size2() != 2) {
             rInvertedMatrix.resize(2,2,false);
@@ -560,6 +565,8 @@ public:
         )
     {
         KRATOS_TRY;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
 
         if(rInvertedMatrix.size1() != 3 || rInvertedMatrix.size2() != 3) {
             rInvertedMatrix.resize(3,3,false);
@@ -605,6 +612,8 @@ public:
     {
         KRATOS_TRY;
 
+        KRATOS_DEBUG_ERROR_IF_NOT(rInputMatrix.size1() == rInputMatrix.size2()) << "Matrix provided is non-square" << std::endl;
+
         if (rInvertedMatrix.size1() != 4 || rInvertedMatrix.size2() != 4) {
             rInvertedMatrix.resize(4, 4, false);
         }
@@ -644,77 +653,15 @@ public:
     }
 
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
-     */
-    static inline TDataType Det(const MatrixType& rA)
-    {
-        TDataType Det;
-
-        if (rA.size1() == 2) {
-            Det = Det2(rA);
-        } else if (rA.size1() == 3) {
-            Det = Det3(rA);
-        } else if (rA.size1() == 4) {
-            Det = Det4(rA);
-        } else {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-            Matrix temp(rA);
-            AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
-            Det = lu_factorization.determinant();
-#else
-            using namespace boost::numeric::ublas;
-            typedef permutation_matrix<SizeType> pmatrix;
-            Matrix Aux(rA);
-            pmatrix pm(Aux.size1());
-            bool singular = lu_factorize(Aux,pm);
-
-            if (singular) {
-                return 0.0;
-            }
-
-            Det = 1.0;
-
-            for (IndexType i = 0; i < Aux.size1();++i) {
-                IndexType ki = pm[i] == i ? 0 : 1;
-                Det *= std::pow(-1.0, ki) * Aux(i,i);
-            }
-#endif // ifdef KRATOS_USE_AMATRIX
-       }
-
-        return Det;
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 or 3x3 (no check performed on matrix size)
-     * @param rA Is the input matrix
-     * @return The determinant of the 2x2 matrix
-     */
-    static inline TDataType GeneralizedDet(const MatrixType& rA)
-    {
-        TDataType determinant;
-
-        if (rA.size1() == rA.size2()) {
-            determinant = Det(rA);
-        } else if (rA.size1() < rA.size2()) { // Right determinant
-            const Matrix AAT = prod( rA, trans(rA) );
-            determinant = std::sqrt(Det(AAT));
-        } else { // Left determinant
-            const Matrix ATA = prod( trans(rA), rA );
-            determinant = std::sqrt(Det(ATA));
-        }
-
-        return determinant;
-    }
-
-    /**
      * @brief Calculates the determinant of a matrix of dimension 2x2 (no check performed on matrix size)
      * @param rA Is the input matrix
      * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType Det2(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det2(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
     }
 
@@ -723,8 +670,11 @@ public:
      * @param rA Is the input matrix
      * @return The determinant of the 3x3 matrix
      */
-    static inline TDataType Det3(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det3(const TMatrixType& rA)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
         // Calculating the algebraic complements to the first line
         const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
         const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
@@ -738,37 +688,78 @@ public:
      * @param rA Is the input matrix
      * @return The determinant of the 4x4 matrix
      */
-    static inline TDataType Det4(const MatrixType& rA)
+    template<class TMatrixType>
+    static inline TDataType Det4(const TMatrixType& rA)
     {
-        const double Det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
+        const double det = rA(0,1)*rA(1,3)*rA(2,2)*rA(3,0)-rA(0,1)*rA(1,2)*rA(2,3)*rA(3,0)-rA(0,0)*rA(1,3)*rA(2,2)*rA(3,1)+rA(0,0)*rA(1,2)*rA(2,3)*rA(3,1)
                           -rA(0,1)*rA(1,3)*rA(2,0)*rA(3,2)+rA(0,0)*rA(1,3)*rA(2,1)*rA(3,2)+rA(0,1)*rA(1,0)*rA(2,3)*rA(3,2)-rA(0,0)*rA(1,1)*rA(2,3)*rA(3,2)+rA(0,3)*(rA(1,2)*rA(2,1)*rA(3,0)-rA(1,1)*rA(2,2)*rA(3,0)-rA(1,2)*rA(2,0)*rA(3,1)+rA(1,0)*rA(2,2)*rA(3,1)+rA(1,1)*rA(2,0)*rA(3,2)
                           -rA(1,0)*rA(2,1)*rA(3,2))+(rA(0,1)*rA(1,2)*rA(2,0)-rA(0,0)*rA(1,2)*rA(2,1)-rA(0,1)*rA(1,0)*rA(2,2)+rA(0,0)*rA(1,1)*rA(2,2))*rA(3,3)+rA(0,2)*(-(rA(1,3)*rA(2,1)*rA(3,0))+rA(1,1)*rA(2,3)*rA(3,0)+rA(1,3)*rA(2,0)*rA(3,1)-rA(1,0)*rA(2,3)*rA(3,1)-rA(1,1)*rA(2,0)*rA(3,3)+rA(1,0)*rA(2,1)*rA(3,3));
-        return Det;
+        return det;
+    }
+
+public:
+    /**
+     * @brief Calculates the determinant of a matrix of a square matrix of any size (no check performed on release mode)
+     * @param rA Is the input matrix
+     * @return The determinant of any size matrix
+     */
+    template<class TMatrixType>
+    static inline TDataType Det(const TMatrixType& rA)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rA.size1() == rA.size2()) << "Matrix provided is non-square" << std::endl;
+
+        switch (rA.size1()) {
+            case 2:
+                return Det2(rA);
+            case 3:
+                return Det3(rA);
+            case 4:
+                return Det4(rA);
+            default:
+                TDataType det = 1.0;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+                Matrix temp(rA);
+                AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(temp);
+                det = lu_factorization.determinant();
+#else
+                using namespace boost::numeric::ublas;
+                typedef permutation_matrix<SizeType> pmatrix;
+                Matrix Aux(rA);
+                pmatrix pm(Aux.size1());
+                bool singular = lu_factorize(Aux,pm);
+
+                if (singular) {
+                    return 0.0;
+                }
+
+                for (IndexType i = 0; i < Aux.size1();++i) {
+                    IndexType ki = pm[i] == i ? 0 : 1;
+                    det *= std::pow(-1.0, ki) * Aux(i,i);
+                }
+#endif // ifdef KRATOS_USE_AMATRIX
+                return det;
+       }
     }
 
     /**
-     * @brief Calculates the determinant of a matrix of dimension 2x2 (in this case for a bounded matrix)
+     * @brief Calculates the determinant of any matrix (no check performed on matrix size)
      * @param rA Is the input matrix
-     * @return The determinant of the matrix
+     * @return The determinant of the 2x2 matrix
      */
-    static inline TDataType Det(const BoundedMatrix<double,2,2>& rA)
+    template<class TMatrixType>
+    static inline TDataType GeneralizedDet(const TMatrixType& rA)
     {
-        return (rA(0,0)*rA(1,1)-rA(0,1)*rA(1,0));
-    }
-
-    /**
-     * @brief Calculates the determinant of a matrix of dimension 3x3 (in this case for a bounded matrix)
-     * @param rA Is the input matrix
-     * @return The determinant of the matrix
-     */
-    static inline TDataType Det(const BoundedMatrix<double,3,3>& rA)
-    {
-        // Calculating the algebraic complements to the first line
-        const double a = rA(1,1)*rA(2,2) - rA(1,2)*rA(2,1);
-        const double b = rA(1,0)*rA(2,2) - rA(1,2)*rA(2,0);
-        const double c = rA(1,0)*rA(2,1) - rA(1,1)*rA(2,0);
-
-        return rA(0,0)*a - rA(0,1)*b + rA(0,2)*c;
+        if (rA.size1() == rA.size2()) {
+            return Det(rA);
+        } else if (rA.size1() < rA.size2()) { // Right determinant
+            const Matrix AAT = prod( rA, trans(rA) );
+            return std::sqrt(Det(AAT));
+        } else { // Left determinant
+            const Matrix ATA = prod( trans(rA), rA );
+            return std::sqrt(Det(ATA));
+        }
     }
 
     /**
@@ -1865,7 +1856,8 @@ public:
         const TMatrixType1 &rA,
         TMatrixType2 &rMatrixSquareRoot,
         const TDataType Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20)
+        const SizeType MaxIterations = 20
+        )
     {
         // Do an eigenvalue decomposition of the input matrix
         TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
@@ -1875,6 +1867,7 @@ public:
         // Get the square root of the eigenvalues
         SizeType size = eigenvalues_matrix.size1();
         for (SizeType i = 0; i < size; ++i) {
+            KRATOS_ERROR_IF(eigenvalues_matrix(i,i) < 0) << "Eigenvalue " << i << " is negative. Square root matrix cannot be computed" << std::endl;
             eigenvalues_matrix(i,i) = std::sqrt(eigenvalues_matrix(i,i));
         }
 
@@ -1882,6 +1875,57 @@ public:
         BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
+    }
+
+    /**
+     * @brief Calculates the Factorial of a number k, Factorial = k!
+     * @tparam Number The number of which the Factorial is computed
+     */
+    template<class TIntegerType>
+    static inline TIntegerType Factorial(const TIntegerType Number)
+    {
+        if (Number == 0) {
+            return 1;
+        }
+        TIntegerType k = Number;
+        for (TIntegerType i = Number - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
+     * @brief Calculates the exponential of a matrix
+     * @brief see https://mathworld.wolfram.com/MatrixExponential.html
+     * @tparam rMatrix: the matrix A of which exp is calculated
+     * @tparam rExponentialMatrix: exp(A)
+     */
+    template<class TMatrixType>
+    static inline void CalculateExponentialOfMatrix(
+        const TMatrixType& rMatrix,
+        TMatrixType& rExponentialMatrix,
+        const double Tolerance = 1000.0*ZeroTolerance,
+        const SizeType MaxTerms = 200
+        )
+    {
+        SizeType series_term = 2;
+        SizeType factorial = 1;
+        const SizeType dimension = rMatrix.size1();
+
+        noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
+        TMatrixType exponent_matrix = rMatrix;
+        TMatrixType aux_matrix;
+
+        while (series_term < MaxTerms) {
+            noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+            noalias(exponent_matrix) = aux_matrix;
+            factorial = Factorial(series_term);
+            noalias(rExponentialMatrix) += exponent_matrix / factorial;
+            const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            if (norm_series_term < Tolerance)
+                break;
+            series_term++;
+        }
     }
 
     ///@}

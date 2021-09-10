@@ -22,8 +22,8 @@
 #include "custom_utilities/create_and_destroy.h"
 #include "utilities/quaternion.h"
 #include "custom_conditions/RigidFace.h"
-#include "../custom_strategies/schemes/dem_integration_scheme.h"
-#include "../custom_strategies/schemes/symplectic_euler_scheme.h"
+#include "custom_strategies/schemes/dem_integration_scheme.h"
+#include "custom_strategies/schemes/symplectic_euler_scheme.h"
 
 
 namespace Kratos {

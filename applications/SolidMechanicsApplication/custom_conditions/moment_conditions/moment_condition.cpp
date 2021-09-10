@@ -107,7 +107,7 @@ namespace Kratos
   //***********************************************************************************
 
   void MomentCondition::GetDofList(DofsVectorType& rConditionDofList,
-				     ProcessInfo& rCurrentProcessInfo)
+				   const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -135,7 +135,7 @@ namespace Kratos
   //***********************************************************************************
 
   void MomentCondition::EquationIdVector(EquationIdVectorType& rResult,
-					  ProcessInfo& rCurrentProcessInfo)
+					 const  ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -509,18 +509,13 @@ namespace Kratos
   //***********************************************************************************
 
 
-  int MomentCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+  int MomentCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
   {
     KRATOS_TRY
 
     // Perform base condition checks
     int ErrorCode = 0;
     ErrorCode = BoundaryCondition::Check(rCurrentProcessInfo);
-
-    // Check that all required variables have been registered
-    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
 
     return ErrorCode;
 
