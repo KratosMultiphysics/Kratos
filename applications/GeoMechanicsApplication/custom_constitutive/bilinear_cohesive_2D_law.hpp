@@ -49,7 +49,7 @@ public:
 
     ConstitutiveLaw::Pointer Clone() const override;
 
-    virtual SizeType GetStrainSize() const const override
+    virtual SizeType GetStrainSize() const override
     {
         return 2;
     }

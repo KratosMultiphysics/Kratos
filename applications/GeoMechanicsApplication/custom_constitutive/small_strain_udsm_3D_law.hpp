@@ -150,7 +150,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() const const override
+      virtual SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }

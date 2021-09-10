@@ -147,7 +147,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() const const override
+      virtual SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }

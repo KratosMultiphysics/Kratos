@@ -495,7 +495,7 @@ void TotalLagrangian::CalculateBSensitivity(Matrix const& rDN_DX,
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t TotalLagrangian::GetStrainSize() const const
+std::size_t TotalLagrangian::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }

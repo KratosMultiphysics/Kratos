@@ -679,7 +679,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateBSensitivity
 /***********************************************************************************/
 
 template<unsigned int TDim, unsigned int TyieldSurf>
-std::size_t GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetStrainSize() const const
+std::size_t GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::GetStrainSize() const
 {
     return GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
 }
