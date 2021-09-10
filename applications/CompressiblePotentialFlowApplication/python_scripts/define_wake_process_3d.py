@@ -176,6 +176,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
                                    self.wake_model_part, self.wake_process_cpp_parameters).ExecuteInitialize()
             #self.target_h_wake /= 2.0
+            # Set target for next iteration
             if self.target_h_wake < 0.3:
                 self.number_of_sweeps = 1
                 self.target_h_wake /= 2.0
