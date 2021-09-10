@@ -340,9 +340,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if (rElementalDofList.size() != ElementSize)
         rElementalDofList.resize(ElementSize);
@@ -362,10 +362,10 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    if (!IgnoreUndrained) {
+    // if (!IgnoreUndrained) {
         for (SizeType i=0; i < NumPNodes; ++i)
             rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
-    }
+    // }
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetDofList()") << std::endl;
 
@@ -386,9 +386,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ElementSize )
@@ -428,9 +428,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ElementSize )
@@ -466,9 +466,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != ElementSize )
@@ -555,9 +555,9 @@ void SmallStrainUPwDiffOrderElement::
     //Distribute mass block matrix into the elemental matrix
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? BlockElementSize : BlockElementSize + NumPNodes);
-    // const SizeType ElementSize = BlockElementSize + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? BlockElementSize : BlockElementSize + NumPNodes);
+    const SizeType ElementSize = BlockElementSize + NumPNodes;
 
 
     if ( rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
@@ -597,9 +597,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-    // const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     // Compute Mass Matrix
     MatrixType MassMatrix(ElementSize, ElementSize);
@@ -646,9 +646,9 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
 
-    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
-    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
-//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+    // const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    // const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if ( rResult.size() != ElementSize )
         rResult.resize( ElementSize, false );
@@ -668,10 +668,10 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    if (!IgnoreUndrained) {
+    // if (!IgnoreUndrained) {
         for ( SizeType i = 0; i < NumPNodes; ++i )
             rResult[Index++] = rGeom[i].GetDof( WATER_PRESSURE ).EquationId();
-    }
+    // }
 
 
 
@@ -1940,9 +1940,9 @@ void SmallStrainUPwDiffOrderElement::
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddLHS") << std::endl;
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
+    this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
 
     if (!rVariables.IgnoreUndrained) {
-       this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix,rVariables);
         this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
     }
