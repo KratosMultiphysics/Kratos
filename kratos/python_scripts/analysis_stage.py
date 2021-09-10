@@ -39,6 +39,8 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
 
         self._GetSolver().AddVariables() # this creates the solver and adds the variables
+        list_additional_vars = self._GetListOfAdditionalHistoricalVariables()
+        self._GetSolver().AddAdditionalVariables(list_additional_vars)
 
     def Run(self):
         """This function executes the entire AnalysisStage
@@ -343,6 +345,29 @@ class AnalysisStage(object):
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
         self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
+
+    def _GetListOfAdditionalHistoricalVariables(self):
+        """This function returns the list of (additional) historicsl variables
+        needed in the simulation
+        It can be overridden in derived classes
+        """
+        list_additional_vars = []
+        self.__GetListOfAdditionalVariablesFromProcesses("processes", list_additional_vars)
+        self.__GetListOfAdditionalVariablesFromProcesses("output_processes", list_additional_vars)
+
+        return list_additional_vars
+
+    def __GetListOfAdditionalVariablesFromProcesses(self, parameter_name, list_additional_vars):
+        """This function extracts the required historical variables needed by the processes
+        """
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
+
+        if self.project_parameters.Has(parameter_name):
+            processes_params = self.project_parameters[parameter_name]
+
+            for value in processes_params.values():
+                list_additional_vars.extend(factory.GetListOfRequiredHistoricalVariables(value))
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence

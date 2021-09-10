@@ -43,6 +43,23 @@ class KratosProcessFactory(object):
 
         return constructed_processes
 
+    def GetListOfRequiredHistoricalVariables( self, process_list):
+        required_variables = []
+        for i in range(0,process_list.size()):
+            item = process_list[i]
+            # The kratos_module is the application where the script must be loaded. ex. KratosMultiphysics.StructuralMechanicsApplication
+            if(item.Has("kratos_module")):
+                kratos_module = __import__(item["kratos_module"].GetString())
+            # The python_module is the actual scrpt that must be launch
+            if(item.Has("python_module")):
+                python_module = __import__(item["python_module"].GetString())
+                # not all processes define/need this method, therefore
+                # an explicit check is necessary
+                if hasattr(python_module, "GetHistoricalVariables"):
+                    required_variables.extend(python_module.GetHistoricalVariables(item["Parameters"]))
+
+        return required_variables
+
 
 ########## here we generate the common kratos processes --- IMPLEMENTED IN C++ ###################
 def Factory(settings, Model):

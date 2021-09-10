@@ -8,22 +8,19 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyInletProcess(Model, settings["Parameters"])
 
+def GetHistoricalVariables(settings):
+    copy_settings = settings.__copy__()
+    copy_settings.ValidateAndAssignDefaults(ApplyInletProcess.GetDefaultParameters())
+    required_vars = []
+    applied_var = copy_settings["variable_name"].GetString()
+    required_vars.append(KratosMultiphysics.KratosGlobals.GetVariable(applied_var))
+    return required_vars
 
 class ApplyInletProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
         KratosMultiphysics.Process.__init__(self)
 
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "mesh_id"         : 0,
-            "model_part_name" : "",
-            "variable_name"   : "VELOCITY",
-            "modulus"         : 0.0,
-            "constrained"     : true,
-            "direction"       : [1.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
-        }
-        """)
+        default_settings = ApplyInletProcess.GetDefaultParameters()
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail)
         if (settings.Has("modulus")):
@@ -59,6 +56,19 @@ class ApplyInletProcess(KratosMultiphysics.Process):
         # Construct the base process AssignVectorByDirectionProcess
         self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
+    @staticmethod
+    def GetDefaultParameters():
+        return KratosMultiphysics.Parameters("""
+        {
+            "mesh_id"         : 0,
+            "model_part_name" : "",
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 0.0,
+            "constrained"     : true,
+            "direction"       : [1.0,0.0,0.0],
+            "interval"        : [0.0,"End"]
+        }
+        """)
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
