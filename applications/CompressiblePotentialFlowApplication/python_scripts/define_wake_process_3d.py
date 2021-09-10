@@ -162,6 +162,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         self.number_of_sweeps = 2
         self.remove_modelparts = True
 
+        # Refinement iteration loop
         for _ in range(self.refinement_iterations):
             print('self.target_h_wake = ', self.target_h_wake)
             # Option 1 - Fix domain, remesh elements intersected by wake only wake
