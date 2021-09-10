@@ -542,7 +542,7 @@ public:
      * @return The size of the strain vector of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
-    virtual SizeType GetStrainSize();
+    virtual SizeType GetStrainSize() const;
 
     /**
      * @return The initial state of strains/stresses/F
@@ -580,7 +580,7 @@ public:
      * @brief Adds the initial stress vector if it is defined in the InitialState
      */
     template<typename TVectorType>
-    void AddInitialStressVectorContribution(TVectorType& rStressVector) 
+    void AddInitialStressVectorContribution(TVectorType& rStressVector)
     {
         if (this->HasInitialState()) {
             const auto& r_initial_state = GetInitialState();

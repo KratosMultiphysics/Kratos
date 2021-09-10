@@ -80,7 +80,7 @@ public:
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;

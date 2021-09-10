@@ -53,7 +53,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType BercovierMuIRheology3DLaw::GetStrainSize() const { return 6; }
 
     void BercovierMuIRheology3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {

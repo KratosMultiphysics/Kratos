@@ -53,7 +53,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType PapanastasiouMuIRheology3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType PapanastasiouMuIRheology3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType PapanastasiouMuIRheology3DLaw::GetStrainSize() const { return 6; }
 
     void PapanastasiouMuIRheology3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {

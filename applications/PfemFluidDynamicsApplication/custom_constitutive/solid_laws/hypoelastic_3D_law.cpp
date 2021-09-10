@@ -46,7 +46,7 @@ Hypoelastic3DLaw::~Hypoelastic3DLaw() {}
 
 ConstitutiveLaw::SizeType Hypoelastic3DLaw::WorkingSpaceDimension() { return 3; }
 
-ConstitutiveLaw::SizeType Hypoelastic3DLaw::GetStrainSize() { return 6; }
+ConstitutiveLaw::SizeType Hypoelastic3DLaw::GetStrainSize() const { return 6; }
 
 void Hypoelastic3DLaw::CalculateMaterialResponseCauchy(Parameters& rParameters) {
 

@@ -73,7 +73,7 @@ ConstitutiveLaw::SizeType PfemFluidConstitutiveLaw::WorkingSpaceDimension() {
     return 0;
 }
 
-ConstitutiveLaw::SizeType PfemFluidConstitutiveLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType PfemFluidConstitutiveLaw::GetStrainSize() const {
     KRATOS_ERROR << "Calling base "
                     "PfemFluidConstitutiveLaw::GetStrainSize "
                     "method. This class should not be instantiated. Please "

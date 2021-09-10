@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType Bingham2DLaw::WorkingSpaceDimension() { return 2; }
 
-    ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() { return 3; }
+    ConstitutiveLaw::SizeType Bingham2DLaw::GetStrainSize() const { return 3; }
 
     void Bingham2DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {

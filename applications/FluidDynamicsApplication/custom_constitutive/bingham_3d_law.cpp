@@ -62,7 +62,7 @@ ConstitutiveLaw::SizeType Bingham3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() const {
     return 6;
 }
 

@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType FrictionalViscoplastic3DLaw::GetStrainSize() const { return 6; }
 
     void FrictionalViscoplastic3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {

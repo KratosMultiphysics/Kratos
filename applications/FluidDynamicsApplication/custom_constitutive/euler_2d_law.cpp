@@ -55,7 +55,7 @@ namespace Kratos
         return 2;
     }
 
-    ConstitutiveLaw::SizeType Euler2DLaw::GetStrainSize() {
+    ConstitutiveLaw::SizeType Euler2DLaw::GetStrainSize() const {
         return 3;
     }
 

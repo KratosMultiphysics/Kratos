@@ -53,7 +53,7 @@ ConstitutiveLaw::SizeType Newtonian2DLaw::WorkingSpaceDimension() {
     return 2;
 }
 
-ConstitutiveLaw::SizeType Newtonian2DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType Newtonian2DLaw::GetStrainSize() const {
     return 3;
 }
 

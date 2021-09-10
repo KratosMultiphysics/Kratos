@@ -62,7 +62,7 @@ ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() const {
     return 6;
 }
 

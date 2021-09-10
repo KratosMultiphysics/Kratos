@@ -147,7 +147,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() override
+      virtual SizeType GetStrainSize() const const override
       {
          return VoigtSize;
       }
@@ -248,8 +248,8 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
 
       // @brief This function provides the place to perform checks on the completeness of the input.
-      // @details It is designed to be called only once (or anyway, not often) typically at the beginning 
-      //          of the calculations, so to verify that nothing is missing from the input or that 
+      // @details It is designed to be called only once (or anyway, not often) typically at the beginning
+      //          of the calculations, so to verify that nothing is missing from the input or that
       //          no common error is found.
       int Check(const Properties& rMaterialProperties,
                 const GeometryType& rElementGeometry,
@@ -395,7 +395,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
 
       ///@}
-   
+
    private:
       ///@name Static Member Variables
       ///@{
@@ -493,6 +493,6 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SMALL_STRAIN_UMAT_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_UMAT_3D_LAW_H_INCLUDED  defined
 
 

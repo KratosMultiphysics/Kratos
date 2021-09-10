@@ -88,7 +88,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) JopMuIRheology3DLaw : public P
     /**
      * @return Size of the strain vector (in Voigt notation) for the constitutive law
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 

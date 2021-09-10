@@ -115,7 +115,7 @@ ConstitutiveLaw::SizeType ConstitutiveLaw::WorkingSpaceDimension()
  * returns the size of the strain vector of the current constitutive law
  * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
  */
-ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
+ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize() const
 {
     KRATOS_ERROR <<  "Called the virtual function for GetStrainSize"<< std::endl;;
 }
