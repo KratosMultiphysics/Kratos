@@ -65,7 +65,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     UPwSmallStrainElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType NumGPoints = IntegrationPoints.size();
 
@@ -123,7 +123,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
         // Call the constitutive law to update material variables
         //Compute constitutive tensor and stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+        noalias(Variables.StressVector) = mStressVector[GPoint];
+        ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] = 
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -159,7 +160,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     KRATOS_TRY;
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(this->GetGeometry(),
@@ -213,7 +214,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
-                                                  Variables.detJ0);
+                                                  Variables.detJ);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -229,18 +230,18 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
-            Variables.detJ0 =
+            Variables.detJInitialConfiguration =
                 CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
                                                            Variables.GradNpT,
                                                            GPoint,
-                                                           this->GetIntegrationMethod());
+                                                           mThisIntegrationMethod);
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.GradNpT, Variables.Np);
             Variables.IntegrationCoefficient =
                 this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                       GPoint,
-                                                      Variables.detJ0);
+                                                      Variables.detJInitialConfiguration);
 
 
             //Contributions to the right hand side
@@ -284,43 +285,43 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
     noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
 
     Matrix J0, InvJ0;
-    rVariables.detJ0 =
+    rVariables.detJInitialConfiguration =
         this->CalculateDerivativesOnReferenceConfiguration(J0,
                                                            InvJ0,
                                                            rVariables.GradNpT,
                                                            GPoint,
-                                                           this->GetIntegrationMethod());
+                                                           mThisIntegrationMethod);
 
     // Calculating operator B
     this->CalculateBMatrix( rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     // Calculating jacobian
     Matrix J, InvJ;
-    double detJ =
+    rVariables.detJ =
         this->CalculateDerivativesOnCurrentConfiguration(J,
                                                          InvJ,
                                                          rVariables.GradNpT,
                                                          GPoint,
-                                                         this->GetIntegrationMethod());
+                                                         mThisIntegrationMethod);
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (detJ < 0.0)
+    if (rVariables.detJ < 0.0)
     {
         KRATOS_INFO("negative detJ")
         << "ERROR:: ELEMENT ID: "
         << this->Id()
         << " INVERTED. DETJ: "
-        << detJ
+        << rVariables.detJ
         << " nodes:" << this->GetGeometry()
         << std::endl;
     }
 #endif
 
-    KRATOS_ERROR_IF(detJ < 0.0)
+    KRATOS_ERROR_IF(rVariables.detJ < 0.0)
      << "ERROR:: ELEMENT ID: "
      << this->Id()
      << " INVERTED. DETJ: "
-     << detJ
+     << rVariables.detJ
      << " nodes:" << this->GetGeometry()
      << std::endl;
 

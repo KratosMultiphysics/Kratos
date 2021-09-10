@@ -37,7 +37,6 @@ Element::Pointer UPwSmallStrainFICElement<TDim,TNumNodes>::Create(IndexType NewI
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainFICElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
@@ -46,24 +45,46 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     UPwBaseElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
-    for (unsigned int i = 0; i < TDim; i++)
-    {
+    for (unsigned int i = 0; i < TDim; ++i) {
         mNodalConstitutiveTensor[i].resize(VoigtSize);
 
-        for (unsigned int j = 0; j < VoigtSize; j++)
-        {
+        for (unsigned int j = 0; j < VoigtSize; j++) {
             for (unsigned int k = 0; k < TNumNodes; k++)
                 mNodalConstitutiveTensor[i][j][k] = 0.0;
         }
     }
 
-    for (unsigned int i = 0; i < TDim; i++)
-    {
+    for (unsigned int i = 0; i < TDim; ++i) {
         for (unsigned int j = 0; j < TNumNodes; j++)
             mNodalDtStress[i][j] = 0.0;
     }
 
     KRATOS_CATCH( "" )
+}
+
+//----------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+int UPwSmallStrainFICElement<TDim,TNumNodes>::
+    Check( const ProcessInfo& rCurrentProcessInfo ) const
+{
+    KRATOS_TRY
+    // KRATOS_INFO("0-UPwSmallStrainFICElement::Check()") << this->Id() << std::endl;
+
+    // Verify generic variables
+    int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
+    if (ierr != 0) return ierr;
+
+    const PropertiesType& Prop = this->GetProperties();
+
+    // Verify specific properties
+    if (Prop[IGNORE_UNDRAINED])
+        KRATOS_ERROR << "IGNORE_UNDRAINED cannot be used in FIC elements. Use Non FIC elements instead" << this->Id() << std::endl;
+
+    // KRATOS_INFO("1-UPwSmallStrainElement::Check()") << std::endl;
+
+    return ierr;
+
+    KRATOS_CATCH( "" );
 }
 
 //----------------------------------------------------------------------------------------------------
@@ -99,7 +120,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-UPwSmallStrainFICElement::InitializeNonLinearIteration()") << this->Id() << std::endl;    
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
-    const SizeType NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const SizeType NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     //Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
@@ -114,7 +135,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     //Extrapolation variables
     array_1d<Matrix,TDim> ConstitutiveTensorContainer;
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         ConstitutiveTensorContainer[i].resize(NumGPoints, Variables.ConstitutiveMatrix.size1(), false);
     }
@@ -162,7 +183,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
-    const SizeType NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const SizeType NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -214,7 +235,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         for (unsigned int j = 0; j < ConstitutiveMatrix.size1(); j++)
         {
@@ -243,7 +264,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         rDtStressContainer(GPoint,i) = StressVector[i];
     }
@@ -278,7 +299,7 @@ void UPwSmallStrainFICElement<2,3>::
 
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
     
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
         
@@ -317,7 +338,7 @@ void UPwSmallStrainFICElement<2,4>::
 
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
 
@@ -345,7 +366,7 @@ void UPwSmallStrainFICElement<3,4>::
     
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
     
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
         
@@ -373,7 +394,7 @@ void UPwSmallStrainFICElement<3,8>::
 
     BoundedMatrix<double, NumNodes, VoigtSize> AuxNodalConstitutiveTensor;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
 
@@ -398,7 +419,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::
     BoundedMatrix<double, TNumNodes, TDim> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
     
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
         noalias(mNodalDtStress[i]) = column(AuxNodalDtStress,i);
 
     /* INFO:
@@ -428,7 +449,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
     const SizeType NumGPoints = IntegrationPoints.size();
 
     //Constitutive Law parameters
@@ -487,9 +508,10 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         this->InitializeBiotCoefficients(Variables, hasBiotCoefficient);
 
         //Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = this->CalculateIntegrationCoefficient(IntegrationPoints,
-                                                                                 GPoint,
-                                                                                 Variables.detJ0);
+        Variables.IntegrationCoefficient = 
+            this->CalculateIntegrationCoefficient(IntegrationPoints,
+                                                  GPoint,
+                                                  Variables.detJ);
 
         if (CalculateStiffnessMatrixFlag)
         {
@@ -563,7 +585,7 @@ void UPwSmallStrainFICElement<2,4>::
     BoundedMatrix<double,4,8> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
 
-    for (unsigned int i = 0; i < 4; i++) //NumGPoints
+    for (unsigned int i = 0; i < 4; ++i) //NumGPoints
     {
         for (unsigned int j = 0; j < 4; j++) //TNumNodes
         {
@@ -580,7 +602,7 @@ void UPwSmallStrainFICElement<2,4>::
     BoundedMatrix<double,4,8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
 
-    for (unsigned int i = 0; i < 4; i++) //TNumNodes
+    for (unsigned int i = 0; i < 4; ++i) //TNumNodes
     {
         index = i*2;
 
@@ -632,7 +654,7 @@ void UPwSmallStrainFICElement<3,8>::
     BoundedMatrix<double,8,24> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
 
-    for (unsigned int i = 0; i < 8; i++) //NumGPoints
+    for (unsigned int i = 0; i < 8; ++i) //NumGPoints
     {
         for (unsigned int j = 0; j < 8; j++) //TNumNodes
         {
@@ -650,7 +672,7 @@ void UPwSmallStrainFICElement<3,8>::
     BoundedMatrix<double,8,24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
 
-    for (unsigned int i = 0; i < 8; i++) //TNumNodes
+    for (unsigned int i = 0; i < 8; ++i) //TNumNodes
     {
         index = i*3;
 
@@ -724,7 +746,7 @@ void UPwSmallStrainFICElement<2,3>::
 
     const SizeType Dim = 2;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
     rFICVariables.DimVoigtMatrix.resize(Dim, VoigtSize, false);
@@ -748,10 +770,10 @@ void UPwSmallStrainFICElement<2,4>::
     rFICVariables.VoigtMatrix(1,1) = 1.0;
     rFICVariables.VoigtMatrix(2,2) = 0.5;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; ++i)
         rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(VoigtSize,false);
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
     rFICVariables.DimVoigtMatrix.resize(Dim, VoigtSize,false);
@@ -768,7 +790,7 @@ void UPwSmallStrainFICElement<3,4>::
 
     const SizeType Dim = 3;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
     rFICVariables.DimVoigtMatrix.resize(Dim, VoigtSize, false);
@@ -796,10 +818,10 @@ void UPwSmallStrainFICElement<3,8>::
     rFICVariables.VoigtMatrix(4,4) = 0.5;
     rFICVariables.VoigtMatrix(5,5) = 0.5;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; ++i)
         rFICVariables.ShapeFunctionsSecondOrderGradients[i].resize(VoigtSize,false);
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
     rFICVariables.DimVoigtMatrix.resize(Dim, VoigtSize, false);
@@ -826,7 +848,7 @@ void UPwSmallStrainFICElement<2,4>::
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rFICVariables.VoigtMatrix);
     unsigned int index;
-    for (unsigned int i = 0; i < 4; i++) //TNumNodes
+    for (unsigned int i = 0; i < 4; ++i) //TNumNodes
     {
         index = 2*i;
 
@@ -868,7 +890,7 @@ void UPwSmallStrainFICElement<3,8>::
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rFICVariables.VoigtMatrix);
     unsigned int index;
-    for (unsigned int i = 0; i < 8; i++) //TNumNodes
+    for (unsigned int i = 0; i < 8; ++i) //TNumNodes
     {
         index = 3*i;
 
@@ -1009,7 +1031,7 @@ void UPwSmallStrainFICElement<2,3>::
     const SizeType Dim = 2;
     const SizeType NumNodes = 3;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1023,7 +1045,7 @@ void UPwSmallStrainFICElement<2,3>::
         }
     }
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1061,7 +1083,7 @@ void UPwSmallStrainFICElement<2,4>::
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1075,7 +1097,7 @@ void UPwSmallStrainFICElement<2,4>::
         }
     }
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1091,7 +1113,7 @@ void UPwSmallStrainFICElement<2,4>::
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
         index = Dim*i;
 
@@ -1119,7 +1141,7 @@ void UPwSmallStrainFICElement<3,4>::
     const SizeType Dim = 3;
     const SizeType NumNodes = 4;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1133,7 +1155,7 @@ void UPwSmallStrainFICElement<3,4>::
         }
     }
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1160,7 +1182,7 @@ void UPwSmallStrainFICElement<3,8>::
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1174,7 +1196,7 @@ void UPwSmallStrainFICElement<3,8>::
         }
     }
 
-    for (unsigned int i = 0; i < Dim; i++)
+    for (unsigned int i = 0; i < Dim; ++i)
     {
         for (unsigned int j = 0; j < VoigtSize; j++)
         {
@@ -1190,7 +1212,7 @@ void UPwSmallStrainFICElement<3,8>::
     // Adding ShapeFunctionsSecondOrderGradients terms
     unsigned int index;
 
-    for (unsigned int i = 0; i < NumNodes; i++)
+    for (unsigned int i = 0; i < NumNodes; ++i)
     {
         index = Dim*i;
 
@@ -1366,7 +1388,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         for (unsigned int j = 0; j < TDim; j++)
         {
@@ -1377,7 +1399,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
         }
     }
 
-    for (unsigned int i = 0; i < TDim; i++)
+    for (unsigned int i = 0; i < TDim; ++i)
     {
         rFICVariables.DimVector[i] = 0.0;
 

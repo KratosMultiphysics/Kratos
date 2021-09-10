@@ -687,17 +687,17 @@ void SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
       CalculateCauchyGreenStrain( rValues, rStrainVector);
    }
 
-   if (rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ))
-   {
-      Vector& rStressVector = rValues.GetStressVector();
-      CalculateStress(rValues, rStressVector);
-   }
-
    if (rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) 
    {
       // Constitutive matrix (D matrix)
       Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
       CalculateConstitutiveMatrix(rValues, rConstitutiveMatrix);
+   }
+
+   if (rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ))
+   {
+      Vector& rStressVector = rValues.GetStressVector();
+      CalculateStress(rValues, rStressVector);
    }
 
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CalculateMaterialResponseCauchy()") << std::endl;
@@ -813,7 +813,6 @@ void SmallStrainUDSM3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
 
    int IDTask = STRESS_CALCULATION;
 
-
    CallUDSM(&IDTask, rValues);
 
    SetExternalStressVector(rStressVector);
@@ -886,7 +885,6 @@ void SmallStrainUDSM3DLaw::CallUDSM(int *IDTask, ConstitutiveLaw::Parameters &rV
                    << std::endl;
    }
 
-
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::CallUDSM()") << std::endl;
    KRATOS_CATCH("");
 }
@@ -924,14 +922,12 @@ void SmallStrainUDSM3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
    {
       // stress and strain vectors must be initialized:
       const Vector& rStressVector = rValues.GetStressVector();
-      const Vector& rStrainVector = rValues.GetStrainVector();
-
       SetInternalStressVector(rStressVector);
 
+      const Vector& rStrainVector = rValues.GetStrainVector();
       SetInternalStrainVector(rStrainVector);
 
       int IDTask = INITIALISATION;
-
       CallUDSM(&IDTask, rValues);
 
       mIsModelInitialized = true;

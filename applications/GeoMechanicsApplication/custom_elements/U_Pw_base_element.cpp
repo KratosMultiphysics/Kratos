@@ -148,7 +148,7 @@ void UPwBaseElement<TDim,TNumNodes>::
 
     const PropertiesType &Prop = this->GetProperties();
     const GeometryType &Geom = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     // pointer to constitutive laws
     if ( mConstitutiveLawVector.size() != NumGPoints )
@@ -160,7 +160,7 @@ void UPwBaseElement<TDim,TNumNodes>::
         mConstitutiveLawVector[i]->
             InitializeMaterial( Prop,
                                 Geom,
-                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+                                row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
     // resize mStressVector:
@@ -202,7 +202,7 @@ void UPwBaseElement<TDim,TNumNodes>::
         mRetentionLawVector[i]->
             InitializeMaterial( Prop,
                                 Geom,
-                                row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+                                row( Geom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
     mIsInitialised = true;
@@ -271,7 +271,6 @@ template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod UPwBaseElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
-    //return GetGeometry().GetDefaultIntegrationMethod();
 }
 
 //----------------------------------------------------------------------------------------
@@ -714,7 +713,7 @@ double UPwBaseElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     Matrix J0, InvJ0;
     double detJ0;

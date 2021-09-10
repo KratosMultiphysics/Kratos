@@ -80,6 +80,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
     typedef typename UPwSmallStrainElement<TDim,TNumNodes>::ElementVariables ElementVariables;
     using UPwSmallStrainElement<TDim,TNumNodes>::CalculateBulkModulus;

@@ -177,6 +177,7 @@ protected:
         double IntegrationCoefficient;
         double IntegrationCoefficientInitialConfiguration;
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
 
         //Variables needed for consistency with the general constitutive law
@@ -192,6 +193,8 @@ protected:
         Vector DisplacementVector;
         Vector VelocityVector;
         Vector PressureVector;
+        Vector DeltaPressureVector;
+
         Vector PressureDtVector;
 
         ///Retention Law parameters
@@ -209,8 +212,8 @@ protected:
         double BiotModulusInverse;
         double DynamicViscosityInverse;
         Matrix IntrinsicPermeability;
-        double NewmarkCoefficient1;
-        double NewmarkCoefficient2;
+        double VelocityCoefficient;
+        double DtPressureCoefficient;
     };
 
     // Member Variables
@@ -328,7 +331,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
-
 
     // Private Operations
 

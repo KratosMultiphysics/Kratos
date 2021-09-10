@@ -52,7 +52,7 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if (Geom.DomainSize() < 1.0e-15)
         KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
-    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    for ( unsigned int i = 0; i < TNumNodes; ++i )
     {
         if ( Geom[i].SolutionStepsDataHas( WATER_PRESSURE ) == false )
             KRATOS_ERROR << "missing variable WATER_PRESSURE on node " << Geom[i].Id() << std::endl;
@@ -77,7 +77,7 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     if ( TDim == 2 )
     {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i=0; i<TNumNodes; i++)
+        for (unsigned int i=0; i<TNumNodes; ++i)
         {
             if (Geom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
@@ -171,7 +171,7 @@ void SteadyStatePwElement<TDim,TNumNodes>::
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
-                                                  Variables.detJ0);
+                                                  Variables.detJ);
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);

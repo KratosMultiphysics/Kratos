@@ -64,7 +64,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     UPwSmallStrainFICElement<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType &IntegrationPoints =
-        this->GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+        this->GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     const SizeType NumGPoints = IntegrationPoints.size();
 
@@ -101,7 +101,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
-    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
+    const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
 
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom,this->GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
@@ -128,7 +128,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -156,7 +157,8 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
             mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
             mStateVariablesFinalized[GPoint] = 
                 mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -194,7 +196,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( this->GetIntegrationMethod() );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
 
     //Constitutive Law parameters
     ConstitutiveLaw::Parameters ConstitutiveParameters(Geom, Prop, rCurrentProcessInfo);
@@ -260,7 +262,7 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         Variables.IntegrationCoefficient =
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
-                                                  Variables.detJ0);
+                                                  Variables.detJ);
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
@@ -277,18 +279,18 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)
         {
             //Contributions to the right hand side
-            Variables.detJ0 =
+            Variables.detJInitialConfiguration =
                 CalculateDerivativesOnInitialConfiguration(this->GetGeometry(),
                                                            Variables.GradNpT,
                                                            GPoint,
-                                                           this->GetIntegrationMethod());
+                                                           mThisIntegrationMethod);
 
             // Calculating operator B
             this->CalculateBMatrix( Variables.B, Variables.GradNpT, Variables.Np);
             Variables.IntegrationCoefficient =
                 this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                       GPoint,
-                                                      Variables.detJ0);
+                                                      Variables.detJInitialConfiguration);
 
             //Contributions to the right hand side
             this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
@@ -334,43 +336,43 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     noalias(rVariables.Np) = row(rVariables.NContainer, GPoint);
 
     Matrix J0, InvJ0;
-    rVariables.detJ0 =
+    rVariables.detJInitialConfiguration =
         this->CalculateDerivativesOnReferenceConfiguration(J0,
                                                            InvJ0,
                                                            rVariables.GradNpT,
                                                            GPoint,
-                                                           this->GetIntegrationMethod());
+                                                           mThisIntegrationMethod);
 
     // Calculating operator B
     this->CalculateBMatrix( rVariables.B, rVariables.GradNpT, rVariables.Np);
 
     // Calculating jacobian
     Matrix J, InvJ;
-    double detJ =
+    rVariables.detJ =
         this->CalculateDerivativesOnCurrentConfiguration(J,
                                                          InvJ,
                                                          rVariables.GradNpT,
                                                          GPoint,
-                                                         this->GetIntegrationMethod());
+                                                         mThisIntegrationMethod);
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
-    if (detJ < 0.0)
+    if (rVariables.detJ < 0.0)
     {
         KRATOS_INFO("negative detJ")
         << "ERROR:: ELEMENT ID: "
         << this->Id()
         << " INVERTED. DETJ: "
-        << detJ
+        << rVariables.detJ
         << " nodes:" << this->GetGeometry()
         << std::endl;
     }
 #endif
 
-    KRATOS_ERROR_IF(detJ < 0.0)
+    KRATOS_ERROR_IF(rVariables.detJ < 0.0)
      << "ERROR:: ELEMENT ID: "
      << this->Id()
      << " INVERTED. DETJ: "
-     << detJ
+     << rVariables.detJ
      << " nodes:" << this->GetGeometry()
      << std::endl;
 

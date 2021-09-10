@@ -74,10 +74,10 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
     // Verify specific properties
     const PropertiesType& Prop = this->GetProperties();
 
-    bool IgnoreUndrained = false;
-    if (Prop.Has(IGNORE_UNDRAINED)) {
-        IgnoreUndrained = Prop[IGNORE_UNDRAINED];
-    }
+    if ( Prop.Has( IGNORE_UNDRAINED ) == false)
+        KRATOS_ERROR << "IGNORE_UNDRAINED does not exist in the parameter list" << this->Id() << std::endl;
+
+    bool IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
     if (!IgnoreUndrained) {
         if ( Prop.Has( PERMEABILITY_XX ) == false || Prop[PERMEABILITY_XX] < 0.0 )
@@ -192,10 +192,9 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i ) {
         //RetentionLawFactory::Pointer pRetentionFactory;
         mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
-        mRetentionLawVector[i]->
-            InitializeMaterial( GetProperties(),
-                                rGeom,
-                                row( rGeom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
+        mRetentionLawVector[i]-> InitializeMaterial( GetProperties(),
+                                                     rGeom,
+                                                     row( rGeom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
     }
 
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -316,7 +315,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables, ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+        noalias(Variables.StressVector) = mStressVector[GPoint];
+        ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->InitializeMaterialResponseCauchy(ConstitutiveParameters);
 
         // retention law
@@ -339,7 +339,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if (rElementalDofList.size() != ElementSize)
         rElementalDofList.resize(ElementSize);
@@ -359,8 +362,10 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    for (SizeType i=0; i < NumPNodes; ++i)
-        rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+    if (!IgnoreUndrained) {
+        for (SizeType i=0; i < NumPNodes; ++i)
+            rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
+    }
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetDofList()") << std::endl;
 
@@ -380,7 +385,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ElementSize )
@@ -419,7 +427,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != ElementSize )
@@ -454,7 +465,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != ElementSize )
@@ -540,7 +554,11 @@ void SmallStrainUPwDiffOrderElement::
 
     //Distribute mass block matrix into the elemental matrix
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = BlockElementSize + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? BlockElementSize : BlockElementSize + NumPNodes);
+    // const SizeType ElementSize = BlockElementSize + NumPNodes;
+
 
     if ( rMassMatrix.size1() != ElementSize || rMassMatrix.size2() != ElementSize)
         rMassMatrix.resize( ElementSize, ElementSize, false );
@@ -578,7 +596,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+    // const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     // Compute Mass Matrix
     MatrixType MassMatrix(ElementSize, ElementSize);
@@ -624,7 +645,10 @@ void SmallStrainUPwDiffOrderElement::
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
+
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const SizeType ElementSize = (IgnoreUndrained ? NumUNodes * Dim : NumUNodes * Dim + NumPNodes);
+//    const SizeType ElementSize = NumUNodes * Dim + NumPNodes;
 
     if ( rResult.size() != ElementSize )
         rResult.resize( ElementSize, false );
@@ -644,9 +668,12 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
+    if (!IgnoreUndrained) {
+        for ( SizeType i = 0; i < NumPNodes; ++i )
+            rResult[Index++] = rGeom[i].GetDof( WATER_PRESSURE ).EquationId();
+    }
 
-    for ( SizeType i = 0; i < NumPNodes; ++i )
-        rResult[Index++] = rGeom[i].GetDof( WATER_PRESSURE ).EquationId();
+
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::EquationIdVector()") << std::endl;
 
@@ -767,7 +794,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+        noalias(Variables.StressVector) = mStressVector[GPoint];
+        ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->FinalizeMaterialResponseCauchy(ConstitutiveParameters);
         mStateVariablesFinalized[GPoint] = 
             mConstitutiveLawVector[GPoint]->GetValue( STATE_VARIABLES,
@@ -777,8 +805,7 @@ void SmallStrainUPwDiffOrderElement::
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
-    bool IgnoreUndrained = false;
-    if (GetProperties().Has(IGNORE_UNDRAINED)) IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
+    const bool IgnoreUndrained = GetProperties()[IGNORE_UNDRAINED];
 
     //Assign pressure values to the intermediate nodes for post-processing
     if (!IgnoreUndrained) AssignPressureToIntermediateNodes();
@@ -1040,30 +1067,8 @@ void SmallStrainUPwDiffOrderElement::
         rOutput.resize( integration_points_number, false );
 
     if ( rVariable == VON_MISES_STRESS ) {
-        //Definition of variables
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        //Create constitutive law parameters:
-        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
-            //compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables,GPoint);
-
-            //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
-
-            //set gauss points variables to constitutivelaw parameters
-            this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
-
-            //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
             ComparisonUtilities EquivalentStress;
             rOutput[GPoint] =  EquivalentStress.CalculateVonMises(mStressVector[GPoint]);
         }
@@ -1242,30 +1247,9 @@ void SmallStrainUPwDiffOrderElement::
         rOutput.resize( integration_points_number );
 
     if ( rVariable == CAUCHY_STRESS_VECTOR ) {
-        //Definition of variables
-        ElementVariables Variables;
-        this->InitializeElementVariables(Variables, rCurrentProcessInfo);
-
-        //Create constitutive law parameters:
-        ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint ) {
-            //compute element kinematics (Np, gradNpT, |J|, B, strains)
-            this->CalculateKinematics(Variables,GPoint);
-
-            //Compute infinitessimal strain
-            this->CalculateStrain(Variables);
-
-            //set gauss points variables to constitutivelaw parameters
-            this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
-
-            //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
-            mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
-
             if ( rOutput[GPoint].size() != mStressVector[GPoint].size() )
                 rOutput[GPoint].resize( mStressVector[GPoint].size(), false );
 
@@ -1298,7 +1282,6 @@ void SmallStrainUPwDiffOrderElement::
 
         //Create constitutive law parameters:
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
-        ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
         ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
@@ -1328,7 +1311,8 @@ void SmallStrainUPwDiffOrderElement::
             this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
             //compute constitutive tensor and/or stresses
-            ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+            noalias(Variables.StressVector) = mStressVector[GPoint];
+            ConstitutiveParameters.SetStressVector(Variables.StressVector);
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
             Variables.BiotCoefficient = CalculateBiotCoefficient(Variables, hasBiotCoefficient);
@@ -1446,8 +1430,6 @@ void SmallStrainUPwDiffOrderElement::
     ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
-    // if (CalculateStiffnessMatrixFlag) ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
     // Stiffness matrix is always needed to calculate Biot coefficient
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
     if (CalculateResidualVectorFlag)  ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -1518,7 +1500,6 @@ void SmallStrainUPwDiffOrderElement::
     //Create constitutive law parameters:
     ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,GetProperties(),rCurrentProcessInfo);
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
     ConstitutiveParameters.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     //Loop over integration points
@@ -1535,7 +1516,8 @@ void SmallStrainUPwDiffOrderElement::
         this->SetConstitutiveParameters(Variables,ConstitutiveParameters);
 
         //compute constitutive tensor and/or stresses
-        ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
+        noalias(Variables.StressVector) = mStressVector[GPoint];
+        ConstitutiveParameters.SetStressVector(Variables.StressVector);
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
         //calculating weighting coefficient for integration
@@ -1623,6 +1605,8 @@ void SmallStrainUPwDiffOrderElement::
     (rVariables.StrainVector).resize(VoigtSize, false);
     (rVariables.ConstitutiveMatrix).resize(VoigtSize, VoigtSize, false);
 
+    (rVariables.StressVector).resize(VoigtSize, false);
+
     //Needed parameters for consistency with the general constitutive law
     rVariables.detF = 1.0;
     (rVariables.F).resize(Dim, Dim, false);
@@ -1635,8 +1619,8 @@ void SmallStrainUPwDiffOrderElement::
     this->InitializeProperties(rVariables);
 
     //ProcessInfo variables
-    rVariables.NewmarkCoefficient1 = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
-    rVariables.NewmarkCoefficient2 = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
+    rVariables.VelocityCoefficient = rCurrentProcessInfo[VELOCITY_COEFFICIENT];
+    rVariables.DtPressureCoefficient = rCurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
 
     // Retention law
     rVariables.FluidPressure = 0.0;
@@ -1700,9 +1684,12 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables&
 
     (rVariables.PressureVector).resize(NumPNodes,false);
     (rVariables.PressureDtVector).resize(NumPNodes,false);
+    (rVariables.DeltaPressureVector).resize(NumPNodes,false);
     for (SizeType i=0; i<NumPNodes; ++i) {
         rVariables.PressureVector[i]   = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.PressureDtVector[i] = rGeom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
+        rVariables.DeltaPressureVector[i] =   rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE)
+                                            - rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
     }
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
@@ -1747,9 +1734,15 @@ void SmallStrainUPwDiffOrderElement::
 
     rVariables.BiotCoefficient = CalculateBiotCoefficient(rVariables, hasBiotCoefficient);
 
-    rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY])
-                                   / Prop[BULK_MODULUS_SOLID] 
-                                   + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
+    const bool IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+
+    if (!IgnoreUndrained) {
+        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY]) / Prop[BULK_MODULUS_SOLID] 
+                                    + Prop[POROSITY]/Prop[BULK_MODULUS_FLUID];
+    } else {
+        rVariables.BiotModulusInverse = (rVariables.BiotCoefficient - Prop[POROSITY]) / Prop[BULK_MODULUS_SOLID] 
+                                       + Prop[POROSITY]/TINY;
+    }
 
     rVariables.BiotModulusInverse *= rVariables.DegreeOfSaturation;
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*Prop[POROSITY];
@@ -1767,9 +1760,7 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const PropertiesType& Prop = this->GetProperties();
 
-    rVariables.IgnoreUndrained = false;
-    if (Prop.Has(IGNORE_UNDRAINED))
-        rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
+    rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
     rVariables.ConsiderGeometricStiffness = false;
     if (Prop.Has(CONSIDER_GEOMETRIC_STIFFNESS))
@@ -1782,8 +1773,8 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
     rVariables.IntrinsicPermeability(1,1) = Prop[PERMEABILITY_YY];
     rVariables.IntrinsicPermeability(0,1) = Prop[PERMEABILITY_XY];
     rVariables.IntrinsicPermeability(1,0) = rVariables.IntrinsicPermeability(0,1);
-    if (dimension==3)
-    {
+
+    if (dimension==3) {
         rVariables.IntrinsicPermeability(2,2) = Prop[PERMEABILITY_ZZ];
         rVariables.IntrinsicPermeability(2,0) = Prop[PERMEABILITY_ZX];
         rVariables.IntrinsicPermeability(1,2) = Prop[PERMEABILITY_YZ];
@@ -1950,11 +1941,9 @@ void SmallStrainUPwDiffOrderElement::
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
 
-    if (!rVariables.IgnoreUndrained)
-    {
+    if (!rVariables.IgnoreUndrained) {
+       this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
         this->CalculateAndAddCouplingMatrix(rLeftHandSideMatrix,rVariables);
-        this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
-
         this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
     }
 
@@ -2054,23 +2043,25 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
-    Matrix CouplingMatrixT =   PORE_PRESSURE_SIGN_FACTOR 
-                             * SaturationCoefficient
-                             * rVariables.NewmarkCoefficient1
-                             * trans(CouplingMatrix);
+    if (!rVariables.IgnoreUndrained) {
+        const double SaturationCoefficient = rVariables.DegreeOfSaturation / rVariables.BishopCoefficient;
+        Matrix CouplingMatrixT =   PORE_PRESSURE_SIGN_FACTOR 
+                                * SaturationCoefficient
+                                * rVariables.VelocityCoefficient
+                                * trans(CouplingMatrix);
 
-    //Distribute transposed coupling block matrix into the elemental matrix
+        //Distribute transposed coupling block matrix into the elemental matrix
 
-    for (SizeType i = 0; i<NumPNodes; ++i) {
-        for (SizeType j = 0; j<NumUNodes; ++j) {
-            SizeType Index_j = j * Dim;
-            for (unsigned int idim = 0; idim < Dim; ++idim)
-                rLeftHandSideMatrix(NumUNodes*Dim+i, Index_j+idim) += CouplingMatrixT(i, Index_j+idim);
+        for (SizeType i = 0; i<NumPNodes; ++i) {
+            for (SizeType j = 0; j<NumUNodes; ++j) {
+                SizeType Index_j = j * Dim;
+                for (unsigned int idim = 0; idim < Dim; ++idim)
+                    rLeftHandSideMatrix(NumUNodes*Dim+i, Index_j+idim) += CouplingMatrixT(i, Index_j+idim);
+            }
         }
     }
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix") << std::endl;
 
+    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix") << std::endl;
     KRATOS_CATCH( "" )
 
 }
@@ -2084,7 +2075,7 @@ void SmallStrainUPwDiffOrderElement::
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix") << std::endl;
 
     Matrix CompressibilityMatrix = - PORE_PRESSURE_SIGN_FACTOR 
-                                   * rVariables.NewmarkCoefficient2
+                                   * rVariables.DtPressureCoefficient
                                    * rVariables.BiotModulusInverse 
                                    * outer_prod(rVariables.Np,rVariables.Np)
                                    * rVariables.IntegrationCoefficient;
@@ -2177,7 +2168,8 @@ void SmallStrainUPwDiffOrderElement::
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
-    Vector StiffnessForce = prod(trans(rVariables.B), mStressVector[GPoint]) * rVariables.IntegrationCoefficient;
+    Vector StiffnessForce =  prod(trans(rVariables.B), mStressVector[GPoint]) 
+                           * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into the elemental vector
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -2219,7 +2211,10 @@ void SmallStrainUPwDiffOrderElement::
     for (SizeType i=0; i < NumUNodes; ++i) {
         Index = i * Dim;
         for (SizeType idim=0; idim < Dim; ++idim) {
-            rRightHandSideVector[Index+idim] += rVariables.Nu[i] * rVariables.Density * BodyAcceleration[idim] * rVariables.IntegrationCoefficientInitialConfiguration;
+            rRightHandSideVector[Index+idim] +=  rVariables.Nu[i] 
+                                                * rVariables.Density
+                                                * BodyAcceleration[idim]
+                                                * rVariables.IntegrationCoefficientInitialConfiguration;
         }
     }
 
@@ -2239,7 +2234,7 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.Density = (  rVariables.DegreeOfSaturation
                           * Prop[POROSITY]
                           * Prop[DENSITY_WATER] )
-                        + (1.0 - Prop[POROSITY])*Prop[DENSITY_SOLID];
+                         + (1.0 - Prop[POROSITY] )*Prop[DENSITY_SOLID];
 
     // KRATOS_INFO("1-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
     KRATOS_CATCH("");
@@ -2287,7 +2282,6 @@ void SmallStrainUPwDiffOrderElement::
 
         //Distribute coupling block vector 2 into the elemental vector
         const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-
         for (SizeType i = 0; i<NumPNodes; ++i) {
             rRightHandSideVector[NumUNodes*Dim+i] += CouplingFlow[i];
         }
@@ -2381,16 +2375,13 @@ void SmallStrainUPwDiffOrderElement::
     Vector BodyAcceleration = ZeroVector(Dim);
 
     SizeType Index = 0;
-    for (SizeType i = 0; i < NumUNodes; ++i)
-    {
-        for (SizeType idim=0; idim < Dim; ++idim)
-        {
+    for (SizeType i = 0; i < NumUNodes; ++i) {
+        for (SizeType idim=0; idim < Dim; ++idim) {
             BodyAcceleration[idim] += rVariables.Nu[i]*rVariables.BodyAcceleration[Index++];
         }
     }
 
-    for (SizeType i = 0; i < NumPNodes; ++i)
-    {
+    for (SizeType i = 0; i < NumPNodes; ++i) {
         rRightHandSideVector[NumUNodes*Dim+i] += inner_prod(row(GradNpTPerm,i),BodyAcceleration);
     }
 
@@ -2409,7 +2400,10 @@ GeometryData::IntegrationMethod
 //----------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::CalculateStrain( ElementVariables& rVariables )
 {
+    // this->CalculateCauchyGreenStrain( rVariables );
     this->CalculateCauchyStrain( rVariables );
+    //this->CalculateCauchyAlmansiStrain( rVariables );
+
 }
 
 //----------------------------------------------------------------------------------------

@@ -50,6 +50,7 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::mIsInitialised;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -163,13 +164,15 @@ protected:
         BoundedMatrix<double, TDim, TNumNodes*TDim> Nu;
         array_1d<double, TDim> BodyAcceleration;
         array_1d<double, TDim> SoilGamma;
-        double IntegrationCoefficient;
 
         ///Constitutive Law parameters
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
+        Matrix GradNpTInitialConfiguration;
+
         Matrix F;
         double detF;
         Vector detJContainer;
@@ -184,7 +187,10 @@ protected:
         double BishopCoefficient;
 
         // needed for updated Lagrangian:
-        double detJ0;
+        double detJ;
+        double detJInitialConfiguration;
+        double IntegrationCoefficient;
+        double IntegrationCoefficientInitialConfiguration;
 
         //Auxiliary Variables
         BoundedMatrix<double,TNumNodes*TDim,TNumNodes*TDim> UMatrix;

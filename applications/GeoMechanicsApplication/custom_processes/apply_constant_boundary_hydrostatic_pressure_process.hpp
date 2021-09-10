@@ -159,9 +159,6 @@ private:
     /// Assignment operator.
     ApplyConstantBoundaryHydrostaticPressureProcess& operator=(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
 
-    /// Copy constructor.
-    //ApplyConstantHydrostaticPressureProcess(ApplyConstantBoundaryHydrostaticPressureProcess const& rOther);
-
 }; // Class ApplyConstantBoundaryHydrostaticPressureProcess
 
 /// input stream function

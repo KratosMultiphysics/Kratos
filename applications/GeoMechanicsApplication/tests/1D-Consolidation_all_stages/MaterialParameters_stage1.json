@@ -7,7 +7,8 @@
               "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
-              "YOUNG_MODULUS"            :  1000,
+            "IGNORE_UNDRAINED"         :  false,
+            "YOUNG_MODULUS"            :  1000,
               "POISSON_RATIO"            :  0.0,
               "DENSITY_SOLID"            :  2.0e3,
               "DENSITY_WATER"            :  1.0e3,

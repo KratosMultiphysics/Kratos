@@ -127,7 +127,7 @@ protected:
     {
         KRATOS_TRY
 
-        //Update Acceleration, Velocity and DtPressure
+        //Update DtPressure
 
         double DeltaPressure;
 

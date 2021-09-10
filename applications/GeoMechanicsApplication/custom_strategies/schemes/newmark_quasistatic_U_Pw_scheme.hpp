@@ -130,15 +130,13 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        SetTimeFactors(rModelPart);
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -154,9 +152,7 @@ public:
     {
         KRATOS_TRY
 
-        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
-        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+        SetTimeFactors(rModelPart);
 
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -497,6 +493,19 @@ protected:
         mDeltaTime = 0.0;
     }
 
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    virtual inline void SetTimeFactors(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
+        rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
+
+        KRATOS_CATCH("")
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
     {
         KRATOS_TRY

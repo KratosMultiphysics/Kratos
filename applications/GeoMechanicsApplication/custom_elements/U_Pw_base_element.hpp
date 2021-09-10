@@ -57,7 +57,11 @@ public:
     /// Constructor using Properties
     UPwBaseElement(IndexType NewId,
                    GeometryType::Pointer pGeometry,
-                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) {}
+                   PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties )
+    {
+        // this is needed for interface elements
+        mThisIntegrationMethod = this->GetIntegrationMethod();
+    }
 
     /// Destructor
     virtual ~UPwBaseElement() {}
@@ -145,6 +149,7 @@ public:
 protected:
 
     /// Member Variables
+    GeometryData::IntegrationMethod mThisIntegrationMethod;
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     std::vector<RetentionLaw::Pointer> mRetentionLawVector;

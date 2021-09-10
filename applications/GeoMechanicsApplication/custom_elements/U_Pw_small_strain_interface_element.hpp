@@ -45,6 +45,8 @@ public:
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
+    using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
+    using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -63,12 +65,14 @@ public:
     UPwSmallStrainInterfaceElement(IndexType NewId,
                                    GeometryType::Pointer pGeometry,
                                    PropertiesType::Pointer pProperties)
-                                   : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
+                                   : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
+    {
+        /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    }
 
     /// Destructor
     ~UPwSmallStrainInterfaceElement() override {}
-
-    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -151,6 +155,7 @@ protected:
 
         ///Constitutive Law parameters
         Vector StrainVector;
+        Vector StressVector;
         Matrix ConstitutiveMatrix;
         Vector Np;
         Matrix GradNpT;
