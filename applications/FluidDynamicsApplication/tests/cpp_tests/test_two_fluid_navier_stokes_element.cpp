@@ -34,96 +34,6 @@
 
 namespace Kratos {
     namespace Testing {
-        namespace Internals{
-
-        void GettingAuxiliarElementData2D( ModelPart& rModelPart,double volume_error)
-            {
-        
-
-            rModelPart.SetBufferSize(3);
-            
-            // Variables addition
-            rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-            rModelPart.AddNodalSolutionStepVariable(DENSITY);
-            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
-            rModelPart.AddNodalSolutionStepVariable(PRESSURE);
-            rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-            rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-            rModelPart.AddNodalSolutionStepVariable(DISTANCE);
-            rModelPart.GetProcessInfo().SetValue(VOLUME_ERROR, volume_error);
-            // Process info creation
-            double delta_time = 0.1;
-            rModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-            rModelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
-            rModelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-            Vector bdf_coefs(3);
-            bdf_coefs[0] = 3.0/(2.0*delta_time);
-            bdf_coefs[1] = -2.0/delta_time;
-            bdf_coefs[2] = 0.5*delta_time;
-            rModelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
-            // Set the element properties
-            Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
-            pElemProp->SetValue(DENSITY, 1000.0);
-            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
-            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
-            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
-
-            // Geometry creation
-            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
-            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
-            rModelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes, pElemProp);
-
-            Element::Pointer pElement = rModelPart.pGetElement(1);
-        }
-        
-        void GettingAuxiliarElementData3D( ModelPart& rModelPart, double volume_error)
-        {
-            
-            rModelPart.SetBufferSize(3);
-
-            // Variables addition
-            rModelPart.AddNodalSolutionStepVariable(BODY_FORCE);
-            rModelPart.AddNodalSolutionStepVariable(DENSITY);
-            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
-            rModelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
-            rModelPart.AddNodalSolutionStepVariable(PRESSURE);
-            rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-            rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-            rModelPart.AddNodalSolutionStepVariable(DISTANCE);
-            rModelPart.GetProcessInfo().SetValue(VOLUME_ERROR, volume_error);
-
-            // Process info creation
-            double delta_time = 0.1;
-            rModelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
-            rModelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-            Vector bdf_coefs(3);
-            bdf_coefs[0] = 3.0/(2.0*delta_time);
-            bdf_coefs[1] = -2.0/delta_time;
-            bdf_coefs[2] = 0.5*delta_time;
-            rModelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-
-            // Set the element properties
-            Properties::Pointer pElemProp = rModelPart.CreateNewProperties(0);
-            pElemProp->SetValue(DENSITY, 1000.0);
-            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
-            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
-            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
-
-            // Geometry creation
-            rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
-            rModelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
-            rModelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
-            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
-            rModelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
-
-            
-            }
-        } // namespace internals
 
         typedef ModelPart::IndexType									 IndexType;
         typedef ModelPart::NodeIterator					          NodeIteratorType;
@@ -134,14 +44,50 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
         {
 
-            // Creating tested element 
-            Model model;
-            unsigned int buffer_size = 2;
-            ModelPart& modelPart = model.CreateModelPart("TestModelPart", buffer_size);
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData2D(modelPart,volume_error);
+            Model current_model;
+            ModelPart& modelPart = current_model.CreateModelPart("Main");
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+            
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,0.0);
+
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
+            modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
+
             // Define the nodal values
             Matrix vel_original(3,2);
             vel_original(0,0) = 0.0; vel_original(0,1) = 0.1;
@@ -149,7 +95,6 @@ namespace Kratos {
             vel_original(2,0) = 0.2; vel_original(2,1) = 0.3;
 
             // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-
             for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
                 it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
                 it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
@@ -181,17 +126,16 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            Vector reference_RHS = ZeroVector(9);
-            reference_RHS[0]=-42.7046891129577;
-            reference_RHS[1]=29.7564894413919;
-            reference_RHS[2]=-0.201073848010045;
-            reference_RHS[3]=90.0671583920051;
-            reference_RHS[4]=94.9469995432758;
-            reference_RHS[5]=0.06718133685987;
-            reference_RHS[6]=75.7625307209528;
-            reference_RHS[7]=146.546511015332;
-            reference_RHS[8]=-0.016107488849825;
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-7);
+
+            KRATOS_CHECK_NEAR(RHS(0), -42.7046891129577 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 29.7564894413919 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -0.201073848010045 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), 90.0671583920051 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 94.9469995432758 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 0.06718133685987 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), 75.7625307209528 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), 146.546511015332 , 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), -0.0161074888498255 , 1e-7);
         }
 
         // /** Checks the TwoFluidNavierStokes3D4N element
@@ -199,16 +143,49 @@ namespace Kratos {
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesCut3D4N, FluidDynamicsApplicationFastSuite)
         {
-
-            // Creating tested element
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData3D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
+            Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
+            modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
+            Element::Pointer pElement = modelPart.pGetElement(1);
 
             // Define the nodal values
-            Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
-            Element::Pointer pElement = modelPart.pGetElement(1);
             Matrix vel_original(4,3);
             vel_original(0,0) = 0.0; vel_original(0,1) = 0.1; vel_original(0,2) = 0.2;
             vel_original(1,0) = 0.1; vel_original(1,1) = 0.2; vel_original(1,2) = 0.3;
@@ -248,9 +225,23 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
+            KRATOS_CHECK_NEAR(RHS(0), -118.03889688, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 14.78243843, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -213.62425998, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), -0.05448084, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 22.78371861, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 27.42496766, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -403.33194690, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), 0.15778148, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), 60.36872332, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), 15.21517182, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -419.85282231, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), 0.00659561, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), 80.61562161, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), 37.68158875, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -453.71180415, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.20989625, 1e-7);
 
-            std::vector<double> theoretical_rhs = {-118.03889688, 14.78243843, -213.62425998, -0.05448084, 22.78371861, 27.42496766, -403.33194690, 0.15778148, 60.36872332, 15.21517182, -419.85282231, 0.00659561, 80.61562161, 37.68158875, -453.71180415, -0.20989625};
-            KRATOS_CHECK_VECTOR_NEAR(theoretical_rhs, RHS, 1e-2);
         }
 
         // /** Checks the TwoFluidNavierStokes3D4N element
@@ -258,13 +249,50 @@ namespace Kratos {
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesSurfaceTension3D4N, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element 
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData3D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            modelPart.GetProcessInfo().SetValue(SURFACE_TENSION, true);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            pElemProp->SetValue(SURFACE_TENSION_COEFFICIENT, 1.0);
+            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
+            modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
+
             // Define the nodal values
             Matrix vel_original(4,3);
             vel_original(0,0) = 0.0; vel_original(0,1) = 0.1; vel_original(0,2) = 0.2;
@@ -322,6 +350,7 @@ namespace Kratos {
             const auto& r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+
             reference_RHS[0] = -268.0132371599088;
             reference_RHS[1] = -4.182094107233524;
             reference_RHS[2]= -81.37622307441862;
@@ -350,13 +379,48 @@ namespace Kratos {
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesNegativeSide3D4N, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element 
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData3D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0 / (2.0*delta_time);
+            bdf_coefs[1] = -2.0 / delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3, 4 };
+            modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
+
             // Define the nodal values
             Matrix vel_original(4, 3);
             vel_original(0, 0) = 0.0; vel_original(0, 1) = 0.1; vel_original(0, 2) = 0.2;
@@ -397,26 +461,23 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            Vector reference_RHS= ZeroVector(16);
-            reference_RHS[0]=1.73174408;
-            reference_RHS[1]=-4.27730790;
-            reference_RHS[2]=188.69694770;
-            reference_RHS[3]=0.67475711;
-            reference_RHS[4]=3.58627037;
-            reference_RHS[5]=29.92290545;
-            reference_RHS[6]=-481.38600870;
-            reference_RHS[7]=-0.00332489;
-            reference_RHS[8]=18.13744587;
-            reference_RHS[9]=26.18388151;
-            reference_RHS[10]=-556.26762201;
-            reference_RHS[11]=0.02207141;
-            reference_RHS[12]=22.27370634;
-            reference_RHS[13]= 43.27468761;
-            reference_RHS[14]=-641.56415033;
-            reference_RHS[15]=-0.79350363;
+            KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), 0.67475711, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 3.58627037, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 29.92290545, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -481.38600870, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), -0.00332489, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), 18.13744587, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), 26.18388151, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -556.26762201, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), 0.02207141, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), 22.27370634, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), 43.27468761, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -641.56415033, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.79350363, 1e-7);
 
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
-    
         }
 
         // /** Checks the TwoFluidNavierStokes3D4N element
@@ -424,12 +485,46 @@ namespace Kratos {
         //  */
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesPositiveSide3D4N, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element 
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData3D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0 / (2.0*delta_time);
+            bdf_coefs[1] = -2.0 / delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3, 4 };
+            modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
 
             // Define the nodal values
@@ -472,25 +567,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            Vector reference_RHS=ZeroVector(16);
-            reference_RHS[0] = 1.73174408;
-            reference_RHS[1] = -4.27730790;
-            reference_RHS[2] = 188.69694770;
-            reference_RHS[3] = 0.67475711;
-            reference_RHS[4] = 3.58627037;
-            reference_RHS[5] = 29.92290545;
-            reference_RHS[6] = -481.38600870;
-            reference_RHS[7] = -0.00332489;
-            reference_RHS[8] = 18.13744587;
-            reference_RHS[9] = 26.18388151;
-            reference_RHS[10] = -556.26762201;
-            reference_RHS[11] = 0.02207141;
-            reference_RHS[12] = 22.27370634;
-            reference_RHS[13] = 43.27468761;
-            reference_RHS[14] = -641.56415033;
-            reference_RHS[15] = -0.79350363;
-
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
+            KRATOS_CHECK_NEAR(RHS(0), 1.73174408, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), -4.27730790, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), 188.69694770, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), 0.67475711, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), 3.58627037, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), 29.92290545, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -481.38600870, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), -0.00332489, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), 18.13744587, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), 26.18388151, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -556.26762201, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), 0.02207141, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), 22.27370634, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), 43.27468761, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -641.56415033, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.79350363, 1e-7);
 
         }
 
@@ -499,12 +591,50 @@ namespace Kratos {
          */
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NHydrostatic, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element 
+
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData2D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-03);
+            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 2.0, 0.0, 0.0);  // 0 = node 1
+            modelPart.CreateNewNode(2, 2.0, 2.0, 0.0);	// 1 = node 2
+            modelPart.CreateNewNode(3, 0.0, 2.0, 0.0);	// 2 = node 3
+
+            std::vector<ModelPart::IndexType> elemNodes1 {1, 2, 3};
+
+            modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes1, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
 
             // Define the nodal values as 0 for hydrostatic case
@@ -569,18 +699,21 @@ namespace Kratos {
 
             // The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
             // If the "standard" pressure shape functions are used, the results do not hold.
-            Vector reference= ZeroVector(9);
-            reference[0]=0.0;		// U_x at node 1
-            reference[1]=-17.5; 	// U_y at node 1
-            reference[2]=0.0;		// P   at node 1
-            reference[3]=7.5;		// U_x at node 2
-            reference[4]=0.0;		// U_y at node 2
-            reference[5]=0.0;		// P   at node 2
-            reference[6]=-7.5;		// U_x at node 3
-            reference[7]=-7.5;		// U_y at node 3
-            reference[8]= 0.0;		// P   at node 3
-            KRATOS_CHECK_VECTOR_NEAR(reference, RHS, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
+            KRATOS_CHECK_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
+            KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
+
+            KRATOS_CHECK_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
+            KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
+            KRATOS_CHECK_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
+
+            KRATOS_CHECK_NEAR(RHS(6), -7.5, 1e-7);		// U_x at node 3
+            KRATOS_CHECK_NEAR(RHS(7), -7.5, 1e-7);		// U_y at node 3
+            KRATOS_CHECK_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
         }
+
+
+
 
         /** Includes the TwoFluidNavierStokes2D3N element with the BEHR2004 slip boundary condition in a hydrostatic case.
          *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition2D2N wall condition
@@ -603,7 +736,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
             modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.01;
@@ -616,6 +748,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -759,6 +892,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
+
         /** Includes 3 elements of TwoFluidNavierStokes3D4N element
          *  and 3 conditions of type BEHR2004 slip boundary condition in a hydrostatic case.
          *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition3D3N wall condition
@@ -781,7 +915,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
             modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.01;
@@ -794,6 +927,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -1011,6 +1145,8 @@ namespace Kratos {
             KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
+
+
         /** Includes the TwoFluidNavierStokes2D3N element with the BEHR2004 slip boundary condition in a hydrostatic case.
          *  The BEHR2004 contribution is activated, if the flag SLIP is set for the NavierStokesWallCondition2D2N wall condition
          *  Checks the computation of the RHS for components in tangential direction
@@ -1032,7 +1168,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
             modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.01;
@@ -1045,6 +1180,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -1203,6 +1339,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR( tangentialComponent[2], 0.0, 1e-7);
         }
 
+
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesDarcy3D4N, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
@@ -1218,7 +1355,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(VELOCITY);
             modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.1;
@@ -1229,6 +1365,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0 / delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -1289,26 +1426,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            Vector reference_RHS = ZeroVector(16);
-            reference_RHS[0] = -360.57321744;
-            reference_RHS[1] = 2619.39216544;
-            reference_RHS[2] = -5246.41813009;
-            reference_RHS[3] = -0.01350784;
-            reference_RHS[4] = -14179.95249508;
-            reference_RHS[5] = -9696.16776115;
-            reference_RHS[6] = -9395.42009461;
-            reference_RHS[7] = -0.01633464;
-            reference_RHS[8] = -7384.92278497;
-            reference_RHS[9] = -11448.68747715;
-            reference_RHS[10] = -12293.47961658;
-            reference_RHS[11] = -0.03635048;
-            reference_RHS[12] = -7158.51524850;
-            reference_RHS[13] = -9705.23040138;
-            reference_RHS[14] = -16430.46196053;
-            reference_RHS[15] = -0.03380704;
-
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
-
+            KRATOS_CHECK_NEAR(RHS(0), -360.57321744, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(1), 2619.39216544, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(2), -5247.41813009, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(3), -0.01350784, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(4), -14179.95249508, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(5), -9696.16776115, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(6), -9395.42009461, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(7), -0.01633464, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(8), -7384.92278497, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(9), -11448.68747715, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(10), -12293.47961658, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(11), -0.03635048, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(12), -7158.51524850, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(13), -9705.23040138, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(14), -16430.46196053, 1e-7);
+            KRATOS_CHECK_NEAR(RHS(15), -0.03380704, 1e-7);
 
         }
 
@@ -1329,7 +1462,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
             modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.01;
@@ -1342,6 +1474,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -1496,6 +1629,7 @@ namespace Kratos {
             KRATOS_CHECK_NEAR( res_p_node4, 0.0, 1e-7);
         }
 
+
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes3D4NNavierSlip, FluidDynamicsApplicationFastSuite){
 
             Model current_model;
@@ -1513,7 +1647,6 @@ namespace Kratos {
             modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
             modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Process info creation
             double delta_time = 0.01;
@@ -1526,6 +1659,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,0.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -1721,22 +1855,58 @@ namespace Kratos {
             KRATOS_CHECK_NEAR( changesInResidual[2], 0.0, 1e-7);
         }
 
+        // Giving a value different to zero to source term in order to test it.
 
-// Giving a value different to zero to source term.
-
-        // /** Checks the TwoFluidNavierStokes2D3N element with a source term in mass conservation equation 
+        // /** Checks the TwoFluidNavierStokes2D3N element with a source term in mass conservation equation
         //  * Checks the LHS and RHS for a cut element
         //  */
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokes2D3NError, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element 
-            Model current_model;
+             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData2D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+            
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(SOUND_VELOCITY, 1.0e+3);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR,10.0);
+
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            Newtonian2DLaw::Pointer pConsLaw(new Newtonian2DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3};
+            modelPart.CreateNewElement("TwoFluidNavierStokes2D3N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
+
 
             // Define the nodal values
             Matrix vel_original(3, 2);
@@ -1797,54 +1967,99 @@ namespace Kratos {
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
 
-        // /** Checks the TwoFluidNavierStokes3D4N element with a source term in mass conservation equation 
+        // /** Checks the TwoFluidNavierStokes3D4N element with a source term in mass conservation equation
         //  * Checks the LHS and RHS for a cut element
         //  */
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesCut3D4NError, FluidDynamicsApplicationFastSuite)
         {
-            // Creating tested element
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
-            const double volume_error=0;
-            Kratos::Testing::Internals::GettingAuxiliarElementData3D(modelPart,volume_error);
+            modelPart.SetBufferSize(3);
+
+            // Variables addition
+            modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
+            modelPart.AddNodalSolutionStepVariable(DENSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            modelPart.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            modelPart.AddNodalSolutionStepVariable(PRESSURE);
+            modelPart.AddNodalSolutionStepVariable(VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            modelPart.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            Vector bdf_coefs(3);
+            bdf_coefs[0] = 3.0/(2.0*delta_time);
+            bdf_coefs[1] = -2.0/delta_time;
+            bdf_coefs[2] = 0.5*delta_time;
+            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
+            pElemProp->SetValue(DENSITY, 1000.0);
+            pElemProp->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            NewtonianTwoFluid3DLaw::Pointer pConsLaw(new NewtonianTwoFluid3DLaw());
+            pElemProp->SetValue(CONSTITUTIVE_LAW, pConsLaw);
+
+            // Geometry creation
+            modelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
+            modelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
+            modelPart.CreateNewNode(3, 0.0, 1.0, 0.0);
+            modelPart.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elemNodes {1, 2, 3, 4};
+            modelPart.CreateNewElement("TwoFluidNavierStokes3D4N", 1, elemNodes, pElemProp);
+
             Element::Pointer pElement = modelPart.pGetElement(1);
             // Define the nodal values
-            Matrix vel_original(4,3);
-            vel_original(0,0) = 0.0; vel_original(0,1) = 0.1; vel_original(0,2) = 0.2;
-            vel_original(1,0) = 0.1; vel_original(1,1) = 0.2; vel_original(1,2) = 0.3;
-            vel_original(2,0) = 0.2; vel_original(2,1) = 0.3; vel_original(2,2) = 0.4;
-            vel_original(3,0) = 0.3; vel_original(3,1) = 0.4; vel_original(3,2) = 0.5;
+            Matrix vel_original(4, 3);
+            vel_original(0, 0) = 0.0;
+            vel_original(0, 1) = 0.1;
+            vel_original(0, 2) = 0.2;
+            vel_original(1, 0) = 0.1;
+            vel_original(1, 1) = 0.2;
+            vel_original(1, 2) = 0.3;
+            vel_original(2, 0) = 0.2;
+            vel_original(2, 1) = 0.3;
+            vel_original(2, 2) = 0.4;
+            vel_original(3, 0) = 0.3;
+            vel_original(3, 1) = 0.4;
+            vel_original(3, 2) = 0.5;
 
             // Set the nodal BODY_FORCE, DENSITY and DYNAMIC_VISCOSITY values
-            for (NodeIteratorType it_node=modelPart.NodesBegin(); it_node<modelPart.NodesEnd(); ++it_node){
+            for (NodeIteratorType it_node = modelPart.NodesBegin(); it_node < modelPart.NodesEnd(); ++it_node)
+            {
                 it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
                 it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
                 it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = -9.81;
             }
 
-            for(unsigned int i=0; i<4; i++){
-                pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
-                for(unsigned int k=0; k<3; k++){
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = vel_original(i,k);
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*vel_original(i,k);
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75*vel_original(i,k);
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                pElement->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
+                for (unsigned int k = 0; k < 3; k++)
+                {
+                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i, k);
+                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9 * vel_original(i, k);
+                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75 * vel_original(i, k);
+                    pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k] = 0.0;
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
                 }
             }
             pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
-            pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
+            pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) = 1.0;
             pElement->GetGeometry()[2].FastGetSolutionStepValue(DISTANCE) = -1.0;
-            pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
+            pElement->GetGeometry()[3].FastGetSolutionStepValue(DISTANCE) = 1.0;
 
             // Compute RHS and LHS
             Vector RHS = ZeroVector(16);
-            Matrix LHS = ZeroMatrix(16,16);
+            Matrix LHS = ZeroMatrix(16, 16);
 
-            const auto& r_process_info = modelPart.GetProcessInfo();
+            const auto &r_process_info = modelPart.GetProcessInfo();
             pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
             pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
@@ -1871,7 +2086,5 @@ namespace Kratos {
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
 
-
     } // namespace Testing
-
 }  // namespace Kratos.

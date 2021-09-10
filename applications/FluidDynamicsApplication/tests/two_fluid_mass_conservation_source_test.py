@@ -12,20 +12,29 @@ import sys
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
-class FluidDynamicsAnalysisSloshingTank(FluidDynamicsAnalysis):
+class FluidDynamicsAnalysisMassConservation(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters,flush_frequency=10.0):
+    def __init__(self,model,project_parameters, test_inlet_case, flush_frequency=10.0):
         super().__init__(model,project_parameters)
+        self.test_inlet_case = test_inlet_case
         self.flush_frequency = flush_frequency
         self.last_flush = time.time()
 
     def ModifyInitialGeometry(self):
 
-        h0=0.5
-        hmax=0.1
-        for node in self._GetSolver().GetComputingModelPart().Nodes:            
-            d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
-            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
+        if self.test_inlet_case:
+
+            h0=0.1
+            for node in self._GetSolver().GetComputingModelPart().Nodes:            
+                d0=node.X-h0
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
+
+        else:
+            h0=0.5
+            hmax=0.1
+            for node in self._GetSolver().GetComputingModelPart().Nodes:            
+                d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -47,11 +56,19 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
 
     # runs the two dimensinal test case
     def testTwoFluidMassConservationTest2D(self):
+        self._has_inlet = False
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     # runs the three dimensional test case
     def testTwoFluidMassConservationTest3D(self):
+        self._has_inlet = False
         self._AuxiliaryRunTest("ProjectParameter3D.json")
+  
+    # runs the three dimensional test case considering a inlet 
+    def testTwoFluidMassConservationTest3DInlet(self):
+        self._has_inlet = True
+        self._AuxiliaryRunTest("ProjectParameters3DVariableInlet.json")
+
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):
@@ -63,6 +80,11 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                 self.parameters = KratosMultiphysics.Parameters(parameter_file.read())
                 model = KratosMultiphysics.Model()
 
+                if self.parameters["problem_data"]["problem_name"].GetString()=="inlet_test":
+                    self.test_inlet_case=True
+                else:
+                    self.test_inlet_case=False
+
                 if self.print_output:
                     self._AddOutput()
 
@@ -72,7 +94,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                     self._AddReferenceValuesCheck()
 
                 # running
-                self.simulation = FluidDynamicsAnalysisSloshingTank(model, self.parameters)
+                self.simulation = FluidDynamicsAnalysisMassConservation(model, self.parameters, self._has_inlet)
                 self.simulation.Run()
 
     def _AddOutput(self):
@@ -105,12 +127,13 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                 }
             }
         }""")
-        output_name = "mass_conservation_{0}d".format(self.parameters["solver_settings"]["domain_size"].GetInt())
+        output_name = "mass_conservation_{0}d_{1}".format(self.parameters["solver_settings"]["domain_size"].GetInt(),self.parameters["problem_data"]["problem_name"].GetString())
         gid_output_settings["Parameters"]["output_name"].SetString(output_name)
         self.parameters["output_processes"]["gid_output"].Append(gid_output_settings)
 
     def _AddReferenceValuesOutput(self):
         dim = self.parameters["solver_settings"]["domain_size"].GetInt()
+        name= self.parameters["problem_data"]["problem_name"].GetString()
         json_output_settings = KratosMultiphysics.Parameters("""{
             "python_module" : "json_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -122,12 +145,13 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                 "time_frequency"   : 0.01
             }
         }""")
-        output_file_name = "mass_conservation_{0}d_results.json".format(dim)
+        output_file_name = "mass_conservation_{0}d_{1}_results.json".format(dim,name)
         json_output_settings["Parameters"]["output_file_name"].SetString(output_file_name)
         self.parameters["processes"]["json_check_process_list"].Append(json_output_settings)
 
     def _AddReferenceValuesCheck(self):
         dim = self.parameters["solver_settings"]["domain_size"].GetInt()
+        name= self.parameters["problem_data"]["problem_name"].GetString()
         json_check_settings = KratosMultiphysics.Parameters("""{
             "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
@@ -141,7 +165,7 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
                 "time_frequency"       : 0.01
             }
         }""")
-        input_file_name = "mass_conservation_{0}d_results.json".format(dim)
+        input_file_name = "mass_conservation_{0}d_{1}_results.json".format(dim,name)
         json_check_settings["Parameters"]["input_file_name"].SetString(input_file_name)
         json_check_settings["Parameters"]["tolerance"].SetDouble(self.check_absolute_tolerance)
         json_check_settings["Parameters"]["relative_tolerance"].SetDouble(self.check_relative_tolerance)

@@ -223,18 +223,23 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self._GetLevelSetConvectionProcess()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
+        self.mass_source = False
+        if self.settings["formulation"].Has("mass_source"):
+            self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
         
     def InitializeSolutionStep(self):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
-        outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
-        inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.INLET)
-        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        inlet_volume = -current_dt * inlet_discharge
-        outlet_volume = current_dt * outlet_discharge
+        if self.mass_source:
+            outlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.OUTLET)
+            inlet_discharge = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRateNegativeSkin(self.GetComputingModelPart(),KratosMultiphysics.INLET)
+            current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            inlet_volume = -current_dt * inlet_discharge
+            outlet_volume = current_dt * outlet_discharge
 
-        # System water volume is calculated for current time step considering inlet and outlet discharge. 
-        system_volume = inlet_volume + self.initial_system_volume - outlet_volume
+            # System water volume is calculated for current time step considering inlet and outlet discharge. 
+            system_volume = inlet_volume + self.initial_system_volume - outlet_volume
         
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
@@ -272,12 +277,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self._GetSolutionStrategy().InitializeSolutionStep()
 
             # Accumulative water volume error ratio due to level set. Adding source term 
-            water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-
-            volume_error = (water_volume_after_transport - system_volume) / system_volume
-            mass_source = False
-            if self.settings["formulation"].Has("mass_source"):
-                mass_source = self.settings["formulation"]["mass_source"].GetBool()
+            if self.mass_source:
+                water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
+                volume_error = (water_volume_after_transport - system_volume) / system_volume
+            else:
+                volume_error=0
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
 
