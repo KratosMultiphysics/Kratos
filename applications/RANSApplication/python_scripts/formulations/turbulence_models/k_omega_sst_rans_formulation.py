@@ -41,6 +41,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_specific_energy_dissipation_rate_solver_settings": {},
+            "use_wall_distance_calculation": true,
             "wall_distance_calculation_settings":
             {
                 "max_levels"                       : 100,
@@ -95,21 +96,21 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
 
     def Initialize(self):
-        model_part = self.GetBaseModelPart()
-        model = model_part.GetModel()
-        process_info = model_part.ProcessInfo
-        wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
-
         settings = self.GetParameters()
+        if settings["use_wall_distance_calculation"].GetBool():
+            model_part = self.GetBaseModelPart()
+            model = model_part.GetModel()
+            process_info = model_part.ProcessInfo
+            wall_model_part_name = process_info[KratosRANS.WALL_MODEL_PART_NAME]
 
-        wall_distance_calculation_settings = settings["wall_distance_calculation_settings"]
-        wall_distance_calculation_settings.AddEmptyValue("main_model_part_name")
-        wall_distance_calculation_settings["main_model_part_name"].SetString(self.GetBaseModelPart().Name)
-        wall_distance_calculation_settings.AddEmptyValue("wall_model_part_name")
-        wall_distance_calculation_settings["wall_model_part_name"].SetString(wall_model_part_name)
+            wall_distance_calculation_settings = settings["wall_distance_calculation_settings"]
+            wall_distance_calculation_settings.AddEmptyValue("main_model_part_name")
+            wall_distance_calculation_settings["main_model_part_name"].SetString(self.GetBaseModelPart().Name)
+            wall_distance_calculation_settings.AddEmptyValue("wall_model_part_name")
+            wall_distance_calculation_settings["wall_model_part_name"].SetString(wall_model_part_name)
 
-        wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
-        self.AddProcess(wall_distance_process)
+            wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
+            self.AddProcess(wall_distance_process)
 
         super().Initialize()
 
