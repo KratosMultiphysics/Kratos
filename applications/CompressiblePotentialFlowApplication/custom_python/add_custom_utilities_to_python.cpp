@@ -34,6 +34,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     mod_potential_flow_utilities.def("CalculateArea",&PotentialFlowUtilities::CalculateArea<ModelPart::ElementsContainerType>);
     mod_potential_flow_utilities.def("CalculateArea",&PotentialFlowUtilities::CalculateArea<ModelPart::ConditionsContainerType>);
     mod_potential_flow_utilities.def("ComputeWakeMetrics",&PotentialFlowUtilities::ComputeWakeMetrics);
+    mod_potential_flow_utilities.def("ComputeMeshMetrics",&PotentialFlowUtilities::ComputeMeshMetrics);
     mod_potential_flow_utilities.def("ComputePotentialJump2D",&PotentialFlowUtilities::ComputePotentialJump<2,3>);
     mod_potential_flow_utilities.def("ComputePotentialJump3D",&PotentialFlowUtilities::ComputePotentialJump<3,4>);
 }

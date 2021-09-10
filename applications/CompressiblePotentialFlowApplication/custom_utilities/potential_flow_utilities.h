@@ -205,6 +205,8 @@ void AddPotentialGradientStabilizationTerm(Element& rElement,
 
 void ComputeWakeMetrics(ModelPart& rModelPart, const double rWakeH);
 
+void ComputeMeshMetrics(ModelPart& rModelPart);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

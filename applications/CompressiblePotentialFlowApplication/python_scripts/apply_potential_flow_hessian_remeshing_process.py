@@ -1,6 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import KratosMultiphysics.MeshingApplication as KratosMeshing
+from KratosMultiphysics.gid_output_process import GiDOutputProcess
 
 
 def Factory(settings, Model):
@@ -72,20 +73,18 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
 
-        # if (self.domain_size == 3):
-        #     for node in self.main_model_part.Nodes:
-        #         nodal_h = KratosMultiphysics.GetValue(KratosMultiphysics.NDOAL_H)
-        #         tensor[0] = 1/nodal_h/nodal_h
-        #         tensor[1] = 1/nodal_h/nodal_h
-        #         tensor[2] = 1/nodal_h/nodal_h
-        #         node.SetValue(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D, tensor)
+        KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ComputeMeshMetrics(self.main_model_part)
+        KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(CompressiblePotentialFlow.POTENTIAL_METRIC_TENSOR_3D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D, self.main_model_part.Nodes)
 
+        print("SOLVING X")
         metric_x = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_X, self.metric_parameters)
         metric_x.Execute()
+        print("SOLVING Y")
         metric_y = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Y, self.metric_parameters)
         metric_y.Execute()
 
         if (self.domain_size == 3):
+            print("SOLVING Z")
             metric_z = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_Z, self.metric_parameters)
             metric_z.Execute()
 

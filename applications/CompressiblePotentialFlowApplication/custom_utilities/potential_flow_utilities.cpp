@@ -14,6 +14,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/geometry_metric_calculator.h"
 
 namespace Kratos {
 namespace PotentialFlowUtilities {
@@ -1205,6 +1206,20 @@ void ComputeWakeMetrics(ModelPart& rModelPart, const double rWakeH) {
         }
     }
 }
+
+void ComputeMeshMetrics(ModelPart& rModelPart) {
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        array_1d<double, 6> tensor_3d = ZeroVector(6);
+        const double nodal_h = rNode.GetValue(NODAL_H));
+        tensor_3d[0] = 1/(nodal_h*nodal_h);
+        tensor_3d[1] = 1/(nodal_h*nodal_h);
+        tensor_3d[2] = 1/(nodal_h*nodal_h);
+        rNode.SetValue(POTENTIAL_METRIC_TENSOR_3D, tensor_3d);
+    });
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
