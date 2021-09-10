@@ -18,28 +18,11 @@ class KratosProcessFactory(object):
                 raise NameError('"python_module" must be defined in your parameters. Check all your processes')
 
             # python-script that contains the process
-            python_module_name = item["python_module"].GetString()
-
-            if item.Has("kratos_module"): # for Kratos-processes
-                """Location of the process in Kratos; e.g.:
-                - KratosMultiphysics
-                - KratosMultiphysics.FluidDynamicsApplication
-                """
-
-                kratos_module_name = item["kratos_module"].GetString()
-                if not kratos_module_name.startswith("KratosMultiphysics"):
-                    kratos_module_name = "KratosMultiphysics." + kratos_module_name
-
-                full_module_name = kratos_module_name + "." + python_module_name
-                python_module = import_module(full_module_name)
-
-                p = python_module.Factory(item, self.Model)
-                constructed_processes.append( p )
-
-            else: # for user-defined processes
-                python_module = import_module(python_module_name)
-                p = python_module.Factory(item, self.Model)
-                constructed_processes.append( p )
+            python_module_name = self._GetFullModuleNameName(item)
+            
+            python_module = import_module(python_module_name)
+            p = python_module.Factory(item, self.Model)
+            constructed_processes.append( p )
 
         return constructed_processes
 
@@ -47,19 +30,38 @@ class KratosProcessFactory(object):
         required_variables = []
         for i in range(0,process_list.size()):
             item = process_list[i]
-            # The kratos_module is the application where the script must be loaded. ex. KratosMultiphysics.StructuralMechanicsApplication
-            if(item.Has("kratos_module")):
-                kratos_module = __import__(item["kratos_module"].GetString())
-            # The python_module is the actual scrpt that must be launch
-            if(item.Has("python_module")):
-                python_module = __import__(item["python_module"].GetString())
-                # not all processes define/need this method, therefore
-                # an explicit check is necessary
-                if hasattr(python_module, "GetHistoricalVariables"):
-                    required_variables.extend(python_module.GetHistoricalVariables(item["Parameters"]))
+            if not item.Has("python_module"):
+                KM.Logger.PrintWarning("Your list of processes: ", process_list)
+                raise NameError('"python_module" must be defined in your parameters. Check all your processes')
+
+            # python-script that contains the process
+            python_module_name = self._GetFullModuleNameName(item)
+            
+            python_module = import_module(python_module_name)
+            if hasattr(python_module, "GetHistoricalVariables"):
+                required_variables.extend(python_module.GetHistoricalVariables(item["Parameters"]))
 
         return required_variables
 
+
+    def _GetFullModuleNameName(self,item):
+        # python-script that contains the process
+        python_module_name = item["python_module"].GetString()
+
+        if item.Has("kratos_module"): # for Kratos-processes
+            """Location of the process in Kratos; e.g.:
+            - KratosMultiphysics
+            - KratosMultiphysics.FluidDynamicsApplication
+            """
+
+            kratos_module_name = item["kratos_module"].GetString()
+            if not kratos_module_name.startswith("KratosMultiphysics"):
+                kratos_module_name = "KratosMultiphysics." + kratos_module_name
+
+            return kratos_module_name + "." + python_module_name
+        else:
+            return python_module_name
+            
 
 ########## here we generate the common kratos processes --- IMPLEMENTED IN C++ ###################
 def Factory(settings, Model):
