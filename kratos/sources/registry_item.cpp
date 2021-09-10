@@ -15,20 +15,20 @@
 // External includes
 
 // Project includes
-#include "includes/registry_data.h"
+#include "includes/registry_item.h"
 
 namespace Kratos
 {
 
-    std::string RegistryData::Info() const{
-        return mName + " RegistryData";
+    std::string RegistryItem::Info() const{
+        return mName + " RegistryItem";
     }
 
-    void RegistryData::PrintInfo(std::ostream &rOStream) const{
+    void RegistryItem::PrintInfo(std::ostream &rOStream) const{
         rOStream << Info();
     }
 
-    void RegistryData::PrintData(std::ostream &rOStream) const{
+    void RegistryItem::PrintData(std::ostream &rOStream) const{
         
     }
 

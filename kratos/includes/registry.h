@@ -23,7 +23,7 @@
 
 
 // Project includes
-#include "includes/registry_data.h"
+#include "includes/registry_item.h"
 
 
 namespace Kratos

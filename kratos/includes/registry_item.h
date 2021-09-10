@@ -10,8 +10,8 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_REGISTRY_DATA_H_INCLUDED )
-#define  KRATOS_REGISTRY_DATA_H_INCLUDED
+#if !defined(KRATOS_REGISTRY_ITEM_H_INCLUDED )
+#define  KRATOS_REGISTRY_ITEM_H_INCLUDED
 
 
 // System includes
@@ -51,41 +51,41 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The registry data to be stored by Registry class. It is the base class for some more specific ones.
-/** RegistryData has a tree node structure and stores its name, an optional
+/// The registry item to be stored by Registry class. It is the base class for some more specific ones.
+/** RegistryItem has a tree node structure and stores its name, an optional
  *  value, and an unorder_set of its sub data. 
  *  This structure let us to have registry of the elements and then different
  *  registries for each elements inside it.
- *  Please note that RegistryData stores a pointer to the value. 
- *  To have a copy of the value you may use the derived RegistryCopyOfData 
+ *  Please note that RegistryItem stores a pointer to the value. 
+ *  To have a copy of the value you may use the derived RegistryValueItem 
  *  which crates a copy in construction and delete it in its destructor 
  *  to make the memory management easier.
 */
-class RegistryData
+class RegistryItem
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of RegistryData
-    KRATOS_CLASS_POINTER_DEFINITION(RegistryData);
+    /// Pointer definition of RegistryItem
+    KRATOS_CLASS_POINTER_DEFINITION(RegistryItem);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor deleted.
-    RegistryData() = delete;
+    RegistryItem() = delete;
 
     /// Constructor with the name
-    RegistryData(std::string Name) : mName(Name), mpValue(nullptr){}
+    RegistryItem(std::string Name) : mName(Name), mpValue(nullptr){}
 
     /// Constructor with the name and value
     template<typename TValueType>
-    RegistryData(std::string Name, TValueType const& Value) : mName(Name), mpValue(&Value){}
+    RegistryItem(std::string Name, TValueType const& Value) : mName(Name), mpValue(&Value){}
 
     /// Destructor.
-    virtual ~RegistryData(){
+    virtual ~RegistryItem(){
     }
 
     ///@}
@@ -116,7 +116,7 @@ public:
         }
 
         bool HasSubData() const{
-            return (!mSubRegistryData.empty());
+            return (!mSubRegistryItem.empty());
         }
 
 
@@ -184,7 +184,7 @@ private:
 
     std::string mName;
     const void* mpValue;
-    std::unordered_map<std::string, Kratos::unique_ptr<RegistryData>> mSubRegistryData;
+    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
 
 
 
@@ -218,15 +218,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    RegistryData& operator=(RegistryData const& rOther);
+    RegistryItem& operator=(RegistryItem const& rOther);
 
     /// Copy constructor.
-    RegistryData(RegistryData const& rOther);
+    RegistryItem(RegistryItem const& rOther);
 
 
     ///@}
 
-}; // Class RegistryData
+}; // Class RegistryItem
 
 ///@}
 
@@ -241,11 +241,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                RegistryData& rThis);
+                RegistryItem& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                const RegistryData& rThis)
+                const RegistryItem& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -259,4 +259,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_REGISTRY_DATA_H_INCLUDED  defined
+#endif // KRATOS_REGISTRY_ITEM_H_INCLUDED  defined
