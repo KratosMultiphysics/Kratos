@@ -6,7 +6,6 @@ from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import 
 
 import math
 import time
-import os
 import sys
 
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -14,7 +13,7 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 class FluidDynamicsAnalysisMassConservation(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters, test_inlet_case, flush_frequency=10.0):
+    def __init__(self,model,project_parameters,test_inlet_case,flush_frequency=10.0):
         super().__init__(model,project_parameters)
         self.test_inlet_case = test_inlet_case
         self.flush_frequency = flush_frequency
@@ -25,14 +24,14 @@ class FluidDynamicsAnalysisMassConservation(FluidDynamicsAnalysis):
         if self.test_inlet_case:
 
             h0=0.1
-            for node in self._GetSolver().GetComputingModelPart().Nodes:            
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
                 d0=node.X-h0
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
 
         else:
             h0=0.5
             hmax=0.1
-            for node in self._GetSolver().GetComputingModelPart().Nodes:            
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
                 d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
 
@@ -63,12 +62,11 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
     def testTwoFluidMassConservationTest3D(self):
         self._has_inlet = False
         self._AuxiliaryRunTest("ProjectParameter3D.json")
-  
-    # runs the three dimensional test case considering a inlet 
+
+    # runs the three dimensional test case considering a inlet
     def testTwoFluidMassConservationTest3DInlet(self):
         self._has_inlet = True
         self._AuxiliaryRunTest("ProjectParameters3DVariableInlet.json")
-
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):

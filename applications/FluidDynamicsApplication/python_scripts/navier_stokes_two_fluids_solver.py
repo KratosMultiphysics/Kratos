@@ -213,7 +213,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
-        
+
         #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
     
@@ -222,12 +222,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
         self._GetLevelSetConvectionProcess()
 
-        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
-
         self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
-        
+
+        KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+
     def InitializeSolutionStep(self):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
@@ -238,7 +238,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             inlet_volume = -current_dt * inlet_discharge
             outlet_volume = current_dt * outlet_discharge
 
-            # System water volume is calculated for current time step considering inlet and outlet discharge. 
+            # System water volume is calculated for current time step considering inlet and outlet discharge.
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
         
         if self._TimeBufferIsInitialized():
@@ -276,7 +276,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
 
-            # Accumulative water volume error ratio due to level set. Adding source term 
+            # Accumulative water volume error ratio due to level set. Adding source term
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
