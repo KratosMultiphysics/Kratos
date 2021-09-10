@@ -10,7 +10,7 @@ def Factory(settings, Model):
 
 def GetHistoricalVariables(settings):
     copy_settings = settings.__copy__()
-    copy_settings.ValidateAndAssignDefaults(ApplyInletProcess.GetDefaultParameters())
+    copy_settings.AddMissingParameters(ApplyInletProcess.GetDefaultParameters())
     required_vars = []
     applied_var = copy_settings["variable_name"].GetString()
     required_vars.append(KratosMultiphysics.KratosGlobals.GetVariable(applied_var))
