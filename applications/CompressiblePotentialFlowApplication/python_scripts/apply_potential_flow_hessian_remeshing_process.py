@@ -74,7 +74,7 @@ class ApplyPotentialFlowHessianRemeshingProcess(KratosMultiphysics.Process):
         find_nodal_h.Execute()
 
         KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ComputeMeshMetrics(self.main_model_part)
-        KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(CompressiblePotentialFlow.POTENTIAL_METRIC_TENSOR_3D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_METRIC_TENSOR_3D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D, self.main_model_part.Nodes)
 
         print("SOLVING X")
         metric_x = KratosMeshing.ComputeHessianSolMetricProcess(self.main_model_part, KratosMultiphysics.VELOCITY_X, self.metric_parameters)
