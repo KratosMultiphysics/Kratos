@@ -360,7 +360,6 @@ class AnalysisStage(object):
     def __GetListOfAdditionalVariablesFromProcesses(self, parameter_name, list_additional_vars):
         """This function extracts the required historical variables needed by the processes
         """
-        from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
 
         if self.project_parameters.Has(parameter_name):
