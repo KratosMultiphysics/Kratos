@@ -22,7 +22,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckIntegrationInfo, KratosCoreFastSuite) {
     // Definition and setting
     KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(0), 2);
     KRATOS_CHECK_EQUAL(integration_info.GetNumberOfIntegrationPointsPerSpan(1), 2);
-    KRATOS_CHECK_EQUAL(integration_info.GetQuadratureMethodVector(0), IntegrationInfo::QuadratureMethod::GAUSS);
+    KRATOS_CHECK_EQUAL(integration_info.GetQuadratureMethod(0), IntegrationInfo::QuadratureMethod::GAUSS);
+
+    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+    KRATOS_CHECK_NOT_EQUAL(integration_info.GetQuadratureMethod(0), IntegrationInfo::QuadratureMethod::GAUSS);
+    KRATOS_CHECK_EQUAL(integration_info.GetQuadratureMethod(0), IntegrationInfo::QuadratureMethod::GRID);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckIntegrationInfoFlags, KratosCoreFastSuite) {
