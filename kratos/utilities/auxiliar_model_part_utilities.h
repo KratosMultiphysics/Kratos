@@ -103,10 +103,10 @@ public:
 
     /**
      * @brief This method copies the structure of submodelparts
-     * @param rModelPartToCopyIntoIt The model part where to copy the structure of the submodelparts
      * @param rModelPartToCopyFromIt The model part to copy from it
+     * @param rModelPartToCopyIntoIt The model part where to copy the structure of the submodelparts
      */
-    static void CopySubModelPartStructure(ModelPart& rModelPartToCopyIntoIt, const ModelPart& rModelPartToCopyFromIt);
+    static void CopySubModelPartStructure(const ModelPart& rModelPartToCopyFromIt, ModelPart& rModelPartToCopyIntoIt);
 
     /**
      * @brief This method ensured that the properties of elements and conditions are on the model part (it does recursively in all model parts)
