@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, 
     Initialize(this_model_part);
     auto& r_sub = this_model_part.CreateSubModelPart("SubModel");
     r_sub.CreateSubModelPart("SubSubModel");
-    AuxiliarModelPartUtilities::CopySubModelPartStructure(this_copy_model_part, this_model_part);
+    AuxiliarModelPartUtilities::CopySubModelPartStructure(this_model_part, this_copy_model_part);
 
     KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("Pikachu,pika,pika,pi"), this_copy_model_part.HasSubModelPart("Pikachu,pika,pika,pi"));
     KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("SubModel"), this_copy_model_part.HasSubModelPart("SubModel"));
