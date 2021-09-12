@@ -82,6 +82,14 @@ void AddMissingVariables(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
+void AddMissingVariablesFromEntitiesList(const Parameters& rEntitiesList)
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void AddMissingVariablesFromSpecifications(
     ModelPart& rModelPart,
     const Parameters SpecificationsParameters,
@@ -228,6 +236,14 @@ void AddMissingDofs(ModelPart& rModelPart)
 
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void AddMissingDofsFromEntitiesList(const Parameters& rEntitiesList)
+{
+    
 }
 
 /***********************************************************************************/

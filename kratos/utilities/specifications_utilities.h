@@ -114,6 +114,12 @@ namespace SpecificationsUtilities
     void KRATOS_API(KRATOS_CORE) AddMissingVariables(ModelPart& rModelPart);
 
     /**
+     * @brief This method adds to the model part the missing variables
+     * @param rEntitiesList List of entities check specifications
+     */
+    void KRATOS_API(KRATOS_CORE) AddMissingVariablesFromEntitiesList(const Parameters& rEntitiesList);
+
+    /**
      * @brief This method adds to the model part the missing variables from a given set of specifications
      * @param rModelPart Reference to the ModelPart containing the problem
      * @param SpecificationsParameters The specification parameters
@@ -130,6 +136,12 @@ namespace SpecificationsUtilities
      * @param rModelPart Reference to the ModelPart containing the problem
      */
     void KRATOS_API(KRATOS_CORE) AddMissingDofs(ModelPart& rModelPart);
+
+    /**
+     * @brief This method adds to the model part the missing dofs
+     * @param rEntitiesList List of entities check specifications
+     */
+    void KRATOS_API(KRATOS_CORE) AddMissingDofsFromEntitiesList(const Parameters& rEntitiesList);
 
     /**
      * @brief This method adds to the model part the missing dofs from a given set of specifications
