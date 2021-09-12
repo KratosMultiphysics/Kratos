@@ -42,6 +42,8 @@ namespace Kratos
         mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
         mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
         mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
+    
+        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
@@ -67,6 +69,7 @@ namespace Kratos
         // Physical variables
         KRATOS_REGISTER_VARIABLE(BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY)
+        KRATOS_REGISTER_VARIABLE(FROUDE)
         KRATOS_REGISTER_VARIABLE(RAIN)
         KRATOS_REGISTER_VARIABLE(MANNING)
         KRATOS_REGISTER_VARIABLE(CHEZY)
@@ -126,6 +129,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D4N", mWaveElement2D4N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
+
+        KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
 
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
