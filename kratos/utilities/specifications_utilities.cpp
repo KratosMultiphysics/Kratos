@@ -82,9 +82,33 @@ void AddMissingVariables(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AddMissingVariablesFromEntitiesList(const Parameters& rEntitiesList)
+void AddMissingVariablesFromEntitiesList(
+    ModelPart& rModelPart,
+    const Parameters& rEntitiesList
+    )
 {
+    // Define specifications
+    Parameters specifications;
 
+    // Iterate over elements
+    if (rEntitiesList.Has("element_list")) {
+        std::vector<std::string> element_list = rEntitiesList["element_list"].GetStringArray();
+        for (auto& r_element_name : element_list) {
+            const Element& r_element = KratosComponents<Element>::Get(r_element_name);
+            specifications = r_element.GetSpecifications();
+            AddMissingVariablesFromSpecifications(rModelPart, specifications, r_element_name);
+        }
+    }
+
+    // Iterate over conditions
+    if (rEntitiesList.Has("condition_list")) {
+        std::vector<std::string> condition_list = rEntitiesList["condition_list"].GetStringArray();
+        for (auto& r_condition_name : condition_list) {
+            const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
+            specifications = r_condition.GetSpecifications();
+            AddMissingVariablesFromSpecifications(rModelPart, specifications, r_condition_name);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -241,9 +265,33 @@ void AddMissingDofs(ModelPart& rModelPart)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AddMissingDofsFromEntitiesList(const Parameters& rEntitiesList)
+void AddMissingDofsFromEntitiesList(
+    ModelPart& rModelPart,
+    const Parameters& rEntitiesList
+    )
 {
-    
+    // Define specifications
+    Parameters specifications;
+
+    // Iterate over elements
+    if (rEntitiesList.Has("element_list")) {
+        std::vector<std::string> element_list = rEntitiesList["element_list"].GetStringArray();
+        for (auto& r_element_name : element_list) {
+            const Element& r_element = KratosComponents<Element>::Get(r_element_name);
+            specifications = r_element.GetSpecifications();
+            AddMissingDofsFromSpecifications(rModelPart, specifications, r_element_name);
+        }
+    }
+
+    // Iterate over conditions
+    if (rEntitiesList.Has("condition_list")) {
+        std::vector<std::string> condition_list = rEntitiesList["condition_list"].GetStringArray();
+        for (auto& r_condition_name : condition_list) {
+            const Condition& r_condition = KratosComponents<Condition>::Get(r_condition_name);
+            specifications = r_condition.GetSpecifications();
+            AddMissingDofsFromSpecifications(rModelPart, specifications, r_condition_name);
+        }
+    }
 }
 
 /***********************************************************************************/
