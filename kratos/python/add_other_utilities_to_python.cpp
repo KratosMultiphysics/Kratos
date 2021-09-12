@@ -573,18 +573,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     // SpecificationsUtilities
     auto mod_spec_utils = m.def_submodule("SpecificationsUtilities");
-    mod_spec_utils.def("AddMissingVariables", &SpecificationsUtilities::AddMissingVariables );
-    mod_spec_utils.def("AddMissingDofs", &SpecificationsUtilities::AddMissingDofs );
-    mod_spec_utils.def("DetermineFlagsUsed", &SpecificationsUtilities::DetermineFlagsUsed );
-    mod_spec_utils.def("DetermineTimeIntegration", &SpecificationsUtilities::DetermineTimeIntegration );
-    mod_spec_utils.def("DetermineFramework", &SpecificationsUtilities::DetermineFramework );
-    mod_spec_utils.def("DetermineSymmetricLHS", &SpecificationsUtilities::DetermineSymmetricLHS );
-    mod_spec_utils.def("DeterminePositiveDefiniteLHS", &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
-    mod_spec_utils.def("DetermineIfCompatibleGeometries", &SpecificationsUtilities::DetermineIfCompatibleGeometries );
-    mod_spec_utils.def("DetermineIfRequiresTimeIntegration", &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
-    mod_spec_utils.def("CheckCompatibleConstitutiveLaws", &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
-    mod_spec_utils.def("CheckGeometricalPolynomialDegree", &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
-    mod_spec_utils.def("GetDocumention", &SpecificationsUtilities::GetDocumention );
+    mod_spec_utils.def("AddMissingVariables",                 &SpecificationsUtilities::AddMissingVariables );
+    mod_spec_utils.def("AddMissingVariablesFromEntitiesList", &SpecificationsUtilities::AddMissingVariablesFromEntitiesList );
+    mod_spec_utils.def("AddMissingDofs",                      &SpecificationsUtilities::AddMissingDofs );
+    mod_spec_utils.def("AddMissingDofsFromEntitiesList",      &SpecificationsUtilities::AddMissingDofsFromEntitiesList );
+    mod_spec_utils.def("DetermineFlagsUsed",                  &SpecificationsUtilities::DetermineFlagsUsed );
+    mod_spec_utils.def("DetermineTimeIntegration",            &SpecificationsUtilities::DetermineTimeIntegration );
+    mod_spec_utils.def("DetermineFramework",                  &SpecificationsUtilities::DetermineFramework );
+    mod_spec_utils.def("DetermineSymmetricLHS",               &SpecificationsUtilities::DetermineSymmetricLHS );
+    mod_spec_utils.def("DeterminePositiveDefiniteLHS",        &SpecificationsUtilities::DeterminePositiveDefiniteLHS );
+    mod_spec_utils.def("DetermineIfCompatibleGeometries",     &SpecificationsUtilities::DetermineIfCompatibleGeometries );
+    mod_spec_utils.def("DetermineIfRequiresTimeIntegration",  &SpecificationsUtilities::DetermineIfRequiresTimeIntegration );
+    mod_spec_utils.def("CheckCompatibleConstitutiveLaws",     &SpecificationsUtilities::CheckCompatibleConstitutiveLaws );
+    mod_spec_utils.def("CheckGeometricalPolynomialDegree",    &SpecificationsUtilities::CheckGeometricalPolynomialDegree );
+    mod_spec_utils.def("GetDocumention",                      &SpecificationsUtilities::GetDocumention );
 
     // PropertiesUtilities
     auto mod_prop_utils = m.def_submodule("PropertiesUtilities");
