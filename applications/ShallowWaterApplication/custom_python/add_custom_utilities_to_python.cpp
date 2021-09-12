@@ -24,6 +24,7 @@
 #include "custom_utilities/shallow_water_utilities.h"
 #include "custom_utilities/post_process_utilities.h"
 #include "custom_utilities/bfecc_convection_utility.h"
+#include "custom_utilities/move_mesh_utility.h"
 
 
 namespace Kratos
@@ -31,14 +32,34 @@ namespace Kratos
 
 namespace Python
 {
-  typedef ModelPart::NodesContainerType NodesContainerType;
 
-  typedef ModelPart::ElementsContainerType ElementsContainerType;
+typedef ModelPart::NodesContainerType NodesContainerType;
 
-  typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+typedef ModelPart::ElementsContainerType ElementsContainerType;
 
-  void  AddCustomUtilitiesToPython(pybind11::module& m)
-  {
+typedef ModelPart::ConditionsContainerType ConditionsContainerType;
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces1(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo);
+}
+
+template<class TContainerType>
+array_1d<double,3> ComputeHydrostaticForces2(
+    ShallowWaterUtilities& rUtility,
+    TContainerType& rContainer,
+    const ProcessInfo& rProcessInfo,
+    const double RelativeDryHeight)
+{
+    return rUtility.ComputeHydrostaticForces(rContainer, rProcessInfo, RelativeDryHeight);
+}
+
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
     namespace py = pybind11;
 
     py::class_< MoveShallowWaterParticleUtility<2> > (m, "MoveShallowWaterParticleUtility")
@@ -63,11 +84,13 @@ namespace Python
         .def("ComputeHeightFromFreeSurface", &ShallowWaterUtilities::ComputeHeightFromFreeSurface)
         .def("ComputeVelocity", &ShallowWaterUtilities::ComputeVelocity)
         .def("ComputeMomentum", &ShallowWaterUtilities::ComputeMomentum)
-        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy)
+        .def("ComputeFroude", &ShallowWaterUtilities::ComputeFroude<true>)
+        .def("ComputeFroudeNonHistorical", &ShallowWaterUtilities::ComputeFroude<false>)
+        .def("ComputeEnergy", &ShallowWaterUtilities::ComputeEnergy<true>)
+        .def("ComputeEnergyNonHistorical", &ShallowWaterUtilities::ComputeEnergy<false>)
         .def("FlipScalarVariable", &ShallowWaterUtilities::FlipScalarVariable)
         .def("IdentifySolidBoundary", &ShallowWaterUtilities::IdentifySolidBoundary)
         .def("IdentifyWetDomain", &ShallowWaterUtilities::IdentifyWetDomain)
-        .def("ResetDryDomain", &ShallowWaterUtilities::ResetDryDomain)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<NodesContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ElementsContainerType>)
         .def("CopyFlag", &ShallowWaterUtilities::CopyFlag<ConditionsContainerType>)
@@ -82,8 +105,10 @@ namespace Python
         .def("ComputeL2Norm", &ShallowWaterUtilities::ComputeL2NormAABB<true>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2Norm<false>)
         .def("ComputeL2NormNonHistorical", &ShallowWaterUtilities::ComputeL2NormAABB<false>)
-        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ElementsContainerType>)
-        .def("ComputeHydrostaticForces", &ShallowWaterUtilities::ComputeHydrostaticForces<ConditionsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ElementsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces1<ConditionsContainerType>)
+        .def("ComputeHydrostaticForces", ComputeHydrostaticForces2<ConditionsContainerType>)
         ;
 
     py::class_< EstimateTimeStepUtility > (m, "EstimateTimeStepUtility")
@@ -119,7 +144,15 @@ namespace Python
         .def("CopyVariableToPreviousTimeStep", &BFECCConvectionUtility<2>::CopyVariableToPreviousTimeStep<Variable<array_1d<double,3>>>)
         ;
 
-  }
+    py::class_<MoveMeshUtility>(m, "MoveMeshUtility")
+        .def(py::init<ModelPart&, ModelPart&, Parameters>())
+        .def("Check", &MoveMeshUtility::Check)
+        .def("Initialize", &MoveMeshUtility::Initialize)
+        .def("MoveMesh", &MoveMeshUtility::MoveMesh)
+        .def("MapResults", &MoveMeshUtility::MapResults)
+        ;
+
+}
 
 }  // namespace Python.
 

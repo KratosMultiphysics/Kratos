@@ -234,7 +234,7 @@ public:
      */
     std::string Info() const override
     {
-        return "Wave element";
+        return "WaveElement";
     }
 
     /**
@@ -242,7 +242,7 @@ public:
      */
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << " : " << Id();
     }
 
     /**
@@ -250,7 +250,7 @@ public:
      */
     void PrintData(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << GetGeometry();
     }
 
     ///@}
@@ -284,7 +284,7 @@ protected:
     {
         double stab_factor;
         double shock_stab_factor;
-        double rel_dry_height;
+        double relative_dry_height;
         double gravity;
         double length;
 
@@ -299,7 +299,7 @@ protected:
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
-    void GetNodalData(ElementData& rData, const GeometryType& rGeometry);
+    void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
     void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
@@ -308,7 +308,7 @@ protected:
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX) const;
 
-    void AddWaveTerms(
+    virtual void AddWaveTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -316,15 +316,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddTopographyTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-        const double Weight = 1.0);
-
-    void AddFrictionTerms(
+    virtual void AddFrictionTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -340,6 +332,8 @@ protected:
         const double Weight = 1.0);
 
     virtual double StabilizationParameter(const ElementData& rData) const;
+
+    double InverseHeight(const ElementData& rData) const;
 
     ///@}
     ///@name Protected  Access

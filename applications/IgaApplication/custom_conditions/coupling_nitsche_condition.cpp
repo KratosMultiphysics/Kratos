@@ -16,7 +16,6 @@
 
 // Project includes
 #include "custom_conditions/coupling_nitsche_condition.h"
-#include "geometries/brep_curve_on_surface.h"
 
 namespace Kratos
 {
@@ -738,8 +737,8 @@ namespace Kratos
         //check wheter the size of the element larger than tolerance or not
         array_1d<double, 3> characteristic_length_master;
         array_1d<double, 3> characteristic_length_slave;
-        r_geometry_master.GetGeometryParent(0).pGetGeometryPart(BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::SURFACE_INDEX)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_master);
-        r_geometry_slave.GetGeometryParent(0).pGetGeometryPart(BrepCurveOnSurface<PointerVector<Node<3>>, PointerVector<Point>>::SURFACE_INDEX)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_slave);
+        r_geometry_master.GetGeometryParent(0).pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_master);
+        r_geometry_slave.GetGeometryParent(0).pGetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX)->Calculate(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_slave);
 
         const double tol_basic = 0.01;
         double characteristic_length = std::max(norm_2(characteristic_length_master), norm_2(characteristic_length_slave));

@@ -5,7 +5,6 @@ import sys
 sys.path.append(os.path.join('..','..','..'))
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.LinearSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
@@ -62,9 +61,11 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def Initialize(self):
-        super(GeoMechanicsAnalysisBase,self).Initialize()
         if (self.reset_displacements):
             self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = True
+
+        super().Initialize()
+        if (self.reset_displacements):
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT,self._GetSolver().GetComputingModelPart().Nodes)
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION,self._GetSolver().GetComputingModelPart().Nodes)
 
@@ -80,7 +81,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
             self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = False
 
     def Finalize(self):
-        super(GeoMechanicsAnalysisBase,self).Finalize()
+        super().Finalize()
 
         # Finalizing strategy
         if self.parallel_type == "OpenMP":
@@ -100,7 +101,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
     def __init__(self, model, project_parameters):
-        super(GeoMechanicsAnalysis, self).__init__(model, project_parameters)
+        super().__init__(model, project_parameters)
 
         self.reduction_factor    = project_parameters["solver_settings"]["reduction_factor"].GetDouble()
         self.increase_factor     = project_parameters["solver_settings"]["increase_factor"].GetDouble()

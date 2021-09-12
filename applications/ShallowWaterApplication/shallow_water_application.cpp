@@ -42,6 +42,8 @@ namespace Kratos
         mWaveElement2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Element::GeometryType::PointsArrayType(4)))),
         mWaveElement2D8N(0, Element::GeometryType::Pointer(new Quadrilateral2D8<Node<3>>(Element::GeometryType::PointsArrayType(8)))),
         mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
+    
+        mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
@@ -67,6 +69,7 @@ namespace Kratos
         // Physical variables
         KRATOS_REGISTER_VARIABLE(BATHYMETRY)
         KRATOS_REGISTER_VARIABLE(TOPOGRAPHY)
+        KRATOS_REGISTER_VARIABLE(FROUDE)
         KRATOS_REGISTER_VARIABLE(RAIN)
         KRATOS_REGISTER_VARIABLE(MANNING)
         KRATOS_REGISTER_VARIABLE(CHEZY)
@@ -92,10 +95,10 @@ namespace Kratos
         // Specific variables for PFEM2
         KRATOS_REGISTER_VARIABLE(MEAN_SIZE)
         KRATOS_REGISTER_VARIABLE(MEAN_VEL_OVER_ELEM_SIZE)
-        KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR1)
-        KRATOS_REGISTER_VARIABLE(DELTA_SCALAR1)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VECTOR1)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_VECTOR1)
+        KRATOS_REGISTER_VARIABLE(PROJECTED_SCALAR)
+        KRATOS_REGISTER_VARIABLE(DELTA_SCALAR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PROJECTED_VECTOR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DELTA_VECTOR)
 
         // Variables for Flux Corrected Transport algorithm
         KRATOS_REGISTER_VARIABLE(POSITIVE_FLUX)
@@ -127,10 +130,15 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT("WaveElement2D8N", mWaveElement2D8N)
         KRATOS_REGISTER_ELEMENT("WaveElement2D9N", mWaveElement2D9N)
 
+        KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
+
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
+
+        // Register modelers
+        KRATOS_REGISTER_MODELER("MeshMovingModeler", mMeshMovingModeler)
     }
 
 }  // namespace Kratos.

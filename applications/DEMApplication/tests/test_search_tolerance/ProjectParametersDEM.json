@@ -34,7 +34,7 @@
     "ElementType"                    : "SphericPartDEMElement3D",
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
-    "MaxTimeStep"                    : 0.5e-5,
+    "MaxTimeStep"                    : 3.5e-5,
     "FinalTime"                      : 0.23,
     "NeighbourSearchFrequency"       : 20,
     "SearchTolerance"                : 1e-3,

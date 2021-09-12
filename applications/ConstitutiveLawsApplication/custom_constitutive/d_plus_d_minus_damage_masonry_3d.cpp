@@ -21,7 +21,7 @@
 
 #include "includes/checks.h"
 #include "custom_utilities/tangent_operator_calculator_utility.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_constitutive/d_plus_d_minus_damage_masonry_3d.h"
 
@@ -92,7 +92,7 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateMaterialResponseCauchy(Constitutive
 
         // Perform the separation of the Stress in tension and compression
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
-        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
+        AdvancedConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector, predictive_stress_vector_tension, predictive_stress_vector_compression);
         noalias(damage_parameters.TensionStressVector)     = predictive_stress_vector_tension;
         noalias(damage_parameters.CompressionStressVector) = predictive_stress_vector_compression;
 
@@ -135,7 +135,7 @@ bool DamageDPlusDMinusMasonry3DLaw::IntegrateStressTensionIfNecessary(
         }
         rIntegratedStressVectorTension *= (1.0 - rParameters.DamageTension);
     } else { // Increasing damage...
-        const double characteristic_length = ConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
         // This routine updates the IntegratedStressVectorTension to verify the yield surf
         this->IntegrateStressVectorTension(
             rIntegratedStressVectorTension,
@@ -175,7 +175,7 @@ bool DamageDPlusDMinusMasonry3DLaw::IntegrateStressCompressionIfNecessary(
         }
         rIntegratedStressVectorCompression *= (1.0 - rParameters.DamageCompression);
     } else { // Increasing damage...
-        const double characteristic_length = ConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<3>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         // This routine updates the IntegratedStressVectorCompression to verify the yield surf
         this->IntegrateStressVectorCompression(
@@ -501,12 +501,12 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateEquivalentStressTension(
     const double beta = (yield_compression / yield_tension) * (1.0 - alpha) - (1.0 + alpha);
 
     double I1,J2;
-    ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
     array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
-    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
     array_1d<double, Dimension> principal_stress_vector;
-    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
     const double principal_stress_1 = principal_stress_vector[0];
 
     if (principal_stress_1 > 0.0){
@@ -540,12 +540,12 @@ void DamageDPlusDMinusMasonry3DLaw::CalculateEquivalentStressCompression(
     const double gamma = 3.0 * (1.0 - rho) / (2.0 * rho - 1.0);
 
     double I1,J2;
-    ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
     array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
-    ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
     array_1d<double, Dimension> principal_stress_vector;
-    ConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculatePrincipalStresses(principal_stress_vector, rPredictiveStressVector);
     const double principal_stress_1 = principal_stress_vector[0];
     const double principal_stress_3 = principal_stress_vector[2];
     const double smax_macaulay = std::max(principal_stress_1, 0.0);

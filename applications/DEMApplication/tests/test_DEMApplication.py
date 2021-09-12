@@ -28,6 +28,7 @@ import test_clusters
 import test_DEM_schemes
 import test_random_variable
 import test_DEM_search_tolerance
+import test_DEM_search_flags
 
 def AssembleTestSuites():
 
@@ -58,7 +59,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(test_DEM_2D_inlet.TestDEM2DInlet("test_DEM2D_inlet"))
     smallSuite.addTest(test_DEM_3D_inlet.TestDEM3DInlet("test_DEM3D_inlet"))
-    smallSuite.addTest(test_inlet.TestDEMInlet("test_piecewise_linear_inlet"))
+    smallSuite.addTest(test_inlet.TestPieceWiseLinearDEMInlet("test_piecewise_linear_inlet"))
 
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_1"))
     smallSuite.addTest(test_DEM_3D_restitution.TestDEM3DRestitution("test_DEM3D_restitution_2"))
@@ -77,6 +78,10 @@ def AssembleTestSuites():
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Symplectic"))
     smallSuite.addTest(test_DEM_schemes.TestDEMSchemes("test_Verlet"))
     smallSuite.addTest(test_random_variable.TestRandomVariable("test_random_variable"))
+    smallSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
+    smallSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
+    smallSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
+    smallSuite.addTest(test_DEM_search_flags.TestDEM3DSearchFlag("test_DEM3D_search"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -87,9 +92,7 @@ def AssembleTestSuites():
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchB"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchC"))
     nightSuite.addTest(test_DEM_search_tolerance.TestSearchTolerance("test_SearchD"))
-    nightSuite.addTest(test_DEM_3D_continuum_vs_discontinuum.TestDEM3DContinuumVsDiscontinuum("test_DEM3D_continuum_vs_discontinuum"))
-    nightSuite.addTest(test_DEM_2D_contact.TestDEM2DContact("test_DEM2D_contact"))
-    nightSuite.addTest(test_kinematic_constraints.TestKinematicConstraints("test_KinematicConstraints_1"))
+
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']

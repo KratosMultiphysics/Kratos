@@ -163,21 +163,8 @@ indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(indexStress3DInterface i
       case INDEX_3D_INTERFACE_XZ:
         return INDEX_3D_XZ;
       default:
-        KRATOS_THROW_ERROR(std::invalid_argument, "invalid index: ", index3D);
+        KRATOS_ERROR << "invalid index: " << index3D << std::endl;
    }
-}
-
-void SmallStrainUMAT3DInterfaceLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
-{
-   const Vector& rStrainVector = rValues.GetStrainVector();
-   std::fill(mStrainVectorFinalized.begin(), mStrainVectorFinalized.end(), 0.0);
-
-   mStrainVectorFinalized[INDEX_3D_ZZ] = rStrainVector(INDEX_3D_INTERFACE_ZZ);
-   mStrainVectorFinalized[INDEX_3D_YZ] = rStrainVector(INDEX_3D_INTERFACE_YZ);
-   mStrainVectorFinalized[INDEX_3D_XZ] = rStrainVector(INDEX_3D_INTERFACE_XZ);
-
-   // KRATOS_INFO("UpdateInternalStrainVectorFinalized:rStrainVector") << rStrainVector << std::endl;
-
 }
 
 /***********************************************************************************/

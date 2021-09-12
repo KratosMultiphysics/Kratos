@@ -23,7 +23,7 @@
 #include "custom_strategies/schemes/explicit_forward_euler_scheme.hpp"
 
 //strategies
-//#include "solving_strategies/strategies/solving_strategy.h"
+//#include "solving_strategies/strategies/implicit_solving_strategy.h"
 
 //builders and solvers
 
@@ -46,7 +46,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    //typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     //typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     //typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 

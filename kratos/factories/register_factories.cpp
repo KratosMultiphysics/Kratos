@@ -20,11 +20,6 @@
 namespace Kratos
 {
 
-void AddKratosComponent(std::string const& Name, ExplicitSolvingStrategyType const& ThisComponent)
-{
-    KratosComponents<ExplicitSolvingStrategyType>::Add(Name, ThisComponent);
-}
-
 void AddKratosComponent(std::string const& Name, ExplicitBuilderType const& ThisComponent)
 {
     KratosComponents<ExplicitBuilderType>::Add(Name, ThisComponent);
