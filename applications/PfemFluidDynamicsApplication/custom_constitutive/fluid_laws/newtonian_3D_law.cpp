@@ -71,7 +71,7 @@ void Newtonian3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
 }
 
 int Newtonian3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                          const ProcessInfo& rCurrentProcessInfo) {
+                          const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0)
         << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: "

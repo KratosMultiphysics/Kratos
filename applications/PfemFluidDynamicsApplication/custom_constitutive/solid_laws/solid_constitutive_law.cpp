@@ -43,7 +43,7 @@ void PfemSolidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValu
 }
 
 int PfemSolidConstitutiveLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                                    const ProcessInfo& rCurrentProcessInfo) {
+                                    const ProcessInfo& rCurrentProcessInfo) const {
     KRATOS_ERROR << "Calling base "
                     "PfemSolidConstitutiveLaw::Check "
                     "method. This class should not be instantiated. Please "

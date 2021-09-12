@@ -158,7 +158,7 @@ namespace Kratos
     //*****************************************************************************
 
     int BarkerBercovierMuIRheology3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                               const ProcessInfo &rCurrentProcessInfo)
+                                               const ProcessInfo &rCurrentProcessInfo) const
     {
         if (rMaterialProperties[STATIC_FRICTION] < 0.0)
         {

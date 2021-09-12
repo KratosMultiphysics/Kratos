@@ -70,7 +70,7 @@ void Hypoelastic3DLaw::CalculateMaterialResponseCauchy(Parameters& rParameters) 
 }
 
 int Hypoelastic3DLaw::Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-                            const ProcessInfo& rCurrentProcessInfo) {
+                            const ProcessInfo& rCurrentProcessInfo) const {
 
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
         << "Incorrect or missing YOUNG_MODULUS provided in process info for Hypoelastic3DLaw: "

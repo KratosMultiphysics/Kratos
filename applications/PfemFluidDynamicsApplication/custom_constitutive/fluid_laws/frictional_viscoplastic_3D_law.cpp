@@ -118,7 +118,7 @@ namespace Kratos
     //*****************************************************************************
 
     int FrictionalViscoplastic3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                           const ProcessInfo &rCurrentProcessInfo)
+                                           const ProcessInfo &rCurrentProcessInfo) const
     {
 
         if (rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)

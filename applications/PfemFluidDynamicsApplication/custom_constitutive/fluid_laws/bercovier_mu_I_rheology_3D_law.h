@@ -103,7 +103,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BercovierMuIRheology3DLaw : pu
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output

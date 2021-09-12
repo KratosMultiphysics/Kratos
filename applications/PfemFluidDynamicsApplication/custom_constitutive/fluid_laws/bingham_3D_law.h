@@ -99,7 +99,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Bingham3DLaw : public PfemFlui
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output

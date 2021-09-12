@@ -75,7 +75,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) PfemSolidConstitutiveLaw : pub
      *  @return 0 if everything is fine, other values indicate problems.
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access
