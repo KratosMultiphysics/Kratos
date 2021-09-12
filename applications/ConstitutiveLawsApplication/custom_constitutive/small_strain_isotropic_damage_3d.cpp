@@ -13,10 +13,9 @@
 //
 
 // Project includes
-#include "small_strain_isotropic_damage_3d.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
-#include "constitutive_laws_application_variables.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -32,25 +31,21 @@ SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(const SmallStrainIsotropicDamage3D &rOther)
-    : ElasticIsotropic3D(rOther)
-{
-}
+SmallStrainIsotropicDamage3D::SmallStrainIsotropicDamage3D(
+    const SmallStrainIsotropicDamage3D &rOther) = default;
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
 ConstitutiveLaw::Pointer SmallStrainIsotropicDamage3D::Clone() const
 {
-    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(SmallStrainIsotropicDamage3D(*this));
+    return Kratos::make_shared<SmallStrainIsotropicDamage3D>(*this);
 }
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D()
-{
-}
+SmallStrainIsotropicDamage3D::~SmallStrainIsotropicDamage3D() = default;
 
 //************************************************************************************
 //************************************************************************************
@@ -63,7 +58,6 @@ bool SmallStrainIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
     } else if(rThisVariable == DAMAGE_VARIABLE){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
-
     }
 
     return false;
@@ -135,7 +129,7 @@ void SmallStrainIsotropicDamage3D::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
     Vector internal_variables(1);
-    this->CalculateStressResponse(rParametersValues, internal_variables);
+    CalculateStressResponse(rParametersValues, internal_variables);
     mStrainVariable = internal_variables[0];
 }
 
@@ -156,11 +150,12 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
     Vector& rInternalVariables)
 {
-    double r = mStrainVariable;
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
+
+    double r = mStrainVariable;
 
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
@@ -170,10 +165,6 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         CalculateElasticMatrix(r_constitutive_matrix, rParametersValues);
         noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
 
-        // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
-        // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
-        // function.
-	    // In this symmetric model, ComputePositiveStressVector function does nothing.
         Vector r_stress_vector_pos = r_stress_vector;
         ComputePositiveStressVector(r_stress_vector_pos, r_stress_vector);
 
@@ -182,20 +173,22 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
         if (energy < 0) {
             energy = 0;
         }
+
         const double strain_norm = std::sqrt(energy);
 
-        if (strain_norm <= mStrainVariable)
-        {
-            // ELASTIC
+        if (strain_norm <= mStrainVariable) {
+
+            // elastic case
+
             r = mStrainVariable;
             const double q = EvaluateHardeningLaw(r, r_material_properties);
             const double d = 1. - q / r;
             r_constitutive_matrix *= (1 - d);
             r_stress_vector *= (1 - d);
-        }
-        else
-        {
-            // INELASTIC
+        } else {
+
+            // inelastic case
+
             r = strain_norm;
             const double q = EvaluateHardeningLaw(r, r_material_properties);
             const double d = 1. - q / r;
@@ -217,7 +210,9 @@ void SmallStrainIsotropicDamage3D::CalculateStressResponse(
 void SmallStrainIsotropicDamage3D::ComputePositiveStressVector(
             Vector& rStressVectorPos, Vector& rStressVector)
 {
-    // Function to be overided by derived CLs if needed.
+    // Auxiliary stress vector to allow derived models (e.g. traction-only damage)
+    // to set the value of r_stress_vector_pos with the ComputePositiveStressVector
+    // function.
 
     // In this symmetric damage model, ComputePositiveStressVector function does
     // nothing, as rStressVectorPos = rStressVector already.
@@ -425,7 +420,7 @@ double& SmallStrainIsotropicDamage3D::CalculateValue(
         rValue = 1. - stress_like_variable / mStrainVariable;
 
     } else {
-        ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+        BaseType::CalculateValue(rParametersValues, rThisVariable, rValue);
 
     }
 
@@ -442,7 +437,7 @@ Vector& SmallStrainIsotropicDamage3D::CalculateValue(
     )
 {
     //Explicitly having STRAIN and INITAL_STRAIN_VECTOR calculated in base class
-    ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValue);
+    BaseType::CalculateValue(rParametersValues, rThisVariable, rValue);
     return(rValue);
 }
 
@@ -508,7 +503,7 @@ int SmallStrainIsotropicDamage3D::Check(
 
 void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
@@ -517,7 +512,7 @@ void SmallStrainIsotropicDamage3D::save(Serializer& rSerializer) const
 
 void SmallStrainIsotropicDamage3D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("mStrainVariable", mStrainVariable);
 }
 
