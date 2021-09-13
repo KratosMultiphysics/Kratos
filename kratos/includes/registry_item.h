@@ -115,7 +115,7 @@ public:
             return (mpValue != nullptr);
         }
 
-        bool HasSubItem() const{
+        bool HasItems() const{
             return (!mSubRegistryItem.empty());
         }
 
