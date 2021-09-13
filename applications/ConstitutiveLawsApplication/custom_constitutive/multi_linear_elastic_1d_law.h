@@ -73,7 +73,7 @@ namespace Kratos
             const Properties& rMaterialProperties,
             const GeometryType& rElementGeometry,
             const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
         double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
             const Variable<double>& rThisVariable,double& rValue) override;
