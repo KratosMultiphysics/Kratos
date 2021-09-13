@@ -59,8 +59,7 @@ class PythonSolver:
         Those can e.g. be needed by processes or utilities.
         It has to be called BEFORE the ModelPart is read!
         """
-        for var in list_additional_variables:
-            self.GetComputingModelPart().AddNodalSolutionStepVariable(var)
+        pass
 
     def AddDofs(self):
         """This function add the Dofs needed by this PythonSolver to the the ModelPart
