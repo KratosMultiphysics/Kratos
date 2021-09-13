@@ -14,7 +14,8 @@ class ExplicitStrategy():
         default_settings = Parameters("""
         {
             "strategy" : "sphere_strategy",
-            "do_search_neighbours" : true,
+            "do_search_dem_neighbours" : true,
+            "do_search_fem_neighbours" : true,
             "RemoveBallsInitiallyTouchingWalls": false,
             "model_import_settings": {
                 "input_type": "mdpa",
@@ -24,6 +25,12 @@ class ExplicitStrategy():
                 "materials_filename" : "MaterialsDEM.json"
             }
         }""")
+
+        if self.solver_settings.Has("do_search_neighbours"):
+            Logger.PrintWarning("DEM", '\nWARNING!:  do_search_neighbours flag is deprecated. Please use do_search_dem_neighbours instead.\n')
+            self.solver_settings.AddValue("do_search_dem_neighbours", self.solver_settings["do_search_neighbours"])
+            self.solver_settings.RemoveValue("do_search_neighbours")
+
         self.solver_settings.ValidateAndAssignDefaults(default_settings)
 
         # Initialization of member variables
@@ -35,7 +42,7 @@ class ExplicitStrategy():
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
-        self.mesh_motion = DEMFEMUtilities()
+        self.dem_fem_utils = DEMFEMUtilities()
 
         self.dimension = DEM_parameters["Dimension"].GetInt()
 
@@ -77,6 +84,7 @@ class ExplicitStrategy():
 
         self.search_increment = 0.0
         self.search_increment_for_walls = 0.0
+        self.search_increment_for_bonds_creation = 0.0
         self.coordination_number = 10.0
         self.case_option = 3
 
@@ -102,15 +110,17 @@ class ExplicitStrategy():
         elif DEM_parameters["DeltaOption"].GetString() == "Absolute":
             self.delta_option = 1
             self.search_increment = DEM_parameters["SearchTolerance"].GetDouble()
+            if not "SearchToleranceForBondsCreation" in DEM_parameters.keys():
+                self.search_increment_for_bonds_creation  = self.search_increment
+            else:
+                self.search_increment_for_bonds_creation = DEM_parameters["SearchToleranceForBondsCreation"].GetDouble()
 
         elif DEM_parameters["DeltaOption"].GetString() == "Coordination_Number":
             self.delta_option = 2
             self.coordination_number = DEM_parameters["CoordinationNumber"].GetDouble()
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
-
         self.search_increment_for_walls = DEM_parameters["search_tolerance_against_walls"].GetDouble()
-
 
         # TIME RELATED PARAMETERS
         self.dt = DEM_parameters["MaxTimeStep"].GetDouble()
@@ -259,6 +269,7 @@ class ExplicitStrategy():
         # SEARCH-RELATED
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT, self.search_increment)
         self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_WALLS, self.search_increment_for_walls)
+        self.spheres_model_part.ProcessInfo.SetValue(SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION, self.search_increment_for_bonds_creation)
         self.spheres_model_part.ProcessInfo.SetValue(COORDINATION_NUMBER, self.coordination_number)
         self.spheres_model_part.ProcessInfo.SetValue(LOCAL_RESOLUTION_METHOD, self.local_resolution_method)
         if self.contact_mesh_option:
@@ -388,9 +399,9 @@ class ExplicitStrategy():
         dem_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
 
-        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(dem_inlet_model_part, time, dt)
-        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(spheres_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(dem_inlet_model_part, time, dt)
+        self.dem_fem_utils.MoveAllMeshes(rigid_face_model_part, time, dt)
 
     def _UpdateTimeInModelParts(self, time, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")

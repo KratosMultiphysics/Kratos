@@ -192,20 +192,6 @@ void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::GetDofList(Dofs
     }
 }
 
-template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    const bool active = Is(ACTIVE);
-
-    const TransonicPerturbationPotentialFlowElement& r_const_this = *this;
-    const int wake = r_const_this.GetValue(WAKE);
-
-    if (wake != 0 && active == true)
-    {
-        ComputePotentialJump(rCurrentProcessInfo);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -1219,33 +1205,6 @@ array_1d<size_t, TNumNodes> TransonicPerturbationPotentialFlowElement<TDim, TNum
     }
 
     return upwind_node_key;
-}
-
-template <int TDim, int TNumNodes>
-void TransonicPerturbationPotentialFlowElement<TDim, TNumNodes>::ComputePotentialJump(const ProcessInfo& rCurrentProcessInfo)
-{
-    const array_1d<double, 3>& vinfinity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
-    const double v_infinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
-
-    array_1d<double, TNumNodes> distances;
-    GetWakeDistances(distances);
-
-    for (unsigned int i = 0; i < TNumNodes; i++)
-    {
-        double aux_potential =
-            GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        double potential_jump = aux_potential - potential;
-        if (distances[i] > 0)
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP,
-                                      -2.0 / v_infinity_norm * (potential_jump));
-        }
-        else
-        {
-            GetGeometry()[i].SetValue(POTENTIAL_JUMP, 2.0 / v_infinity_norm * (potential_jump));
-        }
-    }
 }
 
 template <int TDim, int TNumNodes>

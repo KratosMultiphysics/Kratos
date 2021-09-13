@@ -672,7 +672,7 @@ void TwoFluidNavierStokes<TElementData>::ComputeSplitInterface(
     MatrixType& rEnrInterfaceShapeFunctionNeg,
     GeometryType::ShapeFunctionsGradientsType& rInterfaceShapeDerivativesNeg,
     Vector& rInterfaceWeightsNeg,
-    std::vector<Vector>& rInterfaceNormalsNeg,
+    std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
     ModifiedShapeFunctions::Pointer pModifiedShapeFunctions)
 {
     Matrix enr_neg_interp = ZeroMatrix(NumNodes, NumNodes);
@@ -751,7 +751,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
     const Vector& rCurvature,
     const Vector& rInterfaceWeights,
     const Matrix& rInterfaceShapeFunctions,
-    const std::vector<Vector>& rInterfaceNormalsNeg,
+    const std::vector<array_1d<double,3>>& rInterfaceNormalsNeg,
     VectorType& rRHS)
 {
     for (unsigned int intgp = 0; intgp < rInterfaceWeights.size(); ++intgp){
@@ -997,7 +997,7 @@ void TwoFluidNavierStokes<TElementData>::AddSurfaceTensionContribution(
     Matrix int_shape_function, int_shape_function_enr_neg, int_shape_function_enr_pos;
     GeometryType::ShapeFunctionsGradientsType int_shape_derivatives;
     Vector int_gauss_pts_weights;
-    std::vector<Vector> int_normals_neg;
+    std::vector<array_1d<double,3>> int_normals_neg;
     Vector gauss_pts_curvature;
 
     ComputeSplitInterface(
