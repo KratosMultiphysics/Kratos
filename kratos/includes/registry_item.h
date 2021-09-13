@@ -94,8 +94,10 @@ public:
 
 
     ///@}
-    ///@name Operations
+    ///@name Items
     ///@{
+
+    RegistryItem& AddItem(Kratos::unique_ptr<RegistryItem>&& pNewItem);
 
 
     ///@}

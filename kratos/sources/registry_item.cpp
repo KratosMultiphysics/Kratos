@@ -32,4 +32,12 @@ namespace Kratos
         
     }
 
+    RegistryItem& RegistryItem::AddItem(Kratos::unique_ptr<RegistryItem>&& pNewItem){
+        KRATOS_ERROR_IF(this->HasItem(pNewItem->Name())) << "The RegistryItem " << this->Name() << " already has an item with name " << pNewItem->Name() << std::endl;
+        auto insert_result = mSubRegistryItem.insert(std::make_pair(pNewItem->Name(), std::move(pNewItem)));
+        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting " << pNewItem->Name() << " in registry item with name " << this->Name() << std::endl;
+        return *insert_result.first->second;
+    }
+
+
 } // namespace Kratos.
