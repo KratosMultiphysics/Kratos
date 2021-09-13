@@ -121,10 +121,42 @@ class MaterialTest():
             self.alpha_bot = math.pi*self.diameter*self.diameter*0.25/(self.xbot_area + 0.70710678*self.xbotcorner_area)
             self.alpha_lat = math.pi*self.diameter*self.height/(self.xlat_area + 0.70710678*self.xtopcorner_area + 0.70710678*self.xbotcorner_area)
 
+    def CheckCorrectNameOfPlates(self):
+
+        prepare_check = [0, 0, 0, 0]
+        self.total_check = 0
+
+        for smp in self.rigid_face_model_part.SubModelParts:
+            if smp.Name == "TOP":
+                self.top_mesh_nodes = smp.Nodes
+                prepare_check[0] = 1
+            if smp.Name == "BOT":
+                self.bot_mesh_nodes = smp.Nodes
+                prepare_check[1] = 1
+
+        for smp in self.spheres_model_part.SubModelParts:
+            if smp.Name == "TOP":
+                self.top_mesh_nodes = smp.Nodes
+                prepare_check[2] = -1
+
+            if smp.Name == "BOT":
+                self.bot_mesh_nodes = smp.Nodes
+                prepare_check[3] = -1
+
+        for it in range(len(prepare_check)):
+
+            self.total_check += prepare_check[it]
+
+        if math.fabs(self.total_check) != 2:
+
+            self.Procedures.KratosPrintWarning(" ERROR found in the names of the plates. The top and bottom names of the plates must be TOP and BOTTOM respectively.")
+
     def PrepareTests(self):
 
+        self.CheckCorrectNameOfPlates()
+
         ##Fixing horizontally top and bot
-        if self.test_type != "BTS":
+        '''if self.test_type != "BTS":
             for node in self.TOP:
                 node.SetSolutionStepValue(VELOCITY_X, 0.0)
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)
@@ -135,7 +167,7 @@ class MaterialTest():
                 node.SetSolutionStepValue(VELOCITY_X, 0.0)
                 node.SetSolutionStepValue(VELOCITY_Z, 0.0)
                 node.Fix(VELOCITY_X)
-                node.Fix(VELOCITY_Z)
+                node.Fix(VELOCITY_Z)'''
 
         if self.test_type == "BTS":
             absolute_path_to_file = os.path.join(self.graphs_path, self.problem_name + ".grf")
@@ -336,35 +368,8 @@ class MaterialTest():
         self.Procedures.KratosPrintInfo("Finished computing the skin of the BTS specimen..." + "\n")
 
     def PrepareDataForGraph(self):
-
-        prepare_check = [0,0,0,0]
-        self.total_check = 0
-
-        for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[IDENTIFIER] == "TOP":
-                self.top_mesh_nodes = smp.Nodes
-                prepare_check[0] = 1
-            if smp[IDENTIFIER] == "BOT":
-                self.bot_mesh_nodes = smp.Nodes
-                prepare_check[1] = 1
-
-        for smp in self.spheres_model_part.SubModelParts:
-            if smp[IDENTIFIER] == "TOP":
-                self.top_mesh_nodes = smp.Nodes
-                prepare_check[2] = -1
-
-            if smp[IDENTIFIER] == "BOT":
-                self.bot_mesh_nodes = smp.Nodes
-                prepare_check[3] = -1
-
-        for it in range(len(prepare_check)):
-
-            self.total_check += prepare_check[it]
-
-        if math.fabs(self.total_check) != 2:
-
-            self.Procedures.KratosPrintWarning(" ERROR in the definition of TOP BOT groups. Both groups are required to be defined, they have to be either on FEM groups or in DEM groups")
-
+        self.CheckCorrectNameOfPlates()
+        
     def MeasureForcesAndPressure(self):
 
         dt = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
