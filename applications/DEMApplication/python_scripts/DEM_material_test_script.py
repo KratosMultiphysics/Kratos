@@ -149,7 +149,7 @@ class MaterialTest():
 
         if math.fabs(self.total_check) != 2:
 
-            self.Procedures.KratosPrintWarning(" ERROR found in the names of the plates. The top and bottom names of the plates must be TOP and BOTTOM respectively.")
+            self.Procedures.KratosPrintWarning(" ERROR found in the names of the plates. The names of the top and bottom plates must be TOP and BOTTOM respectively.")
 
     def PrepareTests(self):
 
