@@ -327,7 +327,12 @@ namespace MPMParticleGeneratorUtility
                         // If dirichlet boundary or coupling interface
                         if (!is_neumann_condition){
                             if(!is_interface){
-                                condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                                if(boundary_condition_type==1)
+                                    condition_type_name = "MPMParticlePenaltyDirichletCondition";
+                                else if (boundary_condition_type ==2)
+                                    condition_type_name = "MPMParticleLagrangeDirichletCondition";
+                                else 
+                                    KRATOS_ERROR << "The boundary condition type is not yet implemented. Available options are Penalty=1 and Lagrange=2" << std::endl;
                             }
                             else{
                                     condition_type_name = "MPMParticlePenaltyCouplingInterfaceCondition";
@@ -447,6 +452,19 @@ namespace MPMParticleGeneratorUtility
                                 if (boundary_condition_type == 1)
                                 {
                                     p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+                                }
+                                else if (boundary_condition_type == 2)
+                                {
+                                    auto p_new_node = rBackgroundGridModelPart.CreateNewNode(rBackgroundGridModelPart.Nodes().size() + 1, mpc_xg[0][0], mpc_xg[0][1], mpc_xg[0][2]);
+                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_X,WEIGHTED_VECTOR_RESIDUAL_X);
+                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Y,WEIGHTED_VECTOR_RESIDUAL_Y);
+                                    p_new_node->AddDof(VECTOR_LAGRANGE_MULTIPLIER_Z,WEIGHTED_VECTOR_RESIDUAL_Z);
+                                    p_new_node->AddDof(DISPLACEMENT_X,REACTION_X);
+                                    p_new_node->AddDof(DISPLACEMENT_Y,REACTION_Y);
+                                    p_new_node->AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+                                    // cp_condition->SetValuesOnIntegrationPoints(MPC_LAGRANGE_NODE,p_new_node, process_info);
+                                    p_condition->SetValue(MPC_LAGRANGE_NODE, p_new_node);
                                 }
                                     
 
