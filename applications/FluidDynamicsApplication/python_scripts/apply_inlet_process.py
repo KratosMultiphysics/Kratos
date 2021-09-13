@@ -9,12 +9,13 @@ def Factory(settings, Model):
     return ApplyInletProcess(Model, settings["Parameters"])
 
 def GetHistoricalVariables(settings):
-    copy_settings = settings.__copy__()
+    copy_settings = settings.__deepcopy__()
     copy_settings.AddMissingParameters(ApplyInletProcess.GetDefaultParameters())
-    required_vars = []
-    applied_var = copy_settings["variable_name"].GetString()
-    required_vars.append(KratosMultiphysics.KratosGlobals.GetVariable(applied_var))
-    return required_vars
+    model_part_name = copy_settings["model_part_name"].GetString()
+    root_model_part = model_part_name[:model_part_name.index(".")]
+    applied_var = KratosMultiphysics.KratosGlobals.GetVariable(copy_settings["variable_name"].GetString())
+    vars_dict = {root_model_part : [applied_var]}
+    return vars_dict
 
 class ApplyInletProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):

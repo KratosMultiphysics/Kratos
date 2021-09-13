@@ -3,6 +3,7 @@ import KratosMultiphysics as KM
 
 # Other imports
 from importlib import import_module
+from collections import defaultdict
 
 ################# Please do not change the following class:
 class KratosProcessFactory(object):
@@ -26,8 +27,8 @@ class KratosProcessFactory(object):
 
         return constructed_processes
 
-    def GetListOfRequiredHistoricalVariables( self, process_list):
-        required_variables = []
+    def GetMapOfRequiredHistoricalVariables( self, process_list):
+        required_variables_map = defaultdict(list)
         for i in range(0,process_list.size()):
             item = process_list[i]
             if not item.Has("python_module"):
@@ -39,9 +40,11 @@ class KratosProcessFactory(object):
             
             python_module = import_module(python_module_name)
             if hasattr(python_module, "GetHistoricalVariables"):
-                required_variables.extend(python_module.GetHistoricalVariables(item["Parameters"]))
+                new_dict = python_module.GetHistoricalVariables(item["Parameters"])
+                for mp in new_dict:
+                    required_variables_map[mp].extend(new_dict[mp])
 
-        return required_variables
+        return required_variables_map
 
 
     def _GetFullModuleNameName(self,item):

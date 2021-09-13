@@ -54,7 +54,7 @@ class PythonSolver:
         """
         pass
 
-    def AddAdditionalHistoricalVariables(self, list_additional_variables):
+    def AddAdditionalHistoricalVariables(self, map_additional_variables):
         """This function adds additional historical variables to the ModelPart
         Those can e.g. be needed by processes or utilities.
         It has to be called BEFORE the ModelPart is read!
