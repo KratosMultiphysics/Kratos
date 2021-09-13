@@ -477,7 +477,7 @@ int SmallStrainIsotropicDamageImplex3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const double tolerance = std::numeric_limits<double>::epsilon();
 

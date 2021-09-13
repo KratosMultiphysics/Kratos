@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "utilities/delaunator_utilities.h"
+#include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos

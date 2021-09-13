@@ -137,7 +137,7 @@ std::size_t ParallelRuleOfMixturesLaw<TDim>::WorkingSpaceDimension()
 /***********************************************************************************/
 
 template<unsigned int TDim>
-std::size_t ParallelRuleOfMixturesLaw<TDim>::GetStrainSize()
+std::size_t ParallelRuleOfMixturesLaw<TDim>::GetStrainSize() const
 {
     IndexType counter = 0;
     SizeType strain_size = 6;
@@ -1310,7 +1310,7 @@ int ParallelRuleOfMixturesLaw<TDim>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     // The auxiliar output
     int aux_out = 0;
