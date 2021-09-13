@@ -119,6 +119,10 @@ public:
             return (!mSubRegistryItem.empty());
         }
 
+        bool HasItem(std::string const& ItemName) const{
+            return (mSubRegistryItem.find(ItemName) != mSubRegistryItem.end());
+        }
+
 
     ///@}
     ///@name Input and output
