@@ -183,15 +183,15 @@ class MaterialTest():
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == "TOP":
                 top_vel = smp[LINEAR_VELOCITY_Y]
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == "BOT":
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
 
     def ComputeMeasuringSurface(self):
         self.MeasuringSurface = 0.25 * math.pi * self.diameter * self.diameter
-    
+
     def FindMinimumYcoordinate(self):
 
         minimum_Y_coordinate = 0.0
