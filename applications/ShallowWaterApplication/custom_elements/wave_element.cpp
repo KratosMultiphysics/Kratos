@@ -347,6 +347,14 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     }
 }
 
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::AddShockCapturingTerms(
+    LocalMatrixType& rMatrix,
+    const ElementData& rData,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight)
+{}
+
 template<>
 void WaveElement<3>::AddMassTerms(
     LocalMatrixType& rMatrix,
@@ -477,6 +485,7 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 
     AddWaveTerms(lhs, rhs, data, N, DN_DX);
     AddFrictionTerms(lhs, rhs, data, N, DN_DX);
+    AddShockCapturingTerms(lhs, data, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, data.unknown);
@@ -518,6 +527,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
+        AddShockCapturingTerms(lhs, data, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)

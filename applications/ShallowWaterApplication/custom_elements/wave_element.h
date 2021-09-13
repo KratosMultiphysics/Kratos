@@ -324,6 +324,12 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
+    virtual void AddShockCapturingTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0);
+
     void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
