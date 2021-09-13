@@ -79,7 +79,7 @@ class RigidBodySolver(object):
     def _InitializeDofsVariables(self, dof_params):
 
         # Initialize variables that depend on the degree of freedom
-        self.is_blocked = {}
+        self.is_constrained = {}
         self.M = np.zeros((self.system_size,self.system_size)) # Mass matrix
         self.C = np.zeros((self.system_size,self.system_size)) # Damping matrix
         self.K = np.zeros((self.system_size,self.system_size)) # Stiffness matrix
@@ -91,7 +91,7 @@ class RigidBodySolver(object):
 
         # Fill the initialised values with the ones from the parameters
         for index, dof in enumerate(self.available_dofs):
-            self.is_blocked[dof] = dof_params[dof]["blocked"].GetBool()
+            self.is_constrained[dof] = dof_params[dof]["constrained"].GetBool()
             self.M[index][index] = dof_params[dof]['system_parameters']['mass'].GetDouble()
             self.C[index][index] = dof_params[dof]['system_parameters']['damping'].GetDouble()
             self.K[index][index] = dof_params[dof]['system_parameters']['stiffness'].GetDouble()
@@ -313,9 +313,9 @@ class RigidBodySolver(object):
         # Solve the solution step and find the new displacements
         self.x[:,0] = np.linalg.solve(self.LHS, RHS)
 
-        # Blocked dofs will have the root_point_displacement as a total displacement
+        # constrained dofs will have the root_point_displacement as a total displacement
         for index, dof in enumerate(self.available_dofs):
-            if self.is_blocked[dof]:
+            if self.is_constrained[dof]:
                 self.x[index,0] = self.total_root_point_displ[index,0]
 
         # Update velocity and acceleration according to the gen-alpha method
@@ -367,7 +367,7 @@ class RigidBodySolver(object):
 
 
     def CalculateReaction(self, buffer_idx=0):
-        # TODO: Check how does it work with blocked DOFs
+        # TODO: Check how does it work with constrained DOFs
         reaction = self.C.dot(self.v[:,buffer_idx] - self.v_f[:,buffer_idx]) \
                 + self.K.dot(self.x[:,buffer_idx] - self.x_f[:,buffer_idx])
         return reaction

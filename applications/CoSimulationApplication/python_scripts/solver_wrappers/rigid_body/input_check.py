@@ -51,7 +51,7 @@ def _CheckMandatoryInputParameters(parameters):
 def _ValidateAndAssignRigidBodySolverDefaults(parameters, available_dofs):
 
     default_single_dof_parameters = KratosMultiphysics.Parameters('''{
-        "blocked": false,
+        "constrained": false,
         "system_parameters":{
             "mass"      : 1.0,
             "stiffness" : 1.0,
