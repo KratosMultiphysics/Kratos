@@ -359,6 +359,9 @@ class ExplicitStrategy():
     def AddVariables(self):
         pass
 
+    def AddAdditionalHistoricalVariables(self):
+        pass
+
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
         self.RebuildListOfDiscontinuumSphericParticles()
