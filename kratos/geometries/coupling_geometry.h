@@ -390,7 +390,8 @@ public:
             std::vector<double> all_intersections_in_master_local_space;
             MergeSpans(all_intersections_in_master_local_space, master_span_intersections_in_master_local_space, slave_span_intersections_in_master_local_space);
 
-            IntegrationPointUtilities::CreateIntegrationPoints1D(rIntegrationPoints, all_intersections_in_master_local_space, rIntegrationInfo.GetNumberOfIntegrationPointsPerSpan(0));
+            IntegrationPointUtilities::CreateIntegrationPoints1D(
+                rIntegrationPoints, all_intersections_in_master_local_space, rIntegrationInfo);
         }
     }
 
