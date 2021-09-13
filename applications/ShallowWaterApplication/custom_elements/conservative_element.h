@@ -211,6 +211,14 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0) override;
 
+    void AddFrictionTerms(
+        LocalMatrixType& rMatrix,
+        LocalVectorType& rVector,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
     double StabilizationParameter(const ElementData& rData) const override;
 
     ///@}

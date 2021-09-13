@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "conservative_element.h"
 #include "shallow_water_application_variables.h"
+#include "custom_utilities/shallow_water_utilities.h"
 
 namespace Kratos
 {
@@ -242,9 +243,62 @@ void ConservativeElement<TNumNodes>::AddWaveTerms(
 }
 
 template<std::size_t TNumNodes>
+void ConservativeElement<TNumNodes>::AddFrictionTerms(
+    LocalMatrixType& rMatrix,
+    LocalVectorType& rVector,
+    const ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+    const double Weight)
+{
+    const auto u = rData.velocity;
+    const double u_1 = u[0];
+    const double u_2 = u[1];
+    const double g = rData.gravity;
+    const double s = rData.p_bottom_friction->CalculateLHS(rData.height, u);
+    const double lumping_factor = 1.0 / TNumNodes;
+    const double l = StabilizationParameter(rData);
+
+    for (IndexType i = 0; i < TNumNodes; ++i)
+    {
+        const IndexType i_block = 3 * i;
+
+        rMatrix(i_block,     i_block)     += Weight * lumping_factor * g*s;
+        rMatrix(i_block + 1, i_block + 1) += Weight * lumping_factor * g*s;
+
+        for (IndexType j = 0; j < TNumNodes; ++j)
+        {
+            const IndexType j_block = 3 * j;
+
+            /* Stabilization x
+             * l*A1*Sf
+             */
+            const double g1_ij = rDN_DX(i,0) * rN[j];
+            rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*g*s*u_1;
+            rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * g*s*u_2;
+            rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * g*s*u_2;
+            rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij * g*s;
+
+            /* Stabilization y
+             * l*A2*Sf
+             */
+            const double g2_ij = rDN_DX(i,1) * rN[j];
+            rMatrix(i_block,     j_block)     += Weight * l * g2_ij * g*s*u_2;
+            rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * g*s*u_1;
+            rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*g*s*u_2;
+            rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij * g*s;
+        }
+    }
+}
+
+template<std::size_t TNumNodes>
 double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
 {
-    return rData.length * rData.stab_factor;
+    const double lambda = std::sqrt(rData.gravity * rData.height) + norm_2(rData.velocity);
+    const double epsilon = 1e-6;
+    const double threshold = rData.relative_dry_height * rData.length;
+    const double w = ShallowWaterUtilities().WetFraction(rData.height, threshold);
+    return w * rData.length * rData.stab_factor / (lambda + epsilon);
 }
 
 

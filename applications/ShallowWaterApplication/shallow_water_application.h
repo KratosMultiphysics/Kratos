@@ -34,6 +34,7 @@
 #include "custom_elements/swe.h"
 #include "custom_elements/wave_element.h"
 #include "custom_elements/crank_nicolson_wave_element.h"
+#include "custom_elements/conservative_element.h"
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
 #include "custom_conditions/wave_condition.h"
@@ -167,6 +168,7 @@ namespace Kratos
         const WaveElement<8> mWaveElement2D8N;
         const WaveElement<9> mWaveElement2D9N;
         const CrankNicolsonWaveElement<3> mCrankNicolsonWaveElement2D3N;
+        const ConservativeElement<3> mConservativeElement2D3N;
         const ShallowWater2D3 mShallowWater2D3N;
         // Conditions
         const NothingCondition<2> mNothingCondition2D2N;
