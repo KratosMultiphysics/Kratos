@@ -127,19 +127,19 @@ class MaterialTest():
         self.total_check = 0
 
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp.Name == "TOP":
+            if smp.Name == "DEM-FEM-Wall_TOP":
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[0] = 1
-            if smp.Name == "BOT":
+            if smp.Name == "DEM-FEM-Wall_BOT":
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[1] = 1
 
         for smp in self.spheres_model_part.SubModelParts:
-            if smp.Name == "TOP":
+            if smp.Name == "DEMParts_TOP":
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[2] = -1
 
-            if smp.Name == "BOT":
+            if smp.Name == "DEMParts_BOT":
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 
@@ -213,12 +213,21 @@ class MaterialTest():
         self.CN_export = open(absolute_path_to_file, 'w')
 
     def ComputeLoadingVelocity(self):
+        
         top_vel = bot_vel = 0.0
+        
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[IDENTIFIER] == "TOP":
+            if smp.Name == "DEM-FEM-Wall_TOP":
                 top_vel = smp[LINEAR_VELOCITY_Y]
-            if smp[IDENTIFIER] == "BOT":
+            if smp.Name == "DEM-FEM-Wall_BOT":
                 bot_vel = smp[LINEAR_VELOCITY_Y]
+        
+        for smp in self.spheres_model_part.SubModelParts:
+            if smp.Name == "DEMParts_TOP":
+                top_vel = smp[LINEAR_VELOCITY_Y]
+            if smp.Name == "DEMParts_BOT":
+                bot_vel = smp[LINEAR_VELOCITY_Y]
+
         self.LoadingVelocity = top_vel - bot_vel
 
     def ComputeMeasuringSurface(self):
