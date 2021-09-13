@@ -46,6 +46,7 @@
 #include "custom_processes/compute_average_pfem_mesh_parameters_process.hpp"
 #include "custom_processes/fix_scalar_pfem_dof_process.hpp"
 #include "custom_processes/free_scalar_pfem_dof_process.hpp"
+#include "custom_processes/fix_free_velocity_on_nodes_process.h"
 #include "custom_processes/set_dummy_property_for_rigid_boundaries_process.hpp"
 
 #include "custom_processes/assign_scalar_variable_to_pfem_entities_process.hpp"
@@ -168,6 +169,13 @@ void AddCustomProcessesToPython(pybind11::module &m)
         .def("Execute", &FreeScalarPfemDofProcess::Execute)
 
         ;
+
+    //**********FIX AND FREE NODES VELOCITY PROCESS*********
+    py::class_<FixFreeVelocityOnNodesProcess, FixFreeVelocityOnNodesProcess::Pointer, Process>(m, "FixFreeVelocityOnNodesProcess")
+        .def(py::init<ModelPart &, const int>())
+        .def("Execute", &FixFreeVelocityOnNodesProcess::Execute)
+    
+        ;//*/
 
     // //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 

@@ -45,6 +45,7 @@ set( KRATOS_PFEM_FLUID_DYNAMICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_PSPG_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/assign_scalar_variable_to_pfem_entities_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/fix_free_velocity_on_nodes_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utility.cpp
 
     # Fluid constitutive laws
