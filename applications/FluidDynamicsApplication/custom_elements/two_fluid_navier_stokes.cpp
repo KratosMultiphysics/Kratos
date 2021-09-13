@@ -110,7 +110,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
 
             #pragma omp critical
             {
-            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = zero_vector;
+            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = zero_vector;
             (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = zero_vector;
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = zero_vector;
 
@@ -3615,7 +3615,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
         #pragma omp critical
         {
-        (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+        //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
         //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0 && HasContactLine){
             //if (HasContactLine){
                 (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
@@ -3750,7 +3750,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             #pragma omp critical
             {
-            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
 
             //if ((*p_geom)[i].GetValue(IS_STRUCTURE) == 1.0){
                 //if (HasContactLine){
@@ -3934,7 +3934,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             #pragma omp critical
             {
-            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
             (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector_macro;
             }
@@ -4203,7 +4203,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             #pragma omp critical
             {
-            (*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
+            //(*p_geom)[i].FastGetSolutionStepValue(NORMAL_VECTOR) = normal_avg;
             (*p_geom)[i].FastGetSolutionStepValue(TANGENT_VECTOR) = wall_tangent;
             (*p_geom)[i].FastGetSolutionStepValue(CONTACT_VECTOR) = contact_vector_macro;
             }

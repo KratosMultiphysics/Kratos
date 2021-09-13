@@ -365,7 +365,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = 50#int(4000/100000*self.main_model_part.NumberOfElements())
+                layers = 200#int(4000/100000*self.main_model_part.NumberOfElements())
                 (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
@@ -385,11 +385,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             print("Level-set")
             print(time.time())
 
-            if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
-                for injection_condition in self.injection_model_part.Conditions:
-                    for node in injection_condition.GetNodes():
-                        if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
-                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
+            #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
+            #    for injection_condition in self.injection_model_part.Conditions:
+            #        for node in injection_condition.GetNodes():
+            #            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+            #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
             # Perform the level-set convection according to the previous step velocity
             if self._bfecc_convection:

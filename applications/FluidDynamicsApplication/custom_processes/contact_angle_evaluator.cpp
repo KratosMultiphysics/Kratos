@@ -68,6 +68,7 @@ void ContactAngleEvaluator::Execute()
         auto it_elem = it_element_begin + i_elem;
 
         it_elem->SetValue(CONTACT_ANGLE, 0.0);
+        it_elem->SetValue(NORMAL_VECTOR, ZeroVector(3));
 
         auto& r_geometry = it_elem->GetGeometry();
         unsigned int n_contact_neg = 0;
@@ -132,6 +133,7 @@ void ContactAngleEvaluator::Execute()
             gradient = (1.0/gradient_norm)*gradient;
 
             it_elem->GetValue(CONTACT_ANGLE) = PI - std::acos( inner_prod(solid_normal, gradient) );
+            it_elem->GetValue(NORMAL_VECTOR) = gradient;
         }
 
     }
@@ -149,6 +151,7 @@ void ContactAngleEvaluator::Execute()
 
         double weight = 0.0;
         double avg_contact_angle = 0.0;
+        Vector normal_avg = ZeroVector(3);
 
         auto& neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -157,6 +160,7 @@ void ContactAngleEvaluator::Execute()
 
             if (elemental_contact_angle > 1.0e-12){
                 avg_contact_angle += elemental_contact_angle;
+                normal_avg += i_element->GetValue(NORMAL_VECTOR);
                 weight += 1.0;
             }
         }
@@ -164,9 +168,19 @@ void ContactAngleEvaluator::Execute()
         if (weight >= 1.0){
             const double contact_angle = avg_contact_angle/weight;
             it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = contact_angle;
+            const Vector normal = (1.0/weight) * normal_avg;
+            it_node->FastGetSolutionStepValue(NORMAL_VECTOR) = normal;
 
-            if (it_node->GetValue(IS_STRUCTURE) == 1.0 && contact_angle > theta_receding && contact_angle < theta_advancing){
-                it_node->Fix(DISTANCE);
+            const double velocity_direction = inner_prod(it_node->FastGetSolutionStepValue(VELOCITY), normal);
+
+            if (it_node->GetValue(IS_STRUCTURE) == 1.0){
+                if (velocity_direction > 0.0 && contact_angle < theta_advancing){
+                    it_node->Fix(DISTANCE);
+                } else if (velocity_direction < 0.0 && contact_angle > theta_receding){
+                    it_node->Fix(DISTANCE);
+                } else if (velocity_direction == 0.0 && contact_angle < theta_advancing && contact_angle > theta_receding){
+                    it_node->Fix(DISTANCE);
+                }
             }
 
         }
