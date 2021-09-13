@@ -4101,15 +4101,6 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             double contact_angle_micro_gp = contact_angle_macro_gp;
 
             double zeta_effective = zeta;
-            double contact_angle_equilibrium = theta_receding;
-            if (contact_angle_macro_gp > contact_angle_equilibrium){
-                if (contact_angle_macro_gp >= theta_advancing){
-                    contact_angle_equilibrium = theta_advancing;
-                } else {
-                    contact_angle_equilibrium = contact_angle_macro_gp;
-                    zeta_effective = 1.0e0*zeta;
-                }
-            }
 
             const double contact_velocity_gp = inner_prod(wall_tangent,velocity_gp);
 
@@ -4120,6 +4111,27 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             //KRATOS_INFO("two fluids NS") << "reynolds_number= " << reynolds_number << std::endl;
 
             //KRATOS_INFO("two fluids NS") << "angle difference= " << std::abs(contact_angle_macro_gp - contact_angle_equilibrium)*180/PI << std::endl;
+
+            double contact_angle_equilibrium = contact_angle_macro_gp;
+
+            if (contact_velocity_gp < 0.0 && contact_angle_macro_gp <= theta_receding){
+                contact_angle_equilibrium = theta_receding;
+            } else if (contact_velocity_gp > 0.0 && contact_angle_macro_gp >= theta_advancing){
+                contact_angle_equilibrium = theta_advancing;
+            } else {
+                contact_angle_equilibrium = contact_angle_macro_gp;
+                zeta_effective = 1.0e0*zeta;
+            }
+
+            // double contact_angle_equilibrium = theta_receding;
+            // if (contact_angle_macro_gp > contact_angle_equilibrium){
+            //     if (contact_angle_macro_gp >= theta_advancing){
+            //         contact_angle_equilibrium = theta_advancing;
+            //     } else {
+            //         contact_angle_equilibrium = contact_angle_macro_gp;
+            //         zeta_effective = 1.0e0*zeta;
+            //     }
+            // }
 
             if ( std::abs(contact_angle_macro_gp - contact_angle_equilibrium) < 6.0e-1 &&
                     capilary_number < 3.0e-1){
