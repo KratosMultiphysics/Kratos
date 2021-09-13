@@ -34,7 +34,8 @@
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
         "formulation": {
-            "dynamic_tau": 1.0
+            "dynamic_tau": 1.0,
+            "mass_source": true
         },
         "time_stepping"  : {
             "automatic_time_step" 	: false,
@@ -44,9 +45,9 @@
             "solver_type": "amgcl"
         }
     },
-    "processes"        : {      
+    "processes"        : {
         "initial_conditions_process_list"  : [],
-        "boundary_conditions_process_list" : [{   
+        "boundary_conditions_process_list" : [{
             "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",
@@ -66,7 +67,7 @@
                 "modulus"         : 0.01,
                 "direction"       : [1.0,0.0,0.0],
                 "interval"        : [0.0,"End"]
-            } 
+            }
         },{
             "python_module" : "apply_outlet_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
@@ -87,7 +88,7 @@
                 "variable_name"      : "VELOCITY",
                 "constrained"        : [false,false,true],
                 "value"              : [null,null,0.0]
-            } 
+            }
         },{
             "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
@@ -98,7 +99,7 @@
                 "constrained"        : [false,true,false],
                 "value"              : [null,0.0,null]
             }
-        },{          
+        },{
             "python_module" : "apply_noslip_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ApplyNoSlipProcess",

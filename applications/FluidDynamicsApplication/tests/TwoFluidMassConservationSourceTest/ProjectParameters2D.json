@@ -31,6 +31,10 @@
         "skin_parts"                  : ["AutomaticInlet2D_Inlet","Slip2D_Floor","Slip2D_Top","Outlet2D_Outlet","VELOCITY_Point"],
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
+        "formulation": {
+            "dynamic_tau": 1.0,
+            "mass_source": true
+        },
         "time_stepping"  : {
             "automatic_time_step" 	: false,
             "time_step"           	: 0.1
@@ -90,7 +94,7 @@
                 "variable_name"      : "VELOCITY",
                 "constrained"        : [true,false,false],
                 "value"              : [0.0,null,null]
-            }        
+            }
         }],
         "gravity"                          : [{
             "python_module" : "assign_vector_by_direction_process",

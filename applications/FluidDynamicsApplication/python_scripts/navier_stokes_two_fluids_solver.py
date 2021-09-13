@@ -69,7 +69,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "formulation": {
                 "dynamic_tau": 1.0,
                 "surface_tension": false,
-                "mass_source":true
+                "mass_source":false
             },
             "levelset_convection_settings": {
                 "max_CFL" : 1.0,
@@ -216,7 +216,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         #Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         self.initial_system_volume=KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
-    
+
         # Instantiate the level set convection process
         # Note that is is required to do this in here in order to validate the defaults and set the corresponding distance gradient flag
         # Note that the nodal gradient of the distance is required either for the eulerian BFECC limiter or by the algebraic element antidiffusivity
@@ -240,7 +240,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # System water volume is calculated for current time step considering inlet and outlet discharge.
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
-        
+
         if self._TimeBufferIsInitialized():
             # Recompute the BDF2 coefficients
             (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
@@ -272,7 +272,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level-set
             self._SetNodalProperties()
-          
+
             # Initialize the solver current step
             self._GetSolutionStrategy().InitializeSolutionStep()
 
