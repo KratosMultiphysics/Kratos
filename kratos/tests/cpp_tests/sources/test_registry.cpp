@@ -38,12 +38,14 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
     KRATOS_CHECK_STRING_EQUAL(empty_registry_data.Name(),"empty_data");
     KRATOS_CHECK_IS_FALSE(empty_registry_data.HasValue());
     KRATOS_CHECK_IS_FALSE(empty_registry_data.HasItems());
+    KRATOS_CHECK_IS_FALSE(empty_registry_data.HasItem("test"));
 
     double value = 3.14;
     RegistryItem value_registry_data("value_data", value);
     KRATOS_CHECK_STRING_EQUAL(value_registry_data.Name(),"value_data");
     KRATOS_CHECK(value_registry_data.HasValue());
     KRATOS_CHECK_IS_FALSE(value_registry_data.HasItems());
+    KRATOS_CHECK_IS_FALSE(empty_registry_data.HasItem("test"));
 }
 
 // KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
