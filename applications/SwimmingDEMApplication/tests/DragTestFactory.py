@@ -19,14 +19,11 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 # General test factory
-class TestFactoryBase(KratosUnittest.TestCase):
+class TestFactory(KratosUnittest.TestCase):
 
     def test_execution(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Run()
-
-
-class ChienTest(TestFactoryBase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -37,6 +34,4 @@ class ChienTest(TestFactoryBase):
 
             # Create Model
             model = KratosMultiphysics.Model()
-
-            import drag_tests.chien_law.chien_drag_test_analysis as analysis
-            self.test = analysis.ChienDragAnalysis(model, parameters)
+            self.test = self.analysis_stage_to_be_launched(model, parameters)
