@@ -48,11 +48,15 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(value_registry_item.HasItem("test"));
 
     RegistryItem registry_item("items");
-    registry_item.AddItem(Kratos::make_unique<RegistryItem>("sub_item"));
+    registry_item.AddItem<RegistryItem>("sub_item");
     KRATOS_CHECK_IS_FALSE(registry_item.HasValue());
     KRATOS_CHECK(registry_item.HasItems());
     KRATOS_CHECK_IS_FALSE(registry_item.HasItem("test"));
-     KRATOS_CHECK(registry_item.HasItem("sub_item"));
+    KRATOS_CHECK(registry_item.HasItem("sub_item"));
+
+    auto& sub_item = registry_item.GetItem("sub_item");
+    KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
+
    
 
 }
