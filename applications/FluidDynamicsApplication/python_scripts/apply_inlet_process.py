@@ -9,7 +9,7 @@ def Factory(settings, Model):
     return ApplyInletProcess(Model, settings["Parameters"])
 
 def GetHistoricalVariables(settings):
-    copy_settings = settings.__deepcopy__()
+    copy_settings = settings.Clone()
     copy_settings.AddMissingParameters(ApplyInletProcess.GetDefaultParameters())
     model_part_name = copy_settings["model_part_name"].GetString()
     root_model_part = model_part_name[:model_part_name.index(".")]
