@@ -29,8 +29,7 @@ class KratosProcessFactory(object):
 
     def GetMapOfRequiredHistoricalVariables( self, process_list):
         required_variables_map = defaultdict(list)
-        for i in range(0,process_list.size()):
-            item = process_list[i]
+        for item in process_list:
             if not item.Has("python_module"):
                 KM.Logger.PrintWarning("Your list of processes: ", process_list)
                 raise NameError('"python_module" must be defined in your parameters. Check all your processes')
