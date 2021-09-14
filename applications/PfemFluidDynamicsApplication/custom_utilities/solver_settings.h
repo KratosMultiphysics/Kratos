@@ -20,7 +20,7 @@
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "processes/process.h"
 
 // Application includes
@@ -62,7 +62,7 @@ namespace Kratos
         /// Pointer definition of TwoStepVPSolverSettings
         KRATOS_CLASS_POINTER_DEFINITION(TwoStepVPSolverSettings);
 
-        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> StrategyType;
+        typedef SolvingStrategy<TSparseSpace, TDenseSpace> StrategyType;
         typedef typename StrategyType::Pointer StrategyPointerType;
         typedef typename Process::Pointer ProcessPointerType;
 
