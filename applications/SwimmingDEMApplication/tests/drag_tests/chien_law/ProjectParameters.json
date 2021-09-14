@@ -7,7 +7,7 @@
         "automatic_time_step" : false,
         "time_step"           : 1e-5
     },
-    "output_interval"         : 1e-3,
+    "output_interval"         : 1e-0,
     "non_newtonian_fluid"     : {
         "non_newtonian_option"       : false,
         "power_law_k"                : 0.001002,
@@ -21,9 +21,9 @@
         "parallel_type" : "OpenMP",
         "echo_level"    : 0,
         "start_time"    : 0.0,
-        "end_time"      : 4e-4
+        "end_time"      : 0.5e-4
     },
-    "do_print_results_option" : true,
+    "do_print_results_option" : false,
     "coupling"                : {
         "coupling_level_type"    : 3,
         "coupling_weighing_type" : 2,
@@ -127,7 +127,7 @@
                         "node_output"                 : false,
                         "skin_output"                 : false,
                         "plane_output"                : [],
-                        "nodal_results"               : ["VELOCITY","PRESSURE"],
+                        "nodal_results"               : ["VELOCITY"],
                         "gauss_point_results"         : [],
                         "nodal_nonhistorical_results" : []
                     },
@@ -149,7 +149,7 @@
                 "output_sub_model_parts"                      : false,
                 "folder_name"                                 : "vtk_output",
                 "save_output_files_in_folder"                 : true,
-                "nodal_solution_step_data_variables"          : ["VELOCITY","PRESSURE"],
+                "nodal_solution_step_data_variables"          : ["VELOCITY"],
                 "nodal_data_value_variables"                  : [],
                 "element_data_value_variables"                : [],
                 "condition_data_value_variables"              : [],
@@ -193,7 +193,7 @@
         "ElementType"                    : "SphericPartDEMElement3D",
         "TranslationalIntegrationScheme" : "Symplectic_Euler",
         "RotationalIntegrationScheme"    : "Direct_Integration",
-        "MaxTimeStep"                    : 1e-4,
+        "MaxTimeStep"                    : 1e-5,
         "FinalTime"                      : 1.0,
         "NeighbourSearchFrequency"       : 1,
         "SearchTolerance"                : 0.00055,
@@ -247,12 +247,12 @@
                             },
                             "file_label"                  : "time",
                             "output_control_type"         : "time",
-                            "output_interval"             : 1e-4,
+                            "output_interval"             : 1e-0,
                             "body_output"                 : true,
                             "node_output"                 : false,
                             "skin_output"                 : false,
                             "plane_output"                : [],
-                            "nodal_results"               : ["VELOCITY","PRESSURE"],
+                            "nodal_results"               : ["VELOCITY"],
                             "gauss_point_results"         : [],
                             "nodal_nonhistorical_results" : []
                         },

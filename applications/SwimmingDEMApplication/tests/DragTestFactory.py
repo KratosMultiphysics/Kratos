@@ -5,8 +5,6 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import drag_tests.drag_test_analysis as drag_test_analysis
-DragTestAnalysis = drag_test_analysis.DragTestAnalysis
 
 # This utility will control the execution scope
 class controlledExecutionScope:
@@ -21,7 +19,14 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 # General test factory
-class TestFactory(KratosUnittest.TestCase):
+class TestFactoryBase(KratosUnittest.TestCase):
+
+    def test_execution(self):
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.test.Run()
+
+
+class ChienTest(TestFactoryBase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -33,11 +38,5 @@ class TestFactory(KratosUnittest.TestCase):
             # Create Model
             model = KratosMultiphysics.Model()
 
-            self.test = DragTestAnalysis(model, parameters)
-
-    def test_execution(self):
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Run()
-
-    def tearDown(self):
-        pass
+            import drag_tests.chien_law.chien_drag_test_analysis as analysis
+            self.test = analysis.ChienDragAnalysis(model, parameters)

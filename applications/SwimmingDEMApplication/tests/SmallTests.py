@@ -95,7 +95,7 @@ class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
      file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
      file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
 
-class chien_drag_test(DragTF.TestFactory):
+class chien_drag_test(DragTF.ChienTest):
      file_name = "drag_tests/chien_law/chien_drag_test"
      file_parameters = "drag_tests/chien_law/ProjectParameters.json"
 
@@ -106,7 +106,7 @@ if candelier_imports_available:
      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
-available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
+available_tests += DragTF.ChienTest.__subclasses__()
 
 def SetTestSuite(suites):
     small_suite = suites['small']
