@@ -97,7 +97,14 @@ public:
     ///@name Items
     ///@{
 
-    RegistryItem& AddItem(Kratos::unique_ptr<RegistryItem>&& pNewItem);
+    template< typename TItemType, class... TArgumentsList >
+    RegistryItem& AddItem(std::string const& ItemName, TArgumentsList&&... Arguments){
+        KRATOS_ERROR_IF(this->HasItem(ItemName)) << "The RegistryItem " << this->Name() << " already has an item with name " << ItemName << std::endl;
+        auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
+        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting " << ItemName << " in registry item with name " << this->Name() << std::endl;
+        return *insert_result.first->second;
+    }
+
 
 
     ///@}
