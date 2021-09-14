@@ -510,6 +510,7 @@ message("\t Minor update of import mechanism for applications: https://github.co
 message("\t Update of Element, Condition and Scheme Interface: https://github.com/KratosMultiphysics/Kratos/issues/7381")
 message("\t VariableComponent and VectorComponentAdaptor are no longer used: https://github.com/KratosMultiphysics/Kratos/pull/6686")
 message("\t Make Check() method of ConstitutiveLaw const: https://github.com/KratosMultiphysics/Kratos/pull/7948")
+message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
 
 # Compiling the triangle library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/triangle)
