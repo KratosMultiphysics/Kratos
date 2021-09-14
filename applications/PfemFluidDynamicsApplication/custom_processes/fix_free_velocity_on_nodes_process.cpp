@@ -29,7 +29,7 @@ FixFreeVelocityOnNodesProcess::FixFreeVelocityOnNodesProcess(
 
 void FixFreeVelocityOnNodesProcess::Execute() 
 {
-    auto &r_process_info = mrModelPart.GetProcessInfo();
+    //auto &r_process_info = mrModelPart.GetProcessInfo();
     const auto& it_node_begin = mrModelPart.NodesBegin();
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); i++) {
