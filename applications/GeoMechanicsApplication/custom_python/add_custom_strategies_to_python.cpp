@@ -27,11 +27,14 @@
 
 //schemes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_quasistatic_U_Pa_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_damped_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_dynamic_U_Pw_scheme.hpp"
+#include "custom_strategies/schemes/newmark_dynamic_U_Pa_Pw_scheme.hpp"
 #include "custom_strategies/schemes/newmark_quasistatic_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_U_Pw_scheme.hpp"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "custom_strategies/schemes/state_based_theta_quasistatic_U_Pa_Pw_scheme.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -57,11 +60,14 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType >                ConvergenceCriteriaType;
 
     typedef NewmarkQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >        NewmarkQuasistaticUPwSchemeType;
+    typedef NewmarkQuasistaticUPaPwScheme< SparseSpaceType, LocalSpaceType >      NewmarkQuasistaticUPaPwSchemeType;
     typedef NewmarkQuasistaticDampedUPwScheme< SparseSpaceType, LocalSpaceType >  NewmarkQuasistaticDampedUPwSchemeType;
     typedef NewmarkDynamicUPwScheme< SparseSpaceType, LocalSpaceType >            NewmarkDynamicUPwSchemeType;
+    typedef NewmarkDynamicUPaPwScheme< SparseSpaceType, LocalSpaceType >          NewmarkDynamicUPaPwSchemeType;
     typedef NewmarkQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >         NewmarkQuasistaticPwSchemeType;
     typedef BackwardEulerQuasistaticUPwScheme< SparseSpaceType, LocalSpaceType >  BackwardEulerQuasistaticUPwSchemeType;
     typedef BackwardEulerQuasistaticPwScheme< SparseSpaceType, LocalSpaceType >   BackwardEulerQuasistaticPwSchemeType;
+    typedef StateBasedThetaQuasistaticUPaPwScheme< SparseSpaceType, LocalSpaceType >   StateBasedThetaQuasistaticUPaPwSchemeType;
 
     typedef GeoMechanicsNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsNewtonRaphsonStrategyType;
     typedef GeoMechanicsRammArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > GeoMechanicsRammArcLengthStrategyType;
@@ -72,12 +78,20 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     (m, "NewmarkQuasistaticUPwScheme")
     .def(init<  double, double, double >());
 
+    class_< NewmarkQuasistaticUPaPwSchemeType, typename NewmarkQuasistaticUPaPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkQuasistaticUPaPwSchemeType")
+    .def(init<  double, double, double >());
+
     class_< NewmarkQuasistaticDampedUPwSchemeType, typename NewmarkQuasistaticDampedUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkQuasistaticDampedUPwScheme")
     .def(init<  double, double, double >());
 
     class_< NewmarkDynamicUPwSchemeType,typename NewmarkDynamicUPwSchemeType::Pointer, BaseSchemeType >
     (m, "NewmarkDynamicUPwScheme")
+    .def(init<  double, double, double >());
+
+    class_< NewmarkDynamicUPaPwSchemeType,typename NewmarkDynamicUPaPwSchemeType::Pointer, BaseSchemeType >
+    (m, "NewmarkDynamicUPaPwScheme")
     .def(init<  double, double, double >());
 
     class_< NewmarkQuasistaticPwSchemeType, typename NewmarkQuasistaticPwSchemeType::Pointer, BaseSchemeType >
@@ -102,6 +116,11 @@ void AddCustomStrategiesToPython(pybind11::module& m)
     .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer,
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
+
+    class_< StateBasedThetaQuasistaticUPaPwSchemeType, typename StateBasedThetaQuasistaticUPaPwSchemeType::Pointer, BaseSchemeType >
+    (m, "StateBasedThetaQuasistaticUPaPwScheme")
+    .def(init<>())
+    .def(init<double>());
 
 }
 

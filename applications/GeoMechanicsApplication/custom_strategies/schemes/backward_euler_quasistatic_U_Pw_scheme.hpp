@@ -34,7 +34,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticUPwScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>          BaseType;
+    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>          BaseType;
     typedef typename BaseType::DofsArrayType          DofsArrayType;
     typedef typename BaseType::TSystemMatrixType      TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType      TSystemVectorType;
@@ -51,9 +51,9 @@ public:
     BackwardEulerQuasistaticUPwScheme() :
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>()
     {
-        mBeta = 1.0;
-        mGamma = 1.0;
-        mTheta = 1.0;
+        BaseType::mBeta = 1.0;
+        BaseType::mGamma = 1.0;
+        BaseType::mTheta = 1.0;
     }
 
     //------------------------------------------------------------------------------------
