@@ -400,7 +400,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
                         GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[d] * (rData.DN_DX(j,f) * rData.DN_DX(i,e) * fluid_fraction_gradient[f]);
                         GBetaG += tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * rData.DN_DX(i,f) * (rData.DN_DX(j,d) * fluid_fraction_gradient[e]);
                         GBetaD += 2.0 * (2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e));
-                        // GBetaD += 2.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * (fluid_fraction_gradient[f] * rData.DN_DX(i,f)) * fluid_fraction_gradient[d] * rData.DN_DX(j,e);
                         DBetaG += 4.0 / 3.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * rData.DN_DX(i,d) * fluid_fraction_gradient[f] * rData.DN_DX(j,f) * fluid_fraction_gradient[e];
                         DBetaD += 4.0 / 9.0 * tau_one(d,d) * std::pow(kin_viscosity, 2) * fluid_fraction_gradient[f] * fluid_fraction_gradient[f] * rData.DN_DX(i,d) * rData.DN_DX(j,e);
                         DBetaSigma += 2.0 / 3.0 * tau_one(d,d) * kin_viscosity * rData.DN_DX(i,d) * rData.N[j] * fluid_fraction_gradient[f] * sigma(f,e);
@@ -653,7 +652,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     double velocity_norm = std::sqrt(velocity_modulus);
     double fluid_fraction_gradient_norm = std::sqrt(fluid_fraction_gradient_modulus);
     double c_alpha = fluid_fraction + h / c1 * fluid_fraction_gradient_norm;
-    inv_tau = (c1 * viscosity / (h * h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha + density * fluid_fraction / rData.DeltaTime;
+    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha + density * fluid_fraction / rData.DeltaTime;
     inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
     double tau_one = 1 / inv_tau;
     double tau_one_NS = 1 / inv_tau_NS;
