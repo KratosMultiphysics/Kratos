@@ -20,9 +20,34 @@ namespace Kratos
 void SplitInternalInterfacesProcess::ExecuteInitialize()
 {
     KRATOS_TRY
-    std::set< std::size_t> property_ids;
+
+    // Find the conditions being affected by the connectivities update
+    // To do this we save the parent element of each condition in an auxiliary map
+    // Note that we assume that each condition has a unique parent (i.e. there are no interior conditions)
+    std::unordered_map<IndexType, IndexType> conditions_parent_map;
+    for (auto& r_condition : mrModelPart.Conditions()) {
+        auto& r_geom_cond = r_condition.GetGeometry();
+        const SizeType n_nodes_cond = r_geom_cond.PointsNumber();
+        for (auto& r_element : mrModelPart.Elements()) {
+            const auto& r_geom_elem = r_element.GetGeometry();
+            const SizeType n_nodes_elem = r_geom_elem.PointsNumber();
+            SizeType n_coind = 0;
+            for (IndexType i_node = 0; i_node < n_nodes_cond; ++i_node) {
+                for (IndexType j_node = 0; j_node < n_nodes_elem; ++j_node) {
+                    if (r_geom_cond[i_node].Id() == r_geom_elem[j_node].Id()) {
+                        ++n_coind;
+                    }
+                }
+            }
+            if (n_coind == n_nodes_cond) {
+                conditions_parent_map.insert(std::make_pair(r_element.Id(),r_condition.Id()));
+                break;
+            }
+        }
+    }
 
     std::size_t max_prop_id = 0;
+    std::set< std::size_t> property_ids;
     for(auto& rElem : mrModelPart.Elements()) {
         std::size_t elem_prop_id = rElem.GetProperties().Id();
         property_ids.insert(elem_prop_id);
@@ -37,7 +62,7 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
         for (auto it=property_ids.begin(); it!=(--property_ids.end()); ++it) {
             std::size_t id = *it;
             KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids ..."<< std::endl;
-            SplitBoundary(id, ++max_prop_id, mrModelPart);
+            SplitBoundary(id, ++max_prop_id, conditions_parent_map, mrModelPart);
             KRATOS_INFO("") << "Splitting the interface between the domain identified with property Id "  << id <<" and properties with bigger Ids finished!"<< std::endl;
         }
     }
@@ -47,6 +72,7 @@ void SplitInternalInterfacesProcess::ExecuteInitialize()
 void SplitInternalInterfacesProcess::SplitBoundary(
     const std::size_t PropertyIdBeingProcessed,
     const std::size_t InterfaceConditionsPropertyId,
+    const std::unordered_map<IndexType, IndexType>& rConditionsParentMap,
     ModelPart& rModelPart)
 {
     KRATOS_TRY
@@ -130,6 +156,35 @@ void SplitInternalInterfacesProcess::SplitBoundary(
 
         (*mpInterfacesSubModelPart).CreateNewCondition(mConditionName, max_cond_id++, interface_condition_ids, p_interface_prop);
     }
+
+    // Loop the remaining elements and conditions to update their connectivity
+    // Note that in here we change the connectivity of those elements and conditions that do not have a neighbouring face
+    for (auto& r_element : mrModelPart.Elements()) {
+        if (r_element.GetProperties().Id() != PropertyIdBeingProcessed) {
+            auto& r_geom = r_element.GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (SizeType i_node = 0; i_node < n_nodes; ++i_node) {
+                auto it = new_nodes_map.find(r_geom[i_node].Id());
+                if (it != new_nodes_map.end()) {
+                    r_geom(i_node) = it->second;
+                }
+            }
+
+            // If the current element has a child condition, update the condition node as well
+            auto it_conds = rConditionsParentMap.find(r_element.Id());
+            if (it_conds != rConditionsParentMap.end()) {
+                auto& r_cond_geom = mrModelPart.GetCondition(it_conds->second).GetGeometry();
+                SizeType n_nodes_cond = r_cond_geom.PointsNumber();
+                for (SizeType i_cond_node = 0; i_cond_node < n_nodes_cond; ++i_cond_node) {
+                    auto it_new_nodes = new_nodes_map.find(r_geom[i_cond_node].Id());
+                    if (it_new_nodes != new_nodes_map.end()) {
+                        r_cond_geom(i_cond_node) = it_new_nodes->second;
+                    }
+                }
+            }
+        }
+    }
+
     KRATOS_CATCH("");
 }
 

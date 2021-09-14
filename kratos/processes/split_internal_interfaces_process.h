@@ -182,6 +182,7 @@ protected:
     void SplitBoundary(
         const std::size_t PropertyIdBeingProcessed,
         const std::size_t InterfaceConditionsPropertyId,
+        const std::unordered_map<IndexType,IndexType>& rConditionsParentMap,
         ModelPart& rModelPart);
 
     ///@}
