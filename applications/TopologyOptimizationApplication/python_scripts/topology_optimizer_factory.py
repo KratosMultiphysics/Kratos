@@ -478,11 +478,7 @@ class SIMPMethod:
                     print("\n  Optimization problem converged within a relative objective tolerance of",self.config.relative_tolerance)
                     self.io_utils.SaveOptimizationResults(self.config.restart_input_file, self.opt_model_part, restart_filename)
                     break
-            
-            # Displacement showing
 
-            for node_i in self.opt_model_part.Nodes:
-                print("\n  Maximal iterations of optimization problem reached!", node_i.GetValue(DISPLACEMENT))
 
 
             # Set X_PHYS_OLD, DCDX_OLD and DCDX_OLD_2  to update the value for the next simulation's "change percentage"
