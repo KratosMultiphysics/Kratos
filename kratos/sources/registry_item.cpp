@@ -44,5 +44,11 @@ namespace Kratos
         return *(iterator->second);
     }
 
+    void RegistryItem::RemoveItem(std::string const& ItemName) {
+        auto iterator = mSubRegistryItem.find(ItemName);
+        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << ItemName << std::endl;
+        mSubRegistryItem.erase(iterator);
+    }
+
 
 } // namespace Kratos.

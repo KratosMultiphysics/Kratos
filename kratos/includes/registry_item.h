@@ -119,6 +119,8 @@ public:
 
     RegistryItem& GetItem(std::string const& ItemName);
 
+    void RemoveItem(std::string const& ItemName);
+
     ///@}
     ///@name Inquiry
     ///@{
