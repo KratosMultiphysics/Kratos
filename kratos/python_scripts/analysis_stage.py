@@ -355,12 +355,12 @@ class AnalysisStage(object):
         It can be overridden in derived classes
         """
         map_additional_vars = defaultdict(set)
-        self.__GetLMapOfAdditionalVariablesFromProcesses("processes", map_additional_vars)
-        self.__GetLMapOfAdditionalVariablesFromProcesses("output_processes", map_additional_vars)
+        self._GetLMapOfAdditionalVariablesFromProcesses("processes", map_additional_vars)
+        self._GetLMapOfAdditionalVariablesFromProcesses("output_processes", map_additional_vars)
 
         return map_additional_vars
 
-    def __GetLMapOfAdditionalVariablesFromProcesses(self, parameter_name, map_additional_vars):
+    def _GetLMapOfAdditionalVariablesFromProcesses(self, parameter_name, map_additional_vars):
         """This function extracts the required historical variables needed by the processes
         """
         factory = KratosProcessFactory(self.model)
