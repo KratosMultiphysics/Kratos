@@ -13,7 +13,7 @@ def GetHistoricalVariables(settings):
     copy_settings.AddMissingParameters(ApplyInletProcess.GetDefaultParameters())
     root_model_part_name = copy_settings["model_part_name"].GetString().split(".")[0]
 
-    applied_var = KratosMultiphysics.KratosGlobals.GetVariable(copy_settings["variable_name"].GetString())
+    applied_var =copy_settings["variable_name"].GetString()
     vars_dict = {root_model_part : {applied_var}}
     return vars_dict
 
