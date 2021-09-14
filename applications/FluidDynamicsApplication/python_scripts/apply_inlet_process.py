@@ -12,7 +12,11 @@ def GetHistoricalVariables(settings):
     copy_settings = settings.__deepcopy__()
     copy_settings.AddMissingParameters(ApplyInletProcess.GetDefaultParameters())
     model_part_name = copy_settings["model_part_name"].GetString()
-    root_model_part = model_part_name[:model_part_name.index(".")]
+    if "." in model_part_name:
+        root_model_part = model_part_name[:model_part_name.index(".")]
+    else:
+        root_model_part = model_part_name
+
     applied_var = KratosMultiphysics.KratosGlobals.GetVariable(copy_settings["variable_name"].GetString())
     vars_dict = {root_model_part : [applied_var]}
     return vars_dict
