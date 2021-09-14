@@ -5,8 +5,7 @@
 //                   Multi-Physics FemDem Application
 //
 //  License:         BSD License
-//                     Kratos default license:
-//kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo Velazquez
 //

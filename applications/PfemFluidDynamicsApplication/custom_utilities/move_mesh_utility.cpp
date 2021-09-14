@@ -8,7 +8,8 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klauss B Sautter
-//                   Carlos E Flores
+//                   Alejandro Cornejo Velazquez
+//                   Carlos Eulogio Flores
 //
 // System includes
 
