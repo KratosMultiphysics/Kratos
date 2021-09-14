@@ -1,7 +1,3 @@
-import os
-import sys
-from unittest.case import skipIf
-
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest

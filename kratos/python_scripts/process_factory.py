@@ -20,7 +20,7 @@ class KratosProcessFactory(object):
 
             # python-script that contains the process
             python_module_name = self._GetFullModuleNameName(item)
-            
+
             python_module = import_module(python_module_name)
             p = python_module.Factory(item, self.Model)
             constructed_processes.append( p )
