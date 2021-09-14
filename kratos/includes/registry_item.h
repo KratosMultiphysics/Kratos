@@ -115,17 +115,10 @@ public:
             return mName;
         }
 
-    RegistryItem const& RegistryItem::GetItem(std::string const& ItemName) const {
-        auto iterator = mSubRegistryItem.find(ItemName);
-        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << ItemName << std::endl;
-        return *(iterator->second);
-    }
+    RegistryItem const& GetItem(std::string const& ItemName) const;
 
-    RegistryItem& RegistryItem::GetItem(std::string const& ItemName) {
-        auto iterator = mSubRegistryItem.find(ItemName);
-        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << ItemName << std::endl;
-        return *(iterator->second);
-    }
+    RegistryItem& GetItem(std::string const& ItemName);
+
     ///@}
     ///@name Inquiry
     ///@{
