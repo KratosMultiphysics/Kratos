@@ -28,7 +28,7 @@ class KratosProcessFactory(object):
         return constructed_processes
 
     def GetMapOfRequiredHistoricalVariables( self, process_list):
-        required_variables_map = defaultdict(list)
+        required_variables_map = defaultdict(set)
         for i in range(0,process_list.size()):
             item = process_list[i]
             if not item.Has("python_module"):
@@ -42,7 +42,7 @@ class KratosProcessFactory(object):
             if hasattr(python_module, "GetHistoricalVariables"):
                 new_dict = python_module.GetHistoricalVariables(item["Parameters"])
                 for mp in new_dict:
-                    required_variables_map[mp].extend(new_dict[mp])
+                    required_variables_map[mp].update(new_dict[mp])
 
         return required_variables_map
 

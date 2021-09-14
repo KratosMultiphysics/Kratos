@@ -35,15 +35,22 @@ class TestAnalysisStage(KratosUnittest.TestCase):
                         "Parameters" :{
                             "model_part_name" : "ModelPart.inlet"
                         }
+                    },
+                    {
+                        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+                        "python_module" : "apply_inlet_process",
+                        "Parameters" :{
+                            "model_part_name" : "ModelPart"
+                        }
                     }
                 ]
             }
         }""")
         stage = DummyAnalysis(model, settings)
         obtained_map = stage._GetMapOfAdditionalHistoricalVariables()
-        expected_map = {"ModelPart": [KratosMultiphysics.VELOCITY]}
+        expected_map = {"ModelPart": {KratosMultiphysics.VELOCITY}}
         self.assertEqual(obtained_map, expected_map)
-        wrong_map = {"ModelPart": [KratosMultiphysics.VELOCITY, KratosMultiphysics.DISTANCE]}
+        wrong_map = {"ModelPart": {KratosMultiphysics.VELOCITY, KratosMultiphysics.DISTANCE}}
         self.assertNotEqual(obtained_map, wrong_map)
 
 if __name__ == '__main__':

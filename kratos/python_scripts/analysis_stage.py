@@ -354,7 +354,7 @@ class AnalysisStage(object):
         needed in the simulation
         It can be overridden in derived classes
         """
-        map_additional_vars = defaultdict(list)
+        map_additional_vars = defaultdict(set)
         self.__GetLMapOfAdditionalVariablesFromProcesses("processes", map_additional_vars)
         self.__GetLMapOfAdditionalVariablesFromProcesses("output_processes", map_additional_vars)
 
@@ -371,7 +371,7 @@ class AnalysisStage(object):
             for value in processes_params.values():
                 process_variables_dict = factory.GetMapOfRequiredHistoricalVariables(value)
                 for mp in process_variables_dict:
-                    map_additional_vars[mp].extend(process_variables_dict[mp])
+                    map_additional_vars[mp].update(process_variables_dict[mp])
 
     def __CheckIfSolveSolutionStepReturnsAValue(self, is_converged):
         """In case the solver does not return the state of convergence

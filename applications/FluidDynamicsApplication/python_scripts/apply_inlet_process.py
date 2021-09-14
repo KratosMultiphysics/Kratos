@@ -18,7 +18,7 @@ def GetHistoricalVariables(settings):
         root_model_part = model_part_name
 
     applied_var = KratosMultiphysics.KratosGlobals.GetVariable(copy_settings["variable_name"].GetString())
-    vars_dict = {root_model_part : [applied_var]}
+    vars_dict = {root_model_part : {applied_var}}
     return vars_dict
 
 class ApplyInletProcess(KratosMultiphysics.Process):
