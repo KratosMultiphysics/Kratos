@@ -99,33 +99,63 @@ public:
 
     /****************************CORE COMPUTATION********************************************************/
 
-    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const final;
 
-    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const override;
+    Element::Pointer Create( IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties ) const final;
 
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) final;
+
+    void ResetConstitutiveLaw() final;
+
+    void InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo ) final;
+
+    void InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo ) final;
+
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo ) final;
 
     void EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const final;
 
     void GetDofList( DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo ) const final;
 
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) final;
-
-    void CalculateDampingMatrix(MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo) final;
+    void FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo ) final;
 
     void FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo ) final;
 
+    void CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void CalculateDampingMatrix( MatrixType& rDampMatrix, const ProcessInfo& rCurrentProcessInfo ) final;
+
     int Check( const ProcessInfo& rCurrentProcessInfo ) const final;
+
+    /**************************ACCESS INTERNAL DATA******************************************************/
+
+    void SetValuesOnIntegrationPoints( const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void SetValuesOnIntegrationPoints( const Variable<int>& rVariable, const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable, const std::vector<ConstitutiveLaw::Pointer>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
 
     /**************************POST PROCESSING**********************************************************/
 
     void GetValuesVector( Vector& values, int Step ) const final;
 
-    void CalculateOnIntegrationPoints( const Variable<double>& rVariable,
-            std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+    void GetFirstDerivativesVector( Vector& values, int Step ) const final;
 
-    void CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable,
-            std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+    void GetSecondDerivativesVector( Vector& values, int Step ) const final;
+
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void CalculateOnIntegrationPoints( const Variable<array_1d<double, 3> >& rVariable, std::vector<array_1d<double, 3> >& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
+
+    void CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo ) final;
 
     ///@}
     ///@name Access

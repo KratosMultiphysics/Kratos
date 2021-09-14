@@ -29,12 +29,14 @@ UPaPwSmallStrainElement::UPaPwSmallStrainElement( IndexType NewId,
         GeometryType::Pointer pGeometry )
     : BaseType( NewId, pGeometry )
 {
+    this->InitializeSubGeometry();
 }
 
 UPaPwSmallStrainElement::UPaPwSmallStrainElement( IndexType NewId,
         GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : BaseType( NewId, pGeometry, pProperties )
 {
+    this->InitializeSubGeometry();
 }
 
 //************************************************************************************
@@ -56,6 +58,102 @@ Element::Pointer UPaPwSmallStrainElement::Create( IndexType NewId, GeometryType:
 
 UPaPwSmallStrainElement::~UPaPwSmallStrainElement()
 {
+}
+
+//************************************************************************************
+//************************************************************************************
+void UPaPwSmallStrainElement::InitializeSubGeometry()
+{
+    // #ifdef ENABLE_BEZIER_GEOMETRY
+    // // account for Bezier geometry
+    // if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Bezier2D
+    //   || GetGeometry().GetGeometryType() == GeometryData::Kratos_Bezier3D )
+    // {
+    //     mpSubGeometry = this->pGetGeometry();
+    //     mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    //     mIsStabilized = false;
+    //     return;
+    // }
+    // #endif
+
+    if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D27 )
+    {
+        mpSubGeometry = GeometryType::Pointer( new Hexahedra3D8 <Node<3> >(
+                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
+                                 GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mIsStabilized = false;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D20 ) //remarks: this element does not work correctly with the 20 nodes discretisation. See the cube consolidation test
+    {
+        mpSubGeometry = GeometryType::Pointer( new Hexahedra3D8 <Node<3> >(
+                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
+                                 GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mIsStabilized = false;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D10 )
+    {
+        mpSubGeometry = GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = false;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D15 )
+    {
+        mpSubGeometry = GeometryType::Pointer( new Prism3D6 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = false;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D9
+           || GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D8 )
+    {
+        mpSubGeometry = GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >(
+                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
+        mIsStabilized = false;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D6 )
+    {
+        mpSubGeometry = GeometryType::Pointer( new Triangle2D3 <Node<3> >(
+                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ) ) );
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = false;
+    }
+    /**** low order element, stabilisation activated ****/
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D8 )
+    {
+        mpSubGeometry = this->pGetGeometry();
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
+        mIsStabilized = true;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4 )
+    {
+        mpSubGeometry = this->pGetGeometry();
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = true;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4 )
+    {
+        mpSubGeometry = this->pGetGeometry();
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = true;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D3 )
+    {
+        mpSubGeometry = this->pGetGeometry();
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+        mIsStabilized = true;
+    }
+    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D6 )
+    {
+        mpSubGeometry = this->pGetGeometry();
+        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+        mIsStabilized = true;
+    }
+    else
+    {
+        KRATOS_THROW_ERROR( std::logic_error, "This element matches only with a quadratic hexahedra (8, 20 or 27), tetrahedra (4, 10) or prism (15) geometry" , *this );
+    }
 }
 
 //************************************************************************************
@@ -184,97 +282,163 @@ void UPaPwSmallStrainElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH( "" )
 }
 
-void UPaPwSmallStrainElement::InitializeSubGeometry()
+void UPaPwSmallStrainElement::ResetConstitutiveLaw()
 {
-    // #ifdef ENABLE_BEZIER_GEOMETRY
-    // // account for Bezier geometry
-    // if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Bezier2D
-    //   || GetGeometry().GetGeometryType() == GeometryData::Kratos_Bezier3D )
-    // {
-    //     mpSubGeometry = this->pGetGeometry();
-    //     mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    //     mIsStabilized = false;
-    //     return;
-    // }
-    // #endif
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
 
-    if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D27 )
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
     {
-        mpSubGeometry = GeometryType::Pointer( new Hexahedra3D8 <Node<3> >(
-                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
-                                 GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-        mIsStabilized = false;
+        Vector dummy;
+        // dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), PointNumber );
+        mConstitutiveLawVector[PointNumber]->ResetMaterial( GetProperties(), GetGeometry(),  dummy);
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D20 ) //remarks: this element does not work correctly with the 20 nodes discretisation. See the cube consolidation test
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
+}
+
+void UPaPwSmallStrainElement::InitializeSolutionStep( const ProcessInfo& CurrentProcessInfo )
+{
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
+
+    for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
     {
-        mpSubGeometry = GeometryType::Pointer( new Hexahedra3D8 <Node<3> >(
-                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ),
-                                 GetGeometry()( 4 ), GetGeometry()( 5 ), GetGeometry()( 6 ), GetGeometry()( 7 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-        mIsStabilized = false;
+        Vector dummy;
+        // dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), PointNumber );
+        mConstitutiveLawVector[Point]->InitializeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D10 )
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
+}
+
+void UPaPwSmallStrainElement::InitializeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
+{
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
+
+    for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
     {
-        mpSubGeometry = GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = false;
+        Vector dummy;
+        // dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), PointNumber );
+        mConstitutiveLawVector[Point]->InitializeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D15 )
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
+}
+
+void UPaPwSmallStrainElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
+{
+    //calculation flags
+    bool CalculateStiffnessMatrixFlag = true;
+    bool CalculateResidualVectorFlag = true;
+
+    CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                  CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+}
+
+void UPaPwSmallStrainElement::CalculateRightHandSide( VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo )
+{
+    //calculation flags
+    bool CalculateStiffnessMatrixFlag = false;
+    bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+
+    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag );
+}
+
+void UPaPwSmallStrainElement::FinalizeNonLinearIteration( const ProcessInfo& CurrentProcessInfo )
+{
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
+
+    for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
     {
-        mpSubGeometry = GeometryType::Pointer( new Prism3D6 <Node<3> >( GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ), GetGeometry()( 4 ), GetGeometry()( 5 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = false;
+        Vector dummy;
+        // dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), PointNumber );
+        mConstitutiveLawVector[Point]->FinalizeNonLinearIteration( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D9
-           || GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D8 )
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
+}
+
+void UPaPwSmallStrainElement::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
+{
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
+
+    for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
     {
-        mpSubGeometry = GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >(
-                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ), GetGeometry()( 3 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_3;
-        mIsStabilized = false;
+        Vector dummy;
+        // dummy = row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), PointNumber );
+        mConstitutiveLawVector[Point]->FinalizeSolutionStep( GetProperties(), GetGeometry(), dummy, CurrentProcessInfo );
     }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D6 )
+
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
+
+    const double TOL = 1.0e-10;
+
+    // check the porosity
+    std::vector<double> porosities;
+    this->CalculateOnIntegrationPoints(POROSITY, porosities, CurrentProcessInfo);
+    for(unsigned int Point = 0; Point < porosities.size(); ++Point)
     {
-        mpSubGeometry = GeometryType::Pointer( new Triangle2D3 <Node<3> >(
-                                 GetGeometry()( 0 ), GetGeometry()( 1 ), GetGeometry()( 2 ) ) );
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = false;
+        if(porosities[Point] < -TOL || porosities[Point] > 1.0+TOL)
+        {
+            std::cout << "porosities at element " << Id() << ":" << std::endl;
+            for (std::size_t i = 0; i < porosities.size(); ++i)
+                std::cout << " " << porosities[i] << std::endl;
+            std::cout << std::endl;
+
+            std::cout << "displacement at element " << Id() << ":" << std::endl;
+            for (std::size_t i = 0; i < GetGeometry().size(); ++i)
+                std::cout << " " << GetGeometry()[i].GetSolutionStepValue(DISPLACEMENT) << std::endl;
+            std::cout << std::endl;
+
+            std::stringstream ss;
+            ss << "The porosity is not in range [0.0, 1.0] at element " << Id() << ", point " << Point
+               << ". It is " << porosities[Point];
+
+            if (GetValue(USE_DISTRIBUTED_PROPERTIES) == false)
+                ss << ". FIX_POROSITY = " << GetProperties()[FIX_POROSITY];
+            else
+                ss << ". FIX_POROSITY = " << GetValue(FIX_POROSITY);
+
+            ss << ". Properties Id = " << GetProperties().Id() << "." << std::endl;
+            ss << GetProperties();
+            KRATOS_THROW_ERROR(std::logic_error, ss.str(), __FUNCTION__)
+        }
     }
-    /**** low order element, stabilisation activated ****/
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Hexahedra3D8 )
+
+    // check the saturation
+    std::vector<double> saturations;
+    this->CalculateOnIntegrationPoints(SATURATION, saturations, CurrentProcessInfo);
+    for(unsigned int Point = 0; Point < saturations.size(); ++Point)
     {
-        mpSubGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2; //remarks: GI_GAUSS_2 gives better result than GI_GAUSS_3 for tunnel problem
-        mIsStabilized = true;
-    }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Tetrahedra3D4 )
-    {
-        mpSubGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = true;
-    }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Quadrilateral2D4 )
-    {
-        mpSubGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = true;
-    }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Triangle2D3 )
-    {
-        mpSubGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-        mIsStabilized = true;
-    }
-    else if ( GetGeometry().GetGeometryType() == GeometryData::Kratos_Prism3D6 )
-    {
-        mpSubGeometry = this->pGetGeometry();
-        mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-        mIsStabilized = true;
-    }
-    else
-    {
-        KRATOS_THROW_ERROR( std::logic_error, "This element matches only with a quadratic hexahedra (8, 20 or 27), tetrahedra (4, 10) or prism (15) geometry" , *this );
+        if(saturations[Point] < -TOL || saturations[Point] > 1.0+TOL)
+        {
+            std::stringstream ss;
+            ss << "The saturation is not in range [0.0, 1.0] at element " << Id()
+               << ", point " << Point << ". It is " << saturations[Point];
+            KRATOS_THROW_ERROR(std::logic_error, ss.str(), __FUNCTION__)
+        }
     }
 }
 
@@ -292,45 +456,24 @@ void UPaPwSmallStrainElement::InitializeMaterial(const ProcessInfo& rCurrentProc
         mRetentionLawVector[i] = RetentionLawFactory::Clone(GetProperties());
     }
 
-    // int need_shape_function = 0, tmp;
-    // for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); ++Point )
-    // {
-    //     mConstitutiveLawVector[Point]->SetValue( PARENT_ELEMENT_ID, this->Id(), rCurrentProcessInfo);
-    //     mConstitutiveLawVector[Point]->SetValue( INTEGRATION_POINT_INDEX, Point, rCurrentProcessInfo);
-    //     tmp = mConstitutiveLawVector[Point]->GetValue(IS_SHAPE_FUNCTION_REQUIRED, tmp);
-    //     need_shape_function += tmp;
-    // }
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Initialize(mThisIntegrationMethod);
+    #endif
 
-    // if (need_shape_function)
-    // {
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        GetGeometry().Initialize(mThisIntegrationMethod);
-        mpSubGeometry->Initialize(mThisIntegrationMethod);
-        #endif
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+    {
+        mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo);
+    }
 
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-        {
-            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-            mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo);
-        }
+    for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i )
+    {
+        mRetentionLawVector[i]-> InitializeMaterial(  GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+    }
 
-        for ( unsigned int i = 0; i < mRetentionLawVector.size(); ++i )
-        {
-            mRetentionLawVector[i]-> InitializeMaterial(  GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
-        }
-
-        #ifdef ENABLE_BEZIER_GEOMETRY
-        GetGeometry().Clean();
-        mpSubGeometry->Clean();
-        #endif
-    // }
-    // else
-    // {
-    //     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    //     {
-    //         mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), Vector(1) );
-    //     }
-    // }
+    #ifdef ENABLE_BEZIER_GEOMETRY
+    GetGeometry().Clean();
+    #endif
 
     KRATOS_CATCH( "" )
 }
@@ -410,6 +553,58 @@ void UPaPwSmallStrainElement::GetValuesVector( Vector& values, int Step ) const
         values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
         values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
         values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+    }
+}
+
+void UPaPwSmallStrainElement::GetFirstDerivativesVector( Vector& values, int Step ) const
+{
+    unsigned int dim_press = 1;//one pressure dofs
+    unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs
+    unsigned int MatSize = mpSubGeometry->size() * dim_press + GetGeometry().size() * dim_disp;
+
+    if ( values.size() != MatSize )
+        values.resize( MatSize, false );
+
+    unsigned int cnt = 0;
+
+    for ( unsigned int i = 0; i < mpSubGeometry->size(); i++ )
+    {
+        values( cnt++ ) = (*mpSubGeometry)[i].GetSolutionStepValue( WATER_PRESSURE_DT, Step );
+        values( cnt++ ) = (*mpSubGeometry)[i].GetSolutionStepValue( AIR_PRESSURE_DT, Step );
+    }
+
+    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    {
+        values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+        values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+        if (dim_disp == 3)
+            values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+    }
+}
+
+void UPaPwSmallStrainElement::GetSecondDerivativesVector( Vector& values, int Step ) const
+{
+    unsigned int dim_press = 1;//one pressure dofs
+    unsigned int dim_disp = ( GetGeometry().WorkingSpaceDimension() );//3 displacement dofs
+    unsigned int MatSize = mpSubGeometry->size() * dim_press + GetGeometry().size() * dim_disp;
+
+    if ( values.size() != MatSize )
+        values.resize( MatSize, false );
+
+    unsigned int cnt = 0;
+
+    for ( unsigned int i = 0; i < mpSubGeometry->size(); i++ )
+    {
+        values( cnt++ ) = (*mpSubGeometry)[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
+        values( cnt++ ) = (*mpSubGeometry)[i].GetSolutionStepValue( AIR_PRESSURE_ACCELERATION, Step );
+    }
+
+    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+    {
+        values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+        values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+        if (dim_disp == 3)
+            values( cnt++ ) = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
     }
 }
 
@@ -975,16 +1170,16 @@ void UPaPwSmallStrainElement::CalculateAll( MatrixType& rLeftHandSideMatrix, Vec
     // //     // KRATOS_WATCH(Is(ACTIVE))
     // //     KRATOS_WATCH(Help_R_U)
     // //     KRATOS_WATCH(Help_R_W)
-        // KRATOS_WATCH(Help_R_A)
-        // // KRATOS_WATCH(Help_K_UU)
-        // KRATOS_WATCH(Help_K_UW)
-        // KRATOS_WATCH(Help_K_UA)
-        // KRATOS_WATCH(Help_K_WU)
-        // KRATOS_WATCH(Help_K_WW)
-        // KRATOS_WATCH(Help_K_WA)
-        // KRATOS_WATCH(Help_K_AU)
-        // KRATOS_WATCH(Help_K_AW)
-        // KRATOS_WATCH(Help_K_AA)
+    //     KRATOS_WATCH(Help_R_A)
+    //     // KRATOS_WATCH(Help_K_UU)
+    //     KRATOS_WATCH(Help_K_UW)
+    //     KRATOS_WATCH(Help_K_UA)
+    //     KRATOS_WATCH(Help_K_WU)
+    //     KRATOS_WATCH(Help_K_WW)
+    //     KRATOS_WATCH(Help_K_WA)
+    //     KRATOS_WATCH(Help_K_AU)
+    //     KRATOS_WATCH(Help_K_AW)
+    //     KRATOS_WATCH(Help_K_AA)
 
     // //     // KRATOS_WATCH(rRightHandSideVector)
     // //     // KRATOS_WATCH(rLeftHandSideMatrix)
@@ -1133,7 +1328,6 @@ void UPaPwSmallStrainElement::CalculateDampingMatrix(MatrixType& rDampMatrix, co
     //     }
     //     N_PRESS_averaged /= TotalDomainInitialSize;
     // }
-
 
     // create general parametes of retention law
     RetentionLaw::Parameters RetentionParameters(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -1489,7 +1683,7 @@ double UPaPwSmallStrainElement::GetDerivativeDDivUDt( const Matrix& DN_DX_DISP )
     for ( unsigned int i = 0 ; i < GetGeometry().size() ; i++ )
     {
         noalias( u_alpha_Dt ) =
-            GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_DT );
+            GetGeometry()[i].GetSolutionStepValue( VELOCITY );
 
         for ( unsigned int k = 0; k < dim; k++ )
         {
@@ -2404,11 +2598,124 @@ void UPaPwSmallStrainElement::CalculateDampingMatrixAA( Matrix& Help_D_AA,
     }
 }
 
-void UPaPwSmallStrainElement::FinalizeSolutionStep( const ProcessInfo& CurrentProcessInfo )
+void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    BaseType::FinalizeSolutionStep(CurrentProcessInfo);
-    // BaseType::Update(WATER_PRESSURE);
-    // BaseType::Update(AIR_PRESSURE);
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+    {
+        std::stringstream ss;
+        ss << "Error at UPaPwSmallStrainElement element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+        ss << "rValues.size(): " << rValues.size() << std::endl;
+        ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+        KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+    }
+
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+    {
+        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    }
+}
+
+/**
+ * Set a Vector Variable from outside
+ * @param rVariable Global name of the variable to be calculated
+ * @param rValues Vector of the values on the quadrature points
+ * @param rCurrentProcessInfo
+ */
+void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+    {
+        std::stringstream ss;
+        ss << "Error at UPaPwSmallStrainElement element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+        ss << "rValues.size(): " << rValues.size() << std::endl;
+        ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+        KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+    }
+
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
+    {
+        mConstitutiveLawVector[PointNumber]->SetValue( rVariable, rValues[PointNumber], rCurrentProcessInfo );
+    }
+}
+
+/**
+ * Set a Double Variable from outside
+ * @param rVariable Global name of the variable to be calculated
+ * @param rValue value on the quadrature points
+ * @param rCurrentProcessInfo
+ */
+void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<double>& rVariable,
+        const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rVariable == K0 )
+    {
+        SetValue( K0, rValues[0] );
+    }
+    else
+    {
+        if ( rValues.size() != mConstitutiveLawVector.size() )
+        {
+            std::stringstream ss;
+            ss << "Error at UPaPwSmallStrainElement element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+            ss << "rValues.size(): " << rValues.size() << std::endl;
+            ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+            KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+        }
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        }
+    }
+}
+/**
+ * Set an Int Variable from outside
+ * @param rVariable Global name of the variable to be calculated
+ * @param rValue value on the quadrature points
+ * @param rCurrentProcessInfo
+ */
+void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<int>& rVariable,
+        const std::vector<int>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+    {
+        std::stringstream ss;
+        ss << "Error at UPaPwSmallStrainElement element " << Id() << ", The size of rValues and mConstitutiveLawVector is incompatible" << std::endl;
+        ss << "rValues.size(): " << rValues.size() << std::endl;
+        ss << "mConstitutiveLawVector.size(): " << mConstitutiveLawVector.size() << std::endl;
+        KRATOS_THROW_ERROR(std::logic_error, ss.str(), "")
+    }
+
+    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+    {
+        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+    }
+}
+
+void UPaPwSmallStrainElement::SetValuesOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        const std::vector< ConstitutiveLaw::Pointer >& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rVariable == CONSTITUTIVE_LAW )
+    {
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        GetGeometry().Initialize(mThisIntegrationMethod);
+        #endif
+
+        if( mConstitutiveLawVector.size() != rValues.size() )
+        {
+            mConstitutiveLawVector.resize( rValues.size() );
+        }
+
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
+        {
+            mConstitutiveLawVector[i] = rValues[i];
+            mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        }
+
+        #ifdef ENABLE_BEZIER_GEOMETRY
+        GetGeometry().Clean();
+        #endif
+    }
 }
 
 void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable,
@@ -2597,6 +2904,34 @@ void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<array
         #endif
 
         return;
+    }
+
+    BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+}
+
+void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable,
+        std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize( mConstitutiveLawVector.size() );
+
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
+    {
+        mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
+    }
+
+    BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+}
+
+void UPaPwSmallStrainElement::CalculateOnIntegrationPoints( const Variable<Matrix>& rVariable,
+        std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rValues.size() != mConstitutiveLawVector.size() )
+        rValues.resize( mConstitutiveLawVector.size() );
+
+    for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); ++PointNumber )
+    {
+        mConstitutiveLawVector[PointNumber]->GetValue( rVariable, rValues[PointNumber] );
     }
 
     BaseType::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
