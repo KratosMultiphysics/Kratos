@@ -1,24 +1,21 @@
-// Author: Guillermo Casas (gcasas@cimne.upc.edu)
-// Date: February 2019
-
-#if !defined(SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED)
-#define SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED
+#if !defined(SDEM_CHIEN_DRAG_LAW_H_INCLUDED)
+#define SDEM_CHIEN_DRAG_LAW_H_INCLUDED
 
 #include "stokes_drag_law.h"
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) BeetstraDragLaw : public StokesDragLaw {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) ChienDragLaw : public StokesDragLaw {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(BeetstraDragLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(ChienDragLaw);
 
-        BeetstraDragLaw(): StokesDragLaw(){}
+        ChienDragLaw(): StokesDragLaw(){}
 
-        BeetstraDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
+        ChienDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
-        ~BeetstraDragLaw(){}
+        ~ChienDragLaw(){}
 
         DragLaw::Pointer Clone() const override;
 
@@ -47,8 +44,8 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DragLaw)
         }
 
-    }; //class BeetstraDragLaw
+    }; //class ChienDragLaw
 
 } // Namespace Kratos
 
-#endif /* SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED  defined */
+#endif /* SDEM_CHIEN_DRAG_LAW_H_INCLUDED  defined */
