@@ -48,9 +48,9 @@ class TestAnalysisStage(KratosUnittest.TestCase):
         }""")
         stage = DummyAnalysis(model, settings)
         obtained_map = stage._GetMapOfAdditionalHistoricalVariables()
-        expected_map = {"ModelPart": {KratosMultiphysics.VELOCITY}}
+        expected_map = {"ModelPart": {"VELOCITY"}}
         self.assertEqual(obtained_map, expected_map)
-        wrong_map = {"ModelPart": {KratosMultiphysics.VELOCITY, KratosMultiphysics.DISTANCE}}
+        wrong_map = {"ModelPart": {"VELOCITY", "DISTANCE"}}
         self.assertNotEqual(obtained_map, wrong_map)
 
 if __name__ == '__main__':
