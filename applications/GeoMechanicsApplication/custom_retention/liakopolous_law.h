@@ -113,16 +113,6 @@ public:
 
     void InitializeSolutionStep(Parameters &rParameters) override;
 
-    double CalculateSaturation(Parameters &rParameters) override;
-
-    double CalculateEffectiveSaturation(Parameters &rParameters) override;
-
-    double CalculateDerivativeOfSaturation(Parameters &rParameters) override;
-
-    double CalculateRelativePermeability(Parameters &rParameters) override;
-
-    double CalculateBishopCoefficient(Parameters &rParameters) override;
-
     void Finalize(Parameters &rParameters) override;
 
     void FinalizeSolutionStep(Parameters &rParameters) override;
@@ -134,10 +124,31 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& CalculateValue(RetentionLaw::Parameters& rParameterValues,
+    double& CalculateValue(Parameters& rParameterValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
 
+    /**
+     * @brief Calculates the derivative of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateDerivative(Parameters &rParameters,
+                                const Variable<double> &rThisVariable,
+                                double &rValue) override;
+
+    /**
+     * @brief Calculates the second derivative of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateSecondDerivative(Parameters &rParameters,
+                                      const Variable<double> &rThisVariable,
+                                      double &rValue) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

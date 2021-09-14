@@ -170,7 +170,7 @@ public:
         const double &GetVolumetricStrain() const { return mVolumetricStrain; }
         const double &GetMeanStress()       const { return mMeanStress;       }
         const double &GetFluidPressure()    const { return mFluidPressure;    }
-        const double &GetAirPressure()      const { return mAirPressure;    }
+        const double &GetAirPressure()      const { return mAirPressure;      }
         const double &GetTemperature()      const { return mTemperature;      }
 
         const ProcessInfo &GetProcessInfo() const

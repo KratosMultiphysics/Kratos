@@ -25,6 +25,7 @@
 #include "custom_retention/van_genuchten_law.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
+#include "custom_retention/liakopolous_law.h"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
@@ -59,6 +60,9 @@ public:
 
             if (RetentionLawName == "SaturatedBelowPhreaticLevelLaw")
                 return make_unique<SaturatedBelowPhreaticLevelLaw>();
+
+            if (RetentionLawName == "LiakopolousLaw")
+                return make_unique<LiakopolousLaw>();
 
             KRATOS_ERROR << "Undefined RETENTION_LAW! "
                          << RetentionLawName

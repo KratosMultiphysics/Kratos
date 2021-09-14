@@ -45,97 +45,115 @@ LiakopolousLaw::~LiakopolousLaw()
 }
 
 //-------------------------------------------------------------------------------------------------
-double LiakopolousLaw::
-    CalculateSaturation(Parameters &rParameters)
+double& LiakopolousLaw::
+    CalculateValue(RetentionLaw::Parameters& rParameters,
+                   const Variable<double>& rThisVariable,
+                   double& rValue)
 {
-    KRATOS_TRY;
-
-    const Properties &rMaterialProperties = rParameters.GetMaterialProperties();
-
-    if (rMaterialProperties.Has(SATURATED_SATURATION))
+    if (rThisVariable == DENSITY_AIR)
     {
-        return rMaterialProperties[SATURATED_SATURATION];
-    }
-    else
-    {
-        return 1.0;
-    }
-
-    KRATOS_CATCH("")
-}
-
-//-------------------------------------------------------------------------------------------------
-double LiakopolousLaw::
-    CalculateEffectiveSaturation(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
-    return 1.0;
-
-    KRATOS_CATCH("")
-}
-
-//-------------------------------------------------------------------------------------------------
-double LiakopolousLaw::
-    CalculateDerivativeOfSaturation(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
-    return 0.0;
-
-    KRATOS_CATCH("")
-}
-
-//-------------------------------------------------------------------------------------------------
-double LiakopolousLaw::
-    CalculateRelativePermeability(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
-    return 1.0;
-
-    KRATOS_CATCH("")
-}
-
-//-------------------------------------------------------------------------------------------------
-double LiakopolousLaw::
-    CalculateBishopCoefficient(Parameters &rParameters)
-{
-    KRATOS_TRY;
-
-    return CalculateEffectiveSaturation(rParameters);
-
-    KRATOS_CATCH("")
-}
-
-//-------------------------------------------------------------------------------------------------
-double& LiakopolousLaw::CalculateValue(RetentionLaw::Parameters& rParameterValues,
-                                        const Variable<double>& rThisVariable,
-                                        double& rValue)
-{
-    if (rThisVariable == DEGREE_OF_SATURATION)
-    {
-        rValue = this->CalculateSaturation(rParameterValues);
+        const double initial_density = rParameters.GetMaterialProperties()[DENSITY_AIR];
+        const double bulk_air = rParameters.GetMaterialProperties()[BULK_AIR];
+        rValue = initial_density + bulk_air*rParameters.GetAirPressure();
         return rValue;
     }
-    else if (rThisVariable == EFFECTIVE_SATURATION)
+    else if (rThisVariable == SATURATION)
     {
-        rValue = this->CalculateEffectiveSaturation(rParameterValues);
+        double capillaryPressure;
+        capillaryPressure = rParameters.GetCapillaryPressure(capillaryPressure);
+        if (capillaryPressure <= 0.0) // no matric suction
+        {
+            rValue = 1.0;
+        }
+        else
+        {
+            rValue = 1.0-1.9722*1e-11*pow(capillaryPressure, 2.4279);
+        }
         return rValue;
     }
-    else if (rThisVariable == BISHOP_COEFICIENT)
+    else if (rThisVariable == PERMEABILITY_WATER)
     {
-        rValue = this->CalculateBishopCoefficient(rParameterValues);
+        double saturation;
+        this->CalculateValue(rParameters, SATURATION, saturation);
+        rValue = 1.0 - 2.207*pow(1.0-saturation, 1.0121);
         return rValue;
     }
-    else if (rThisVariable == DERIVATIVE_OF_SATURATION)
+    else if (rThisVariable == PERMEABILITY_AIR)
     {
-        rValue = this->CalculateDerivativeOfSaturation(rParameterValues);
+        double saturation;
+        this->CalculateValue(rParameters, SATURATION, saturation);
+        double relSat = (saturation-0.2)/0.8;
+        rValue = 0.0001+pow((1.0-relSat),2)*(1-pow(relSat,5.0/3.0));
         return rValue;
     }
-    else if (rThisVariable == RELATIVE_PERMEABILITY)
+
+    return( rValue );
+}
+
+//-------------------------------------------------------------------------------------------------
+double& LiakopolousLaw::
+    CalculateDerivative(RetentionLaw::Parameters& rParameters,
+                        const Variable<double>& rThisVariable,
+                        double &rValue)
+{
+    if (rThisVariable == DENSITY_AIR)
     {
-        rValue = this->CalculateRelativePermeability(rParameterValues);
+        const double bulk_air = rParameters.GetMaterialProperties()[BULK_AIR];
+        rValue = bulk_air;
+        return rValue;
+    }
+    else if (rThisVariable == SATURATION)
+    {
+        double capillaryPressure;
+        capillaryPressure = rParameters.GetCapillaryPressure(capillaryPressure);
+        if (capillaryPressure <= 0.0) // no matric suction
+        {
+            rValue = 0.0;
+        }
+        else
+        {
+            rValue = -1.9722*2.4279*1e-11*pow(capillaryPressure, 1.4279);
+        }
+        return rValue;
+    }
+    else if (rThisVariable == PERMEABILITY_WATER)
+    {
+        double saturation;
+        this->CalculateValue(rParameters, SATURATION, saturation);
+        rValue = 2.207*1.0121*pow(1.0-saturation, 0.0121);
+        return rValue;
+    }
+    else if (rThisVariable == PERMEABILITY_AIR)
+    {
+        double saturation;
+        this->CalculateValue(rParameters, SATURATION, saturation);
+        double relSat = (saturation-0.2)/0.8;
+        rValue = -2*(1.0-relSat)*(-1)/0.8*(1-pow(relSat,5.0/3.0))
+            + pow((1.0-relSat),2)*(-1)*5.0/3.0*pow(relSat,2.0/3.0)/0.8;
+        return rValue;
+    }
+
+    return( rValue );
+}
+
+//-------------------------------------------------------------------------------------------------
+double& LiakopolousLaw::
+    CalculateSecondDerivative(RetentionLaw::Parameters& rParameters,
+                              const Variable<double>& rThisVariable,
+                              double &rValue)
+{
+    if (rThisVariable == SATURATION)
+    {
+        double capillaryPressure;
+        capillaryPressure = rParameters.GetCapillaryPressure(capillaryPressure);
+        if (capillaryPressure <= 0.0) // no matric suction
+        {
+            rValue = 0.0;
+        }
+        else
+        {
+            rValue = -1.9722*2.4279*1.4279*1e-11*pow(capillaryPressure, 0.4279);
+        }
         return rValue;
     }
 
@@ -154,27 +172,27 @@ void LiakopolousLaw::
 
 //-------------------------------------------------------------------------------------------------
 void LiakopolousLaw::
-    Initialize(Parameters &rParameters)
+    Initialize(RetentionLaw::Parameters& rParameters)
 {
     // nothing is needed
 }
 //-------------------------------------------------------------------------------------------------
 void LiakopolousLaw::
-    InitializeSolutionStep(Parameters &rParameters)
-{
-    // nothing is needed
-}
-
-//-------------------------------------------------------------------------------------------------
-void LiakopolousLaw::
-    Finalize(Parameters &rParameters)
+    InitializeSolutionStep(RetentionLaw::Parameters& rParameters)
 {
     // nothing is needed
 }
 
 //-------------------------------------------------------------------------------------------------
 void LiakopolousLaw::
-    FinalizeSolutionStep(Parameters &rParameters)
+    Finalize(RetentionLaw::Parameters& rParameters)
+{
+    // nothing is needed
+}
+
+//-------------------------------------------------------------------------------------------------
+void LiakopolousLaw::
+    FinalizeSolutionStep(RetentionLaw::Parameters& rParameters)
 {
     // nothing is needed
 }
