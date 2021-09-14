@@ -43,11 +43,11 @@ class ResetPfemKinematics(CoSimulationCouplingOperation):
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
             self._ResetPfemKinematicValues()
 
-            if(self.model_part.GetCommunicator().MyPID() == 0):
+            '''if(self.model_part.GetCommunicator().MyPID() == 0):
                 if(self.echo_level > 2):
                     # print to screen the results at echo level 3 or higher
                     result_msg = " PFEM KINEMATICS RESET "
-                    cs_tools.cs_print_info(self._ClassName(), result_msg) # This message is duplicated
+                    cs_tools.cs_print_info(self._ClassName(), result_msg) # This message is duplicated'''
 
     def _ResetPfemKinematicValues(self):
         KM.PfemFluidDynamicsApplication.MoveMeshUtility().ResetPfemKinematicValues(self.model_part)
