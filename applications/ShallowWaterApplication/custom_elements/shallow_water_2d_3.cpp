@@ -842,6 +842,8 @@ void ShallowWater2D3::AlgebraicResidual(
     double flow_div = 0.0;
     array_1d<double,3> mesh_acc = ZeroVector(3);
     array_1d<double,3> topography_grad = ZeroVector(3);
+    rFlowGrad = ZeroMatrix(3);
+    rHeightGrad = ZeroVector(3);
 
     auto& r_geom = GetGeometry();
     for (size_t i = 0; i < 3; ++i)
@@ -888,7 +890,9 @@ void ShallowWater2D3::AlgebraicResidual(
 void ShallowWater2D3::StreamLineTensor(BoundedMatrix<double,2,2>& rTensor, const array_1d<double,3>& rVector)
 {
     const double e = std::numeric_limits<double>::epsilon(); // small value to avoid division by zero
-    const auto aux_vector = static_cast<array_1d<double,2>>(rVector);
+    array_1d<double,2> aux_vector;
+    aux_vector[0] = rVector[0];
+    aux_vector[1] = rVector[1];
     rTensor = outer_prod(aux_vector, aux_vector) / (inner_prod(rVector, rVector) + e);
 }
 
