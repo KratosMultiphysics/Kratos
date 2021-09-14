@@ -57,7 +57,10 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItem, KratosCoreFastSuite)
     auto& sub_item = registry_item.GetItem("sub_item");
     KRATOS_CHECK_STRING_EQUAL(sub_item.Name(),"sub_item");
 
-   
+    registry_item.RemoveItem("sub_item");
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItems());
+    KRATOS_CHECK_IS_FALSE(registry_item.HasItem("sub_item"));
+  
 
 }
 
