@@ -112,7 +112,7 @@ int MultiLinearElastic1DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-)
+) const
 {
     KRATOS_CHECK(rMaterialProperties.Has(MULTI_LINEAR_ELASTICITY_MODULI));
 
