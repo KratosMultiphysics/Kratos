@@ -612,7 +612,9 @@ protected:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "One variable of the applied loads has a non supported type. Variable: ", VariableName )
+                KRATOS_ERROR << "One variable of the applied loads has a non supported type. Variable: "
+                             << VariableName
+                             << std::endl;
             }
         }
 

@@ -28,7 +28,7 @@
 #include "spaces/ublas_space.h"
 #include "shape_optimization_application.h"
 #include "mapper_base.h"
-#include "filter_function.h"
+#include "custom_utilities/filter_function.h"
 
 // ==============================================================================
 
@@ -499,7 +499,7 @@ private:
     Parameters mMapperSettings;
     double mFilterRadius;
     unsigned int mMaxNumberOfNeighbors;
-    FilterFunction::Pointer mpFilterFunction;
+    FilterFunction::UniquePointer mpFilterFunction;
 
     // Variables for spatial search
     unsigned int mBucketSize = 100;
@@ -538,7 +538,7 @@ private:
         std::string filter_type = mMapperSettings["filter_function_type"].GetString();
         double filter_radius = mMapperSettings["filter_radius"].GetDouble();
 
-        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(filter_type, filter_radius));
+        mpFilterFunction = Kratos::make_unique<FilterFunction>(filter_type, filter_radius);
     }
 
     // --------------------------------------------------------------------------
@@ -595,7 +595,7 @@ private:
         for(unsigned int neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
-            double weight = mpFilterFunction->compute_weight( design_node.Coordinates(), neighbor_node.Coordinates() );
+            double weight = mpFilterFunction->ComputeWeight( design_node.Coordinates(), neighbor_node.Coordinates() );
 
             list_of_weights[neighbor_itr] = weight;
             sum_of_weights += weight;

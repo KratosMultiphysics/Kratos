@@ -44,7 +44,7 @@
     },
     "custom_dem"              : {
         "do_solve_dem"                     : true,
-        "do_search_neighbours"             : false,
+        "do_search_dem_neighbours"             : false,
         "type_of_dem_inlet"                : "VelocityImposed",
         "translational_integration_scheme" : "Symplectic_Euler"
     },
@@ -151,27 +151,6 @@
                     "point_data_configuration"  : []
                 }
             }
-        }],
-        "vtk_output" : [{
-            "python_module" : "vtk_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "VtkOutputProcess",
-            "help"          : "This process writes postprocessing files for Paraview",
-            "Parameters"    : {
-                "model_part_name"                             : "FluidModelPart.fluid_computational_model_part",
-                "output_control_type"                         : "step",
-                "output_interval"                             : 1,
-                "file_format"                                 : "ascii",
-                "output_precision"                            : 7,
-                "output_sub_model_parts"                      : false,
-                "folder_name"                                 : "vtk_output",
-                "save_output_files_in_folder"                 : true,
-                "nodal_solution_step_data_variables"          : ["VELOCITY","PRESSURE"],
-                "nodal_data_value_variables"                  : [],
-                "element_data_value_variables"                : [],
-                "condition_data_value_variables"              : [],
-                "gauss_point_variables_extrapolated_to_nodes" : []
-            }
         }]
     },
     "dem_parameters"          : {
@@ -196,7 +175,10 @@
         "CleanIndentationsOption"        : false,
         "solver_settings"                : {
             "RemoveBallsInitiallyTouchingWalls" : false,
-            "strategy"                          : "swimming_sphere_strategy"
+            "strategy"                          : "swimming_sphere_strategy",
+            "material_import_settings"           : {
+                "materials_filename" : "analytic_tests/multiple_phantoms/MaterialsDEM.json"
+            }
         },
         "VirtualMassCoefficient"         : 1.0,
         "RollingFrictionOption"          : false,
@@ -272,27 +254,6 @@
                         },
                         "point_data_configuration"  : []
                     }
-                }
-            }],
-            "vtk_output" : [{
-                "python_module" : "vtk_output_process",
-                "kratos_module" : "KratosMultiphysics",
-                "process_name"  : "VtkOutputProcess",
-                "help"          : "This process writes postprocessing files for Paraview",
-                "Parameters"    : {
-                    "model_part_name"                             : "FluidModelPart.fluid_computational_model_part",
-                    "output_control_type"                         : "step",
-                    "output_interval"                             : 1,
-                    "file_format"                                 : "ascii",
-                    "output_precision"                            : 7,
-                    "output_sub_model_parts"                      : false,
-                    "folder_name"                                 : "vtk_output",
-                    "save_output_files_in_folder"                 : true,
-                    "nodal_solution_step_data_variables"          : ["VELOCITY","PRESSURE"],
-                    "nodal_data_value_variables"                  : [],
-                    "element_data_value_variables"                : [],
-                    "condition_data_value_variables"              : [],
-                    "gauss_point_variables_extrapolated_to_nodes" : []
                 }
             }]
         },

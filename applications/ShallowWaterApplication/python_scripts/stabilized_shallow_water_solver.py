@@ -38,7 +38,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.STABILIZATION_FACTOR, self.settings["stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
-        self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_WATER, 1e3)
+        self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -53,7 +53,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.005,
-        "shock_stabilization_factor" : 0.001,
+        "shock_stabilization_factor" : 0.0,
         "add_flux_correction"        : false
         }
         """)

@@ -100,6 +100,15 @@ public:
         KRATOS_CATCH("");
     }
 
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        KRATOS_TRY
+        return Element::Pointer(new LevelSetConvectionElementSimplex(NewId, pGeom, pProperties));
+        KRATOS_CATCH("");
+    }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
