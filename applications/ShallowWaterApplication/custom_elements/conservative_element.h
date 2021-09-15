@@ -219,6 +219,19 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0) override;
 
+    void AddArtificialViscosityTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
+    void AddMassTerms(
+        LocalMatrixType& rMatrix,
+        const ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+        const double Weight = 1.0) override;
+
     double StabilizationParameter(const ElementData& rData) const override;
 
     ///@}
