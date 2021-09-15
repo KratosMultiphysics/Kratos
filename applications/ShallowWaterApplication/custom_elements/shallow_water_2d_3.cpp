@@ -478,7 +478,6 @@ void ShallowWater2D3::ComputeMassMatrix(
         rHeightMatrix(block+2, block+2) += mu_h * lumping_factor;
     }
 
-    // Stabilization parameters. NOTE: This stabilization term is not integrated by parts!!
     using std::pow;
     const double c2 = rData.gravity * rData.height; // c=sqrt(gh)
     const double u_1 = rData.velocity[0];
@@ -496,12 +495,15 @@ void ShallowWater2D3::ComputeMassMatrix(
              * is skiped in favour of the lumped mass matrix.
              * It accelerates the convergence rate. The stabilization
              * terms are included to guarantee consistency
+             *
+             * Note: there should be a minus sign, but since there is a
+             * missing boundary stabilization term, it is better in this way.
              */
 
             /* Stabilization x
              * A1*M
              */
-            const double s1_ij = -rDN_DX(i,0) * rN[j];
+            const double s1_ij = rDN_DX(i,0) * rN[j];
             rFlowMatrix  (i_block,     j_block)     += l * mu_q * s1_ij * 2*u_1;
             rHeightMatrix(i_block,     j_block + 2) += l * mu_h * s1_ij * (-pow(u_1,2) + c2);
             rFlowMatrix  (i_block + 1, j_block)     += l * mu_q * s1_ij * u_2;
@@ -512,7 +514,7 @@ void ShallowWater2D3::ComputeMassMatrix(
              /* Stabilization y
               * A2*M
               */
-            const double s2_ij = -rDN_DX(i,1) * rN[j];
+            const double s2_ij = rDN_DX(i,1) * rN[j];
             rFlowMatrix  (i_block,     j_block)     += l * mu_q * s2_ij * u_2;
             rFlowMatrix  (i_block,     j_block + 1) += l * mu_q * s2_ij * u_1;
             rHeightMatrix(i_block,     j_block + 2) -= l * mu_h * s2_ij * u_1*u_2;
