@@ -350,8 +350,9 @@ class AnalysisStage(object):
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
 
     def _GetMapOfAdditionalHistoricalVariables(self):
-        """This function returns the list of (additional) historicsl variables
-        needed in the simulation
+        """This function returns a dictionary of (additional) historical variables
+        needed in the simulation. The keys are the model part names where variables
+        will be added and the values are sets with the names of the variables.
         It can be overridden in derived classes
         """
         map_additional_vars = defaultdict(set)
@@ -361,7 +362,10 @@ class AnalysisStage(object):
         return map_additional_vars
 
     def _GetLMapOfAdditionalVariablesFromProcesses(self, parameter_name, map_additional_vars):
-        """This function extracts the required historical variables needed by the processes
+        """This function extracts the required historical variables needed by the processes.
+        A dictionary is given as a parameter (map_additional_vars) that will be filled in this
+        function. The keys are the model part names where variables will be added and the
+        values are sets with the names of the variables.
         """
         factory = KratosProcessFactory(self.model)
 
