@@ -64,7 +64,7 @@ void WaveElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, con
     if(rResult.size() != mLocalSize)
         rResult.resize(mLocalSize, false); // False says not to preserve existing storage!!
 
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     int counter = 0;
     for (IndexType i = 0; i < TNumNodes; i++)
     {
@@ -84,7 +84,7 @@ void WaveElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const
     if(rElementalDofList.size() != mLocalSize)
         rElementalDofList.resize(mLocalSize);
 
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     int counter=0;
     for (IndexType i = 0; i < TNumNodes; i++)
     {
@@ -154,7 +154,7 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rData.p_bottom_friction = Kratos::make_shared<ManningLaw>();
-    rData.p_bottom_friction->Initialize(GetGeometry(), rCurrentProcessInfo);
+    rData.p_bottom_friction->Initialize(this->GetGeometry(), rCurrentProcessInfo);
 }
 
 template<std::size_t TNumNodes>
@@ -348,7 +348,7 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 }
 
 template<std::size_t TNumNodes>
-void WaveElement<TNumNodes>::AddShockCapturingTerms(
+void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
     LocalMatrixType& rMatrix,
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
@@ -474,18 +474,18 @@ void WaveElement<3>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
+    GetNodalData(data, this->GetGeometry());
 
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
 
     CalculateGaussPointData(data, N);
 
     AddWaveTerms(lhs, rhs, data, N, DN_DX);
     AddFrictionTerms(lhs, rhs, data, N, DN_DX);
-    AddShockCapturingTerms(lhs, data, DN_DX);
+    AddArtificialViscosityTerms(lhs, data, DN_DX);
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
     noalias(rhs) -= prod(lhs, data.unknown);
@@ -509,7 +509,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
+    GetNodalData(data, this->GetGeometry());
 
     Vector weights;
     Matrix N_container;
@@ -527,7 +527,7 @@ void WaveElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
 
         AddWaveTerms(lhs, rhs, data, N, DN_DX, weight);
         AddFrictionTerms(lhs, rhs, data, N, DN_DX, weight);
-        AddShockCapturingTerms(lhs, data, DN_DX, weight);
+        AddArtificialViscosityTerms(lhs, data, DN_DX, weight);
     }
 
     // Substracting the Dirichlet term (since we use a residualbased approach)
@@ -548,12 +548,12 @@ void WaveElement<3>::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessI
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
+    GetNodalData(data, this->GetGeometry());
 
     BoundedMatrix<double,3,2> DN_DX; // Gradients matrix
     array_1d<double,3> N;            // Position of the gauss point
     double area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area);
+    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, area);
 
     CalculateGaussPointData(data, N);
 
@@ -573,7 +573,7 @@ void WaveElement<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, const 
     // Struct to pass around the data
     ElementData data;
     InitializeData(data, rCurrentProcessInfo);
-    GetNodalData(data, GetGeometry());
+    GetNodalData(data, this->GetGeometry());
 
     Vector weights;
     Matrix N_container;

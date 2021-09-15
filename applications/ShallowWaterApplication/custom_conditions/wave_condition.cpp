@@ -60,7 +60,7 @@ void WaveCondition<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, c
     if(rResult.size() != mLocalSize)
         rResult.resize(mLocalSize, false); // False says not to preserve existing storage!!
 
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     int counter = 0;
     for (IndexType i = 0; i < TNumNodes; i++)
     {
@@ -80,7 +80,7 @@ void WaveCondition<TNumNodes>::GetDofList(DofsVectorType& rConditionDofList, con
     if(rConditionDofList.size() != mLocalSize)
         rConditionDofList.resize(mLocalSize);
 
-    const GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = this->GetGeometry();
     int counter=0;
     for (IndexType i = 0; i < TNumNodes; i++)
     {
@@ -160,7 +160,7 @@ void WaveCondition<TNumNodes>::InitializeData(
     rData.stab_factor = rProcessInfo[STABILIZATION_FACTOR];
     rData.relative_dry_height = rProcessInfo[RELATIVE_DRY_HEIGHT];
 
-    auto& r_geom = GetGeometry();
+    auto& r_geom = this->GetGeometry();
     rData.length = r_geom.Length();
 
     for (IndexType i = 0; i < TNumNodes; i++)
@@ -200,8 +200,8 @@ void WaveCondition<TNumNodes>::CalculateGaussPointData(
         rData.height += rN[i] * h;
         rData.velocity += rN[i] * v;
     }
-    auto integration_point = GetGeometry().IntegrationPoints()[PointIndex];
-    rData.normal = GetGeometry().Normal(integration_point);
+    auto integration_point = this->GetGeometry().IntegrationPoints()[PointIndex];
+    rData.normal = this->GetGeometry().Normal(integration_point);
     rData.normal /= norm_2(rData.normal);
 }
 

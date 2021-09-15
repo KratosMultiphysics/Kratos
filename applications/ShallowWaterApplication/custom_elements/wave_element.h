@@ -324,13 +324,13 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    virtual void AddShockCapturingTerms(
+    virtual void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    void AddMassTerms(
+    virtual void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,

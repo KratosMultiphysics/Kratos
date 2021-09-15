@@ -285,26 +285,26 @@ protected:
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN);
 
-    void AddWaveTerms(
+    virtual void AddWaveTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight = 1.0);
 
-    void AddFluxTerms(
+    virtual void AddFluxTerms(
         LocalVectorType& rVector,
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight = 1.0);
 
-    void AddMassTerms(
+    virtual void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ConditionData& rData,
         const array_1d<double,TNumNodes>& rN,
         const double Weight);
 
-    double StabilizationParameter(const ConditionData& rData) const;
+    virtual double StabilizationParameter(const ConditionData& rData) const;
 
     double InverseHeight(const ConditionData& rData) const;
 
