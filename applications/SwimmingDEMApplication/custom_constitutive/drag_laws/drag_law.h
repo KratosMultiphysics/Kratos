@@ -21,7 +21,7 @@ namespace Kratos {
 
         DragLaw(){}
 
-        DragLaw(Parameters& r_parameters){}
+        DragLaw(Parameters r_parameters){}
 
         ~DragLaw(){}
 
