@@ -359,7 +359,7 @@ class ExplicitStrategy():
     def AddVariables(self):
         pass
 
-    def AddAdditionalHistoricalVariables(self,list_additional_variables):
+    def AddAdditionalHistoricalVariables(self, map_additional_variables):
         pass
 
     def BeforeInitialize(self):
