@@ -75,6 +75,7 @@
 #include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
+#include "custom_elements/two_fluid_navier_stokes_CN.h"
 #include "custom_elements/vms_adjoint_element.h"
 
 #include "custom_utilities/qsvms_data.h"
@@ -406,6 +407,8 @@ private:
     /// Two Fluid Navier-Stokes symbolic element
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokes2D3N;
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
+    const TwoFluidNavierStokesCN< TwoFluidNavierStokesData<2, 3> > mTwoFluidNavierStokesCN2D3N;
+    const TwoFluidNavierStokesCN< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokesCN3D4N;
     const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
     const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
 

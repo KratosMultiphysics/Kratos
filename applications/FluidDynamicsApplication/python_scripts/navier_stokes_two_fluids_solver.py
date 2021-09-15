@@ -114,7 +114,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
-        self.element_name = "TwoFluidNavierStokes"
+        time_scheme=custom_settings["time_scheme"].GetString()
+        if time_scheme == "crank_nicolson":
+            self.element_name= "TwoFluidNavierStokesCN"
+        elif time_scheme == "bdf2":
+            self.element_name = "TwoFluidNavierStokes"
+        else:
+            raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'crank_nicolson\'.".format(time_scheme))
+
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
