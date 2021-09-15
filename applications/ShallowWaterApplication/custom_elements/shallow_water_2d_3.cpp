@@ -435,7 +435,7 @@ void ShallowWater2D3::ComputeMassMatrix(
             /* Stabilization x
              * A1*M
              */
-            const double s1_ij = rN[i] * rDN_DX(j,0);
+            const double s1_ij = -rDN_DX(i,0) * rN[j];
             rMatrix(i_block,     j_block)     += l * mu_q * s1_ij * 2*u_1;
             rMatrix(i_block,     j_block + 2) += l * mu_h * s1_ij * (-pow(u_1,2) + c2);
             rMatrix(i_block + 1, j_block)     += l * mu_q * s1_ij * u_2;
@@ -446,7 +446,7 @@ void ShallowWater2D3::ComputeMassMatrix(
              /* Stabilization y
               * A2*M
               */
-            const double s2_ij = rN[i] * rDN_DX(j,1);
+            const double s2_ij = -rDN_DX(i,1) * rN[j];
             rMatrix(i_block,     j_block)     += l * mu_q * s2_ij * u_2;
             rMatrix(i_block,     j_block + 1) += l * mu_q * s2_ij * u_1;
             rMatrix(i_block,     j_block + 2) -= l * mu_h * s2_ij * u_1*u_2;
@@ -501,7 +501,7 @@ void ShallowWater2D3::ComputeMassMatrix(
             /* Stabilization x
              * A1*M
              */
-            const double s1_ij = rN[j] * rDN_DX(i,0);
+            const double s1_ij = -rDN_DX(i,0) * rN[j];
             rFlowMatrix  (i_block,     j_block)     += l * mu_q * s1_ij * 2*u_1;
             rHeightMatrix(i_block,     j_block + 2) += l * mu_h * s1_ij * (-pow(u_1,2) + c2);
             rFlowMatrix  (i_block + 1, j_block)     += l * mu_q * s1_ij * u_2;
@@ -512,7 +512,7 @@ void ShallowWater2D3::ComputeMassMatrix(
              /* Stabilization y
               * A2*M
               */
-            const double s2_ij = rN[j] * rDN_DX(i,1);
+            const double s2_ij = -rDN_DX(i,1) * rN[j];
             rFlowMatrix  (i_block,     j_block)     += l * mu_q * s2_ij * u_2;
             rFlowMatrix  (i_block,     j_block + 1) += l * mu_q * s2_ij * u_1;
             rHeightMatrix(i_block,     j_block + 2) -= l * mu_h * s2_ij * u_1*u_2;
