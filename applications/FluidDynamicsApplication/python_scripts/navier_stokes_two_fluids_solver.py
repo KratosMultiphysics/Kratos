@@ -168,6 +168,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
         #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
+        # Geting the inlet condition model part
+        #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Inlet"):
+            #self.inlet_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Inlet")
+            #for inlet_condition in self.inlet_model_part.Conditions:
+            #        for node in inlet_condition.GetNodes():
+            #            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
+
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -355,6 +362,19 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_X, gravity*sinAlpha)
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Y, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.BODY_FORCE_Z, -gravity*cosAlpha)
+
+            #velocity_max = 5.0
+            #vel_inlet = TimeStep*DT/0.0001*velocity_max
+            #if vel_inlet > velocity_max:
+            #    vel_inlet = velocity_max
+
+            #KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
+
+            #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Inlet"):
+            #    for inlet_node in self.inlet_model_part.GetNodes():#.Conditions:
+            #        #for node in inlet_condition.GetNodes():
+            #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
+            #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
 
             # Recompute the distance field according to the new level-set position
             if (TimeStep % 1 == 0):
@@ -743,7 +763,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self._TimeBufferIsInitialized():
             (self.solver).FinalizeSolutionStep()
             if (TimeStep >= 3):
-                KratosMultiphysics.Logger.PrintInfo("Navier Stokes Two Fluid Solver, TIMESTEP= ", TimeStep)
+                KratosMultiphysics.Logger.PrintInfo("accelerationLimitationUtility, TIMESTEP= ", TimeStep)
                 (self.accelerationLimitationUtility).Execute()
 
     # TODO: Remove this method as soon as the subproperties are available
