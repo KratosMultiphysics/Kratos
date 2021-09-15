@@ -172,15 +172,26 @@ void ContactAngleEvaluator::Execute()
             it_node->FastGetSolutionStepValue(NORMAL_VECTOR) = normal;
 
             const double velocity_direction = inner_prod(it_node->FastGetSolutionStepValue(VELOCITY), normal);
+            it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = velocity_direction;
 
             if (it_node->GetValue(IS_STRUCTURE) == 1.0){
-                if (velocity_direction > 0.0 && contact_angle < theta_advancing){
+                /* if (velocity_direction > 0.0 && contact_angle < theta_advancing){
                     it_node->Fix(DISTANCE);
                 } else if (velocity_direction < 0.0 && contact_angle > theta_receding){
                     it_node->Fix(DISTANCE);
                 } else if (velocity_direction == 0.0 && contact_angle < theta_advancing && contact_angle > theta_receding){
                     it_node->Fix(DISTANCE);
+                } */
+
+                if ( ( !(velocity_direction < 0.0 && contact_angle <= theta_receding) &&
+                    !(velocity_direction > 0.0 && contact_angle >= theta_advancing) ) ||
+                    (velocity_direction == 0.0 && contact_angle < theta_advancing && contact_angle > theta_receding) ){
+                    it_node->Fix(DISTANCE);
                 }
+
+                /* if (contact_angle < theta_advancing && contact_angle > theta_receding){
+                    it_node->Fix(DISTANCE);
+                } */
             }
 
         }

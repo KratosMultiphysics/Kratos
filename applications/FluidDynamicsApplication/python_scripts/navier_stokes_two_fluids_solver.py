@@ -159,14 +159,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #             print(node.X)
 
         # Geting the injection condition model part
-        if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
-            self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
-            for injection_condition in self.injection_model_part.Conditions:
-                injection_condition.Set(KratosMultiphysics.BOUNDARY, True)
-                for node in injection_condition.GetNodes():
-                    node.Set(KratosMultiphysics.BOUNDARY, True)
-                    if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
-                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
+        #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
+        #    self.injection_model_part = self.model.GetModelPart("FluidModelPart.AutomaticInlet3D_Injection")
+        #    for injection_condition in self.injection_model_part.Conditions:
+        #        injection_condition.Set(KratosMultiphysics.BOUNDARY, True)
+        #        for node in injection_condition.GetNodes():
+        #            node.Set(KratosMultiphysics.BOUNDARY, True)
+        #            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+        #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
         ## Construct the linear solver
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
@@ -496,11 +496,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         KratosMultiphysics.Logger.PrintInfo("linear solver number of iterations, smoothing", it_number)
 
         if not(self._bfecc_convection):
-            if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
-                for injection_condition in self.injection_model_part.Conditions:
-                    for node in injection_condition.GetNodes():
-                        if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
-                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
+            #if self.model.HasModelPart("FluidModelPart.AutomaticInlet3D_Injection"):
+            #    for injection_condition in self.injection_model_part.Conditions:
+            #        for node in injection_condition.GetNodes():
+            #            if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > -1.0e-6:
+            #                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -1.0e-6)
 
             for node in self.main_model_part.Nodes:
                 velocityOld = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY, 1)
