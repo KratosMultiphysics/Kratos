@@ -49,7 +49,8 @@ namespace Kratos
 
         mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
 
-        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
+        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
     {}
 
     void KratosShallowWaterApplication::Register()
@@ -138,6 +139,7 @@ namespace Kratos
 
         KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
+        KRATOS_REGISTER_CONDITION("ConservativeCondition2D2N", mConservativeCondition2D2N)
 
         // Register modelers
         KRATOS_REGISTER_MODELER("MeshMovingModeler", mMeshMovingModeler)

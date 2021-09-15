@@ -38,6 +38,7 @@
 #include "custom_elements/shallow_water_2d_3.h"
 #include "custom_conditions/nothing_condition.hpp"
 #include "custom_conditions/wave_condition.h"
+#include "custom_conditions/conservative_condition.h"
 #include "custom_modelers/mesh_moving_modeler.h"
 
 
@@ -173,6 +174,7 @@ namespace Kratos
         // Conditions
         const NothingCondition<2> mNothingCondition2D2N;
         const WaveCondition<2> mWaveCondition2D2N;
+        const ConservativeCondition<2> mConservativeCondition2D2N;
 
         // Modelers
         const MeshMovingModeler mMeshMovingModeler;
