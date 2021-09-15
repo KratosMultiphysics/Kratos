@@ -49,10 +49,18 @@ namespace Kratos
 
             const double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
 
-            if ( alpha > 1.0){
+            if ( alpha > 1.0 ){
                 // setting a new and "reasonable" velocity by scaling
                 v = vn + ( 1.0 / alpha ) * delta_v;
-                i->FastGetSolutionStepValue( VELOCITY, 0 ) = v;
+                if (!i->IsFixed(VELOCITY_X) ){
+                    i->FastGetSolutionStepValue( VELOCITY_X, 0 ) = v[0];
+                }
+                if (!i->IsFixed(VELOCITY_Y) ){
+                    i->FastGetSolutionStepValue( VELOCITY_Y, 0 ) = v[1];
+                }
+                if (!i->IsFixed(VELOCITY_Z) ){
+                    i->FastGetSolutionStepValue( VELOCITY_Z, 0 ) = v[2];
+                }
             }
         }
 
