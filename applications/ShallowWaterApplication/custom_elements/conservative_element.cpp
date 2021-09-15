@@ -271,7 +271,7 @@ void ConservativeElement<TNumNodes>::AddFrictionTerms(
             /* Stabilization x
              * l*A1*Sf
              */
-            const double g1_ij = -rDN_DX(i,0) * rN[j];
+            const double g1_ij = rDN_DX(i,0) * rN[j];
             rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*g*s*u_1;
             rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * g*s*u_2;
             rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * g*s*u_2;
@@ -280,7 +280,7 @@ void ConservativeElement<TNumNodes>::AddFrictionTerms(
             /* Stabilization y
              * l*A2*Sf
              */
-            const double g2_ij = -rDN_DX(i,1) * rN[j];
+            const double g2_ij = rDN_DX(i,1) * rN[j];
             rMatrix(i_block,     j_block)     += Weight * l * g2_ij * g*s*u_2;
             rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * g*s*u_1;
             rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*g*s*u_2;
@@ -327,7 +327,7 @@ void ConservativeElement<TNumNodes>::AddMassTerms(
             /* Stabilization x
              * l*A1*N
              */
-            const double g1_ij = -rDN_DX(i,0) * rN[j];
+            const double g1_ij = rDN_DX(i,0) * rN[j];
             rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*u_1;
             rMatrix(i_block,     j_block + 2) += Weight * l * g1_ij * (-u_1*u_1 + c2);
             rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * u_2;
@@ -338,7 +338,7 @@ void ConservativeElement<TNumNodes>::AddMassTerms(
             /* Stabilization y
              * l*A2*N
              */
-            const double g2_ij = -rDN_DX(i,1) * rN[j];
+            const double g2_ij = rDN_DX(i,1) * rN[j];
             rMatrix(i_block,     j_block)     += Weight * l * g2_ij * u_2;
             rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * u_1;
             rMatrix(i_block,     j_block + 2) -= Weight * l * g2_ij * u_1*u_2;
