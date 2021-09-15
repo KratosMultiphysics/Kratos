@@ -16,7 +16,6 @@
 
 #include "includes/global_variables.h"
 #include "includes/serializer.h"
-#include "math_utils.h"
 
 namespace Kratos
 {
@@ -431,43 +430,6 @@ namespace Kratos
 			result.normalize();
 
 			return result;
-		}
-
-		/**
-		Returns a Quaternion that represents a rotation between two given normalized vectors
-		@param a the first vector
-		@param b the second vector
-		@param radians the rotation angle in radians
-		@return a Quaternion that represents a rotation between two given normalized vectors
-		@brief see https://stackoverflow.com/questions/1171849/finding-quaternion-representing-the-rotation-from-one-vector-to-another
-		@
-		*/
-		template<class TVector3>
-		static inline Quaternion FromTwoVectors(TVector3 a, TVector3 b, const double Tolerance = std::numeric_limits<double>::epsilon())
-		{
-			TVector3 x_unit_vector = ZeroVector(3);
-			x_unit_vector(0) = 1.0;
-			TVector3 y_unit_vector = ZeroVector(3);
-			y_unit_vector(1) = 1.0;
-
-			const double dot = inner_prod(a, b);
-			if (dot < Tolerance - 1.0) { // We rotate 180 deg
-				TVector3 cross = MathUtils<double>::CrossProduct(x_unit_vector, a);
-				if (MathUtils<double>::Norm3(cross) < 1.0e4*Tolerance)
-					noalias(cross) = MathUtils<double>::CrossProduct(y_unit_vector, a);
-				cross /= MathUtils<double>::Norm3(cross);
-				Quaternion result = Quaternion::FromAxisAngle(cross, Globals::Pi);
-				result.normalize();
-				return result;
-			} else if (dot > 1.0 - Tolerance) { // Identity
-				Quaternion result(0.0, 0.0, 0.0, 1.0);
-				return result;
-			} else { // Normal cases
-				const TVector3 cross = MathUtils<double>::CrossProduct(a, b);
-				Quaternion result(cross(0), cross(1), cross(2), 1.0 + dot);
-				result.normalize();
-				return result;
-			}
 		}
 
 		/**
