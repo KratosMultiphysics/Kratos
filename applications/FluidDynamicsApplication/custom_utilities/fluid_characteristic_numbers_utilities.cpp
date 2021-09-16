@@ -54,7 +54,8 @@ namespace Kratos
     double FluidCharacteristicNumbersUtilities::CalculateElementCFL(
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
-        const double Dt)
+        const double Dt,
+        const bool ConsiderCompressibility)
     {
         // Calculate the midpoint velocity
         const auto& r_geometry = rElement.GetGeometry();
@@ -65,11 +66,21 @@ namespace Kratos
         }
         element_vel /= static_cast<double>(n_nodes);
 
-        // Calculate element CFL
+        // Calculate element CFL for incompressible flows
         const double h_min = rElementSizeCalculator(r_geometry);
-        const double elem_cfl = norm_2(element_vel) * Dt / h_min;
 
-        return elem_cfl;
+        if(ConsiderCompressibility == false) {
+            return norm_2(element_vel) * Dt / h_min;
+        }
+
+        // Computing CFl for compressible flows
+        double sound_velocity = 0;
+        for (unsigned int i = 1; i < n_nodes; ++i) {
+            sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
+        }
+        sound_velocity /= static_cast<double>(n_nodes);
+
+        return (norm_2(element_vel) + sound_velocity) * Dt / h_min;
     }
 
     template<bool ConsiderArtificialMagnitudes>

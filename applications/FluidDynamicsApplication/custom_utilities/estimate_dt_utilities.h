@@ -77,6 +77,7 @@ public:
         mViscousFourier = 0.0;
         mThermalFourier = 0.0;
         mConsiderArtificialDiffusion = false;
+        mConsiderCompressibility = false;
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -89,6 +90,7 @@ public:
      * @param ThermalFourier The user-defined thermal conductivity Peclet number
      * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
+     * @param ConsiderCompressibility user-defined switch to select between compressible or incompressible N-S stability conditions
      */
     EstimateDtUtility(
         ModelPart &ModelPart,
@@ -98,7 +100,8 @@ public:
         const bool ConsiderArtificialDiffusion,
         const bool NodalDensityFormulation,
         const double DtMin,
-        const double DtMax)
+        const double DtMax,
+        const bool ConsiderCompressibility = false)
         : mrModelPart(ModelPart)
     {
         mCFL = CFL;
@@ -108,6 +111,7 @@ public:
         mThermalFourier = ThermalFourier;
         mConsiderArtificialDiffusion = ConsiderArtificialDiffusion;
         mNodalDensityFormulation = NodalDensityFormulation;
+        mConsiderCompressibility = ConsiderCompressibility;
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -130,7 +134,8 @@ public:
             "consider_artificial_diffusion" : false,
             "nodal_density_formulation"     : false,
             "minimum_delta_time"            : 1e-4,
-            "maximum_delta_time"            : 0.1
+            "maximum_delta_time"            : 0.1,
+            "consider_compressibility"      : false
         })");
 
         rParameters.ValidateAndAssignDefaults(defaultParameters);
@@ -142,6 +147,7 @@ public:
         mNodalDensityFormulation = rParameters["nodal_density_formulation"].GetBool();
         mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
+        mConsiderCompressibility = rParameters["consider_compressibility"].GetBool();
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -220,6 +226,7 @@ private:
     bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
     double    mDtMax;                       // User-defined maximum time increment allowed
     double    mDtMin;                       // User-defined minimum time increment allowed
+    bool      mConsiderCompressibility;                // User-defined formulation. CFL number depends on this parameter.
     Flags     mDtEstimationMagnitudesFlags; // Flags indicating the reference magnitudes used in the Dt estimation
     ModelPart &mrModelPart;                 // The problem's model part
 
