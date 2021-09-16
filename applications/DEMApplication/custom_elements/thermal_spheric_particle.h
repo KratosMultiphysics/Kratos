@@ -29,12 +29,12 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   
   typedef GlobalPointersVector<Element> ParticleWeakVectorType;
   typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-  typedef GlobalPointersVector<Element >::iterator ParticleWeakIteratorType;
+  typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-  typedef Node <3> NodeType;
+  typedef Node<3> NodeType;
   typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
   typedef std::size_t IndexType;
-  typedef Geometry<Node < 3 > > GeometryType;
+  typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
   
   using TBaseElement::GetGeometry;
@@ -116,11 +116,11 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   friend class Serializer;
 
   virtual void save(Serializer& rSerializer) const override {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle);
   }
 
   virtual void load(Serializer& rSerializer) override {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle);
   }
 
 }; // Class ThermalSphericParticle

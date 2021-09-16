@@ -90,25 +90,34 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::ComputeBallToBallDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
+    // Loop over neighbour elements
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
       if (mNeighbourElements[i] == NULL) continue;
-
       ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-      const double& other_radius = neighbour_iterator->GetRadius();
-      const double& other_temperature = neighbour_iterator->GetTemperature();
 
-      double rmin = GetRadius();
-      if (other_radius < GetRadius()) rmin = other_radius;
-      double calculation_area = 0;
-      array_1d<double, 3 > other_to_me_vect = this->GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+      // Get particle properties
+      double this_temp   = GetTemperature();
+      double this_radius = GetRadius();
 
-      double distance = DEM_MODULUS_3(other_to_me_vect);
+      // Get neighbour properties
+      double other_temp   = neighbour_iterator->GetTemperature();
+      double other_radius = neighbour_iterator->GetRadius();
+
+      // Compute minimum radius
+      double rmin = std::min(this_radius,other_radius);
+
+      // Compute interaction parameters
+      array_1d<double,3> other_to_this_vect = GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+      double distance     = DEM_MODULUS_3(other_to_this_vect);
       double inv_distance = 1.0 / distance;
-      double radius_sum = GetRadius() + other_radius;
-      double indentation = radius_sum - distance;
+      double indentation  = this_radius + other_radius - distance;
 
-      ComputeContactArea(rmin, indentation, calculation_area);
-      mConductiveHeatFlux += -mThermalConductivity * inv_distance * calculation_area * (GetTemperature() - other_temperature);
+      // Compute contact area
+      double contact_area = 0.0;
+      ComputeContactArea(rmin, indentation, contact_area);
+
+      // Compute heat flux
+      mConductiveHeatFlux += mThermalConductivity * inv_distance * contact_area * (other_temp - this_temp);
     }
 
     KRATOS_CATCH("")
@@ -118,29 +127,30 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::ComputeBallToRigidFaceDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    std::vector<DEMWall*>& rNeighbours = this->mNeighbourRigidFaces;
+    std::vector<DEMWall*>& rNeighbours = mNeighbourRigidFaces;
 
+    // Loop over neighbour walls
     for (unsigned int i = 0; i < rNeighbours.size(); i++) {
       DEMWall* wall = rNeighbours[i];
       if (wall == NULL) continue;
+      
+      // Get particle properties
+      double particle_temp = GetTemperature();
 
       // Get wall temperature as the average of its nodes
       double wall_temp = 0.0;
       double n_nodes = wall->GetGeometry().size();
       for (unsigned int i = 0; i < n_nodes; i++) {
-        const double& node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
+        double node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
         wall_temp += node_temp;
       }
       wall_temp /= n_nodes;
 
-      // Contact radius
+      // Compute contact area
       double contact_radius = 0.1;
 
-      // Particle temperature
-      double particle_temp = GetTemperature();
-
-      // Conductive heat flux (Batchelor & OBrien model)
-      mConductiveHeatFlux += 2 * mThermalConductivity * contact_radius * (wall_temp-particle_temp);
+      // Compute heat flux (Batchelor & OBrien model)
+      mConductiveHeatFlux += 2 * mThermalConductivity * contact_radius * (wall_temp - particle_temp);
     }
 
     KRATOS_CATCH("")
@@ -189,21 +199,25 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) {
-    double thermal_inertia = GetMass() * mSpecificHeat;
-    double dt = r_process_info[DELTA_TIME];
-
     // Condition to avoid issue when mSpecificHeat is equal zero, which cause the wrong temperature_increment calculation
     if (mSpecificHeat > 0) {
-      double temperature_increment = mTotalHeatFlux / thermal_inertia * dt;
-      SetTemperature(GetTemperature() + temperature_increment);
-      GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
+      // Compute new temperature
+      double dt              = r_process_info[DELTA_TIME];
+      double thermal_inertia = GetMass() * mSpecificHeat;
+      double temp_increment  = mTotalHeatFlux / thermal_inertia * dt;
+      double temp_new        = GetTemperature() + temp_increment;
+      
+      // Set new temperature
+      SetTemperature(temp_new);
     }
   }
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
+    double this_temp      = GetTemperature();
+    double amb_temp       = GetAmbientTemperature();
+    double relative_temp  = this_temp - amb_temp; // temp in Kelvin
     double thermal_alpha  = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-    double relative_temp  = GetTemperature() - GetAmbientTemperature(); // temp in Kelvin
     double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
     SetRadius(updated_radius);
   }
@@ -234,6 +248,7 @@ namespace Kratos
     TBaseElement::FinalizeSolutionStep(r_process_info);
     UpdateTemperature(r_process_info);
     mPreviousTemperature = GetTemperature();
+    GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
   }
 
   // Others
@@ -255,7 +270,8 @@ namespace Kratos
     //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);
   }
 
-  template class ThermalSphericParticle<SphericParticle>; //Explicit Instantiation
-  template class ThermalSphericParticle<SphericContinuumParticle>; //Explicit Instantiation
+  //Explicit Instantiation
+  template class ThermalSphericParticle<SphericParticle>;
+  template class ThermalSphericParticle<SphericContinuumParticle>;
 
 } // namespace Kratos
