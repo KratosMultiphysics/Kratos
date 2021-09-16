@@ -73,7 +73,7 @@ namespace Kratos
             return norm_2(element_vel) * Dt / h_min;
         }
 
-        // Computing CFl for compressible flows
+        // Computing CFL for compressible flows
         double sound_velocity = 0;
         for (unsigned int i = 0; i < n_nodes; ++i) {
             sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
