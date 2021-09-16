@@ -105,6 +105,33 @@ KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateLocalCFL, FluidDyna
     KRATOS_CHECK_NEAR(r_model_part.GetElement(2).GetValue(CFL_NUMBER), 0.792324, tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateLocalCFLVelocityCompressible, FluidDynamicsApplicationFastSuite)
+{
+    // Set the current delta time to calculate the CFL number
+    const double current_dt = 1.0e-1;
+
+    // Create the test model part
+    Model model;
+    ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
+    TestFluidCharacteristicNumberInitializeModelPart(r_model_part, current_dt);
+
+    auto & r_element = r_model_part.Elements().front();
+    auto & geom = r_element.GetGeometry();
+    
+    // Set nodal data
+    for (std::size_t i=0; i<geom.size(); i++) {
+        geom[i].GetValue(SOUND_VELOCITY) = 340.0;
+    }
+
+    // Calculate the CFL number for an element
+    auto minimum_h_func = FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(r_element.GetGeometry());
+    const double element_cfl = FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity(r_element, minimum_h_func, current_dt);
+
+    // Check result
+    const double tolerance = 1.0e-6;
+    KRATOS_CHECK_NEAR(element_cfl, 0.186339, tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(FluidCharacteristicNumbersCalculateElementPrandtlNumber, FluidDynamicsApplicationFastSuite)
 {
     // Create the test element
