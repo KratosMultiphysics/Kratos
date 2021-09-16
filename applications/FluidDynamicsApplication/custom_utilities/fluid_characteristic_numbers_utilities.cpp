@@ -67,7 +67,6 @@ namespace Kratos
 
         // Calculate element CFL
         const double h_min = rElementSizeCalculator(r_geometry);
-
         const double elem_cfl = norm_2(element_vel) * Dt / h_min;
 
         return elem_cfl;
