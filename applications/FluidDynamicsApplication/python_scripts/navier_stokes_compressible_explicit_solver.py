@@ -150,4 +150,3 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                 self.settings["time_stepping"])
 
         return estimate_dt_utility
-
