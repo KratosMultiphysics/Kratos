@@ -54,8 +54,7 @@ namespace Kratos
     double FluidCharacteristicNumbersUtilities::CalculateElementCFL(
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
-        const double Dt,
-        const bool ConsiderCompressibilityInCFL)
+        const double Dt)
     {
         // Calculate the midpoint velocity
         const auto& r_geometry = rElement.GetGeometry();
@@ -66,19 +65,35 @@ namespace Kratos
         }
         element_vel /= static_cast<double>(n_nodes);
 
-        // Calculate element CFL for incompressible flows
+        // Calculate element CFL
         const double h_min = rElementSizeCalculator(r_geometry);
 
-        if(ConsiderCompressibilityInCFL == false) {
-            return norm_2(element_vel) * Dt / h_min;
+        const double elem_cfl = norm_2(element_vel) * Dt / h_min;
+
+        return elem_cfl;
+    }
+
+    double FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity(
+        const Element &rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt)
+    {
+        // Calculate the midpoint velocity
+        const auto& r_geometry = rElement.GetGeometry();
+        const unsigned int n_nodes = r_geometry.PointsNumber();
+        
+        double sound_velocity = r_geometry[0].GetValue(SOUND_VELOCITY);
+        array_1d<double,3> element_vel = r_geometry[0].FastGetSolutionStepValue(VELOCITY);
+        
+        for (unsigned int i = 1; i < n_nodes; ++i) {
+            sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
+            element_vel += r_geometry[i].FastGetSolutionStepValue(VELOCITY);
         }
 
-        // Computing CFL for compressible flows
-        double sound_velocity = 0;
-        for (unsigned int i = 0; i < n_nodes; ++i) {
-            sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
-        }
+        element_vel /= static_cast<double>(n_nodes);
         sound_velocity /= static_cast<double>(n_nodes);
+
+        const double h_min = rElementSizeCalculator(r_geometry);
 
         return (norm_2(element_vel) + sound_velocity) * Dt / h_min;
     }

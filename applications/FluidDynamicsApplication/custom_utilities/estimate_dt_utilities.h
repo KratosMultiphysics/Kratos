@@ -226,7 +226,7 @@ private:
     bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
     double    mDtMax;                       // User-defined maximum time increment allowed
     double    mDtMin;                       // User-defined minimum time increment allowed
-    bool      mConsiderCompressibilityInCFL;                // User-defined formulation. CFL number depends on this parameter.
+    bool      mConsiderCompressibilityInCFL;// User-defined formulation. CFL number depends on this parameter.
     Flags     mDtEstimationMagnitudesFlags; // Flags indicating the reference magnitudes used in the Dt estimation
     ModelPart &mrModelPart;                 // The problem's model part
 

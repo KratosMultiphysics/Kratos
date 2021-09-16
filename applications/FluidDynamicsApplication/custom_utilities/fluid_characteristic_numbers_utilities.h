@@ -79,14 +79,27 @@ public:
      * @param rElement Element to calculate the CFL number
      * @param rGeometryInfo Auxiliary geometry data container
      * @param Dt Current time increment
-     * @param ConsiderCompressibilityInCFL Selects which CFL formula to use
      * @return double The element CFL number
      */
     static double CalculateElementCFL(
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
-        const double Dt,
-        const bool ConsiderCompressibilityInCFL = false);
+        const double Dt);
+
+
+    /**
+     * @brief Calulate element CFL number for compressible flows (considering sound velocity)
+     * For the given element, this method calculates the CFL number
+     * @param rElement Element to calculate the CFL number
+     * @param rGeometryInfo Auxiliary geometry data container
+     * @param Dt Current time increment
+     * @return double The element CFL number
+     */
+    static double CalculateElementCFLWithSoundVelocity(
+        const Element &rElement,
+        const ElementSizeFunctionType& rElementSizeCalculator,
+        const double Dt);
+
 
     /**
      * @brief Calculate the element Prandtl number

@@ -86,10 +86,17 @@ namespace Kratos
         const auto& r_geom = mrModelPart.ElementsBegin()->GetGeometry();
         ElementSizeFunctionType minimum_h_func = FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(r_geom);
 
+        
+        // Deciding what CFL calculator to use
+        auto compute_cfl = mConsiderCompressibilityInCFL ? 
+                & FluidCharacteristicNumbersUtilities::CalculateElementCFL
+                : & FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity;
+        
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
+
         const double current_cfl = block_for_each<MaxReduction<double>>(mrModelPart.Elements(), [&](Element& rElement) -> double {
-            return FluidCharacteristicNumbersUtilities::CalculateElementCFL(rElement, minimum_h_func, current_dt, mConsiderCompressibilityInCFL);
+            return compute_cfl(rElement, minimum_h_func, current_dt);
         });
 
         // Calculate the new time increment from the maximum local CFL in the mesh
