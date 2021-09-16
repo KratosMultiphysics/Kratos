@@ -36,12 +36,15 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
 
     mrResultantForce = ZeroVector(3);
 
+    std::ofstream outfile;
+    outfile.open("cp_normals.txt");
+
     //Declaring auxilary variables needed to use with omp
     double fx = 0.0;
     double fy = 0.0;
     double fz = 0.0;
 
-    #pragma omp parallel for reduction(+:fx,fy,fz)
+    // #pragma omp parallel for reduction(+:fx,fy,fz)
     for(int i = 0; i <  static_cast<int>(mrModelPart.NumberOfElements()); ++i) {
         auto it_elem=mrModelPart.ElementsBegin()+i;
         auto r_geometry = it_elem->GetGeometry();
@@ -60,9 +63,22 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
             std::vector<array_1d<double,3>> cut_normal;
             pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
 
+            Matrix positive_side_sh_func;
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
+            Vector positive_side_weights;
+            pModifiedShFunc -> ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                positive_side_sh_func,
+                positive_side_sh_func_gradients,
+                positive_side_weights,
+            GeometryData::GI_GAUSS_1);
+
+            it_elem->SetValue(VELOCITY_LOWER, cut_normal[0]);
+
             std::vector<double> pressure_coefficient;
             it_elem->CalculateOnIntegrationPoints(PRESSURE_COEFFICIENT,pressure_coefficient,mrModelPart.GetProcessInfo());
 
+            outfile << it_elem->Id() << " " << it_elem->GetGeometry().Center().X() << " " << it_elem->GetGeometry().Center().Y() << " " << it_elem->GetGeometry().Center().Z() << " " << pressure_coefficient[0] << " " << cut_normal[0][0] << " " << cut_normal[0][1] << " " << cut_normal[0][2] << " " << positive_side_weights(0);
+            outfile << "\n";
             //Storing the local cp and cut normal
             it_elem->SetValue(PRESSURE_COEFFICIENT,pressure_coefficient[0]);
             it_elem->SetValue(NORMAL,cut_normal[0]);
@@ -73,6 +89,7 @@ void ComputeEmbeddedLiftProcess<Dim, NumNodes>::Execute()
         }
     }
 
+    outfile.close();
     // Storing final result
     mrResultantForce[0] = fx;
     mrResultantForce[1] = fy;
