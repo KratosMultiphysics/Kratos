@@ -77,7 +77,7 @@ public:
         mViscousFourier = 0.0;
         mThermalFourier = 0.0;
         mConsiderArtificialDiffusion = false;
-        mConsiderCompressibility = false;
+        mConsiderCompressibilityInCFL = false;
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -90,7 +90,7 @@ public:
      * @param ThermalFourier The user-defined thermal conductivity Peclet number
      * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
-     * @param ConsiderCompressibility user-defined switch to select between compressible or incompressible N-S stability conditions
+     * @param ConsiderCompressibilityInCFL user-defined switch to select between compressible or incompressible CFL stability conditions
      */
     EstimateDtUtility(
         ModelPart &ModelPart,
@@ -101,7 +101,7 @@ public:
         const bool NodalDensityFormulation,
         const double DtMin,
         const double DtMax,
-        const bool ConsiderCompressibility = false)
+        const bool ConsiderCompressibilityInCFL = false)
         : mrModelPart(ModelPart)
     {
         mCFL = CFL;
@@ -111,7 +111,7 @@ public:
         mThermalFourier = ThermalFourier;
         mConsiderArtificialDiffusion = ConsiderArtificialDiffusion;
         mNodalDensityFormulation = NodalDensityFormulation;
-        mConsiderCompressibility = ConsiderCompressibility;
+        mConsiderCompressibilityInCFL = ConsiderCompressibilityInCFL;
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -127,15 +127,15 @@ public:
         : mrModelPart(ModelPart)
     {
         Parameters defaultParameters(R"({
-            "automatic_time_step"           : true,
-            "CFL_number"                    : 1.0,
-            "Viscous_Fourier_number"        : 0.0,
-            "Thermal_Fourier_number"        : 0.0,
-            "consider_artificial_diffusion" : false,
-            "nodal_density_formulation"     : false,
-            "minimum_delta_time"            : 1e-4,
-            "maximum_delta_time"            : 0.1,
-            "consider_compressibility"      : false
+            "automatic_time_step"             : true,
+            "CFL_number"                      : 1.0,
+            "Viscous_Fourier_number"          : 0.0,
+            "Thermal_Fourier_number"          : 0.0,
+            "consider_artificial_diffusion"   : false,
+            "nodal_density_formulation"       : false,
+            "minimum_delta_time"              : 1e-4,
+            "maximum_delta_time"              : 0.1,
+            "consider_compressibility_in_CFL" : false
         })");
 
         rParameters.ValidateAndAssignDefaults(defaultParameters);
@@ -147,7 +147,7 @@ public:
         mNodalDensityFormulation = rParameters["nodal_density_formulation"].GetBool();
         mDtMin = rParameters["minimum_delta_time"].GetDouble();
         mDtMax = rParameters["maximum_delta_time"].GetDouble();
-        mConsiderCompressibility = rParameters["consider_compressibility"].GetBool();
+        mConsiderCompressibilityInCFL = rParameters["consider_compressibility_in_CFL"].GetBool();
 
         SetDtEstimationMagnitudesFlag();
     }
@@ -226,7 +226,7 @@ private:
     bool      mNodalDensityFormulation;     // Specifies if the density is nodally stored (only required for the Peclet number)
     double    mDtMax;                       // User-defined maximum time increment allowed
     double    mDtMin;                       // User-defined minimum time increment allowed
-    bool      mConsiderCompressibility;                // User-defined formulation. CFL number depends on this parameter.
+    bool      mConsiderCompressibilityInCFL;                // User-defined formulation. CFL number depends on this parameter.
     Flags     mDtEstimationMagnitudesFlags; // Flags indicating the reference magnitudes used in the Dt estimation
     ModelPart &mrModelPart;                 // The problem's model part
 

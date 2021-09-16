@@ -55,7 +55,7 @@ namespace Kratos
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt,
-        const bool ConsiderCompressibility)
+        const bool ConsiderCompressibilityInCFL)
     {
         // Calculate the midpoint velocity
         const auto& r_geometry = rElement.GetGeometry();
@@ -69,7 +69,7 @@ namespace Kratos
         // Calculate element CFL for incompressible flows
         const double h_min = rElementSizeCalculator(r_geometry);
 
-        if(ConsiderCompressibility == false) {
+        if(ConsiderCompressibilityInCFL == false) {
             return norm_2(element_vel) * Dt / h_min;
         }
 

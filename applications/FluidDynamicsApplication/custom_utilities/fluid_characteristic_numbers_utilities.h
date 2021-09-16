@@ -79,14 +79,14 @@ public:
      * @param rElement Element to calculate the CFL number
      * @param rGeometryInfo Auxiliary geometry data container
      * @param Dt Current time increment
-     * @param ConsiderCompressibility Selects which CFL formula to use
+     * @param ConsiderCompressibilityInCFL Selects which CFL formula to use
      * @return double The element CFL number
      */
     static double CalculateElementCFL(
         const Element &rElement,
         const ElementSizeFunctionType& rElementSizeCalculator,
         const double Dt,
-        const bool ConsiderCompressibility = false);
+        const bool ConsiderCompressibilityInCFL = false);
 
     /**
      * @brief Calculate the element Prandtl number

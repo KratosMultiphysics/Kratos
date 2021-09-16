@@ -73,12 +73,12 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
 
 
     @classmethod
-    def CreateSolverAndModelPart(cls, consider_compressibility):
+    def CreateSolverAndModelPart(cls, consider_compressibility_in_CFL):
         model = KratosMultiphysics.Model()
         mpart = model.CreateModelPart("FluidModelPart")
         mpart = mpart.CreateSubModelPart("volume_model_part")
 
-        solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, cls.GetSettings(2, consider_compressibility))
+        solver = navier_stokes_compressible_explicit_solver.CreateSolver(model, cls.GetSettings(2, consider_compressibility_in_CFL))
         solver.AddVariables()
 
         mpart.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -95,7 +95,7 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
 
 
     @classmethod
-    def GetSettings(cls, n_dimensions = 2, consider_compressibility = True):
+    def GetSettings(cls, n_dimensions = 2, consider_compressibility_in_CFL = True):
         return KratosMultiphysics.Parameters("""
             {
                 "solver_type": "compressible_solver_from_defaults",
@@ -122,10 +122,10 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                     "CFL_number"          : 1.0,
                     "minimum_delta_time"  : 1.0e-8,
                     "maximum_delta_time"  : 1.0e-2,
-                    "consider_compressibility" : %s
+                    "consider_compressibility_in_CFL" : %s
                 },
                 "use_oss" : true
-            }""" % (n_dimensions, str(consider_compressibility).lower()))
+            }""" % (n_dimensions, str(consider_compressibility_in_CFL).lower()))
 
 if __name__ == '__main__':
     KratosUnittest.main()

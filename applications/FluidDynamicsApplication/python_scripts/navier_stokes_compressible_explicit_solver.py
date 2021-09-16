@@ -63,7 +63,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
                 "CFL_number"          : 1.0,
                 "minimum_delta_time"  : 1.0e-8,
                 "maximum_delta_time"  : 1.0e-2,
-                "consider_compressibility" : true
+                "consider_compressibility_in_CFL" : true
             },
             "use_oss" : true
         }""")
