@@ -75,7 +75,7 @@ namespace Kratos
 
         // Computing CFl for compressible flows
         double sound_velocity = 0;
-        for (unsigned int i = 1; i < n_nodes; ++i) {
+        for (unsigned int i = 0; i < n_nodes; ++i) {
             sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
         }
         sound_velocity /= static_cast<double>(n_nodes);
