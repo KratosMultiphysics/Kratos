@@ -141,7 +141,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
             KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
         else:
-            self.settings["time_stepping"].AddEmptyfield("consider_compressibility_in_CFL")
+            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
         
         self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
         
