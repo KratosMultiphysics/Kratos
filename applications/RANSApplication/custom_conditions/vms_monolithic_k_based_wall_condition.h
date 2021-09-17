@@ -267,8 +267,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mWallHeight;
-
     ///@}
     ///@name Serialization
     ///@{

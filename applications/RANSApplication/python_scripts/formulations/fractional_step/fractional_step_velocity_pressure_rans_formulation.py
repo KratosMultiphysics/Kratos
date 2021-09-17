@@ -17,7 +17,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetConvergenceInfo
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
-
+from KratosMultiphysics.RANSApplication.formulations.utilities import AddWallPropertiesUpdateProcess
 
 class FractionalStepVelocityPressureRansFormulation(RansFormulation):
     def __init__(self, model_part, settings):
@@ -324,6 +324,8 @@ class FractionalStepVelocityPressureRansFormulation(RansFormulation):
             msg += "\tgeneralized_wall_condition\n"
             msg += "\twerner_wengle_wall_condition\n"
             raise Exception(msg)
+
+        AddWallPropertiesUpdateProcess(self, settings)
 
     def ElementHasNodalProperties(self):
         return True

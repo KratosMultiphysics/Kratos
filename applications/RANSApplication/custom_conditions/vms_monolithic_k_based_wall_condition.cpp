@@ -118,15 +118,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::Initialize(const Process
     KRATOS_TRY;
 
     if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-        const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-
-        mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
-
         this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
-
-        this->SetValue(DISTANCE, mWallHeight);
-
-        KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
     }
 
     KRATOS_CATCH("");
@@ -393,6 +385,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
         array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
 
         auto& gauss_y_plus = this->GetValue(GAUSS_RANS_Y_PLUS);
+        const double wall_height = this->GetValue(DISTANCE);
 
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const Vector& gauss_shape_functions = row(shape_functions, g);
@@ -410,7 +403,7 @@ void VMSMonolithicKBasedWallCondition<TDim, TNumNodes>::ApplyWallLaw(
 
             double u_tau{0.0};
             CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
-                                  mWallHeight, nu, kappa, beta);
+                                  wall_height, nu, kappa, beta);
             y_plus = std::max(y_plus, y_plus_limit);
 
             if (wall_velocity_magnitude > eps) {

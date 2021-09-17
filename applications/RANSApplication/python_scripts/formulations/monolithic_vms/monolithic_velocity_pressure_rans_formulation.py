@@ -18,6 +18,7 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import InitializePeriodicConditions
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
+from KratosMultiphysics.RANSApplication.formulations.utilities import AddWallPropertiesUpdateProcess
 
 class StabilizedFormulation(object):
     """Helper class to define stabilization-dependent parameters."""
@@ -309,6 +310,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             msg += "Supported wall function region types are:\n"
             msg += "\tlogarithmic_region_only\n"
             raise Exception(msg)
+
+        AddWallPropertiesUpdateProcess(self, settings)
 
     def GetStrategy(self):
         if (hasattr(self, "solver")):

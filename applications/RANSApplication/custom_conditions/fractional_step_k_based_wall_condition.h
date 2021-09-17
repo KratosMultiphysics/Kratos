@@ -330,21 +330,7 @@ public:
         KRATOS_TRY;
 
         if (RansCalculationUtilities::IsWallFunctionActive(*this)) {
-            const array_1d<double, 3>& r_normal = this->GetValue(NORMAL);
-            KRATOS_ERROR_IF(norm_2(r_normal) == 0.0)
-                << "NORMAL must be calculated before using this "
-                << this->Info() << "\n";
-
-            KRATOS_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() == 0)
-                << this->Info() << " cannot find parent element\n";
-
-            mWallHeight = RansCalculationUtilities::CalculateWallHeight(*this, r_normal);
-
             this->SetValue(GAUSS_RANS_Y_PLUS, Vector(this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod())));
-
-            this->SetValue(DISTANCE, mWallHeight);
-
-            KRATOS_ERROR_IF(mWallHeight == 0.0) << this->Info() << " has zero wall height.\n";
         }
 
         KRATOS_CATCH("");
@@ -538,6 +524,7 @@ protected:
 
             double tke;
             array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
+            const double wall_height = this->GetValue(DISTANCE);
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
@@ -555,7 +542,7 @@ protected:
 
                 double y_plus{0.0}, u_tau{0.0};
                 CalculateYPlusAndUtau(y_plus, u_tau, wall_velocity_magnitude,
-                                      mWallHeight, nu, kappa, beta);
+                                      wall_height, nu, kappa, beta);
                 y_plus = std::max(y_plus, y_plus_limit);
 
                 u_tau = std::max(c_mu_25 * std::sqrt(std::max(tke, 0.0)),
@@ -596,8 +583,6 @@ protected:
 private:
     ///@name Member Variables
     ///@{
-
-    double mWallHeight;
 
     ///@}
     ///@name Serialization
