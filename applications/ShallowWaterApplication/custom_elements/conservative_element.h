@@ -66,10 +66,6 @@ public:
 
     typedef typename WaveElementType::PropertiesType PropertiesType;
 
-    // typedef typename WaveElementType::EquationIdVectorType EquationIdVectorType;
-
-    // typedef typename WaveElementType::DofsVectorType DofsVectorType;
-
     typedef typename WaveElementType::ElementData ElementData;
 
     typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
@@ -153,32 +149,6 @@ public:
         return p_new_elem;
     }
 
-    /**
-     * @brief Check that all required data containers are properly initialized and registered in Kratos
-     * @return 0 if no errors are detected.
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // /**
-    //  * @brief Fill given vector with the linear system row index for the element's degrees of freedom
-    //  * @param rResult
-    //  * @param rCurrentProcessInfo
-    //  */
-    // void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // /**
-    //  * @brief Fill given array with containing the element's degrees of freedom
-    //  * @param rElementalDofList
-    //  * @param rCurrentProcessInfo
-    //  */
-    // void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    // /**
-    //  * @brief Get the variable which defines the degrees of freedom
-    //  */
-    // void GetValuesVector(Vector& rValues, int Step = 0) const override;
-
-
     ///@}
     ///@name Input and output
     ///@{
@@ -202,36 +172,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
-    // void AddWaveTerms(
-    //     LocalMatrixType& rMatrix,
-    //     LocalVectorType& rVector,
-    //     const ElementData& rData,
-    //     const array_1d<double,TNumNodes>& rN,
-    //     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    //     const double Weight = 1.0) override;
-
-    // void AddFrictionTerms(
-    //     LocalMatrixType& rMatrix,
-    //     LocalVectorType& rVector,
-    //     const ElementData& rData,
-    //     const array_1d<double,TNumNodes>& rN,
-    //     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    //     const double Weight = 1.0) override;
-
-    // void AddArtificialViscosityTerms(
-    //     LocalMatrixType& rMatrix,
-    //     const ElementData& rData,
-    //     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    //     const double Weight = 1.0) override;
-
-    // void AddMassTerms(
-    //     LocalMatrixType& rMatrix,
-    //     const ElementData& rData,
-    //     const array_1d<double,TNumNodes>& rN,
-    //     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    //     const double Weight = 1.0) override;
-
 
     const Variable<double>& GetUnknownComponent(int Index) const override;
 
