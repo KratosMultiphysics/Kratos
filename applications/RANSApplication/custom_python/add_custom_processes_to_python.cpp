@@ -76,9 +76,6 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansInitializeBossakPreviousStepVariableDerivatives, RansInitializeBossakPreviousStepVariableDerivatives::Pointer, Process>(m, "RansInitializeBossakPreviousStepVariableDerivatives")
         .def(py::init<Model&, Parameters&>());
 
-    py::class_<RansOmegaViscousLogWallProcess, RansOmegaViscousLogWallProcess::Pointer, Process>(m, "RansOmegaViscousLogWallProcess")
-        .def(py::init<Model&, Parameters&>());
-
     // adding RansFormulationProcesses
     py::class_<RansFormulationProcess, RansFormulationProcess::Pointer, Process>(m, "RansFormulationProcess")
         .def(py::init<>())
@@ -106,13 +103,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     py::class_<RansVariableDataTransferProcess, RansVariableDataTransferProcess::Pointer, RansFormulationProcess>(m, "RansVariableDataTransferProcess")
         .def(py::init<Model&, Parameters&>())
         .def(py::init<Model&, const std::string&, const std::string&, const std::vector<std::string>&, const std::vector<std::tuple<const std::string, const bool, const int, const std::string, const bool, const int>>&, const int>())
-        .def(py::init<Model&, Model&, const std::string&, const std::string&, const std::vector<std::string>&, const std::vector<std::tuple<const std::string, const bool, const int, const std::string, const bool, const int>>&, const int>())
-        ;
+        .def(py::init<Model&, Model&, const std::string&, const std::string&, const std::vector<std::string>&, const std::vector<std::tuple<const std::string, const bool, const int, const std::string, const bool, const int>>&, const int>());
 
     py::class_<RansWallPropertiesUpdateProcess, RansWallPropertiesUpdateProcess::Pointer, RansFormulationProcess>(m, "RansWallPropertiesUpdateProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const bool, const bool, const std::vector<std::string>&, const int>())
-        ;
+        .def(py::init<Model&, const std::string&, const bool, const bool, const std::vector<std::string>&, const int>());
+
+    py::class_<RansOmegaViscousLogWallProcess, RansOmegaViscousLogWallProcess::Pointer, RansFormulationProcess>(m, "RansOmegaViscousLogWallProcess")
+        .def(py::init<Model&, Parameters&>());
 }
 } // namespace Python
 } // namespace Kratos

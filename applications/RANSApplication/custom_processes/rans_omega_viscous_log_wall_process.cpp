@@ -35,7 +35,9 @@
 namespace Kratos
 {
 /// Constructor
-RansOmegaViscousLogWallProcess::RansOmegaViscousLogWallProcess(Model& rModel, Parameters& rParameters)
+RansOmegaViscousLogWallProcess::RansOmegaViscousLogWallProcess(
+    Model& rModel,
+    Parameters& rParameters)
     : mrModel(rModel)
 {
     KRATOS_TRY
@@ -52,6 +54,8 @@ RansOmegaViscousLogWallProcess::RansOmegaViscousLogWallProcess(Model& rModel, Pa
                                         "modelpart "
                                      << mModelPartName << "\n.";
 
+    this->UpdateExecutionPointsList(rParameters["execution_points"].GetStringArray());
+
     KRATOS_CATCH("");
 }
 
@@ -66,18 +70,15 @@ void RansOmegaViscousLogWallProcess::ExecuteInitialize()
             << "Fixed TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE dofs in "
             << mModelPartName << ".\n";
     }
+
+    BaseType::ExecuteInitialize();
 }
 
-void RansOmegaViscousLogWallProcess::ExecuteInitializeSolutionStep()
-{
-    Execute();
-}
-
-void RansOmegaViscousLogWallProcess::Execute()
+void RansOmegaViscousLogWallProcess::ExecuteOperation()
 {
     KRATOS_TRY
 
-    using TLS = std::tuple<Vector, Matrix, Geometry<Node<3>>::ShapeFunctionsGradientsType>;
+    using tls_type = std::tuple<Vector, Matrix, Geometry<Node<3>>::ShapeFunctionsGradientsType>;
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
@@ -89,7 +90,7 @@ void RansOmegaViscousLogWallProcess::Execute()
     VariableUtils().SetHistoricalVariableToZero(
         TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE, r_model_part.Nodes());
 
-    block_for_each(r_conditions, TLS(), [&](ModelPart::ConditionType& rCondition, TLS& rTLS) {
+    block_for_each(r_conditions, tls_type(), [&](ModelPart::ConditionType& rCondition, tls_type& rTLS) {
         auto& Ws = std::get<0>(rTLS);
         auto& Ns = std::get<1>(rTLS);
         auto& dNdXs = std::get<2>(rTLS);
@@ -198,7 +199,8 @@ const Parameters RansOmegaViscousLogWallProcess::GetDefaultParameters() const
         "model_part_name"         : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "echo_level"              : 0,
         "is_fixed"                : true,
-        "min_value"               : 1e-12
+        "min_value"               : 1e-12,
+        "execution_points"        : ["initialize_solution_step"]
     })");
 
     return default_parameters;

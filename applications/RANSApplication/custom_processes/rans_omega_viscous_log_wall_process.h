@@ -22,6 +22,9 @@
 #include "containers/model.h"
 #include "processes/process.h"
 
+// Application includes
+#include "custom_processes/rans_point_execution_formulation_process.h"
+
 namespace Kratos
 {
 ///@addtogroup RANSModellingApplication
@@ -46,11 +49,13 @@ namespace Kratos
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansOmegaViscousLogWallProcess : public Process
+class KRATOS_API(RANS_APPLICATION) RansOmegaViscousLogWallProcess : public RansPointExecutionFormulationProcess
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = RansPointExecutionFormulationProcess;
 
     /// Pointer definition of RansOmegaViscousLogWallProcess
     KRATOS_CLASS_POINTER_DEFINITION(RansOmegaViscousLogWallProcess);
@@ -78,10 +83,6 @@ public:
     ///@{
 
     void ExecuteInitialize() override;
-
-    void ExecuteInitializeSolutionStep() override;
-
-    void Execute() override;
 
     int Check() override;
 
@@ -112,6 +113,12 @@ private:
     double mMinValue;
     bool mIsConstrained;
     int mEchoLevel;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void ExecuteOperation() override;
 
     ///@}
 
