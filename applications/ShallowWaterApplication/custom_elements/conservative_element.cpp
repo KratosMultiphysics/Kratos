@@ -469,13 +469,13 @@ void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData,
     rData.b2[2] = 0;
 }
 
-template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::AddArtificialViscosityTerms(
-    LocalMatrixType& rMatrix,
-    const ElementData& rData,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
-{}
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::AddArtificialViscosityTerms(
+//     LocalMatrixType& rMatrix,
+//     const ElementData& rData,
+//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+//     const double Weight)
+// {}
 
 template<std::size_t TNumNodes>
 double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const

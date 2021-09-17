@@ -259,7 +259,7 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
 }
 
 template<std::size_t TNumNodes>
-virtual void CalculateArtificialViscosityData(
+void WaveElement<TNumNodes>::CalculateArtificialViscosityData(
     ElementData& rData,
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)

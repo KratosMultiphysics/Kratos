@@ -272,12 +272,7 @@ protected:
 
 
     ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
+    ///@name Protected Classes
     ///@{
 
     struct ElementData
@@ -301,11 +296,12 @@ protected:
         array_1d<array_1d<double,3>,TNumNodes> nodal_v;
         array_1d<array_1d<double,3>,TNumNodes> nodal_q;
 
-        array_1d<double,TNumNodes> topography; // TO REMOVE
-        LocalVectorType unknown; // TO REMOVE
-
         FrictionLaw::Pointer p_bottom_friction;
     };
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
     virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
