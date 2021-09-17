@@ -70,13 +70,6 @@
                     "hydrostatic_outlet": false,
                     "h_top": 0.0
                 }
-            },
-            {
-                "python_module": "apply_wall_function_process",
-                "kratos_module": "KratosMultiphysics.RANSApplication",
-                "Parameters": {
-                    "model_part_name": "FluidModelPart.Slip2D"
-                }
             }
         ],
         "gravity": [
