@@ -16,7 +16,7 @@ namespace Kratos {
 
         GanserDragLaw(): StokesDragLaw(){}
 
-        GanserDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        GanserDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~GanserDragLaw(){}
 
