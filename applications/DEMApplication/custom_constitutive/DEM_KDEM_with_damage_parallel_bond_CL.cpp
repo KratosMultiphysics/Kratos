@@ -330,17 +330,14 @@ namespace Kratos {
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
         double kn_updated = (1.0 - mDamageNormal) * kn_el;
-        double current_normal_force_module = fabs(kn_updated * indentation);
+        
         double delta_accumulated = 0.0;
-        if (kn_updated) {
-            delta_accumulated = current_normal_force_module / kn_updated;
-        }
 
         double returned_by_mapping_force = 0.0;
 
         double BondedLocalElasticContactForce2 = 0.0;
-
         const double bonded_indentation = indentation - mInitialIndentationForBondedPart;
+        double current_normal_force_module = 0.0;
 
         if (bonded_indentation >= 0.0) { //COMPRESSION
             if (!failure_type) {
@@ -357,15 +354,19 @@ namespace Kratos {
                     limit_force = initial_limit_force;
                 }
 
+                current_normal_force_module = fabs(kn_updated * bonded_indentation);
+                
                 BondedLocalElasticContactForce2 = kn_updated * bonded_indentation;
+
+                delta_accumulated = current_normal_force_module / kn_updated;
+
+                returned_by_mapping_force = current_normal_force_module;
 
                 if ((current_normal_force_module > limit_force) && !(*mpProperties)[IS_UNBREAKABLE]) {
 
                     if (mDamageEnergyCoeff) { // the material can sustain further damage, not failure yet
 
                         const double delta_at_undamaged_peak = initial_limit_force / kn_el;
-
-                        delta_accumulated = current_normal_force_module / kn_updated;
 
                         returned_by_mapping_force = initial_limit_force - k_softening * (delta_accumulated - delta_at_undamaged_peak);
 

@@ -239,11 +239,13 @@ double ComputeSandProductionWithDepthFirstSearchNonRecursiveImplementation(Model
     ofs_sand_prod_file << time << " " << face_pressure_in_psi << " " << cumulative_sand_mass_in_grams << '\n';
     ofs_sand_prod_file.flush();
 
-    unsigned int number_of_time_steps_between_granulometry_prints = 1e9;
+    unsigned int number_of_time_steps_between_granulometry_prints = 1e9; //TODO: For the time being, we are not interested in printing this
     static unsigned int printing_counter = 0;
     if (printing_counter == number_of_time_steps_between_granulometry_prints) {
         ofs_granulometry_distr_file << time;
-        for (unsigned int k = 0; k < chunks_masses.size(); k++) ofs_granulometry_distr_file << " " << chunks_masses[k];
+        for (unsigned int k = 0; k < chunks_masses.size(); k++) {
+            ofs_granulometry_distr_file << " " << chunks_masses[k];
+        }
         ofs_granulometry_distr_file << '\n';
         printing_counter = 0;
     }
