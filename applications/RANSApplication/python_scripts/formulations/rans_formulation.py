@@ -1,6 +1,8 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
 
+from KratosMultiphysics.process_factory import KratosProcessFactory
+
 class RansFormulation:
     def __init__(self, base_computing_model_part, settings):
         """RansFormulation base class
@@ -56,6 +58,12 @@ class RansFormulation:
         else:
             msg = str(process).rstrip() + " is not a RansFormulationProcess. Please use only RansFormulationProcess objects."
             raise Exception(msg)
+
+    def AddProcessesList(self, kratos_parameters_processes_list):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(kratos_parameters_processes_list)
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
 
     def AddVariables(self):
         """Recursively calls AddVariables methods of existing formulations in this formulaton

@@ -20,6 +20,7 @@ class FractionalStepKOmegaRansFormulation(RansFormulation):
             "incompressible_potential_flow_initialization_settings": {},
             "fractional_step_flow_solver_settings": {},
             "k_omega_solver_settings": {},
+            "auxiliar_process_list": [],
             "max_iterations": 1
         }''')
 
@@ -42,6 +43,8 @@ class FractionalStepKOmegaRansFormulation(RansFormulation):
         self.k_omega_formulation.SetConstants(settings)
 
     def Initialize(self):
+        self.AddProcessesList(self.GetParameters()["auxiliar_process_list"])
+
         # do not change the order of the initialization. This order is required
         # to add nut_nodal_update_process after nu_t update process. Otherwise
         # nut_nodal_update process (which is responsible for distributing element and condition gauss nut to nodes for old
