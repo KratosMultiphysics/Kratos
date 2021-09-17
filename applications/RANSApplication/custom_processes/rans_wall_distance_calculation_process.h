@@ -23,7 +23,7 @@
 #include "includes/define.h"
 
 // Application includes
-#include "rans_formulation_process.h"
+#include "rans_point_execution_formulation_process.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace Kratos
 ///@{
 
 class KRATOS_API(RANS_APPLICATION) RansWallDistanceCalculationProcess
-: public RansFormulationProcess
+: public RansPointExecutionFormulationProcess
 {
 public:
     ///@name Type Definitions
@@ -66,8 +66,6 @@ public:
     ///@{
 
     int Check() override;
-
-    void ExecuteInitializeSolutionStep() override;
 
     const Parameters GetDefaultParameters() const override;
 
@@ -102,8 +100,6 @@ private:
     int mEchoLevel;
     std::string mDistanceVariableName;
     std::string mNodalAreaVariableName;
-    bool mRecalculateAtEachTimeStep;
-    bool mIsInitialized = false;
     double mMaxDistance;
 
     ///@}
@@ -127,7 +123,7 @@ private:
      * Works in MPI as well.
      *
      */
-    void CalculateWallDistances();
+    void ExecuteOperation() override;
 
     ///@}
 
