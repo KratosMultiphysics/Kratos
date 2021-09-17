@@ -1461,6 +1461,8 @@ class DEMIo():
         if self.DEM_parameters["PostParticleMoment"].GetBool():
             self.PushPrintVar(self.PostParticleMoment, PARTICLE_MOMENT, self.global_variables)
         self.PushPrintVar(self.PostDeltaDisplacement, DELTA_DISPLACEMENT, self.global_variables)
+        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.global_variables)
+        self.PushPrintVar(self.PostHeatFlux, HEATFLUX, self.global_variables)
 
     def AddGlobalNonHistoricalNodalVariables(self):
         self.PushPrintVar(self.PostControlModule, TARGET_STRESS, self.global_nonhistorical_nodal_variables)
@@ -1483,8 +1485,6 @@ class DEMIo():
         self.PushPrintVar(self.PostDampForces, DAMP_FORCES, self.spheres_variables)
         self.PushPrintVar(self.PostRadius, RADIUS, self.spheres_variables)
         self.PushPrintVar(self.PostExportId, EXPORT_ID, self.spheres_variables)
-        self.PushPrintVar(self.PostTemperature, TEMPERATURE, self.spheres_variables)
-        self.PushPrintVar(self.PostHeatFlux, HEATFLUX, self.spheres_variables)
         self.PushPrintVar(self.PostNormalImpactVelocity, NORMAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostTangentialImpactVelocity, TANGENTIAL_IMPACT_VELOCITY, self.spheres_variables)
         self.PushPrintVar(self.PostFaceNormalImpactVelocity, FACE_NORMAL_IMPACT_VELOCITY, self.spheres_variables)
