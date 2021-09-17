@@ -12,11 +12,6 @@
 #if !defined(KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS )
 #define  KRATOS_SET_SPHERICAL_LOCAL_AXES_PROCESS
 
-#include "processes/process.h"
-#include "includes/model_part.h"
-
-#include "structural_mechanics_application_variables.h"
-
 namespace Kratos
 {
 

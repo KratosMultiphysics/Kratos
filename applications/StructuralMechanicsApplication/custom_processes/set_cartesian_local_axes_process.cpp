@@ -9,10 +9,13 @@
 //  Main authors:    Alejandro Cornejo
 //
 
+#include "processes/process.h"
+#include "includes/model_part.h"
 #include "custom_processes/set_cartesian_local_axes_process.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
