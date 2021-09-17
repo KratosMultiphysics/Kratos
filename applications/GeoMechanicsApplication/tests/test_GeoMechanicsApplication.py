@@ -56,7 +56,7 @@ def AssambleTestSuites(is_team_city):
         KratosGeoMechanicsElementTypeTests,
         KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
         KratosGeoMechanicsTransientGroundWaterFlowTests,
-        KratosGeoMechanicsSoilWeightTests
+        KratosGeoMechanicsSoilWeightTests,
         KratosGeoMechanicsSettlementTests
         ]
 
