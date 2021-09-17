@@ -53,7 +53,7 @@ public:
     /// Function type for the element size calculator function
     typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
 
-    // Funciton type for the CFL calculator function
+    // Function type for the CFL calculator function
     typedef std::function<double(const Element &, const ElementSizeFunctionType &, const double)> CFLCalculatorType;
 
 	///@}
