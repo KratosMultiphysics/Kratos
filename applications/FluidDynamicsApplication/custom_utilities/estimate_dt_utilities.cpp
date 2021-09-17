@@ -89,8 +89,8 @@ namespace Kratos
         
         // Deciding what CFL calculator to use
         auto compute_cfl = mConsiderCompressibilityInCFL ? 
-                & FluidCharacteristicNumbersUtilities::CalculateElementCFL
-                : & FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity;
+                & FluidCharacteristicNumbersUtilities::CalculateElementCFLWithSoundVelocity
+                : & FluidCharacteristicNumbersUtilities::CalculateElementCFL;
         
         // Obtain the maximum CFL
         const double current_dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
