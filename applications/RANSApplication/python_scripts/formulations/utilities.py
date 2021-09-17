@@ -378,3 +378,38 @@ class ExecutionScope:
         sys.path.remove(str(self.scope.absolute()))
 
 
+def AddWallPropertiesUpdateProcess(rans_formulation, settings):
+    wall_properties_update_execution_points = ["initialize"]
+    if settings.Has("wall_properties_update_execution_points"):
+        wall_properties_update_execution_points = settings["wall_properties_update_execution_points"].GetStringArray()
+
+    update_wall_normals = True
+    if settings.Has("update_wall_normals"):
+        update_wall_normals = settings["update_wall_normals"].GetBool()
+
+    update_wall_condition_heights = True
+    if settings.Has("update_wall_condition_heights"):
+        update_wall_condition_heights = settings["update_wall_condition_heights"].GetBool()
+
+    echo_level = 0
+    if settings.Has("echo_level"):
+        echo_level = settings["echo_level"].GetInt()
+
+    wall_model_part_name = "ALL_WALL_MODEL_PART"
+    if settings.Has("wall_model_part_name"):
+        wall_model_part_name = settings["wall_model_part_name"].GetString()
+
+    base_model_part = rans_formulation.GetBaseModelPart()
+    wall_model_part = base_model_part.CreateSubModelPart(wall_model_part_name)
+    base_model_part.ProcessInfo[KratosRANS.WALL_MODEL_PART_NAME] = wall_model_part.FullName()
+
+    if len(wall_properties_update_execution_points) > 0:
+        wall_properties_update_process = KratosRANS.RansWallPropertiesUpdateProcess(
+            rans_formulation.GetBaseModelPart().GetModel(),
+            wall_model_part.FullName(),
+            update_wall_normals,
+            update_wall_condition_heights,
+            wall_properties_update_execution_points,
+            echo_level)
+
+        rans_formulation.AddProcess(wall_properties_update_process)
