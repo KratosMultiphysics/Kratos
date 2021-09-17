@@ -16,7 +16,7 @@ namespace Kratos {
 
         ShahDragLaw(): StokesDragLaw(){}
 
-        ShahDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        ShahDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~ShahDragLaw(){}
 

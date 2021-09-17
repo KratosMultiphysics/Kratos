@@ -54,6 +54,11 @@ class TestMacDonaldShockBenchmark(ShallowWaterTestFactory):
     execution_file = "mac_donald_shock_benchmark"
     need_scipy = True
 
+class TestMacDonaldTransitionBenchmark(ShallowWaterTestFactory):
+    execution_directory = "processes_tests"
+    execution_file = "mac_donald_transition_benchmark"
+    need_scipy = True
+
 class TestDamBreakBenchmark(ShallowWaterTestFactory):
     execution_directory = "processes_tests"
     execution_file = "dam_break_benchmark"

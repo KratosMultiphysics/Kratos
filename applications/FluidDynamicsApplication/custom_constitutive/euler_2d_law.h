@@ -83,11 +83,14 @@ namespace Kratos
         /**
          * @return Size of the strain vector (in Voigt notation) for the constitutive law
          */
-        SizeType GetStrainSize() override;
+        SizeType GetStrainSize() const override;
 
         void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
-        int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+        int Check(
+            const Properties& rMaterialProperties,
+            const GeometryType& rElementGeometry,
+            const ProcessInfo& rCurrentProcessInfo) const override;
 
         /**
          * Input and output
@@ -161,4 +164,4 @@ namespace Kratos
 
     }; // Class Euler2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_EULER_LAW_2D_H_INCLUDED  defined 
+#endif // KRATOS_EULER_LAW_2D_H_INCLUDED  defined
