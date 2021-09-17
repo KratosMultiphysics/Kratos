@@ -66,9 +66,9 @@ public:
 
     typedef typename WaveElementType::PropertiesType PropertiesType;
 
-    typedef typename WaveElementType::EquationIdVectorType EquationIdVectorType;
+    // typedef typename WaveElementType::EquationIdVectorType EquationIdVectorType;
 
-    typedef typename WaveElementType::DofsVectorType DofsVectorType;
+    // typedef typename WaveElementType::DofsVectorType DofsVectorType;
 
     typedef typename WaveElementType::ElementData ElementData;
 

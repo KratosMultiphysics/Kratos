@@ -396,6 +396,14 @@ int ConservativeElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo
 //     }
 // }
 
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::AddArtificialViscosityTerms(
+//     LocalMatrixType& rMatrix,
+//     const ElementData& rData,
+//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+//     const double Weight)
+// {}
+
 template<std::size_t TNumNodes>
 const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
@@ -424,8 +432,8 @@ template<std::size_t TNumNodes>
 void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
     const double h = inner_prod(rData.nodal_h, rN);
+    const double c2 = rData.gravity * h;
     const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
-    const double c2 = std::sqrt(rData.gravity * h);
 
     rData.height = h;
     rData.velocity = v;
@@ -460,22 +468,16 @@ void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData,
     rData.A2(2,1) = 1;
     rData.A2(2,2) = 0;
 
+    /// b_1
     rData.b1[0] = c2;
     rData.b1[1] = 0;
     rData.b1[2] = 0;
 
+    /// b_2
     rData.b2[0] = 0;
     rData.b2[1] = c2;
     rData.b2[2] = 0;
 }
-
-// template<std::size_t TNumNodes>
-// void ConservativeElement<TNumNodes>::AddArtificialViscosityTerms(
-//     LocalMatrixType& rMatrix,
-//     const ElementData& rData,
-//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-//     const double Weight)
-// {}
 
 template<std::size_t TNumNodes>
 double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const
