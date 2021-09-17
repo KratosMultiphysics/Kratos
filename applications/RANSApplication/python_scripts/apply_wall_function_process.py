@@ -81,14 +81,13 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
         self.fluid_model_part = model[self.wall_mp_list[0]].GetRootModelPart()
 
         if (not self.fluid_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
-            process_info = self.fluid_model_part.ProcessInfo
-            if (process_info.Has(KratosRANS.WALL_MODEL_PART_NAME)):
+            self.model_part = model[self.fluid_model_part.ProcessInfo[KratosRANS.WALL_MODEL_PART_NAME]]
+            if (self.model_part.NumberOfNodes() != 0):
                 raise Exception(
                     "ApplyWallFunctionProcess can be applied only once. Therefore please group all wall model parts to one main model part and apply this process to it."
                 )
 
             # Create a submodel part that stores all the wall model parts provided in the list
-            self.model_part = self.fluid_model_part.CreateSubModelPart(settings["all_wall_model_part_name"].GetString())
             self.wall_smp_name = self.model_part.FullName()
             self.fluid_model_part.ProcessInfo.SetValue(KratosRANS.WALL_MODEL_PART_NAME, self.wall_smp_name)
 
