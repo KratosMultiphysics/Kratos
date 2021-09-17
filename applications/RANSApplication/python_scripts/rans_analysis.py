@@ -1,9 +1,9 @@
 from sys import argv
 
 import KratosMultiphysics as Kratos
+from KratosMultiphysics import IsDistributedRun
 
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
-from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
 
 class RANSAnalysis(FluidDynamicsAnalysis):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
@@ -52,7 +52,20 @@ class RANSAnalysis(FluidDynamicsAnalysis):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Reinitialized solver after re-mesh")
 
     def _CreateSolver(self):
-        return CoupledRANSSolver(self.model, self.project_parameters["solver_settings"])
+        solver_type = self.project_parameters["solver_settings"]["solver_type"].GetString()
+        if IsDistributedRun():
+            parallelism = "MPI"
+        else:
+            parallelism = "OpenMP"
+
+        if (solver_type == "CoupledRANS"):
+            from KratosMultiphysics.RANSApplication.coupled_rans_solver import CoupledRANSSolver
+            return CoupledRANSSolver(self.model, self.project_parameters["solver_settings"])
+        elif (solver_type == "CoupledRANSALE"):
+            from KratosMultiphysics.RANSApplication.coupled_rans_ale_solver import CoupledRANSALESolver
+            return CoupledRANSALESolver(self.model, self.project_parameters["solver_settings"], parallelism)
+        else:
+            raise Exception("Unknown solver type requested.")
 
     def _GetSimulationName(self):
         return "RANS Analysis"
