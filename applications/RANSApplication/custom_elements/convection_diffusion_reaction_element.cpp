@@ -252,13 +252,19 @@ void ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionRea
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    array_1d<double, TDim> mesh_velocity;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_shape_functions = row(shape_functions, g);
 
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, r_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
 
@@ -281,6 +287,11 @@ int ConvectionDiffusionReactionElement<TDim, TNumNodes, TConvectionDiffusionReac
 
     int check = BaseType::Check(rCurrentProcessInfo);
     TConvectionDiffusionReactionData::Check(*this, rCurrentProcessInfo);
+
+    for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
+        const auto& r_node = this->GetGeometry()[i_node];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_node);
+    }
 
     return check;
 

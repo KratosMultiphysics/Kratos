@@ -61,6 +61,7 @@ ModelPart& CreateRansCircularConvectionRFCAdjoint2D3NModelPart(
     // preparing primal model part
     const auto& add_solution_step_variables = [](ModelPart& rModelPart) {
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL_RATE);
         rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_1);
         rModelPart.AddNodalSolutionStepVariable(RANS_SCALAR_1_ADJOINT_1);

@@ -40,6 +40,7 @@ namespace
 void StabilizationValidationAddVariables(ModelPart& rModelPart)
 {
     rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
+    rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
     rModelPart.AddNodalSolutionStepVariable(RANS_AUXILIARY_VARIABLE_1);
     rModelPart.AddNodalSolutionStepVariable(RANS_SCALAR_1_ADJOINT_1);
     rModelPart.AddNodalSolutionStepVariable(RANS_SCALAR_1_ADJOINT_2);

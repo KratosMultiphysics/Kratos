@@ -81,16 +81,22 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     element_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    array_1d<double, TDim> mesh_velocity;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector gauss_shape_functions = row(shape_functions, g);
 
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         this->CalculateContravariantMetricTensor(contravariant_metric_tensor,
                                                  r_parameter_derivatives[g]);
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = element_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = element_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
         const double source = element_data.GetSourceTerm();
@@ -171,11 +177,16 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     element_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    array_1d<double, TDim> mesh_velocity;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const double weight = gauss_weights[g];
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& r_shape_functions = row(shape_functions, g);
+
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, r_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
 
         this->CalculateContravariantMetricTensor(contravariant_metric_tensor,
                                                  r_parameter_derivatives[g]);
@@ -184,7 +195,8 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
         element_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
-        const auto& velocity = element_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = element_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
 
@@ -249,17 +261,23 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
     double variable_value, relaxed_variable_acceleration;
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    array_1d<double, TDim> mesh_velocity;
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const double weight = gauss_weights[g];
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& gauss_shape_functions = row(shape_functions, g);
 
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         this->CalculateContravariantMetricTensor(contravariant_metric_tensor,
                                                  r_parameter_derivatives[g]);
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = element_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = element_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
 

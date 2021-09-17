@@ -537,7 +537,7 @@ protected:
             const double inv_kappa = 1.0 / kappa;
 
             double tke;
-            array_1d<double, 3> wall_velocity;
+            array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
 
             for (size_t g = 0; g < num_gauss_points; ++g)
             {
@@ -546,7 +546,10 @@ protected:
                 FluidCalculationUtilities::EvaluateInPoint(
                     r_geometry, gauss_shape_functions,
                     std::tie(tke, TURBULENT_KINETIC_ENERGY),
-                    std::tie(wall_velocity, VELOCITY));
+                    std::tie(fluid_velocity, VELOCITY),
+                    std::tie(mesh_velocity, MESH_VELOCITY));
+
+                noalias(wall_velocity) = fluid_velocity - mesh_velocity;
 
                 const double wall_velocity_magnitude = norm_2(wall_velocity);
 

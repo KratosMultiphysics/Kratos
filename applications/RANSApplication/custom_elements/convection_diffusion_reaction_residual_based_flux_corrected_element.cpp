@@ -105,9 +105,8 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
             std::tie(mesh_velocity, MESH_VELOCITY));
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        // const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
-        // const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();
@@ -173,6 +172,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    ArrayD  mesh_velocity; // added for Chimera_RANS simulation
 
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
@@ -181,8 +181,14 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
         const double mass = gauss_weights[g] * (1.0 / TNumNodes);
         this->AddLumpedMassMatrix(rMassMatrix, mass);
 
+        // Get MESH_VELOCITY for Chimera_RANS simulation
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
 
@@ -281,14 +287,21 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
     r_current_data.CalculateConstants(rCurrentProcessInfo);
 
     BoundedVector<double, TNumNodes> velocity_convective_terms;
+    ArrayD  mesh_velocity; // added for Chimera_RANS simulation
 
     double scalar_multiplier = 0.0;
     for (IndexType g = 0; g < num_gauss_points; ++g) {
         const Matrix& r_shape_derivatives = shape_derivatives[g];
         const Vector& gauss_shape_functions = row(shape_functions, g);
 
+        // Get MESH_VELOCITY for Chimera_RANS simulation
+        FluidCalculationUtilities::EvaluateInPoint(
+            r_geometry, gauss_shape_functions,
+            std::tie(mesh_velocity, MESH_VELOCITY));
+
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
-        const auto& velocity = r_current_data.GetEffectiveVelocity();
+        const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
+        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();

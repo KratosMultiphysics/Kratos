@@ -125,7 +125,10 @@ void FluidTestUtilities::RandomFillNodalHistoricalVariable(
 {
     for (auto& node : rModelPart.Nodes()) {
         std::stringstream seed;
-        seed << node.Id() << "_HistoricalV_" << rVariable.Name();
+        if (rVariable.Name() == "DISTANCE")
+            seed << node.Id() << "_HistoricalV_" << "WALL_DISTANCE";
+        else
+            seed << node.Id() << "_HistoricalV_" << rVariable.Name();
         TDataType& value = node.FastGetSolutionStepValue(rVariable, Step);
         AssignRandomValues(value, seed.str(), rModelPart.GetProcessInfo()[DOMAIN_SIZE], MinValue, MaxValue);
     }

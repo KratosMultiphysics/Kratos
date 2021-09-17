@@ -75,6 +75,7 @@ class ScalarRansFormulation(RansFormulation):
         for var in list_of_variables:
             self.GetBaseModelPart().AddNodalSolutionStepVariable(var)
 
+        self.GetBaseModelPart().AddNodalSolutionStepVariable(Kratos.MESH_VELOCITY)
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step variables.")
 
     def AddDofs(self):
