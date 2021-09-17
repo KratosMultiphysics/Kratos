@@ -229,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(SteadySubcriticalSkewShallowWater2D3N, ShallowWaterApp
 }
 
 /**
- * @brief Check the ShallowWater2D3N element with subcritical flow (Froude = 2.72789)
+ * @brief Check the ShallowWater2D3N element with supercritical flow (Froude = 2.72789)
  */
 KRATOS_TEST_CASE_IN_SUITE(SteadySupercriticalShallowWater2D3N, ShallowWaterApplicationFastSuite)
 {
