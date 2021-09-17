@@ -210,6 +210,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         solution_strategy.Initialize()
 
+        # Set nodal properties after setting distance(level-set).
+        self._SetNodalProperties()
+
         # Initialize the distance correction process
         self._GetDistanceModificationProcess().ExecuteInitialize()
         self._GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
