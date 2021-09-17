@@ -60,9 +60,9 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   virtual ~ThermalSphericParticle();
 
   // Get/Set methods
-  const double& GetTemperature();
-  const double& GetAmbientTemperature();
-  void SetTemperature(const double temperature);
+  const double& GetParticleTemperature();
+  const double& GetInterstitialFluidTemperature();
+  void SetParticleTemperature(const double temperature);
 
   // Initialization methods
   void Initialize(const ProcessInfo& r_process_info) override;

@@ -25,17 +25,17 @@ namespace Kratos
   // Get/Set methods
 
   template <class TBaseElement>
-  const double& ThermalSphericParticle<TBaseElement>::GetTemperature() {
+  const double& ThermalSphericParticle<TBaseElement>::GetParticleTemperature() {
     return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
   }
 
   template <class TBaseElement>
-  const double& ThermalSphericParticle<TBaseElement>::GetAmbientTemperature() {
+  const double& ThermalSphericParticle<TBaseElement>::GetInterstitialFluidTemperature() {
     return GetGeometry()[0].FastGetSolutionStepValue(AMBIENT_TEMPERATURE);
   }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::SetTemperature(const double temperature) {
+  void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
     GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
   }
 
@@ -96,11 +96,11 @@ namespace Kratos
       ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
 
       // Get particle properties
-      double this_temp   = GetTemperature();
+      double this_temp   = GetParticleTemperature();
       double this_radius = GetRadius();
 
       // Get neighbour properties
-      double other_temp   = neighbour_iterator->GetTemperature();
+      double other_temp   = neighbour_iterator->GetParticleTemperature();
       double other_radius = neighbour_iterator->GetRadius();
 
       // Compute minimum radius
@@ -135,7 +135,7 @@ namespace Kratos
       if (wall == NULL) continue;
       
       // Get particle properties
-      double particle_temp = GetTemperature();
+      double particle_temp = GetParticleTemperature();
 
       // Get wall temperature as the average of its nodes
       double wall_temp = 0.0;
@@ -205,18 +205,18 @@ namespace Kratos
       double dt              = r_process_info[DELTA_TIME];
       double thermal_inertia = GetMass() * mSpecificHeat;
       double temp_increment  = mTotalHeatFlux / thermal_inertia * dt;
-      double temp_new        = GetTemperature() + temp_increment;
+      double temp_new        = GetParticleTemperature() + temp_increment;
       
       // Set new temperature
-      SetTemperature(temp_new);
+      SetParticleTemperature(temp_new);
     }
   }
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
-    double this_temp      = GetTemperature();
-    double amb_temp       = GetAmbientTemperature();
-    double relative_temp  = this_temp - amb_temp; // temp in Kelvin
+    double this_temp      = GetParticleTemperature();
+    double fluid_temp     = GetInterstitialFluidTemperature();
+    double relative_temp  = this_temp - fluid_temp; // temp in Kelvin
     double thermal_alpha  = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
     double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
     SetRadius(updated_radius);
@@ -225,8 +225,8 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2) {
     //thermalRelVel = 0;
-    //double temperature = GetTemperature();
-    //double other_temperature = element2->GetTemperature();
+    //double temperature = GetParticleTemperature();
+    //double other_temperature = element2->GetParticleTemperature();
     //double previous_temperature = mPreviousTemperature;
     //double previous_other_temperature = element2->mPreviousTemperature;
     //double thermal_alpha = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
@@ -247,7 +247,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     TBaseElement::FinalizeSolutionStep(r_process_info);
     UpdateTemperature(r_process_info);
-    mPreviousTemperature = GetTemperature();
+    mPreviousTemperature = GetParticleTemperature();
     GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
   }
 
