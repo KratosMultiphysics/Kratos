@@ -86,7 +86,7 @@ namespace Kratos
         
         for (unsigned int i = 1; i < n_nodes; ++i) {
             sound_velocity += r_geometry[i].GetValue(SOUND_VELOCITY);
-            element_vel += r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+            noalias(element_vel) += r_geometry[i].FastGetSolutionStepValue(VELOCITY);
         }
 
         element_vel /= static_cast<double>(n_nodes);
