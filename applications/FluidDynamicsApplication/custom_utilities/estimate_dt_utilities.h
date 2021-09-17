@@ -53,6 +53,9 @@ public:
     /// Function type for the element size calculator function
     typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
 
+    // Funciton type for the CFL calculator function
+    typedef std::function<double(const Element &, const ElementSizeFunctionType &, const double)> CFLCalculatorType;
+
 	///@}
 	///@name Life Cycle
 	///@{
@@ -287,6 +290,15 @@ private:
      * @param rNewDeltaTime Time increment to be checked
      */
     void LimitNewDeltaTime(double& rNewDeltaTime) const;
+
+    
+    /**
+     * @brief Gets utility to compute the CFL with
+     * This method returns a utility according to the compressibility, as expressed by 
+     * mConsiderCompressibilityInCFL
+     * @return CFLCalculatorType The utlity to compute the CFL with
+     */
+    const CFLCalculatorType GetCFLCalculatorUtility() const;
 
     ///@} // Private Operations
 };
