@@ -158,7 +158,7 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
 }
 
 template<std::size_t TNumNodes>
-array_1d<double,WaveElement<TNumNodes>::mLocalSize> WaveElement<TNumNodes>::GetUnknownVector(ElementData& rData)
+typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnknownVector(ElementData& rData)
 {
     std::size_t index = 0;
     array_1d<double,mLocalSize> unknown;
@@ -191,6 +191,7 @@ void WaveElement<TNumNodes>::GetNodalData(ElementData& rData, const GeometryType
         rData.nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT, Step);
         rData.nodal_z[i] = rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY, Step);
         rData.nodal_v[i] = rGeometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        rData.nodal_q[i] = rGeometry[i].FastGetSolutionStepValue(MOMENTUM, Step);
 
         // const IndexType block = 3 * i;
 
@@ -255,6 +256,14 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
     //     rData.height += rN[i] * h;
     //     rData.velocity += rN[i] * v;
     // }
+}
+
+template<std::size_t TNumNodes>
+virtual void CalculateArtificialViscosityData(
+    ElementData& rData,
+    const array_1d<double,TNumNodes>& rN,
+    const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
 }
 
 template<std::size_t TNumNodes>
@@ -608,6 +617,19 @@ double WaveElement<TNumNodes>::InverseHeight(const ElementData& rData) const
     const double height = rData.height;
     const double epsilon = rData.relative_dry_height * rData.length;
     return ShallowWaterUtilities().InverseHeight(height, epsilon);
+}
+
+template<std::size_t TNumNodes>
+const array_1d<double,3> WaveElement<TNumNodes>::VectorProduct(
+    const array_1d<array_1d<double,3>,TNumNodes>& rV,
+    const array_1d<double,TNumNodes>& rN) const
+{
+    array_1d<double,3> result = ZeroVector(3);
+    for (std::size_t i = 0; i < TNumNodes; ++i)
+    {
+        result += rV[i] * rN[i];
+    }
+    return result;
 }
 
 template<>

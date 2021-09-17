@@ -55,238 +55,418 @@ int ConservativeElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo
     KRATOS_CATCH("")
 }
 
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+// {
+//     KRATOS_TRY
+
+//     if(rResult.size() != mLocalSize)
+//         rResult.resize(mLocalSize, false); // False says not to preserve existing storage!!
+
+//     const GeometryType& r_geom = this->GetGeometry();
+//     int counter = 0;
+//     for (IndexType i = 0; i < TNumNodes; i++)
+//     {
+//         rResult[counter++] = r_geom[i].GetDof(MOMENTUM_X).EquationId();
+//         rResult[counter++] = r_geom[i].GetDof(MOMENTUM_Y).EquationId();
+//         rResult[counter++] = r_geom[i].GetDof(HEIGHT).EquationId();
+//     }
+
+//     KRATOS_CATCH("")
+// }
+
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+// {
+//     KRATOS_TRY
+
+//     if(rElementalDofList.size() != mLocalSize)
+//         rElementalDofList.resize(mLocalSize);
+
+//     const GeometryType& r_geom = this->GetGeometry();
+//     int counter=0;
+//     for (IndexType i = 0; i < TNumNodes; i++)
+//     {
+//         rElementalDofList[counter++] = r_geom[i].pGetDof(MOMENTUM_X);
+//         rElementalDofList[counter++] = r_geom[i].pGetDof(MOMENTUM_Y);
+//         rElementalDofList[counter++] = r_geom[i].pGetDof(HEIGHT);
+//     }
+
+//     KRATOS_CATCH("")
+// }
+
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
+// {
+//     if (rValues.size() != mLocalSize)
+//         rValues.resize(mLocalSize, false);
+
+//     const GeometryType& r_geom = this->GetGeometry();
+//     IndexType counter = 0;
+//     for (IndexType i = 0; i < TNumNodes; i++)
+//     {
+//         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X, Step);
+//         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y, Step);
+//         rValues[counter++] = r_geom[i].FastGetSolutionStepValue(HEIGHT, Step);
+//     }
+// }
+
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::AddWaveTerms(
+//     LocalMatrixType& rMatrix,
+//     LocalVectorType& rVector,
+//     const ElementData& rData,
+//     const array_1d<double,TNumNodes>& rN,
+//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+//     const double Weight)
+// {
+//     const bool integrate_by_parts = false;
+//     const auto z = rData.topography;
+//     const double u_1 = rData.velocity[0];
+//     const double u_2 = rData.velocity[1];
+//     const double c2 = rData.gravity * rData.height;
+//     const double l = this->StabilizationParameter(rData);
+
+//     for (IndexType i = 0; i < TNumNodes; ++i)
+//     {
+//         const IndexType i_block = 3 * i;
+//         for (IndexType j = 0; j < TNumNodes; ++j)
+//         {
+//             const IndexType j_block = 3 * j;
+
+//             double g1_ij;
+//             double g2_ij;
+//             double d_ij;
+//             if (integrate_by_parts) {
+//                 g1_ij = -rDN_DX(i,0) * rN[j];
+//                 g2_ij = -rDN_DX(i,1) * rN[j];
+//             } else {
+//                 g1_ij = rN[i] * rDN_DX(j,0);
+//                 g2_ij = rN[i] * rDN_DX(j,1);
+//             }
+
+//             /* First component
+//              * A_1 = {{2 * u_1   0   -u_1^2 + gh},
+//              *        {  u_2    u_1   -u_1 * u_2},
+//              *        {   1      0        0     }}
+//              * b_1 = {gh, 0, 0}^T
+//              */
+//             rMatrix(i_block,     j_block)     += Weight * g1_ij * 2*u_1;
+//             rMatrix(i_block,     j_block + 2) += Weight * g1_ij * (-u_1*u_1 + c2);
+//             rMatrix(i_block + 1, j_block)     += Weight * g1_ij * u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * g1_ij * u_1;
+//             rMatrix(i_block + 1, j_block + 2) += Weight * g1_ij * (-u_1*u_2);
+//             rMatrix(i_block + 2, j_block)     += Weight * g1_ij;
+//             rVector[i_block]                  -= Weight * g1_ij * c2 * z[j];
+
+//             /* Second component
+//              * A_2 = {{u_2    u_1      -u_1 * u_2},
+//              *        { 0   2 * u_2   -u_2^2 + gh},
+//              *        { 0      1            0    }}
+//              * b_2 = {0, gh, 0}^T
+//              */
+//             rMatrix(i_block,     j_block)     += Weight * g2_ij * u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * g2_ij * u_1;
+//             rMatrix(i_block,     j_block + 2) += Weight * g2_ij * (-u_1*u_2);
+//             rMatrix(i_block + 1, j_block + 1) += Weight * g2_ij * 2*u_2;
+//             rMatrix(i_block + 1, j_block + 2) += Weight * g2_ij * (-u_2*u_2 + c2);
+//             rMatrix(i_block + 2, j_block + 1) += Weight * g2_ij;
+//             rVector[i_block + 1]              -= Weight * g2_ij * c2 * z[j];
+
+//             /* Stabilization x-x
+//              * A1*A1
+//              * A1*b1
+//              */
+//             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
+//             rMatrix(i_block,     j_block)     += Weight * l * d_ij * (3*pow(u_1,2) + c2);
+//             rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
+//             rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * pow(u_1,2);
+//             rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+//             rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * 2*u_1;
+//             rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij * (-pow(u_1,2) + c2);
+//             rVector[i_block]                  -= Weight * l * d_ij * 2*u_1*c2 * z[j];
+//             rVector[i_block + 1]              -= Weight * l * d_ij * u_2*c2 * z[j];
+//             rVector[i_block + 2]              -= Weight * l * d_ij * c2 * z[j];
+
+//             /* Stabilization y-y
+//              * A2*A2
+//              * A2*b2
+//              */
+//             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
+//             rMatrix(i_block,     j_block)     += Weight * l * d_ij * pow(u_2,2);
+//             rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * (3*(pow(u_2,2) + c2));
+//             rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * 2*u_2;
+//             rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij * (-pow(u_2,2) + c2);
+//             rVector[i_block]                  -= Weight * l * d_ij * u_1*c2 * z[j];
+//             rVector[i_block + 1]              -= Weight * l * d_ij * 2*u_2*c2 * z[j];
+//             rVector[i_block + 2]              -= Weight * l * d_ij * c2 * z[j];
+
+//             /* Stabilization x-y
+//              * A1*A2
+//              * A1*b1
+//              */
+//             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
+//             rMatrix(i_block,     j_block)     += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * (pow(u_1,2)+c2);
+//             rMatrix(i_block,     j_block + 2) -= Weight * l * d_ij * 2*pow(u_1,2)*u_2;
+//             rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * pow(u_2,2);
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
+//             rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * u_2;
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * u_1;
+//             rMatrix(i_block + 2, j_block + 2) -= Weight * l * d_ij * u_1*u_2;
+//             rVector[i_block + 1]              -= Weight * l * d_ij * u_1*c2 * z[j];
+
+//             /* Stabilization y-x
+//              * A2*A1
+//              * A2*b1
+//              */
+//             d_ij = rDN_DX(j,1) * rDN_DX(i,0);
+//             rMatrix(i_block,     j_block)     += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * pow(u_1,2);
+//             rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
+//             rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * (pow(u_2,2) + c2);
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
+//             rMatrix(i_block + 1, j_block + 2) -= Weight * l * d_ij * 2*u_1*pow(u_2,2);
+//             rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * u_2;
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * u_1;
+//             rMatrix(i_block + 2, j_block + 2) -= Weight * l * d_ij * u_1*u_2;
+//             rVector[i_block]                  -= Weight * l * d_ij * u_2*c2 * z[j];
+//         }
+//     }
+// }
+
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::AddFrictionTerms(
+//     LocalMatrixType& rMatrix,
+//     LocalVectorType& rVector,
+//     const ElementData& rData,
+//     const array_1d<double,TNumNodes>& rN,
+//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+//     const double Weight)
+// {
+//     const auto u = rData.velocity;
+//     const double u_1 = u[0];
+//     const double u_2 = u[1];
+//     const double g = rData.gravity;
+//     const double s = rData.p_bottom_friction->CalculateLHS(rData.height, u);
+//     const double lumping_factor = 1.0 / TNumNodes;
+//     const double l = StabilizationParameter(rData);
+
+//     for (IndexType i = 0; i < TNumNodes; ++i)
+//     {
+//         const IndexType i_block = 3 * i;
+
+//         rMatrix(i_block,     i_block)     += Weight * lumping_factor * g*s;
+//         rMatrix(i_block + 1, i_block + 1) += Weight * lumping_factor * g*s;
+
+//         for (IndexType j = 0; j < TNumNodes; ++j)
+//         {
+//             const IndexType j_block = 3 * j;
+
+//             /* Stabilization x
+//              * l*A1*Sf
+//              */
+//             const double g1_ij = rDN_DX(i,0) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*g*s*u_1;
+//             rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * g*s*u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * g*s*u_1;
+//             rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij * g*s;
+
+//             /* Stabilization y
+//              * l*A2*Sf
+//              */
+//             const double g2_ij = rDN_DX(i,1) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g2_ij * g*s*u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * g*s*u_1;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*g*s*u_2;
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij * g*s;
+//         }
+//     }
+// }
+
+
+// template<>
+// void ConservativeElement<3>::AddMassTerms(
+//     LocalMatrixType& rMatrix,
+//     const ElementData& rData,
+//     const array_1d<double,3>& rN,
+//     const BoundedMatrix<double,3,2>& rDN_DX,
+//     const double Weight)
+// {
+//     const double u_1 = rData.velocity[0];
+//     const double u_2 = rData.velocity[1];
+//     const double c2 = rData.gravity * rData.height;
+//     const double l = this->StabilizationParameter(rData);
+
+//     // Algebraic factor
+//     const double one_twelve = 1.0 / 12.0;
+
+//     for (IndexType i = 0; i < 3; ++i)
+//     {
+//         const IndexType i_block = 3 * i;
+//         for (IndexType j = 0; j < 3; ++j)
+//         {
+//             const IndexType j_block = 3 * j;
+
+//             // Algebraic mass matrix
+//             const double n = (i == j) ? 2*one_twelve : one_twelve;
+//             rMatrix(i_block,     j_block)     += n;
+//             rMatrix(i_block + 1, j_block + 1) += n;
+//             rMatrix(i_block + 2, j_block + 2) += n;
+
+//             /* Stabilization x
+//              * l*A1*N
+//              */
+//             const double g1_ij = rDN_DX(i,0) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*u_1;
+//             rMatrix(i_block,     j_block + 2) += Weight * l * g1_ij * (-u_1*u_1 + c2);
+//             rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * u_1;
+//             rMatrix(i_block + 1, j_block + 2) -= Weight * l * g1_ij * u_1*u_2;
+//             rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij;
+
+//             /* Stabilization y
+//              * l*A2*N
+//              */
+//             const double g2_ij = rDN_DX(i,1) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g2_ij * u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * u_1;
+//             rMatrix(i_block,     j_block + 2) -= Weight * l * g2_ij * u_1*u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*u_2;
+//             rMatrix(i_block + 1, j_block + 2) += Weight * l * g2_ij * (-u_2*u_2 + c2);
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij;
+//         }
+//     }
+// }
+
+// template<std::size_t TNumNodes>
+// void ConservativeElement<TNumNodes>::AddMassTerms(
+//     LocalMatrixType& rMatrix,
+//     const ElementData& rData,
+//     const array_1d<double,TNumNodes>& rN,
+//     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
+//     const double Weight)
+// {
+//     const double u_1 = rData.velocity[0];
+//     const double u_2 = rData.velocity[1];
+//     const double c2 = rData.gravity * rData.height;
+//     const double l = this->StabilizationParameter(rData);
+
+//     for (IndexType i = 0; i < TNumNodes; ++i)
+//     {
+//         const IndexType i_block = 3 * i;
+//         for (IndexType j = 0; j < TNumNodes; ++j)
+//         {
+//             const IndexType j_block = 3 * j;
+
+//             /* Inertia terms
+//              */
+//             const double n_ij = rN[i] * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * n_ij;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * n_ij;
+//             rMatrix(i_block + 2, j_block + 2) += Weight * n_ij;
+
+//             /* Stabilization x
+//              * l*A1*N
+//              */
+//             const double g1_ij = rDN_DX(i,0) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*u_1;
+//             rMatrix(i_block,     j_block + 2) += Weight * l * g1_ij * (-u_1*u_1 + c2);
+//             rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * u_1;
+//             rMatrix(i_block + 1, j_block + 2) -= Weight * l * g1_ij * u_1*u_2;
+//             rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij;
+
+//             /* Stabilization y
+//              * l*A2*N
+//              */
+//             const double g2_ij = rDN_DX(i,1) * rN[j];
+//             rMatrix(i_block,     j_block)     += Weight * l * g2_ij * u_2;
+//             rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * u_1;
+//             rMatrix(i_block,     j_block + 2) -= Weight * l * g2_ij * u_1*u_2;
+//             rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*u_2;
+//             rMatrix(i_block + 1, j_block + 2) += Weight * l * g2_ij * (-u_2*u_2 + c2);
+//             rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij;
+//         }
+//     }
+// }
+
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
+const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
-    KRATOS_TRY
-
-    if(rResult.size() != mLocalSize)
-        rResult.resize(mLocalSize, false); // False says not to preserve existing storage!!
-
-    const GeometryType& r_geom = this->GetGeometry();
-    int counter = 0;
-    for (IndexType i = 0; i < TNumNodes; i++)
-    {
-        rResult[counter++] = r_geom[i].GetDof(MOMENTUM_X).EquationId();
-        rResult[counter++] = r_geom[i].GetDof(MOMENTUM_Y).EquationId();
-        rResult[counter++] = r_geom[i].GetDof(HEIGHT).EquationId();
+    switch (Index) {
+        case 1: return MOMENTUM_X;
+        case 2: return MOMENTUM_Y;
+        case 3: return HEIGHT;
+        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
     }
-
-    KRATOS_CATCH("")
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
+typename ConservativeElement<TNumNodes>::LocalVectorType ConservativeElement<TNumNodes>::GetUnknownVector(ElementData& rData)
 {
-    KRATOS_TRY
-
-    if(rElementalDofList.size() != mLocalSize)
-        rElementalDofList.resize(mLocalSize);
-
-    const GeometryType& r_geom = this->GetGeometry();
-    int counter=0;
-    for (IndexType i = 0; i < TNumNodes; i++)
-    {
-        rElementalDofList[counter++] = r_geom[i].pGetDof(MOMENTUM_X);
-        rElementalDofList[counter++] = r_geom[i].pGetDof(MOMENTUM_Y);
-        rElementalDofList[counter++] = r_geom[i].pGetDof(HEIGHT);
+    std::size_t index = 0;
+    array_1d<double,mLocalSize> unknown;
+    for (std::size_t i = 0; i < TNumNodes; ++i) {
+        unknown[index++] = rData.nodal_q[i][0];
+        unknown[index++] = rData.nodal_q[i][1];
+        unknown[index++] = rData.nodal_h[i];
     }
-
-    KRATOS_CATCH("")
+    return unknown;
 }
 
 template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::GetValuesVector(Vector& rValues, int Step) const
+void ConservativeElement<TNumNodes>::CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN)
 {
-    if (rValues.size() != mLocalSize)
-        rValues.resize(mLocalSize, false);
+    const double h = inner_prod(rData.nodal_h, rN);
+    const array_1d<double,3> v = WaveElementType::VectorProduct(rData.nodal_v, rN);
+    const double c2 = std::sqrt(rData.gravity * h);
 
-    const GeometryType& r_geom = this->GetGeometry();
-    IndexType counter = 0;
-    for (IndexType i = 0; i < TNumNodes; i++)
-    {
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_X, Step);
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(MOMENTUM_Y, Step);
-        rValues[counter++] = r_geom[i].FastGetSolutionStepValue(HEIGHT, Step);
-    }
-}
+    rData.height = h;
+    rData.velocity = v;
 
-template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::AddWaveTerms(
-    LocalMatrixType& rMatrix,
-    LocalVectorType& rVector,
-    const ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
-{
-    const bool integrate_by_parts = true;
-    const auto z = rData.topography;
-    const double u_1 = rData.velocity[0];
-    const double u_2 = rData.velocity[1];
-    const double c2 = rData.gravity * rData.height;
-    const double l = this->StabilizationParameter(rData);
+    /**
+     * A_1 = {{2 * u_1   0   -u_1^2 + gh},
+     *        {  u_2    u_1   -u_1 * u_2},
+     *        {   1      0        0     }}
+     */
+    rData.A1(0,0) = 2*v[0];
+    rData.A1(0,1) = 0;
+    rData.A1(0,2) = -v[0]*v[0] + c2;
+    rData.A1(1,0) = v[1];
+    rData.A1(1,1) = v[0];
+    rData.A1(1,2) = -v[0]*v[1];
+    rData.A1(2,0) = 1;
+    rData.A1(2,1) = 0;
+    rData.A1(2,2) = 0;
 
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        const IndexType i_block = 3 * i;
-        for (IndexType j = 0; j < TNumNodes; ++j)
-        {
-            const IndexType j_block = 3 * j;
+    /*
+     * A_2 = {{u_2    u_1      -u_1 * u_2},
+     *        { 0   2 * u_2   -u_2^2 + gh},
+     *        { 0      1            0    }}
+     */
+    rData.A2(0,0) = v[1];
+    rData.A2(0,1) = v[0];
+    rData.A2(0,2) = -v[0]*v[1];
+    rData.A2(1,0) = 0;
+    rData.A2(1,1) = 2*v[1];
+    rData.A2(1,2) = -v[1]*v[1] + c2;
+    rData.A2(2,0) = 0;
+    rData.A2(2,1) = 1;
+    rData.A2(2,2) = 0;
 
-            double g1_ij;
-            double g2_ij;
-            double d_ij;
-            if (integrate_by_parts) {
-                g1_ij = -rDN_DX(i,0) * rN[j];
-                g2_ij = -rDN_DX(i,1) * rN[j];
-            } else {
-                g1_ij = rN[i] * rDN_DX(j,0);
-                g2_ij = rN[i] * rDN_DX(j,1);
-            }
+    rData.b1[0] = c2;
+    rData.b1[1] = 0;
+    rData.b1[2] = 0;
 
-            /* First component
-             * A_1 = {{2 * u_1   0   -u_1^2 + gh},
-             *        {  u_2    u_1   -u_1 * u_2},
-             *        {   1      0        0     }}
-             * b_1 = {gh, 0, 0}^T
-             */
-            rMatrix(i_block,     j_block)     += Weight * g1_ij * 2*u_1;
-            rMatrix(i_block,     j_block + 2) += Weight * g1_ij * (-u_1*u_1 + c2);
-            rMatrix(i_block + 1, j_block)     += Weight * g1_ij * u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * g1_ij * u_1;
-            rMatrix(i_block + 1, j_block + 2) -= Weight * g1_ij * u_1*u_2;
-            rMatrix(i_block + 2, j_block)     += Weight * g1_ij;
-            rVector[i_block]                  -= Weight * g1_ij * c2 * z[j];
-
-            /* Second component
-             * A_2 = {{u_2    u_1      -u_1 * u_2},
-             *        { 0   2 * u_2   -u_2^2 + gh},
-             *        { 0      1            0    }}
-             * b_2 = {0, gh, 0}^T
-             */
-            rMatrix(i_block,     j_block)     += Weight * g2_ij * u_2;
-            rMatrix(i_block,     j_block + 1) += Weight * g2_ij * u_1;
-            rMatrix(i_block,     j_block + 2) -= Weight * g2_ij * u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * g2_ij * 2*u_2;
-            rMatrix(i_block + 1, j_block + 2) += Weight * g2_ij * (-u_2*u_2 + c2);
-            rMatrix(i_block + 2, j_block + 1) += Weight * g2_ij;
-            rVector[i_block + 1]              -= Weight * g2_ij * c2 * z[j];
-
-            /* Stabilization x-x
-             * A1*A1
-             * A1*b1
-             */
-            d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            rMatrix(i_block,     j_block)     += Weight * l * d_ij * (3*pow(u_1,2) + c2);
-            rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,3) + 2*u_1*c2);
-            rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * pow(u_1,2);
-            rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * 2*u_1;
-            rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij * (-pow(u_1,2) + c2);
-            rVector[i_block]                  -= Weight * l * d_ij * 2*u_1*c2 * z[j];
-            rVector[i_block + 1]              -= Weight * l * d_ij * u_2*c2 * z[j];
-            rVector[i_block + 2]              -= Weight * l * d_ij * c2 * z[j];
-
-            /* Stabilization y-y
-             * A2*A2
-             * A2*b2
-             */
-            d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += Weight * l * d_ij * pow(u_2,2);
-            rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * (3*(pow(u_2,2) + c2));
-            rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*pow(u_2,3) + 2*u_2*c2);
-            rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * 2*u_2;
-            rMatrix(i_block + 2, j_block + 2) += Weight * l * d_ij * (-pow(u_2,2) + c2);
-            rVector[i_block]                  -= Weight * l * d_ij * u_1*c2 * z[j];
-            rVector[i_block + 1]              -= Weight * l * d_ij * 2*u_2*c2 * z[j];
-            rVector[i_block + 2]              -= Weight * l * d_ij * c2 * z[j];
-
-            /* Stabilization x-y
-             * A1*A2
-             * A1*b1
-             */
-            d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            rMatrix(i_block,     j_block)     += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * (pow(u_1,2)+c2);
-            rMatrix(i_block,     j_block + 2) -= Weight * l * d_ij * 2*pow(u_1,2)*u_2;
-            rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * pow(u_2,2);
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) += Weight * l * d_ij * (-2*u_1*pow(u_2,2) + u_1*c2);
-            rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block + 2) -= Weight * l * d_ij * u_1*u_2;
-            rVector[i_block + 1]              -= Weight * l * d_ij * u_1*c2 * z[j];
-
-            /* Stabilization y-x
-             * A2*A1
-             * A2*b1
-             */
-            d_ij = rDN_DX(j,1) * rDN_DX(i,0);
-            rMatrix(i_block,     j_block)     += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block,     j_block + 1) += Weight * l * d_ij * pow(u_1,2);
-            rMatrix(i_block,     j_block + 2) += Weight * l * d_ij * (-2*pow(u_1,2)*u_2 + u_2*c2);
-            rMatrix(i_block + 1, j_block)     += Weight * l * d_ij * (pow(u_2,2) + c2);
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * d_ij * 2*u_1*u_2;
-            rMatrix(i_block + 1, j_block + 2) -= Weight * l * d_ij * 2*u_1*pow(u_2,2);
-            rMatrix(i_block + 2, j_block)     += Weight * l * d_ij * u_2;
-            rMatrix(i_block + 2, j_block + 1) += Weight * l * d_ij * u_1;
-            rMatrix(i_block + 2, j_block + 2) -= Weight * l * d_ij * u_1*u_2;
-            rVector[i_block]                  -= Weight * l * d_ij * u_2*c2 * z[j];
-        }
-    }
-}
-
-template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::AddFrictionTerms(
-    LocalMatrixType& rMatrix,
-    LocalVectorType& rVector,
-    const ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
-{
-    const auto u = rData.velocity;
-    const double u_1 = u[0];
-    const double u_2 = u[1];
-    const double g = rData.gravity;
-    const double s = rData.p_bottom_friction->CalculateLHS(rData.height, u);
-    const double lumping_factor = 1.0 / TNumNodes;
-    const double l = StabilizationParameter(rData);
-
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        const IndexType i_block = 3 * i;
-
-        rMatrix(i_block,     i_block)     += Weight * lumping_factor * g*s;
-        rMatrix(i_block + 1, i_block + 1) += Weight * lumping_factor * g*s;
-
-        for (IndexType j = 0; j < TNumNodes; ++j)
-        {
-            const IndexType j_block = 3 * j;
-
-            /* Stabilization x
-             * l*A1*Sf
-             */
-            const double g1_ij = rDN_DX(i,0) * rN[j];
-            rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*g*s*u_1;
-            rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * g*s*u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * g*s*u_2;
-            rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij * g*s;
-
-            /* Stabilization y
-             * l*A2*Sf
-             */
-            const double g2_ij = rDN_DX(i,1) * rN[j];
-            rMatrix(i_block,     j_block)     += Weight * l * g2_ij * g*s*u_2;
-            rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * g*s*u_1;
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*g*s*u_2;
-            rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij * g*s;
-        }
-    }
+    rData.b2[0] = 0;
+    rData.b2[1] = c2;
+    rData.b2[2] = 0;
 }
 
 template<std::size_t TNumNodes>
@@ -296,58 +476,6 @@ void ConservativeElement<TNumNodes>::AddArtificialViscosityTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {}
-
-template<std::size_t TNumNodes>
-void ConservativeElement<TNumNodes>::AddMassTerms(
-    LocalMatrixType& rMatrix,
-    const ElementData& rData,
-    const array_1d<double,TNumNodes>& rN,
-    const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
-    const double Weight)
-{
-    const double u_1 = rData.velocity[0];
-    const double u_2 = rData.velocity[1];
-    const double c2 = rData.gravity * rData.height;
-    const double l = this->StabilizationParameter(rData);
-
-    for (IndexType i = 0; i < TNumNodes; ++i)
-    {
-        const IndexType i_block = 3 * i;
-        for (IndexType j = 0; j < TNumNodes; ++j)
-        {
-            const IndexType j_block = 3 * j;
-
-            /* Inertia terms
-             */
-            const double n_ij = rN[i] * rN[j];
-            rMatrix(i_block,     j_block)     += Weight * n_ij;
-            rMatrix(i_block + 1, j_block + 1) += Weight * n_ij;
-            rMatrix(i_block + 2, j_block + 2) += Weight * n_ij;
-
-            /* Stabilization x
-             * l*A1*N
-             */
-            const double g1_ij = rDN_DX(i,0) * rN[j];
-            rMatrix(i_block,     j_block)     += Weight * l * g1_ij * 2*u_1;
-            rMatrix(i_block,     j_block + 2) += Weight * l * g1_ij * (-u_1*u_1 + c2);
-            rMatrix(i_block + 1, j_block)     += Weight * l * g1_ij * u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * g1_ij * u_1;
-            rMatrix(i_block + 1, j_block + 2) -= Weight * l * g1_ij * u_1*u_2;
-            rMatrix(i_block + 2, j_block)     += Weight * l * g1_ij;
-
-            /* Stabilization y
-             * l*A2*N
-             */
-            const double g2_ij = rDN_DX(i,1) * rN[j];
-            rMatrix(i_block,     j_block)     += Weight * l * g2_ij * u_2;
-            rMatrix(i_block,     j_block + 1) += Weight * l * g2_ij * u_1;
-            rMatrix(i_block,     j_block + 2) -= Weight * l * g2_ij * u_1*u_2;
-            rMatrix(i_block + 1, j_block + 1) += Weight * l * g2_ij * 2*u_2;
-            rMatrix(i_block + 1, j_block + 2) += Weight * l * g2_ij * (-u_2*u_2 + c2);
-            rMatrix(i_block + 2, j_block + 1) += Weight * l * g2_ij;
-        }
-    }
-}
 
 template<std::size_t TNumNodes>
 double ConservativeElement<TNumNodes>::StabilizationParameter(const ElementData& rData) const

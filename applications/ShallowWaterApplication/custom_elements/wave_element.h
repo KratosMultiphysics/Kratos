@@ -309,7 +309,7 @@ protected:
 
     virtual const Variable<double>& GetUnknownComponent(int Index) const;
 
-    virtual array_1d<double,mLocalSize> GetUnknownVector(ElementData& rData);
+    virtual LocalVectorType GetUnknownVector(ElementData& rData);
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
@@ -317,12 +317,17 @@ protected:
 
     virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
+    virtual void CalculateArtificialViscosityData(
+        ElementData& rData,
+        const array_1d<double,TNumNodes>& rN,
+        const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
+
     void CalculateGeometryData(
         Vector &rGaussWeights,
         Matrix &rNContainer,
         ShapeFunctionsGradientsType &rDN_DX) const;
 
-    virtual void AddWaveTerms(
+    void AddWaveTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -330,7 +335,7 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    virtual void AddFrictionTerms(
+    void AddFrictionTerms(
         LocalMatrixType& rMatrix,
         LocalVectorType& rVector,
         const ElementData& rData,
@@ -338,13 +343,13 @@ protected:
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    virtual void AddArtificialViscosityTerms(
+    void AddArtificialViscosityTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
         const double Weight = 1.0);
 
-    virtual void AddMassTerms(
+    void AddMassTerms(
         LocalMatrixType& rMatrix,
         const ElementData& rData,
         const array_1d<double,TNumNodes>& rN,
@@ -355,15 +360,7 @@ protected:
 
     double InverseHeight(const ElementData& rData) const;
 
-    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN)
-    {
-        array_1d<double,3> result = ZeroVector(3);
-        for (std::size_t i = 0; i < TNumNodes; ++i)
-        {
-            result += rV[i] * rN[i];
-        }
-        return result;
-    }
+    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
 
     ///@}
     ///@name Protected  Access
