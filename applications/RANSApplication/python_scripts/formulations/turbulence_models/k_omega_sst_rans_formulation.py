@@ -41,15 +41,14 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
             "stabilization_method": "algebraic_flux_corrected",
             "turbulent_kinetic_energy_solver_settings": {},
             "turbulent_specific_energy_dissipation_rate_solver_settings": {},
-            "use_wall_distance_calculation": true,
             "wall_distance_calculation_settings":
             {
-                "max_levels"                       : 100,
-                "max_distance"                     : 1e+30,
-                "echo_level"                       : 0,
-                "distance_variable_name"           : "DISTANCE",
-                "nodal_area_variable_name"         : "NODAL_AREA",
-                "re_calculate_at_each_time_step"   : false
+                "max_levels"                           : 100,
+                "max_distance"                         : 1e+30,
+                "echo_level"                           : 0,
+                "distance_variable_name"               : "DISTANCE",
+                "nodal_area_variable_name"             : "NODAL_AREA",
+                "wall_distance_update_execution_points": ["initialize"]
             },
             "coupling_settings":
             {
@@ -97,7 +96,11 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
     def Initialize(self):
         settings = self.GetParameters()
-        if settings["use_wall_distance_calculation"].GetBool():
+        add_wall_distance_calculation_process = True
+        if settings["wall_distance_calculation_settings"].Has("wall_distance_update_execution_points"):
+            add_wall_distance_calculation_process = (len(settings["wall_distance_calculation_settings"]["wall_distance_update_execution_points"].GetStringArray()) > 0)
+
+        if add_wall_distance_calculation_process:
             model_part = self.GetBaseModelPart()
             model = model_part.GetModel()
             process_info = model_part.ProcessInfo
@@ -111,6 +114,7 @@ class KOmegaSSTRansFormulation(TwoEquationTurbulenceModelRansFormulation):
 
             wall_distance_process = RansWallDistanceCalculationProcess(model, wall_distance_calculation_settings)
             self.AddProcess(wall_distance_process)
+
 
         super().Initialize()
 
