@@ -35,6 +35,25 @@ namespace Kratos
         const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
         ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
+
+        double max_delta_v = 0.0;
+
+        #pragma omp parallel for reduction(max:max_delta_v)
+        for(int count = 0; count < static_cast<int>(rNodes.size()); count++)
+        {
+            ModelPart::NodesContainerType::iterator i = rNodes.begin() + count;
+
+            if ( i->Is(INLET) || i->IsFixed(VELOCITY_X) || i->IsFixed(VELOCITY_Y) || i->IsFixed(VELOCITY_Z) ){
+                const array_1d<double, 3> &v  = i->FastGetSolutionStepValue( VELOCITY, 0 );
+                const array_1d<double, 3> &vn = i->FastGetSolutionStepValue( VELOCITY, 1 );
+                const array_1d<double, 3> delta_v = v - vn;
+
+                const double norm_delta_v_fixed = std::sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
+
+                max_delta_v = max_delta_v > norm_delta_v_fixed ? max_delta_v : norm_delta_v_fixed;
+            }
+        }
+
         #pragma omp parallel for
         for(int count = 0; count < static_cast<int>(rNodes.size()); count++)
         {
@@ -49,7 +68,7 @@ namespace Kratos
 
             const double alpha = norm_delta_v / ( dt * mMaximalAccelaration * 9.81 );
 
-            if ( alpha > 1.0 ){
+            if ( alpha > 1.0 && !i->Is(INLET) && norm_delta_v > mMaximalAccelaration*max_delta_v ){
                 // setting a new and "reasonable" velocity by scaling
                 v = vn + ( 1.0 / alpha ) * delta_v;
                 if (!i->IsFixed(VELOCITY_X) ){
