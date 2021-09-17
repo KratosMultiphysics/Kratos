@@ -61,7 +61,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Get/Set methods
   const double& GetParticleTemperature();
-  const double& GetInterstitialFluidTemperature();
   void SetParticleTemperature(const double temperature);
 
   // Initialization methods
@@ -79,6 +78,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Auxiliary computation methods
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
+  void ComputeBallToBallContactArea();
+  void ComputeBallToRigidFaceContactArea();
 
   // Update methods
   void UpdateTemperature(const ProcessInfo& r_process_info);

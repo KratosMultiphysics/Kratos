@@ -284,6 +284,9 @@ class ExplicitStrategy():
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.dt)
 
+        # ADDITIONAL VARIABLES
+        self.SetAdditionalVariablesAndOptions()
+
         #-----os.chdir('..')   # check functionality
 
         for properties in self.spheres_model_part.Properties:
@@ -315,6 +318,9 @@ class ExplicitStrategy():
         self.settings.fem_model_part = self.fem_model_part
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
+
+    def SetAdditionalVariablesAndOptions(self):
+        pass
 
     def CheckMomentumConservation(self):
 

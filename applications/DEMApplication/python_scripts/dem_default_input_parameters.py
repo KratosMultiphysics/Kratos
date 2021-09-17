@@ -115,6 +115,7 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceX4"      : 0.0,
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
+            "thermal_settings"                 : {},
             "output_processes"                 : {},
             "material_test_settings" : {
                 "TestType"                         : "None",
