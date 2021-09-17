@@ -166,11 +166,30 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         for _ in range(self.refinement_iterations):
             print('self.target_h_wake = ', self.target_h_wake)
             # Option 1 - Fix domain, remesh elements intersected by wake only wake
+            start_time = time.time()
             self._BlockDomain()
+            exe_time = time.time() - start_time
+            KratosMultiphysics.Logger.PrintInfo(
+                'DefineWakeProcess3D', 'Executing _BlockDomain took ', round(exe_time, 2), ' sec')
+            KratosMultiphysics.Logger.PrintInfo(
+            'DefineWakeProcess3D', 'Executing _BlockDomain took ', round(exe_time/60, 2), ' min')
+
             # Option 2 - Fix wake and wing, remesh the rest of the elements (typically to reduce number of nodes)
             # self._BlockWake()
+
             # Option 3 - Remesh everything, setting a metric for the wake and domain
             # self._CalculateMetricWake()
+
+            # Option 4 - Remesh everything, setting a metric for the wake and domain
+            # start_time = time.time()
+            # self._BlockBodyAndRefineWake()
+            # exe_time = time.time() - start_time
+            # KratosMultiphysics.Logger.PrintInfo(
+            #     'DefineWakeProcess3D', 'Executing _BlockBodyAndRefineWake took ', round(exe_time, 2), ' sec')
+            # KratosMultiphysics.Logger.PrintInfo(
+            # 'DefineWakeProcess3D', 'Executing _BlockBodyAndRefineWake took ', round(exe_time/60, 2), ' min')
+
+            # Refine
             self._CallMMG()
             # self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("Wake3D_Wake_Auto1")
             CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
@@ -328,74 +347,133 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         # for elem in self.body_model_part.GetRootModelPart().Elements:
         #     elem.Set(KratosMultiphysics.BLOCKED)
 
+        if not self.fluid_model_part.HasSubModelPart("wake_elements_model_part"):
+            raise Exception("Fluid model part does not have a wake_elements_model_part")
+        else:
+            self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
+
+        CPFApp.PotentialFlowUtilities.SetRefinementLevel(self.wake_sub_model_part, self.target_h_wake, self.number_of_sweeps)
+
+        # for node in self.body_model_part.GetRootModelPart().Nodes:
+        #     node.Set(KratosMultiphysics.BLOCKED)
+        #     this_h = node.GetValue(KratosMultiphysics.NODAL_H)
+        #     node.SetValue(MeshingApplication.METRIC_SCALAR, this_h*1e6)
+        #     node.SetValue(CPFApp.DEACTIVATED_WAKE, 0)
+
+        selected_node_counter = 0
+        # For 0 sweeps the loop is simple
+        if self.number_of_sweeps < 1:
+            # for node in self.wake_sub_model_part.Nodes:
+            #     this_h = node.GetValue(KratosMultiphysics.NODAL_H)
+            #     if this_h > self.target_h_wake:
+            #         selected_node_counter += 1
+            #         node.Set(KratosMultiphysics.BLOCKED, False)
+            #         node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
+
+            print('Number of refined nodes = ', selected_node_counter)
+
+        else:
+            node_marker = 5
+            with open("nodes_to_be_refined.dat", 'w') as node_file:
+                with open("elements_to_be_refined.dat", 'w') as elem_file:
+                    selected_element_counter = 0
+                    # for elem in self.body_model_part.GetRootModelPart().Elements:
+                    #     if elem.GetValue(CPFApp.WAKE):
+                    #         selected_element = False
+                    #         for node in elem.GetNodes():
+                    #             this_h = node.GetValue(KratosMultiphysics.NODAL_H)
+                    #             if this_h > self.target_h_wake:
+                    #                 if not selected_element:
+                    #                     elem_file.write('{0:15d}\n'.format(elem.Id))
+                    #                     selected_element_counter += 1
+                    #                     selected_element = True
+                    #                     elem.SetValue(CPFApp.DEACTIVATED_WAKE, 10)
+
+                    #                 if node.GetValue(CPFApp.DEACTIVATED_WAKE) != node_marker:
+                    #                     node_file.write('{0:15d}\n'.format(node.Id))
+                    #                     selected_node_counter += 1
+                    #                     node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker)
+                    #                 for elem_node in elem.GetNodes():
+                    #                         elem_node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker)
+
+
+                    #                 # if node.Is(KratosMultiphysics.BLOCKED):
+                    #                 #     selected_node_counter += 1
+                    #                 #     node_file.write('{0:15d}\n'.format(node.Id))
+                    #                 node.Set(KratosMultiphysics.BLOCKED, False)
+                    #                 node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
+
+                    print('Number of refined elements = ', selected_element_counter)
+                    print('Number of refined nodes = ', selected_node_counter)
+
+                    for _ in range(self.number_of_sweeps):
+                        print('node_marker = ', node_marker)
+                        for elem in self.body_model_part.GetRootModelPart().Elements:
+                            if (elem.GetValue(CPFApp.DEACTIVATED_WAKE) != 10):
+                                selected_element = False
+                                for node in elem.GetNodes():
+                                    if (abs(node.GetValue(CPFApp.DEACTIVATED_WAKE) - node_marker) < 1e-3):
+                                        for elem_node in elem.GetNodes():
+                                            this_node_h = elem_node.GetValue(KratosMultiphysics.NODAL_H)
+                                            if this_node_h > self.target_h_wake:
+                                                if elem_node.Is(KratosMultiphysics.BLOCKED):
+                                                    node_file.write('{0:15d}\n'.format(elem_node.Id))
+                                                    selected_node_counter += 1
+                                                elem_node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
+                                                elem_node.Set(KratosMultiphysics.BLOCKED, False)
+
+
+                                        if not selected_element:
+                                            elem.Set(KratosMultiphysics.BLOCKED, False)
+                                            elem_file.write('{0:15d}\n'.format(elem.Id))
+                                            selected_element_counter += 1
+                                            selected_element = True
+                                            elem.SetValue(CPFApp.DEACTIVATED_WAKE, 10)
+
+                        # Marking nodes for next iteration
+                        for node in self.body_model_part.GetRootModelPart().Nodes:
+                            if node.IsNot(KratosMultiphysics.BLOCKED):
+                                node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker + 1)
+
+                        node_marker += 1
+
+
+            print('Number of refined elements = ', selected_element_counter)
+            print('Number of refined nodes = ', selected_node_counter)
+
+        if self.remove_modelparts:
+            print('Removing modelparts')
+            self.body_model_part.GetRootModelPart().RemoveSubModelPart("trailing_edge_elements_model_part")
+            self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_elements_model_part")
+            # self.body_model_part.GetRootModelPart().RemoveSubModelPart("wake_model_part")
+            # self.body_model_part.GetRootModelPart().RemoveSubModelPart("Wake3D_Wake_Auto1")
+
+    # Option 4 - Remesh everything, setting a metric for the wake and domain
+    def _BlockBodyAndRefineWake(self):
+
+        # Compute nodal H
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.body_model_part.GetRootModelPart())
+        find_nodal_h.Execute()
+
+        # Unblock all nodes and set their H
         for node in self.body_model_part.GetRootModelPart().Nodes:
+            node.Set(KratosMultiphysics.BLOCKED, False)
+            this_h = node.GetValue(KratosMultiphysics.NODAL_H)
+            node.SetValue(MeshingApplication.METRIC_SCALAR, this_h)
+
+        # Set a finer H at the wake
+        for elem in self.body_model_part.GetRootModelPart().Elements:
+            if elem.GetValue(CPFApp.WAKE):
+                for node in elem.GetNodes():
+                    this_h = node.GetValue(KratosMultiphysics.NODAL_H)
+                    if this_h > self.target_h_wake:
+                        node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
+
+        # Block all nodes from the body
+        for node in self.body_model_part.Nodes:
             node.Set(KratosMultiphysics.BLOCKED)
             this_h = node.GetValue(KratosMultiphysics.NODAL_H)
             node.SetValue(MeshingApplication.METRIC_SCALAR, this_h*1e6)
-
-        node_marker = 5
-        with open("nodes_to_be_refined.dat", 'w') as node_file:
-            with open("elements_to_be_refined.dat", 'w') as elem_file:
-                selected_element_counter = 0
-                selected_node_counter = 0
-                for elem in self.body_model_part.GetRootModelPart().Elements:
-                    if elem.GetValue(CPFApp.WAKE):
-                        selected_element = False
-                        for node in elem.GetNodes():
-                            this_h = node.GetValue(KratosMultiphysics.NODAL_H)
-                            if this_h > self.target_h_wake:
-                                if not selected_element:
-                                    elem_file.write('{0:15d}\n'.format(elem.Id))
-                                    selected_element_counter += 1
-                                    selected_element = True
-                                    elem.SetValue(CPFApp.DEACTIVATED_WAKE, 10)
-                                if node.GetValue(CPFApp.DEACTIVATED_WAKE) != node_marker:
-                                    node_file.write('{0:15d}\n'.format(node.Id))
-                                    selected_node_counter += 1
-                                    node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker)
-                                    for elem_node in elem.GetNodes():
-                                        elem_node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker)
-
-                                # print(this_h)
-                                #print(elem.Id)
-                                elem.Set(KratosMultiphysics.BLOCKED, False)
-                                node.Set(KratosMultiphysics.BLOCKED, False)
-                                node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
-
-                for _ in range(self.number_of_sweeps):
-                    print('node_marker = ', node_marker)
-                    for elem in self.body_model_part.GetRootModelPart().Elements:
-                        if (elem.GetValue(CPFApp.DEACTIVATED_WAKE) != 10):
-                            selected_element = False
-                            for node in elem.GetNodes():
-                                if (abs(node.GetValue(CPFApp.DEACTIVATED_WAKE) - node_marker) < 1e-3):
-                                    for elem_node in elem.GetNodes():
-                                        this_node_h = elem_node.GetValue(KratosMultiphysics.NODAL_H)
-                                        if this_node_h > self.target_h_wake:
-                                            if elem_node.Is(KratosMultiphysics.BLOCKED):
-                                                node_file.write('{0:15d}\n'.format(elem_node.Id))
-                                                selected_node_counter += 1
-                                            elem_node.SetValue(MeshingApplication.METRIC_SCALAR, self.target_h_wake)
-                                            elem_node.Set(KratosMultiphysics.BLOCKED, False)
-
-
-                                    if not selected_element:
-                                        elem.Set(KratosMultiphysics.BLOCKED, False)
-                                        elem_file.write('{0:15d}\n'.format(elem.Id))
-                                        selected_element_counter += 1
-                                        selected_element = True
-                                        elem.SetValue(CPFApp.DEACTIVATED_WAKE, 10)
-
-                    # Marking nodes for next iteration
-                    for node in self.body_model_part.GetRootModelPart().Nodes:
-                        if node.IsNot(KratosMultiphysics.BLOCKED):
-                            node.SetValue(CPFApp.DEACTIVATED_WAKE, node_marker + 1)
-
-                    node_marker += 1
-
-
-        print('Number of refined elements = ', selected_element_counter)
-        print('Number of refined nodes = ', selected_node_counter)
 
         if self.remove_modelparts:
             print('Removing modelparts')

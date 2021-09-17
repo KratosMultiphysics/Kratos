@@ -1,5 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
+import time as time
 
 def _DotProduct(A,B):
     return sum(i[0]*i[1] for i in zip(A, B))
@@ -51,6 +52,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             raise Exception('The reference area and mean aerodynamic chord should be larger than 0.')
 
     def ExecuteFinalizeSolutionStep(self):
+        start_time = time.time()
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess','COMPUTE LIFT')
 
         self._CalculateWakeTangentAndNormalDirections()
@@ -62,6 +64,12 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             self._ComputeLiftFromJumpCondition()
         elif(self.compute_lift_from_jump_3d):
             self._ComputeLiftFromJumpCondition3D()
+
+        exe_time = time.time() - start_time
+        KratosMultiphysics.Logger.PrintInfo(
+            'ComputeLiftProcess', 'Executing ExecuteFinalizeSolutionStep took ', round(exe_time, 2), ' sec')
+        KratosMultiphysics.Logger.PrintInfo(
+            'ComputeLiftProcess', 'Executing ExecuteFinalizeSolutionStep took ', round(exe_time/60, 2), ' min')
 
     def _CalculateWakeTangentAndNormalDirections(self):
         free_stream_velocity = self.fluid_model_part.ProcessInfo.GetValue(CPFApp.FREE_STREAM_VELOCITY)

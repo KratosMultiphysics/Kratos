@@ -12,6 +12,7 @@
 #include "custom_utilities/potential_flow_utilities.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "fluid_dynamics_application_variables.h"
+#include "meshing_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
@@ -1250,6 +1251,67 @@ void AddPotentialGradientStabilizationTerm(
     noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
+void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, const int NumberOfSweeps)
+{
+    // Initialize variables and block domain
+    ModelPart& root_model_part = rWakeModelPart.GetRootModelPart();
+    block_for_each(root_model_part.Nodes(), [&](Node<3>& rNode)
+    {
+        rNode.Set(BLOCKED);
+        const double this_h = rNode.GetValue(NODAL_H);
+        rNode.SetValue(METRIC_SCALAR, this_h*1e6);
+        rNode.SetValue(DEACTIVATED_WAKE, 0);
+    });
+
+    // If the NumberOfSweeps is 0 the algorithim is straightforward
+    if(NumberOfSweeps < 1){
+        block_for_each(rWakeModelPart.Nodes(), [&](Node<3>& rNode)
+        {
+            const double this_h = rNode.GetValue(NODAL_H);
+            if ( this_h > TargetHWake){
+                rNode.Set(BLOCKED, false);
+                rNode.SetValue(METRIC_SCALAR, TargetHWake);
+            }
+        });
+    }
+    // For NumberOfSweeps > 1
+    else{
+        // First we unblock only the wake nodes
+        int node_marker = 5;
+        block_for_each(root_model_part.Elements(), [&](Element& rElement)
+        {
+            if (rElement.GetValue(WAKE)){
+                auto& r_geometry = rElement.GetGeometry();
+                for (unsigned int i = 0; i < r_geometry.size(); i++){
+                    const double this_h = r_geometry[i].GetValue(NODAL_H);
+                    if (this_h > TargetHWake){
+                        r_geometry[i].SetLock();
+                        r_geometry[i].Set(BLOCKED, false);
+                        r_geometry[i].SetValue(METRIC_SCALAR, TargetHWake);
+                        r_geometry[i].UnSetLock();
+
+                        // Marking the element for later
+                        #pragma omp critical
+                        {
+                            rElement.SetValue(DEACTIVATED_WAKE, 10.0);
+                        }
+
+                        // Marking all nodes in the element for later
+                        for (unsigned int j = 0; j < r_geometry.size(); j++){
+                            r_geometry[j].SetLock();
+                            r_geometry[j].SetValue(DEACTIVATED_WAKE, node_marker);
+                            r_geometry[j].UnSetLock();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
@@ -1300,6 +1362,7 @@ template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) CheckIfWakeCon
 template bool CheckWakeCondition<2, 3>(const Element& rElement, const double& rTolerance, const int& rEchoLevel);
 template void GetSortedIds<2, 3>(std::vector<size_t>& Ids, const GeometryType& rGeom);
 template void GetNodeNeighborElementCandidates<2, 3>(GlobalPointersVector<Element>& ElementCandidates, const GeometryType& rGeom);
+// template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) SetRefinementLevel<2,3>(ModelPart& rWakeModelPart, const int NumberOfSweeps);
 // 3D
 template array_1d<double, 4> GetWakeDistances<3, 4>(const Element& rElement);
 template BoundedVector<double, 4> GetPotentialOnNormalElement<3, 4>(const Element& rElement);
@@ -1359,5 +1422,6 @@ template void AddPotentialGradientStabilizationTerm<2, 3>(Element& rElement, Mat
 template void AddPotentialGradientStabilizationTerm<3, 4>(Element& rElement, Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<2,3>(ModelPart& rWakeModelPart);
 template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) ComputePotentialJump<3,4>(ModelPart& rWakeModelPart);
+// template void KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) SetRefinementLevel<3,4>(ModelPart& rWakeModelPart, const int NumberOfSweeps);
 } // namespace PotentialFlow
 } // namespace Kratos

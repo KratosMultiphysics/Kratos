@@ -213,6 +213,8 @@ void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, const int NumberOfSweeps);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

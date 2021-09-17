@@ -6,10 +6,12 @@ message("**** configuring KratosCompressiblePotentialFlowApplication ****")
 include(pybind11Tools)
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/CompressiblePotentialFlowApplication )
+include_directories( ${KRATOS_SOURCE_DIR}/applications/MeshingApplication )
 
 # generate variables with the sources
 file( GLOB_RECURSE KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE
@@ -31,7 +33,7 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosCompressiblePotentialFlowCore SHARED ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_CORE} ${KRATOS_COMPRESSIBLE_POTENTIAL_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosCompressiblePotentialFlowCore PUBLIC KratosCore KratosFluidDynamicsCore)
+target_link_libraries(KratosCompressiblePotentialFlowCore PUBLIC KratosCore KratosFluidDynamicsCore KratosMeshingCore)
 set_target_properties(KratosCompressiblePotentialFlowCore PROPERTIES COMPILE_DEFINITIONS "COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION=EXPORT,API")
 
 # define library Kratos which defines the basic python interface
