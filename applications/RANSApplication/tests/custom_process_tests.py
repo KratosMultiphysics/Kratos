@@ -326,12 +326,12 @@ class CustomProcessTest(UnitTest.TestCase):
                 "python_module" : "cpp_process_factory",
                 "process_name"  : "WallDistanceCalculationProcess",
                 "Parameters" : {
-                    "main_model_part_name"             : "FluidModelPart",
-                    "wall_model_part_name"             : "FluidModelPart.Slip2D.Slip2D_walls",
-                    "echo_level"                       : 0,
-                    "max_distance"                     : 1e+30,
-                    "max_levels"                       : 14,
-                    "re_calculate_at_each_time_step"   : false
+                    "main_model_part_name"                 : "FluidModelPart",
+                    "wall_model_part_name"                 : "FluidModelPart.Slip2D.Slip2D_walls",
+                    "echo_level"                           : 0,
+                    "max_distance"                         : 1e+30,
+                    "max_levels"                           : 14,
+                    "wall_distance_update_execution_points": ["initialize"]
                 }
             }
         ]''')
