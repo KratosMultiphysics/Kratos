@@ -291,17 +291,31 @@ protected:
         double height;
         array_1d<double,3> velocity;
 
-        array_1d<double,TNumNodes> topography;
-        LocalVectorType unknown;
+        BoundedMatrix<double,3,3> A1;
+        BoundedMatrix<double,3,3> A2;
+        array_1d<double,3> b1;
+        array_1d<double,3> b2;
+
+        array_1d<double,TNumNodes> nodal_h;
+        array_1d<double,TNumNodes> nodal_z;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+
+        array_1d<double,TNumNodes> topography; // TO REMOVE
+        LocalVectorType unknown; // TO REMOVE
 
         FrictionLaw::Pointer p_bottom_friction;
     };
+
+    virtual const Variable<double>& GetUnknownComponent(int Index) const;
+
+    virtual array_1d<double,mLocalSize> GetUnknownVector(ElementData& rData);
 
     void InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo);
 
     void GetNodalData(ElementData& rData, const GeometryType& rGeometry, int Step = 0);
 
-    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
+    virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
     void CalculateGeometryData(
         Vector &rGaussWeights,
@@ -340,6 +354,16 @@ protected:
     virtual double StabilizationParameter(const ElementData& rData) const;
 
     double InverseHeight(const ElementData& rData) const;
+
+    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN)
+    {
+        array_1d<double,3> result = ZeroVector(3);
+        for (std::size_t i = 0; i < TNumNodes; ++i)
+        {
+            result += rV[i] * rN[i];
+        }
+        return result;
+    }
 
     ///@}
     ///@name Protected  Access
