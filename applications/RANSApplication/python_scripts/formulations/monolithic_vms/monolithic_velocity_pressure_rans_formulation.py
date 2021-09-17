@@ -206,13 +206,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
 
         if self.is_steady_simulation:
             scheme_type = GetKratosObjectPrototype("ResidualBasedSimpleSteadyScheme")
-            scheme = scheme_type(
+            self.scheme = scheme_type(
                 settings["velocity_relaxation"].GetDouble(),
                 settings["pressure_relaxation"].GetDouble(),
                 self.GetDomainSize())
         else:
             scheme_type = GetKratosObjectPrototype("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
-            scheme = scheme_type(
+            self.scheme = scheme_type(
                 bossak_alpha,
                 settings["move_mesh_strategy"].GetInt(),
                 self.GetDomainSize())
@@ -225,14 +225,22 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             self.IsPeriodic(),
             self.GetCommunicator())
 
+        self.compute_reactions_using_scheme = False
+        if settings["compute_reactions"].GetBool():
+            if hasattr(self.scheme, "CalculateReactions"):
+                self.compute_reactions_using_scheme = True
+            else:
+                Kratos.Logger.PrintWarning(
+                    self.__class__.__name__, "Using reaction computation from builder and solver because {:s} has not implemented CalculateReactions method. This will give wrong REACTION on nodes if wall functions are used.".format(self.scheme.__class__.__name__))
+
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
             self.monolithic_model_part,
-            scheme,
+            self.scheme,
             conv_criteria,
             builder_and_solver,
             settings["maximum_iterations"].GetInt(),
-            settings["compute_reactions"].GetBool(),
+            settings["compute_reactions"].GetBool() and not self.compute_reactions_using_scheme,
             settings["reform_dofs_at_each_step"].GetBool(),
             settings["move_mesh_flag"].GetBool())
 
@@ -252,6 +260,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
             for iteration in range(max_iterations):
                 self.ExecuteBeforeCouplingSolveStep()
                 _ = self.solver.SolveSolutionStep()
+                if self.compute_reactions_using_scheme:
+                    self.scheme.CalculateReactions(self.monolithic_model_part)
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
