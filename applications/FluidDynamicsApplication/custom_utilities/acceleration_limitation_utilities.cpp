@@ -35,14 +35,15 @@ namespace Kratos
 
         const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-        double max_delta_v = block_for_each<MaxReduction<double>>(mrModelPart.Nodes(), [&](Node<3>& rNode){
+        array_1d<double,3> delta_v;
+        double max_delta_v = block_for_each<MaxReduction<double>>(mrModelPart.Nodes(), delta_v, [&](Node<3>& rNode, array_1d<double,3>& rDeltaVTLS){
             double norm_delta_v_fixed = 0.0;
             if ( rNode.Is(INLET) || rNode.IsFixed(VELOCITY_X) || rNode.IsFixed(VELOCITY_Y) || rNode.IsFixed(VELOCITY_Z) ){
-                const array_1d<double, 3> &v  = rNode.FastGetSolutionStepValue( VELOCITY, 0 );
-                const array_1d<double, 3> &vn = rNode.FastGetSolutionStepValue( VELOCITY, 1 );
-                const array_1d<double, 3> delta_v = v - vn;
+                const array_1d<double, 3> &r_v  = rNode.FastGetSolutionStepValue( VELOCITY, 0 );
+                const array_1d<double, 3> &r_vn = rNode.FastGetSolutionStepValue( VELOCITY, 1 );
+                rDeltaVTLS = r_v - r_vn;
 
-                norm_delta_v_fixed = std::sqrt( delta_v[0]*delta_v[0] + delta_v[1]*delta_v[1] + delta_v[2]*delta_v[2] );
+                norm_delta_v_fixed = norm_2(rDeltaVTLS);
             }
 
             return norm_delta_v_fixed;
