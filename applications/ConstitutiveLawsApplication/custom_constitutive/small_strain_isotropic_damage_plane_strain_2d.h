@@ -109,7 +109,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     };

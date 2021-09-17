@@ -25,7 +25,7 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
         elif custom_settings["domain_size"].GetInt() == 3:
             self.condition_name = "SurfaceCondition" # TODO: We need to create a Compressible NS condition (now using the base ones)
         else:
-            err_mgs = "Wrong domain size "
+            err_msg = "Wrong domain size "
             raise Exception(err_msg)
         self.min_buffer_size = 2
         self.element_has_nodal_properties = False # Note that DENSITY is nodally stored but considered as a DOF
