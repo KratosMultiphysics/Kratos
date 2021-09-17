@@ -19,25 +19,13 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "shallow_water_application_variables.h"
+#include "custom_utilities/shallow_water_tests_utilities.h"
 
 namespace Kratos {
 
 namespace Testing {
 
 typedef ModelPart::IndexType IndexType;
-
-void AssembleRHS_condition(Vector& rRHS_element, const Vector& rRHS_condition, const std::vector<IndexType>& rIds)
-{
-    IndexType n_dofs = rRHS_condition.size() / rIds.size();
-    for (IndexType i = 0; i < rRHS_condition.size(); ++i)
-    {
-        IndexType i_dof = i % n_dofs;
-        IndexType local_id = i / n_dofs;
-        IndexType global_id = rIds[local_id] - 1;
-        IndexType elem_pos = i_dof + global_id * n_dofs;
-        rRHS_element[elem_pos] += rRHS_condition[i];
-    }
-}
 
 void WaveElementSteadyStateTest(
     const double& rManning,
@@ -51,10 +39,7 @@ void WaveElementSteadyStateTest(
     ModelPart& model_part = model.CreateModelPart("main", 2);
 
     // Variables
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(HEIGHT);
-    model_part.AddNodalSolutionStepVariable(MANNING);
-    model_part.AddNodalSolutionStepVariable(TOPOGRAPHY);
+    ShallowWaterTestsUtilities::AddVariables(model_part);
 
     // Process info creation
     const double gravity = 9.81;
@@ -98,13 +83,13 @@ void WaveElementSteadyStateTest(
 
     Vector rhs_cond = ZeroVector(6);
     cond_1->CalculateRightHandSide(rhs_cond, r_process_info);
-    AssembleRHS_condition(rhs, rhs_cond, cond_1_nodes);
+    ShallowWaterTestsUtilities::AssembleRHS(rhs, rhs_cond, cond_1_nodes);
 
     cond_2->CalculateRightHandSide(rhs_cond, r_process_info);
-    AssembleRHS_condition(rhs, rhs_cond, cond_2_nodes);
+    ShallowWaterTestsUtilities::AssembleRHS(rhs, rhs_cond, cond_2_nodes);
 
     cond_3->CalculateRightHandSide(rhs_cond, r_process_info);
-    AssembleRHS_condition(rhs, rhs_cond, cond_3_nodes);
+    ShallowWaterTestsUtilities::AssembleRHS(rhs, rhs_cond, cond_3_nodes);
 
     // Check the RHS values. Since it is a steady solution the RHS must be zero
     KRATOS_CHECK_VECTOR_RELATIVE_NEAR(rhs, ZeroVector(9), rTolerance);
@@ -113,7 +98,7 @@ void WaveElementSteadyStateTest(
 /**
  * @brief Check the WaveElement2D3N element with still free surface
  */
-KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyStillSurface, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_StillWater, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -126,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyStillSurface, ShallowWaterApplica
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography x-gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyGradient, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_StillTopographyGradient, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -141,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadyGradient, ShallowWaterApplication
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography skew gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadySkewGradient, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_StillTopographySkewGradient, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -157,7 +142,7 @@ KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NSteadySkewGradient, ShallowWaterApplica
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography x-gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NVelocityAndGradient, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_VelocityAndGradient, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.0;
     const double height = 5.0;
@@ -175,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NVelocityAndGradient, ShallowWaterApplic
 /**
  * @brief Check the WaveElement2D3N element still free surface and bottom topography x-gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3NBottomFriction, ShallowWaterApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(WaveElement2D3N_BottomFriction, ShallowWaterApplicationFastSuite)
 {
     const double manning = 0.01;
     const double height = 5.0;
