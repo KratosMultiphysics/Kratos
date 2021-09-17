@@ -35,8 +35,6 @@ namespace Kratos
 
         const double dt = mrModelPart.GetProcessInfo().GetValue(DELTA_TIME);
 
-        double max_delta_v = 0.0;
-
         double max_delta_v = block_for_each<MaxReduction<double>>(mrModelPart.Nodes(), [&](Node<3>& rNode){
             double norm_delta_v_fixed = 0.0;
             if ( rNode.Is(INLET) || rNode.IsFixed(VELOCITY_X) || rNode.IsFixed(VELOCITY_Y) || rNode.IsFixed(VELOCITY_Z) ){
@@ -51,7 +49,7 @@ namespace Kratos
         });
 
         // Synchronize maximum fixed acceleration between processes
-        max_delta_v = mpDistanceModelPart->GetCommunicator().GetDataCommunicator().MaxAll(max_cfl_found);
+        max_delta_v = mrModelPart.GetCommunicator().GetDataCommunicator().MaxAll(max_delta_v);
 
         block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
             // retrieving velocities of current and last time step
