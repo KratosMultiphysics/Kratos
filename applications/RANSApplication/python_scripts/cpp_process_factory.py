@@ -66,6 +66,14 @@ def Factory(settings, Model):
         [
             "InitializeBossakPreviousStepVariableDerivatives",
             KratosRANS.RansInitializeBossakPreviousStepVariableDerivatives
+        ],
+        [
+            "OmegaViscousLogWallProcess",
+            KratosRANS.RansOmegaViscousLogWallProcess
+        ],
+        [
+            "WallPropertiesUpdateProcess",
+            KratosRANS.RansWallPropertiesUpdateProcess
         ]
     ]
 
