@@ -25,17 +25,19 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
         self.assertIn("Wrong domain size", str(context.exception))
 
     @classmethod
-    def GetSettings(cls, n_dimensions = 2):
+    def GetSettings(cls, n_dimensions):
         return KratosMultiphysics.Parameters("""
             {
                 "solver_type": "compressible_solver_from_defaults",
                 "model_part_name": "FluidModelPart",
                 "domain_size": %d,
                 "model_import_settings": {
-                    "input_type": "use_input_model_part"
+                    "input_type": "mdpa",
+                    "input_filename": "",
+                    "reorder": false
                 },
                 "material_import_settings": {
-                    "materials_filename": ""
+                    "materials_filename": "FluidMaterials.json"
                 },
                 "echo_level": 1,
                 "time_order": 2,
@@ -45,8 +47,8 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 "reform_dofs_at_each_step" : false,
                 "assign_neighbour_elements_to_conditions": true,
                 "volume_model_part_name" : "volume_model_part",
-                "skin_parts": [],
-                "no_skin_parts":[],
+                "skin_parts": [""],
+                "no_skin_parts":[""],
                 "time_stepping"                : {
                     "automatic_time_step" : true,
                     "CFL_number"          : 1.0,
@@ -55,7 +57,6 @@ class NavierStokesCompressibleExplicitSolverTest(KratosUnittest.TestCase):
                 },
                 "use_oss" : true
             }""" % n_dimensions)
-
 
 if __name__ == '__main__':
     KratosUnittest.main()
