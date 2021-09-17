@@ -169,7 +169,7 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
     mDestinationModelPartName = rParameters["destination_model_part_name"].GetString();
 
     const auto& copy_execution_points = rParameters["copy_execution_points"].GetStringArray();
-    UpdateCopyExecutionPointsList(copy_execution_points);
+    this->UpdateExecutionPointsList(copy_execution_points);
 
     const auto default_copy_variable_data_paramters = Parameters(R"(
     {
@@ -223,7 +223,7 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
 {
     KRATOS_TRY
 
-    UpdateCopyExecutionPointsList(rCopyExecutionPoints);
+    this->UpdateExecutionPointsList(rCopyExecutionPoints);
 
     UpdateCopyVariableDataList(rCopyVariableDataList);
 
@@ -246,7 +246,7 @@ RansVariableDataTransferProcess::RansVariableDataTransferProcess(
 {
     KRATOS_TRY
 
-    UpdateCopyExecutionPointsList(rCopyExecutionPoints);
+    this->UpdateExecutionPointsList(rCopyExecutionPoints);
 
     UpdateCopyVariableDataList(rCopyVariableDataList);
 
@@ -290,76 +290,6 @@ int RansVariableDataTransferProcess::Check()
     return 0;
 }
 
-void RansVariableDataTransferProcess::ExecuteInitialize()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::INITIALIZE) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::ExecuteInitializeSolutionStep()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::INITIALIZE_SOLUTION_STEP) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::ExecuteBeforeCouplingSolveStep()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::BEFORE_COUPLING_SOLVE_STEP) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::Execute()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::EXECUTE) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::ExecuteAfterCouplingSolveStep()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::AFTER_COUPLING_SOLVE_STEP) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::ExecuteFinalizeSolutionStep()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::FINALIZE_SOLUTION_STEP) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
-void RansVariableDataTransferProcess::ExecuteFinalize()
-{
-    for (const auto& execution_point : mExecutionPointsList) {
-        if (execution_point == ExecutionPoint::FINALIZE) {
-            ExecuteCopy();
-            break;
-        }
-    }
-}
-
 const Parameters RansVariableDataTransferProcess::GetDefaultParameters() const
 {
     const auto default_parameters = Parameters(R"(
@@ -401,7 +331,7 @@ void RansVariableDataTransferProcess::PrintData(std::ostream& rOStream) const
 {
 }
 
-void RansVariableDataTransferProcess::ExecuteCopy()
+void RansVariableDataTransferProcess::ExecuteOperation()
 {
     KRATOS_TRY
 
@@ -456,42 +386,6 @@ void RansVariableDataTransferProcess::ExecuteCopy()
         }
 
         KRATOS_INFO(this->Info()) << msg.str();
-    }
-
-    KRATOS_CATCH("");
-}
-
-void RansVariableDataTransferProcess::UpdateCopyExecutionPointsList(const std::vector<std::string>& rCopyExecutionPointsList)
-{
-    KRATOS_TRY
-
-    mExecutionPointsList.clear();
-
-    for (const auto& copy_execution_point : rCopyExecutionPointsList) {
-        if (copy_execution_point == "initialize") {
-            mExecutionPointsList.push_back(ExecutionPoint::INITIALIZE);
-        } else if (copy_execution_point == "initialize_solution_step") {
-            mExecutionPointsList.push_back(ExecutionPoint::INITIALIZE_SOLUTION_STEP);
-        } else if (copy_execution_point == "before_coupling_solve_step") {
-            mExecutionPointsList.push_back(ExecutionPoint::BEFORE_COUPLING_SOLVE_STEP);
-        } else if (copy_execution_point == "execute") {
-            mExecutionPointsList.push_back(ExecutionPoint::EXECUTE);
-        } else if (copy_execution_point == "after_coupling_solve_step") {
-            mExecutionPointsList.push_back(ExecutionPoint::AFTER_COUPLING_SOLVE_STEP);
-        } else if (copy_execution_point == "finalize_solution_step") {
-            mExecutionPointsList.push_back(ExecutionPoint::FINALIZE_SOLUTION_STEP);
-        } else if (copy_execution_point == "finalize") {
-            mExecutionPointsList.push_back(ExecutionPoint::FINALIZE);
-        } else {
-            KRATOS_ERROR << "Unsupported copy execution point provided. [ copy_execution_point = " << copy_execution_point << " ]. Supported points are: \n\n"
-                        << "\tinitialize\n"
-                        << "\tinitialize_solution_step\n"
-                        << "\tbefore_coupling_solve_step\n"
-                        << "\texecute\n"
-                        << "\tafter_coupling_solve_step\n"
-                        << "\tfinalize_solution_step\n"
-                        << "\tfinalize\n";
-        }
     }
 
     KRATOS_CATCH("");

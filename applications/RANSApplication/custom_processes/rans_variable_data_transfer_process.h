@@ -27,7 +27,7 @@
 #include "processes/process.h"
 
 // Application incldues
-#include "custom_processes/rans_formulation_process.h"
+#include "custom_processes/rans_point_execution_formulation_process.h"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
  *
  */
 
-class KRATOS_API(RANS_APPLICATION) RansVariableDataTransferProcess : public RansFormulationProcess
+class KRATOS_API(RANS_APPLICATION) RansVariableDataTransferProcess : public RansPointExecutionFormulationProcess
 {
 public:
     ///@name Type Definitions
@@ -102,20 +102,6 @@ public:
 
     int Check() override;
 
-    void ExecuteInitialize() override;
-
-    void ExecuteInitializeSolutionStep() override;
-
-    void ExecuteBeforeCouplingSolveStep() override;
-
-    void Execute() override;
-
-    void ExecuteAfterCouplingSolveStep() override;
-
-    void ExecuteFinalizeSolutionStep() override;
-
-    void ExecuteFinalize() override;
-
     const Parameters GetDefaultParameters() const override;
 
     ///@}
@@ -136,17 +122,6 @@ public:
 private:
     ///@name Private Classes
     ///@{
-
-    enum ExecutionPoint
-    {
-        INITIALIZE = 0,
-        INITIALIZE_SOLUTION_STEP = 1,
-        BEFORE_COUPLING_SOLVE_STEP = 2,
-        EXECUTE = 3,
-        AFTER_COUPLING_SOLVE_STEP = 4,
-        FINALIZE_SOLUTION_STEP = 5,
-        FINALIZE = 6
-    };
 
     template<class TVariableType>
     class CopyVariableData
@@ -210,8 +185,6 @@ private:
     std::string mSourceModelPartName;
     std::string mDestinationModelPartName;
 
-    std::vector<ExecutionPoint> mExecutionPointsList;
-
     std::vector<CopyVariableData<Variable<double>>> mCopyDoubleVariableDataList;
     std::vector<CopyVariableData<Variable<array_1d<double, 3>>>> mCopyArray3DVariableDataList;
     std::vector<CopyVariableData<Variable<Vector>>> mCopyVectorVariableDataList;
@@ -227,9 +200,7 @@ private:
         const bool CheckSourceVariableData,
         const CopyVariableData<TVariableType>& rCopyVariableData) const;
 
-    void ExecuteCopy();
-
-    void UpdateCopyExecutionPointsList(const std::vector<std::string>& rCopyExecutionPointsList);
+    void ExecuteOperation() override;
 
     void UpdateCopyVariableDataList(const std::vector<CopyVariableDataListItem>& rCopyVariableDataList);
 
