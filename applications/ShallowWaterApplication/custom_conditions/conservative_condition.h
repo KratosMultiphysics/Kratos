@@ -69,9 +69,9 @@ public:
 
     typedef typename WaveConditionType::ConditionData ConditionData;
 
-    typedef array_1d<double, 3*TNumNodes> LocalVectorType;
+    typedef typename WaveConditionType::LocalVectorType LocalVectorType;
 
-    typedef BoundedMatrix<double, 3*TNumNodes, 3*TNumNodes> LocalMatrixType;
+    typedef typename WaveConditionType::LocalMatrixType LocalMatrixType;
 
     ///@}
     ///@name Pointer definition
@@ -150,31 +150,6 @@ public:
         return p_new_elem;
     }
 
-    /**
-     * @brief Check that all required data containers are properly initialized and registered in Kratos
-     * @return 0 if no errors are detected.
-     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * @brief Fill given vector with the linear system row index for the condition's degrees of freedom
-     * @param rResult
-     * @param rCurrentProcessInfo
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * @brief Fill given array with containing the condition's degrees of freedom
-     * @param rConditionalDofList
-     * @param rCurrentProcessInfo
-     */
-    void GetDofList(DofsVectorType& rConditionalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /**
-     * @brief Get the variable which defines the degrees of freedom
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0) const override;
-
     ///@}
     ///@name Input and output
     ///@{
@@ -204,26 +179,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void AddWaveTerms(
-        LocalMatrixType& rMatrix,
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0) override;
+    const Variable<double>& GetUnknownComponent(int Index) const override;
 
-    void AddFluxTerms(
-        LocalVectorType& rVector,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight = 1.0) override;
+    LocalVectorType GetUnknownVector(ConditionData& rData) override;
 
-    void AddMassTerms(
-        LocalMatrixType& rMatrix,
-        const ConditionData& rData,
-        const array_1d<double,TNumNodes>& rN,
-        const double Weight) override {}
-
-    double StabilizationParameter(const ConditionData& rData) const override;
+    void CalculateGaussPointData(
+        ConditionData& rData,
+        const IndexType PointIndex,
+        const array_1d<double,TNumNodes>& rN) override;
 
     ///@}
 
