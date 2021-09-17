@@ -225,9 +225,11 @@ void WaveElement<TNumNodes>::CalculateGaussPointData(
     rData.A2(1,2) = rData.gravity;
     rData.A2(2,1) = h;
 
+    /// b_1
     rData.b1 = ZeroVector(3);
     rData.b1[0] = rData.gravity;
 
+    /// b_2
     rData.b2 = ZeroVector(3);
     rData.b2[1] = rData.gravity;
 }
@@ -274,6 +276,15 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
+    const BoundedMatrix<double,3,3> AA11 = prod(rData.A1, rData.A1);
+    const BoundedMatrix<double,3,3> AA22 = prod(rData.A2, rData.A2);
+    const BoundedMatrix<double,3,3> AA12 = prod(rData.A1, rData.A2);
+    const BoundedMatrix<double,3,3> AA21 = prod(rData.A2, rData.A1);
+    const array_1d<double,3> Ab11 = prod(rData.A1, rData.b1);
+    const array_1d<double,3> Ab22 = prod(rData.A2, rData.b2);
+    const array_1d<double,3> Ab12 = prod(rData.A1, rData.b2);
+    const array_1d<double,3> Ab21 = prod(rData.A2, rData.b1);
+
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
         const range i_range (3*i, 3*i + 3);
@@ -302,23 +313,23 @@ void WaveElement<TNumNodes>::AddWaveTerms(
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * prod(rData.A1, rData.A1);
-            project(rVector, i_range)          -= Weight * l * d_ij * prod(rData.A1, rData.b1) * z[j];
+            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA11;
+            project(rVector, i_range)          -= Weight * l * d_ij * Ab11 * z[j];
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * prod(rData.A2, rData.A2);
-            project(rVector, i_range)          -= Weight * l * d_ij * prod(rData.A2, rData.b2) * z[j];
+            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA22;
+            project(rVector, i_range)          -= Weight * l * d_ij * Ab22 * z[j];
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * prod(rData.A1, rData.A2);
-            project(rVector, i_range)          -= Weight * l * d_ij * prod(rData.A1, rData.b2) * z[j];
+            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA12;
+            project(rVector, i_range)          -= Weight * l * d_ij * Ab12 * z[j];
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * prod(rData.A2, rData.A1);
-            project(rVector, i_range)          -= Weight * l * d_ij * prod(rData.A2, rData.b1) * z[j];
+            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA21;
+            project(rVector, i_range)          -= Weight * l * d_ij * Ab21 * z[j];
         }
     }
 }
@@ -339,6 +350,9 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     Sf(0,0) = rData.gravity*s;
     Sf(1,1) = rData.gravity*s;
 
+    BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
+    BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
+
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
         const range i_range (3*i, 3*i + 3);
@@ -351,11 +365,11 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g1_ij * prod(rData.A1, Sf);
+            project(rMatrix, i_range, j_range) += Weight * l * g1_ij * ASf1;
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g2_ij * prod(rData.A2, Sf);
+            project(rMatrix, i_range, j_range) += Weight * l * g2_ij * ASf2;
         }
     }
 }
