@@ -42,7 +42,6 @@ class ApplyWallFunctionProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
             {
                 "model_part_names" : [],
-                "all_wall_model_part_name": "ALL_WALL_MODEL_PART",
                 "activate_wall_functions" : true
             }  """)
 
