@@ -34,7 +34,7 @@ namespace Kratos
         void SinteringSphericContinuumParticle::InitializeSolutionStep(const ProcessInfo& r_process_info) {
             KRATOS_TRY
 			ThermalSphericParticle<SphericContinuumParticle>::InitializeSolutionStep(r_process_info);
-            const double temperature = GetTemperature();
+            const double temperature = GetParticleTemperature();
             const double sintering_start_temp = GetProperties()[SINTERING_START_TEMPERATURE];
 
             if (temperature > sintering_start_temp) { this->Set(DEMFlags::IS_SINTERING, true);  }

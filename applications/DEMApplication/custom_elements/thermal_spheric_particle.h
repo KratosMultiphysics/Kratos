@@ -68,29 +68,27 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void InitializeSolutionStep(const ProcessInfo& r_process_info) override;
 
   // Calculate right hand side
-  void CalculateRightHandSide(const ProcessInfo& r_current_process_info, double dt, const array_1d<double, 3>& gravity) override;
+  void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
   void ComputeHeatFluxes(const ProcessInfo& r_process_info);
 
   // Compute heat fluxes components
   void ComputeBallToBallDirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeBallToRigidFaceDirectConductionHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeBallToBallIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeBallToRigidFaceIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
 
   // Auxiliary computation methods
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
-  void ComputeBallToBallContactArea();
-  void ComputeBallToRigidFaceContactArea();
 
   // Update methods
   void UpdateTemperature(const ProcessInfo& r_process_info);
   void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
   void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
+  void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbour_iterator) override;
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
-
-  // Others
-  void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbour_iterator) override;
 
   // Turn back information as a string.
   virtual std::string Info() const override {

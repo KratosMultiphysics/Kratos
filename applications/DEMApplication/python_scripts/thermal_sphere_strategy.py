@@ -35,14 +35,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.thermal_settings.ValidateAndAssignDefaults(default_settings)
 
         # Set booleans for active heat transfer mechanisms
-        self.compute_direct_conduction_option   = DEM_parameters["compute_direct_conduction"].GetBool()
-        self.compute_indirect_conduction_option = DEM_parameters["compute_indirect_conduction"].GetBool()
-        self.compute_convection_option          = DEM_parameters["compute_convection"].GetBool()
+        self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
+        self.compute_indirect_conduction_option = self.thermal_settings["compute_indirect_conduction"].GetBool()
+        self.compute_convection_option          = self.thermal_settings["compute_convection"].GetBool()
 
         # Set models for heat transfer mechanisms
-        self.direct_conduction_model   = DEM_parameters["direct_conduction_model"].GetString()
-        self.indirect_conduction_model = DEM_parameters["indirect_conduction_model"].GetString()
-        self.nusselt_correlation       = DEM_parameters["nusselt_correlation"].GetString()
+        self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
+        self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
+        self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
 
         # Check input models
         if (self.direct_conduction_model != "batchelor_obrien" and
@@ -58,15 +58,16 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
 
         # Set global properties of interstitial/surrounding fluid
-        self.fluid_density              = DEM_parameters["fluid_density"].GetDouble()
-        self.fluid_viscosity            = DEM_parameters["fluid_viscosity"].GetDouble()
-        self.fluid_thermal_conductivity = DEM_parameters["fluid_thermal_conductivity"].GetDouble()
-        self.fluid_heat_capacity        = DEM_parameters["fluid_heat_capacity"].GetDouble()
-        self.fluid_temperature          = DEM_parameters["fluid_temperature"].GetDouble()
+        self.fluid_props                = self.thermal_settings["global_fluid_properties"]
+        self.fluid_density              = self.fluid_props["fluid_density"].GetDouble()
+        self.fluid_viscosity            = self.fluid_props["fluid_viscosity"].GetDouble()
+        self.fluid_thermal_conductivity = self.fluid_props["fluid_thermal_conductivity"].GetDouble()
+        self.fluid_heat_capacity        = self.fluid_props["fluid_heat_capacity"].GetDouble()
+        self.fluid_temperature          = self.fluid_props["fluid_temperature"].GetDouble()
         self.fluid_velocity             = Vector(3)
-        self.fluid_velocity[0]          = DEM_parameters["fluid_velocity_X"].GetDouble()
-        self.fluid_velocity[1]          = DEM_parameters["fluid_velocity_Y"].GetDouble()
-        self.fluid_velocity[2]          = DEM_parameters["fluid_velocity_Z"].GetDouble()
+        self.fluid_velocity[0]          = self.fluid_props["fluid_velocity_X"].GetDouble()
+        self.fluid_velocity[1]          = self.fluid_props["fluid_velocity_Y"].GetDouble()
+        self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         # Add general additional variables (currently empty)
