@@ -408,7 +408,6 @@ namespace Kratos {
         double returned_by_mapping_tension = returned_by_mapping_force / calculation_area;
         double current_normal_tension_module = current_normal_force_module / calculation_area;
         double BondedLocalElasticContactTension2 = BondedLocalElasticContactForce2 / calculation_area;
-        double initial_limit_tension = initial_limit_force / calculation_area;
 
         if (mDebugPrintingOption) {
 
