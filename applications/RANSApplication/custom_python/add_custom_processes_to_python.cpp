@@ -98,7 +98,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<RansComputeReactionsProcess, RansComputeReactionsProcess::Pointer, RansFormulationProcess>(m, "RansComputeReactionsProcess")
         .def(py::init<Model&, Parameters&>())
-        .def(py::init<Model&, const std::string&, const int>());
+        .def(py::init<Model&, const std::string&, const std::vector<std::string>&, const int>());
 
     py::class_<RansVariableDataTransferProcess, RansVariableDataTransferProcess::Pointer, RansFormulationProcess>(m, "RansVariableDataTransferProcess")
         .def(py::init<Model&, Parameters&>())
