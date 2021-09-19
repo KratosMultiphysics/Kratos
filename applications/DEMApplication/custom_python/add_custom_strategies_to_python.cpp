@@ -125,6 +125,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("ComputeCoordinationNumber", &ContinuumExplicitSolverStrategy::ComputeCoordinationNumber)
         .def("BreakAllBonds", &ContinuumExplicitSolverStrategy::BreakAllBonds)
         .def("HealAllBonds", &ContinuumExplicitSolverStrategy::HealAllBonds)
+        .def("ComputeSkin", &ContinuumExplicitSolverStrategy::ComputeSkin)
         ;
 
     py::class_<IterativeSolverStrategy, IterativeSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "IterativeSolverStrategy")
@@ -138,9 +139,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_<VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>, VelocityVerletSolverStrategy<ContinuumExplicitSolverStrategy>::Pointer, ExplicitSolverStrategy>(m, "ContinuumVelocityVerletSolverStrategy")
         .def(py::init<ExplicitSolverSettings&, double, double, double, int, ParticleCreatorDestructor::Pointer,DEM_FEM_Search::Pointer, SpatialSearch::Pointer, Parameters>())
         ;
-
 }
-
 }  // namespace Python.
-
 } // Namespace Kratos

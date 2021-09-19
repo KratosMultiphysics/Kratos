@@ -33,7 +33,7 @@
             "SHEAR_ENERGY_COEF": 4.0,
             "LOOSE_MATERIAL_YOUNG_MODULUS": 1000e8,
             "BONDED_MATERIAL_YOUNG_MODULUS": 6.4e8,
-            "FRACTURE_ENERGY": 0e-2,
+            "FRACTURE_ENERGY": 2e-2,
             "DEBUG_PRINTING_OPTION": true,
             "DEBUG_PRINTING_ID_1": 1,
             "DEBUG_PRINTING_ID_2": 2,

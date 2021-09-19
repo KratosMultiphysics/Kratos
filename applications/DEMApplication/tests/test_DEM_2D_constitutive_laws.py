@@ -99,7 +99,7 @@ class DEM2DConstitutiveLawsTestSolution(KratosMultiphysics.DEMApplication.DEM_an
         plt.subplot(2, 2, 1); plt.plot(X, Y19, '-', color='blue'); plt.xlabel('time (s)'); plt.ylabel('(N) returned_by_mapping_tension'); plt.grid()
         plt.subplot(2, 2, 2); plt.plot(X, Y20, '-', color='blue'); plt.xlabel('time (s)'); plt.ylabel('(N) current_normal_tension_module'); plt.grid()
         plt.subplot(2, 2, 3); plt.plot(X, Y21, '-', color='blue'); plt.xlabel('time (s)'); plt.ylabel('(N) BondedLocalElasticContactTension2'); plt.grid()
-        plt.subplot(2, 2, 4); plt.plot(X, Y22, '-', color='blue'); plt.xlabel('time (s)'); plt.ylabel('(N) initial_limit_tension'); plt.grid()
+        plt.subplot(2, 2, 4); plt.plot(X, Y22, '-', color='blue'); plt.xlabel('time (s)'); plt.ylabel('(N) bonded_indentation'); plt.grid()
         plt.subplots_adjust(wspace=wspace, hspace=hspace)
         pdf.savefig(4)
 

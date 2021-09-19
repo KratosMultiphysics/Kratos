@@ -396,7 +396,9 @@ namespace Kratos {
         }
 
         if (indentation > 0.0) {
-           ComputeNormalUnbondedForce(indentation);
+            ComputeNormalUnbondedForce(indentation);
+        } else {
+            mUnbondedLocalElasticContactForce2 = 0.0;
         }
 
         LocalElasticContactForce[2] = BondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
@@ -424,7 +426,7 @@ namespace Kratos {
                                    << initial_limit_force/*16*/ << " " << mUnbondedNormalElasticConstant/*17*/ << " "
                                    << LocalElasticContactTension/*18*/ << " " << limit_tension/*19*/ << " "
                                    << returned_by_mapping_tension/*20*/ << " " << current_normal_tension_module/*21*/ << " "
-                                   << BondedLocalElasticContactTension2/*22*/ << " " << initial_limit_tension/*23*/ << '\n';
+                                   << BondedLocalElasticContactTension2/*22*/ << " " << bonded_indentation/*23*/ << '\n';
                 normal_forces_file.flush();
                 normal_forces_file.close();
             }
@@ -574,7 +576,7 @@ namespace Kratos {
             const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
             double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
 
-            double max_admissible_shear_force = (mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2]) * equiv_friction;
+            max_admissible_shear_force = (mUnbondedLocalElasticContactForce2 + mUnbondedViscoDampingLocalContactForce[2]) * equiv_friction;
 
             if (equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
                 KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
