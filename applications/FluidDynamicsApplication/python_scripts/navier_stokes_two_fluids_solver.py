@@ -183,7 +183,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part, 10, 10)
         (self.neighbour_search).Execute()
 
-        self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 5.0 )
+        self.accelerationLimitationUtility = KratosCFD.AccelerationLimitationUtilities( self.computing_model_part, 10.0 )
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
@@ -375,6 +375,11 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             #        #for node in inlet_condition.GetNodes():
             #        inlet_node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, vel_inlet)
             #        KratosMultiphysics.Logger.PrintInfo("Inlet", vel_inlet)
+
+            # Store current level-set to check for wetting/dewetting
+            for node in self.main_model_part.Nodes:
+                old_distance = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                node.SetValue(KratosCFD.DISTANCE_AUX, old_distance)
 
             # Recompute the distance field according to the new level-set position
             if (TimeStep % 1 == 0):

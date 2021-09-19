@@ -4086,6 +4086,7 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
             wall_normal_gp = ZeroVector(NumDim);
             velocity_gp = ZeroVector(NumDim);
             double avg_contact_angle = 0.0;
+            double distance_diff_gp = 0.0;
             for (unsigned int j = 0; j < NumNodes; j++){
                 wall_normal_gp += (rCLShapeFunctions[i_cl])(clgp,j)
                             *(*p_geom)[j].FastGetSolutionStepValue(NORMAL);
@@ -4093,6 +4094,9 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
                             (*p_geom)[j].FastGetSolutionStepValue(VELOCITY);
                 avg_contact_angle += (rCLShapeFunctions[i_cl])(clgp,j)*
                             (*p_geom)[j].FastGetSolutionStepValue(CONTACT_ANGLE);
+
+                distance_diff_gp += (rCLShapeFunctions[i_cl])(clgp,j)*
+                            ((*p_geom)[j].FastGetSolutionStepValue(DISTANCE) - (*p_geom)[j].GetValue(DISTANCE_AUX));
             }
             MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
             const double element_size = ElementSizeCalculator<3,4>::ProjectedElementSize(*p_geom, wall_normal_gp);
@@ -4114,9 +4118,20 @@ void TwoFluidNavierStokes<TElementData>::SurfaceTension(
 
             double contact_angle_equilibrium = contact_angle_macro_gp;
 
-            if (contact_velocity_gp < 0.0 && contact_angle_macro_gp <= theta_receding){
+            // if (contact_velocity_gp < 0.0 && contact_angle_macro_gp <= theta_receding){
+            //     contact_angle_equilibrium = theta_receding;
+            // } else if (contact_velocity_gp > 0.0 && contact_angle_macro_gp >= theta_advancing){
+            //     contact_angle_equilibrium = theta_advancing;
+            // } else {
+            //     contact_angle_equilibrium = contact_angle_macro_gp;
+            //     zeta_effective = 1.0e0*zeta;
+            // }
+
+            const int velocity_direction = (distance_diff_gp < 0.0) - (distance_diff_gp > 0.0);
+
+            if (velocity_direction <= 0 && contact_angle_macro_gp <= theta_receding){
                 contact_angle_equilibrium = theta_receding;
-            } else if (contact_velocity_gp > 0.0 && contact_angle_macro_gp >= theta_advancing){
+            } else if (velocity_direction >= 0 && contact_angle_macro_gp >= theta_advancing){
                 contact_angle_equilibrium = theta_advancing;
             } else {
                 contact_angle_equilibrium = contact_angle_macro_gp;

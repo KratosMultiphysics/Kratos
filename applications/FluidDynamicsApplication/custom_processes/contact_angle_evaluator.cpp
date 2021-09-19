@@ -147,6 +147,7 @@ void ContactAngleEvaluator::Execute()
 
         //it_node->SetValue(CONTACT_ANGLE, 0.0);
         it_node->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
+        it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = 0.0;
         it_node->Free(DISTANCE);
 
         double weight = 0.0;
@@ -171,8 +172,13 @@ void ContactAngleEvaluator::Execute()
             const Vector normal = (1.0/weight) * normal_avg;
             it_node->FastGetSolutionStepValue(NORMAL_VECTOR) = normal;
 
-            const double velocity_direction = inner_prod(it_node->FastGetSolutionStepValue(VELOCITY), normal);
-            it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = velocity_direction;
+            //Vector velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            //const double velocity_norm = Kratos::norm_2(velocity);
+            //velocity = (1.0/velocity_norm)*velocity;
+
+            const double distance_diff = it_node->FastGetSolutionStepValue(DISTANCE) - it_node->GetValue(DISTANCE_AUX);
+            const int velocity_direction = (distance_diff < 0.0) - (distance_diff > 0.0);//inner_prod(velocity, normal);
+            //it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = velocity_direction;
 
             if (it_node->GetValue(IS_STRUCTURE) == 1.0){
                 /* if (velocity_direction > 0.0 && contact_angle < theta_advancing){
@@ -183,10 +189,11 @@ void ContactAngleEvaluator::Execute()
                     it_node->Fix(DISTANCE);
                 } */
 
-                if ( ( !(velocity_direction < 0.0 && contact_angle <= theta_receding) &&
-                    !(velocity_direction > 0.0 && contact_angle >= theta_advancing) ) ||
-                    (velocity_direction == 0.0 && contact_angle < theta_advancing && contact_angle > theta_receding) ){
+                if ( ( !(velocity_direction <= 0 && contact_angle <= theta_receding) &&
+                    !(velocity_direction >= 0 && contact_angle >= theta_advancing) ) ||
+                    (velocity_direction == 0 && contact_angle < theta_advancing && contact_angle > theta_receding) ){
                     it_node->Fix(DISTANCE);
+                    it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = static_cast<double>(velocity_direction);
                 }
 
                 /* if (contact_angle < theta_advancing && contact_angle > theta_receding){
