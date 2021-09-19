@@ -106,7 +106,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();
@@ -188,7 +188,7 @@ void ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNode
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
 
@@ -301,7 +301,7 @@ double ConvectionDiffusionReactionResidualBasedFluxCorrectedElement<TDim, TNumNo
 
         r_current_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = r_current_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
+        const ArrayD& velocity = fluid_velocity - mesh_velocity;  // convective or effective velocity
         const double effective_kinematic_viscosity = r_current_data.GetEffectiveKinematicViscosity();
         const double reaction = r_current_data.GetReactionTerm();
         const double source = r_current_data.GetSourceTerm();

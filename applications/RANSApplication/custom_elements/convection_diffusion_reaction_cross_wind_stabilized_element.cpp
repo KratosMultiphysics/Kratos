@@ -96,7 +96,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = element_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;
+        const array_1d<double, TDim>& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
         const double source = element_data.GetSourceTerm();
@@ -196,7 +196,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         element_data.CalculateGaussPointData(r_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = element_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;
+        const array_1d<double, TDim>& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
 
@@ -277,7 +277,7 @@ void ConvectionDiffusionReactionCrossWindStabilizedElement<TDim, TNumNodes, TCon
 
         element_data.CalculateGaussPointData(gauss_shape_functions, r_shape_derivatives);
         const auto& fluid_velocity = element_data.GetEffectiveVelocity();
-        const auto& velocity = fluid_velocity - mesh_velocity;
+        const array_1d<double, TDim>& velocity = fluid_velocity - mesh_velocity;
         const double effective_kinematic_viscosity = element_data.GetEffectiveKinematicViscosity();
         const double reaction = element_data.GetReactionTerm();
 
