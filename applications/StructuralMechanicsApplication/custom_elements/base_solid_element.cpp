@@ -29,8 +29,6 @@
 namespace Kratos
 {
 
-KRATOS_CREATE_LOCAL_FLAG(BaseSolidElement, ROTATED, 0);
-
 void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -72,19 +70,6 @@ void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
         InitializeMaterial();
 
-        if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
-            if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2)) {
-                this->Set(BaseSolidElement::ROTATED, true);
-            } else {
-                this->Set(BaseSolidElement::ROTATED, false);
-            }
-        } else if (mConstitutiveLawVector[0]->GetStrainSize() == 3) {
-            if (this->Has(LOCAL_AXIS_1)) {
-                this->Set(BaseSolidElement::ROTATED, true);
-            } else {
-                this->Set(BaseSolidElement::ROTATED, false);
-            }
-        }
     }
 
     KRATOS_CATCH( "" )
@@ -1553,7 +1538,10 @@ void BaseSolidElement::RotateToLocalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    if (this->Is(BaseSolidElement::ROTATED)) {
+    bool is_rotated = false;
+    is_rotated = this->IsElementRotated();
+
+    if (is_rotated) {
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
@@ -1589,7 +1577,10 @@ void BaseSolidElement::RotateToGlobalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    if (this->Is(BaseSolidElement::ROTATED)) {
+    bool is_rotated = false;
+    is_rotated = this->IsElementRotated();
+
+    if (is_rotated) {
         const auto& r_options = rValues.GetOptions();
         const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
         const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
