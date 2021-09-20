@@ -139,8 +139,6 @@ public:
 
     void SetInitialBodyForceAndPorosityField();
 
-    void SetBodyForceAndPorosityField();
-
     void SetFluidProperties();
 
     ///@}
