@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "shallow_water_application_variables.h"
 
 namespace Kratos {
 
@@ -32,10 +31,14 @@ void KRATOS_API(SHALLOW_WATER_APPLICATION) AssembleRHS(
 
 void KRATOS_API(SHALLOW_WATER_APPLICATION) AddVariables(ModelPart& rModelPart);
 
-void KRATOS_API(SHALLOW_WATER_APPLICATION) TestCreateGeometry(
+void KRATOS_API(SHALLOW_WATER_APPLICATION) CreateGeometry(
     ModelPart& rModelPart,
-    std::string ElementName,
-    std::string ConditionName);
+    const std::string& rElementName,
+    const std::string& rConditionName);
+
+void KRATOS_API(SHALLOW_WATER_APPLICATION) CalculateAndAssembleRHS(
+    ModelPart& rModelPart,
+    Vector& rRHS);
 
 } // namespace ShallowWaterTestsUtilities
 
