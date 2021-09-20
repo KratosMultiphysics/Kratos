@@ -223,11 +223,11 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
-                sym_gradient_u(d,e) += 1/2 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
+                sym_gradient_u(d,e) += 1.0 / 2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
                 grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[d] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * r_velocities(i,e);
             }
-            rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2 / 3 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -817,12 +817,11 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
         double inv_tau_t = (c1 * viscosity / (h * h) + density * (c2 * convection_velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha + density * fluid_fraction / dt;
         double inv_tau = (c1 * viscosity / (h * h) + density * (c2 * convection_velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha;
         double tau_one = 1 / inv_tau;
-        //double inv_tau_NS = (c1 * viscosity / (h * h) + density * (c2 * convection_velocity_norm / h ) + std::sqrt(sigma_term)) + density * fluid_fraction / rData.DeltaTime;
-        Vector grad_tau_one = - 9 * c2 * h * v_d / (convection_velocity_norm * c_alpha * std::pow(3 * c2 * convection_velocity_norm + 4 * c1 * std::pow(h,3) * viscosity + 3 * h * std::sqrt(sigma_term),2));
+
+        Vector grad_tau_one = - 9 * c2 * h * v_d / (convection_velocity_norm * c_alpha * std::pow(3 * c2 * convection_velocity_norm + 4 * c1 * std::pow(h, 3) * viscosity + 3 * h * std::sqrt(sigma_term), 2));
         //double c_alpha = 1.0;
-        Vector grad_tau_one_t = (dt * grad_tau_one * (tau_one * density * fluid_fraction + dt) - dt * tau_one * (grad_tau_one * density * fluid_fraction)) / std::pow(tau_one * density * fluid_fraction + dt,2);
-        //Vector grad_tau_one = c2 / h * 1 / (inv_tau * inv_tau_NS) * v_d / convection_velocity_norm;
-        // Newton-Raphson LHS
+        Vector grad_tau_one_t = (dt * grad_tau_one * (tau_one * density * fluid_fraction + dt) - dt * tau_one * (grad_tau_one * density * fluid_fraction)) / std::pow(tau_one * density * fluid_fraction + dt, 2);
+
         noalias(J) = density * fluid_fraction * resolved_velocity_gradient;
         for (unsigned int d = 0; d < Dim; d++)
         {

@@ -141,7 +141,7 @@ public:
     AlternativeQSVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~AlternativeQSVMSDEMCoupled() override;
+    ~AlternativeQSVMSDEMCoupled();
 
     ///@}
     ///@name Operators
@@ -268,12 +268,12 @@ protected:
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS) override;
 
-    using QSVMS<TElementData>::CalculateTau;
+    //using QSVMS<TElementData>::CalculateTau;
     void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
         BoundedMatrix<double,Dim,Dim> &TauOne,
-        double &TauTwo);
+        double &TauTwo) const;
 
     void AddVelocitySystem(
         TElementData& rData,
@@ -290,11 +290,11 @@ protected:
 
     void SubscaleVelocity(
         const TElementData& rData,
-        array_1d<double,3> &rVelocitySubscale);
+        array_1d<double,3> &rVelocitySubscale) const override;
 
     void SubscalePressure(
         const TElementData& rData,
-        double &rPressureSubscale);
+        double &rPressureSubscale) const override;
 
     ///@}
     ///@name Protected  Access
