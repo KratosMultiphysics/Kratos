@@ -25,6 +25,7 @@
 #include "../custom_constitutive/drag_laws/ganser_drag_law.h"
 #include "../custom_constitutive/drag_laws/shah_drag_law.h"
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
+#include "../custom_constitutive/drag_laws/chien_drag_law.h"
 #include "../custom_constitutive/drag_laws/dallavalle_drag_law.h"
 
 // Inviscid force laws
