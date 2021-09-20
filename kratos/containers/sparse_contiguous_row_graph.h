@@ -63,7 +63,7 @@ namespace Kratos
 */
 
 template<typename TIndexType=std::size_t>
-class SparseContiguousRowGraph
+class SparseContiguousRowGraph final
 {
 public:
     ///@name Type Definitions
@@ -100,7 +100,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~SparseContiguousRowGraph(){}
+    ~SparseContiguousRowGraph(){}
 
     /// Assignment operator. TODO: decide if we do want to allow it
     SparseContiguousRowGraph& operator=(SparseContiguousRowGraph const& rOther)=delete;
@@ -413,7 +413,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "SparseContiguousRowGraph" ;
@@ -421,10 +421,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseContiguousRowGraph";}
+    void PrintInfo(std::ostream& rOStream) const {rOStream << "SparseContiguousRowGraph";}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const {}
 
     ///@}
     ///@name Friends

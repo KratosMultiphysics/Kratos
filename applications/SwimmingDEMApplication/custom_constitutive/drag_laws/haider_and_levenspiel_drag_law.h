@@ -16,7 +16,7 @@ namespace Kratos {
 
         HaiderAndLevenspielDragLaw(): StokesDragLaw(){}
 
-        HaiderAndLevenspielDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        HaiderAndLevenspielDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~HaiderAndLevenspielDragLaw(){}
 

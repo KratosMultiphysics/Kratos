@@ -33,6 +33,11 @@ try:
      analytic_imports_available = True
 except ImportError:
      analytic_imports_available = False
+try:
+     import DragTestFactory as DragTF
+     drag_imports_available = True
+except ImportError:
+     drag_imports_available = False
 
 class interpolation_test_linear(InterpolationTF.TestFactory):
      file_name = "interpolation_tests/cube"
@@ -95,6 +100,12 @@ class porosity_field_conservation_test(PorosityTF.PorosityConservationTestFactor
      file_name = "porosity_tests/porosity_conservation/Test_porosityFluid"
      file_parameters = "porosity_tests/porosity_conservation/ProjectParameters.json"
 
+class chien_drag_test(DragTF.TestFactory):
+     from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
+     analysis_stage_to_be_launched = ChienDragAnalysis
+     file_name = "drag_tests/chien_law/chien_drag_test"
+     file_parameters = "drag_tests/chien_law/ProjectParameters.json"
+
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
@@ -103,6 +114,8 @@ if candelier_imports_available:
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in PorosityTF.PorosityConservationTestFactory.__subclasses__()]
+available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
+
 
 def SetTestSuite(suites):
     small_suite = suites['small']
