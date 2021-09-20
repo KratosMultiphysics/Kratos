@@ -192,7 +192,7 @@ public:
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(*mpLevelSetVar);
 
         for(unsigned int step = 1; step <= n_substep; ++step){
-            KRATOS_INFO_IF("LevelSetConvectionProcess", mpSolvingStrategy->GetEchoLevel() > 0) <<
+            KRATOS_INFO_IF("LevelSetConvectionProcess", mLevelSetConvectionSettings["echo_level"].GetInt() > 0) <<
                 "Doing step "<< step << " of " << n_substep << std::endl;
 
             if (mIsBfecc || mElementRequiresLevelSetGradient){
@@ -278,6 +278,7 @@ public:
     {
         Parameters default_parameters = Parameters(R"({
             "model_part_name" : "",
+            "echo_level" : 0,
             "convection_model_part_name" : "",
             "levelset_variable_name" : "DISTANCE",
             "levelset_convection_variable_name" : "VELOCITY",
@@ -939,7 +940,7 @@ private:
             ReformDofAtEachIteration,
             CalculateNormDxFlag);
 
-        mpSolvingStrategy->SetEchoLevel(0);
+        mpSolvingStrategy->SetEchoLevel(mLevelSetConvectionSettings["echo_level"].GetInt());
         mpSolvingStrategy->Check();
         mpSolvingStrategy->Initialize();
     }

@@ -42,9 +42,11 @@ void FluidConstitutiveLaw::CalculateMaterialResponseCauchy(Parameters& rValues) 
                  << std::endl;
 }
 
-int FluidConstitutiveLaw::Check(const Properties& rMaterialProperties,
+int FluidConstitutiveLaw::Check(
+    const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo) const
+{
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::Check "
                     "method. This class should not be instantiated. Please "
@@ -91,7 +93,7 @@ ConstitutiveLaw::SizeType FluidConstitutiveLaw::WorkingSpaceDimension() {
     return 0;
 }
 
-ConstitutiveLaw::SizeType FluidConstitutiveLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType FluidConstitutiveLaw::GetStrainSize() const {
     KRATOS_ERROR << "Calling base "
                     "FluidConstitutiveLaw::GetStrainSize "
                     "method. This class should not be instantiated. Please "
@@ -140,7 +142,7 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
     Matrix& rC) {
 
     rC.clear();
-    
+
     constexpr double two_thirds = 2./3.;
     constexpr double four_thirds = 4./3.;
 
@@ -185,7 +187,7 @@ double FluidConstitutiveLaw::GetValueFromTable(
         // Compute the input variable Gauss pt. value
         double gauss_input = 0.0;
         for (unsigned int i_node = 0; i_node < r_N.size(); ++i_node) {
-            const double &r_val = r_geom[i_node].FastGetSolutionStepValue(rVariableInput); 
+            const double &r_val = r_geom[i_node].FastGetSolutionStepValue(rVariableInput);
             gauss_input += r_val * r_N[i_node];
         }
 

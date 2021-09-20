@@ -16,7 +16,7 @@ namespace Kratos {
 
         BeetstraDragLaw(): StokesDragLaw(){}
 
-        BeetstraDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        BeetstraDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~BeetstraDragLaw(){}
 
