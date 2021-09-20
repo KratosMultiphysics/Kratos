@@ -229,44 +229,125 @@ namespace Kratos
       DEMWall* wall = rNeighbours[i];
       if (wall == NULL) continue;
       
-      // Check if particle is in contact with wall (TODO)
-      // Compute distance between particle centroid and wall
-      //array_1d<double,3> direction = GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
-      //double distance = DEM_MODULUS_3(direction);
-      double identation = 0.001;
+      // Compute distance between particle and wall
+      // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
+      double dummy1[3][3];
+      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+      array_1d<double, 3> dummy3 = ZeroVector(3);
+      array_1d<double, 3> dummy4 = ZeroVector(3);
+      double distance = 0.0;
+      int ContactType = -1;
+      wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
+
+      // Check if particle is in contact with wall
+      if (ContactType != 1 && ContactType != 2 && ContactType != 3)
+        continue;
+
+      // Get temperatures
+      // (Assumption: wall temperature is the average of its nodes)
+      double wall_temp = 0.0;
+      double n_nodes = wall->GetGeometry().size();
+      for (unsigned int i = 0; i < n_nodes; i++) {
+        double node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
+        wall_temp += node_temp;
+      }
+      wall_temp /= n_nodes;
+
+      double particle_temp = GetParticleTemperature();
+      double temp_grad = wall_temp - particle_temp;
+
+      // Get properties
+      double particle_radius = GetRadius();
+      double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
 
       // Compute heat flux according to selected model
       if (model.compare("batchelor_obrien") == 0) {
-        // Get particle properties
-        double particle_radius = GetRadius();
-        double particle_temp   = GetParticleTemperature();
-
-        // Get wall properties
-        double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
-
-        // Get wall temperature as the average of its nodes
-        double wall_temp = 0.0;
-        double n_nodes = wall->GetGeometry().size();
-        for (unsigned int i = 0; i < n_nodes; i++) {
-          double node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
-          wall_temp += node_temp;
-        }
-        wall_temp /= n_nodes;
 
         // Compute effective thermal conductivity
         double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
 
         // Compute contact radius
-        double contact_radius = sqrt(identation * (2 * particle_radius - identation));
+        double indentation    = particle_radius - distance;
+        double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
 
         // Compute heat flux
-        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * (wall_temp - particle_temp);
+        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
       }
       else if (model.compare("thermal_pipe") == 0) {
-        mConductiveHeatFlux += 0.0;
+        
+        // Compute average thermal conductivity
+        // (Assumption: average conductivity considers particle only)
+        double avg_conductivity = mThermalConductivity;
+
+        // Compute contact area
+        double indentation    = particle_radius - distance;
+        double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
+        double contact_area   = Globals::Pi*contact_radius*contact_radius;
+
+        // Compute heat flux
+        // (Assumption: twice the particle-wall distance as if the wall was another particle)
+        mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / (2*distance);
+
       }
       else if (model.compare("collisional") == 0) {
-        mConductiveHeatFlux += 0.0;
+        // Get properties
+        double particle_density = GetDensity();
+        double particle_mass    = GetMass();
+        double particle_poisson = GetPoisson();
+        double particle_young   = GetYoung();
+        double wall_density     = neighbour_iterator->GetDensity();
+        double wall_poisson     = neighbour_iterator->GetPoisson();
+        double wall_young       = neighbour_iterator->GetYoung();
+
+        // Compute effective parameters
+        double eff_radius = this_radius * other_radius / (this_radius + other_radius);
+        double eff_mass   = particle_mass * other_mass / (particle_mass + other_mass);
+        double eff_young  = 1 / ((1- particle_poisson*particle_poisson)/ particle_young + (1-other_poisson*other_poisson)/other_young);
+
+        // Compute expected collision time
+        double impact_normal_velocity = 0.01;  // TODO: save impact normal velocity
+        double col_time = 0.0;                 // TODO: track collision time
+        double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
+
+        // Check if collision time is smaller than expected value, otherwise use batchelor_obrien model
+        if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
+          // Compute max contact radius
+          double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
+
+          // Compute coefficients
+          double a1 = particle_density * mSpecificHeat;
+          double a2 = other_density * other_heatcapacity;
+          double b1 = a1 * mThermalConductivity;
+          double b2 = a2 * other_conductivity;
+          double c  = a1/a2;
+
+          // Fourier number (taken as the aerage of both particles)
+          double fo1 = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
+          double fo2 = other_conductivity   * expect_col_time / (a2*contact_radius_max*contact_radius_max);
+          double fo  = (fo1+fo2)/2;
+
+          // Compute coefficient C
+          double c1 = -2.300*c*c +  8.909*c -  4.235;
+          double c2 =  8.169*c*c - 33.770*c + 24.885;
+          double c3 = -5.758*c*c + 24.464*c - 20.511;
+
+          double C_coeff = 0.435 * (sqrt(c2*c2-4*c1*(c3-fo)) - c2) / c1;
+
+          // Compute heat flux
+          mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
+        }
+        else {
+          // Compute average thermal conductivity
+          double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
+
+          // Compute contact area
+          double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
+          double contact_area   = Globals::Pi*contact_radius*contact_radius;
+
+          // Compute heat flux
+          mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
+        }
       }
     }
 
