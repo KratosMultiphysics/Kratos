@@ -47,8 +47,7 @@ namespace Kratos {
                                                r_current_process_info);
         }
 
-        double& y = r_geometry[0].FastGetSolutionStepValue(IMPACT_WEAR);
-        y = (2 *  particle_radius) / equivalent_diameter;
+        double y = (2 *  particle_radius) / equivalent_diameter;
         const double weighting_parameter = 0.5 * (eps) / weighting_sum + 0.5 * y + 0.5 * (1 - eps) * std::pow(y, 2);
         const double norm_minus_slip_velocity = SWIMMING_MODULUS_3(minus_slip_velocity);
         const double mean_reynolds_particle = eps * norm_minus_slip_velocity * equivalent_diameter / fluid_kinematic_viscosity;
