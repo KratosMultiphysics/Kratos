@@ -27,6 +27,7 @@
 #include "custom_processes/define_embedded_wake_process.h"
 #include "custom_processes/compute_nodal_value_process.h"
 #include "custom_processes/compute_wing_section_variable_process.h"
+#include "custom_processes/compute_potential_jump_lift_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -94,6 +95,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m,"ComputeEmbeddedWingSectionVariableProcess")
         .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&>())
         .def(py::init<ModelPart&, ModelPart&, const array_1d<double, 3>&, const array_1d<double, 3>&, const std::vector<std::string>& >())
+    ;
+
+    py::class_<ComputePotentialJumpLiftProcess<3,4>, ComputePotentialJumpLiftProcess<3,4>::Pointer, Process >
+        (m, "ComputePotentialJumpLiftProcess3D")
+        .def(py::init<ModelPart&, Vector&>())
     ;
 }
 
