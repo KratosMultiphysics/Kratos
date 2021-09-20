@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.CoSimulationApplication as KMC
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -7,9 +5,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from KratosMultiphysics.CoSimulationApplication.factories import data_transfer_operator_factory
 from KratosMultiphysics.CoSimulationApplication.coupling_interface_data import CouplingInterfaceData
-
-from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import UsingPyKratos
-using_pykratos = UsingPyKratos()
 
 mapping_app_available = kratos_utils.CheckIfApplicationsAvailable("MappingApplication")
 
@@ -71,9 +66,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.origin_data_scalar = CouplingInterfaceData(origin_data_settings_scalar, self.model)
         self.origin_data_vector = CouplingInterfaceData(origin_data_settings_vector, self.model)
         self.origin_data_single_node = CouplingInterfaceData(origin_data_settings_single_node, self.model)
-        self.origin_data_scalar.Initialize()
-        self.origin_data_vector.Initialize()
-        self.origin_data_single_node.Initialize()
 
 
         destination_matching_data_settings_scalar = KM.Parameters("""{
@@ -93,9 +85,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         self.destination_matching_data_scalar = CouplingInterfaceData(destination_matching_data_settings_scalar, self.model)
         self.destination_matching_data_vector = CouplingInterfaceData(destination_matching_data_settings_vector, self.model)
         self.destination_data_single_node = CouplingInterfaceData(destination_data_settings_single_node, self.model)
-        self.destination_matching_data_scalar.Initialize()
-        self.destination_matching_data_vector.Initialize()
-        self.destination_data_single_node.Initialize()
 
 
         destination_non_matching_data_settings_scalar = KM.Parameters("""{
@@ -110,9 +99,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
 
         self.destination_non_matching_data_scalar = CouplingInterfaceData(destination_non_matching_data_settings_scalar, self.model)
         self.destination_non_matching_data_vector = CouplingInterfaceData(destination_non_matching_data_settings_vector, self.model)
-        self.destination_non_matching_data_scalar.Initialize()
-        self.destination_non_matching_data_vector.Initialize()
-
 
     def test_copy_transfer_operator(self):
         data_transfer_op_settings = KM.Parameters("""{
@@ -132,8 +118,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             data_transfer_op.TransferData(self.origin_data_scalar, self.destination_non_matching_data_scalar, transfer_options_empty)
 
     def test_kratos_mapping_transfer_operator(self):
-        if using_pykratos:
-            self.skipTest("This test cannot be run with pyKratos!")
         if not mapping_app_available:
             self.skipTest("MappingApplication not available!")
 
@@ -179,7 +163,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_model_part = CouplingInterfaceData(data_settings_model_part, self.model)
-        data_model_part.Initialize()
 
         with self.assertRaisesRegex(Exception, 'Currently only historical nodal values are supported'):
             data_transfer_op.TransferData(self.origin_data_scalar, data_model_part, transfer_options_empty)

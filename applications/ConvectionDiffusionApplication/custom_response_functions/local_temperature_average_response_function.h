@@ -41,9 +41,9 @@ public:
     {
         KRATOS_TRY;
 
-        std::string target_model_part = Settings["model_part_name"].GetString();
+        mTargetModelPartName = Settings["model_part_name"].GetString();
 
-        auto& r_target_model_part = GetTargetModelPart(rModelPart, target_model_part);
+        auto& r_target_model_part = GetTargetModelPart(rModelPart, mTargetModelPartName);
         auto& r_nodes = r_target_model_part.Nodes();
         mNumNodes = r_nodes.size();
 
@@ -160,8 +160,18 @@ public:
     double CalculateValue(ModelPart& rModelPart) override
     {
         KRATOS_TRY;
-        KRATOS_ERROR
-            << "PointTemperature::CalculateValue(ModelPart& rModelPart) is not implemented!!!\n";
+        const ModelPart& r_target_model_part =
+            GetTargetModelPart(rModelPart, mTargetModelPartName);
+
+        const double domain_aggregated_temperature =
+            VariableUtils().SumHistoricalVariable<double>(TEMPERATURE, r_target_model_part);
+
+        const Communicator& r_communicator = r_target_model_part.GetCommunicator();
+        const int number_of_nodes = r_communicator.LocalMesh().NumberOfNodes();
+        const int total_nodes = r_communicator.GetDataCommunicator().SumAll(number_of_nodes);
+
+        return domain_aggregated_temperature / static_cast<double>(total_nodes);
+
         KRATOS_CATCH("");
     }
 
@@ -186,6 +196,7 @@ private:
     ///@{
 
 	int mNumNodes = 0;
+	std::string mTargetModelPartName;
 
     ///@}
     ///@name Private Operators

@@ -101,7 +101,7 @@ public:
     ///@{
 
     /// Counted pointer of UpdatedLagrangianFluidInc
-    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianFluidInc);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianFluidInc);
 
     ///@}
     ///@name Life Cycle

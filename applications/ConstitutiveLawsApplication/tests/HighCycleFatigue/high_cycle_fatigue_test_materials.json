@@ -1,0 +1,23 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                 "name"              : "SmallStrainHighCycleFatigue3DLawVonMisesVonMises",
+				 "yield_surface"     : "VonMises",
+				 "plastic_potential" : "VonMises"
+            },
+            "Variables"        : {
+                "DENSITY"                           : 0.0,
+                "YOUNG_MODULUS"          : 210.0E09,
+                "POISSON_RATIO"              : 0.32,
+				"FRACTURE_ENERGY"         : 0.25e8,
+				"YIELD_STRESS"                  : 924.0E06,
+				"SOFTENING_TYPE"            : 1,
+				"HIGH_CYCLE_FATIGUE_COEFFICIENTS"    :  [0.4, 2.0, 0.5, 0.0068, 3.2, 0.01, 0.0068]
+            },
+            "Tables"           : {}
+        }
+    }]
+}

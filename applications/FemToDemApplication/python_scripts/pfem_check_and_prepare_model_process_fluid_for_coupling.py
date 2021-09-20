@@ -1,9 +1,7 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
-import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_model_process_fluid as pfem_check_and_prepare_model_process_fluid
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.PfemFluidDynamicsApplication.pfem_check_and_prepare_fluid_model_process as pfem_check_and_prepare_model_process_fluid
 import time as timer
 
 def Wait():
@@ -13,14 +11,14 @@ def StartTimeMeasuring():
     """This function starts time calculation
     """
     # Measure process time
-    time_ip = timer.clock()
+    time_ip = timer.process_time()
     return time_ip
 
 def StopTimeMeasuring(time_ip, process, report):
     """This function ends time calculation
     """
     # Measure process time
-    time_fp = timer.clock()
+    time_fp = timer.process_time()
     if( report ):
         used_time = time_fp - time_ip
         print("::[PFEM_FLUID_MODEL]:: [ %.2f" % round(used_time, 2), "s", process, " ] ")
@@ -42,6 +40,7 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         main_model_part -- The ModelPart to be used
         Parameters -- The settings for the process
         """
+        KratosMultiphysics.Process.__init__(self)
         self.main_model_part = main_model_part
         self.FEM_model_part  = FEM_model_part
 
@@ -56,6 +55,9 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         if Parameters.Has("bodies_list"):
             self.bodies_list = True
             self.bodies_parts_list = Parameters["bodies_list"]
+
+        if Parameters.Has("material_import_settings"):
+            self.material_import_settings = Parameters["material_import_settings"]
 
 #============================================================================================================================
     def Execute(self):
@@ -91,6 +93,7 @@ class CheckAndPrepareModelProcessForCoupling(pfem_check_and_prepare_model_proces
         for node in self.FEM_model_part.Nodes:
             node.Id = node.Id + max_id
             node.SetValue(KratosPfemFluid.NO_MESH, True)
+            node.Set(KratosMultiphysics.SOLID, True)
             femdem_model_part.AddNode(node, 0)
 
         for node in self.FEM_model_part.GetSubModelPart("SkinDEMModelPart").Nodes:

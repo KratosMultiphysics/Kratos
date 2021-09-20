@@ -276,7 +276,7 @@ Begin Elements SmallDisplacementElement2D3N// GUI group identifier: Solid Auto1
       160          0          4          3          7 
 End Elements
 
-Begin Conditions Condition2D2N// GUI group identifier: External heat flux Auto1
+Begin Conditions LineCondition2D2N// GUI group identifier: External heat flux Auto1
     1 0 105 104
     2 0 104 103
     3 0 103 102

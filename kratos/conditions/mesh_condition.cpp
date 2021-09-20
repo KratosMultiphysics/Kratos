@@ -134,7 +134,7 @@ Condition::Pointer MeshCondition::Clone (
 void MeshCondition::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double >& rDestinationVariable,
+    const Variable<double >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -146,7 +146,7 @@ void MeshCondition::AddExplicitContribution(
 void MeshCondition::AddExplicitContribution(
     const VectorType& rRHS,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double,3> >& rDestinationVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -158,10 +158,42 @@ void MeshCondition::AddExplicitContribution(
 void MeshCondition::AddExplicitContribution(
     const MatrixType& rLHSMatrix,
     const Variable<MatrixType>& rLHSVariable,
-    Variable<Matrix>& rDestinationVariable,
+    const Variable<Matrix>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+const Parameters MeshCondition::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "time_integration"           : [],
+        "framework"                  : "lagrangian",
+        "symmetric_lhs"              : true,
+        "positive_definite_lhs"      : true,
+        "output"                     : {
+            "gauss_point"            : [],
+            "nodal_historical"       : [],
+            "nodal_non_historical"   : [],
+            "entity"                 : []
+        },
+        "required_variables"         : [],
+        "required_dofs"              : [],
+        "flags_used"                 : [],
+        "compatible_geometries"      : ["Point2D", "Point3D", "Line2D2", "Line2D3", "Line3D2", "Line3D3", "Triangle3D3", "Triangle3D6", "Quadrilateral3D4", "Quadrilateral3D8", "Quadrilateral3D9"],
+        "element_integrates_in_time" : true,
+        "compatible_constitutive_laws": {
+            "type"        : [],
+            "dimension"   : [],
+            "strain_size" : []
+        },
+        "required_polynomial_degree_of_geometry" : -1,
+        "documentation"   : "This is a pure geometric condition, no computation"
+    })");
+    return specifications;
 }
 
 /***********************************************************************************/

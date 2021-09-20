@@ -27,7 +27,7 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 
 
 namespace Kratos
@@ -42,7 +42,7 @@ namespace Kratos
 /** Mapping requires knowledge about the "other" side of the Interface. This class communicates the
  * data required by the mappers, hence it also includes the (local) searching
 */
-class InterfaceCommunicator
+class KRATOS_API(MAPPING_APPLICATION) InterfaceCommunicator
 {
 public:
     ///@name Type Definitions
@@ -91,6 +91,14 @@ public:
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     ///@}
+    ///@name Inquiry
+    ///@{
+
+    int AreMeshesConforming() {
+        return mMeshesAreConforming;
+    }
+
+    ///@}
     ///@name Input and output
     ///@{
 
@@ -129,6 +137,7 @@ protected:
     double mSearchRadius = -1.0;
 
     int mEchoLevel = 0;
+    int mMeshesAreConforming = 0;
 
     ///@}
     ///@name Protected Operations
@@ -154,7 +163,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ConductLocalSearch();
+    void ConductLocalSearch(const Communicator& rComm);
 
     void CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
@@ -164,7 +173,8 @@ private:
 
     // this function performs the search and the exchange of the data on the interface
     void ConductSearchIteration(const Kratos::Flags& rOptions,
-                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const Communicator& rComm);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 

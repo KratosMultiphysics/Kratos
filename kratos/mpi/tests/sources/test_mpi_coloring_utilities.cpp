@@ -12,7 +12,6 @@
 //
 
 #include "mpi.h"
-#include "mpi/mpi_environment.h"
 #include "includes/parallel_environment.h"
 #include "utilities/communication_coloring_utilities.h"
 
@@ -53,7 +52,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeRecvList, Krat
     }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIColoringUtilities_ComputeCommunicationScheduling, KratosMPICoreFastSuite)
 {
     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
 

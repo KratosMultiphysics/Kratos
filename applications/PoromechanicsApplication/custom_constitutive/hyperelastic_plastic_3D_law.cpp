@@ -396,7 +396,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
-        if( ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED) )
+        if( ReturnMappingVariables.Options.IsNot(FlowRule::RETURN_MAPPING_COMPUTED) )
         {
             KRATOS_ERROR << " ReturnMappingCall was not performed  ...error in the constitutive calculation..." << std::endl;
         }
@@ -613,7 +613,7 @@ bool HyperElasticPlastic3DLaw::CheckParameters(Parameters& rValues)
 
 int HyperElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
-                             const ProcessInfo& rCurrentProcessInfo)
+                             const ProcessInfo& rCurrentProcessInfo) const
 {
 
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)

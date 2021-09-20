@@ -23,6 +23,8 @@ namespace Kratos {
         AuxiliaryUtilities() {};
         virtual ~AuxiliaryUtilities() {};
 
+        void UpdateTimeInOneModelPart(ModelPart& r_model_part, const double& time, const double& dt, const bool& is_time_to_print);
+
         double ComputeAverageZStressFor2D(ModelPart& rSpheresModelPart) {
 
             ElementsArrayType& pElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();

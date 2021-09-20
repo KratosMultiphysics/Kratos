@@ -66,8 +66,8 @@ class FluidElementTest(UnitTest.TestCase):
         self.runCavity()
 
     def testSymbolic(self):
-        self.element = "symbolic"
-        self.reference_file = "reference10_symbolic"
+        self.element = "weakly_compressible"
+        self.reference_file = "reference10_weakly_compressible"
         self.is_time_integrated = True
         self.runCavity()
 
@@ -143,8 +143,9 @@ class FluidElementTest(UnitTest.TestCase):
             constitutive_law = Newtonian2DLaw()
             self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
 
+        process_info = self.fluid_model_part.ProcessInfo
         for element in self.fluid_model_part.Elements:
-            element.Initialize()
+            element.Initialize(process_info)
 
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:

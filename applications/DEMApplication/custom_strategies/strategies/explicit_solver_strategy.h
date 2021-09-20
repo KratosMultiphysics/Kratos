@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -98,7 +98,7 @@ namespace Kratos {
         typedef PropertiesContainerType::iterator PropertiesIterator;
         typedef DiscreteParticleConfigure<3> ElementConfigureType;
         typedef RigidFaceGeometricalObjectConfigure<3> RigidFaceGeometricalConfigureType;
-        typedef Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3ul> > > ComponentOf3ComponentsVariableType;
+        typedef Variable<double> ComponentOf3ComponentsVariableType;
 
         /// Pointer definition of ExplicitSolverStrategy
         KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -121,32 +121,34 @@ namespace Kratos {
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
-            else mDoSearchNeighbourElements = false;
+
+            //Also checks old flag name for backward compatibility issues.
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
+                mDoSearchNeighbourElements = true;
+            } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
+
+            if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
+            else mDoSearchNeighbourFEMElements = false;
+
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
 
             mpDem_model_part = &(*(settings.r_model_part));
-            if (mpDem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.r_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpDem_model_part == NULL) << "Undefined settings.r_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpContact_model_part = &(*(settings.contact_model_part));
-            if (mpContact_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpContact_model_part == NULL) << "Undefined settings.contact_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpFem_model_part = &(*(settings.fem_model_part));
-            if (mpFem_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpFem_model_part == NULL) << "Undefined settings.fem_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpCluster_model_part = &(*(settings.cluster_model_part));
-            if (mpCluster_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpCluster_model_part == NULL) << "Undefined settings.cluster_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             mpInlet_model_part = &(*(settings.inlet_model_part));
-            if (mpInlet_model_part == NULL)
-                KRATOS_THROW_ERROR(std::runtime_error, "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor", "")
+            KRATOS_ERROR_IF(mpInlet_model_part == NULL) << "Undefined settings.inlet_model_part in ExplicitSolverStrategy constructor" << std::endl;
 
             if(mParameters["RemoveBallsInitiallyTouchingWalls"].GetBool()) mRemoveBallsInitiallyTouchingWallsOption = true;
             else mRemoveBallsInitiallyTouchingWallsOption = false;
@@ -191,9 +193,9 @@ namespace Kratos {
 
             #pragma omp parallel for
             for (int k = 0; k < (int)pElements.size(); k++){
-              ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
-              T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
-              rCustomListOfParticles[k] = spheric_particle;
+                ElementsArrayType::iterator particle_pointer_it = pElements.ptr_begin() + k;
+                T* spheric_particle = dynamic_cast<T*>(&(*particle_pointer_it));
+                rCustomListOfParticles[k] = spheric_particle;
             }
             return;
             KRATOS_CATCH("")
@@ -254,7 +256,7 @@ namespace Kratos {
         virtual void SearchRigidFaceNeighbours();
         void CheckHierarchyWithCurrentNeighbours();
         /* This should work only with one iteration, but it with mpi does not */
-        void CalculateInitialMaxIndentations(ProcessInfo& r_process_info);
+        void CalculateInitialMaxIndentations(const ProcessInfo& r_process_info);
         void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part);
         void PrepareElementsForPrinting();
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
@@ -277,12 +279,10 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        std::vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
-        std::vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
         virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
@@ -302,14 +302,13 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        std::vector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
+        bool mDoSearchNeighbourFEMElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
-        std::vector<unsigned int> mConditionPartition;
         ModelPart *mpFem_model_part;
         ModelPart *mpDem_model_part;
         ModelPart *mpInlet_model_part;

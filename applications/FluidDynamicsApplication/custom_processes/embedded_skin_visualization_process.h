@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
@@ -54,6 +54,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -76,6 +77,30 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) EmbeddedSkinVisualizationProcess : 
 public:
     ///@name Type Definitions
     ///@{
+
+    /**
+     * @brief Enum class with the available level set types
+     * Auxiliary enum class to store the available level set types
+     * Continuous: standard nodal based continuous level set function
+     * Discontinuous: elementwise discontinuous level set function
+     */
+    enum class LevelSetType
+    {
+        Continuous,
+        Discontinuous
+    };
+
+    /**
+     * @brief Enum class with the available shape functions type
+     * Auxiliary enum class to store the available shape functions types
+     * Available shape functions are the standard linear FE shape functions (Standard)
+     * and the Aausas FE space (see Ausas et. al. 2010 https://doi.org/10.1016/j.cma.2009.11.011)
+     */
+    enum class ShapeFunctionsType
+    {
+        Ausas,
+        Standard
+    };
 
     struct Hash{
         std::size_t operator()(const std::pair<unsigned int,bool>& k) const{
@@ -104,6 +129,61 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /**
+     * @brief Create a And Prepare Visualization Model Part object
+     * This method creates the visualization model part and prepares it for the computation
+     * @param rModel The model container
+     * @param rParameters Kratos parameters encaptulating the settings. These settings are assumed to be already validated.
+     * @return ModelPart Visualization model part
+     */
+    static ModelPart& CreateAndPrepareVisualizationModelPart(
+        Model& rModel,
+        const Parameters rParameters
+    );
+
+    /**
+     * @brief Check and return the level set type
+     * This method checks and return the user provided level set type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @param rLevelSetType The validated level set type
+     */
+    static void CheckAndSetLevelSetType(
+        const Parameters rParameters,
+        LevelSetType& rLevelSetType);
+
+    /**
+     * @brief Check and return the shape functions
+     * This method checks and return the user provided shape functions type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @param rShapeFunctionsType The validated shape functions type
+     */
+    static void CheckAndSetShapeFunctionsType(
+        const Parameters rParameters,
+        ShapeFunctionsType& rShapeFunctionsType);
+
+    /**
+     * @brief Checks and returns the distance variable name
+     * This method checks the user provided distance variable name
+     * If the variable is not prescribed, it returns a default one according to the selected level set type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be already validated.
+     * @return std::string The distance variable name
+     */
+    static const std::string CheckAndReturnDistanceVariableName(
+        const Parameters rParameters,
+        const LevelSetType& rLevelSetType);
+
+    /**
+     * @brief Check and fill a visualization variable list
+     * This method checks the user provided variable list and saves it in the corresponding vector list
+     * @tparam TDataType The variable data type
+     * @param rParameters Kratos parameters encapsulating the settings. These settings are assumed to be alreeeady validated.
+     * @param rVariableList The filled variable data list
+     */
+    template<class TDataType>
+    static void FillVariablesList(
+        const Parameters rParameters,
+        std::vector<const Variable<TDataType>*>& rVariablesList);
+
     /// Constructor.
 
     /**
@@ -112,17 +192,19 @@ public:
      * @param rVisualizationModelPart The visualization model part to be filled
      * @param rVisualizationScalarVariables Scalar variables to be interpolated in the visualization model part
      * @param rVisualizationVectorVariables Vector variables to be interpolated in the visualization model part
-     * @param rVisualizationComponentVariables Component variables to be interpolated in the visualization model part
-     * @param rShapeFunctions Shape functions type. So far "standard" and "ausas" are implemented
+     * @param rLevelSetType Level set type. So far "continuous" and "discontinuous" are implemented
+     * @param rShapeFunctionsType Shape functions type. So far "standard" and "ausas" are implemented
      * @param ReformModelPartAtEachTimeStep Redo visualization model part at each time step flag
      */
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
-        const std::vector<Variable< double> >& rVisualizationScalarVariables,
-        const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
-        const std::string& rShapeFunctions = "standard",
+        const std::vector<const Variable< double>* >& rVisualizationScalarVariables,
+        const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationVectorVariables,
+        const std::vector<const Variable< double>* >& rVisualizationNonHistoricalScalarVariables,
+        const std::vector<const Variable< array_1d<double, 3> >* >& rVisualizationNonHistoricalVectorVariables,
+        const LevelSetType& rLevelSetType,
+        const ShapeFunctionsType& rShapeFunctionsType,
         const bool ReformModelPartAtEachTimeStep = false);
 
     /**
@@ -134,7 +216,16 @@ public:
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
-        Parameters& rParameters);
+        Parameters rParameters);
+
+    /**
+     * @brief Constructor with Kratos parameters and Model container
+     * @param rModel The Model container
+     * @param rParameters Kratos parameters encapsulating the settings
+     */
+    EmbeddedSkinVisualizationProcess(
+        Model& rModel,
+        Parameters rParameters);
 
     /// Destructor.
     ~EmbeddedSkinVisualizationProcess() override {}
@@ -147,19 +238,33 @@ public:
     ///@name Operations
     ///@{
 
+    void ExecuteBeforeSolutionLoop() override;
+
+    void ExecuteBeforeOutputStep() override;
+
+    void ExecuteAfterOutputStep() override;
+
+    int Check() override;
+
+    /**
+     * @brief Get the Default Settings object
+     * Static method to get the default settings inside the contructor
+     * @return Parameters The parameters object containing the default settings
+     */
+    static Parameters StaticGetDefaultParameters();
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
+    }
+
     ///@}
     ///@name Access
     ///@{
 
-    void ExecuteInitialize() override;
-
-    void ExecuteBeforeSolutionLoop() override;
-
-    void ExecuteInitializeSolutionStep() override;
-
-    void ExecuteBeforeOutputStep() override;
-
-    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Inquiry
@@ -198,21 +303,44 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&                                                                          mrModelPart;
-    ModelPart&                                                                          mrVisualizationModelPart;
+    // Unordered map to relate the newly created nodes and the origin mesh ones
+    CutNodesMapType mCutNodesMap;
 
-    CutNodesMapType                                                                     mCutNodesMap;
+    // Container with the splitting newly created elements
+    ModelPart::ElementsContainerType mNewElementsPointers;
 
-    ModelPart::ElementsContainerType                                                    mNewElementsPointers;
+    // Reference to the origin model part
+    ModelPart& mrModelPart;
 
-    std::vector<Variable< double> >                                                     mVisualizationScalarVariables;
-    std::vector<Variable< array_1d<double, 3> > >                                       mVisualizationVectorVariables;
-    std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >    mVisualizationComponentVariables;
+    // Reference to the visualization model part
+    ModelPart& mrVisualizationModelPart;
 
-    std::string                                                                         mShapeFunctions;
+    // Level set type. Current available options continuous and discontinuous
+    const LevelSetType mLevelSetType;
 
-    bool                                                                                mReformModelPartAtEachTimeStep = false;
-    bool                                                                                mSetVisualizationMesh = true;
+    // Shape functions type. Current available options ausas and standard
+    const ShapeFunctionsType mShapeFunctionsType;
+
+    // If true, the visualization model part is created each time step (required in case the level set function is not constant)
+    const bool mReformModelPartAtEachTimeStep;
+
+    // Pointer to the variable that stores the nodal level set function
+    const Variable<double>* mpNodalDistanceVariable;
+
+    // Pointer to the variable that stores the elemental level set function
+    const Variable<Vector>* mpElementalDistanceVariable;
+
+    // Vector containing the scalar variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<double>*> mVisualizationScalarVariables;
+
+    // Vector containing the vector variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<array_1d<double, 3>>*> mVisualizationVectorVariables;
+
+    // Vector containing the non-historical scalar variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<double>*> mVisualizationNonHistoricalScalarVariables;
+
+    // Vector containing the non-historical vector variables to be interpolated in the visualization mesh
+    const std::vector<const Variable<array_1d<double, 3>>*> mVisualizationNonHistoricalVectorVariables;
 
     ///@}
     ///@name Protected Operators
@@ -224,13 +352,72 @@ private:
     ///@{
 
     /**
+     * @brief Auxiliary get double value method
+     * This is an auxiliary method to get scalar values from the nodal databases
+     * It is specialized for the historical and non-historical databases
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rNode Node from which the values are retrieved
+     * @param rVariable Scalar variable to be retrieved
+     * @return double& Reference to the retrieved value
+     */
+    template<bool IsHistorical>
+    double& AuxiliaryGetValue(
+        Node<3>& rNode,
+        const Variable<double>& rVariable);
+
+    /**
+     * @brief Auxiliary get vector value method
+     * This is an auxiliary method to get vector values from the nodal databases
+     * It is specialized for the historical and non-historical databases
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rNode Node from which the values are retrieved
+     * @param rVariable Vector variable to be retieved
+     * @return array_1d<double,3>& Reference to the retrieved value
+     */
+    template<bool IsHistorical>
+    array_1d<double,3>& AuxiliaryGetValue(
+        Node<3>& rNode,
+        const Variable<array_1d<double,3>>& rVariable);
+
+    /**
+     * @brief Create a Visualization Mesh object
+     * Fills the visualization model part with the corresponding geometrical entities
+     */
+    void CreateVisualizationMesh();
+
+    /**
      * Computes the interpolation in the new (interface) nodes
      */
     void ComputeNewNodesInterpolation();
 
     /**
-     * Copies the non-interface nodes from the origin model part to the visualization one
+     * @brief Auxiliary method to calculate the interpolation
+     * For a given variables list, this method does the interpolation from to the intersected edges values
+     * @tparam TDataType Variable list data type
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rpNode Pointer to the visualization node in which the interpolation is calculated
+     * @param rpNodeI Pointer to the I node of the intersected edge
+     * @param rpNodeJ Pointer to the J node of the intersected edge
+     * @param WeightI Weight of the I node value
+     * @param WeightJ Weight of the J node value
+     * @param rVariablesList List containing the variables to be interpolated
      */
+    template<class TDataType, bool IsHistorical>
+    void InterpolateVariablesListValues(
+        const Node<3>::Pointer& rpNode,
+        const Node<3>::Pointer& rpNodeI,
+        const Node<3>::Pointer& rpNodeJ,
+        const double WeightI,
+        const double WeightJ,
+        const std::vector<const Variable<TDataType>*>& rVariablesList);
+
+    /**
+     * @brief Create the visualization model part nodes
+     * Copies the non-interface nodes from the origin model part to the visualization one
+     * If the simulation is MPI parallel it also copies the PARTITION_INDEX from the origin model part
+     * @tparam IsDistributed Bool template argument indicating if the simulation is MPI parallel
+     */
+    template<const bool IsDistributed>
     void CopyOriginNodes();
 
     /**
@@ -239,19 +426,52 @@ private:
     void CopyOriginNodalValues();
 
     /**
+     * @brief Copy the values from the origin to the visualization mesh
+     * For the nodes that are no created from an intersected edge (i.e. those already existent in the origin model part),
+     * this method copies the values of the variables in the provided list from the origin to the visualization model part
+     * @tparam TDataType Variable list data type
+     * @tparam IsHistorical Template argument to indicate the database. Historical (true) and non-historical (false)
+     * @param rItOriginNode Origin node in the origin model part
+     * @param rItVisualizationNode Destination node in the visualization model part
+     * @param rVariablesList List containing the variables whose values are to be copied
+     */
+    template<class TDataType, bool IsHistorical>
+    void CopyVariablesListValues(
+        const ModelPart::NodeIterator& rItOriginNode,
+        ModelPart::NodeIterator& rItVisualizationNode,
+        const std::vector<const Variable<TDataType>*>& rVariablesList);
+
+    /**
      * Creates the new geometrical entities (elements and conditions) in the visualization model part
      */
     void CreateVisualizationGeometries();
 
     /**
-     * Checks wether the element is split or not
+     * @brief Initializes the non historical database in the visualization model part
+     * This method initializes the non-historical variables in the provided variables list
+     * @tparam TDataType The data type of the variables in the list
+     * @param rNonHistoricalVariablesVector The vector containing the non-historical variables to be initialized
+     */
+    template<class TDataType>
+    void InitializeNonHistoricalVariables(const std::vector<const Variable<TDataType>*>& rNonHistoricalVariablesVector);
+
+    /**
+     * Checks whether the element is split (intersected or incised using Ausas incised SF) or not
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return True if it is split and false if not
      */
     bool ElementIsSplit(
-        Geometry<Node<3>>::Pointer pGeometry,
+        const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+    /**
+     * @brief Checks whether the element is incised and using Ausas shape functions
+     * This method checks if an element geometry is incised and Ausas shape functions are being used
+     * @param rEdgeDistancesExtrapolated vector containing the element edge distances of extrapolated geometry
+     * @return true if the element is incised and extrapolated edge distances are provided; false if not
+     */
+    bool ElementIsIncised(const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Checks wether the element is in the positive side or not
@@ -272,8 +492,15 @@ private:
     const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
 
     /**
+     * Sets the extrapolated edge distance values.
+     * @param ItElem Element iterator
+     * @return Vector containing the distance values
+     */
+    const inline Vector SetEdgeDistancesExtrapolatedVector(const Element& rElem);
+
+    /**
      * Sets the the modified shape functions utility according to the
-     * distance values.
+     * distance values for a cut element.
      * @param pGeometry Pointer to the element geometry
      * @param rNodalDistances Vector containing the distance values
      * @return A pointer to the modified shape functions utility
@@ -281,6 +508,18 @@ private:
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
+
+    /**
+     * Sets the the modified shape functions utility for an Ausas incised element.
+     * @param pGeometry Pointer to the element geometry
+     * @param rNodalDistancesWithExtra Vector containing the distance values including extrapolated intersections
+     * @param rEdgeDistancesExtrapolated Vector containing the edge distances rations of extrapolated intersections
+     * @return A pointer to the modified shape functions utility
+     */
+    ModifiedShapeFunctions::Pointer SetAusasIncisedModifiedShapeFunctionsUtility(
+        const Geometry<Node<3>>::Pointer pGeometry,
+        const Vector &rNodalDistancesWithExtra,
+        const Vector &rEdgeDistancesExtrapolated);
 
     /**
      * Sets the new interface condition geometry
@@ -293,21 +532,36 @@ private:
         const Condition::NodesArrayType &rNewNodesArray);
 
     /**
-     * Sets the visualization properties (one for the positive side
-     * and one for the negative)
-     * @return Tuple containing two properties pointers
+     * @brief Sets the visualization properties (one for the positive side and one for the negative)
+     * Set the properties for the new elements depending if they are in the positive or negative side of the cut.
+     * By doing this, two different layers will be created when printing this model part GiD.
+     * @return std::tuple< Properties::Pointer , Properties::Pointer > Tuple containing two properties pointers
      */
     std::tuple< Properties::Pointer , Properties::Pointer > SetVisualizationProperties();
+
+    /**
+     * @brief Removes the visualization properties
+     * When it is required, this function searchs for the visualization properties to remove them.
+     */
+    void RemoveVisualizationProperties();
+
+    template<const bool IsDistributed>
+    static void SetPartitionIndexFromOriginNode(
+        const Node<3>& rOriginNode,
+        Node<3>& rVisualizationNode);
+
+    template<const bool IsDistributed>
+    static void SetPartitionIndex(
+        const int PartitionIndex,
+        Node<3>& rVisualizationNode);
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods

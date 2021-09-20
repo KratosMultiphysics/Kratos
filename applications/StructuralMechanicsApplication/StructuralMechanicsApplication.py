@@ -1,11 +1,12 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Application dependent names and paths
-import KratosMultiphysics as KM
+from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 from KratosStructuralMechanicsApplication import *
 application = KratosStructuralMechanicsApplication()
 application_name = "KratosStructuralMechanicsApplication"
-application_folder = "StructuralMechanicsApplication"
 
-KM._ImportApplicationAsModule(application, application_name, application_folder, __path__)
+_ImportApplication(application, application_name)
+
+if CheckIfApplicationsAvailable("ConstitutiveLawsApplication"):
+    # if available import the advanced constitutive laws
+    import KratosMultiphysics.ConstitutiveLawsApplication

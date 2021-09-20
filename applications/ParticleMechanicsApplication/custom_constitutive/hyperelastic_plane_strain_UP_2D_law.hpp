@@ -35,7 +35,7 @@ namespace Kratos
  * to large displacements elasticity.
  */
 
-class HyperElasticPlaneStrainUP2DLaw : public HyperElasticUP3DLaw
+class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) HyperElasticPlaneStrainUP2DLaw : public HyperElasticUP3DLaw
 {
 public:
     /**
@@ -102,7 +102,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     };

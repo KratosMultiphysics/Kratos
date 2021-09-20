@@ -84,6 +84,7 @@ void ModifyViscosityLikeLiu(double & viscosity, const double solid_fraction);
 //***************************************************************************************************************
 //***************************************************************************************************************
 
+
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
 class KRATOS_API(SWIMMING_DEM_APPLICATION) BinBasedDEMFluidCoupledMapping
 {
@@ -127,7 +128,6 @@ KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping_TDim_TBaseTypeOfS
 // 3:   Linear         Filtered            Filtered
 //----------------------------------------------------------------
 
-
 BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
                              : mMustCalculateMaxNodalArea(true),
                                mFluidDeltaTime(0.0),
@@ -158,6 +158,7 @@ BinBasedDEMFluidCoupledMapping(Parameters& rParameters)
     }
 
     mGravity = ZeroVector(3);
+    mVariables = VariablesContainer();
 }
 
 /// Destructor.
@@ -171,22 +172,52 @@ virtual ~BinBasedDEMFluidCoupledMapping() {}
 ///@name Operations
 ///@{
 
-void AddDEMCouplingVariable(const VariableData& r_variable){
-    mDEMCouplingVariables.Add(r_variable);
+template<class TDataType>
+void AddDEMCouplingVariable(Variable<TDataType> const& r_variable){
+    std::string variable_list_identifier = "DEM";
+    std::string coupling_variable_description = "fluid-interpolated DEM phase variable";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
-void AddFluidCouplingVariable(const VariableData& r_variable){
-    mFluidCouplingVariables.Add(r_variable);
+template<class TDataType>
+void AddFluidCouplingVariable(Variable<TDataType> const& r_variable){
+    std::string variable_list_identifier = "Fluid";
+    std::string coupling_variable_description = "DEM-interpolated fluid phase variable";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
-void AddDEMVariablesToImpose(const VariableData& r_variable){
-    mDEMVariablesToBeImposed.Add(r_variable);
+template<class TDataType>
+void AddDEMVariablesToImpose(Variable<TDataType> const& r_variable){
+    std::string variable_list_identifier = "DEMToImpose";
+    std::string coupling_variable_description = "DEM-phase variables with imposed fluid-interpolated values";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
 }
 
-void AddFluidVariableToBeTimeFiltered(const VariableData& r_variable, const double time_constant){
-    mFluidVariablesToBeTimeFiltered.Add(r_variable);
-    mAlphas[r_variable] = time_constant;
+template<class TDataType>
+void AddFluidVariableToBeTimeFiltered(Variable<TDataType> const& r_variable, const double time_constant){
+	mAlphas[r_variable] = time_constant;
     mIsFirstTimeFiltering[r_variable] = true;
+    std::string variable_list_identifier = "FluidTimeFiltered";
+    std::string coupling_variable_description = "Fluid variables to be time-filtered";
+    AddCouplingVariable<TDataType>(r_variable, variable_list_identifier, coupling_variable_description);
+}
+
+template<class TDataType>
+void AddCouplingVariable(Variable<TDataType> const& r_variable, std::string variable_list_identifier, std::string coupling_variable_description){
+
+    if (std::is_same<TDataType, double>::value){
+        mVariables.Add(r_variable, variable_list_identifier, "Scalar");
+    }
+
+    else if (std::is_same<TDataType, array_1d<double, 3> >::value){
+        mVariables.Add(r_variable, variable_list_identifier, "Vector");
+    }
+
+    else {
+        KRATOS_ERROR << "Variable " << r_variable.Name() << "'s type (" << typeid(r_variable).name()
+					 << ") is currently not available as a" << coupling_variable_description << "."
+                     << "Please implement." << std::endl;
+    }
 }
 
 void InterpolateFromFluidMesh(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, Parameters& parameters, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const double alpha);
@@ -269,6 +300,40 @@ DenseVector<unsigned int> mNodesPartition;
 
 private:
 
+// This class is a simple database that uses two indices (strings) to encode
+// different particle lists. The two indices correspond to
+// 		i) the set of variables (fluid variables,
+//		DEM variables, fluid variables for time filtering etc.) and
+// 		ii) the type (Scalar, Vector, etc.)
+class VariablesContainer
+{
+	public:
+	std::map<std::set<std::string>, VariablesList> mCouplingVariablesMap;
+
+	VariablesList& GetVariablesList(std::string first_criterion, std::string second_criterion=""){
+		std::set<std::string> identifier_set;
+		identifier_set.insert("");
+		identifier_set.insert(first_criterion);
+		identifier_set.insert(second_criterion);
+		if (mCouplingVariablesMap.find(identifier_set) == mCouplingVariablesMap.end()){
+			VariablesList new_list;
+			mCouplingVariablesMap[identifier_set] = new_list;
+		}
+		return mCouplingVariablesMap[identifier_set];
+	}
+
+	bool Is(VariableData const& rVariable, std::string first_criterion, std::string second_criterion=""){
+		return GetVariablesList(first_criterion, second_criterion).Has(rVariable);
+	}
+
+	void Add(VariableData const& rVariable, std::string list_identifier, std::string type_id=""){
+		GetVariablesList(list_identifier, type_id).Add(rVariable);
+		GetVariablesList(type_id).Add(rVariable);
+		GetVariablesList(list_identifier).Add(rVariable);
+		GetVariablesList("", "").Add(rVariable);
+	}
+};
+
 bool mMustCalculateMaxNodalArea;
 double mFluidDeltaTime;
 double mFluidLastCouplingFromDEMTime;
@@ -279,12 +344,9 @@ int mTimeAveragingType;
 int mViscosityModificationType;
 int mParticlesPerDepthDistance;
 int mNumberOfDEMSamplesSoFarInTheCurrentFluidStep;
-
 array_1d<double, 3> mGravity;
-VariablesList mDEMCouplingVariables;
-VariablesList mFluidCouplingVariables;
-VariablesList mDEMVariablesToBeImposed;
-VariablesList mFluidVariablesToBeTimeFiltered;
+
+VariablesContainer mVariables;
 std::map<VariableData, double> mAlphas;
 std::map<VariableData, bool> mIsFirstTimeFiltering;
 PointPointSearch::Pointer mpPointPointSearch;
@@ -302,10 +364,10 @@ VectorDistanceType mVectorsOfRadii;
 
 //***************************************************************************************************************
 //***************************************************************************************************************
-void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData *r_current_variable);
+void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const VariableData& r_current_variable);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<double>& r_current_variable, const Variable<double>& r_previous_averaged_variable = TIME_AVERAGED_DOUBLE);
 void ApplyExponentialTimeFiltering(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_current_variable, const Variable<array_1d<double, 3> >& r_previous_averaged_variable = TIME_AVERAGED_ARRAY_3);
-void CopyValues(ModelPart& r_model_part, const VariableData *r_origin_variable);
+void CopyValues(ModelPart& r_model_part, VariableData const& r_origin_variable);
 void CopyValues(ModelPart& r_model_part, const Variable<double>& r_origin_variable, const Variable<double>& r_destination_variable = TIME_AVERAGED_DOUBLE);
 void CopyValues(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& r_origin_variable, const Variable<array_1d<double, 3> >& r_destination_variable = TIME_AVERAGED_ARRAY_3);
 void ComputeHomogenizedFluidFraction(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part);
@@ -314,9 +376,6 @@ void InterpolateOtherFluidVariables(ModelPart& r_dem_model_part, ModelPart& r_fl
 void SearchParticleNodalNeighbours(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void SearchParticleNodalNeighboursFixedRadius(ModelPart& r_fluid_model_part, ModelPart& r_dem_model_part, const double& search_radius);
 void RecalculateDistances(ModelPart& r_dem_model_part);
-bool IsDEMVariable(const VariableData& var);
-bool IsFluidVariable(const VariableData& var);
-bool IsFluidVariableToBeTimeFiltered(const VariableData& var);
 array_1d<double, 3> CalculateAcceleration(const Geometry<Node<3> >& geom, const Vector& N);
 double CalculateNormOfSymmetricGradient(const Geometry<Node<3> >& geom, const int index);
 array_1d<double, 3> CalculateVorticity(const Geometry<Node<3> >& geom, const int index);
@@ -348,9 +407,7 @@ void MultiplyNodalVariableBy(ModelPart& r_model_part, const Variable<array_1d<do
 void ResetDEMVariables(ModelPart& r_dem_model_part);
 void ResetFluidVariables(ModelPart& r_fluid_model_part);
 void ResetFLuidVelocityRate(const NodeIteratorType& node_it);
-void Clear(ModelPart& r_model_part, const VariableData* r_variable);
-void Clear(ModelPart& r_model_part, const Variable<double>& r_variable);
-inline void ClearVariable(const NodeIteratorType& node_it, const VariableData *var);
+void SetToZero(ModelPart& r_model_part, const VariableData& r_variable);
 void CalculateFluidNodesMaxNodalArea(ModelPart& r_fluid_model_part);
 inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var);
 inline unsigned int GetNearestNode(const Vector& N);
@@ -358,6 +415,7 @@ void FillVectorOfSwimmingSpheres(ModelPart& r_dem_model_part);
 double inline CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TBaseTypeOfSwimmingParticle>* b);
 double inline GetAlpha(const VariableData& r_variable);
 const Variable<array_1d<double,3>>& GetBodyForcePerUnitMassVariable() const;
+bool CheckVariablesTypesCoincide(const VariableData& var_1, const VariableData& var_2) const;
 //***************************************************************************************************************
 //***************************************************************************************************************
 

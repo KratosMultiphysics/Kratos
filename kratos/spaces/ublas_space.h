@@ -277,27 +277,28 @@ public:
         return std::sqrt(Dot(rX, rX));
     }
 
-    static TDataType TwoNorm(MatrixType const& rA) // Frobenious norm
+    static TDataType TwoNorm(const Matrix& rA) // Frobenious norm
     {
         TDataType aux_sum = TDataType();
-#ifndef _OPENMP
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
-                aux_sum += rA(i,j) * rA(i,j);
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+                aux_sum += std::pow(rA(i,j),2);
             }
         }
-#else
-        #pragma omp parallel reduction(+:aux_sum)
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
-                aux_sum += rA(i,j) * rA(i,j);
-            }
+        return std::sqrt(aux_sum);
+    }
+
+    static TDataType TwoNorm(const compressed_matrix<TDataType> & rA) // Frobenious norm
+    {
+        TDataType aux_sum = TDataType();
+
+        const auto& r_values = rA.value_data();
+
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(r_values.size()); ++i) {
+            aux_sum += std::pow(r_values[i] , 2);
         }
-#endif
         return std::sqrt(aux_sum);
     }
 
@@ -306,35 +307,34 @@ public:
      * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
-    static TDataType JacobiNorm(MatrixType const& rA)
+    static TDataType JacobiNorm(const Matrix& rA)
+    {
+        TDataType aux_sum = TDataType();
+        #pragma omp parallel for reduction(+:aux_sum)
+        for (int i=0; i<static_cast<int>(rA.size1()); ++i) {
+            for (int j=0; j<static_cast<int>(rA.size2()); ++j) {
+                if (i != j) {
+                    aux_sum += std::abs(rA(i,j));
+                }
+            }
+        }
+        return aux_sum;
+    }
+
+    static TDataType JacobiNorm(const compressed_matrix<TDataType>& rA)
     {
         TDataType aux_sum = TDataType();
 
-#ifndef _OPENMP
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
-                if (i != j)
-                {
-                    aux_sum += std::abs(rA(i,j));
-                }
-            }
-        }
-#else
-        #pragma omp parallel for reduction(+:aux_sum)
-        for (int i = 0; i < static_cast<int>(rA.size1()); i++)
-        {
-            for (int j = 0; j < static_cast<int>(rA.size2()); j++)
-            {
-                if (i != j)
-                {
-                    aux_sum += std::abs(rA(i,j));
-                }
-            }
-        }
-#endif
+        typedef typename compressed_matrix<TDataType>::const_iterator1 t_it_1;
+        typedef typename compressed_matrix<TDataType>::const_iterator2 t_it_2;
 
+        for (t_it_1 it_1 = rA.begin1(); it_1 != rA.end1(); ++it_1) {
+            for (t_it_2 it_2 = it_1.begin(); it_2 != it_1.end(); ++it_2) {
+                if (it_2.index1() != it_2.index2()) {
+                    aux_sum += std::abs(*it_2);
+                }
+            }
+        }
         return aux_sum;
     }
 
@@ -352,7 +352,8 @@ public:
 #endif
     }
 
-    static void TransposeMult(MatrixType& rA, VectorType& rX, VectorType& rY)
+    template< class TOtherMatrixType >
+    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
     {
 		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX

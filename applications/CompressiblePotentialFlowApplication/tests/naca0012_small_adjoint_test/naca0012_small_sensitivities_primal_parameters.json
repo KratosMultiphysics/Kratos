@@ -12,7 +12,7 @@
         "model_part_name" : "MainModelPart",
         "model_import_settings"  : {
             "input_type"     : "mdpa",
-            "input_filename" : "naca0012_small"
+            "input_filename" : "../naca0012_small_mdpa/naca0012_small"
         },
         "maximum_iterations"     : 10,
         "echo_level"             : 0,
@@ -20,7 +20,7 @@
         "skin_parts"             : ["PotentialWallCondition2D_Far_field_Auto1","Body2D_Body"],
         "no_skin_parts"          : [],
         "linear_solver_settings"  : {
-            "solver_type"             : "ExternalSolversApplication.super_lu",
+            "solver_type"             : "LinearSolversApplication.sparse_lu",
             "verbosity"               : 0
         },
         "reference_chord": 1.0

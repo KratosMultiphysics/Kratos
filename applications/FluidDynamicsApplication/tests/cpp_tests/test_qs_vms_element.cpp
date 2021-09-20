@@ -105,9 +105,11 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     std::vector<double> output = {-2.665425819,-1.87894198,-0.02477280423,-10.27651236,-5.037560437,-0.05013494554,-19.87147169,-19.57971097,-0.06709466598,-14.8532568,-21.17045328,-0.05799758425}; // QSVMS2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        i->Initialize(); // Initialize constitutive law
-        i->Check(model_part.GetProcessInfo());
-        i->CalculateLocalVelocityContribution(LHS, RHS, model_part.GetProcessInfo());
+        const auto& r_process_info = model_part.GetProcessInfo();
+        i->Initialize(r_process_info); // Initialize constitutive law
+        const auto& rConstElemRef = *i;
+        rConstElemRef.Check(r_process_info);
+        i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
         //KRATOS_WATCH(RHS);

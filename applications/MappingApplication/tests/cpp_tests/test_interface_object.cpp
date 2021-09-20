@@ -21,7 +21,12 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometryObject, KratosMappingApplicationSerialTestSuite)
 {
-    InterfaceObject interface_obj(array_1d<double, 3>(0.0));
+    array_1d<double, 3> init_coords;
+    init_coords[0] = 0.0;
+    init_coords[1] = 0.0;
+    init_coords[2] = 0.0;
+
+    InterfaceObject interface_obj(init_coords);
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(interface_obj.UpdateCoordinates(),
         "Error: Base class function called!");

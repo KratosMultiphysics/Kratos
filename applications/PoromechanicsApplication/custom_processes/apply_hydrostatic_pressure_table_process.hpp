@@ -59,7 +59,7 @@ public:
     {
         KRATOS_TRY;
         
-        Variable<double> var = KratosComponents< Variable<double> >::Get(mvariable_name);
+        const Variable<double>& var = KratosComponents< Variable<double> >::Get(mvariable_name);
         
         const double Time = mr_model_part.GetProcessInfo()[TIME]/mTimeUnitConverter;
         double reference_coordinate = mpTable->GetValue(Time);

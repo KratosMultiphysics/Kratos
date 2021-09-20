@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/mpi_serializer.h"
-#include "mpi/mpi_environment.h"
 #include "mpi/includes/mpi_data_communicator.h"
 
 #define CUSTOMTIMER 1
@@ -136,6 +135,13 @@ template<> struct SendTraits< Matrix >
     }
 };
 
+template<> struct SendTraits< Quaternion<double> >
+{
+    using SendType = double;
+    using BufferType = std::vector<SendType>;
+    constexpr static bool IsFixedSize = true;
+    constexpr static std::size_t BlockSize = 4;
+};
 
 template<typename TVectorValue> struct SendTraits< DenseVector<TVectorValue> >
 {
@@ -226,6 +232,31 @@ struct SendTools< Vector >: public DynamicArrayTypeTransfer<Vector> {};
 
 template<>
 struct SendTools< Matrix >: public DynamicArrayTypeTransfer<Matrix> {};
+
+// template<>
+// struct SendTools< Quaternion<double> >: public DirectCopyTransfer<Quaternion<double>> {};
+
+template<>
+struct SendTools< Quaternion<double> >
+{
+    using SendType = SendTraits< Quaternion<double> >::SendType;
+
+    static inline void WriteBuffer(const Quaternion<double>& rValue, SendType* pBuffer)
+    {
+        *(pBuffer) = rValue.X();
+        *(pBuffer + 1) = rValue.Y();
+        *(pBuffer + 2) = rValue.Z();
+        *(pBuffer + 3) = rValue.W();
+    }
+
+    static inline void ReadBuffer(const SendType* pBuffer, Quaternion<double>& rValue)
+    {
+        rValue.SetX(*(pBuffer));
+        rValue.SetY(*(pBuffer + 1));
+        rValue.SetZ(*(pBuffer + 2));
+        rValue.SetW(*(pBuffer + 3));
+    }
+};
 
 template<typename TVectorValue>
 struct SendTools< DenseVector<TVectorValue> >
@@ -670,7 +701,7 @@ public:
     ///@{
 
     /// Constructor using the VariablesList of the ModelPart that will use this communicator.
-    MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
+    KRATOS_DEPRECATED_MESSAGE("This constructor is deprecated, please use the one that accepts a DataCommunicator") MPICommunicator(VariablesList* Variables_list) : BaseType(DataCommunicator::GetDefault()), mpVariables_list(Variables_list)
     {}
 
     /// Constructor using the VariablesList and a custom DataCommunicator.
@@ -815,6 +846,13 @@ public:
         return true;
     }
 
+    bool SynchronizeVariable(Variable<Quaternion<double>> const& rThisVariable) override
+    {
+        MPIInternals::NodalSolutionStepValueAccess<Quaternion<double>> solution_step_value_access(rThisVariable);
+        SynchronizeFixedSizeValues(solution_step_value_access);
+        return true;
+    }
+
     bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable) override
     {
         MPIInternals::NodalDataAccess<int> nodal_data_access(rThisVariable);
@@ -875,6 +913,13 @@ public:
     {
         MPIInternals::NodalDataAccess<Matrix> nodal_data_access(rThisVariable);
         SynchronizeDynamicMatrixValues(nodal_data_access);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Quaternion<double>> const& rThisVariable) override
+    {
+        MPIInternals::NodalDataAccess<Quaternion<double>> nodal_data_access(rThisVariable);
+        SynchronizeFixedSizeValues(nodal_data_access);
         return true;
     }
 
@@ -1188,29 +1233,6 @@ public:
     {
         return "MPICommunicator";
     }
-
-    /// Print information about this object.
-
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-
-    void PrintData(std::ostream& rOStream) const override
-    {
-        for (IndexType i = 0; i < mLocalMeshes.size(); i++)
-        {
-            rOStream << "    Local Mesh " << i << " : " << std::endl;
-            LocalMesh(i).PrintData(rOStream);
-            rOStream << "    Ghost Mesh " << i << " : " << std::endl;
-            GhostMesh(i).PrintData(rOStream);
-            rOStream << "    Interface Mesh " << i << " : " << std::endl;
-            InterfaceMesh(i).PrintData(rOStream);
-        }
-    }
-
 
     ///@}
     ///@name Friends

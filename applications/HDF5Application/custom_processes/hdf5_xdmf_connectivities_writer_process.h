@@ -75,8 +75,12 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    void CreateXdmfPoints(const std::string& rKratosNodeIdsPath, const std::string& rXdmfNodeIdsPath) const;
 
     void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
+
+    void CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const;  
 
     ///@}
 

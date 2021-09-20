@@ -108,7 +108,7 @@ class ElementalNeighboursSearchProcess
 
     int method = 0;  //Kratos or Lohner method
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     if(method==0)
     {
@@ -125,15 +125,15 @@ class ElementalNeighboursSearchProcess
     {
       std::cout<<" ERROR:  Element Neighbours Search FAILED !!! "<<std::endl;
     }
-    else
-    {
-      //print out the mesh generation time
-      if( mEchoLevel > 1 ){
-        double end_time = OpenMPUtils::GetCurrentTime();
-        std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
-      }
-      //PrintElementNeighbours();
-    }
+    // else
+    // {
+    //   //print out the mesh generation time
+    //   if( mEchoLevel > 1 ){
+    //     double end_time = OpenMPUtils::GetCurrentTime();
+    //     std::cout<<"  Neighbour Elements Search time = "<<end_time-begin_time<<std::endl;
+    //   }
+    //   //PrintElementNeighbours();
+    // }
 
 
   };

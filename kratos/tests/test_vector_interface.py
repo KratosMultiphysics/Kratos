@@ -1,9 +1,6 @@
-﻿from __future__ import print_function, absolute_import, division
-
-import KratosMultiphysics.KratosUnittest as KratosUnittest
+﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 import math
-
 
 class TestVectorInterface(KratosUnittest.TestCase):
 
@@ -31,14 +28,40 @@ class TestVectorInterface(KratosUnittest.TestCase):
             self.assertEqual(it,1.0)
 
         b -= a
-        for i in range(len(b)):
-            self.assertEqual(b[i], d[i])
+        self.assertVectorAlmostEqual(b, d)
 
     def test_list_construction(self):
         a = Vector([1,2,3])
         self.assertEqual(a[0],1)
         self.assertEqual(a[1],2)
         self.assertEqual(a[2],3)
+
+    def test_VectorSlice_construction(self):
+        v = Vector(5)
+        for i in range(len(v)):
+            v[i] = i
+
+        vec_slice = v[1:4]
+        self.assertIsInstance(vec_slice, VectorSlice, "Object is not of type Kratos.VectorSlice" )
+        v1 = Vector(vec_slice) # simple slice get
+        self.assertEqual(len(v1),3)
+        for i,value in enumerate(v1):
+            self.assertEqual(value, i+1 )
+
+        vec_slice = v[2:]
+        self.assertIsInstance(vec_slice, VectorSlice, "Object is not of type Kratos.VectorSlice" )
+        v2 = Vector(vec_slice) # open slice get
+        self.assertEqual(len(v2),3)
+        for i,value in enumerate(v2):
+            self.assertEqual(value, i+2 )
+
+        vec_slice = v[:3]
+        self.assertIsInstance(vec_slice, VectorSlice, "Object is not of type Kratos.VectorSlice" )
+        v3 = Vector(vec_slice) # open slice get
+        self.assertEqual(len(v3),3)
+        for i,value in enumerate(v3):
+            self.assertEqual(value, i )
+
 
     def test_scalar_op(self):
         e = Vector(2)
@@ -152,6 +175,7 @@ class TestVectorInterface(KratosUnittest.TestCase):
         a[2] = 3.0
         self.assertEqual(6.0,a.norm_1())
         self.assertEqual(math.sqrt(14.0),a.norm_2())
+        self.assertEqual(3.0,a.norm_inf())
 
     def test_truediv(self):
         a = Vector(3)

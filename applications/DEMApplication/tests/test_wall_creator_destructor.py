@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.DEMApplication as DEM
 
 class TestWallCreatorDestructor(KratosUnittest.TestCase):
 

@@ -14,7 +14,7 @@ with open("optimization_parameters.json",'r') as parameter_file:
 model = KM.Model()
 
 # Create optimizer and perform optimization
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model)
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"])
 optimizer.Optimize()
 
 # =======================================================================================================
@@ -51,10 +51,3 @@ with open(optimization_log_filename, 'r') as csvfile:
     TestCase().assertAlmostEqual(resulting_penalty_factor, 3.26430E+01,5)
 
 os.chdir(original_directory)
-
-# Cleaning
-kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-kratos_utilities.DeleteDirectoryIfExisting(output_directory)
-kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
-kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".post.bin")

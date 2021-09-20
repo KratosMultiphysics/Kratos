@@ -1,0 +1,19 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Parts_Auto1",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name"              : "PlasticityIsotropicKinematicJ2Law"
+            },
+            "Variables"        : {
+                "DENSITY"                            : 7850.0,
+                "YOUNG_MODULUS"                      : 200.0e9,
+                "POISSON_RATIO"                      : 0.30,
+		"YIELD_STRESS"                       : 200.0e6,
+		"ISOTROPIC_HARDENING_MODULUS"        : 400.0e6
+            },
+            "Tables"           : {}
+        }
+    }]
+}

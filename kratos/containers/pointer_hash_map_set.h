@@ -64,7 +64,7 @@ template<class TDataType,
          class THashType = std::hash<TDataType>,
          class TGetKeyType = SetIdentityFunction<TDataType>,
          class TPointerType = Kratos::shared_ptr<TDataType> >
-class PointerHashMapSet
+class PointerHashMapSet final
 {
 
 
@@ -162,7 +162,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~PointerHashMapSet() {}
+    ~PointerHashMapSet() {}
 
 
     ///@}
@@ -178,12 +178,14 @@ public:
 
     TDataType& operator[](const key_type& Key)
     {
-		return *(mData[Key].second);
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return *(mData.find(Key)->second);
     }
 
     pointer_type& operator()(const key_type& Key)
     {
-		return mData[Key].second;
+		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+		return mData.find(Key)->second;
 	}
 
     bool operator==( const PointerHashMapSet& r ) const // nothrow
@@ -379,7 +381,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         std::stringstream buffer;
         buffer << "Pointer hash map set (size = " << size() << ") : ";
@@ -389,13 +391,13 @@ public:
 
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << Info();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
         std::copy(begin(), end(), std::ostream_iterator<TDataType>(rOStream, "\n "));
     }

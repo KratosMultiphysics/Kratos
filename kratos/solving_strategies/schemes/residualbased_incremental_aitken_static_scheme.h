@@ -60,7 +60,11 @@ public:
     /// Pointer definition of ResidualBasedIncrementalAitkenStaticScheme
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedIncrementalAitkenStaticScheme);
 
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseSchemeType;
+
     typedef ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace> BaseType;
+
+    typedef ResidualBasedIncrementalAitkenStaticScheme<TSparseSpace, TDenseSpace> ClassType;
 
     typedef typename BaseType::TDataType TDataType;
 
@@ -75,21 +79,19 @@ public:
     ///@{
 
     /**
+     * @brief Default constructor
+     */
+    explicit ResidualBasedIncrementalAitkenStaticScheme() : BaseType()
+    {
+    }
+
+    /**
      * @brief Default constructor. (with parameters)
      * @param ThisParameters Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
     */
-    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters)
+    explicit ResidualBasedIncrementalAitkenStaticScheme(Parameters ThisParameters) :
+        ResidualBasedIncrementalAitkenStaticScheme([](Parameters x) -> double {x.ValidateAndAssignDefaults(StaticGetDefaultParameters()); return x["default_omega"].GetDouble(); }(ThisParameters))
     {
-        // Validate default parameters
-        Parameters default_parameters = Parameters(R"(
-        {
-            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
-            "default_omega" : 0.0
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mDefaultOmega = ThisParameters["default_omega"].GetDouble();
-        mOldOmega = ThisParameters["default_omega"].GetDouble();
     }
 
     /**
@@ -114,6 +116,15 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Create method
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSchemeType::Pointer Create(Parameters ThisParameters) const override
+    {
+        return Kratos::make_shared<ClassType>(ThisParameters);
+    }
+
     /// Initialize the iteration counter at the begining of each solution step
     /**
       * @param r_model_part The problem's ModelPart
@@ -132,21 +143,6 @@ public:
         }
         TSparseSpace::SetToZero(mPreviousDx);
         mIterationCounter = 0;
-    }
-
-    /// Increase the iteration counter at the begining of each iteration
-    /**
-      * @param r_model_part The problem's ModelPart
-      * @param A System matrix
-      * @param Dx Solution vector (containing the increment of the unknowns obtained in the present iteration)
-      * @param b Right hand side vector
-      */
-    void InitializeNonLinIteration(ModelPart &r_model_part,
-                                           TSystemMatrixType &A,
-                                           TSystemVectorType &Dx,
-                                           TSystemVectorType &b) override
-    {
-        BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
     }
 
 
@@ -205,6 +201,25 @@ public:
         // Store results for next iteration
         boost::numeric::ublas::noalias(mPreviousDx) = Dx;
         mOldOmega = Omega;
+    }
+
+    static Parameters StaticGetDefaultParameters()
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"          : "ResidualBasedIncrementalAitkenStaticScheme",
+            "default_omega" : 0.1
+        })");
+
+        return default_parameters;
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        return StaticGetDefaultParameters();
     }
 
     ///@}

@@ -229,25 +229,25 @@ namespace Kratos
   double MesherUtilities::ComputeModelPartVolume(ModelPart& rModelPart)
   {
     KRATOS_TRY
-
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
     if( dimension == 2 ){
-
       for(auto& i_elem : rModelPart.Elements())
       {
-        if( i_elem.GetGeometry().Dimension() == 2 )
+        if( i_elem.GetGeometry().size() == 3 ){
           ModelPartVolume += i_elem.GetGeometry().Area();
+        }
       }
     }
     else{ //dimension == 3
-
       for(auto& i_elem : rModelPart.Elements())
 	{
-	  if( i_elem.GetGeometry().Dimension() == 3 )
+	  if( i_elem.GetGeometry().size() == 4 ){
 	    ModelPartVolume += i_elem.GetGeometry().Volume();
+    }
 	}
      }
+
 
     return ModelPartVolume;
 
@@ -1760,7 +1760,7 @@ namespace Kratos
 
         if(condition_found)
         {
-          pCondition->Set(NOT_SELECTED); //meaning that is a element that shares faces
+          pCondition->Set(SELECTED.AsFalse()); //meaning that is a element that shares faces
           face_elements++;
           break;
         }
