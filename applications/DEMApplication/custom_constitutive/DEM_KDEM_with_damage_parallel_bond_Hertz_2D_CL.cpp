@@ -73,8 +73,11 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        mUnbondedLocalElasticContactForce2 = mUnbondedNormalElasticConstant * indentation;
-
+        if (indentation > 0.0) {
+            mUnbondedLocalElasticContactForce2 = mUnbondedNormalElasticConstant * indentation;
+        } else {
+            mUnbondedLocalElasticContactForce2 = 0.0;
+        }
         KRATOS_CATCH("")
     }
 
