@@ -22,29 +22,29 @@ namespace Kratos
   template <class TBaseElement>
   ThermalSphericParticle<TBaseElement>::~ThermalSphericParticle() {}
 
-  // Get/Set methods
-
-  template <class TBaseElement>
-  const double& ThermalSphericParticle<TBaseElement>::GetParticleTemperature() {
-    return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-  }
-
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
-    GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
-  }
-
   // Initialization methods
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info) {
+    // Initialize base class
     TBaseElement::Initialize(r_process_info);
+
+    // Get material properties
     mSpecificHeat        = GetProperties()[SPECIFIC_HEAT];
     mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];
+
+    // Set thermal flags
+    if (r_process_info[DIRECT_CONDUCTION_OPTION])   this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   true);
+    else                                            this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   false);
+    if (r_process_info[INDIRECT_CONDUCTION_OPTION]) this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, true);
+    else                                            this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, false);
+    if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_CONVECTION,          true);
+    else                                            this->Set(DEMFlags::HAS_CONVECTION,          false);
   }
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info) {
+    // Initialize base class
     TBaseElement::InitializeSolutionStep(r_process_info);
   }
 
@@ -67,19 +67,19 @@ namespace Kratos
     mTotalHeatFlux      = 0.0;
 
     // Direct conduction
-    if (r_process_info[DIRECT_CONDUCTION_OPTION]) {
+    if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION)) {
       ComputeBallToBallDirectConductionHeatFlux(r_process_info);
       ComputeBallToRigidFaceDirectConductionHeatFlux(r_process_info);
     }
 
     // Indirect conduction
-    if (r_process_info[INDIRECT_CONDUCTION_OPTION]) {
+    if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)) {
       ComputeBallToBallIndirectConductionHeatFlux(r_process_info);
       ComputeBallToRigidFaceIndirectConductionHeatFlux(r_process_info);
     }
 
     // Convection
-    if (r_process_info[CONVECTION_OPTION]) {
+    if (this->Is(DEMFlags::HAS_CONVECTION)) {
       ComputeConvectiveHeatFlux(r_process_info);
     }
 
@@ -105,20 +105,29 @@ namespace Kratos
       double this_radius  = GetRadius();
       double other_radius = neighbour_iterator->GetRadius();
 
-      // Compute distance between centroids
-      array_1d<double, 3> direction = GetGeometry()[0].Coordinates() - neighbour_iterator->GetGeometry()[0].Coordinates();
+      // Compute direction and distance between centroids
+      array_1d<double, 3> direction;
+      direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+      direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
+      direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+
       double distance = DEM_MODULUS_3(direction);
 
       // Check if particles are in contact
       if (distance >= this_radius + other_radius)
         continue;
 
+      // Get particles temperatures
+      double this_temp  = GetParticleTemperature();
+      double other_temp = neighbour_iterator->GetParticleTemperature();
+      double temp_grad  = other_temp - this_temp;
+
+      // Get properties
+      double other_conductivity = neighbour_iterator->mThermalConductivity;
+      double other_heatcapacity = neighbour_iterator->mSpecificHeat;
+
       // Compute heat flux according to selected model
       if (model.compare("batchelor_obrien") == 0) {
-        // Get particles properties
-        double this_temp          = GetParticleTemperature();
-        double other_temp         = neighbour_iterator->GetParticleTemperature();
-        double other_conductivity = neighbour_iterator->mThermalConductivity;
 
         // Compute effective thermal conductivity
         double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
@@ -127,13 +136,80 @@ namespace Kratos
         double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
 
         // Compute heat flux
-        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * (other_temp - this_temp);
+        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
       }
       else if (model.compare("thermal_pipe") == 0) {
-        mConductiveHeatFlux += 0.0;
+
+        // Compute average thermal conductivity
+        double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
+
+        // Compute contact area
+        double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
+        double contact_area   = Globals::Pi*contact_radius*contact_radius;
+
+        // Compute heat flux
+        mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
       }
       else if (model.compare("collisional") == 0) {
-        mConductiveHeatFlux += 0.0;
+        
+        // Get properties
+        double this_density  = GetDensity();
+        double this_mass     = GetMass();
+        double this_poisson  = GetPoisson();
+        double this_young    = GetYoung();
+        double other_density = neighbour_iterator->GetDensity();
+        double other_mass    = neighbour_iterator->GetMass();
+        double other_poisson = neighbour_iterator->GetPoisson();
+        double other_young   = neighbour_iterator->GetYoung();
+
+        // Compute effective parameters
+        double eff_radius = this_radius * other_radius / (this_radius + other_radius);
+        double eff_mass   = this_mass * other_mass / (this_mass + other_mass);
+        double eff_young  = 1 / ((1-this_poisson*this_poisson)/this_young + (1-other_poisson*other_poisson)/other_young);
+
+        // Compute expected collision time
+        double impact_normal_velocity = 0.01;  // TODO: save impact normal velocity
+        double col_time = 0.0;                 // TODO: track collision time
+        double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
+
+        // Check if collision time is smaller than expected value, otherwise use batchelor_obrien model
+        if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
+          // Compute max contact radius
+          double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
+
+          // Compute coefficients
+          double a1 = this_density * mSpecificHeat;
+          double a2 = other_density * other_heatcapacity;
+          double b1 = a1 * mThermalConductivity;
+          double b2 = a2 * other_conductivity;
+          double c  = a1/a2;
+
+          // Fourier number (taken as the aerage of both particles)
+          double fo1 = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
+          double fo2 = other_conductivity   * expect_col_time / (a2*contact_radius_max*contact_radius_max);
+          double fo  = (fo1+fo2)/2;
+
+          // Compute coefficient C
+          double c1 = -2.300*c*c +  8.909*c -  4.235;
+          double c2 =  8.169*c*c - 33.770*c + 24.885;
+          double c3 = -5.758*c*c + 24.464*c - 20.511;
+
+          double C_coeff = 0.435 * (sqrt(c2*c2-4*c1*(c3-fo)) - c2) / c1;
+
+          // Compute heat flux
+          mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
+        }
+        else {
+          // Compute average thermal conductivity
+          double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
+
+          // Compute contact area
+          double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
+          double contact_area   = Globals::Pi*contact_radius*contact_radius;
+
+          // Compute heat flux
+          mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
+        }
       }
     }
 
@@ -374,6 +450,18 @@ namespace Kratos
     UpdateTemperature(r_process_info);
     mPreviousTemperature = GetParticleTemperature();
     GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
+  }
+
+  // Get/Set methods
+
+  template <class TBaseElement>
+  const double& ThermalSphericParticle<TBaseElement>::GetParticleTemperature() {
+    return GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
+    GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
   }
 
   //Explicit Instantiation

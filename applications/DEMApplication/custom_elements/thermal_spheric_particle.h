@@ -37,16 +37,19 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
   
+  using TBaseElement::GetDensity;
   using TBaseElement::GetGeometry;
-  using TBaseElement::GetProperties;
-  using TBaseElement::mNeighbourElements;
-  using TBaseElement::GetRadius;
-  using TBaseElement::SetRadius;
   using TBaseElement::GetMass;
+  using TBaseElement::GetPoisson;
+  using TBaseElement::GetProperties;
+  using TBaseElement::GetRadius;
   using TBaseElement::GetValue;
+  using TBaseElement::GetYoung;
+  using TBaseElement::SetRadius;
   using TBaseElement::SetValue;
+  using TBaseElement::mNeighbourElements;
 
-  // Default constructor
+  // Constructor
   ThermalSphericParticle():TBaseElement(){};
   ThermalSphericParticle(IndexType NewId, GeometryType::Pointer pGeometry):TBaseElement(NewId, pGeometry){};
   ThermalSphericParticle(IndexType NewId, NodesArrayType const& ThisNodes):TBaseElement(NewId, ThisNodes){};
@@ -58,10 +61,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Destructor
   virtual ~ThermalSphericParticle();
-
-  // Get/Set methods
-  const double& GetParticleTemperature();
-  void SetParticleTemperature(const double temperature);
 
   // Initialization methods
   void Initialize(const ProcessInfo& r_process_info) override;
@@ -89,6 +88,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+
+  // Get/Set methods
+  const double& GetParticleTemperature();
+  void SetParticleTemperature(const double temperature);
 
   // Turn back information as a string.
   virtual std::string Info() const override {
