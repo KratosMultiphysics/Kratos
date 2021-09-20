@@ -50,17 +50,18 @@ class PointSetOutputProcess(KratosMultiphysics.Process):
 
         # Create vertices
         self.vertices = HDF5Application.VertexContainer()
-        for position in parameters["positions"]:
+        for i_vertex, position in enumerate(parameters["positions"]):
             self.vertices.push_back(HDF5Application.Vertex.MakeShared(
                 position.GetVector(),
                 self.locator,
+                i_vertex,
                 self.isHistorical))
 
 
     def ExecuteInitialize(self):
         io_parameters = KratosMultiphysics.Parameters()
         io_parameters.AddString("prefix", self.prefix)
-        HDF5Application.VertexContainerIO(io_parameters, self.file).WriteCoordinates(self.vertices)
+        HDF5Application.VertexContainerIO(io_parameters, self.file).WriteCoordinatesAndIDs(self.vertices)
 
 
     def ExecuteFinalizeSolutionStep(self):

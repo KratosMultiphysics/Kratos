@@ -55,6 +55,12 @@ struct ZeroInitialized<Matrix<TValue>>
 };
 
 
+inline std::size_t Vertex::GetID() const
+{
+    return mID;
+}
+
+
 template <class TValue>
 inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 {

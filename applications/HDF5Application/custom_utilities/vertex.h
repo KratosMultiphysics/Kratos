@@ -41,9 +41,13 @@ public:
      *
      *  @param rPosition position attribute
      *  @param rLocator point locator exposing a FindElement member
+     *  @param id vertex identifier (should be unique, but no checks are performed)
+     *  @param isHistorical decides whether historical or non-historical nodal variables
+     *  are used for interpolation.
      */
     Vertex(const array_1d<double,3>& rPosition,
            const PointLocatorAdaptor& rLocator,
+           std::size_t id,
            bool isHistorical = true);
 
     /** Default constructor required by PointerVector
@@ -60,10 +64,15 @@ public:
      *
      *  @param rPosition position attribute
      *  @param rLocator point locator exposing a FindElement member
+     *  @param id vertex identifier (should be unique, but no checks are performed)
+     *  @param isHistorical decides whether historical or non-historical nodal variables
      */
     static Vertex::Pointer MakeShared(const array_1d<double,3>& rPosition,
                                       const PointLocatorAdaptor& rLocator,
+                                      std::size_t id,
                                       bool isHistorical);
+
+    std::size_t GetID() const;
 
     /** Interpolate the requested variable
      *  @param rVariable variable to interpolate
@@ -79,6 +88,8 @@ public:
     bool IsLocated() const;
 
 private:
+    std::size_t mID;
+
     const Element::WeakPointer mpContainingElement;
 
     NodalVariableGetter::UniquePointer mpVariableGetter;

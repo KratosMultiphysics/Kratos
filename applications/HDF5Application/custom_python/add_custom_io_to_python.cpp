@@ -150,6 +150,7 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer>(m, "VertexContainerIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("WriteCoordinates", &HDF5::VertexContainerIO::WriteCoordinates)
+        .def("WriteCoordinatesAndIDs", &HDF5::VertexContainerIO::WriteCoordinatesAndIDs)
         .def("WriteVariables", &HDF5::VertexContainerIO::WriteVariables)
         .def("GetDefaultParameters", &HDF5::VertexContainerIO::GetDefaultParameters)
         ;

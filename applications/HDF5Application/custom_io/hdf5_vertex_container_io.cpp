@@ -52,20 +52,52 @@ void VertexContainerIO::WriteCoordinates(const Detail::VertexContainerType& rVer
     // Collect vertex coordinates into a buffer
     Matrix<double> buffer;
     buffer.resize(rVertices.size(),
-                    3,
-                    false);
+                  3,
+                  false);
 
     for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
+        const auto& rVertex = *(rVertices.begin() + i_vertex);
+
         for (std::size_t i_component=0; i_component<3; ++i_component) {
-            buffer(i_vertex, i_component) = (rVertices.begin() + i_vertex)->operator[](i_component);
+            buffer(i_vertex, i_component) = rVertex[i_component];
         }
     }
 
     // Write buffer to the requested path
     WriteInfo write_info;
     mpFile->WriteDataSet(mCoordinatesPath,
-                        buffer,
-                        write_info);
+                         buffer,
+                         write_info);
+
+    KRATOS_CATCH("");
+}
+
+
+void VertexContainerIO::WriteCoordinatesAndIDs(const Detail::VertexContainerType& rVertices)
+{
+        KRATOS_TRY
+
+    // Collect vertex coordinates into a buffer
+    Matrix<double> buffer;
+    buffer.resize(rVertices.size(),
+                  4,
+                  false);
+
+    for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
+        const auto& rVertex = *(rVertices.begin() + i_vertex);
+
+        for (std::size_t i_component=0; i_component<3; ++i_component) {
+            buffer(i_vertex, i_component) = rVertex[i_component];
+        }
+
+        buffer(i_vertex, 3) = rVertex.GetID();
+    }
+
+    // Write buffer to the requested path
+    WriteInfo write_info;
+    mpFile->WriteDataSet(mCoordinatesPath,
+                         buffer,
+                         write_info);
 
     KRATOS_CATCH("");
 }

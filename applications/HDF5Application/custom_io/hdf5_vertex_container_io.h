@@ -51,6 +51,14 @@ public:
 
     void WriteCoordinates(const Detail::VertexContainerType& rVertices);
 
+    /** Write point coordinates and their IDs to the HDF5 file. 
+     *
+     *  @details This function is necessary for line output with MPI runs to
+     *  identify the order of points along the line. All data is written into
+     *  a single (Nx4) matrix.
+     */
+    void WriteCoordinatesAndIDs( const Detail::VertexContainerType& rVertices );
+
     void WriteVariables(const Detail::VertexContainerType& rVertices);
 
     static Parameters GetDefaultParameters();
