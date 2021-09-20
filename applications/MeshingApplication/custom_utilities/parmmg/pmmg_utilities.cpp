@@ -585,7 +585,7 @@ void ParMmgUtilities<PMMGLibrary::PMMG3D>::PMMGLibCallMetric(Parameters Configur
 
     // Avoid/allow surface modifications
     if (static_cast<int>(ConfigurationParameters["advanced_parameters"]["no_surf_mesh"].GetBool()) == 1) KRATOS_ERROR << "Trying to do surface" << std::endl;
-    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, 1) != 1 )
+    if ( PMMG_Set_iparameter(mParMmgMesh,PMMG_IPARAM_nosurf, 0) != 1 )
         KRATOS_ERROR << "Unable to set no surfacic modifications" << std::endl;
 
     // Don't insert nodes on mesh
