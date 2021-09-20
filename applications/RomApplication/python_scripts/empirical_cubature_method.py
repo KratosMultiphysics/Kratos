@@ -24,16 +24,14 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         ECM_tolerance: approximation tolerance for the element selection algorithm
         SVD_tolerance: approximation tolerance for the singular value decomposition of the ResidualSnapshots matrix
         Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
-        Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
+    def __init__(self, ECM_tolerance = 0, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
-        self.Take_into_account_singular_values = Take_into_account_singular_values
         self.Plotting = Plotting
 
 
@@ -48,24 +46,13 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         super().SetUp()
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
-        u , s  = self._ObtainBasis(ResidualSnapshots)
+        u , _  = self._ObtainBasis(ResidualSnapshots)
 
         self.W = np.ones(np.shape(u)[0])
-        if self.Take_into_account_singular_values == True:
-            G = u*s
-            G = G.T
-            G = np.vstack([ G , np.ones( np.shape(G)[1] )]  )
-            b = G @ self.W
-            bEXACT = b
-        else:
-            G = u.T
-            b = G @ self.W
-            bEXACT = b * s
-            self.SingularValues = s
+        self.G = u.T
+        self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
+        self.b = self.G @ self.W
 
-        self.b = b
-        self.G = G
-        self.ExactNorm = np.linalg.norm(bEXACT)
 
     """
     Method performing calculations required before launching the Calculate method
@@ -134,12 +121,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
                 Aux = self.G[:,self.z] @ alpha
                 self.r = np.squeeze(self.b - Aux.T)
             self.nerror = np.linalg.norm(self.r) / np.linalg.norm(self.b)  # Relative error (using r and b)
-
-            if self.Take_into_account_singular_values == False:
-                self.nerrorACTUAL = self.SingularValues * self.r
-                self.nerrorACTUAL = np.linalg.norm(self.nerrorACTUAL / self.ExactNorm )
-
-
             self.nerrorACTUAL = self.nerror
 
             # STEP 7
