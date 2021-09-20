@@ -47,10 +47,6 @@ int AnalyticRigidFace3D::CheckSide(SphericParticle* p_particle)
     const double side_sign = DEM_INNER_PRODUCT_3(a, normal);
     int signed_id = side_sign > 0 ? int(p_particle->Id()) : - int(p_particle->Id());
 
-    //std::copysign(DEM_INNER_PRODUCT_3(a, normal), side_sign);
-    //const int side_sign = BaseType::CheckSide(p_particle);
-    //std::copysign(DEM_INNER_PRODUCT_3(a, normal), side_sign);
-
     // the particle just changed side if it can be found in the old list with the opposite sign:
     const bool just_changed_side = AnalyticRigidFace3D::IsInside(- signed_id, mOldContactingNeighbourSignedIds);
     #pragma omp critical
