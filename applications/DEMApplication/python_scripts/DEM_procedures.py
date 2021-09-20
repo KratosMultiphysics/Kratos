@@ -1190,16 +1190,6 @@ class Report():
         elapsed_re_time = timer.time() - self.initial_re_time
         label = "DEM: "
 
-<<<<<<< HEAD
-        report = "Calculation ends at instant: " + str(timer.time()) + "\n"\
-            + label + "Calculation ends at processing time instant: " + str(timer.process_time()) + "\n"\
-            + label + "Elapsed processing time: " + str(elapsed_pr_time) + "\n"\
-            + label + "Elapsed real time: " + str(elapsed_re_time) + "\n" + label
-=======
-        report = label + "Elapsed processing time (sum across cores): " + str(elapsed_pr_time) + " seconds\n"\
-                + label + "Elapsed real time (wall time): " + str(elapsed_re_time) + " seconds\n" + label
->>>>>>> master
-
         report = report + "\n" + label + "ANALYSIS COMPLETED"
 
         return report

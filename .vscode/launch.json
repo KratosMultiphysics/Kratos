@@ -9,7 +9,7 @@
             "type": "python", 
             "request": "launch", 
             "stopOnEntry": true, 
-            "pythonPath": "E:/KRATOS/python/python", 
+            "python": "E:/KRATOS/python/python", 
             "program": "E:/KRATOS/Workspace_DRILLSENSE/RUN/drillingbeam_SOLIDS_launcher.py", 
             //"program" :"${file}", 
             "cwd": "", 

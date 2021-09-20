@@ -801,15 +801,6 @@ namespace Kratos {
                     if (submp[RIGID_BODY_OPTION] == false) {
                         continue;
                     }
-<<<<<<< HEAD
-                }
-
-                #pragma omp parallel for
-                for (int i=0; i<(int)pTConditions.size(); i++) {
-                    ConditionsArrayType::iterator it = pTConditions.ptr_begin() + i;
-                    (it)->Initialize(r_process_info);
-=======
->>>>>>> master
                 }
 
                 block_for_each(pTConditions, [&](ModelPart::ConditionType& rTCondition){
