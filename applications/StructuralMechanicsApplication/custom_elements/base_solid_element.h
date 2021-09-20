@@ -971,6 +971,27 @@ private:
         const SizeType StrainSize);
 
     /**
+     * @brief This method checks is an element has to be rotated
+     * according to a set of local axes
+     */
+    bool IsElementRotated()
+    {
+        if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
+            if (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (mConstitutiveLawVector[0]->GetStrainSize() == 3) {
+            if (this->Has(LOCAL_AXIS_1)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
      * @brief This method computes directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
