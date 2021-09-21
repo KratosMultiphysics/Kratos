@@ -190,9 +190,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.VELOCITY, self.interface_model_part_destination, 0)
-        self.assertAlmostEqual(sum_origin[0], sum_destination[0])
-        self.assertAlmostEqual(sum_origin[1], sum_destination[1])
-        self.assertAlmostEqual(sum_origin[2], sum_destination[2])
+        self.assertVectorAlmostEqual(sum_origin, sum_destination)
 
     def test_InverseMap_USE_TRANSPOSE_constant_vector(self):
         val = KM.Vector([1.234, -22.845, 11.83])
@@ -201,9 +199,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
         sum_origin = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.FORCE, self.interface_model_part_origin, 0)
         sum_destination = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.VELOCITY, self.interface_model_part_destination, 0)
-        self.assertAlmostEqual(sum_origin[0], sum_destination[0])
-        self.assertAlmostEqual(sum_origin[1], sum_destination[1])
-        self.assertAlmostEqual(sum_origin[2], sum_destination[2])
+        self.assertVectorAlmostEqual(sum_origin, sum_destination)
 
     def test_Is_conforming(self):
         is_conforming = self.mapper.AreMeshesConforming()
@@ -248,10 +244,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def _CheckHistoricalUniformValuesVector(self, nodes, variable, exp_value):
         for node in nodes:
-            nodal_val = node.GetSolutionStepValue(variable)
-            self.assertAlmostEqual(nodal_val[0], exp_value[0])
-            self.assertAlmostEqual(nodal_val[1], exp_value[1])
-            self.assertAlmostEqual(nodal_val[2], exp_value[2])
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(variable), exp_value)
 
     def _CheckUniformValuesScalar(self, entities, variable, exp_value):
         for entity in entities:
@@ -259,10 +252,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def _CheckUniformValuesVector(self, entities, variable, exp_value):
         for entity in entities:
-            val = entity.GetValue(variable)
-            self.assertAlmostEqual(val[0], exp_value[0])
-            self.assertAlmostEqual(val[1], exp_value[1])
-            self.assertAlmostEqual(val[2], exp_value[2])
+            self.assertVectorAlmostEqual(entity.GetValue(variable), exp_value)
 
     def _GetFileName(self, file_appendix):
         return os.path.join("result_files", self.mapper_type, self.__class__.__name__ + "_" + file_appendix)
