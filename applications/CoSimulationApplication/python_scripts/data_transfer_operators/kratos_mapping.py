@@ -45,7 +45,6 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
         mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
-        # TODO in the future automatically add the flags if the values are non-historical
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
