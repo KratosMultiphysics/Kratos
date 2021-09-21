@@ -96,6 +96,7 @@ class MechanicalSolver(PythonSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type" : "mechanical_solver",
             "model_part_name" : "",
+            "computing_sub_model_part_name" : "",
             "domain_size" : -1,
             "echo_level": 0,
             "buffer_size": 2,
@@ -262,7 +263,13 @@ class MechanicalSolver(PythonSolver):
             raise Exception("::[MechanicalSolver]:: Time stepping not defined!")
 
     def GetComputingModelPart(self):
-        return self.main_model_part
+        computing_sub_model_part_name = self.settings["computing_sub_model_part_name"].GetString()
+        if computing_sub_model_part_name == "":
+            # if the user didn't specify a SubModelPart, then use the MainModelPart
+            return self.main_model_part
+        else:
+            computing_model_part_name = self.main_model_part.Name + "." + computing_sub_model_part_name
+            return self.model[computing_model_part_name]
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
