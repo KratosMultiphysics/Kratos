@@ -31,7 +31,7 @@ VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
     // Parse input parameters
     parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
     
-    const std::string prefix = parameters["prefix"].GetString(); 
+    const std::string prefix = parameters["group_prefix"].GetString(); 
     mCoordinatesPath = prefix + parameters["coordinates_path"].GetString();
 
     // Check/create prefix path
@@ -123,7 +123,7 @@ void VertexContainerIO::WriteVariables(const Detail::VertexContainerType& rVerti
 Parameters VertexContainerIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "prefix" : "/",
+        "group_prefix" : "/",
         "coordinates_path" : "/coordinates",
         "variables_path" : "/variables",
         "list_of_variables" : []
@@ -139,6 +139,9 @@ Parameters VertexContainerIO::FormatParameters(Parameters parameters)
     output.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
     output.RemoveValue("coordinates_path");
     output.RemoveValue("variables_path");
+
+    output.RemoveValue("group_prefix");
+    output.AddValue("prefix", parameters["group_prefix"].Clone());
 
     return output;
 
