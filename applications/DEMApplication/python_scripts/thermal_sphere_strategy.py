@@ -17,8 +17,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "direct_conduction_model"        : "batchelor_obrien",
             "compute_indirect_conduction"    : false,
             "indirect_conduction_model"      : "surrounding_layer",
+            "fluid_layer_thickness"          : 0.4,
+            "min_conduction_distance"        : 0.0000000275,
             "compute_convection"             : false,
             "nusselt_correlation"            : "sphere_hanz_marshall",
+            "compute_radiation"              : false,
+            "radiation_model"                : "continuum_zhou",
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
                 "fluid_viscosity"            : 1.0,
@@ -38,13 +42,15 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.compute_direct_conduction_option   = self.thermal_settings["compute_direct_conduction"].GetBool()
         self.compute_indirect_conduction_option = self.thermal_settings["compute_indirect_conduction"].GetBool()
         self.compute_convection_option          = self.thermal_settings["compute_convection"].GetBool()
+        self.compute_radiation_option           = self.thermal_settings["compute_radiation"].GetBool()
 
         # Set models for heat transfer mechanisms
         self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
         self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
         self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
+        self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
 
-        # Check input models
+        # Check models
         if (self.direct_conduction_model != "batchelor_obrien" and
             self.direct_conduction_model != "thermal_pipe"     and
             self.direct_conduction_model != "collisional"):
@@ -56,6 +62,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.nusselt_correlation != "sphere_hanz_marshall" and
             self.nusselt_correlation != "sphere_whitaker"):
             raise Exception('DEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
+        
+        if (self.radiation_model != "continuum_zhou" and
+            self.radiation_model != "continuum_krause"):
+            raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
+
+        # Set model parameters
+        self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
+        self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
 
         # Set global properties of interstitial/surrounding fluid
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
@@ -85,11 +99,17 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, DIRECT_CONDUCTION_OPTION,   self.compute_direct_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, CONVECTION_OPTION,          self.compute_convection_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
 
         # Models for heat transfer mechanisms
         self.spheres_model_part.ProcessInfo.SetValue(DIRECT_CONDUCTION_MODEL,   self.direct_conduction_model)
         self.spheres_model_part.ProcessInfo.SetValue(INDIRECT_CONDUCTION_MODEL, self.indirect_conduction_model)
         self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL,          self.nusselt_correlation)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
+
+        # Model parameters
+        self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE, self.min_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,   self.fluid_layer_thickness)
 
         # Global properties for interstitial/surrounding fluid 
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_DENSITY,              self.fluid_density)

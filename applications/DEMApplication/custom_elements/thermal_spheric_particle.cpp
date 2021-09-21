@@ -36,10 +36,15 @@ namespace Kratos
     // Set thermal flags
     if (r_process_info[DIRECT_CONDUCTION_OPTION])   this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   true);
     else                                            this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   false);
+
     if (r_process_info[INDIRECT_CONDUCTION_OPTION]) this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, true);
     else                                            this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, false);
+
     if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_CONVECTION,          true);
     else                                            this->Set(DEMFlags::HAS_CONVECTION,          false);
+
+    if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_RADIATION,           true);
+    else                                            this->Set(DEMFlags::HAS_RADIATION,           false);
   }
 
   template <class TBaseElement>
@@ -64,6 +69,7 @@ namespace Kratos
     // Initialize heat flux contributions
     mConductiveHeatFlux = 0.0;
     mConvectiveHeatFlux = 0.0;
+    mRadiativeHeatFlux  = 0.0;
     mTotalHeatFlux      = 0.0;
 
     // Direct conduction
@@ -83,8 +89,13 @@ namespace Kratos
       ComputeConvectiveHeatFlux(r_process_info);
     }
 
+    // Radiation
+    if (this->Is(DEMFlags::HAS_RADIATION)) {
+      ComputeRadiativeHeatFlux(r_process_info);
+    }
+
     // Sum up contributions
-    mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux;
+    mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux;
   }
 
   // Compute heat fluxes components
@@ -122,9 +133,8 @@ namespace Kratos
       double other_temp = neighbour_iterator->GetParticleTemperature();
       double temp_grad  = other_temp - this_temp;
 
-      // Get properties
+      // Get common properties
       double other_conductivity = neighbour_iterator->mThermalConductivity;
-      double other_heatcapacity = neighbour_iterator->mSpecificHeat;
 
       // Compute heat flux according to selected model
       if (model.compare("batchelor_obrien") == 0) {
@@ -153,14 +163,15 @@ namespace Kratos
       else if (model.compare("collisional") == 0) {
         
         // Get properties
-        double this_density  = GetDensity();
-        double this_mass     = GetMass();
-        double this_poisson  = GetPoisson();
-        double this_young    = GetYoung();
-        double other_density = neighbour_iterator->GetDensity();
-        double other_mass    = neighbour_iterator->GetMass();
-        double other_poisson = neighbour_iterator->GetPoisson();
-        double other_young   = neighbour_iterator->GetYoung();
+        double this_density       = GetDensity();
+        double this_mass          = GetMass();
+        double this_poisson       = GetPoisson();
+        double this_young         = GetYoung();
+        double other_density      = neighbour_iterator->GetDensity();
+        double other_mass         = neighbour_iterator->GetMass();
+        double other_poisson      = neighbour_iterator->GetPoisson();
+        double other_young        = neighbour_iterator->GetYoung();
+        double other_heatcapacity = neighbour_iterator->mSpecificHeat;
 
         // Compute effective parameters
         double eff_radius = this_radius * other_radius / (this_radius + other_radius);
@@ -168,11 +179,11 @@ namespace Kratos
         double eff_young  = 1 / ((1-this_poisson*this_poisson)/this_young + (1-other_poisson*other_poisson)/other_young);
 
         // Compute expected collision time
-        double impact_normal_velocity = 0.01;  // TODO: save impact normal velocity
+        double impact_normal_velocity = 0.0;   // TODO: save impact normal velocity
         double col_time = 0.0;                 // TODO: track collision time
         double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
 
-        // Check if collision time is smaller than expected value, otherwise use batchelor_obrien model
+        // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
         if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
           // Compute max contact radius
           double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
@@ -184,7 +195,7 @@ namespace Kratos
           double b2 = a2 * other_conductivity;
           double c  = a1/a2;
 
-          // Fourier number (taken as the aerage of both particles)
+          // Fourier number (Assumption: average of both particles)
           double fo1 = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
           double fo2 = other_conductivity   * expect_col_time / (a2*contact_radius_max*contact_radius_max);
           double fo  = (fo1+fo2)/2;
@@ -200,15 +211,14 @@ namespace Kratos
           mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
         }
         else {
-          // Compute average thermal conductivity
-          double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
+          // Compute effective thermal conductivity
+          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
 
-          // Compute contact area
+          // Compute contact radius
           double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-          double contact_area   = Globals::Pi*contact_radius*contact_radius;
 
           // Compute heat flux
-          mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
+          mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
         }
       }
     }
@@ -257,7 +267,7 @@ namespace Kratos
       double particle_temp = GetParticleTemperature();
       double temp_grad = wall_temp - particle_temp;
 
-      // Get properties
+      // Get common properties
       double particle_radius = GetRadius();
       double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
 
@@ -292,40 +302,39 @@ namespace Kratos
       }
       else if (model.compare("collisional") == 0) {
         // Get properties
-        double particle_density = GetDensity();
-        double particle_mass    = GetMass();
-        double particle_poisson = GetPoisson();
-        double particle_young   = GetYoung();
-        double wall_density     = neighbour_iterator->GetDensity();
-        double wall_poisson     = neighbour_iterator->GetPoisson();
-        double wall_young       = neighbour_iterator->GetYoung();
+        double particle_density  = GetDensity();
+        double particle_mass     = GetMass();
+        double particle_poisson  = GetPoisson();
+        double particle_young    = GetYoung();
+        double wall_density      = wall->GetProperties()[DENSITY];
+        double wall_poisson      = wall->GetPoisson();
+        double wall_young        = wall->GetYoung();
+        double wall_heatcapacity = wall->GetProperties()[SPECIFIC_HEAT];
 
         // Compute effective parameters
-        double eff_radius = this_radius * other_radius / (this_radius + other_radius);
-        double eff_mass   = particle_mass * other_mass / (particle_mass + other_mass);
-        double eff_young  = 1 / ((1- particle_poisson*particle_poisson)/ particle_young + (1-other_poisson*other_poisson)/other_young);
+        double eff_radius = particle_radius;
+        double eff_mass   = particle_mass;
+        double eff_young  = 1 / ((1-particle_poisson*particle_poisson)/ particle_young + (1-wall_poisson*wall_poisson)/wall_young);
 
         // Compute expected collision time
-        double impact_normal_velocity = 0.01;  // TODO: save impact normal velocity
+        double impact_normal_velocity = 0.0;   // TODO: save impact normal velocity
         double col_time = 0.0;                 // TODO: track collision time
         double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
 
-        // Check if collision time is smaller than expected value, otherwise use batchelor_obrien model
+        // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
         if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
           // Compute max contact radius
           double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
 
           // Compute coefficients
           double a1 = particle_density * mSpecificHeat;
-          double a2 = other_density * other_heatcapacity;
+          double a2 = wall_density * wall_heatcapacity;
           double b1 = a1 * mThermalConductivity;
-          double b2 = a2 * other_conductivity;
+          double b2 = a2 * wall_conductivity;
           double c  = a1/a2;
 
-          // Fourier number (taken as the aerage of both particles)
-          double fo1 = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
-          double fo2 = other_conductivity   * expect_col_time / (a2*contact_radius_max*contact_radius_max);
-          double fo  = (fo1+fo2)/2;
+          // Fourier number
+          double fo = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
 
           // Compute coefficient C
           double c1 = -2.300*c*c +  8.909*c -  4.235;
@@ -338,15 +347,15 @@ namespace Kratos
           mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
         }
         else {
-          // Compute average thermal conductivity
-          double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
+          // Compute effective thermal conductivity
+          double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
 
-          // Compute contact area
-          double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-          double contact_area   = Globals::Pi*contact_radius*contact_radius;
+          // Compute contact radius
+          double indentation    = particle_radius - distance;
+          double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
 
           // Compute heat flux
-          mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
+          mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
         }
       }
     }
@@ -366,10 +375,67 @@ namespace Kratos
       if (mNeighbourElements[i] == NULL) continue;
       ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
 
+      // Get particles temperatures
+      double this_temp  = GetParticleTemperature();
+      double other_temp = neighbour_iterator->GetParticleTemperature();
+      double temp_grad  = other_temp - this_temp;
+
+      // Get particles radii
+      double this_radius  = GetRadius();
+      double other_radius = neighbour_iterator->GetRadius();
+      
+      // Get interstitial fluid properties
+      double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+
       // Compute heat flux according to selected model
       if (model.compare("surrounding_layer") == 0) {
+        
+        // Get model parameters
+        double layer    = r_process_info[FLUID_LAYER_THICKNESS];
+        double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
+        
+        // Compute direction and distance between centroids
+        array_1d<double, 3> direction;
+        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
+        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+
+        double distance = DEM_MODULUS_3(direction);
+
+        // Check if particles are close enough
+        if (distance > this_radius + other_radius + layer * std::max(this_radius, other_radius))
+          continue;
+
+        // Compute heat transfer coefficient
+        double h = 0.0;
+        
+        if (this_radius == other_radius) {
+          
+          double a = (distance - 2*this_radius) / this_radius;
+          double r_in;
+          double r_out;
+
+          if (distance > 2*this_radius + min_dist)
+            r_in = 0.0;
+          else
+            r_in = sqrt(1-pow(min_dist/this_radius-a-1,2));
+
+          if (a > sqrt(pow((this_radius + (layer*this_radius)) / this_radius,2) - 1) - 1)
+            r_out = sqrt(pow((this_radius + (layer * this_radius)) / this_radius,2) - (a+1)*(a+1));
+          else
+            r_out = 1.0;
+
+          double b = sqrt(1-r_out*r_out);
+          double c = sqrt(1-r_in*r_in);
+
+          h = 2 * Globals::Pi * fluid_conductivity * this_radius * ((a+1) * log(abs((b-a-1) / (a-c+1))) + b - c);
+        }
+        else {
+          h = 0.0; // TODO: numerical integration scheme
+        }
+
         // Compute heat flux
-        mConductiveHeatFlux += 0.0;
+        mConductiveHeatFlux += h * temp_grad;
       }
     }
 
@@ -446,6 +512,23 @@ namespace Kratos
 
     // Compute heat flux
     mConvectiveHeatFlux += convection_coeff * surface_area * (fluid_temp - particle_temp);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Radiation model
+    std::string model = r_process_info[RADIATION_MODEL];
+
+    if (model.compare("continuum_zhou") == 0) {
+      mRadiativeHeatFlux += 0.0;
+    }
+    else if (model.compare("continuum_krause") == 0) {
+      mRadiativeHeatFlux += 0.0;
+    }
 
     KRATOS_CATCH("")
   }

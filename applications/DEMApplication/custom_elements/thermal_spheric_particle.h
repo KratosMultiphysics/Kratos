@@ -76,6 +76,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void ComputeBallToBallIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeBallToRigidFaceIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
 
   // Auxiliary computation methods
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
@@ -110,6 +111,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mSpecificHeat;
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;
+  double mRadiativeHeatFlux;
   double mTotalHeatFlux;
   double mPreviousTemperature;
 
