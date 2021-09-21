@@ -39,7 +39,8 @@ class ScalarRansFormulation(RansFormulation):
             "linear_solver_settings": {
                 "solver_type"  : "amgcl"
             },
-            "boundary_flags": ["INLET", "STRUCTURE"]
+            "boundary_flags": ["INLET", "STRUCTURE"],
+            "auxiliar_process_list": []
         }""")
 
         settings.ValidateAndAssignDefaults(defaults)
@@ -84,6 +85,8 @@ class ScalarRansFormulation(RansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Added solution step dofs.")
 
     def Initialize(self):
+        self.AddProcessesList(self.GetParameters()["auxiliar_process_list"])
+
         settings = self.GetParameters()
 
         for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
