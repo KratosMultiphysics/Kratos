@@ -55,7 +55,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_EXPORT_DLL AllVariablesDataValueContainer
+class KRATOS_EXPORT_DLL AllVariablesDataValueContainer final
 {
 public:
     ///@name Type Definitions
@@ -101,7 +101,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AllVariablesDataValueContainer()
+    ~AllVariablesDataValueContainer()
     {
         //Clear();
     }
@@ -278,19 +278,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
         return std::string("All variables data value container");
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "All variables data value container";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const
     {
 
         for(KratosComponents<VariableData>::ComponentsContainerType::const_iterator i_variable = KratosComponents<VariableData>::GetComponents().begin() ;

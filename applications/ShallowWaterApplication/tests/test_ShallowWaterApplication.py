@@ -16,6 +16,7 @@ from shallow_water_test_factory import TestSetTopographyProcess
 from shallow_water_test_factory import TestVisualizationMeshProcess
 from shallow_water_test_factory import TestNodesOutputProcess
 from shallow_water_test_factory import TestMacDonaldShockBenchmark
+from shallow_water_test_factory import TestMacDonaldTransitionBenchmark
 from shallow_water_test_factory import TestDamBreakBenchmark
 from shallow_water_test_factory import TestDryDamBreakBenchmark
 from shallow_water_test_factory import TestPlanarSurfaceInParabolaBenchmark
@@ -43,6 +44,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestVisualizationMeshProcess('test_execution'))
     smallSuite.addTest(TestNodesOutputProcess('test_execution'))
     smallSuite.addTest(TestMacDonaldShockBenchmark('test_execution'))
+    smallSuite.addTest(TestMacDonaldTransitionBenchmark('test_execution'))
     smallSuite.addTest(TestDamBreakBenchmark('test_execution'))
     smallSuite.addTest(TestDryDamBreakBenchmark('test_execution'))
     smallSuite.addTest(TestPlanarSurfaceInParabolaBenchmark('test_execution'))
