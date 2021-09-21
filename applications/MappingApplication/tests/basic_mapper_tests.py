@@ -238,6 +238,62 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
+
+    def test_Map_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
+        val = 17.09
+        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.TO_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
+        sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+    def test_Map_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
+        val = -88.76
+        KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
+        sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+    def test_Map_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
+        val = 101.234
+        KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
+        sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+    def test_InverseMap_USE_TRANSPOSE_constant_scalar_TO_NON_HISTORICAL(self):
+        val = 23.189
+        KM.VariableUtils().SetScalarVar(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.TO_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
+        sum_destination = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination, 0)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+    def test_InverseMap_USE_TRANSPOSE_constant_scalar_FROM_NON_HISTORICAL(self):
+        val = 651.234
+        KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin, 0)
+        sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+    def test_InverseMap_USE_TRANSPOSE_constant_scalar_both_non_historical(self):
+        val = 53.761
+        KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.USE_TRANSPOSE | KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+
+        sum_origin = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.PRESSURE, self.interface_model_part_origin)
+        sum_destination = KM.VariableUtils().SumNonHistoricalNodeScalarVariable(KM.TEMPERATURE, self.interface_model_part_destination)
+        self.assertAlmostEqual(sum_origin, sum_destination)
+
+
     def test_Is_conforming(self):
         is_conforming = self.mapper.AreMeshesConforming()
         self.assertTrue(is_conforming)
