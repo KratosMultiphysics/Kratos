@@ -284,8 +284,7 @@ protected:
 
     void CalculateGeometryData(
         Vector &rGaussWeights,
-        Matrix &rNContainer,
-        ShapeFunctionsGradientsType &rDN_DXContainer) const;
+        Matrix &rNContainer) const;
 
     void InitializeData(
         ConditionData& rData,

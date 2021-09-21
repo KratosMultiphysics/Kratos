@@ -20,6 +20,7 @@
 #include "wave_condition.h"
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
+#include "custom_utilities/sw_math_utils.h"
 #include "shallow_water_application_variables.h"
 #include "custom_utilities/shallow_water_utilities.h"
 
@@ -156,18 +157,17 @@ typename WaveCondition<TNumNodes>::LocalVectorType WaveCondition<TNumNodes>::Get
 }
 
 template<std::size_t TNumNodes>
-void WaveCondition<TNumNodes>::CalculateGeometryData(
-    Vector &rGaussWeights,
-    Matrix &rNContainer,
-    ShapeFunctionsGradientsType &rDN_DXContainer) const
+void WaveCondition<TNumNodes>::CalculateGeometryData(Vector &rGaussWeights, Matrix &rNContainer) const
 {
     Vector det_j_vector;
     const auto& r_geom = this->GetGeometry();
     const auto integration_method = r_geom.GetDefaultIntegrationMethod();
-    r_geom.ShapeFunctionsIntegrationPointsGradients(rDN_DXContainer, det_j_vector, integration_method, rNContainer);
+
+    rNContainer = r_geom.ShapeFunctionsValues(integration_method);
 
     const unsigned int number_of_gauss_points = r_geom.IntegrationPointsNumber(integration_method);
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
+    r_geom.DeterminantOfJacobian(det_j_vector, integration_method);
 
     if (rGaussWeights.size() != number_of_gauss_points)
         rGaussWeights.resize(number_of_gauss_points, false);
@@ -255,11 +255,8 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        const range i_range (3*i, 3*i + 3);
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            const range j_range (3*j, 3*j + 3);
-
             double n_ij;
             if (integrate_by_parts) {
                 n_ij = rN[i] * rN[j];
@@ -268,12 +265,12 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
             }
 
             /// First component
-            project(rMatrix, i_range, j_range) -= Weight * n_ij * rData.A1 * n[0];
-            project(rVector, i_range)          += Weight * n_ij * rData.b1 * n[0] * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
 
             /// Second component
-            project(rMatrix, i_range, j_range) -= Weight * n_ij * rData.A2 * n[1];
-            project(rVector, i_range)          += Weight * n_ij * rData.b2 * n[1] * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
         }
     }
 }
@@ -324,8 +321,7 @@ void WaveCondition<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMat
 
     Vector weights;
     Matrix N_container;
-    ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
+    CalculateGeometryData(weights, N_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
@@ -355,8 +351,7 @@ void WaveCondition<TNumNodes>::CalculateMassMatrix(MatrixType& rMassMatrix, cons
 
     Vector weights;
     Matrix N_container;
-    ShapeFunctionsGradientsType DN_DX_container;
-    CalculateGeometryData(weights, N_container, DN_DX_container);
+    CalculateGeometryData(weights, N_container);
     const IndexType num_gauss_points = weights.size();
 
     for (IndexType g = 0; g < num_gauss_points; ++g)
