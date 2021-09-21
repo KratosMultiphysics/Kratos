@@ -16,7 +16,7 @@ namespace Kratos {
 
         SchillerAndNaumannDragLaw(): StokesDragLaw(){}
 
-        SchillerAndNaumannDragLaw(Parameters& r_parameters): StokesDragLaw(r_parameters){}
+        SchillerAndNaumannDragLaw(Parameters r_parameters): StokesDragLaw(r_parameters){}
 
         ~SchillerAndNaumannDragLaw(){}
 
