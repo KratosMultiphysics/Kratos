@@ -1,8 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
-data_comm = KM.DataCommunicator.GetDefault()
+data_comm = KM.Testing.GetDefaultDataCommunicator()
+if data_comm.IsDistributed():
+    from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+
 import mapper_test_case
 from math import sin, cos
 import os
@@ -40,7 +41,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
             cls.interface_model_part_destination = cls.model_part_destination
 
         if data_comm.IsDistributed():
-            cls.mapper = KratosMapping.MapperFactory.CreateMPIMapper(
+            cls.mapper = MappingMPIExtension.MPIMapperFactory.CreateMapper(
                 cls.model_part_origin, cls.model_part_destination, mapper_parameters)
         else:
             cls.mapper = KratosMapping.MapperFactory.CreateMapper(
@@ -210,7 +211,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         non_conform_parameters.AddEmptyValue("search_radius").SetDouble(1e-6)
 
         if data_comm.IsDistributed():
-            map_creator = KratosMapping.MapperFactory.CreateMPIMapper
+            map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
             map_creator = KratosMapping.MapperFactory.CreateMapper
 
