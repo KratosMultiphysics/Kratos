@@ -104,6 +104,8 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
         const double rho = r_elem_properties[DENSITY];
         const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
         const double y = rCondition.GetValue(DISTANCE);
+        array_1d<double, 3> normal = rCondition.GetValue(NORMAL);
+        normal /= norm_2(normal);
 
         // get surface properties from condition
         const auto& r_cond_properties = rCondition.GetProperties();
@@ -117,23 +119,27 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
             GeometryData::IntegrationMethod::GI_GAUSS_1, Ws, Ns, dNdXs);
 
         array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
+        double tke;
         FluidCalculationUtilities::EvaluateInPoint(
             r_parent_element_geometry, row(Ns, 0), 1,
+            std::tie(tke, TURBULENT_KINETIC_ENERGY),
             std::tie(fluid_velocity, VELOCITY),
             std::tie(mesh_velocity, MESH_VELOCITY));
 
         noalias(wall_velocity) = fluid_velocity - mesh_velocity;
-        const double wall_velocity_magnitude = norm_2(wall_velocity);
+        const double wall_velocity_magnitude =
+            std::sqrt(std::pow(norm_2(wall_velocity), 2) -
+                      std::pow(inner_prod(wall_velocity, normal), 2));
 
-        double u_tau{0.0}, y_plus{0.0};
+        double u_tau, y_plus;
             RansCalculationUtilities::CalculateYPlusAndUtau(
                 y_plus, u_tau, wall_velocity_magnitude, y, nu, kappa, beta);
 
-        double omega{0.0};
+        double omega;
         if (y_plus > y_plus_limit) {
             // log region
-
-            omega = u_tau / (c_mu_25 * kappa * y);
+            const double tke_u_tau = c_mu_25 * std::sqrt(std::max(tke, 0.0));
+            omega = std::max(u_tau, tke_u_tau) / (c_mu_25 * kappa * y);
         } else {
             // linear region
 
