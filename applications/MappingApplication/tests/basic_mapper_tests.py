@@ -202,6 +202,18 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         sum_destination = KM.VariableUtils().SumHistoricalNodeVectorVariable(KM.VELOCITY, self.interface_model_part_destination, 0)
         self.assertVectorAlmostEqual(sum_origin, sum_destination)
 
+    def test_Map_constant_scalar_TO_NON_HISTORICAL(self):
+        val = 1.234
+        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
+
+    def test_Map_constant_scalar_FROM_NON_HISTORICAL(self):
+        val = 1.234
+        KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
+
     def test_Is_conforming(self):
         is_conforming = self.mapper.AreMeshesConforming()
         self.assertTrue(is_conforming)
@@ -227,17 +239,6 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     # def test_UpdateInterface(self):
     #     pass
-
-    # def test_TO_NON_HISTORICAL(self):
-    #     pass
-
-    # def test_FROM_NON_HISTORICAL(self):
-    #     pass
-
-    # def test_both_NON_HISTORICAL(self):
-    #     pass
-
-
 
     def _CheckHistoricalUniformValuesScalar(self, nodes, variable, exp_value):
         for node in nodes:
