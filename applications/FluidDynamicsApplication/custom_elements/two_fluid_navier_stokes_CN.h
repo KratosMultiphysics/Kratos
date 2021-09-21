@@ -352,6 +352,13 @@ protected:
         const typename TElementData::MatrixRowType& rNenr,
         const typename TElementData::ShapeDerivativesType& rDN_DXenr) const;
 
+    /**
+     * @brief Calculate the strain rate
+     * In this function we calculate the strain rate at the mid step
+     * @param rData Data container with the input velocity and gradients and output strain rate vector
+     */
+    void CalculateStrainRate(TElementData& rData) const override;
+
     ///@}
     ///@name Protected  Access
     ///@{

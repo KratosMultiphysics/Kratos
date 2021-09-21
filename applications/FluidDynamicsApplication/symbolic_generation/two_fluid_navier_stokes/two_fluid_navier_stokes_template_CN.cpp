@@ -315,6 +315,17 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
     rData.ComputeDarcyTerm();
 }
 
+template <class TElementData>
+void TwoFluidNavierStokesCN<TElementData>::CalculateStrainRate(TElementData& rData) const
+{
+    const typename TElementData::NodalVectorData mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+
+    Internals::StrainRateSpecialization<TElementData,TElementData::Dim>::Calculate(
+        rData.StrainRate,
+        mid_step_velocity,
+        rData.DN_DX);
+}
+
 template <>
 void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSContribution(
     TwoFluidNavierStokesData<2, 3> &rData,
@@ -440,9 +451,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRH
     const auto v_CN = 0.5 * (vn + v);
     const auto vconv_CN = v_CN - vmesh;
 
-    //  Pressure Cranck NICOLSON AT 0.5dt
-    const auto p_CN = 0.5 * (pn + p);
-
     // Get shape function values
     const auto &N = rData.N;
     const auto &DN = rData.DN_DX;
@@ -498,9 +506,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRH
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     const auto v_CN = 0.5 * (vn + v);
     const auto vconv_CN = v_CN - vmesh;
-
-    //  Pressure Cranck NICOLSON AT 0.5dt
-    const auto p_CN = 0.5 * (pn + p);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -558,9 +563,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEn
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     const auto v_CN = 0.5 * (vn + v);
     const auto vconv_CN = v_CN - vmesh;
-
-    //  Pressure Cranck NICOLSON AT 0.5dt
-    const auto p_CN = 0.5 * (pn + p);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -633,11 +635,9 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEn
     const auto &pn = rData.Pressure_OldStep1;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
+    // FIXME: Mesh velocity should be evaluated at 0.5dt
     const auto v_CN = 0.5 * (vn + v);
     const auto vconv_CN = v_CN - vmesh;
-
-    //  Pressure Cranck NICOLSON AT 0.5dt
-    const auto p_CN = 0.5 * (pn + p);
 
     // Get shape function values
     const auto &N = rData.N;
@@ -916,29 +916,34 @@ void TwoFluidNavierStokesCN<TElementData>::PressureGradientStabilization(
     const double dyn_tau = rData.DynamicTau;
 
     const double dt = rData.DeltaTime;
+    const auto &v=rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
 
-    const auto v_convection = rData.Velocity - rData.MeshVelocity;
+    // TODO: Velocity CRANK NICOLSON at 0.5dt
+    const auto v_CN = 0.5 * (vn + v);
+    const auto vmesh=rData.MeshVelocity;
+    const auto v_convection_CN = v_CN - vmesh;
 
     for (unsigned int gp = 0; gp < rInterfaceWeights.size(); ++gp){
 
-        Vector vconv = ZeroVector(Dim);
+        Vector vconv_CN = ZeroVector(Dim);
         double positive_weight = 0.0;
         double negative_weight = 0.0;
 
         for (unsigned int j = 0; j < NumNodes; ++j){
             for (unsigned int dim = 0; dim < Dim; ++dim){
-                vconv[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
-                    *v_convection(j,dim);
+                vconv_CN[dim] += (rEnrInterfaceShapeFunctionNeg(gp, j) + rEnrInterfaceShapeFunctionPos(gp, j))
+                    *v_convection_CN(j,dim);
             }
             positive_weight += rEnrInterfaceShapeFunctionNeg(gp, j);
             negative_weight += rEnrInterfaceShapeFunctionPos(gp, j);
         }
 
-        const double v_conv_norm = norm_2(vconv);
+        const double v_conv_CN_norm = norm_2(vconv_CN);
 
         const double penalty_coefficient = cut_stabilization_coefficient *
-            density * 1.0 / (dyn_tau * density / dt + stab_c1 * viscosity / h_elem / h_elem +
-                                stab_c2 * density * v_conv_norm / h_elem) * element_volume / cut_area;
+            density * 1.0 / (dyn_tau * density / (0.5*dt) + stab_c1 * viscosity / h_elem / h_elem +
+                                stab_c2 * density * v_conv_CN_norm / h_elem) * element_volume / cut_area;
 
         const auto& r_gp_enriched_interface_shape_derivatives_pos = EnrichedInterfaceShapeDerivativesPos[gp];
         const auto& r_gp_enriched_interface_shape_derivatives_neg = EnrichedInterfaceShapeDerivativesNeg[gp];

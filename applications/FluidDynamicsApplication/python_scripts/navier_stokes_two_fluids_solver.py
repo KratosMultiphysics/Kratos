@@ -1,7 +1,7 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as KratosUtilities
-
+import os
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 have_conv_diff = KratosUtilities.CheckIfApplicationsAvailable("ConvectionDiffusionApplication")
@@ -41,6 +41,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "echo_level": 0,
             "time_order": 2,
             "time_scheme": "bdf2",
+            "time_scheme_aux":"bdf2",
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
@@ -114,11 +115,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
-        time_scheme=custom_settings["time_scheme"].GetString()
+        time_scheme=custom_settings["time_scheme_aux"].GetString()
         if time_scheme == "crank_nicolson":
             self.element_name= "TwoFluidNavierStokesCN"
         elif time_scheme == "bdf2":
+
             self.element_name = "TwoFluidNavierStokes"
+
         else:
             raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'crank_nicolson\'.".format(time_scheme))
 
@@ -236,6 +239,9 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
+        #TODO:PROBANDO
+        self._SetNodalProperties()
+
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
@@ -290,46 +296,50 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
+
             else:
                 volume_error=0
 
             self.main_model_part.ProcessInfo.SetValue(KratosCFD.VOLUME_ERROR, volume_error)
+            if self.mass_source:
+                file_name="testing.txt"
+                self.__ExportingMassConservationData(file_name,volume_error,water_volume_after_transport,inlet_volume,outlet_volume,system_volume)
 
 
 
     def FinalizeSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Mass and momentum conservation equations are solved.")
 
-        if self._TimeBufferIsInitialized():
-            # Recompute the distance field according to the new level-set position
-            if (self._reinitialization_type == "variational"):
-                self._GetDistanceReinitializationProcess().Execute()
-            elif (self._reinitialization_type == "parallel"):
-                adjusting_parameter = 0.05
-                layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
-                max_distance = 1.0 # use this parameter to define the redistancing range
-                # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
-                self._GetDistanceReinitializationProcess().CalculateDistances(
-                    self.main_model_part,
-                    self._levelset_variable,
-                    KratosMultiphysics.NODAL_AREA,
-                    layers,
-                    max_distance,
-                    self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        # if self._TimeBufferIsInitialized():
+        #     # Recompute the distance field according to the new level-set position
+        #     if (self._reinitialization_type == "variational"):
+        #         self._GetDistanceReinitializationProcess().Execute()
+        #     elif (self._reinitialization_type == "parallel"):
+        #         adjusting_parameter = 0.05
+        #         layers = int(adjusting_parameter*self.main_model_part.GetCommunicator().GlobalNumberOfElements()) # this parameter is essential
+        #         max_distance = 1.0 # use this parameter to define the redistancing range
+        #         # if using CalculateInterfacePreservingDistances(), the initial interface is preserved
+        #         self._GetDistanceReinitializationProcess().CalculateDistances(
+        #             self.main_model_part,
+        #             self._levelset_variable,
+        #             KratosMultiphysics.NODAL_AREA,
+        #             layers,
+        #             max_distance,
+        #             self._GetDistanceReinitializationProcess().CALCULATE_EXACT_DISTANCES_TO_PLANE) #NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
-            if (self._reinitialization_type != "none"):
-                KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
+        #     if (self._reinitialization_type != "none"):
+        #         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Redistancing process is finished.")
 
-            # Prepare distance correction for next step
-            self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        #     # Prepare distance correction for next step
+        #     self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-            # Finalize the solver current step
-            self._GetSolutionStrategy().FinalizeSolutionStep()
-            # Limit the obtained acceleration for the next step
-            # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
-            # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
-            if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
-                self._GetAccelerationLimitationUtility().Execute()
+        #     # Finalize the solver current step
+        #     self._GetSolutionStrategy().FinalizeSolutionStep()
+        #     # Limit the obtained acceleration for the next step
+        #     # This limitation should be called on the second solution step onwards (e.g. STEP=3 for BDF2)
+        #     # We intentionally avoid correcting the acceleration in the first resolution step as this might cause problems with zero initial conditions
+        #     if self._apply_acceleration_limitation and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.min_buffer_size:
+        #         self._GetAccelerationLimitationUtility().Execute()
 
     def __PerformLevelSetConvection(self):
         # Solve the levelset convection problem
@@ -402,6 +412,26 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             else:
                 node.SetSolutionStepValue(KratosMultiphysics.DENSITY, rho_2)
                 node.SetSolutionStepValue(KratosMultiphysics.DYNAMIC_VISCOSITY, mu_2)
+
+    def _CreateScheme(self):
+        # "Fake" scheme for those cases in where the element manages the time integration
+        # It is required to perform the nodal update once the current time step is solved
+        domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
+            domain_size,
+            domain_size + 1)
+
+        # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
+        if (self.settings["time_scheme"].GetString() == "bdf2"):
+            time_order = 2
+            self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
+        else:
+            if not self.settings["time_scheme"].GetString() == "crank_nicolson":
+                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                err_msg += "Available options are: \"bdf2\""
+                raise Exception(err_msg)
+
+        return scheme
 
     def __SetDistanceFunction(self):
         ## Set the nodal distance function
@@ -590,3 +620,14 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return KratosCFD.DistanceModificationProcess(
             self.model,
             distance_modification_settings)
+
+    def __ExportingMassConservationData(self,filename,new_error,water_volume_after_correction,inlet,outlet,system_volume):
+            if os.path.exists(filename):
+                append_write = 'a' # append if already exists
+            else:
+                append_write = 'w' # make a new file if not
+            Time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            highscore = open(filename,append_write)
+            highscore.write(str(Time)+'\t\t'+str(new_error) +'\t\t'+str(water_volume_after_correction)+'\t\t'+str(inlet) +'\t\t'+ str(outlet) +'\t\t'+str(new_error) +'\t\t'+str(system_volume) +'\t\t'+'\n')
+            highscore.close()
+
