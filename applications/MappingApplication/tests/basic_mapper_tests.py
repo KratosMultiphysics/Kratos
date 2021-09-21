@@ -203,16 +203,40 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         self.assertVectorAlmostEqual(sum_origin, sum_destination)
 
     def test_Map_constant_scalar_TO_NON_HISTORICAL(self):
-        val = 1.234
-        KM.VariableUtils().SetScalarVar(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        val = 9.234
+        KM.VariableUtils().SetVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.TO_NON_HISTORICAL)
         self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
 
     def test_Map_constant_scalar_FROM_NON_HISTORICAL(self):
-        val = 1.234
+        val = -961.234
         KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
         self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL)
         self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
+
+    def test_Map_constant_scalar_both_non_historical(self):
+        val = 34.234
+        KM.VariableUtils().SetNonHistoricalVariable(KM.PRESSURE, val, self.interface_model_part_origin.Nodes)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_destination), KM.TEMPERATURE, val)
+
+    def test_InverseMap_constant_scalar_TO_NON_HISTORICAL(self):
+        val = 8.23554
+        KM.VariableUtils().SetVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
+
+    def test_InverseMap_constant_scalar_FROM_NON_HISTORICAL(self):
+        val = -96741.234
+        KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL)
+        self._CheckHistoricalUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
+
+    def test_InverseMap_constant_scalar_both_non_historical(self):
+        val = 3134.24734
+        KM.VariableUtils().SetNonHistoricalVariable(KM.TEMPERATURE, val, self.interface_model_part_destination.Nodes)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.FROM_NON_HISTORICAL | KratosMapping.Mapper.TO_NON_HISTORICAL)
+        self._CheckUniformValuesScalar(GetNodes(self.interface_model_part_origin), KM.PRESSURE, val)
 
     def test_Is_conforming(self):
         is_conforming = self.mapper.AreMeshesConforming()
