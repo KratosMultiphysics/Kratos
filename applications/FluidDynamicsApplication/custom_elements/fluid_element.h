@@ -420,6 +420,8 @@ protected:
 
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 
+    virtual void CalculateStrainRate(TElementData& rData) const;
+
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
