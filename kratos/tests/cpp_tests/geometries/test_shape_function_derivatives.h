@@ -45,6 +45,8 @@ void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom);
 void TestShapeFunctionsLocalGradient(Geometry<Node<3>> const& rGeom,
                                      Geometry<Node<3>>::IntegrationPointType Point,
                                      Matrix const& rLocalGradient);
+
+void TestShapeFunctionsGradients(Geometry<Node<3>> const& rGeom);
 }
 }
 

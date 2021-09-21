@@ -90,6 +90,19 @@ void TestAllShapeFunctionsLocalGradients(Geometry<Node<3>> const& rGeom)
     KRATOS_CATCH("");
 }
 
+
+void TestShapeFunctionsGradients(Geometry<Node<3>> const& rGeom)
+{
+    KRATOS_TRY
+    Geometry<Node<3>>::ShapeFunctionsGradientsType shape_functions_gradients;
+    Vector det_j_vector;
+    rGeom.ShapeFunctionsIntegrationPointsGradients(
+        shape_functions_gradients,
+        det_j_vector,
+        rGeom.GetDefaultIntegrationMethod());
+    KRATOS_CATCH("")
+}
+
 namespace
 {
 double FiniteDifference4(std::function<double(double)> f, double delta=1e-3);
