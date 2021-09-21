@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    ZuberInviscidForceLaw::ZuberInviscidForceLaw(Parameters& r_parameters)
+    ZuberInviscidForceLaw::ZuberInviscidForceLaw(Parameters r_parameters)
         : AutonHuntPrudhommeInviscidForceLaw::AutonHuntPrudhommeInviscidForceLaw(r_parameters)
     {}
 

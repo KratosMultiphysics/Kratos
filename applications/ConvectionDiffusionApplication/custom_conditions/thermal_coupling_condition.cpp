@@ -273,13 +273,13 @@ void ThermalCouplingCondition<2,4>::FillLeftHandSideMatrix(
     MatrixType& rLeftHandSideMatrix) const
 {
     // Fill the diagonal LHS matrix terms
-    noalias(rLeftHandSideMatrix) = -LeftHandSideCoefficient * IdentityMatrix(4,4);
+    noalias(rLeftHandSideMatrix) = LeftHandSideCoefficient * IdentityMatrix(4,4);
 
     // Fill the off-diagonal LHS matrix terms
-    rLeftHandSideMatrix(0,2) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(1,3) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(2,0) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(3,1) = LeftHandSideCoefficient;
+    rLeftHandSideMatrix(0,2) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(1,3) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(2,0) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(3,1) = -LeftHandSideCoefficient;
 }
 
 template<>
@@ -288,15 +288,15 @@ void ThermalCouplingCondition<3,6>::FillLeftHandSideMatrix(
     MatrixType& rLeftHandSideMatrix) const
 {
     // Fill the diagonal LHS matrix terms
-    noalias(rLeftHandSideMatrix) = -LeftHandSideCoefficient * IdentityMatrix(6,6);
+    noalias(rLeftHandSideMatrix) = LeftHandSideCoefficient * IdentityMatrix(6,6);
 
     // Fill the off-diagonal LHS matrix terms
-    rLeftHandSideMatrix(0,3) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(1,4) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(2,5) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(3,0) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(4,1) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(5,2) = LeftHandSideCoefficient;
+    rLeftHandSideMatrix(0,3) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(1,4) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(2,5) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(3,0) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(4,1) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(5,2) = -LeftHandSideCoefficient;
 }
 
 template<>
@@ -305,17 +305,17 @@ void ThermalCouplingCondition<3,8>::FillLeftHandSideMatrix(
     MatrixType& rLeftHandSideMatrix) const
 {
     // Fill the diagonal LHS matrix terms
-    noalias(rLeftHandSideMatrix) = -LeftHandSideCoefficient * IdentityMatrix(6,6);
+    noalias(rLeftHandSideMatrix) = LeftHandSideCoefficient * IdentityMatrix(6,6);
 
     // Fill the off-diagonal LHS matrix terms
-    rLeftHandSideMatrix(0,4) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(1,5) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(2,6) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(3,7) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(4,0) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(5,1) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(6,2) = LeftHandSideCoefficient;
-    rLeftHandSideMatrix(6,3) = LeftHandSideCoefficient;
+    rLeftHandSideMatrix(0,4) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(1,5) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(2,6) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(3,7) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(4,0) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(5,1) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(6,2) = -LeftHandSideCoefficient;
+    rLeftHandSideMatrix(6,3) = -LeftHandSideCoefficient;
 }
 
 template<>
@@ -329,10 +329,10 @@ void ThermalCouplingCondition<2,4>::FillRightHandSideVector(
 
     // Fill the RHS vector terms
     const auto &r_geometry = this->GetGeometry();
-    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
 }
 
 template<>
@@ -346,12 +346,12 @@ void ThermalCouplingCondition<3,6>::FillRightHandSideVector(
 
     // Fill the RHS vector terms
     const auto &r_geometry = this->GetGeometry();
-    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[4].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[5].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(4) = RightHandSideCoefficient*(r_geometry[4].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(5) = RightHandSideCoefficient*(r_geometry[5].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[4].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[5].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(4) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[4].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(5) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[5].FastGetSolutionStepValue(rUnknownVariable));
 }
 
 template<>
@@ -365,14 +365,14 @@ void ThermalCouplingCondition<3,8>::FillRightHandSideVector(
 
     // Fill the RHS vector terms
     const auto &r_geometry = this->GetGeometry();
-    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[4].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[5].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[6].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[7].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(4) = RightHandSideCoefficient*(r_geometry[4].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(5) = RightHandSideCoefficient*(r_geometry[5].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(6) = RightHandSideCoefficient*(r_geometry[6].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
-    rRightHandSideVector(7) = RightHandSideCoefficient*(r_geometry[7].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(0) = RightHandSideCoefficient*(r_geometry[4].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[0].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(1) = RightHandSideCoefficient*(r_geometry[5].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[1].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(2) = RightHandSideCoefficient*(r_geometry[6].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[2].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(3) = RightHandSideCoefficient*(r_geometry[7].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[3].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(4) = RightHandSideCoefficient*(r_geometry[0].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[4].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(5) = RightHandSideCoefficient*(r_geometry[1].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[5].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(6) = RightHandSideCoefficient*(r_geometry[2].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[6].FastGetSolutionStepValue(rUnknownVariable));
+    rRightHandSideVector(7) = RightHandSideCoefficient*(r_geometry[3].FastGetSolutionStepValue(rUnknownVariable)-r_geometry[7].FastGetSolutionStepValue(rUnknownVariable));
 }
 
 // Serialization //////////////////////////////////////////////////////////////

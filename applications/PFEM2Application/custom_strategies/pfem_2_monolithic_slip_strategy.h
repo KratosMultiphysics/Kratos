@@ -345,7 +345,6 @@ MoveMeshFlag)
             for (ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
             {
 
-                //itElem->InitializeNonLinearIteration(rCurrentProcessInfo);
 
                 // Build local system
                 itElem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);

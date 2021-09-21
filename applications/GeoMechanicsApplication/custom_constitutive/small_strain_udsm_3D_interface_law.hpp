@@ -113,7 +113,7 @@ namespace Kratos
       /**
        * @brief Voigt tensor size:
        */
-      SizeType GetStrainSize() override
+      SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }
@@ -218,7 +218,7 @@ namespace Kratos
 
 
       ///@}
-   
+
    private:
       ///@name Static Member Variables
       ///@{
@@ -289,6 +289,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SMALL_STRAIN_UDSM_3D_INTERFACE_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_UDSM_3D_INTERFACE_LAW_H_INCLUDED  defined
 
 
