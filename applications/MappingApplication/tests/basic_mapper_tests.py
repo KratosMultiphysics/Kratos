@@ -352,5 +352,4 @@ def SetHistoricalNonUniformSolutionVector(nodes, variable):
         node.SetSolutionStepValue(variable, KM.Vector([val_1, val_2, val_3]))
 
 def GetNodes(model_part):
-    return model_part.GetCommunicator().LocalMesh().Nodes
-    # return model_part.Nodes # TODO this is the correct version, requires some synchronization though!
+    return model_part.Nodes

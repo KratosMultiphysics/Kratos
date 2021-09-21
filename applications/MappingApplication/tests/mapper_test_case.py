@@ -148,9 +148,8 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
-            "check_only_local_entities" : true
+            "check_only_local_entities" : false
         }""")
-        # TODO check all entities, requires some syncronization though!
 
         check_parameters["check_variables"].Append(variable.Name())
         check_parameters["input_file_name"].SetString(file_name + ".json")
