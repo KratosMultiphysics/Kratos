@@ -103,12 +103,13 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
         const auto& r_elem_properties = r_parent_element.GetProperties();
         const double rho = r_elem_properties[DENSITY];
         const double nu = r_elem_properties[DYNAMIC_VISCOSITY] / rho;
+        const double y = rCondition.GetValue(DISTANCE);
 
         // get surface properties from condition
         const auto& r_cond_properties = rCondition.GetProperties();
         const double beta = r_cond_properties.GetValue(WALL_SMOOTHNESS_BETA);
-
-        const double y = rCondition.GetValue(DISTANCE);
+        const double y_plus_limit = r_cond_properties.GetValue(RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT);
+        const double k_s = r_cond_properties.GetValue(WALL_ROUGHNESS_HEIGHT);
 
         // Get Shape function data
         RansCalculationUtilities::CalculateGeometryData(
@@ -117,7 +118,7 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
 
         array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
         FluidCalculationUtilities::EvaluateInPoint(
-            r_parent_element_geometry, row(Ns, 0),
+            r_parent_element_geometry, row(Ns, 0), 1,
             std::tie(fluid_velocity, VELOCITY),
             std::tie(mesh_velocity, MESH_VELOCITY));
 
@@ -125,26 +126,38 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
         const double wall_velocity_magnitude = norm_2(wall_velocity);
 
         double u_tau{0.0}, y_plus{0.0};
-        RansCalculationUtilities::CalculateYPlusAndUtau(
-            y_plus, u_tau, wall_velocity_magnitude, y, nu, kappa, beta);
+            RansCalculationUtilities::CalculateYPlusAndUtau(
+                y_plus, u_tau, wall_velocity_magnitude, y, nu, kappa, beta);
 
-        const double u_tau_log = std::log(y_plus) / kappa + beta;
-        const double omega_vis = 6 * nu / (0.075 * y * y);
-        const double omega_log = u_tau_log / (c_mu_25 * kappa * y);
+        double omega{0.0};
+        if (y_plus > y_plus_limit) {
+            // log region
+
+            omega = u_tau / (c_mu_25 * kappa * y);
+        } else {
+            // linear region
+
+            const double k_s_plus = std::max(1.0, k_s * u_tau / nu);
+
+            double omega_wall_plus = 100.0 / k_s_plus;
+            if (k_s_plus < 25.0) {
+                omega_wall_plus = std::pow(50.0 / k_s_plus, 2);
+            }
+
+            omega = (std::pow(u_tau, 2) / nu) *
+                    std::min(omega_wall_plus, 6.0 / (0.075 * std::pow(y_plus, 2)));
+        }
 
         auto& r_condition_geometry = rCondition.GetGeometry();
-        const double blended_omega =
-            std::max(std::sqrt(std::pow(omega_vis, 2) + std::pow(omega_log, 2)) /
-                         r_condition_geometry.PointsNumber(),
-                     mMinValue);
-
+        omega = std::max(mMinValue, omega / r_condition_geometry.PointsNumber());
         for (auto& r_node : r_condition_geometry) {
             r_node.SetLock();
-            r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) +=
-                blended_omega;
+            r_node.FastGetSolutionStepValue(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE) += omega;
             r_node.UnSetLock();
         }
     });
+
+    r_model_part.GetCommunicator().AssembleCurrentData(TURBULENT_SPECIFIC_ENERGY_DISSIPATION_RATE);
 
     KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
         << "Applied omega values to " << mModelPartName << ".\n";
