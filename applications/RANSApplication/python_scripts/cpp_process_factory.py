@@ -74,6 +74,10 @@ def Factory(settings, Model):
         [
             "WallPropertiesUpdateProcess",
             KratosRANS.RansWallPropertiesUpdateProcess
+        ],
+        [
+            "ComputeYPlusProcess",
+            KratosRANS.RansComputeYPlusProcess
         ]
     ]
 
