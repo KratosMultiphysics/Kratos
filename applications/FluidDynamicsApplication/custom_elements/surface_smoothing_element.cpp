@@ -266,7 +266,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.0e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 2.0e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     //const double zeta = 5.0e-1;//1.0;//0.7;//
     //const double gamma = 0.072;//0.0426;//0.0311;//
@@ -309,16 +309,16 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     } */
 
     VectorType grad_phi_old = ZeroVector(num_dim);
-    /* for(unsigned int i = 0; i<num_nodes; i++){
+    for(unsigned int i = 0; i<num_nodes; i++){
         for (unsigned int k = 0; k<num_dim; k++){
             grad_phi_old(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)*DN_DX(i,k);
         }
-    } */
+    }
 
     for(unsigned int i = 0; i<num_nodes; i++){
         PHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
-        GradPHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);//grad_phi_old;//
+        GradPHIold[i] = grad_phi_old;//GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);//
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
@@ -336,14 +336,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             //tempA(i,j) -= 0.5*area*epsilon*n_dot_grad(i)*n_dot_grad(j);
 
         }
-        grad_phi_old += GradPHIold[i];
+        //grad_phi_old += GradPHIold[i];
     }
 
     // const double norm_grad_phi_old = norm_2(grad_phi_old); // It is not correct to normalize the gradient.
     // if (norm_grad_phi_old > 1.0-1 && norm_grad_phi_old < 1.0e1)
     //     grad_phi_old = (1.0/norm_grad_phi_old)*grad_phi_old;//1.0/static_cast<double>(num_nodes)*grad_phi_old;//
     // else
-         grad_phi_old = 1.0/static_cast<double>(num_nodes)*grad_phi_old;//(1.0/norm_grad_phi_old)*grad_phi_old;//
+         //grad_phi_old = 1.0/static_cast<double>(num_nodes)*grad_phi_old;//(1.0/norm_grad_phi_old)*grad_phi_old;//
 
     //KRATOS_INFO("SurfaceSmoothingElement") << "Start BC" << std::endl;
     ///////////////////////////////////////////////////////////////////////////////
