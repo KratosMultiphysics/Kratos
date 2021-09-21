@@ -261,7 +261,8 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 self.ExecuteBeforeCouplingSolveStep()
                 _ = self.solver.SolveSolutionStep()
                 if self.compute_reactions_using_scheme:
-                    self.scheme.CalculateReactions(self.monolithic_model_part)
+                    self.scheme.CalculateReactions(self.GetModelPart())
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, "{:s} is used to calculate reactions in {:s}.".format(self.scheme.__class__.__name__, self.GetModelPart().FullName()))
                 self.ExecuteAfterCouplingSolveStep()
                 Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved coupling iteration " + str(iteration + 1) + "/" + str(max_iterations) + ".")
                 return True
