@@ -43,7 +43,6 @@ public:
     typedef typename TContainerPointType::value_type NodeType;
 
     typedef Geometry<NodeType> BaseType;
-    typedef NurbsSurfaceGeometry<TWorkingSpaceDimension, TContainerPointType> GeometryType;
 
     typedef typename BaseType::IndexType IndexType;
     typedef typename BaseType::SizeType SizeType;
@@ -60,6 +59,7 @@ public:
 
     /// Counted pointer of NurbsSurfaceGeometry
     KRATOS_CLASS_POINTER_DEFINITION(NurbsSurfaceGeometry);
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -114,6 +114,7 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mWeights(rOther.mWeights)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -126,6 +127,7 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mWeights(rOther.mWeights)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -145,6 +147,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mWeights = rOther.mWeights;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -159,6 +162,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mWeights = rOther.mWeights;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -170,6 +174,20 @@ public:
         PointsArrayType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsSurfaceGeometry>(ThisPoints);
+    }
+
+    ///@}
+    ///@name Parent
+    ///@{
+
+    BaseType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
+    void SetGeometryParent(BaseType* pGeometryParent) override
+    {
+        mpGeometryParent = pGeometryParent;
     }
 
     ///@}
@@ -850,6 +868,9 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mWeights;
+
+    /// A NurbsSurface may refer to the BrepSurface as geometry parent.
+    BaseType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Private Operations
