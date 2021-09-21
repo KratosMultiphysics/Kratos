@@ -76,7 +76,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                 self.vector_direction[i] = settings["direction"][i].GetDouble() 
             else:
                 self.function_string_direction = settings["direction"][i].GetString()
-                self.aux_function_direction[i] = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string_direction, settings["local_axes"])
+                self.aux_function_direction[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string_direction, settings["local_axes"])
 
 
         self.value_is_numeric = False
@@ -89,7 +89,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
             self.value = self.vector_direction * self.modulus
         else:
             self.function_string = settings["modulus"].GetString()
-            self.aux_function = KratosMultiphysics.PythonGenericFunctionUtility(self.function_string, settings["local_axes"])
+            self.aux_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
         
         self.modified_normal = False

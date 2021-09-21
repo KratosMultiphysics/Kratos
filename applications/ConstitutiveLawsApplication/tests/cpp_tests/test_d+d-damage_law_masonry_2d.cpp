@@ -1,7 +1,9 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS ___                _   _ _         _   _             __                       _
+//       / __\___  _ __  ___| |_(_) |_ _   _| |_(_)_   _____  / /  __ ___      _____   /_\  _ __  _ __
+//      / /  / _ \| '_ \/ __| __| | __| | | | __| \ \ / / _ \/ /  / _` \ \ /\ / / __| //_\\| '_ \| '_  |
+//     / /__| (_) | | | \__ \ |_| | |_| |_| | |_| |\ V /  __/ /__| (_| |\ V  V /\__ \/  _  \ |_) | |_) |
+//     \____/\___/|_| |_|___/\__|_|\__|\__,_|\__|_| \_/ \___\____/\__,_| \_/\_/ |___/\_/ \_/ .__/| .__/
+//                                                                                         |_|   |_|
 //
 //  License:         BSD License
 //                     license: structural_mechanics_application/license.txt
@@ -20,13 +22,13 @@
 #include "containers/model.h"
 
 // Application includes
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_advanced_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
-#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos
 {
@@ -35,7 +37,7 @@ namespace Testing
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
 typedef Node<3> NodeType;
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosConstitutiveLawsFastSuite)
 {
     //
     // Test: check correct behavior of internal and calculated variables
@@ -64,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosStructura
     cl.SetValue(INTERNAL_VARIABLES, internal_variables_w, test_model_part.GetProcessInfo());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -137,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosStructuralM
     KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.01e6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;
@@ -209,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosStructu
     KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;

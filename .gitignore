@@ -59,6 +59,10 @@ bin/*
 *.vtk
 *.vtu
 
+# HDF5 files
+*.h5
+*.hdf5
+
 # Output of tests of meshing application (MMG)
 *.sol
 *.mesh

@@ -43,7 +43,6 @@ class CoSimulationSolverWrapper:
             raise Exception("cannot contain dot!")
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
@@ -52,14 +51,10 @@ class CoSimulationSolverWrapper:
         raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
     def Initialize(self):
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
+
         if self.__HasIO():
             self.__GetIO().Initialize()
-
-    def InitializeCouplingInterfaceData(self):
-        # Initializing of the CouplingInterfaceData can only be done after the meshes are read
-        # and all ModelParts are created
-        for data in self.data_dict.values():
-            data.Initialize()
 
     def Finalize(self):
         if self.__HasIO():
@@ -93,7 +88,7 @@ class CoSimulationSolverWrapper:
         io_settings = self.settings["io_settings"]
 
         if not io_settings.Has("echo_level"):
-            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+            io_settings.AddEmptyValue("echo_level").SetInt(io_echo_level)
 
         self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 

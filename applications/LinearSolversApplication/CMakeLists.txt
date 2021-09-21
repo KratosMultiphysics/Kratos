@@ -16,11 +16,12 @@ message( "**** configuring KratosLinearSolversApplication ****" )
 ################### PYBIND11
 include(pybind11Tools)
 
-add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+add_definitions( -DEIGEN_MPL2_ONLY)
 
 include_directories(
     ${KRATOS_SOURCE_DIR}/kratos
-        SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/eigen3 # Including as System to suppress compile-warnings from it
+    SYSTEM external_libraries/spectra1/include # Including as System to suppress compile-warnings from it
 )
 
 if( USE_EIGEN_MKL MATCHES ON )
@@ -143,3 +144,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install( TARGETS KratosLinearSolversCore DESTINATION libs )
 install( TARGETS KratosLinearSolversApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLinearSolversCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosLinearSolversApplication" PARENT_SCOPE)

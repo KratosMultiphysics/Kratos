@@ -12,6 +12,7 @@ from test_feast_eigensystem_solver import TestFeastEigensystemSolver as TTestFea
 from test_eigen_dense_eigenvalue_solver import TestDenseEigenvalueSolver as TTestDenseEigenvalueSolver
 from test_eigen_dense_decompositions import TestEigenDenseDecompositions as TTestEigenDenseDecompositions
 
+
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 

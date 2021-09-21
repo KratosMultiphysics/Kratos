@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    BoussinesqBassetHistoryForceLaw::BoussinesqBassetHistoryForceLaw(Parameters& r_parameters)
+    BoussinesqBassetHistoryForceLaw::BoussinesqBassetHistoryForceLaw(Parameters r_parameters)
     {
         Parameters default_parameters( R"(
             {

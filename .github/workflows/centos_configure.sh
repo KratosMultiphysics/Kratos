@@ -24,6 +24,7 @@ add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/MeshingApplication;
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 
 # Clean
 clear
@@ -38,8 +39,8 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=OFF \
 -DPYBIND11_PYTHON_VERSION="3.5" \
--DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11 -O0 -fopenmp -Wall" \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -std=c++11 -O0 -Wall" \
 -DCMAKE_UNITY_BUILD=ON                              \
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install    -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

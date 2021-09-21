@@ -18,7 +18,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         MeiLiftLaw(){}
 
-        MeiLiftLaw(Parameters& r_parameters);
+        MeiLiftLaw(Parameters r_parameters);
 
         ~MeiLiftLaw(){}
 

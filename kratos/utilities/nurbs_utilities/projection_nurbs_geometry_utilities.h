@@ -19,26 +19,28 @@
 // External includes
 
 // Project includes
+#include "geometries/geometry.h"
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-template<class TPointType> class Geometry;
 template<int TDimension, class TPointType> class NurbsSurfaceGeometry;
-namespace ProjectionNurbsGeometryUtilities
+class ProjectionNurbsGeometryUtilities
 {
+public:
+
     typedef array_1d<double, 3> CoordinatesArrayType;
 
     /*
     * @brief Returns the projection of a point onto a Nurbs curve
     *        geometry using the Newton-Rapshon iterative method
-    * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
+    * @param rProjectedPointLoaclCoordinates Intial guess for the Newton-Rapshon algorithm
     *        overwritten by the local coordinates of the projected point onto
     *        the Nurbs curve geometry
     * @param rPoint The point to be projected onto the Nurbs curve geometry
     *        This is overwritten by the Cartesian coordinates of the projected
     *        point in case the projection is successful
-    * @param rResult The projection onto the Nurbs curve geometry
+    * @param rProjectedPointGlobalCoordinates The projection onto the Nurbs curve geometry
     * @param rNurbsCurve The Nurbs curve geometry onto which the point is
     *        to be projected
     * @param MaxIterations Maximum number of iterations for the Newton-Rapshon
@@ -46,10 +48,10 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <class TPointType>
-    bool NewtonRaphsonCurve(
-        CoordinatesArrayType& rParameterLocalCoordinates,
-        const CoordinatesArrayType& rPointGlobal,
-        CoordinatesArrayType& rResultLocal,
+    static bool NewtonRaphsonCurve(
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const CoordinatesArrayType& rPointGlobalCoordinatesCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         const Geometry<TPointType>& rGeometry,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6)
@@ -68,13 +70,13 @@ namespace ProjectionNurbsGeometryUtilities
             // Compute the position, the base and the acceleration vector
             rGeometry.GlobalSpaceDerivatives(
                 derivatives,
-                rParameterLocalCoordinates,
+                rProjectedPointLocalCoordinates,
                 2);
-            rResultLocal = derivatives[0];
+            rProjectedPointGlobalCoordinates = derivatives[0];
 
-            // Compute the distance vector between the point and its 
+            // Compute the distance vector between the point and its
             // projection on the curve
-            distance_vector = rResultLocal - rPointGlobal;
+            distance_vector = rProjectedPointGlobalCoordinates - rPointGlobalCoordinatesCoordinates;
             if (norm_2(distance_vector) < Accuracy)
                 return true;
 
@@ -87,15 +89,16 @@ namespace ProjectionNurbsGeometryUtilities
             delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
 
             // Increment the parametric coordinate
-            rParameterLocalCoordinates[0] -= delta_t;
+            rProjectedPointLocalCoordinates[0] -= delta_t;
 
             // Check if the increment is too small and if yes return true
             if (norm_2(delta_t * derivatives[1]) < Accuracy)
                 return true;
 
-            // Check if the parameter gets out of its interval of definition and if so clamp it 
+            // Check if the parameter gets out of its interval of definition and if so clamp it
             // back to the boundaries
-            int check = 1;//rGeometry.ClosestPointLocalSpace(rParameterLocalCoordinates);
+            int check = rGeometry.ClosestPointLocalToLocalSpace(
+                rProjectedPointLocalCoordinates, rProjectedPointLocalCoordinates);
             if (check == 0) {
                 if (projection_reset_to_boundary) { return false; }
                 else { projection_reset_to_boundary = true; }
@@ -109,7 +112,7 @@ namespace ProjectionNurbsGeometryUtilities
     /*
     * @brief Returns the projection of a point onto a Nurbs surface
     *        geometry using the Newton-Rapshon iterative method
-    * @param rParameterLocalCoordinates Intial guess for the Newton-Rapshon algorithm
+    * @param rProjectedPointLocalCoordinates Intial guess for the Newton-Rapshon algorithm
     *        overwritten by the local coordinates of the projected point onto
     *        the Nurbs surface geometry
     * @param rPoint The point to be projected onto the Nurbs surface geometry
@@ -123,10 +126,10 @@ namespace ProjectionNurbsGeometryUtilities
     * @param Accuracy Accuracy for the the Newton-Rapshon algorithm
     */
     template <int TDimension, class TPointType>
-    bool NewtonRaphsonSurface(
-        CoordinatesArrayType& rParameterLocalCoordinates,
-        const CoordinatesArrayType& rPointGlobal,
-        CoordinatesArrayType& rResultLocal,
+    static bool NewtonRaphsonSurface(
+        CoordinatesArrayType& rProjectedPointLocalCoordinates,
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectedPointGlobalCoordinates,
         const NurbsSurfaceGeometry<TDimension, TPointType>& rNurbsSurface,
         const int MaxIterations = 20,
         const double Accuracy = 1e-6)
@@ -142,11 +145,11 @@ namespace ProjectionNurbsGeometryUtilities
 
             // Compute the position, the base and the acceleration vectors
             std::vector<array_1d<double, 3>> s;
-            rNurbsSurface.GlobalSpaceDerivatives(s, rParameterLocalCoordinates, 2);
-            rResultLocal = s[0];
+            rNurbsSurface.GlobalSpaceDerivatives(s, rProjectedPointLocalCoordinates, 2);
+            rProjectedPointGlobalCoordinates = s[0];
 
             // Compute the distance vector
-            const array_1d<double, 3> distance_vector = s[0] - rPointGlobal;
+            const array_1d<double, 3> distance_vector = s[0] - rPointGlobalCoordinates;
 
             // Compute the distance
             const double distance = norm_2(distance_vector);
@@ -226,18 +229,18 @@ namespace ProjectionNurbsGeometryUtilities
                 return true;
 
             // Update the parametric coordinates
-            rParameterLocalCoordinates[0] += d_u;
-            rParameterLocalCoordinates[1] += d_v;
+            rProjectedPointLocalCoordinates[0] += d_u;
+            rProjectedPointLocalCoordinates[1] += d_v;
 
-            // Check if the parametric coordinates get out of their interval of definition 
+            // Check if the parametric coordinates get out of their interval of definition
             // and if so clamp them back to their boundaries
-            rNurbsSurface.DomainIntervalU().IsInside(rParameterLocalCoordinates[0]);
-            rNurbsSurface.DomainIntervalV().IsInside(rParameterLocalCoordinates[1]);
+            rNurbsSurface.DomainIntervalU().IsInside(rProjectedPointLocalCoordinates[0]);
+            rNurbsSurface.DomainIntervalV().IsInside(rProjectedPointLocalCoordinates[1]);
         }
 
         return false;
     }
-}
+};
 } // namespace Kratos
 
 #endif // KRATOS_PROJECTION_NURBS_GEOMETRY_UTILITIES_H_INCLUDED

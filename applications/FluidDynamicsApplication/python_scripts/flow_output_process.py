@@ -84,5 +84,5 @@ class FlowOutputProcess(KratosMultiphysics.Process):
         return header
 
     def CalculateFlow(self, model_part):
-        flow_value = KratosCFD.FluidPostProcessUtilities().CalculateFlow(model_part)
+        flow_value = KratosCFD.FluidAuxiliaryUtilities.CalculateFlowRate(model_part)
         return flow_value
