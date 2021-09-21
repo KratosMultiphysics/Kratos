@@ -1454,7 +1454,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             double denominator;
             array_1d<double, 3> contribution;
 
-            if (use_drew_model) {
+            if (use_drew_model == true) {
                 denominator = area * fluid_density;
             }
             else{
