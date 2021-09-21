@@ -4,7 +4,7 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElasticPlaneStrain2DLaw" 
+              "name"             :  "GeoLinearElasticPlaneStrain2DLaw" 
           },
           "Variables": {
               "YOUNG_MODULUS"            :  3.0e7,

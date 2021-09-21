@@ -24,6 +24,7 @@ from particle_mechanics_test_factory import CooksMembraneUPIncompressibleTest as
 from particle_mechanics_test_factory import CLLinearElastic3DQuadTest as TCLLinearElastic3DQuadTest
 
 from particle_mechanics_test_factory import GravityApplicationTest as TGravityApplicationTest
+from particle_mechanics_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
 
 from particle_mechanics_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
@@ -93,6 +94,7 @@ def AssembleTestSuites():
 
     smallSuite.addTest(TCLLinearElastic3DQuadTest('test_execution'))
     smallSuite.addTest(TGravityApplicationTest('test_execution'))
+    smallSuite.addTest(TGravityTimeStepTableTest('test_execution'))
 
     # TODO: Look further into this test as they are still failing for AMatrix
     smallSuite.addTest(TSlipBoundaryTest('test_execution')) # FIXME:

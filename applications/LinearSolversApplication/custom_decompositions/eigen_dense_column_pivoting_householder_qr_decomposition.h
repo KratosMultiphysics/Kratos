@@ -175,7 +175,7 @@ public:
         matrix_R_map = r_R;
     }
 
-    void MatrixP(MatrixType& rMatrixP) const
+    void MatrixP(MatrixType& rMatrixP) const override
     {
         // Get the permutation matrix
         const auto& r_P = mColPivHouseholderQR.colsPermutation();
