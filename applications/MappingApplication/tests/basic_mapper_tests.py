@@ -207,7 +207,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
 
     def test_Is_conforming(self):
         is_conforming = self.mapper.AreMeshesConforming()
-        self.assertEqual(is_conforming, True)
+        self.assertTrue(is_conforming)
 
     def test_Is_not_conforming(self):
         non_conform_parameters = self.mapper_parameters.Clone()
@@ -225,7 +225,7 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
         )
 
         is_conforming = non_conform_mapper.AreMeshesConforming()
-        self.assertEqual(is_conforming, False)
+        self.assertFalse(is_conforming)
 
 
     # def test_UpdateInterface(self):
