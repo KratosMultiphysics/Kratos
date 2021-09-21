@@ -44,6 +44,8 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
             node_o.SetSolutionStepValue(KM.DISPLACEMENT, 0, VectorValueFromId(node_id))
             node_o.SetValue(KM.LAMBDA, ScalarValueFromId(node_id)*1.47)
 
+        KM.VariableUtils().SetNonHistoricalVariableToZero(KM.VISCOSITY, mp_d_m.Nodes)
+
         for i in range(num_nodes_non_matching-1,-1, -1):
             node_id = i+15
             mp_d_nm.CreateNewNode(node_id, 0.0, 0.0, i+1.1)
@@ -192,7 +194,6 @@ class TestDataTransferOperators(KratosUnittest.TestCase):
         }""")
 
         data_transfer_op = data_transfer_operator_factory.CreateDataTransferOperator(data_transfer_op_settings)
-
 
         transfer_options_empty = KM.Parameters(""" [] """)
         # origin is non-hist
