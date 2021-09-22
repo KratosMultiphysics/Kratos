@@ -20,6 +20,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/exception.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -485,8 +486,11 @@ void ModelPart::SetNodalSolutionStepVariablesList()
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
 
-    for (NodeIterator i_node = NodesBegin(); i_node != NodesEnd(); ++i_node)
-        i_node->SetSolutionStepVariablesList(mpVariablesList);
+    // Iterate over nodes
+    auto& r_nodes_array = this->Nodes();
+    block_for_each(r_nodes_array,[&](NodeType& rNode) {
+        rNode.SetSolutionStepVariablesList(mpVariablesList);
+    });
 }
 
 /** Inserts a Table
