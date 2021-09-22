@@ -1942,6 +1942,9 @@ const Parameters BaseSolidElement::GetSpecifications() const
     return specifications;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 bool BaseSolidElement::IsElementRotated() const
 {
     if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
