@@ -108,9 +108,15 @@ void DefineEmbeddedWakeProcess3D::Execute()
                 r_elem.Set(STRUCTURE, false);
                 // r_elem.Set(MARKER, true);
                 r_elem.SetValue(WAKE, false);
+                if (is_upper) {
+                    r_elem.SetValue(KUTTA, true);
+                    for (auto& r_node : r_geometry) {
+                        if (r_node.GetValue(WAKE_DISTANCE) < 0.0) {
+                            r_node.SetValue(TRAILING_EDGE, true);
+                        }
+                    }
+                }
                 if (is_lower) {
-                    r_elem.SetValue(WAKE, false);
-                    r_elem.Set(STRUCTURE, false);
                     r_elem.SetValue(KUTTA, true);
                     for (auto& r_node : r_geometry) {
                         if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
@@ -121,31 +127,132 @@ void DefineEmbeddedWakeProcess3D::Execute()
             }
         } else {
             // bool is_x = r_elem.GetGeometry().Center().X() > 0.0;
-            if (is_upper && is_lower) {
-                bool is_neighbour = false;
-                for (auto& r_node : r_geometry) {
-                    for (auto& r_elem_neigh : r_node.GetValue(NEIGHBOUR_ELEMENTS)) {
-                        if (r_elem_neigh.Is(STRUCTURE)) {
-                            is_neighbour = true;
-                            break;
-                        }
-                    }
-                }
-                if (is_neighbour) {
-                    r_elem.Set(MARKER, true);
-                    // r_elem.SetValue(WAKE, false);
-                    // r_elem.Set(STRUCTURE, false);
-                    // r_elem.SetValue(KUTTA, true);
-                    // for (auto& r_node : r_geometry) {
-                    //     if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
-                    //         r_node.SetValue(TRAILING_EDGE, true);
-                    //     }
-                    // }
-                }
-
-            }
+            // if (is_upper && is_lower) {
+            //     bool is_neighbour = false;
+            //     for (auto& r_node : r_geometry) {
+            //         for (auto& r_elem_neigh : r_node.GetValue(NEIGHBOUR_ELEMENTS)) {
+            //             if (r_elem_neigh.Is(STRUCTURE)) {
+            //                 is_neighbour = true;
+            //                 break;
+            //             }
+            //         }
+            //     }
+            //     // if (is_neighbour) {
+            //     //     // r_elem.Set(MARKER, true);
+            //     //     // r_elem.SetValue(WAKE, false);
+            //     //     // r_elem.Set(STRUCTURE, false);
+            //     //     // r_elem.SetValue(KUTTA, true);
+            //     //     // for (auto& r_node : r_geometry) {
+            //     //     //     if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
+            //     //     //         r_node.SetValue(TRAILING_EDGE, true);
+            //     //     //     }
+            //     //     // }
+            //     // }
+            // }
         }
     }
+
+
+    // KRATOS_INFO("DefineEmbeddedWakeProcess3D")
+    //     << "Deactivating unconnected structure elements" << std::endl;
+    // std::unordered_set<std::size_t> touching_elements;
+
+    // // ModelPart& deactivated_model_part = mrModelPart.GetSubModelPart("deactivated_model_part");
+    // for (auto& r_elem : mrModelPart.Elements()) {
+    //     if (r_elem.Is(STRUCTURE) &&
+    //         touching_elements.find(r_elem.Id()) == touching_elements.end()) {
+    //         // KRATOS_WATCH("***********************************")
+    //         // KRATOS_WATCH(r_elem.Id())
+    //         std::unordered_set<std::size_t> visited_elements;
+    //         bool touches_wake = TouchesWake(r_elem, visited_elements);
+    //         // KRATOS_WATCH("***********************************")
+    //         // KRATOS_WATCH(touches_wake)
+    //         // KRATOS_WATCH("***********************************")
+    //         if (!touches_wake) {
+    //             r_elem.Set(MARKER, true);
+    //             r_elem.SetValue(WAKE, false);
+    //             r_elem.Set(STRUCTURE, false);
+    //             // for (auto& r_node : r_elem.GetGeometry()) {
+    //             //     r_node.SetValue(WING_TIP, false);
+    //             // }
+    //         }
+    //         else {
+    //             for (auto elem_id : visited_elements) {
+    //                 touching_elements.insert(elem_id);
+    //             }
+    //             for (auto& r_node : r_elem.GetGeometry()) {
+    //                 r_node.SetValue(WAKE, true);
+    //             }
+    //         }
+    //     }
+    // }
+    // KRATOS_INFO("DefineEmbeddedWakeProcess3D")
+    //     << "Finished deactivating unconnected structure elements" << std::endl;
+
+    // for (auto& r_elem : mrModelPart.Elements()) {
+    //     bool is_x = r_elem.GetGeometry().Center().X() > 0.0;
+    //     // if (r_elem.Is(MARKER)) {
+    //     if (is_x) {
+    //         for (auto& r_node : r_elem.GetGeometry()) {
+    //             // if (r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE) && !r_node.GetValue(WAKE)) {
+    //             if (r_node.GetValue(UPPER_SURFACE) && r_node.GetValue(LOWER_SURFACE)) {
+    //                 r_node.SetValue(TRAILING_EDGE, true);
+    //             }
+    //             // if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
+    //             //     r_node.SetValue(TRAILING_EDGE, true);
+    //             // }
+    //         }
+    //     }
+    // }
+
+    // for (auto& r_elem : mrModelPart.Elements()) {
+    //     std::size_t upper_nodes = 0;
+    //     std::size_t lower_nodes = 0;
+    //     bool touches_te = false;
+    //     for (auto& r_node : r_elem.GetGeometry()) {
+    //         if (r_node.GetValue(UPPER_SURFACE)) {
+    //             upper_nodes++;
+    //         }
+    //         if (r_node.GetValue(LOWER_SURFACE)) {
+    //             lower_nodes++;
+    //         }
+    //         if (r_node.GetValue(TRAILING_EDGE))
+    //             touches_te = true;
+    //     }
+    //     bool is_lower =lower_nodes >= upper_nodes;
+    //     // if (is_upper && touches_te) {
+    //     if (!is_lower && touches_te) {
+    //         r_elem.SetValue(KUTTA, true);
+    //     }
+    //     // if (touches_te && r_elem.Is(ACTIVE)) {
+    //     //     for (auto& r_node : r_elem.GetGeometry()) {
+    //     //         r_node.SetValue(WING_TIP, true);
+    //     //     }
+    //     // }
+    // }
+
+    // for (auto& r_elem : mrModelPart.Elements()) {
+    //     bool is_found1 = false;
+    //     for (auto& r_node : r_elem.GetGeometry()) {
+    //         if (r_node.Id() == 102034)
+    //             is_found1 = true;
+    //     }
+    //     bool is_found2 = false;
+    //     for (auto& r_node : r_elem.GetGeometry()) {
+    //         if (r_node.Id() == 134913)
+    //             is_found2 = true;
+
+    //     }
+    //     bool is_found3 = false;
+    //     for (auto& r_node : r_elem.GetGeometry()) {
+    //         if (r_node.Id() == 193859)
+    //             is_found3 = true;
+    //     }
+    //     if (is_found1 && is_found2 && is_found3) {
+    //         KRATOS_WATCH("FOUND")
+    //         KRATOS_WATCH(r_elem.Id())
+    //     }
+    // }
 
     ComputeTrailingEdgeNode();
 
@@ -177,14 +284,17 @@ void DefineEmbeddedWakeProcess3D::Execute()
     //     }
     // }
 
+
     std::ofstream outfile_wake;
     outfile_wake.open("wake_elements_id.txt");
     std::ofstream outfile_marker;
-    outfile_wake.open("marker_elements_id.txt");
+    outfile_marker.open("marker_elements_id.txt");
     std::ofstream outfile_structure;
     outfile_structure.open("structure_elements_id.txt");
     std::ofstream outfile_kutta;
     outfile_kutta.open("kutta_elements_id.txt");
+    std::ofstream outfile_upperlower;
+    outfile_upperlower.open("upperlower_elements_id.txt");
     for (auto& r_element : mrModelPart.Elements()){
         if(r_element.Is(MARKER)){
             outfile_marker << r_element.Id();
@@ -204,12 +314,26 @@ void DefineEmbeddedWakeProcess3D::Execute()
                 outfile_structure << " ";
             }
         }
+        std::size_t upper_nodes = 0;
+        std::size_t lower_nodes = 0;
+        for (auto& r_node : r_element.GetGeometry()) {
+            if (r_node.GetValue(UPPER_SURFACE)) {
+                upper_nodes++;
+            }
+            if (r_node.GetValue(LOWER_SURFACE)) {
+                lower_nodes++;
+            }
+        }
+        if (upper_nodes==4 && lower_nodes==4 && r_element.GetValue(WAKE)) {
+                outfile_upperlower << r_element.Id();
+                outfile_upperlower << " ";
+        }
     }
     outfile_kutta.close();
     outfile_marker.close();
     outfile_structure.close();
     outfile_wake.close();
-
+    outfile_upperlower.close();
     KRATOS_CATCH("");
 }
 
@@ -293,6 +417,93 @@ void DefineEmbeddedWakeProcess3D::MarkWakeElements(){
     });
 
     KRATOS_CATCH("");
+
+}
+
+
+bool DefineEmbeddedWakeProcess3D::TouchesWake(Element& rElem,
+                                              std::unordered_set<std::size_t> visited_elements)
+{
+    // KRATOS_WATCH(rElem.Id())
+    auto& r_geometry = rElem.GetGeometry();
+    visited_elements.insert(rElem.Id());
+    std::unordered_set<std::size_t> failed_elements;
+    double global_max_node_x = -1e10;
+    for (auto& r_node : rElem.GetGeometry()) {
+        global_max_node_x = std::max(global_max_node_x, r_node.X());
+    }
+    for (auto& r_node : r_geometry) {
+        std::vector<Element> vector_wake_elem;
+        std::vector<Element> sorted_vector_wake_elem;
+        for (auto& r_elem_neigh : r_node.GetValue(NEIGHBOUR_ELEMENTS)) {
+            std::size_t matching_nodes = 0;
+
+            for (auto& r_node_neigh : r_elem_neigh.GetGeometry()) {
+                for (auto& r_node_main : rElem.GetGeometry()) {
+                    if (r_node_main.Id() == r_node_neigh.Id()) {
+                        matching_nodes++;
+                    }
+                }
+            }
+            bool is_matching = matching_nodes == 3;
+            bool is_wake = r_elem_neigh.GetValue(WAKE);
+            if (is_matching && is_wake) {
+                vector_wake_elem.push_back(r_elem_neigh);
+            }
+        }
+        while (vector_wake_elem.size()>0) {
+            IndexType max_i = 0;
+            double max_x_node = -1e10;
+            for (IndexType i =0 ; i<vector_wake_elem.size(); i++) {
+                for (auto& r_node : vector_wake_elem[i].GetGeometry()) {
+                    if (r_node.X()>max_x_node) {
+                        max_x_node = r_node.X();
+                        max_i = i;
+                    }
+                }
+            }
+            sorted_vector_wake_elem.push_back(vector_wake_elem[max_i]);
+            vector_wake_elem.erase(vector_wake_elem.begin()+ max_i);
+            // KRATOS_WATCH(vector_wake_elem.size())
+        }
+
+        for (auto& r_elem_neigh : sorted_vector_wake_elem) {
+            if (failed_elements.find(r_elem_neigh.Id()) == failed_elements.end() &&
+                r_elem_neigh.GetValue(WAKE)) {
+                bool is_struct = r_elem_neigh.Is(STRUCTURE);
+                bool is_wake = r_elem_neigh.GetValue(WAKE);
+                std::size_t matching_nodes = 0;
+                for (auto& r_node_neigh : r_elem_neigh.GetGeometry()) {
+                    for (auto& r_node_main : rElem.GetGeometry()) {
+                        if (r_node_main.Id() == r_node_neigh.Id()) {
+                            matching_nodes++;
+                        }
+                    }
+                }
+                bool is_matching = matching_nodes ==  3;
+                bool is_visited = visited_elements.find(r_elem_neigh.Id()) !=
+                                  visited_elements.end();
+                // std::cout<<rElem.Id() << " NEIGH id, struct,wake "<< r_elem_neigh.Id() << " " << is_struct << " " << is_wake << " "<< is_visited<< " "<< is_matching <<  std::endl;
+                // std::cout<<"visited elements: ";
+                // for (auto& value : visited_elements) {
+                //     std::cout << value << " ";
+                // }
+                // std::cout << std::endl;
+                if (is_matching && is_wake && !is_struct) {
+                    return true;
+                }
+                if (is_matching && is_wake && is_struct && !is_visited) {
+                    if (TouchesWake(r_elem_neigh, visited_elements)) {
+                        return true;
+                    }
+                    else {
+                        failed_elements.insert(r_elem_neigh.Id());
+                    }
+                }
+            }
+        }
+    }
+    return false;
 
 }
 

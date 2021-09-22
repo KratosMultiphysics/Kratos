@@ -13,6 +13,7 @@
 #ifndef KRATOS_DEFINE_EMBEDDED_WAKE_3D_PROCESS_H
 #define KRATOS_DEFINE_EMBEDDED_WAKE_3D_PROCESS_H
 
+#include <unordered_set>
 #include "includes/model_part.h"
 #include "processes/process.h"
 
@@ -85,6 +86,8 @@ private:
     void MarkWakeElements();
 
     void ComputeTrailingEdgeNode();
+
+    bool TouchesWake(Element& rElem, std::unordered_set<std::size_t> visited_elements);
 
     // std::vector<IndexType> GetTrailingEdgeNodeList();
 
