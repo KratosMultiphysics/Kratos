@@ -17,12 +17,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "direct_conduction_model"        : "batchelor_obrien",
             "compute_indirect_conduction"    : false,
             "indirect_conduction_model"      : "surrounding_layer",
-            "fluid_layer_thickness"          : 0.4,
+            "integral_tolerance"             : 0.000001,
             "min_conduction_distance"        : 0.0000000275,
+            "fluid_layer_thickness"          : 0.4,
             "compute_convection"             : false,
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "compute_radiation"              : false,
             "radiation_model"                : "continuum_zhou",
+            "radiation_radius_factor"        : 3.0,
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
                 "fluid_viscosity"            : 1.0,
@@ -68,8 +70,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
         # Set model parameters
+        self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
+        self.radiation_radius_factor = self.thermal_settings["radiation_radius_factor"].GetDouble()
 
         # Set global properties of interstitial/surrounding fluid
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
@@ -108,8 +112,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
 
         # Model parameters
+        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,      self.integral_tolerance)
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE, self.min_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,   self.fluid_layer_thickness)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS_FACTOR, self.radiation_radius_factor)
 
         # Global properties for interstitial/surrounding fluid 
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_DENSITY,              self.fluid_density)

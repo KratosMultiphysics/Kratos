@@ -78,9 +78,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
   void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
 
-  // Auxiliary computation methods
-  virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
-
   // Update methods
   void UpdateTemperature(const ProcessInfo& r_process_info);
   void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
@@ -89,6 +86,12 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Finalization methods
   void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+
+  // Auxiliary computation methods
+  virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
+  double IntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b);
+  double SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b, double tol, double fa, double fb, double fc);
+  double EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double r);
 
   // Get/Set methods
   const double& GetParticleTemperature();
