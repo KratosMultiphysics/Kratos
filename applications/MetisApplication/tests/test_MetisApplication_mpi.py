@@ -15,7 +15,7 @@ def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "mpi_small", "mpi_nightly" and "mpi_all"
 
     Return
     ------
