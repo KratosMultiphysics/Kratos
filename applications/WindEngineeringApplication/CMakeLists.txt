@@ -4,16 +4,17 @@ message("**** configuring WindEngineeringApplication ****")
 
 include_directories("${KRATOS_SOURCE_DIR}/kratos")
 
-# Placeholder for setting up pybind
+file(GLOB KRATOS_WIND_ENGINEERING_APPLICATION_SOURCES
+     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
+     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp)
 
-# Application library
-set(KRATOS_WIND_ENGINEERING_APPLICATION_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/wind_engineering_application.cpp")
+list(APPEND KRATOS_WIND_ENGINEERING_APPLICATION_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/wind_engineering_application.cpp")
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tets/*.cpp)
+    file(GLOB_RECURSE KRATOS_WIND_ENGINEERING_APPLICATION_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif()
 
+# Application library
 add_library(KratosWindEngineeringApplicationCore SHARED
             ${KRATOS_WIND_ENGINEERING_APPLICATION_SOURCES}
             ${KRATOS_WIND_ENGINEERING_APPLICATION_TEST_SOURCES})
@@ -22,8 +23,8 @@ target_link_libraries(KratosWindEngineeringApplicationCore PRIVATE KratosCore)
 # Python bindings
 include(pybind11Tools)
 
-set(KRATOS_WIND_ENGINEERING_PYTHON_INTERFACE_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/custom_python/wind_engineering_python_application.cpp")
+file(GLOB KRATOS_WIND_ENGINEERING_PYTHON_INTERFACE_SOURCES
+     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 pybind11_add_module(KratosWindEngineeringApplication MODULE THIN_LTO ${KRATOS_WIND_ENGINEERING_PYTHON_INTERFACE_SOURCES})
 target_link_libraries(KratosWindEngineeringApplication PRIVATE KratosWindEngineeringApplicationCore)
