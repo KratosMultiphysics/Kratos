@@ -22,7 +22,7 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-class KratosWindEngineeringApplication : public KratosApplication {
+class KRATOS_API(WIND_ENGINEERING_APPLICATION) KratosWindEngineeringApplication : public KratosApplication {
 public:
     ///@name Type Definitions
     ///@{

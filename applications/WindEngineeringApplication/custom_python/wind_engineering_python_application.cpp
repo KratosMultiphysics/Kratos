@@ -18,6 +18,8 @@
 // Project includes
 #include "includes/define.h"
 #include "wind_engineering_application.h"
+#include "add_custom_utilities_to_python.h"
+#include "add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -34,8 +36,8 @@ PYBIND11_MODULE(KratosWindEngineeringApplication, module)
         .def(pybind11::init<>())
         ;
 
-    // AddCustomUtilitiesToPython(module);
-    // AddCustomProcessesToPython(module);
+    AddCustomUtilitiesToPython(module);
+    AddCustomProcessesToPython(module);
 
     // Register custom variables
 
