@@ -161,7 +161,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
@@ -275,11 +275,22 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
                 constraints_buffer_vector.insert(constraints_buffer_vector.begin(), p_new_const);
+            }
+        }
+
+        if (num_geometries != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::GEOMETRIES || mEntity == EntityTransfered::NODESANDGEOMETRIES)) {
+            const auto it_geom_begin = mrOriginModelPart.GeometriesBegin();
+            #pragma omp for
+            for(int i = 0; i < num_geometries; ++i) {
+                auto it_geom = it_geom_begin;
+                for (int j = 0; j < i; ++j) it_geom++;
+                auto p_new_geom = it_geom->Create(total_num_geometries + i + 1, *it_geom);
+                geometries_buffer_vector.insert(p_new_geom);
             }
         }
 
@@ -368,7 +379,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
             const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512)
             for(int i = 0; i < num_constraints; ++i) {
                 auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
