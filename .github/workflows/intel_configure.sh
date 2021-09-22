@@ -68,4 +68,4 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DCMAKE_UNITY_BUILD=ON
 
 # Buid
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j1
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j2

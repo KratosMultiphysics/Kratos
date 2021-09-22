@@ -29,7 +29,7 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites['small']
     smallSuite.addTest(KratosMetisGeneralTests('testSmallExample'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetisSubModelPartList]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMetisSubModelPartList]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
