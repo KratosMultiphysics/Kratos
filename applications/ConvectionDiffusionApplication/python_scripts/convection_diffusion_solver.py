@@ -42,7 +42,6 @@ class ConvectionDiffusionSolver(PythonSolver):
     """
 
     def __init__(self, model, custom_settings):
-        self._validate_settings_in_baseclass = True
         super().__init__(model, custom_settings)
 
         # Convection diffusion variables check
@@ -106,6 +105,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "time_step": 1.0
             },
             "reform_dofs_at_each_step": false,
+            "gradient_dofs" : false,
             "line_search": false,
             "compute_reactions": true,
             "block_builder": true,
@@ -187,7 +187,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_variable))
         reaction_gradient_variable = self.settings["convection_diffusion_variables"]["reaction_gradient_variable"].GetString()
         if (reaction_gradient_variable != ""):
-            convention_diffusion_settings.SetReactionVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
+            convention_diffusion_settings.SetReactionGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable))
 
         target_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convention_diffusion_settings)
 
@@ -236,10 +236,35 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def AddDofs(self):
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
+
+        # Add standard scalar DOF
         if settings.IsDefinedReactionVariable():
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), settings.GetReactionVariable(),self.main_model_part)
         else:
             KratosMultiphysics.VariableUtils().AddDof(settings.GetUnknownVariable(), self.main_model_part)
+
+        # Add gradient of the unknown DOF for mixed problems
+        if self.settings["gradient_dofs"].GetBool():
+            gradient_variable = settings.GetGradientVariable()
+            gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_X")
+            gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Y")
+            if settings.IsDefinedReactionGradientVariable():
+                reaction_gradient_variable = settings.GetReactionGradientVariable()
+                reaction_gradient_variable_x = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_X")
+                reaction_gradient_variable_y = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Y")
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, reaction_gradient_variable_x, self.main_model_part)
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, reaction_gradient_variable_y, self.main_model_part)
+                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
+                    reaction_gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(reaction_gradient_variable.Name() + "_Z")
+                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, reaction_gradient_variable_z, self.main_model_part)
+            else:
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_x, self.main_model_part)
+                KratosMultiphysics.VariableUtils().AddDof(gradient_variable_y, self.main_model_part)
+                if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                    gradient_variable_z = KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable.Name() + "_Z")
+                    KratosMultiphysics.VariableUtils().AddDof(gradient_variable_z, self.main_model_part)
+
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
@@ -489,7 +514,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
                 else:
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D8N")
-        elif element_name in ("LaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
+        elif element_name in ("LaplacianElement","MixedLaplacianElement","AdjointHeatDiffusionElement","QSConvectionDiffusionExplicit","DConvectionDiffusionExplicit"):
             name_string = "{0}{1}D{2}N".format(element_name,domain_size, num_nodes_elements)
             self.settings["element_replace_settings"]["element_name"].SetString(name_string)
 

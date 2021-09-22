@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "includes/convection_diffusion_settings.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -152,9 +153,9 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
         const double w_g = r_integration_points[g].Weight() * det_J0;
 
         // Calculate stabilization constants
-        const double h = 1.0; //TODO: USE ELEMENT SIZE CALCULATION UTILS
+        const double h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(r_geometry);
         const double tau_temp = 2.0*std::pow(h,2)/k_g;
-        const double tau_grad = 2.0;
+        const double tau_grad = 1.0;
 
         // Calculating the local RHS
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
