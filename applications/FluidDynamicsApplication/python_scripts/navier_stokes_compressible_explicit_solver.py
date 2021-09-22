@@ -129,3 +129,22 @@ class NavierStokesCompressibleExplicitSolver(FluidSolver):
             strategy_settings)
 
         return strategy
+
+    def _CreateEstimateDtUtility(self):
+        """This method overloads FluidSolver in order to enforce:
+        ```
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"] == True
+        ```
+        """
+        if self.settings["time_stepping"].Has("consider_compressibility_in_CFL"):
+            KratosMultiphysics.Logger.PrintWarning("", "User-specifed consider_compressibility_in_CFL will be overriden with TRUE")
+        else:
+            self.settings["time_stepping"].AddEmptyValue("consider_compressibility_in_CFL")
+
+        self.settings["time_stepping"]["consider_compressibility_in_CFL"].SetBool(True)
+
+        estimate_dt_utility = KratosFluid.EstimateDtUtility(
+                self.GetComputingModelPart(),
+                self.settings["time_stepping"])
+
+        return estimate_dt_utility
