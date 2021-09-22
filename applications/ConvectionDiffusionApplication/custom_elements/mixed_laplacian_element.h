@@ -72,7 +72,7 @@ public:
     constexpr static unsigned int BlockSize = 1 + TDim;
 
     /// Problem size
-    constexpr static unsigned int ProblemSize = TNumNodes * BlockSize;
+    constexpr static unsigned int LocalSize = TNumNodes * BlockSize;
 
     ///@}
     ///@name Life Cycle
@@ -129,7 +129,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
-        DofsVectorType& ElementalDofList,
+        DofsVectorType& rElementalDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;

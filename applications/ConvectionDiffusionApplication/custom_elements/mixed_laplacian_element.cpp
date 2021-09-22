@@ -92,16 +92,16 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
     const auto& r_geometry = GetGeometry();
 
     // LHS initialization
-    if(rLeftHandSideMatrix.size1() != ProblemSize || rLeftHandSideMatrix.size2() != ProblemSize) {
-        rLeftHandSideMatrix.resize(ProblemSize, ProblemSize, false);
+    if(rLeftHandSideMatrix.size1() != LocalSize || rLeftHandSideMatrix.size2() != LocalSize) {
+        rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(ProblemSize, ProblemSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
 
     // RHS initialization
-    if(rRightHandSideVector.size() != ProblemSize) {
-        rRightHandSideVector.resize(ProblemSize,false);
+    if(rRightHandSideVector.size() != LocalSize) {
+        rRightHandSideVector.resize(LocalSize,false);
     }
-    noalias(rRightHandSideVector) = ZeroVector(ProblemSize);
+    noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Get nodal data
     array_1d<double,3> temp;
@@ -132,36 +132,77 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
     r_geometry.Jacobian(J0, this->GetIntegrationMethod());
 
     // Loop Gauss pts.
+    array_1d<double,TDim> grad_k_g;
+    array_1d<double,TDim> grad_temp_j;
+    array_1d<double,TDim> aux_grad_N_i;
+    array_1d<double,TDim> aux_grad_N_j;
     const std::size_t n_gauss = r_integration_points.size();
-    for(std::size_t i_point = 0; i_point < n_gauss; ++i_point) {
+    for(std::size_t g = 0; g < n_gauss; ++g) {
         // Calculating inverse jacobian and jacobian determinant
-        MathUtils<double>::InvertMatrix(J0[i_point], inv_J0, det_J0);
+        MathUtils<double>::InvertMatrix(J0[g], inv_J0, det_J0);
 
         // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(r_DN_De[i_point], inv_J0);
+        noalias(DN_DX) = prod(r_DN_De[g], inv_J0);
 
         // Get current Gauss pt. extra data
-        noalias(aux_N) = row(r_N,i_point);
-        const double w_g = r_integration_points[i_point].Weight() * det_J0;
+        noalias(aux_N) = row(r_N, g);
+        const double f_g = inner_prod(aux_N, heat_flux_local);
         const double k_g = inner_prod(aux_N, nodal_conductivity);
+        noalias(grad_k_g) = prod(trans(DN_DX), nodal_conductivity);
+        const double w_g = r_integration_points[g].Weight() * det_J0;
 
-    //     // Add mixed Laplacian RHS and LHS contribution
-    //     noalias(rLeftHandSideMatrix) += IntToReferenceWeight * conductivity_gauss * prod(DN_DX, trans(DN_DX)); //
+        // Calculate stabilization constants
+        const double h = 1.0; //TODO: USE ELEMENT SIZE CALCULATION UTILS
+        const double tau_temp = 2.0*std::pow(h,2)/k_g;
+        const double tau_grad = 2.0;
 
-    //     // Calculating the local RHS
-    //     const double qgauss = inner_prod(N, heat_flux_local);
+        // Calculating the local RHS
+        for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
+            noalias(aux_grad_N_i) = row(DN_DX, i_node);
 
-    //     noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
+            // Volumetric force terms
+            rRightHandSideVector(i_node*BlockSize) += w_g * f_g * aux_N(i_node);
+            for (std::size_t d = 0; d < TDim; ++d) {
+                rRightHandSideVector(i_node*BlockSize + d + 1) += w_g * tau_temp * aux_grad_N_i(d) * f_g;
+            }
+
+            for (std::size_t j_node = 0; j_node < TNumNodes; ++j_node) {
+                const double temp_j = temp(j_node);
+                noalias(aux_grad_N_j) = row(DN_DX, j_node);
+                noalias(grad_temp_j) = row(grad_temp, j_node);
+
+                const double aux_1 = w_g * (1+tau_grad) * k_g * aux_N(j_node);
+                const double aux_3 = w_g * (1+tau_grad) * aux_N(i_node) * aux_N(j_node);
+                for (std::size_t d = 0; d < TDim; ++d) {
+
+                    rRightHandSideVector(i_node*BlockSize) -= aux_1 * aux_grad_N_i(d) * grad_temp_j(d);
+                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize + d + 1) += aux_1 * aux_grad_N_i(d);
+
+                    const double aux_2 = w_g * tau_grad * k_g * aux_grad_N_i(d) * aux_grad_N_j(d);
+                    rRightHandSideVector(i_node*BlockSize) += aux_2 * temp_j;
+                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize) -= aux_2;
+
+                    rRightHandSideVector(i_node*BlockSize + d + 1) += aux_3 * grad_temp_j(d);
+                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d + 1) -= aux_3;
+
+                    const double aux_4 = w_g * (1+tau_grad) * aux_N(i_node) * aux_grad_N_j(d);
+                    rRightHandSideVector(i_node*BlockSize + d + 1) -= aux_4 * temp_j;
+                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize) += aux_4;
+
+                    for (std::size_t d2 = 0; d2 < TDim; ++d2) {
+                        const double aux_5 = w_g * k_g * aux_grad_N_i(d) * aux_grad_N_j(d2);
+                        rRightHandSideVector(i_node*BlockSize + d + 1) += aux_5 * grad_temp_j(d2);
+                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) -= aux_5;
+
+                        const double aux_6 = w_g * aux_grad_N_i(d) * grad_k_g(d2) * aux_N(j_node);
+                        rRightHandSideVector(i_node*BlockSize + d + 1) += aux_6 * grad_temp_j(d2);
+                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) -= aux_6;
+                    }
+                }
+            }
+        }
+
     }
-
-
-    // // RHS = ExtForces - K*temp;
-    // for (unsigned int i = 0; i < number_of_points; i++)
-    //     temp[i] = r_geometry[i].GetSolutionStepValue(r_unknown_var);
-
-    // //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
-    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-
 
     KRATOS_CATCH("")
 }
@@ -199,14 +240,27 @@ void MixedLaplacianElement<TDim, TNumNodes>::EquationIdVector(
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_gradient_var = r_settings.GetGradientVariable();
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(rResult.size() != number_of_nodes)
-        rResult.resize(number_of_nodes);
-    for (unsigned int i=0; i<number_of_nodes; i++)
-    {
-        rResult[i] = GetGeometry()[i].GetDof(r_unknown_var).EquationId();
+    if(rResult.size() != LocalSize) {
+        rResult.resize(LocalSize);
+    }
+
+    std::size_t local_index = 0;
+    const auto& r_geom = GetGeometry();
+    const auto& r_gradient_var_x = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_X");
+    const auto& r_gradient_var_y = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Y");
+    const auto& r_gradient_var_z = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Z");
+    const std::size_t unknown_pos = r_geom[0].GetDofPosition(r_unknown_var);
+    const std::size_t gradient_x_pos = r_geom[0].GetDofPosition(r_gradient_var_x);
+    for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
+        rResult[local_index++] = r_geom[i_node].GetDof(r_unknown_var, unknown_pos).EquationId();
+        rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_x, gradient_x_pos).EquationId();
+        rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_y, gradient_x_pos + 1).EquationId();
+        if (TDim == 3) {
+            rResult[local_index++] = r_geom[i_node].GetDof(r_gradient_var_z, gradient_x_pos + 2).EquationId();
+        }
     }
 }
 
@@ -214,21 +268,34 @@ void MixedLaplacianElement<TDim, TNumNodes>::EquationIdVector(
 //************************************************************************************
 template<std::size_t TDim, std::size_t TNumNodes>
 void MixedLaplacianElement<TDim, TNumNodes>::GetDofList(
-    DofsVectorType& ElementalDofList,
+    DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
 
-    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_gradient_var = r_settings.GetGradientVariable();
 
-    unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    if(ElementalDofList.size() != number_of_nodes)
-        ElementalDofList.resize(number_of_nodes);
-    for (unsigned int i=0; i<number_of_nodes; i++)
-    {
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(r_unknown_var);
+    if(rElementalDofList.size() != LocalSize) {
+        rElementalDofList.resize(LocalSize);
+    }
+
+    std::size_t local_index = 0;
+    const auto& r_geom = GetGeometry();
+    const auto& r_gradient_var_x = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_X");
+    const auto& r_gradient_var_y = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Y");
+    const auto& r_gradient_var_z = KratosComponents<VariableData>::Get(r_gradient_var.Name()+"_Z");
+    const std::size_t unknown_pos = r_geom[0].GetDofPosition(r_unknown_var);
+    const std::size_t gradient_x_pos = r_geom[0].GetDofPosition(r_gradient_var_x);
+    for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
+        rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_unknown_var, unknown_pos);
+        rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_x, gradient_x_pos);
+        rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_y, gradient_x_pos + 1);
+        if (TDim == 3) {
+            rElementalDofList[local_index++] = r_geom[i_node].pGetDof(r_gradient_var_z, gradient_x_pos + 2);
+        }
     }
 }
 
