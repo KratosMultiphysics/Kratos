@@ -61,9 +61,10 @@ namespace Kratos
     void AdjointBasePotentialFlowElement<TPrimalElement>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
-        MatrixType tmp;
-        mpPrimalElement->CalculateLeftHandSide(tmp, rCurrentProcessInfo);
-        rLeftHandSideMatrix = trans(tmp);
+        MatrixType left_tmp;
+        VectorType right_tmp;
+        mpPrimalElement->CalculateLocalSystem(left_tmp, right_tmp, rCurrentProcessInfo);
+        rLeftHandSideMatrix = trans(left_tmp);
     }
 
     template <class TPrimalElement>
@@ -72,6 +73,10 @@ namespace Kratos
     {
         mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
                                                 rCurrentProcessInfo);
+        MatrixType left_tmp;
+        VectorType right_tmp;
+        mpPrimalElement->CalculateLocalSystem(left_tmp, right_tmp, rCurrentProcessInfo);
+        rRightHandSideVector = right_tmp;
     }
 
     template <class TPrimalElement>
@@ -88,6 +93,52 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->CalculateOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+        if (rVariable == ADJOINT_VELOCITY)
+        {
+            const AdjointBasePotentialFlowElement& r_this = *this;
+            const int wake = r_this.GetValue(WAKE);
+            array_1d<double, 3> v(3, 0.0);
+            array_1d<double, Dim> vaux;
+            PotentialFlowUtilities::ElementalData<NumNodes, Dim> data;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+            if (wake == 0) {
+                Vector potentials;
+                GetValuesVector(potentials, 0);
+                vaux = prod(trans(data.DN_DX), potentials);
+            }
+            else {
+                // Vector potentials;
+                // GetValuesVector(potentials, 0);
+                // array_1d<double, NumNodes> upper_potential;
+                // for (unsigned int k = 0; k < NumNodes; k++)
+                //     upper_potential[k] = potentials(k);
+                array_1d<double, NumNodes> upper_potential;
+                for (unsigned int i = 0; i < NumNodes; i++) {
+                    upper_potential[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+                }
+                vaux = prod(trans(data.DN_DX), upper_potential);
+            }
+            for (unsigned int k = 0; k < Dim; k++)
+                v[k] = vaux[k];
+            rValues[0] = v;
+        }
+        else if (rVariable == LOG_ADJOINT_VELOCITY)
+        {
+            const AdjointBasePotentialFlowElement& r_this = *this;
+            const int wake = r_this.GetValue(WAKE);
+            array_1d<double, 3> v(3, 0.0);
+
+            PotentialFlowUtilities::ElementalData<NumNodes, Dim> data;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), data.DN_DX, data.N, data.vol);
+            array_1d<double, NumNodes> upper_potential;
+            for (unsigned int i = 0; i < NumNodes; i++) {
+                upper_potential[i] = this->GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_VELOCITY_POTENTIAL);
+            }
+            array_1d<double, Dim> vaux = prod(trans(data.DN_DX), upper_potential);
+            for (unsigned int k = 0; k < Dim; k++)
+                v[k] = log(vaux[k]);
+            rValues[0] = v;
+        }
     }
 
     template <class TPrimalElement>
