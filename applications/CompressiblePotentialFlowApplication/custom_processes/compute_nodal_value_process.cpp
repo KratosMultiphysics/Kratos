@@ -48,8 +48,9 @@ void ComputeNodalValueProcess::Execute()
     // Set nodal values to zero
     InitializeNodalVariables();
 
-    CalculateNodalAreaProcess<false> area_calculator(mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
-    area_calculator.Execute();
+    // CalculateNodalAreaProcess<false> area_calculator(mrModelPart, mrModelPart.GetProcessInfo()[DOMAIN_SIZE]);
+    // area_calculator.Execute();
+
 
     for (std::size_t i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
         const auto& r_array_var = *mArrayVariablesList[i_var];
@@ -87,6 +88,8 @@ void ComputeNodalValueProcess::StoreVariableList(const std::vector<std::string>&
 void ComputeNodalValueProcess::InitializeNodalVariables()
 {
     auto& r_nodes = mrModelPart.Nodes();
+    VariableUtils().SetNonHistoricalVariable(NODAL_AREA, 0.0, r_nodes);
+
     const array_1d<double,3> zero_vector = ZeroVector(3);
     for (std::size_t i_var = 0; i_var < mArrayVariablesList.size(); i_var++){
         const auto& r_array_var = *mArrayVariablesList[i_var];
@@ -117,40 +120,47 @@ void ComputeNodalValueProcess::AddElementsContribution(const Variable<TValueType
     #pragma omp parallel for firstprivate(N)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
-        auto& r_geometry = it_elem->GetGeometry();
+        if (it_elem->Is(ACTIVE)) {
+            auto& r_geometry = it_elem->GetGeometry();
 
-        // Current geometry information
-        const std::size_t number_of_nodes = r_geometry.PointsNumber();
+            // Current geometry information
+            const std::size_t number_of_nodes = r_geometry.PointsNumber();
 
-        // Resize if needed
-        if (N.size() != number_of_nodes)
-            N.resize(number_of_nodes);
+            // Resize if needed
+            if (N.size() != number_of_nodes)
+                N.resize(number_of_nodes);
 
-        // The integration points
-        const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
-        const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
-        const std::size_t number_of_integration_points = r_integration_points.size();
+            // The integration points
+            const auto& r_integration_method = r_geometry.GetDefaultIntegrationMethod();
+            const auto& r_integration_points = r_geometry.IntegrationPoints(r_integration_method);
+            const std::size_t number_of_integration_points = r_integration_points.size();
 
-        // The containers of the shape functions and the local gradients
-        const Matrix& rNmatrix = r_geometry.ShapeFunctionsValues(r_integration_method);
+            // The containers of the shape functions and the local gradients
+            const Matrix& rNmatrix = r_geometry.ShapeFunctionsValues(r_integration_method);
 
-        std::vector<TValueType> element_values(number_of_integration_points);
-        it_elem->CalculateOnIntegrationPoints(rVariable, element_values, r_current_process_info);
+            std::vector<TValueType> element_values(number_of_integration_points);
+            it_elem->CalculateOnIntegrationPoints(rVariable, element_values, r_current_process_info);
 
-        for ( IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss ) {
-            // Getting the shape functions
-            noalias(N) = row(rNmatrix, i_gauss);
+            for ( IndexType i_gauss = 0; i_gauss < number_of_integration_points; ++i_gauss ) {
+                // Getting the shape functions
+                noalias(N) = row(rNmatrix, i_gauss);
 
-            Vector detJ0;
-            GeometryData::ShapeFunctionsGradientsType DN_DX;
-            r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ0, r_integration_method);
+                Vector detJ0;
+                GeometryData::ShapeFunctionsGradientsType DN_DX;
+                r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_DX, detJ0, r_integration_method);
 
-            const auto gauss_point_value = element_values[i_gauss];
+                const auto gauss_point_value = element_values[i_gauss];
 
-            const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
+                const double gauss_point_volume = r_integration_points[i_gauss].Weight() * detJ0[i_gauss];
 
-            for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
-                UpdateNodalValue(r_geometry[i_node], rVariable, N[i_node], gauss_point_volume, gauss_point_value);
+
+                for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
+                    UpdateNodalValue(r_geometry[i_node], rVariable, N[i_node], gauss_point_volume, gauss_point_value);
+
+                    auto& nodal_area = r_geometry[i_node].GetValue(NODAL_AREA);
+                    #pragma omp atomic
+                    nodal_area += N[i_node] * gauss_point_volume;
+                }
             }
         }
     }
@@ -187,7 +197,9 @@ void ComputeNodalValueProcess::PonderateNodalValues()
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i){
             auto it_node=mrModelPart.NodesBegin()+i;
-            it_node->GetValue(r_array_var) /= it_node->GetValue(NODAL_AREA);
+            if (it_node->GetValue(NODAL_AREA) > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(r_array_var) /= it_node->GetValue(NODAL_AREA);
+            }
         }
     }
     for (std::size_t i_var = 0; i_var < mDoubleVariablesList.size(); i_var++){
@@ -195,7 +207,9 @@ void ComputeNodalValueProcess::PonderateNodalValues()
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(mrModelPart.Nodes().size()); ++i){
             auto it_node=mrModelPart.NodesBegin()+i;
-            it_node->GetValue(r_double_var) /= it_node->GetValue(NODAL_AREA);
+            if (it_node->GetValue(NODAL_AREA) > std::numeric_limits<double>::epsilon()) {
+                it_node->GetValue(r_double_var) /= it_node->GetValue(NODAL_AREA);
+            }
         }
     }
 }
