@@ -230,6 +230,16 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
+        // bool is_negative = true;
+        // for(unsigned int i_node = 0; i_node<r_geometry.size(); i_node++) {
+        //     double distance = r_geometry[i_node].GetSolutionStepValue(DISTANCE);
+        //     if (distance > 0.0)
+        //         is_negative = false;
+
+        // }
+        // if (it_elem->Is(SOLID) || it_elem->IsNotDefined(SOLID)) {
+        if (it_elem->Is(ACTIVE) || it_elem->IsNotDefined(ACTIVE)) {
+        // if (!is_negative) {
         // Current geometry information
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
@@ -278,11 +288,14 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
+                    // double distance = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
+                    // if (distance>0.0) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 3; ++k) {
                         #pragma omp atomic
                         aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
                     }
+                    // }
                 }
             }
         } else { // 3D case
@@ -318,6 +331,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                     }
                 }
             }
+        }
         }
     }
 
