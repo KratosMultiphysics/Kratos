@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "utilities/geometry_utilities.h"
 #include "custom_friction_laws/manning_law.h"
+#include "custom_utilities/sw_math_utils.h"
 #include "custom_utilities/shallow_water_utilities.h"
 #include "shallow_water_application_variables.h"
 #include "wave_element.h"
@@ -287,11 +288,8 @@ void WaveElement<TNumNodes>::AddWaveTerms(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        const range i_range (3*i, 3*i + 3);
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            const range j_range (3*j, 3*j + 3);
-
             double g1_ij;
             double g2_ij;
             double d_ij;
@@ -304,32 +302,32 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             }
 
             /// First component
-            project(rMatrix, i_range, j_range) += Weight * g1_ij * rData.A1;
-            project(rVector, i_range)          -= Weight * g1_ij * rData.b1 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*g1_ij*rData.A1, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*g1_ij*rData.b1*z[j], 3*i);
 
             /// Second component
-            project(rMatrix, i_range, j_range) += Weight * g2_ij * rData.A2;
-            project(rVector, i_range)          -= Weight * g2_ij * rData.b2 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*g2_ij*rData.A2, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*g2_ij*rData.b2*z[j], 3*i);
 
             /// Stabilization x-x
             d_ij = rDN_DX(i,0) * rDN_DX(j,0);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA11;
-            project(rVector, i_range)          -= Weight * l * d_ij * Ab11 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA11, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab11*z[j], 3*i);
 
             /// Stabilization y-y
             d_ij = rDN_DX(i,1) * rDN_DX(j,1);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA22;
-            project(rVector, i_range)          -= Weight * l * d_ij * Ab22 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA22, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab22*z[j], 3*i);
 
             /// Stabilization x-y
             d_ij = rDN_DX(i,0) * rDN_DX(j,1);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA12;
-            project(rVector, i_range)          -= Weight * l * d_ij * Ab12 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA12, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab12*z[j], 3*i);
 
             /// Stabilization y-x
             d_ij = rDN_DX(i,1) * rDN_DX(j,0);
-            project(rMatrix, i_range, j_range) += Weight * l * d_ij * AA21;
-            project(rVector, i_range)          -= Weight * l * d_ij * Ab21 * z[j];
+            SwMathUtils<double>::AddMatrix(rMatrix,  Weight*l*d_ij*AA21, 3*i, 3*j);
+            SwMathUtils<double>::AddVector(rVector, -Weight*l*d_ij*Ab21*z[j], 3*i);
         }
     }
 }
@@ -355,21 +353,17 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        const range i_range (3*i, 3*i + 3);
-
-        project(rMatrix, i_range, i_range) += Weight * lumping_factor * Sf;
+        SwMathUtils<double>::AddMatrix(rMatrix, Weight*lumping_factor*Sf, 3*i, 3*i);
 
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            const range j_range (3*j, 3*j + 3);
-
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g1_ij * ASf1;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*ASf1, 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g2_ij * ASf2;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*ASf2, 3*i, 3*j);
         }
     }
 }
@@ -399,22 +393,19 @@ void WaveElement<3>::AddMassTerms(
 
     for (IndexType i = 0; i < 3; ++i)
     {
-        const range i_range (3*i, 3*i + 3);
         for (IndexType j = 0; j < 3; ++j)
         {
-            const range j_range (3*j, 3*j + 3);
-
             // Consistent mass matrix
-            const double n = (i == j) ? one_sixth : one_twelfth;
-            project(rMatrix, i_range, j_range) += Weight * n * M;
+            const double n_ij = (i == j) ? one_sixth : one_twelfth;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g1_ij * rData.A1;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g2_ij * rData.A2;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
         }
     }
 }
@@ -432,22 +423,19 @@ void WaveElement<TNumNodes>::AddMassTerms(
 
     for (IndexType i = 0; i < TNumNodes; ++i)
     {
-        const range i_range (3*i, 3*i + 3);
         for (IndexType j = 0; j < TNumNodes; ++j)
         {
-            const range j_range (3*j, 3*j + 3);
-
             // Consistent mass matrix
             const double n_ij = rN[i] * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * n_ij * M;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*n_ij*M, 3*i, 3*j);
 
             /// Stabilization x
             const double g1_ij = rDN_DX(i,0) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g1_ij * rData.A1;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g1_ij*rData.A1, 3*i, 3*j);
 
             /// Stabilization y
             const double g2_ij = rDN_DX(i,1) * rN[j];
-            project(rMatrix, i_range, j_range) += Weight * l * g2_ij * rData.A2;
+            SwMathUtils<double>::AddMatrix(rMatrix, Weight*l*g2_ij*rData.A2, 3*i, 3*j);
         }
     }
 }
