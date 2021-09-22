@@ -1054,7 +1054,7 @@ void AddKuttaConditionPenaltyTerm(const Element& rElement,
 
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
-        if (rElement.GetGeometry()[i].GetValue(KUTTA))
+        if (rElement.GetGeometry()[i].GetValue(WING_TIP))
         {
             if (wake==0)  {
                 for (unsigned int j = 0; j < NumNodes; ++j)
