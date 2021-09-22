@@ -6,6 +6,7 @@ import KratosMultiphysics
 from KratosMultiphysics.WindEngineeringApplication.compute_level_force_process import ComputeLevelForceProcess
 from KratosMultiphysics.WindEngineeringApplication.compute_level_force_process import Factory as ComputeLevelForceProcessFactory
 import KratosMultiphysics.KratosUnittest as UnitTest
+from KratosMultiphysics.WindEngineeringApplication.test_case import SuiteFlags, TestCase 
 import KratosMultiphysics.kratos_utilities as KratosUtils
 
 # STL imports
@@ -16,7 +17,8 @@ def GetFilePath(fileName):
     return pathlib.Path(__file__).absolute().parent / fileName
 
 
-class TestComputeLevelForceProcess(UnitTest.TestCase):
+class TestComputeLevelForceProcess(TestCase):
+    suite_flags = [SuiteFlags.all, SuiteFlags.mpi]
 
     def GenerateModel(self):
         model = KratosMultiphysics.Model()
