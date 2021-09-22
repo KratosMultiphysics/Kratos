@@ -291,6 +291,23 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
+		void MountBin(const double CellSize)
+		{
+			KRATOS_TRY
+
+			//copy the elements to a new container, as the list will
+			//be shuffled duringthe construction of the tree
+			ContainerType& rElements           =  mr_model_part.ElementsArray();
+	        IteratorType it_begin              =  rElements.begin();
+	        IteratorType it_end                =  rElements.end();
+			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end, CellSize ) );
+			paux.swap(mpBinsObjectDynamic);
+
+			KRATOS_INFO("MoveParticleUtilityScalarTransport") << "Finished mounting Bins with cell size: " << CellSize << std::endl;
+
+			KRATOS_CATCH("")
+		}
+
 		void CalculateVelOverElemSize()
 		{
 			KRATOS_TRY

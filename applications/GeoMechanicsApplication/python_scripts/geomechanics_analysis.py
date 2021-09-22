@@ -61,9 +61,11 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
         node.SetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT, total_displacement)
 
     def Initialize(self):
-        super().Initialize()
         if (self.reset_displacements):
             self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = True
+
+        super().Initialize()
+        if (self.reset_displacements):
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.DISPLACEMENT,self._GetSolver().GetComputingModelPart().Nodes)
             KratosMultiphysics.VariableUtils().SetHistoricalVariableToZero(KratosMultiphysics.ROTATION,self._GetSolver().GetComputingModelPart().Nodes)
 

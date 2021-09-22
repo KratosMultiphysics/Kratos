@@ -28,7 +28,6 @@ Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
                                                     GeometryType::Pointer pGeom,
@@ -40,7 +39,6 @@ Element::Pointer UPwBaseElement<TDim,TNumNodes>::Create(IndexType NewId,
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 int UPwBaseElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
@@ -127,11 +125,9 @@ int UPwBaseElement<TDim,TNumNodes>::
     if ( Prop.Has( POROSITY ) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0 )
         KRATOS_ERROR << "POROSITY has Key zero, is not defined or has an invalid value at element" << this->Id() << std::endl;
 
-    if ( TDim == 2 )
-    {
+    if ( TDim == 2 ) {
         // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i=0; i<TNumNodes; i++)
-        {
+        for (unsigned int i=0; i<TNumNodes; ++i) {
             if (Geom[i].Z() != 0.0)
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
         }
@@ -196,7 +192,6 @@ void UPwBaseElement<TDim,TNumNodes>::
                                                  rCurrentProcessInfo );
         }
     }
-
 
     if ( mRetentionLawVector.size() != NumGPoints )
         mRetentionLawVector.resize( NumGPoints );
