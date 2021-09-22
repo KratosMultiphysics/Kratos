@@ -261,7 +261,7 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
             le_node = node
         print(te_node.Id)
         print(le_node.Id)
-        te_weight=0.5
+        te_weight=0.95
         self.wake_model_part.CreateNewNode(1, (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0)
         print("WAKE_ORIGIN", (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y)
         self.wake_model_part.CreateNewNode(2, te_node.X, te_node.Y, 0.0)

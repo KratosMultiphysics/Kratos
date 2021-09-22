@@ -359,36 +359,37 @@ void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
-    KRATOS_TRY;
+    ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
+    std::vector<std::size_t> deactivated_elements_id_list;
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
+        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
 
-    block_for_each(mrModelPart.Elements(), [&](Element& rElem)
-    {
-        auto& r_geometry = rElem.GetGeometry();
-        BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
-        rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
+        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
         const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
 
         BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node< r_geometry.size(); i_node++){
-            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        for(unsigned int i_node = 0; i_node<3; i_node++){
+            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
 
         if (is_embedded){
-            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(rElem.pGetGeometry(), Vector(geometry_distances));
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
             // Computing Normal
             std::vector<array_1d<double,3>> cut_normal;
             pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
             double norm_normal = sqrt(inner_prod(cut_normal[0],cut_normal[0]));
             array_1d<double,3> unit_normal = cut_normal[0]/norm_normal;
-            rElem.SetValue(VELOCITY_LOWER,unit_normal);
+            it_elem->SetValue(VELOCITY_LOWER,unit_normal);
         }
-        if (rElem.IsNot(ACTIVE)) {
+        if (it_elem->IsNot(ACTIVE)) {
             for(unsigned int i_node = 0; i_node<3; i_node++){
-                rElem.GetGeometry()[i_node].SetValue(AIRFOIL, true);
+                it_elem->GetGeometry()[i_node].SetValue(AIRFOIL, true);
             }
         }
         // if (is_wake_element && it_elem->IsNot(ACTIVE)) {
@@ -402,22 +403,19 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         // }
         // Mark wake element and save their nodal distances to the wake
 
-        if (is_wake_element && rElem.Is(ACTIVE)) {
-            rElem.SetValue(WAKE, true);
+        if (is_wake_element && it_elem->Is(ACTIVE)) {
+            it_elem->SetValue(WAKE, true);
 
             if (is_embedded){
-                rElem.Set(STRUCTURE, true);
-                for (unsigned int i = 0; i < r_geometry.size(); i++) {
-                    r_geometry[i].SetLock();
-                    r_geometry[i].SetValue(KUTTA, true);
-                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
-                    r_geometry[i].UnSetLock();
+                #pragma omp critical
+                {
+                    deactivated_elements_id_list.push_back(it_elem->Id());
                 }
-                // rElem.Set(ACTIVE, false);
-                // rElem.SetValue(WAKE, true);
-                rElem.Set(STRUCTURE, true);
-                auto& r_geometry = rElem.GetGeometry();
-                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
+                // it_elem->Set(ACTIVE, false);
+                // it_elem->SetValue(WAKE, true);
+                it_elem->Set(STRUCTURE, true);
+                auto& r_geometry = it_elem->GetGeometry();
+                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WING_TIP, true);
                     r_geometry[i].SetValue(KUTTA, true);
@@ -427,9 +425,9 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
             else{
-                // rElem.SetValue(WAKE, true);
-                auto& r_geometry = rElem.GetGeometry();
-                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
+                // it_elem->SetValue(WAKE, true);
+                auto& r_geometry = it_elem->GetGeometry();
+                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].SetValue(WAKE, true);
@@ -437,9 +435,10 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
         }
-    });
-    KRATOS_CATCH("");
+    }
+    deactivated_model_part.AddElements(deactivated_elements_id_list);
 }
+
 
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
