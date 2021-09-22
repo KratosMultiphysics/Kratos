@@ -243,7 +243,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     array_1d<double,num_nodes> PHIdof; //dimension = number of DOFs . . since we are using a residualbased approach
     array_1d<double,num_nodes> PHIold; //dimension = number of DOFs . . since we are using a residualbased approach
-    array_1d<VectorType,num_nodes> GradPHIold; 
+    //array_1d<VectorType,num_nodes> GradPHIold; 
 
     BoundedMatrix<double,num_nodes,num_nodes> tempM;
     tempM = ZeroMatrix(num_nodes,num_nodes);
