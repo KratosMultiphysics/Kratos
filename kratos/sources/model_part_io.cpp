@@ -131,17 +131,13 @@ std::size_t ModelPartIO::ReadNodesNumber()
 
 void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
 {
-    // Printing or not with scientific precission
-    if (mOptions.IsNot(IO::SCIENTIFIC_PRECISION)) {
-        (*mpStream) << "Begin Nodes" << std::endl;
-        for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
-            (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
-    } else {
-        mpStream->precision(10);
-        (*mpStream) << "Begin Nodes\n" << std::scientific;
-        for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
-            (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
+    // Printing or not with scientific precision
+    if (mOptions.Is(IO::SCIENTIFIC_PRECISION)) {
+        (*mpStream) << std::setprecision(10) << std::scientific;
     }
+    (*mpStream) << "Begin Nodes" << std::endl;
+    for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; ++it_node)
+        (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << "\n";
     (*mpStream) << "End Nodes\n\n";
 }
 
