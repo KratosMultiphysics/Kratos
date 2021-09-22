@@ -101,7 +101,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveElement(){}
+    ~ WaveElement() override {};
 
     ///@}
     ///@name Operations

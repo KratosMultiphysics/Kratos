@@ -106,7 +106,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ ConservativeCondition(){}
+    ~ ConservativeCondition() override {};
 
     ///@}
     ///@name Operations

@@ -97,7 +97,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveCondition(){}
+    ~ WaveCondition() override {};
 
     ///@}
     ///@name Operations

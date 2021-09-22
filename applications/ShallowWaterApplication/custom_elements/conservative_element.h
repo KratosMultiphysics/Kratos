@@ -105,7 +105,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ ConservativeElement(){}
+    ~ ConservativeElement() override {};
 
     ///@}
     ///@name Operations
