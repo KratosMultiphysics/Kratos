@@ -22,6 +22,8 @@
 
 namespace Kratos {
 
+namespace Testing {
+
 namespace ShallowWaterTestsUtilities {
 
 void KRATOS_API(SHALLOW_WATER_APPLICATION) AssembleRHS(
@@ -41,6 +43,8 @@ void KRATOS_API(SHALLOW_WATER_APPLICATION) CalculateAndAssembleRHS(
     Vector& rRHS);
 
 } // namespace ShallowWaterTestsUtilities
+
+} // namespace Testing
 
 } // namespace Kratos
 

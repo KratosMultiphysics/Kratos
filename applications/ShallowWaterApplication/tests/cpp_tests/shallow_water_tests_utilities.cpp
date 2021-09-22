@@ -20,6 +20,8 @@
 
 namespace Kratos {
 
+namespace Testing {
+
 void ShallowWaterTestsUtilities::AssembleRHS(
     Vector& rRHS_element,
     const Vector& rRHS_condition,
@@ -91,5 +93,7 @@ void ShallowWaterTestsUtilities::CalculateAndAssembleRHS(
     condition_3.CalculateRightHandSide(rhs_cond, process_info);
     AssembleRHS(rRHS, rhs_cond, {3, 1});
 }
+
+} // namespace Testing
 
 } // namespace Kratos
