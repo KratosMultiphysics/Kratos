@@ -80,7 +80,7 @@ public:
     typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
     typedef typename SchemeType::Pointer SchemePointerType;
     typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverPointerType;
-    typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+    typedef ImplicitSolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
     ///@}
     ///@name Pointer Definitions
@@ -484,6 +484,8 @@ protected:
         ModelPart& r_distance_model_part = mrModel.CreateModelPart( mAuxModelPartName );
 
         Element::Pointer p_distance_element = Kratos::make_intrusive<DistanceCalculationElementSimplex<TDim> >();
+
+        r_distance_model_part.GetNodalSolutionStepVariablesList() = rBaseModelPart.GetNodalSolutionStepVariablesList();
 
         ConnectivityPreserveModeler modeler;
         modeler.GenerateModelPart(rBaseModelPart, r_distance_model_part, *p_distance_element);

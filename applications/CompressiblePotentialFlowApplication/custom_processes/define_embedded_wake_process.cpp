@@ -17,7 +17,6 @@
 #include "custom_utilities/potential_flow_utilities.h"
 #include "custom_processes/move_model_part_process.h"
 
-
 namespace Kratos
 {
 // Constructor for DefineEmbeddedWakeProcess Process
@@ -137,6 +136,7 @@ void DefineEmbeddedWakeProcess::Execute()
 
     KRATOS_ERROR_IF(mrModelPart.GetProcessInfo()[DOMAIN_SIZE]>2) << "DOMAIN_SIZE is greater than 2. DefineEmbeddedWakeProcess is only implemented for 2D cases!" << std::endl;
 
+    ExecuteInitialize();
     ComputeDistanceToWake();
     MarkWakeElements();
     ComputeTrailingEdgeNode();
@@ -314,46 +314,81 @@ void DefineEmbeddedWakeProcess::Execute()
     KRATOS_CATCH("");
 }
 
+void DefineEmbeddedWakeProcess::ExecuteInitialize() {
+
+    KRATOS_TRY;
+
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem) {
+        rElem.SetValue(WAKE, false);
+    });
+    block_for_each(mrModelPart.Nodes(), [&](ModelPart::NodeType& rNode) {
+        rNode.SetValue(WAKE_DISTANCE, 0.0);
+        rNode.SetValue(WAKE, false);
+        rNode.SetValue(KUTTA, false);
+    });
+
+    const auto free_stream_velocity = mrModelPart.GetProcessInfo().GetValue(FREE_STREAM_VELOCITY);
+    KRATOS_ERROR_IF(free_stream_velocity.size() != 3)
+        << "The free stream velocity should be a vector with 3 components!"
+        << std::endl;
+    const double norm = norm_2(free_stream_velocity);
+    KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon())
+        << "The norm of the free stream velocity should be different than 0."
+        << std::endl;
+    // The wake direction is the free stream direction
+    const auto wake_direction = free_stream_velocity / norm;
+    array_1d<double, 3> wake_normal;
+
+    wake_normal[0] = -wake_direction[1];
+    wake_normal[1] = wake_direction[0];
+    wake_normal[2] = 0.0;
+    mrModelPart.GetRootModelPart().GetProcessInfo()[WAKE_NORMAL] = wake_normal;
+
+    KRATOS_CATCH("");
+}
 
 void DefineEmbeddedWakeProcess::ComputeDistanceToWake(){
 
+    KRATOS_TRY;
+
     CalculateDiscontinuousDistanceToSkinProcess<2> distance_calculator(mrModelPart, mrWakeModelPart);
     distance_calculator.Execute();
+
+    KRATOS_CATCH("");
 }
 
 void DefineEmbeddedWakeProcess::MarkWakeElements(){
 
-    ModelPart& deactivated_model_part = mrModelPart.CreateSubModelPart("deactivated_model_part");
-    std::vector<std::size_t> deactivated_elements_id_list;
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(mrModelPart.Elements().size()); i++) {
-        ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin() + i;
+    KRATOS_TRY;
 
-        BoundedVector<double, 3> nodal_distances_to_wake = it_elem->GetValue(ELEMENTAL_DISTANCES);
-        it_elem->SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
+    block_for_each(mrModelPart.Elements(), [&](Element& rElem)
+    {
+        auto& r_geometry = rElem.GetGeometry();
+        BoundedVector<double, 3> nodal_distances_to_wake = rElem.GetValue(ELEMENTAL_DISTANCES);
+        rElem.SetValue(WAKE_ELEMENTAL_DISTANCES, nodal_distances_to_wake);
 
         // Selecting the cut (wake) elements
         const bool is_wake_element = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(nodal_distances_to_wake);
 
         BoundedVector<double,3> geometry_distances;
-        for(unsigned int i_node = 0; i_node<3; i_node++){
-            geometry_distances[i_node] = it_elem->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
+        for(unsigned int i_node = 0; i_node< r_geometry.size(); i_node++){
+            geometry_distances[i_node] = r_geometry[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE);
         }
         const bool is_embedded = PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(geometry_distances);
 
 
         if (is_embedded){
-            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(it_elem->pGetGeometry(), Vector(geometry_distances));
+            ModifiedShapeFunctions::Pointer pModifiedShFunc = this->pGetModifiedShapeFunctions(rElem.pGetGeometry(), Vector(geometry_distances));
             // Computing Normal
-            std::vector<Vector> cut_normal;
+            std::vector<array_1d<double,3>> cut_normal;
             pModifiedShFunc -> ComputePositiveSideInterfaceAreaNormals(cut_normal,GeometryData::GI_GAUSS_1);
             double norm_normal = sqrt(inner_prod(cut_normal[0],cut_normal[0]));
-            auto unit_normal = cut_normal[0]/norm_normal;
-            it_elem->SetValue(VELOCITY_LOWER,unit_normal);
+            array_1d<double,3> unit_normal = cut_normal[0]/norm_normal;
+            rElem.SetValue(VELOCITY_LOWER,unit_normal);
         }
-        if (it_elem->IsNot(ACTIVE)) {
+        if (rElem.IsNot(ACTIVE)) {
             for(unsigned int i_node = 0; i_node<3; i_node++){
-                it_elem->GetGeometry()[i_node].SetValue(AIRFOIL, true);
+                rElem.GetGeometry()[i_node].SetValue(AIRFOIL, true);
             }
         }
         // if (is_wake_element && it_elem->IsNot(ACTIVE)) {
@@ -367,19 +402,22 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
         // }
         // Mark wake element and save their nodal distances to the wake
 
-        if (is_wake_element && it_elem->Is(ACTIVE)) {
-            it_elem->SetValue(WAKE, true);
+        if (is_wake_element && rElem.Is(ACTIVE)) {
+            rElem.SetValue(WAKE, true);
 
             if (is_embedded){
-                #pragma omp critical
-                {
-                    deactivated_elements_id_list.push_back(it_elem->Id());
+                rElem.Set(STRUCTURE, true);
+                for (unsigned int i = 0; i < r_geometry.size(); i++) {
+                    r_geometry[i].SetLock();
+                    r_geometry[i].SetValue(KUTTA, true);
+                    r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
+                    r_geometry[i].UnSetLock();
                 }
-                // it_elem->Set(ACTIVE, false);
-                // it_elem->SetValue(WAKE, true);
-                it_elem->Set(STRUCTURE, true);
-                auto& r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                // rElem.Set(ACTIVE, false);
+                // rElem.SetValue(WAKE, true);
+                rElem.Set(STRUCTURE, true);
+                auto& r_geometry = rElem.GetGeometry();
+                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WING_TIP, true);
                     r_geometry[i].SetValue(KUTTA, true);
@@ -389,9 +427,9 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
             else{
-                // it_elem->SetValue(WAKE, true);
-                auto& r_geometry = it_elem->GetGeometry();
-                for (unsigned int i = 0; i < it_elem->GetGeometry().size(); i++) {
+                // rElem.SetValue(WAKE, true);
+                auto& r_geometry = rElem.GetGeometry();
+                for (unsigned int i = 0; i < rElem.GetGeometry().size(); i++) {
                     r_geometry[i].SetLock();
                     r_geometry[i].SetValue(WAKE_DISTANCE, nodal_distances_to_wake(i));
                     r_geometry[i].SetValue(WAKE, true);
@@ -399,9 +437,10 @@ void DefineEmbeddedWakeProcess::MarkWakeElements(){
                 }
             }
         }
-    }
-    deactivated_model_part.AddElements(deactivated_elements_id_list);
+    });
+    KRATOS_CATCH("");
 }
+
 
 void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
@@ -548,61 +587,6 @@ bool DefineEmbeddedWakeProcess::TouchesWake(Element& rElem, std::unordered_set<s
     return false;
 
 }
-
-void DefineEmbeddedWakeProcess::MarkKuttaWakeElements(){
-
-    //TO-DO avoid using nodal distances
-    double te_wake_distance;
-    for (int i = 0; i < static_cast<int>(mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").Nodes().size()); i++) {
-        auto it_node = mrModelPart.GetSubModelPart("trailing_edge_sub_model_part").NodesBegin() + i;
-        te_wake_distance=it_node->GetValue(WAKE_DISTANCE);
-
-    }
-
-    std::vector<std::size_t> potentially_kutta_elements;
-    Element::Pointer p_structure_element;
-
-    // Find elements that touch the furthest deactivated element and that are part of the wake.
-    for (std::size_t i = 0; i < mKuttaWakeElementCandidates.size(); i++)
-    {
-        auto& r_geometry = mKuttaWakeElementCandidates[i].GetGeometry();
-        if (mKuttaWakeElementCandidates[i].GetValue(WAKE) && mKuttaWakeElementCandidates[i].Is(ACTIVE)) {
-            std::size_t matching_sign_counter = 0;
-            for (std::size_t i_node= 0; i_node < r_geometry.size(); i_node++) {
-                //TO-DO CHECK IF product is 0
-                if(te_wake_distance*r_geometry[i_node].GetValue(WAKE_DISTANCE)>0.0){
-                    matching_sign_counter++;
-                }
-            }
-            if (matching_sign_counter == 2) {
-                mKuttaWakeElementCandidates[i].Set(STRUCTURE);
-                    p_structure_element = mrModelPart.pGetElement(mKuttaWakeElementCandidates[i].Id());
-            }
-            else {
-                potentially_kutta_elements.push_back(mKuttaWakeElementCandidates[i].Id());
-            }
-        }
-    }
-    std::size_t wing_tip_structure_counter = 0;
-    for (std::size_t i = 0; i < p_structure_element->GetGeometry().size(); i++) {
-        if (p_structure_element->GetGeometry()[i].GetValue(WING_TIP)) {
-            wing_tip_structure_counter++;
-        }
-        // if (p_structure_element->GetGeometry()[i].GetValue(WING_TIP)) {
-        //     // p_structure_element->GetGeometry()[i].SetValue(AIRFOIL, true);
-        //     KRATOS_WATCH(p_structure_element->GetGeometry()[i].Id())
-        // }
-
-    }
-
-    for (std::size_t i = 0; i < potentially_kutta_elements.size(); i++) {
-        if (wing_tip_structure_counter<2) {
-            mrModelPart.GetElement(potentially_kutta_elements[i]).SetValue(WAKE, false);
-            // mrModelPart.GetElement(potentially_kutta_elements[i]).SetValue(KUTTA, true);
-        }
-    }
-}
-
 
 void DefineEmbeddedWakeProcess::RedefineWake(){
 

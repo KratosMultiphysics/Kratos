@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.co_simulation_tools import SettingsTypeCheck
 
-class CoSimulationCouplingOperation(object):
+class CoSimulationCouplingOperation:
     """Baseclass for the coupling operations used for CoSimulation
     This class can be used to customize the behavior of the CoSimulation,
     by providing a large interface and access to the solvers/models

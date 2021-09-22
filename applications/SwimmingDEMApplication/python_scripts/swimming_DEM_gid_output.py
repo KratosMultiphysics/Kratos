@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import MultiFileFlag
@@ -31,7 +30,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
     def initialize_swimming_DEM_results(self, DEM_model_part, clusters_model_part, rigid_faces_model_part, mixed_model_part):
 
         if self.multi_file == MultiFileFlag.SingleFile:
-            print("Singlefile option is not available for the swimming DEM application!")
+            Kratos.Logger.PrintWarning("Singlefile option is not available for the swimming DEM application!")
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())

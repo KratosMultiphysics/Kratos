@@ -103,7 +103,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
     void AssignPeriodicity(ModelPart& rMasterModelPart,
                            ModelPart& rSlaveModelPart,
                            const Matrix& rStrainTensor,
-                           const Vector& rDirection);
+                           const Vector& rDirection,
+                           const double SearchTolerance=1e-6
+                           );
 
     /** this function finalizes the computation of the pairings. It can be called ONLY ONCE
      * @param rVariable is the value to which the pairing condition will be applied (needs to be a Variable with components)

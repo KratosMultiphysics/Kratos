@@ -61,7 +61,7 @@ print("OMP thread set to 1")
 # parallel executions
 for num_processors in list_processors:
     WriteInfo(kratos_output_file, tests_output_file, "a", "Parallel Execution; " + str(num_processors) + " processors")
-    system_cmd = "mpiexec -np " + str(num_processors) + " python3 " + input_file_mpi + " --using-mpi >> " + kratos_output_file + " 2>> " + tests_output_file
+    system_cmd = "mpiexec --oversubscribe -np " + str(num_processors) + " python3 " + input_file_mpi + " --using-mpi >> " + kratos_output_file + " 2>> " + tests_output_file
     os.system(system_cmd)
 
 tests_success = True

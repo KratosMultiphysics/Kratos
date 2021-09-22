@@ -27,7 +27,7 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 
 
 namespace Kratos
@@ -163,7 +163,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ConductLocalSearch();
+    void ConductLocalSearch(const Communicator& rComm);
 
     void CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
@@ -173,7 +173,8 @@ private:
 
     // this function performs the search and the exchange of the data on the interface
     void ConductSearchIteration(const Kratos::Flags& rOptions,
-                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+                                const Communicator& rComm);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
 

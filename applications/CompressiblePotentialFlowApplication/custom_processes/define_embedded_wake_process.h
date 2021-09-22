@@ -13,7 +13,6 @@
 #ifndef KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 #define KRATOS_DEFINE_EMBEDDED_WAKE_PROCESS_H
 
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
@@ -51,6 +50,8 @@ public:
     {
         Execute();
     }
+
+    void ExecuteInitialize() override;
 
     void Execute() override;
 
@@ -93,7 +94,7 @@ private:
 
     void ComputeTrailingEdgeNode();
 
-    void MarkKuttaWakeElements();
+    ModelPart::NodeType::Pointer pGetTrailingEdgeNode();
 
     void RedefineWake();
 

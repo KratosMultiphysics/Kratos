@@ -67,7 +67,8 @@ class FSICouplingInterfaceTest(UnitTest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [0.01 * node.Id, 0.0, 0.0])
 
         # Perform the update
-        residual = self.fsi_coupling_interface.Update()
+        self.fsi_coupling_interface.ComputeResidualVector()
+        self.fsi_coupling_interface.Update()
 
     def tearDown(self):
         with UnitTest.WorkFolderScope(self.work_folder, __file__):

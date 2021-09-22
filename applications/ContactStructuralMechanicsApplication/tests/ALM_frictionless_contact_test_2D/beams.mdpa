@@ -1,0 +1,535 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.5000000000   0.0000000000
+    2   0.0024900922   0.4501613592   0.0000000000
+    3   0.0096833759   0.4020734703   0.0000000000
+    4   0.0211426862   0.3561401074   0.0000000000
+    5   0.0364122925   0.3126862742   0.0000000000
+    6   0.0550295887   0.2719620070   0.0000000000
+    7   0.0765351874   0.2341475135   0.0000000000
+    8   0.1004813830   0.1993592414   0.0000000000
+    9   0.1264390084   0.1676565397   0.0000000000
+   10   0.1540027652   0.1390486144   0.0000000000
+   11   0.1827951438   0.1135015295   0.0000000000
+   12   0.2124690736   0.0909450475   0.0000000000
+   13   0.2427094610   0.0712791517   0.0000000000
+   14   0.0000000000   0.0000000000   0.0000000000
+   15   0.0500000000   0.0000000000   0.0000000000
+   16   0.1000000000   0.0000000000   0.0000000000
+   17   0.1500000000   0.0000000000   0.0000000000
+   18   0.2732337761   0.0543801324   0.0000000000
+   19   0.2000000000   0.0000000000   0.0000000000
+   20   0.3037918483   0.0401061563   0.0000000000
+   21   0.2500000000   0.0000000000   0.0000000000
+   22   0.3341650225   0.0283022724   0.0000000000
+   23   0.3000000000   0.0000000000   0.0000000000
+   24   0.3641648180   0.0188048327   0.0000000000
+   25   0.3500000000   0.0000000000   0.0000000000
+   26   0.3936312169   0.0114453281   0.0000000000
+   27   0.4000000000   0.0000000000   0.0000000000
+   28   0.4224306936   0.0060536588   0.0000000000
+   29   0.4504540831   0.0024608686   0.0000000000
+   30   0.4500000000   0.0000000000   0.0000000000
+   31   0.4776143667   0.0005013828   0.0000000000
+   32   0.5000000000   0.0000000000   0.0000000000
+   33   0.5000000000   0.0000000000   0.0000000000
+   34   0.5038444435   0.0000147949   0.0000000000
+   35   0.5297524993   0.0008860111   0.0000000000
+   36   0.5500000000   0.0000000000   0.0000000000
+   37   0.5565627372   0.0032096600   0.0000000000
+   38   0.5842089367   0.0071421703   0.0000000000
+   39   0.6000000000   0.0000000000   0.0000000000
+   40   0.6126054958   0.0128450064   0.0000000000
+   41   0.6416452629   0.0204829459   0.0000000000
+   42   0.6711973860   0.0302219236   0.0000000000
+   43   0.6500000000   0.0000000000   0.0000000000
+   44   0.7011052270   0.0422263943   0.0000000000
+   45   0.7311844245   0.0566561733   0.0000000000
+   46   0.7000000000   0.0000000000   0.0000000000
+   47   0.7612212052   0.0736627283   0.0000000000
+   48   0.7909710467   0.0933849020   0.0000000000
+   49   0.7500000000   0.0000000000   0.0000000000
+   50   0.8201578131   0.1159440623   0.0000000000
+   51   0.8484735026   0.1414386980   0.0000000000
+   52   0.8755787522   0.1699385041   0.0000000000
+   53   0.8000000000   0.0000000000   0.0000000000
+   54   0.9011042561   0.2014780295   0.0000000000
+   55   0.9246532573   0.2360499987   0.0000000000
+   56   0.9458052654   0.2735984571   0.0000000000
+   57   0.9641211409   0.3140119332   0.0000000000
+   58   0.8500000000   0.0000000000   0.0000000000
+   59   0.9791496675   0.3571168592   0.0000000000
+   60   0.9904356906   0.4026715329   0.0000000000
+   61   0.9975298616   0.4503609499   0.0000000000
+   62   1.0000000000   0.5000000000   0.0000000000
+   63   0.9000000000   0.0000000000   0.0000000000
+   64   0.9500000000   0.0000000000   0.0000000000
+   65   1.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements CrLinearBeamElement2D2N// GUI group identifier: Beam Auto1
+    1	0	1	2
+    2	0	2	3
+    3	0	3	4
+    4	0	4	5
+    5	0	5	6
+    6	0	6	7
+    7	0	7	8
+    8	0	8	9
+    9	0	9	10
+    10	0	10	11
+    11	0	11	12
+    12	0	12	13
+    13	0	13	18
+    14	0	18	20
+    15	0	20	22
+    16	0	22	24
+    17	0	24	26
+    18	0	26	28
+    19	0	28	29
+    20	0	29	31
+    21	0	31	34
+    22	0	34	35
+    23	0	35	37
+    24	0	37	38
+    25	0	38	40
+    26	0	40	41
+    27	0	41	42
+    28	0	42	44
+    29	0	44	45
+    30	0	45	47
+    31	0	47	48
+    32	0	48	50
+    33	0	50	51
+    34	0	51	52
+    35	0	52	54
+    36	0	54	55
+    37	0	55	56
+    38	0	56	57
+    39	0	57	59
+    40	0	59	60
+    41	0	60	61
+    42	0	61	62
+End Elements
+
+Begin Elements CrLinearBeamElement2D2N// GUI group identifier: Beam Auto2
+    43	0	15	14
+    44	0	16	15
+    45	0	17	16
+    46	0	19	17
+    47	0	21	19
+    48	0	23	21
+    49	0	25	23
+    50	0	27	25
+    51	0	30	27
+    52	0	32	30
+    53	0	36	32
+    54	0	39	36
+    55	0	43	39
+    56	0	46	43
+    57	0	49	46
+    58	0	53	49
+    59	0	58	53
+    60	0	63	58
+    61	0	64	63
+    62	0	65	64
+End Elements
+
+Begin Conditions LineCondition2D2N
+    1	0	1	2
+    2	0	2	3
+    3	0	3	4
+    4	0	4	5
+    5	0	5	6
+    6	0	6	7
+    7	0	7	8
+    8	0	8	9
+    9	0	9	10
+    10	0	10	11
+    11	0	11	12
+    12	0	12	13
+    13	0	13	18
+    14	0	18	20
+    15	0	20	22
+    16	0	22	24
+    17	0	24	26
+    18	0	26	28
+    19	0	28	29
+    20	0	29	31
+    21	0	31	34
+    22	0	34	35
+    23	0	35	37
+    24	0	37	38
+    25	0	38	40
+    26	0	40	41
+    27	0	41	42
+    28	0	42	44
+    29	0	44	45
+    30	0	45	47
+    31	0	47	48
+    32	0	48	50
+    33	0	50	51
+    34	0	51	52
+    35	0	52	54
+    36	0	54	55
+    37	0	55	56
+    38	0	56	57
+    39	0	57	59
+    40	0	59	60
+    41	0	60	61
+    42	0	61	62
+End Conditions
+
+Begin Conditions LineCondition2D2N
+    43	0	15	14
+    44	0	16	15
+    45	0	17	16
+    46	0	19	17
+    47	0	21	19
+    48	0	23	21
+    49	0	25	23
+    50	0	27	25
+    51	0	30	27
+    52	0	32	30
+    53	0	36	32
+    54	0	39	36
+    55	0	43	39
+    56	0	46	43
+    57	0	49	46
+    58	0	53	49
+    59	0	58	53
+    60	0	63	58
+    61	0	64	63
+    62	0	65	64
+End Conditions
+
+Begin SubModelPart Parts_Beam_Beam_Auto1 // Group Beam Auto1 // Subtree Parts_Beam
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           18
+           20
+           22
+           24
+           26
+           28
+           29
+           31
+           34
+           35
+           37
+           38
+           40
+           41
+           42
+           44
+           45
+           47
+           48
+           50
+           51
+           52
+           54
+           55
+           56
+           57
+           59
+           60
+           61
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Parts_Beam_Beam_Auto2 // Group Beam Auto2 // Subtree Parts_Beam
+    Begin SubModelPartNodes
+           14
+           15
+           16
+           17
+           19
+           21
+           23
+           25
+           27
+           30
+           32
+           36
+           39
+           43
+           46
+           49
+           53
+           58
+           63
+           64
+           65
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           14
+           65
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_Rotation_Auto1 // Group Rotation Auto1 // Subtree ROTATION
+    Begin SubModelPartNodes
+           14
+           65
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart ROTATION_Rotation_Auto2 // Group Rotation Auto2 // Subtree ROTATION
+    Begin SubModelPartNodes
+            1
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Line2D_on_lines_Auto1 // Group Load on lines Auto1 // Subtree LineLoad2D
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           18
+           20
+           22
+           24
+           26
+           28
+           29
+           31
+           34
+           35
+           37
+           38
+           40
+           41
+           42
+           44
+           45
+           47
+           48
+           50
+           51
+           52
+           54
+           55
+           56
+           57
+           59
+           60
+           61
+           62
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart Line2D_on_lines_Auto2 // Group Load on lines Auto2 // Subtree LineLoad2D
+    Begin SubModelPartNodes
+           14
+           15
+           16
+           17
+           19
+           21
+           23
+           25
+           27
+           30
+           32
+           36
+           39
+           43
+           46
+           49
+           53
+           58
+           63
+           64
+           65
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+           53
+           54
+           55
+           56
+           57
+           58
+           59
+           60
+           61
+           62
+    End SubModelPartConditions
+End SubModelPart

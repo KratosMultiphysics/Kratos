@@ -2,7 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.DEMApplication as Dem
 
 
-class MultiaxialControlModuleGeneralized2DUtility(object):
+class MultiaxialControlModuleGeneralized2DUtility():
     def __init__(self, Model, settings):
 
         #NOTE: Negative target_stress means compression

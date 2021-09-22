@@ -308,6 +308,25 @@ private:
     TWeightType mWeight;
 
     ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save( Serializer& rSerializer ) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.save("Weight", mWeight);
+
+    }
+
+    void load( Serializer& rSerializer ) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType );
+        rSerializer.load("Weight", mWeight);
+    }
+
+    ///@}
     ///@name Private Operators
     ///@{
 

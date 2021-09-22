@@ -4,15 +4,15 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //
-//  Main authors:    Marc Nuñez, based on Martin Fusseder work, https://github.com/MFusseder
+//  Main authors:    Marc Nunez, Inigo Lopez
 //
 
-#ifndef ADJOINT_LIFT_FAR_FIELD_COORDINATES_RESPONSE_FUNCTION_H
-#define ADJOINT_LIFT_FAR_FIELD_COORDINATES_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H
+#define ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H
 
 
 // System includes
@@ -45,12 +45,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointLiftFarFieldCoordinatesResponseFunction
+/** \brief AdjointLiftFarFieldResponseFunction
 *
-* This is a response function which traces a chosen displacement or rotation of a single
-* node as response. It is designed to be used in adjoint sensitivity analysis.
+* This is a response function that computes the lift sensitivity using the far field integral
 */
-class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointLiftFarFieldCoordinatesResponseFunction : public AdjointPotentialResponseFunction
+class KRATOS_API(COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION) AdjointLiftFarFieldResponseFunction : public AdjointPotentialResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -58,18 +57,18 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointLiftFarFieldCoordinatesResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointLiftFarFieldCoordinatesResponseFunction);
+    /// Pointer definition of AdjointLiftFarFieldResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointLiftFarFieldResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointLiftFarFieldCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointLiftFarFieldResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointLiftFarFieldCoordinatesResponseFunction() override;
+    ~AdjointLiftFarFieldResponseFunction() override;
 
     ///@}
     ///@name Operators
@@ -173,9 +172,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    Element::Pointer mpNeighboringElement;
     double mReferenceChord;
-    double mUnperturbedLift;
+    double mDynamicPressure;
+    double mStepSize;
+    std::string mFarFieldModelPartName;
+    array_1d<double, 3> mFreeStreamVelocity;
+    array_1d<double, 3> mWakeNormal;
 
 
     ///@}
@@ -186,7 +188,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void GetNeighboringElementPointer();
+    double ComputeLiftContribution(Element& rElement, const array_1d<double, 3> rNormal, const ProcessInfo& rProcessInfo);
 
     ///@}
     ///@name Private  Access
@@ -202,7 +204,7 @@ private:
 
     ///@}
 
-}; // Class AdjointLiftFarFieldCoordinatesResponseFunction
+}; // Class AdjointLiftFarFieldResponseFunction
 
 ///@}
 
@@ -217,4 +219,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H_INCLUDED
+#endif // ADJOINT_LIFT_FAR_FIELD_RESPONSE_FUNCTION_H_INCLUDED

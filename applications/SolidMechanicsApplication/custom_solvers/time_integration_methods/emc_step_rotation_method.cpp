@@ -98,10 +98,7 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
-  template class EmcStepRotationMethod< VariableComponent<VectorComponentAdaptor<array_1d<double,3>>>, double>;
   template class EmcStepRotationMethod< Variable<array_1d<double,3>>, array_1d<double,3>>;
   template class EmcStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
-
-

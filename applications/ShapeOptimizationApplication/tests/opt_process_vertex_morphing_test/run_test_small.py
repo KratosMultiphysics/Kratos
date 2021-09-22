@@ -19,7 +19,7 @@ import KratosMultiphysics as KM
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 # Additional imports
-from KratosMultiphysics.ShapeOptimizationApplication.analyzer_base import AnalyzerBaseClass
+from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication import optimizer_factory
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -46,7 +46,7 @@ parameters["optimization_settings"]["output"]["design_output_mode"].SetString("w
 
 model = KM.Model()
 
-optimizer = optimizer_factory.CreateOptimizer(parameters["optimization_settings"], model, CustomAnalyzer())
+optimizer = optimizer_factory.Create(model, parameters["optimization_settings"], CustomAnalyzer())
 optimizer.Optimize()
 
 # =======================================================================================================
@@ -74,11 +74,11 @@ with open(os.path.join(output_directory, optimization_log_filename), 'r') as csv
 
 # Testing of design output
 output_file_name = os.path.join(output_directory, "design_surface_0_5.vtk")
-reference_file_name = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__))), "ref_design_surface_0_5.vtk")
+reference_file_name = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref_design_surface_0_5.vtk")
 
 result_check_settings = KM.Parameters("""{
-        "reference_file_name"   : \""""+reference_file_name+"""\",
-        "output_file_name"      : \""""+output_file_name+"""\",
+        "reference_file_name"   : \""""+reference_file_name.replace("\\", "\\\\")+"""\",
+        "output_file_name"      : \""""+output_file_name.replace("\\", "\\\\")+"""\",
         "remove_output_file"    : false,
         "comparison_type"       : "vtk",
         "tolerance"             : 1e-6,

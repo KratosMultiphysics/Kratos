@@ -1,10 +1,11 @@
-// KRATOS  ___|  |                   |                   |
-//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
-//             | |   |    |   | (    |   |   | |   (   | |
-//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+// KRATOS    ______            __             __  _____ __                  __                   __
+//          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:		 BSD License
+//					 license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -661,13 +662,19 @@ void DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNo
                 double DeltaXi1 = 0.0, DeltaXi2 = 0.0;
 
                 for (IndexType i_mortar_node = 0; i_mortar_node < TNumNodes; ++i_mortar_node) {
-                    // Compute DeltaXi on the slave side if point is inside geometry (nodes of geometry excluded)
-                    if (rSlaveGeometry.IsInside( projected_in_slave[i_mortar_node].Coordinates(), aux_point_slave.Coordinates() ) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[1].Coordinates()) > ZeroTolerance))
+                    // Compute DeltaXi on the slave side if point is inside geometry (nodes off geometry excluded)
+                    if (rSlaveGeometry.IsInside( projected_in_slave[i_mortar_node].Coordinates(), aux_point_slave.Coordinates() ) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_slave[i_mortar_node].Coordinates() - rSlaveGeometry[1].Coordinates()) > ZeroTolerance)) {
                         DeltaXi_slave[i_mortar_node] = LocalDeltaSegmentN1( all_delta_normal, rSlaveNormal, rSlaveGeometry, rMasterGeometry, r_N1, r_DNDe1, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
+                    } else {
+                        DeltaXi_slave[i_mortar_node] = 0.0;
+                    }
 
-                    // Compute DeltaXi on the master side if point is inside geometry (nodes of geometry excluded)
-                    if (rMasterGeometry.IsInside( projected_in_master[i_mortar_node].Coordinates(), aux_point_master.Coordinates() ) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[1].Coordinates()) > ZeroTolerance))
+                    // Compute DeltaXi on the master side if point is inside geometry (nodes off geometry excluded)
+                    if (rMasterGeometry.IsInside( projected_in_master[i_mortar_node].Coordinates(), aux_point_master.Coordinates() ) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[0].Coordinates()) > ZeroTolerance) && (norm_2(projected_in_master[i_mortar_node].Coordinates() - rMasterGeometry[1].Coordinates()) > ZeroTolerance)) {
                         DeltaXi_master[i_mortar_node] = LocalDeltaSegmentN2( all_delta_normal, rSlaveNormal, rSlaveGeometry, rMasterGeometry, r_N2, r_DNDe2, i_mortar_node, i_node, i_dof, ConsiderNormalVariation );
+                    } else {
+                        DeltaXi_master[i_mortar_node] = 0.0;
+                    }
                 }
 
                 // Evaluate DeltaXi1 expression

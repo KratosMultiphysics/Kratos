@@ -21,6 +21,7 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
+#include "custom_utilities/fluid_calculation_utilities.h"
 #include "custom_utilities/rans_calculation_utilities.h"
 #include "rans_application_variables.h"
 
@@ -40,9 +41,6 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
 
     mEchoLevel = rParameters["echo_level"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
-    mVonKarman = rParameters["von_karman"].GetDouble();
-    mBeta = rParameters["beta"].GetDouble();
-    mCmu = rParameters["c_mu"].GetDouble();
 
     KRATOS_CATCH("");
 }
@@ -50,14 +48,10 @@ RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
 RansWallFunctionUpdateProcess::RansWallFunctionUpdateProcess(
     Model& rModel,
     const std::string& rModelPartName,
-    const double VonKarman,
-    const double Beta,
     const int EchoLevel)
-: mrModel(rModel),
-  mModelPartName(rModelPartName),
-  mVonKarman(VonKarman),
-  mBeta(Beta),
-  mEchoLevel(EchoLevel)
+    : mrModel(rModel),
+      mModelPartName(rModelPartName),
+      mEchoLevel(EchoLevel)
 {
 }
 
@@ -67,10 +61,6 @@ int RansWallFunctionUpdateProcess::Check()
 
     const auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(KINEMATIC_VISCOSITY))
-        << "KINEMATIC_VISCOSITY is not found in nodal solution step variables list of "
-        << mModelPartName << ".";
-
     KRATOS_ERROR_IF(!r_model_part.HasNodalSolutionStepVariable(VELOCITY))
         << "VELOCITY is not found in nodal solution step variables list of "
         << mModelPartName << ".";
@@ -78,11 +68,6 @@ int RansWallFunctionUpdateProcess::Check()
     return 0;
 
     KRATOS_CATCH("");
-}
-
-void RansWallFunctionUpdateProcess::ExecuteInitialize()
-{
-    CalculateConditionNeighbourCount();
 }
 
 void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
@@ -97,33 +82,34 @@ void RansWallFunctionUpdateProcess::ExecuteInitializeSolutionStep()
     KRATOS_CATCH("");
 }
 
-void RansWallFunctionUpdateProcess::CalculateConditionNeighbourCount()
-{
-    RansCalculationUtilities::CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
-        mrModel.GetModelPart(mModelPartName), NUMBER_OF_NEIGHBOUR_CONDITIONS);
-
-    KRATOS_INFO_IF(this->Info(), mEchoLevel > 0)
-        << "Calculated number of neighbour conditions in " << mModelPartName << ".\n";
-}
-
 void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
 {
     KRATOS_TRY
 
     auto& r_model_part = mrModel.GetModelPart(mModelPartName);
 
-    const double c_mu_25 = std::pow(mCmu, 0.25);
-    const double y_plus_limit =
-        r_model_part.GetProcessInfo()[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+    const auto& r_process_info = r_model_part.GetProcessInfo();
+    const double von_karman = r_process_info[VON_KARMAN];
+    const double c_mu_25 = std::pow(r_process_info[TURBULENCE_RANS_C_MU], 0.25);
 
     auto& r_conditions = r_model_part.Conditions();
 
-    // TODO: Make vectors and matrices TLS
-    block_for_each(r_conditions, [&](ModelPart::ConditionType& rCondition) {
-        Vector gauss_weights;
-        Matrix shape_functions;
+    block_for_each(r_conditions, std::pair<Vector, Matrix>(), [&](ModelPart::ConditionType& rCondition, std::pair<Vector, Matrix>& rTLS) {
+        const auto& r_geometry = rCondition.GetGeometry();
+
+        // get parent element
+        auto& r_parent_element = r_geometry.GetValue(NEIGHBOUR_ELEMENTS)[0];
+        auto constitutive_law = r_parent_element.GetValue(CONSTITUTIVE_LAW);
+
+        // get surface properties
+        const auto& r_cond_properties = rCondition.GetProperties();
+        const double y_plus_limit = r_cond_properties[RANS_LINEAR_LOG_LAW_Y_PLUS_LIMIT];
+        const double beta = r_cond_properties[WALL_SMOOTHNESS_BETA];
+
+        auto& gauss_weights = rTLS.first;
+        auto& shape_functions = rTLS.second;
         RansCalculationUtilities::CalculateConditionGeometryData(
-            rCondition.GetGeometry(), rCondition.GetIntegrationMethod(),
+            r_geometry, rCondition.GetIntegrationMethod(),
             gauss_weights, shape_functions);
         const IndexType num_gauss_points = gauss_weights.size();
 
@@ -135,24 +121,36 @@ void RansWallFunctionUpdateProcess::ExecuteAfterCouplingSolveStep()
         array_1d<double, 3> condition_u_tau = ZeroVector(3);
         array_1d<double, 3> wall_velocity;
 
+        // get fluid properties
+        const auto& r_elem_properties = r_parent_element.GetProperties();
+        const double density = r_elem_properties[DENSITY];
+
+        ConstitutiveLaw::Parameters cl_parameters(
+            r_geometry, r_elem_properties, r_model_part.GetProcessInfo());
+
         for (size_t g = 0; g < num_gauss_points; ++g) {
             const auto& gauss_shape_functions = row(shape_functions, g);
+            cl_parameters.SetShapeFunctionsValues(gauss_shape_functions);
 
-            RansCalculationUtilities::EvaluateInPoint(
-                rCondition.GetGeometry(), gauss_shape_functions,
-                std::tie(wall_velocity, VELOCITY), std::tie(nu, KINEMATIC_VISCOSITY),
+            FluidCalculationUtilities::EvaluateInPoint(
+                r_geometry, gauss_shape_functions,
+                std::tie(wall_velocity, VELOCITY),
                 std::tie(tke, TURBULENT_KINETIC_ENERGY));
+
+            constitutive_law->CalculateValue(cl_parameters, EFFECTIVE_VISCOSITY, nu);
+            nu /= density;
 
             const double wall_velocity_magnitude = norm_2(wall_velocity);
 
             double y_plus{0.0}, u_tau{0.0};
             RansCalculationUtilities::CalculateYPlusAndUtau(
-                y_plus, u_tau, wall_velocity_magnitude, wall_height, nu, mVonKarman, mBeta);
+                y_plus, u_tau, wall_velocity_magnitude, wall_height, nu,
+                von_karman, beta);
             y_plus = std::max(y_plus, y_plus_limit);
 
             u_tau = RansCalculationUtilities::SoftMax(
                 c_mu_25 * std::sqrt(std::max(tke, 0.0)),
-                wall_velocity_magnitude / (std::log(y_plus) / mVonKarman + mBeta));
+                wall_velocity_magnitude / (std::log(y_plus) / von_karman + beta));
 
             condition_y_plus += y_plus;
 
@@ -192,10 +190,7 @@ const Parameters RansWallFunctionUpdateProcess::GetDefaultParameters() const
     const Parameters default_parameters = Parameters(R"(
         {
             "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "echo_level"      : 0,
-            "von_karman"      : 0.41,
-            "beta"            : 5.2,
-            "c_mu"            : 0.09
+            "echo_level"      : 0
         })");
 
     return default_parameters;

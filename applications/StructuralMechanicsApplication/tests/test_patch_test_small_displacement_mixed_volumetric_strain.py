@@ -105,7 +105,6 @@ class TestPatchTestSmallDisplacementMixedVolumetricStrain(KratosUnittest.TestCas
         strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
             ModelPart,
             scheme,
-            linear_solver,
             builder_and_solver,
             compute_reactions,
             reform_step_dofs,
