@@ -2597,6 +2597,7 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
     virtual int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
@@ -2690,11 +2691,12 @@ public:
     ) const
     {
         // 1. Make projection on geometry
-        if (ProjectionPoint(rPointGlobalCoordinates,
-            rClosestPointGlobalCoordinates,
+        const int projection_result = ProjectionPointGlobalToLocalSpace(
+            rPointGlobalCoordinates,
             rClosestPointLocalCoordinates,
-            Tolerance) == 1)
-        {
+            Tolerance);
+
+        if (projection_result == 1) {
             // 2. If projection converged check if solution lays
             // within the boundaries of this geometry
             // Returns either 0, 1 or 2
@@ -2702,9 +2704,7 @@ public:
             return IsInsideLocalSpace(
                 rClosestPointLocalCoordinates,
                 Tolerance);
-        }
-        else
-        {
+        } else {
             // Projection failed
             return -1;
         }
