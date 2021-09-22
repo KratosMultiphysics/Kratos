@@ -1125,7 +1125,7 @@ public:
      * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
      * @param rDestination The vector destination
      * @param rInputVector The input vector to be added
-     * @param InitialRow The initial index
+     * @param InitialIndex The initial index
      */
     template<class TVectorType1, class TVectorType2>
     static inline void AddVector(
