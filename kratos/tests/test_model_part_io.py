@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 
 # Importing the Kratos Library
@@ -298,12 +298,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         except:
             raise Exception("a segmentation fault is issued!!")
             self.fail("a segmentation fault is issued!!")
-
-    #def test_model_part_io_properties_block(self):
-    #    model_part= current_model.CreateModelPart("Main")
-    #    model_part_io = ModelPartIO("test_model_part_io")
-    #    model_part_io.ReadProperties(model_part.Properties)
-
 
 class TestModelPartIOMPI(KratosUnittest.TestCase):
     def test_model_part_io_read_entity_data(self):
