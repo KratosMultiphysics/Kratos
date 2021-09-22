@@ -1098,9 +1098,9 @@ public:
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
      * @param rDestination The matrix destination
-     * @param rInputMatrix The input matrix to be computed
-     * @param InitialRow The initial row to compute
-     * @param InitialCol The initial column to compute
+     * @param rInputMatrix The input matrix to be added
+     * @param InitialRow The initial row
+     * @param InitialCol The initial column
      */
     template<class TMatrixType1, class TMatrixType2>
     static inline void AddMatrix(
@@ -1124,8 +1124,8 @@ public:
      * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
      * @param rDestination The vector destination
-     * @param rInputVector The input vector to be computed
-     * @param InitialRow The initial row to compute
+     * @param rInputVector The input vector to be added
+     * @param InitialRow The initial index
      */
     template<class TVectorType1, class TVectorType2>
     static inline void AddVector(
