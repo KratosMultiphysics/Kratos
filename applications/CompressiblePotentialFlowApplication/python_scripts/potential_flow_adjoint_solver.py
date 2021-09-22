@@ -37,22 +37,31 @@ class PotentialFlowAdjointFormulation(PotentialFlowFormulation):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "",
             "gradient_mode": "",
-            "stabilization_factor": 0.0
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "AdjointEmbeddedIncompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
 
     def _SetUpEmbeddedCompressibleElement(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "",
-            "gradient_mode": ""
+            "gradient_mode": "",
+            "stabilization_factor": 0.0,
+            "penalty_coefficient": 0.0
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "AdjointEmbeddedCompressiblePotentialFlowElement"
         self.condition_name = "AdjointPotentialWallCondition"
+        self.process_info_data[KratosMultiphysics.STABILIZATION_FACTOR] = formulation_settings["stabilization_factor"].GetDouble()
+        self.process_info_data[KratosMultiphysics.FluidDynamicsApplication.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
+
 
 def CreateSolver(model, custom_settings):
     return PotentialFlowAdjointSolver(model, custom_settings)
@@ -129,6 +138,10 @@ class PotentialFlowAdjointSolver(PotentialFlowSolver):
         computing_model_part = self.GetComputingModelPart()
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
             response_function = KCPFApp.AdjointLiftJumpCoordinatesResponseFunction(
+                computing_model_part,
+                self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_far_field_lift":
+            response_function = KCPFApp.AdjointLiftFarFieldCoordinatesResponseFunction(
                 computing_model_part,
                 self.response_function_settings)
         else:
