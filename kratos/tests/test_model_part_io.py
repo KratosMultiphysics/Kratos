@@ -254,7 +254,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2,2], 0)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_model_part_io_write_model_part_mesh_only(self):
+    def test_model_part_io_write_model_part(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -269,7 +269,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(value, True)
 
     @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
-    def test_model_part_io_write_model_part(self):
+    def test_model_part_io_write_model_part_mesh_only(self):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
