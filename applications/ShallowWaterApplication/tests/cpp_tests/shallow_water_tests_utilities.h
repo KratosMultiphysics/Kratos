@@ -26,19 +26,19 @@ namespace Testing {
 
 namespace ShallowWaterTestsUtilities {
 
-void KRATOS_API(SHALLOW_WATER_APPLICATION) AssembleRHS(
+void AssembleRHS(
     Vector& rRHS_element,
     const Vector& rRHS_condition,
     const std::vector<IndexType>& rIds);
 
-void KRATOS_API(SHALLOW_WATER_APPLICATION) AddVariables(ModelPart& rModelPart);
+void AddVariables(ModelPart& rModelPart);
 
-void KRATOS_API(SHALLOW_WATER_APPLICATION) CreateGeometry(
+void CreateGeometry(
     ModelPart& rModelPart,
     const std::string& rElementName,
     const std::string& rConditionName);
 
-void KRATOS_API(SHALLOW_WATER_APPLICATION) CalculateAndAssembleRHS(
+void CalculateAndAssembleRHS(
     ModelPart& rModelPart,
     Vector& rRHS);
 
