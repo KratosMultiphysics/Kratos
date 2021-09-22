@@ -1,5 +1,4 @@
 from KratosMultiphysics.RomApplication.element_selection_strategy import ElementSelectionStrategy
-from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 import KratosMultiphysics
 
 import numpy as np
@@ -22,14 +21,12 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
     """
     Constructor setting up the parameters for the Element Selection Strategy
         ECM_tolerance: approximation tolerance for the element selection algorithm
-        SVD_tolerance: approximation tolerance for the singular value decomposition of the ResidualSnapshots matrix
         Filter_tolerance: parameter limiting the number of candidate points (elements) to those above this tolerance
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 0, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Plotting = False):
+    def __init__(self, ECM_tolerance = 0, Filter_tolerance = 1e-16, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
-        self.SVD_tolerance = SVD_tolerance
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
         self.Plotting = Plotting
@@ -38,18 +35,17 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
 
     """
     Method for setting up the element selection
-    input:  ResidualSnapshots: numpy array containing the matrix of residuals projected onto a basis
+    input:  ResidualsBasis: numpy array containing a basis to the residuals projected
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
+    def SetUp(self, ResidualsBasis, OriginalNumberOfElements, ModelPartName):
         super().SetUp()
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
-        u , _  = self._ObtainBasis(ResidualSnapshots)
 
-        self.W = np.ones(np.shape(u)[0])
-        self.G = u.T
+        self.W = np.ones(np.shape(ResidualsBasis)[0])
+        self.G = ResidualsBasis.T
         self.G = np.vstack([ self.G , np.ones( np.shape(self.G)[1] )]  )
         self.b = self.G @ self.W
 
@@ -192,26 +188,6 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             aux2 = np.vstack([aux1[0:neg_index, :], aux1[neg_index + 1:, :], aux1[neg_index, :]])
             invH_new = aux2[0:-1, 0:-1] - np.outer(aux2[0:-1, -1], aux2[-1, 0:-1]) / aux2[-1, -1]
         return invH_new
-
-
-
-    """
-    Method calculating the singular value decomposition of the ResidualSnapshots matrix
-    input:  ResidualSnapshots: numpy array containing a matrix of residuals projected onto a basis
-    output: u: numpy array containing the matrix of left singular vectors
-            s: numpy array containing the matrix of singular values
-    """
-    def _ObtainBasis(self,ResidualSnapshots):
-        ### Building the Snapshot matrix ####
-        for i in range (len(ResidualSnapshots)):
-            if i == 0:
-                SnapshotMatrix = ResidualSnapshots[i]
-            else:
-                SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
-        ### Taking the SVD ###  (randomized and truncated here)
-        u,s,_,_ = RandomizedSingularValueDecomposition().Calculate(SnapshotMatrix, self.SVD_tolerance)
-        return u, s
-
 
 
     """

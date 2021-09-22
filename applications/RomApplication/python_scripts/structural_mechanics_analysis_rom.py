@@ -4,17 +4,19 @@ import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 import json
 import numpy as np
 
 class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
 
-    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None):
+    def __init__(self,model,project_parameters, hyper_reduction_element_selector = None, ECM_SVD_tolerance = 1e-6):
         super().__init__(model,project_parameters)
         if hyper_reduction_element_selector != None :
             if hyper_reduction_element_selector == "EmpiricalCubature":
                 self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
+                self.ECM_SVD_tolerance = ECM_SVD_tolerance
                 self.time_step_residual_matrix_container = []
             else:
                 err_msg =  "The requested element selection method \"" + hyper_reduction_element_selector + "\" is not in the rom application\n"
@@ -72,10 +74,17 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
                 ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                self. hyper_reduction_element_selector.SetUp(self._ObtainBasis(), OriginalNumberOfElements, ModelPartName)
                 self.hyper_reduction_element_selector.Run()
 
-
-
-
+    def _ObtainBasis(self):
+        ### Building the Snapshot matrix ####
+        for i in range (len(self.time_step_residual_matrix_container)):
+            if i == 0:
+                SnapshotMatrix = self.time_step_residual_matrix_container[i]
+            else:
+                SnapshotMatrix = np.c_[SnapshotMatrix,self.time_step_residual_matrix_container[i]]
+        ### Taking the SVD ###  (randomized and truncated)
+        u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(SnapshotMatrix, self.ECM_SVD_tolerance)
+        return u
 
