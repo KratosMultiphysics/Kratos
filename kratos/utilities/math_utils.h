@@ -1097,14 +1097,15 @@ public:
     /**
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
-     * @param rDestination The matric destination
+     * @param rDestination The matrix destination
      * @param rInputMatrix The input matrix to be computed
      * @param InitialRow The initial row to compute
      * @param InitialCol The initial column to compute
      */
-    static inline void  AddMatrix(
-        MatrixType& rDestination,
-        const MatrixType& rInputMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline void AddMatrix(
+        TMatrixType1& rDestination,
+        const TMatrixType2& rInputMatrix,
         const IndexType InitialRow,
         const IndexType InitialCol
         )
