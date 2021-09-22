@@ -113,6 +113,7 @@ private:
     double mMinValue;
     bool mIsConstrained;
     int mEchoLevel;
+    int mCalculationStepIndex;
 
     ///@}
     ///@name Private Operations

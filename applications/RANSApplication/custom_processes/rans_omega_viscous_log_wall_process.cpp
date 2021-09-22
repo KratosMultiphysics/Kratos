@@ -46,6 +46,7 @@ RansOmegaViscousLogWallProcess::RansOmegaViscousLogWallProcess(
 
     mIsConstrained = rParameters["is_fixed"].GetBool();
     mEchoLevel = rParameters["echo_level"].GetInt();
+    mCalculationStepIndex = rParameters["calculation_step_index"].GetInt();
     mModelPartName = rParameters["model_part_name"].GetString();
     mMinValue = rParameters["min_value"].GetDouble();
 
@@ -121,7 +122,7 @@ void RansOmegaViscousLogWallProcess::ExecuteOperation()
         array_1d<double, 3> wall_velocity, fluid_velocity, mesh_velocity;
         double tke;
         FluidCalculationUtilities::EvaluateInPoint(
-            r_parent_element_geometry, row(Ns, 0), 1,
+            r_parent_element_geometry, row(Ns, 0), mCalculationStepIndex,
             std::tie(tke, TURBULENT_KINETIC_ENERGY),
             std::tie(fluid_velocity, VELOCITY),
             std::tie(mesh_velocity, MESH_VELOCITY));
@@ -219,7 +220,8 @@ const Parameters RansOmegaViscousLogWallProcess::GetDefaultParameters() const
         "echo_level"              : 0,
         "is_fixed"                : true,
         "min_value"               : 1e-12,
-        "execution_points"        : ["initialize_solution_step"]
+        "execution_points"        : ["initialize_solution_step"],
+        "calculation_step_index"  : 1
     })");
 
     return default_parameters;
