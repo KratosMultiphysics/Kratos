@@ -274,6 +274,10 @@ protected:
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData) override;
 
+    void UpdateSubscaleVelocity(
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale);
+
     void MassProjTerm(
         const TElementData& rData,
         double& rMassRHS) const override;
