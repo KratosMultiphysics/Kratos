@@ -55,8 +55,9 @@ namespace Kratos
         double lift_coefficient=0.0;
         for(IndexType i = 0; i < NumNodes; ++i)
         {
-            if(tracedElem.GetGeometry()[i].GetValue(TRAILING_EDGE))
+            if(tracedElem.GetGeometry()[i].GetValue(WAKE) && tracedElem.GetGeometry()[i].GetValue(WAKE_DISTANCE) > 0)
             {
+                KRATOS_WATCH(tracedElem.GetGeometry()[i].Id());
                 double potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
                 double aux_potential = tracedElem.GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
                 double potential_jump = std::abs(potential - aux_potential);
@@ -82,13 +83,15 @@ namespace Kratos
         rResponseGradient.clear();
         if( rAdjointElement.Id() == mpNeighboringElement->Id() )
         {
+            std::cout<<"COMPUTING GRADIENT " << rAdjointElement.Id()<<std::endl;
+
             const array_1d<double, 3> v_inf = rProcessInfo.GetValue(FREE_STREAM_VELOCITY);
             double v_norm = norm_2(v_inf);
             double derivative = 2.0 / (v_norm * mReferenceChord);
             unsigned int NumNodes = rAdjointElement.GetGeometry().size();
             for(IndexType i = 0; i < NumNodes; ++i)
             {
-                if(rAdjointElement.GetGeometry()[i].GetValue(TRAILING_EDGE))
+                if(rAdjointElement.GetGeometry()[i].GetValue(WAKE) && rAdjointElement.GetGeometry()[i].GetValue(WAKE_DISTANCE) > 0)
                 {
                     rResponseGradient[i] = derivative;
                     rResponseGradient[i+NumNodes] = -derivative;
@@ -161,8 +164,18 @@ namespace Kratos
         for (auto elem_it = mrModelPart.Elements().ptr_begin(); elem_it != mrModelPart.Elements().ptr_end(); ++elem_it)
         {
             if ((*elem_it)->Is(STRUCTURE)){
-                mpNeighboringElement = (*elem_it);
-                return;
+                auto& r_geometry = (*elem_it)->GetGeometry();
+                std::size_t counter=0;
+                for (auto& r_node : r_geometry) {
+                    if (r_node.GetValue(WAKE) == 1) {
+                        counter++;
+                    }
+                    if (counter==2) {
+                        mpNeighboringElement = (*elem_it);
+                        std::cout<<"ELEMENT TRACED " << (*elem_it)->Id()<< std::endl;
+                        return;
+                    }
+                }
             }
         }
         KRATOS_ERROR << "No neighboring element is available for the traced node." << std::endl;
