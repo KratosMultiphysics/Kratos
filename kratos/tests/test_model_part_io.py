@@ -261,7 +261,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_write"))
         model_part_io.ReadModelPart(model_part)
 
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_write.out"), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(model_part)
 
         import filecmp
