@@ -40,6 +40,7 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/beetstra_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/schiller_and_naumann_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/chien_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/ganser_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/shah_drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/newton_drag_law.cpp
@@ -171,3 +172,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 ## Install targets
 install(TARGETS KratosSwimmingDEMCore DESTINATION libs )
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosSwimmingDEMCore" PARENT_SCOPE)
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosSwimmingDEMApplication" PARENT_SCOPE)

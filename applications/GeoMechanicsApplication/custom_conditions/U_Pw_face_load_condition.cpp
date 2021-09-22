@@ -29,7 +29,6 @@ Condition::Pointer UPwFaceLoadCondition<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwFaceLoadCondition<TDim,TNumNodes>::
     CalculateRHS( VectorType& rRightHandSideVector,
@@ -37,8 +36,8 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( mThisIntegrationMethod );
-    const unsigned int NumGPoints = integration_points.size();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
 
     //Containers of variables at all integration points
@@ -71,13 +70,12 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(IntegrationCoefficient,
                                               JContainer[GPoint],
-                                              integration_points[GPoint].Weight());
+                                              IntegrationPoints[GPoint].Weight());
 
         //Contributions to the right hand side
         noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
         ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, UVector);
     }
-
 }
 
 //----------------------------------------------------------------------------------------
@@ -157,9 +155,10 @@ void UPwFaceLoadCondition<3,4>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwFaceLoadCondition<2,2>;
+template class UPwFaceLoadCondition<2,3>;
+
 template class UPwFaceLoadCondition<3,3>;
 template class UPwFaceLoadCondition<3,4>;
 
-template class UPwFaceLoadCondition<2,3>;
 
 } // Namespace Kratos.

@@ -82,7 +82,7 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
             mpPressureGeometry = GeometryType::Pointer( new Quadrilateral3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
             break;
         default:
-            KRATOS_THROW_ERROR(std::logic_error,"Unexpected geometry type for different order interpolation element","");
+            KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << std::endl;
     }
 
     KRATOS_CATCH( "" )
@@ -167,7 +167,7 @@ void GeneralUPwDiffOrderCondition::
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR(std::logic_error,"GeneralUPwDiffOrderCondition::CalculateLeftHandSide not implemented","");
+    KRATOS_ERROR << "GeneralUPwDiffOrderCondition::CalculateLeftHandSide is not implemented" << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -318,7 +318,7 @@ void GeneralUPwDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateConditionVector method for a particular condition ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateConditionVector method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -329,7 +329,7 @@ void GeneralUPwDiffOrderCondition::CalculateIntegrationCoefficient(ConditionVari
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateIntegrationCoefficient method for a particular condition ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateIntegrationCoefficient method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -358,7 +358,7 @@ void GeneralUPwDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRi
 {
     KRATOS_TRY
 
-    KRATOS_THROW_ERROR( std::logic_error, "calling the default CalculateAndAddConditionForce method for a particular condition ... illegal operation!!", "" )
+    KRATOS_ERROR << "calling the default CalculateAndAddConditionForce method for a particular condition ... illegal operation!!" << std::endl;
 
     KRATOS_CATCH( "" )
 }
