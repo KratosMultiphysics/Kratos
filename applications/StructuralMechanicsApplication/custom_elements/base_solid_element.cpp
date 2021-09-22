@@ -1538,10 +1538,7 @@ void BaseSolidElement::RotateToLocalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    bool is_rotated = false;
-    is_rotated = this->IsElementRotated();
-
-    if (is_rotated) {
+    if (this->IsElementRotated()) {
         const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
         BoundedMatrix<double, 3, 3> rotation_matrix;
 
@@ -1577,10 +1574,7 @@ void BaseSolidElement::RotateToGlobalAxes(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    bool is_rotated = false;
-    is_rotated = this->IsElementRotated();
-
-    if (is_rotated) {
+    if (this->IsElementRotated()) {
         const auto& r_options = rValues.GetOptions();
         const bool stress_option = r_options.Is(ConstitutiveLaw::COMPUTE_STRESS);
         const bool constitutive_matrix_option = r_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -1946,6 +1940,16 @@ const Parameters BaseSolidElement::GetSpecifications() const
         "documentation"   : "This is a pure displacement element"
     })");
     return specifications;
+}
+
+bool BaseSolidElement::IsElementRotated() const
+{
+    if (mConstitutiveLawVector[0]->GetStrainSize() == 6) {
+        return (this->Has(LOCAL_AXIS_1) && this->Has(LOCAL_AXIS_2));
+    } else if (mConstitutiveLawVector[0]->GetStrainSize() == 3) {
+        return (this->Has(LOCAL_AXIS_1));
+    }
+    return false;
 }
 
 /***********************************************************************************/
