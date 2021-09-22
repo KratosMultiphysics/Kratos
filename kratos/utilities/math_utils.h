@@ -1121,6 +1121,28 @@ public:
     }
 
     /**
+     * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
+     * @param rDestination The vector destination
+     * @param rInputVector The input vector to be computed
+     * @param InitialRow The initial row to compute
+     */
+    template<class TVectorType1, class TVectorType2>
+    static inline void AddVector(
+        TVectorType1& rDestination,
+        const TVectorType2& rInputVector,
+        const IndexType InitialIndex
+        )
+    {
+        KRATOS_TRY
+
+        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+            rDestination[InitialIndex+i] += rInputVector[i];
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief "rInputMatrix" is SUBTRACTED to "rDestination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "rDestination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
      * @param rDestination The matric destination
