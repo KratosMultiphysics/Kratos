@@ -68,6 +68,8 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     #pragma omp parallel for firstprivate(DN_DX, N, J0, InvJ0, detJ0, values)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
+        if (it_elem->Is(ACTIVE) || it_elem->IsNotDefined(ACTIVE)) {
+
         auto& r_geometry = it_elem->GetGeometry();
 
         // Current geometry information
@@ -116,6 +118,8 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
                 #pragma omp atomic
                 vol += N[i_node] * gauss_point_volume;
             }
+        }
+
         }
     }
 
@@ -344,7 +348,8 @@ template <>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::PonderateGradient()
 {
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-            rNode.FastGetSolutionStepValue(*mpGradientVariable) /=
+            if (rNode.GetValue(*mpAreaVariable)>0.0)
+                rNode.FastGetSolutionStepValue(*mpGradientVariable) /=
                 rNode.GetValue(*mpAreaVariable);
         });
 }
@@ -356,8 +361,9 @@ template <>
 void ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::PonderateGradient()
 {
     block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
-            rNode.GetValue(*mpGradientVariable) /=
-                rNode.GetValue(*mpAreaVariable);
+            if (rNode.GetValue(*mpAreaVariable)>0.0)
+                rNode.GetValue(*mpGradientVariable) /=
+                    rNode.GetValue(*mpAreaVariable);
         });
 }
 
