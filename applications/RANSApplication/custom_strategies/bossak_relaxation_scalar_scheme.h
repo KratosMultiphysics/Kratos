@@ -196,6 +196,8 @@ public:
                       << "_non_lin_itr_" << r_process_info[NL_ITERATION_NUMBER];
 
             mpVtkOutput->PrintOutput(file_name.str());
+
+            KRATOS_INFO(this->Info()) << "Written vtk output " + file_name.str() << ".\n";
         }
 
         KRATOS_CATCH("")
