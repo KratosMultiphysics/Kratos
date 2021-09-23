@@ -397,6 +397,24 @@ typedef Node<3> NodeType;
         KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
     }
 
+    ///// Test integration points of nurbs curve
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateIntegrationPointsGrid, KratosCoreNurbsGeometriesFastSuite) {
+        auto curve = GenerateReferenceCurve2d();
+
+        // Check general information, input to ouput
+        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
+        integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
+        integration_info.SetNumberOfIntegrationPointsPerSpan(0, 5);
+        curve.CreateIntegrationPoints(integration_points, integration_info);
+
+        KRATOS_CHECK_EQUAL(integration_points.size(), 7);
+        double length = 0;
+        for (IndexType i = 0; i < integration_points.size(); ++i) {
+            length += integration_points[i].Weight();
+        }
+        KRATOS_CHECK_NEAR(length, 11.180339887498949, TOLERANCE);
+    }
 
     // test quadrature points of curve on surface
     KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)

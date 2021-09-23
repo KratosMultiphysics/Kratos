@@ -298,7 +298,6 @@ public:
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
         //KRATOS_WATCH( LHS_Contribution )
         //basic operations for the element considered
         rCurrentElement.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
@@ -328,7 +327,6 @@ public:
     {
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
-        rCurrentElement.InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
         rCurrentElement.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
@@ -354,7 +352,6 @@ public:
     {
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
-        rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
         rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         rCurrentCondition.CalculateMassMatrix(mMass[k], CurrentProcessInfo);
         rCurrentCondition.CalculateDampingMatrix(mDamp[k], CurrentProcessInfo);
@@ -377,7 +374,6 @@ public:
         KRATOS_TRY
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current condition
-        rCurrentCondition.InitializeNonLinearIteration(CurrentProcessInfo);
 
         //basic operations for the element considered
         rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);

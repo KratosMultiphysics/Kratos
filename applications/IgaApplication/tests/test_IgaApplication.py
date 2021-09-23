@@ -15,6 +15,8 @@ from truss_element_tests import TrussElementTests as TTrussElementTests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailImplicitDynamic as MembraneSinglePatchFourPointSailImplicitDynamic
+# 3p Shell KL - python based
+from shell_3p_element_tests import Shell3pElementTests as TShell3pElementTests
 # 3p Shell KL
 from iga_test_factory import ScordelisRoofShell3pTest as ScordelisRoofShell3pTest
 from iga_test_factory import LinearBeamShell3pTest as LinearBeamShell3pTest
@@ -67,10 +69,11 @@ def AssembleTestSuites():
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
         # 3p Shell KL
+        TShell3pElementTests,
         ScordelisRoofShell3pTest,
         LinearBeamShell3pTest,
         # 5p Shell Director
-        # ScordelisRoofShell5pTest, -- commented as it contains heap error in ubuntu/CI
+        ScordelisRoofShell5pTest,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,

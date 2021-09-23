@@ -1823,6 +1823,7 @@ public:
     *         0 -> failed
     *         1 -> converged
     */
+    KRATOS_DEPRECATED_MESSAGE("This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead.")
     int ProjectionPoint(
         const CoordinatesArrayType& rPointGlobalCoordinates,
         CoordinatesArrayType& rProjectedPointGlobalCoordinates,
@@ -1830,17 +1831,42 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) const override
     {
+        KRATOS_WARNING("ProjectionPoint") << "This method is deprecated. Use either \'ProjectionPointLocalToLocalSpace\' or \'ProjectionPointGlobalToLocalSpace\' instead." << std::endl;
 
-        PointLocalCoordinates(rProjectedPointLocalCoordinates, rPointGlobalCoordinates);
-
-        for (std::size_t  i = 0; i < 3; i++) {
-            rProjectedPointLocalCoordinates[i] = (rProjectedPointLocalCoordinates[i] < 0.0) ? 0.00 :  rProjectedPointLocalCoordinates[i];
-            rProjectedPointLocalCoordinates[i] = (rProjectedPointLocalCoordinates[i] > 1.0) ? 1.00 :  rProjectedPointLocalCoordinates[i];
-        }
+        ProjectionPointGlobalToLocalSpace(rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
 
         this->GlobalCoordinates(rProjectedPointGlobalCoordinates, rProjectedPointLocalCoordinates);
 
         return 1;
+    }
+
+    int ProjectionPointLocalToLocalSpace(
+        const CoordinatesArrayType& rPointLocalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        for (std::size_t  i = 0; i < 3; ++i) {
+            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] < 0.0) ? 0.0 : rPointLocalCoordinates[i];
+            rProjectionPointLocalCoordinates[i] = (rPointLocalCoordinates[i] > 1.0) ? 1.0 : rPointLocalCoordinates[i];
+        }
+
+        return 1;
+    }
+
+    int ProjectionPointGlobalToLocalSpace(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        CoordinatesArrayType& rProjectionPointLocalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+    ) const override
+    {
+        // Calculate the point of interest global coordinates
+        // Note that rProjectionPointLocalCoordinates is used as initial guess
+        PointLocalCoordinates(rProjectionPointLocalCoordinates, rPointGlobalCoordinates);
+
+        // Calculate the projection point local coordinates from the input point local coordinates
+        CoordinatesArrayType point_local_coordinates(rProjectionPointLocalCoordinates);
+        return ProjectionPointLocalToLocalSpace(point_local_coordinates, rProjectionPointLocalCoordinates);
     }
 
     ///@}
