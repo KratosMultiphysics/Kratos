@@ -155,6 +155,12 @@ public:
     ///@{
 
     /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy (ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
      * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
      * @see Parameters
      */
@@ -271,6 +277,22 @@ public:
         const Variable<Matrix>& rThisVariable,
         Matrix& rValue
         ) override;
+
+    /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresInitializeMaterialResponse() override
+    {
+        return true;
+    }
+
+        /**
+     * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
 
     /**
      * Finalize the material response in terms of Cauchy stresses
