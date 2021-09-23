@@ -39,6 +39,7 @@ class CustomProcessTest(UnitTest.TestCase):
 
         cls.model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, 2)
         cls.model_part.ProcessInfo.SetValue(Kratos.STEP, 1)
+        cls.model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, 0.1)
 
         with UnitTest.WorkFolderScope(".", __file__):
             ReadModelPart("BackwardFacingStepTest/backward_facing_step", cls.model_part)
@@ -468,6 +469,7 @@ class CustomProcessTest(UnitTest.TestCase):
         ]''')
 
         scalar_scheme = KratosRANS.BossakRelaxationScalarScheme(-0.3, 1.0, KratosRANS.TURBULENT_KINETIC_ENERGY)
+        scalar_scheme.InitializeSolutionStep(self.model_part, Kratos.CompressedMatrix(), Kratos.Vector(), Kratos.Vector())
         scalar_scheme.UpdateScalarRateVariables(self.model_part)
 
         second_derivative_values = {}

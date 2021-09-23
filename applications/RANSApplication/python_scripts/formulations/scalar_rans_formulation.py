@@ -40,7 +40,8 @@ class ScalarRansFormulation(RansFormulation):
                 "solver_type"  : "amgcl"
             },
             "boundary_flags": ["INLET", "STRUCTURE"],
-            "auxiliar_process_list": []
+            "auxiliar_process_list": [],
+            "vtk_output_settings":{}
         }""")
 
         settings.ValidateAndAssignDefaults(defaults)
@@ -117,10 +118,25 @@ class ScalarRansFormulation(RansFormulation):
             scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
         else:
             scheme_type = GetKratosObjectPrototype("BossakRelaxationScalarScheme")
-            scheme = scheme_type(
-                self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
-                settings["relaxation_factor"].GetDouble(),
-                self.GetSolvingVariable())
+            vtk_settings = settings["vtk_output_settings"]
+            if vtk_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                scheme = scheme_type(
+                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                    settings["relaxation_factor"].GetDouble(),
+                    self.GetSolvingVariable())
+            else:
+                if vtk_settings.Has("model_part_name") and vtk_settings["model_part_name"].GetString() != self.GetModelPart().FullName():
+                    Kratos.Logger.PrintWarning(self.__class__.__name__, "Vtk output model part name " + vtk_settings["model_part_name"].GetString(
+                    ) + " mismatching with scheme model part name " + self.GetModelPart().FullName() + ". Using scheme model part name.")
+                else:
+                    vtk_settings.AddEmptyValue("model_part_name")
+                vtk_settings["model_part_name"].SetString(self.GetModelPart().FullName())
+
+                scheme = scheme_type(
+                    self.GetModelPart().ProcessInfo[Kratos.BOSSAK_ALPHA],
+                    settings["relaxation_factor"].GetDouble(),
+                    self.GetSolvingVariable(),
+                    Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
 
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(

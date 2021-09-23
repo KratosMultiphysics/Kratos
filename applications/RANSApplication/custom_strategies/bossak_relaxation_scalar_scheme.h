@@ -27,6 +27,7 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/time_discretization.h"
 #include "utilities/parallel_utilities.h"
+#include "input_output/vtk_output.h"
 
 // Application includes
 #include "custom_strategies/steady_scalar_scheme.h"
@@ -77,9 +78,9 @@ public:
         const double AlphaBossak,
         const double RelaxationFactor,
         const Variable<double>& rScalarVariable)
-    : BaseType(RelaxationFactor),
-        mAlphaBossak(AlphaBossak),
-        mrScalarVariable(rScalarVariable)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable)
     {
         // Allocate auxiliary memory.
         const int num_threads = OpenMPUtils::GetNumThreads();
@@ -87,6 +88,27 @@ public:
         mMassMatrix.resize(num_threads);
         mSecondDerivativeValuesVector.resize(num_threads);
         mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mpVtkOutput = nullptr;
+        mIndex = 0;
+    }
+
+    BossakRelaxationScalarScheme(
+        const double AlphaBossak,
+        const double RelaxationFactor,
+        const Variable<double>& rScalarVariable,
+        VtkOutput::Pointer pVtkOutput)
+        : BaseType(RelaxationFactor),
+          mAlphaBossak(AlphaBossak),
+          mrScalarVariable(rScalarVariable),
+          mpVtkOutput(pVtkOutput)
+    {
+        // Allocate auxiliary memory.
+        const int num_threads = OpenMPUtils::GetNumThreads();
+
+        mMassMatrix.resize(num_threads);
+        mSecondDerivativeValuesVector.resize(num_threads);
+        mSecondDerivativeValuesVectorOld.resize(num_threads);
+        mIndex = 0;
     }
 
     /// Destructor.
@@ -153,6 +175,30 @@ public:
         this->UpdateScalarRateVariables(rModelPart);
 
         KRATOS_CATCH("");
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        SystemMatrixType& rA,
+        SystemVectorType& rDx,
+        SystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        if (mpVtkOutput) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
+            std::stringstream file_name;
+            file_name << rModelPart.FullName() << "_step_"
+                      << r_process_info[STEP] << "_local_index_" << mIndex++
+                      << "_non_lin_itr_" << r_process_info[NL_ITERATION_NUMBER];
+
+            mpVtkOutput->PrintOutput(file_name.str());
+        }
+
+        KRATOS_CATCH("")
     }
 
     int Check(ModelPart& rModelPart) override
@@ -277,6 +323,10 @@ private:
     const Variable<double>& mrScalarVariable;
 
     BossakConstants mBossak;
+
+    VtkOutput::Pointer mpVtkOutput;
+
+    long unsigned int mIndex;
 
     ///@}
     ///@name Private Operations
