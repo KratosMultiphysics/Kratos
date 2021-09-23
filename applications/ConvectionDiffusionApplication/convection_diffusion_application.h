@@ -36,6 +36,7 @@
 
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
+#include "custom_conditions/mixed_flux_condition.h"
 #include "custom_conditions/adjoint_thermal_face.h"
 
 #include "includes/variables.h"
@@ -250,6 +251,8 @@ private:
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
+    const MixedFluxCondition<2,2>  mMixedFluxCondition2D2N;
+    const MixedFluxCondition<3,3>  mMixedFluxCondition3D3N;
 
     const AdjointThermalFace mAdjointThermalFace2D2N;
     const AdjointThermalFace mAdjointThermalFace3D3N;

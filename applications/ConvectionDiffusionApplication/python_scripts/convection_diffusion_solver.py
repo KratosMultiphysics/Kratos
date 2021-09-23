@@ -531,7 +531,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             num_nodes_conditions = self.main_model_part.GetCommunicator().GetDataCommunicator().MaxAll(num_nodes_conditions)
 
             condition_name = self.settings["element_replace_settings"]["condition_name"].GetString()
-            if condition_name in ("FluxCondition","ThermalFace","Condition"):
+            if condition_name in ("FluxCondition","MixedFluxCondition","ThermalFace","Condition"):
                 name_string = "{0}{1}D{2}N".format(condition_name,domain_size, num_nodes_conditions)
                 self.settings["element_replace_settings"]["condition_name"].SetString(name_string)
         else:
