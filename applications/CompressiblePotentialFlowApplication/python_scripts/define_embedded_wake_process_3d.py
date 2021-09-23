@@ -179,18 +179,27 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
     def _DefineWakeModelPart(self):
         ''' This function generates the modelpart of the wake. TODO: make end of the domain user-definable.
         '''
-        self.wake_model_part.CreateNewNode(1, 0.0, -0.01, 0.0)
-        self.wake_model_part.CreateNewNode(2, 0.0, 2.0, 0.0)
+        mid_chord_0 = [ 0.0, -0.01, 0.0]
+        mid_chord_2 = [0.0, 2.0, 0.0]
+        te_point_0 = [0.498097, -0.01, -0.0435779]
+        te_point_2 = [0.498097, 2.0, -0.0435779]
+        weight = 0.5
+        self.wake_model_part.CreateNewNode(1, (1-weight)*mid_chord_0[0]+weight*te_point_0[0], -0.01, (1-weight)*mid_chord_0[2]+weight*te_point_0[2])
+        self.wake_model_part.CreateNewNode(2, (1-weight)*mid_chord_2[0]+weight*te_point_2[0], 2.0, (1-weight)*mid_chord_2[2]+weight*te_point_2[2])
+
 
         # self.wake_model_part.CreateNewNode(3, 200.0*math.cos(math.radians(-5.0)), 2.0, 200.0*math.sin(math.radians(-5.0)))
         # self.wake_model_part.CreateNewNode(4, 200.0*math.cos(math.radians(-5.0)), 0.0, 200.0*math.sin(math.radians(-5.0)))
         # self.wake_model_part.CreateNewElement("Element3D3N", 1, [1,3,2], KratosMultiphysics.Properties(0))
         # self.wake_model_part.CreateNewElement("Element3D3N", 2, [1,4,3], KratosMultiphysics.Properties(0))
-
-        self.wake_model_part.CreateNewNode(3, 0.498097, 2.0, -0.0435779)
-        self.wake_model_part.CreateNewNode(4, 0.498097, -0.01, -0.0435779)
+        self.wake_model_part.CreateNewNode(3, te_point_2[0], te_point_2[1], te_point_2[2])
+        self.wake_model_part.CreateNewNode(4, te_point_0[0], te_point_0[1], te_point_0[2])
         self.wake_model_part.CreateNewNode(5, 200.0, 2.0, 0.0)
         self.wake_model_part.CreateNewNode(6, 200.0, 0.0, 0.0)
+        print(self.wake_model_part.GetNode(1))
+        print(self.wake_model_part.GetNode(2))
+        print(self.wake_model_part.GetNode(3))
+        print(self.wake_model_part.GetNode(4))
 
         self.wake_model_part.CreateNewElement("Element3D3N", 1, [1,3,2], KratosMultiphysics.Properties(0))
         self.wake_model_part.CreateNewElement("Element3D3N", 2, [1,4,3], KratosMultiphysics.Properties(0))
