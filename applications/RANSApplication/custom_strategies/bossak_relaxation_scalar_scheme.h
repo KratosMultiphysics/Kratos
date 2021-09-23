@@ -197,7 +197,7 @@ public:
 
             mpVtkOutput->PrintOutput(file_name.str());
 
-            KRATOS_INFO(this->Info()) << "Written vtk output " + file_name.str() << ".\n";
+            KRATOS_INFO("BossakRelaxationScalarScheme") << "Written vtk output " + file_name.str() << ".\n";
         }
 
         KRATOS_CATCH("")
