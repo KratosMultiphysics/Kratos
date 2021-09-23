@@ -85,8 +85,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.target_h_wake = 0.1
         self._DefineWakeModelPart()
 
-
-        self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
+        if self.do_remeshing:
+            self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
         self._CalculateDistance()
 
         while self.step < self.max_iter and self.do_remeshing:
@@ -301,7 +301,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "hausdorff_value"                     : 0.001,
                 "force_gradation_value"               : false,
                 "gradation_value"                     : 2.3
-            }
+            },
             "echo_level"                       : 0
         }
         """)
@@ -363,6 +363,8 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.wake_model_part.CreateNewElement("Element3D3N", 4, [4,6,5], KratosMultiphysics.Properties(0))
 
     def _CalculateDiscontinuousDistanceAndComputeWakeMetric(self):
+        if self.domain_size ==3:
+
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,self.main_model_part.Nodes)
 
 
