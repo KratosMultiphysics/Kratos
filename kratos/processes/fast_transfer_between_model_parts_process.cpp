@@ -17,7 +17,7 @@
 
 // Project includes
 #include "processes/fast_transfer_between_model_parts_process.h"
-#include "utilities/openmp_utils.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -214,31 +214,35 @@ void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPa
 {
     auto& r_nodes_array = rThisModelPart.Nodes();
     const auto it_node_begin = r_nodes_array.begin();
-    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+    IndexPartition<std::size_t>(r_nodes_array.size()).for_each([&](std::size_t i) {
         (it_node_begin + i)->SetId(i + 1);
+    });
 
     auto& r_element_array = rThisModelPart.Elements();
     const auto it_elem_begin = r_element_array.begin();
-    for(IndexType i = 0; i < r_element_array.size(); ++i)
+    IndexPartition<std::size_t>(r_element_array.size()).for_each([&](std::size_t i) {
         (it_elem_begin + i)->SetId(i + 1);
+    });
 
     auto& r_condition_array = rThisModelPart.Conditions();
     const auto it_cond_begin = r_condition_array.begin();
-    for(IndexType i = 0; i < r_condition_array.size(); ++i)
+    IndexPartition<std::size_t>(r_condition_array.size()).for_each([&](std::size_t i) {
         (it_cond_begin + i)->SetId(i + 1);
+    });
 
     auto& r_constraint_array = rThisModelPart.MasterSlaveConstraints();
     const auto it_const_begin = r_constraint_array.begin();
-    for(IndexType i = 0; i < r_constraint_array.size(); ++i)
+    IndexPartition<std::size_t>(r_constraint_array.size()).for_each([&](std::size_t i) {
         (it_const_begin + i)->SetId(i + 1);
+    });
 
     auto& r_geometries_array = rThisModelPart.Geometries();
     const auto it_geom_begin = r_geometries_array.begin();
-    for(IndexType i = 0; i < r_geometries_array.size(); ++i) {
+    IndexPartition<std::size_t>(r_geometries_array.size()).for_each([&](std::size_t i) {
         auto it_geom = it_geom_begin;
         for (IndexType j = 0; j < i; ++j) it_geom++;
         it_geom->SetId(i + 1);
-    }
+    });
 }
 
 /***********************************************************************************/
