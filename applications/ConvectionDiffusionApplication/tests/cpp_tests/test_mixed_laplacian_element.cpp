@@ -96,8 +96,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement2D3N, KratosConvectionDiffusionFa
 
     p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-    std::vector<double> expected_RHS = {1.0/6.0,-1.0,-1.0,1.0/6.0,1.0,0.0,1.0/6.0,0.0,1.0};
-    std::vector<double> expected_LHS_row_0 = {-2.0,-0.5,-0.5,1.0,-0.5,-0.5,1.0,-0.5,-0.5};
+    std::vector<double> expected_RHS = {1.0/6.0,-0.025,-0.025,1.0/6.0,0.025,0,1.0/6.0,0,0.025};
+    std::vector<double> expected_LHS_row_0 = {0.1,0.183333333,0.183333333,-0.05,0.183333333,0.183333333,-0.05,0.183333333,0.183333333};
     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
     KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
 }
@@ -131,8 +131,8 @@ KRATOS_TEST_CASE_IN_SUITE(MixedLaplacianElement3D4N, KratosConvectionDiffusionFa
 
     p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-    std::vector<double> expected_RHS = {-0.291666666,-0.333333333,-0.333333333,-0.458333333,0.041666666,0.333333333,0.0,-0.125,0.041666666,0.0,0.333333333,-0.125,0.375,0.0,0.0,0.208333333};
-    std::vector<double> expected_LHS_row_0 = {-1,-0.125,-0.125,-0.125,0.333333333,-0.125,-0.125,-0.125,0.333333333,-0.125,-0.125,-0.125,0.333333333,-0.125,-0.125,-0.125};
+    std::vector<double> expected_RHS = {0.0458333333, -0.0050475572, -0.0050475572, -0.0233808907, 0.0416666667, 0.0050475572, 0, -0.00916666662, 0.0416666667, 0, 0.0050475572, -0.00916666662, 0.0375, 0, 0, -0.00411910942};
+    std::vector<double> expected_LHS_row_0 = {0.05, 0.0458333333, 0.0458333333, 0.0458333333, -0.0166666667, 0.0458333333, 0.0458333333, 0.0458333333, -0.0166666667, 0.0458333333, 0.0458333333, 0.0458333333, -0.0166666667, 0.0458333333, 0.0458333333, 0.0458333333};
     KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-8)
     KRATOS_CHECK_VECTOR_NEAR(row(LHS,0), expected_LHS_row_0, 1.0e-8)
 }

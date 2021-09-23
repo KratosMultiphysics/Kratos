@@ -154,8 +154,8 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
 
         // Calculate stabilization constants
         const double h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(r_geometry);
-        const double tau_temp = 2.0*std::pow(h,2)/k_g;
-        const double tau_grad = 1.0;
+        const double tau_temp = 0.1*std::pow(h,2)/k_g;
+        const double tau_grad = 0.1;
 
         // Calculating the local RHS
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -176,12 +176,12 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
                 const double aux_3 = w_g * (1+tau_grad) * aux_N(i_node) * aux_N(j_node);
                 for (std::size_t d = 0; d < TDim; ++d) {
 
-                    rRightHandSideVector(i_node*BlockSize) -= aux_1 * aux_grad_N_i(d) * grad_temp_j(d);
-                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize + d + 1) += aux_1 * aux_grad_N_i(d);
+                    rRightHandSideVector(i_node*BlockSize) += aux_1 * aux_grad_N_i(d) * grad_temp_j(d);
+                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize + d + 1) -= aux_1 * aux_grad_N_i(d);
 
                     const double aux_2 = w_g * tau_grad * k_g * aux_grad_N_i(d) * aux_grad_N_j(d);
-                    rRightHandSideVector(i_node*BlockSize) += aux_2 * temp_j;
-                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize) -= aux_2;
+                    rRightHandSideVector(i_node*BlockSize) -= aux_2 * temp_j;
+                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize) += aux_2;
 
                     rRightHandSideVector(i_node*BlockSize + d + 1) += aux_3 * grad_temp_j(d);
                     rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d + 1) -= aux_3;
