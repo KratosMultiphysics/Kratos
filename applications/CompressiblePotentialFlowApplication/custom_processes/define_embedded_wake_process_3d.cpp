@@ -13,6 +13,7 @@
 
 #include "define_embedded_wake_process_3d.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
+#include "processes/calculate_distance_to_skin_process.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_utilities/potential_flow_utilities.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
@@ -50,20 +51,21 @@ void DefineEmbeddedWakeProcess3D::Execute()
 
         auto angle_in_deg = -1*mrModelPart.GetProcessInfo()[ROTATION_ANGLE];
         auto wake_origin = mrModelPart.GetProcessInfo()[WAKE_ORIGIN];
-        BoundedVector<double, 3> wake_direction;
+        BoundedVector<double, 3> wake_normal;
         // wake_direction[0] = cos(angle_in_deg*Globals::Pi/180);
         // wake_direction[1] = sin(angle_in_deg*Globals::Pi/180);
         // wake_direction[2] = 0.0;
-        wake_direction[0] = sin(angle_in_deg*Globals::Pi/180);
-        wake_direction[1] = 0.0;
-        wake_direction[2] = -cos(angle_in_deg*Globals::Pi/180);
+        wake_normal[0] = sin(angle_in_deg*Globals::Pi/180);
+        wake_normal[1] = 0.0;
+        wake_normal[2] = -cos(angle_in_deg*Globals::Pi/180);
         if (is_embedded && it_elem->Is(ACTIVE)) {
 
+            // INNER UNIT NORMAL (points inside volume)
             BoundedVector<double, 3> unit_normal = it_elem->GetValue(VELOCITY_LOWER);
             // it_elem->SetValue(VELOCITY_LOWER, unit_normal);
-            double projection = inner_prod(unit_normal, wake_direction);
+            double projection = inner_prod(unit_normal, wake_normal);
 
-            it_elem->SetValue(TEMPERATURE, unit_normal[0]*unit_normal[2]); //multiply projection to x-axis and z-axis
+            it_elem->SetValue(TEMPERATURE, std::abs(unit_normal[1])); //multiply projection to x-axis and z-axis
 
             double side_limit = 0.001;
             if (projection > side_limit) {
@@ -99,56 +101,39 @@ void DefineEmbeddedWakeProcess3D::Execute()
         }
 
         bool is_struct = r_elem.Is(STRUCTURE);
+        double y_projection = r_elem.GetValue(TEMPERATURE);
         if (is_struct){
-            if ((is_upper && is_lower) or is_wake) {
-                for (auto& r_node : r_geometry) {
-                    r_node.SetValue(KUTTA, true);
+            if (y_projection < 0.99999) {
+                if ((is_upper && is_lower) or is_wake) {
+                    for (auto& r_node : r_geometry) {
+                        r_node.SetValue(KUTTA, true);
+                    }
+                } else {
+                    r_elem.Set(STRUCTURE, false);
+                    // r_elem.Set(MARKER, true);
+                    r_elem.SetValue(WAKE, false);
+                    auto& wake_elemental_distances = r_elem.GetValue(WAKE_ELEMENTAL_DISTANCES);
+                    if (is_upper) {
+                        r_elem.SetValue(KUTTA, true);
+                        for (IndexType i=0; i<r_geometry.size(); i++) {
+                            if (wake_elemental_distances[i] < 0.0) {
+                                r_geometry[i].SetValue(TRAILING_EDGE, true);
+                            }
+                        }
+                    }
+                    if (is_lower) {
+                        r_elem.SetValue(KUTTA, true);
+                        for (IndexType i=0; i<r_geometry.size(); i++) {
+                            if (wake_elemental_distances[i] > 0.0) {
+                                r_geometry[i].SetValue(TRAILING_EDGE, true);
+                            }
+                        }
+                    }
                 }
             } else {
                 r_elem.Set(STRUCTURE, false);
-                // r_elem.Set(MARKER, true);
                 r_elem.SetValue(WAKE, false);
-                if (is_upper) {
-                    r_elem.SetValue(KUTTA, true);
-                    for (auto& r_node : r_geometry) {
-                        if (r_node.GetValue(WAKE_DISTANCE) < 0.0) {
-                            r_node.SetValue(TRAILING_EDGE, true);
-                        }
-                    }
-                }
-                if (is_lower) {
-                    r_elem.SetValue(KUTTA, true);
-                    for (auto& r_node : r_geometry) {
-                        if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
-                            r_node.SetValue(TRAILING_EDGE, true);
-                        }
-                    }
-                }
             }
-        } else {
-            // bool is_x = r_elem.GetGeometry().Center().X() > 0.0;
-            // if (is_upper && is_lower) {
-            //     bool is_neighbour = false;
-            //     for (auto& r_node : r_geometry) {
-            //         for (auto& r_elem_neigh : r_node.GetValue(NEIGHBOUR_ELEMENTS)) {
-            //             if (r_elem_neigh.Is(STRUCTURE)) {
-            //                 is_neighbour = true;
-            //                 break;
-            //             }
-            //         }
-            //     }
-            //     // if (is_neighbour) {
-            //     //     // r_elem.Set(MARKER, true);
-            //     //     // r_elem.SetValue(WAKE, false);
-            //     //     // r_elem.Set(STRUCTURE, false);
-            //     //     // r_elem.SetValue(KUTTA, true);
-            //     //     // for (auto& r_node : r_geometry) {
-            //     //     //     if (r_node.GetValue(WAKE_DISTANCE) > 0.0) {
-            //     //     //         r_node.SetValue(TRAILING_EDGE, true);
-            //     //     //     }
-            //     //     // }
-            //     // }
-            // }
         }
     }
 
@@ -393,6 +378,11 @@ void DefineEmbeddedWakeProcess3D::MarkWakeElements(){
             rElem.SetValue(VELOCITY_LOWER,unit_normal);
         }
 
+        if (rElem.Id()==2899496) {
+            KRATOS_WATCH(nodal_distances_to_wake)
+            KRATOS_WATCH(rElem.Is(TO_SPLIT))
+
+        }
         // Mark wake element and save their nodal distances to the wake
         if (is_wake_element && rElem.Is(ACTIVE)) {
             rElem.SetValue(WAKE, true);

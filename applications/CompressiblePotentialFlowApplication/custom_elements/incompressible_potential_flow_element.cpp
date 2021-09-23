@@ -189,6 +189,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPo
     {
         rValues[0] = rCurrentProcessInfo[FREE_STREAM_DENSITY];
     }
+    else if (rVariable == TEMPERATURE)
+    {
+        rValues[0] = this->GetValue(TEMPERATURE);
+    }
     else if (rVariable == MACH)
     {
         array_1d<double, Dim> velocity = PotentialFlowUtilities::ComputeVelocity<Dim, NumNodes>(*this);
@@ -250,6 +254,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateOnIntegrationPo
         for (unsigned int k = 0; k < Dim; k++)
             v[k] = vaux[k] - free_stream_velocity[k];
         rValues[0] = v;
+    }
+    else if (rVariable == VELOCITY_LOWER)
+    {
+        rValues[0] = this->GetValue(VELOCITY_LOWER);
     }
 }
 
