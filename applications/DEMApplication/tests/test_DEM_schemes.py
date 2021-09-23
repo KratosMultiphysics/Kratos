@@ -96,7 +96,6 @@ class DEM3D_ForwardEulerTestSolution(KratosMultiphysics.DEMApplication.DEM_analy
             if node.Id == 1:
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.1)
 
-
         self.rigid_face_model_part.CreateNewNode(3, -5, 5, -1.008)
         self.rigid_face_model_part.CreateNewNode(4, 5, 5, -1.008)
 
