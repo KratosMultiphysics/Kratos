@@ -76,24 +76,24 @@ namespace Kratos
             process.Execute();
 
             std::size_t count = 0;
+            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfNodes(), r_destination_model_part.NumberOfNodes());
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
                 KRATOS_CHECK_EQUAL(r_node.Id(), r_destination_model_part.GetNode(count).Id());
             }
 
-            // count = 0;
-            // for (auto& r_geo : r_origin_model_part.Geometries()) {
-            //     ++count;
-            //     KRATOS_CHECK_EQUAL(r_geo.Id(), r_destination_model_part.GetGeometry(count).Id());
-            // }
+            // Number of geometries (not ordered)
+            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfGeometries(), r_destination_model_part.NumberOfGeometries());
 
             count = 0;
+            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfElements(), r_destination_model_part.NumberOfElements());
             for (auto& r_elem : r_origin_model_part.Elements()) {
                 ++count;
                 KRATOS_CHECK_EQUAL(r_elem.Id(), r_destination_model_part.GetElement(count).Id());
             }
 
             count = 0;
+            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfConditions(), r_destination_model_part.NumberOfConditions());
             for (auto& r_cond : r_origin_model_part.Conditions()) {
                 ++count;
                 KRATOS_CHECK_EQUAL(r_cond.Id(), r_destination_model_part.GetCondition(count).Id());
