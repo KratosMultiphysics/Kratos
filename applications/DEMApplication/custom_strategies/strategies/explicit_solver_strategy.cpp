@@ -1348,12 +1348,13 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance, const double amplification) {
+    void ExplicitSolverStrategy::SetSearchRadiiOnAllParticles(ModelPart& r_model_part, double added_search_distance, const double amplification) {
 
         KRATOS_TRY
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
+            mListOfSphericParticles[i]->ComputeAddedSearchDistance(r_model_part.GetProcessInfo(), added_search_distance);
             mListOfSphericParticles[i]->SetSearchRadius(amplification * (added_search_distance + mListOfSphericParticles[i]->GetRadius()));
         });
 

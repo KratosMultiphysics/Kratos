@@ -89,6 +89,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Auxiliary computation methods
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
+  void ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
   double IntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b);
   double SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b, double tol, double fa, double fb, double fc);
   double EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double r);

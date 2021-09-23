@@ -748,6 +748,30 @@ namespace Kratos
   }
 
   template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
+    KRATOS_TRY
+
+    if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)){
+      std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
+      if (model.compare("surrounding_layer") == 0) {
+        double model_search_distance = GetRadius() * r_process_info[FLUID_LAYER_THICKNESS];
+        added_search_distance = std::max(added_search_distance, model_search_distance);
+      }
+    }
+
+    if (this->Is(DEMFlags::HAS_RADIATION)) {
+      std::string model = r_process_info[RADIATION_MODEL];
+      if (model.compare("sphere_hanz_marshall") == 0 ||
+          model.compare("sphere_whitaker") == 0) {
+        double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS_FACTOR] - 1);
+        added_search_distance = std::max(added_search_distance, model_search_distance);
+      }
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
   double ThermalSphericParticle<TBaseElement>::IntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b) {
     KRATOS_TRY
 

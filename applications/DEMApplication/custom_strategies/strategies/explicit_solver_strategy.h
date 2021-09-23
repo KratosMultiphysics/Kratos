@@ -243,7 +243,7 @@ namespace Kratos {
         void ResetPrescribedMotionFlagsRespectingImposedDofs();
         void ApplyPrescribedBoundaryConditions();
         void ApplyInitialConditions();
-        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
+        void SetSearchRadiiOnAllParticles(ModelPart& r_model_part, double added_search_distance = 0.0, const double amplification = 1.0);
         void SetNormalRadiiOnAllParticles(ModelPart& r_model_part);
         void SetSearchRadiiWithFemOnAllParticles(ModelPart& r_model_part, const double added_search_distance = 0.0, const double amplification = 1.0);
         virtual void SearchNeighbours();
