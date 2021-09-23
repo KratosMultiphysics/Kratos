@@ -729,8 +729,6 @@ class Procedures():
     def RemoveFoldersWithResults(self, main_path, problem_name, run_code=''):
         shutil.rmtree(os.path.join(main_path, problem_name + '_Post_Files' + run_code), ignore_errors=True)
         shutil.rmtree(os.path.join(main_path, problem_name + '_Graphs'), ignore_errors=True)
-        shutil.rmtree(os.path.join(main_path, problem_name + '_Results_and_Data'), ignore_errors=True)
-        shutil.rmtree(os.path.join(main_path, problem_name + '_MPI_results'), ignore_errors=True)
 
         try:
             file_to_remove = os.path.join(main_path, problem_name)+"DEM.time"
@@ -773,18 +771,16 @@ class Procedures():
 
         root = os.path.join(main_path, problem_name)
         post_path = root + '_Post_Files' + run_code
-        data_and_results = root + '_Results_and_Data'
         graphs_path = root + '_Graphs'
-        MPI_results = root + '_MPI_results'
 
         self.RemoveFoldersWithResults(main_path, problem_name, run_code)
 
         if do_print_results:
-            for directory in [post_path, data_and_results, graphs_path, MPI_results]:
+            for directory in [post_path, graphs_path]:
                 if not os.path.isdir(directory):
                     os.makedirs(str(directory))
 
-        return [post_path, data_and_results, graphs_path, MPI_results]
+        return [post_path, graphs_path]
 
     @classmethod
     def FindMaxNodeIdInModelPart(self, model_part):

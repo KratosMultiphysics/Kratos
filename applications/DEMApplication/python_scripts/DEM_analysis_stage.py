@@ -91,7 +91,7 @@ class DEMAnalysisStage(AnalysisStage):
         # Creating necessary directories:
         self.problem_name = self.GetProblemTypeFileName()
 
-        [self.post_path, self.data_and_results, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)[:-1]
+        [self.post_path, self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)
 
         # Prepare modelparts
         self.CreateModelParts()
