@@ -237,10 +237,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
-
+    auto& r_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
     const auto& r_unknown_var = r_settings.GetUnknownVariable();
     const auto& r_gradient_var = r_settings.GetGradientVariable();
 
@@ -272,10 +269,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::GetDofList(
     DofsVectorType& rElementalDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
-    const ProcessInfo& r_process_info = rCurrentProcessInfo;
-    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
-    auto& r_settings = *p_settings;
-
+    auto& r_settings = *(rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
     const auto& r_unknown_var = r_settings.GetUnknownVariable();
     const auto& r_gradient_var = r_settings.GetGradientVariable();
 
