@@ -519,11 +519,9 @@ public:
         return GetMesh(ThisIndex).NodesArray();
     }
 
-    template<class TDataType>
-    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    void AddNodalSolutionStepVariable(VariableData const& ThisVariable)
     {
-        if (!HasNodalSolutionStepVariable(ThisVariable))
-        {
+        if (!HasNodalSolutionStepVariable(ThisVariable)) {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
                 << "Attempting to add the variable \"" << ThisVariable.Name()
@@ -533,8 +531,7 @@ public:
         }
     }
 
-    template<class TDataType>
-    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    bool HasNodalSolutionStepVariable(VariableData const& ThisVariable) const
     {
         return mpVariablesList->Has(ThisVariable);
     }
