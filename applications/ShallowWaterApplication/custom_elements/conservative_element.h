@@ -10,8 +10,8 @@
 //  Main authors:    Miguel Maso Sotomayor
 //
 
-#ifndef KRATOS_CRANK_NICOLSON_WAVE_ELEMENT_H_INCLUDED
-#define KRATOS_CRANK_NICOLSON_WAVE_ELEMENT_H_INCLUDED
+#ifndef KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
+#define KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -48,7 +48,7 @@ namespace Kratos
 
 ///@brief Implementation of a linear element for shallow water problems
 template<std::size_t TNumNodes>
-class CrankNicolsonWaveElement : public WaveElement<TNumNodes>
+class ConservativeElement : public WaveElement<TNumNodes>
 {
 public:
     ///@name Type Definitions
@@ -62,25 +62,21 @@ public:
 
     typedef WaveElement<TNumNodes> WaveElementType;
 
-    typedef typename WaveElementType::MatrixType MatrixType;
-
-    typedef typename WaveElementType::VectorType VectorType;
-
     typedef typename WaveElementType::NodesArrayType NodesArrayType;
 
     typedef typename WaveElementType::PropertiesType PropertiesType;
+
+    typedef typename WaveElementType::ElementData ElementData;
 
     typedef typename WaveElementType::LocalMatrixType LocalMatrixType;
 
     typedef typename WaveElementType::LocalVectorType LocalVectorType;
 
-    typedef typename WaveElementType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-
     ///@}
     ///@name Pointer definition
     ///@{
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(CrankNicolsonWaveElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ConservativeElement);
 
     ///@}
     ///@name Life Cycle
@@ -89,27 +85,27 @@ public:
     /**
      * @brief Default constructor
      */
-    CrankNicolsonWaveElement() : WaveElementType(){}
+    ConservativeElement() : WaveElementType(){}
 
     /**
      * @brief Constructor using an array of nodes
      */
-    CrankNicolsonWaveElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
+    ConservativeElement(IndexType NewId, const NodesArrayType& ThisNodes) : WaveElementType(NewId, ThisNodes){}
 
     /**
      * @brief Constructor using Geometry
      */
-    CrankNicolsonWaveElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
+    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry) : WaveElementType(NewId, pGeometry){}
 
     /**
      * @brief Constructor using Geometry and Properties
      */
-    CrankNicolsonWaveElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
+    ConservativeElement(IndexType NewId, GeometryType::Pointer pGeometry, typename PropertiesType::Pointer pProperties) : WaveElementType(NewId, pGeometry, pProperties){}
 
     /**
      * @brief Destructor
      */
-    ~ CrankNicolsonWaveElement() override {};
+    ~ ConservativeElement() override {};
 
     ///@}
     ///@name Operations
@@ -124,7 +120,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<CrankNicolsonWaveElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /**
@@ -136,7 +132,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, typename PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_intrusive<CrankNicolsonWaveElement<TNumNodes>>(NewId, pGeom, pProperties);
+        return Kratos::make_intrusive<ConservativeElement<TNumNodes>>(NewId, pGeom, pProperties);
     }
 
     /**
@@ -153,31 +149,6 @@ public:
         return p_new_elem;
     }
 
-    /**
-     * @brief Calculate the elemental contribution to the problem
-     * @param rLeftHandSideMatrix Elemental left hand side matrix
-     * @param rRightHandSideVector Elemental right hand side vector
-     * @param rCurrentProcessInfo Reference to the ProcessInfo from the ModelPart containing the element
-     */
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * @brief Calculate the elemental mass matrix
-     * @param rMassMatrix the elemental mass matrix
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
@@ -187,8 +158,28 @@ public:
      */
     std::string Info() const override
     {
-        return "CrankNicolsonWaveElement";
+        return "ConservativeElement";
     }
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    static constexpr IndexType mLocalSize = WaveElementType::mLocalSize;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    const Variable<double>& GetUnknownComponent(int Index) const override;
+
+    LocalVectorType GetUnknownVector(ElementData& rData) override;
+
+    void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN) override;
+
+    double StabilizationParameter(const ElementData& rData) const override;
 
     ///@}
 
@@ -220,7 +211,7 @@ private:
 
     ///@}
 
-}; // Class CrankNicolsonWaveElement
+}; // Class ConservativeElement
 
 ///@}
 ///@name Input and output
@@ -233,4 +224,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CRANK_NICOLSON_WAVE_ELEMENT_H_INCLUDED  defined
+#endif // KRATOS_CONSERVATIVE_ELEMENT_H_INCLUDED  defined
