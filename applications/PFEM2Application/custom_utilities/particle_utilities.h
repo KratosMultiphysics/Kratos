@@ -201,7 +201,7 @@ namespace Kratos
 
 			for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin(); node_it != rEulerianModelPart.NodesEnd(); node_it++)
 			{
-				if ((node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE) == true || (node_it)->FastGetSolutionStepValue(IS_WATER) == 1)
+				if (((node_it)->FastGetSolutionStepValue(IS_FREE_SURFACE) == true) || ((node_it)->FastGetSolutionStepValue(IS_WATER) == 1))
 				{ //IS_FREE_SURFACE
 					work_point.X() = node_it->X();
 					work_point.Y() = node_it->Y();
