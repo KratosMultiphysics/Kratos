@@ -23,7 +23,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Wrong solver check
         else:
             err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)
-            err_msg += "Available options are: \"transient\", \"stationary\", \"thermally_coupled\", \"thermo_mechanically_coupled\", \"conjugate_heat_transfer\" and \"adjoint_stationary\""
+            err_msg += "Available options is: \"thermally_coupledpfem2\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
