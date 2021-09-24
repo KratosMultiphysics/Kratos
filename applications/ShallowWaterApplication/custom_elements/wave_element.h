@@ -313,9 +313,10 @@ protected:
 
     virtual void CalculateGaussPointData(ElementData& rData, const array_1d<double,TNumNodes>& rN);
 
-    virtual void CalculateArtificialViscosityData(
-        ElementData& rData,
-        const array_1d<double,TNumNodes>& rN,
+    virtual void CalculateArtificialViscosity(
+        BoundedMatrix<double,3,3>& rViscosity,
+        BoundedMatrix<double,2,2>& rDiffusion,
+        const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
     void CalculateGeometryData(
