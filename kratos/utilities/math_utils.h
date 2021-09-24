@@ -1097,14 +1097,15 @@ public:
     /**
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
-     * @param rDestination The matric destination
-     * @param rInputMatrix The input matrix to be computed
-     * @param InitialRow The initial row to compute
-     * @param InitialCol The initial column to compute
+     * @param rDestination The matrix destination
+     * @param rInputMatrix The input matrix to be added
+     * @param InitialRow The initial row
+     * @param InitialCol The initial column
      */
-    static inline void  AddMatrix(
-        MatrixType& rDestination,
-        const MatrixType& rInputMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline void AddMatrix(
+        TMatrixType1& rDestination,
+        const TMatrixType2& rInputMatrix,
         const IndexType InitialRow,
         const IndexType InitialCol
         )
@@ -1115,6 +1116,28 @@ public:
             for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
+     * @param rDestination The vector destination
+     * @param rInputVector The input vector to be added
+     * @param InitialIndex The initial index
+     */
+    template<class TVectorType1, class TVectorType2>
+    static inline void AddVector(
+        TVectorType1& rDestination,
+        const TVectorType2& rInputVector,
+        const IndexType InitialIndex
+        )
+    {
+        KRATOS_TRY
+
+        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+            rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
     }
@@ -1856,7 +1879,8 @@ public:
         const TMatrixType1 &rA,
         TMatrixType2 &rMatrixSquareRoot,
         const TDataType Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20)
+        const SizeType MaxIterations = 20
+        )
     {
         // Do an eigenvalue decomposition of the input matrix
         TMatrixType2 eigenvectors_matrix, eigenvalues_matrix;
@@ -1874,6 +1898,57 @@ public:
         BDBtProductOperation(rMatrixSquareRoot, eigenvalues_matrix, eigenvectors_matrix);
 
         return is_converged;
+    }
+
+    /**
+     * @brief Calculates the Factorial of a number k, Factorial = k!
+     * @tparam Number The number of which the Factorial is computed
+     */
+    template<class TIntegerType>
+    static inline TIntegerType Factorial(const TIntegerType Number)
+    {
+        if (Number == 0) {
+            return 1;
+        }
+        TIntegerType k = Number;
+        for (TIntegerType i = Number - 1; i > 0; --i){
+            k *= i;
+        }
+        return k;
+    }
+
+    /**
+     * @brief Calculates the exponential of a matrix
+     * @brief see https://mathworld.wolfram.com/MatrixExponential.html
+     * @tparam rMatrix: the matrix A of which exp is calculated
+     * @tparam rExponentialMatrix: exp(A)
+     */
+    template<class TMatrixType>
+    static inline void CalculateExponentialOfMatrix(
+        const TMatrixType& rMatrix,
+        TMatrixType& rExponentialMatrix,
+        const double Tolerance = 1000.0*ZeroTolerance,
+        const SizeType MaxTerms = 200
+        )
+    {
+        SizeType series_term = 2;
+        SizeType factorial = 1;
+        const SizeType dimension = rMatrix.size1();
+
+        noalias(rExponentialMatrix) = IdentityMatrix(dimension) + rMatrix;
+        TMatrixType exponent_matrix = rMatrix;
+        TMatrixType aux_matrix;
+
+        while (series_term < MaxTerms) {
+            noalias(aux_matrix) = prod(exponent_matrix, rMatrix);
+            noalias(exponent_matrix) = aux_matrix;
+            factorial = Factorial(series_term);
+            noalias(rExponentialMatrix) += exponent_matrix / factorial;
+            const double norm_series_term = std::abs(norm_frobenius(exponent_matrix) / factorial);
+            if (norm_series_term < Tolerance)
+                break;
+            series_term++;
+        }
     }
 
     ///@}

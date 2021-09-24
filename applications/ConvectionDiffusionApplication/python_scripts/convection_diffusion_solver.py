@@ -7,7 +7,6 @@ import KratosMultiphysics.base_convergence_criteria_factory as convergence_crite
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
-import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -84,7 +83,6 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -96,6 +94,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "surface_source_variable"       : "FACE_HEAT_FLUX",
                 "projection_variable"           : "PROJECTED_SCALAR1",
                 "convection_variable"           : "CONVECTION_VELOCITY",
+                "gradient_variable"             : "TEMPERATURE_GRADIENT",
                 "mesh_velocity_variable"        : "MESH_VELOCITY",
                 "transfer_coefficient_variable" : "TRANSFER_COEFFICIENT",
                 "velocity_variable"             : "VELOCITY",
@@ -167,6 +166,9 @@ class ConvectionDiffusionSolver(PythonSolver):
         convection_variable = self.settings["convection_diffusion_variables"]["convection_variable"].GetString()
         if (convection_variable != ""):
             convention_diffusion_settings.SetConvectionVariable(KratosMultiphysics.KratosGlobals.GetVariable(convection_variable))
+        gradient_variable = self.settings["convection_diffusion_variables"]["gradient_variable"].GetString()
+        if gradient_variable != "":
+            convention_diffusion_settings.SetGradientVariable(KratosMultiphysics.KratosGlobals.GetVariable(gradient_variable))
         mesh_velocity_variable = self.settings["convection_diffusion_variables"]["mesh_velocity_variable"].GetString()
         if (mesh_velocity_variable != ""):
             convention_diffusion_settings.SetMeshVelocityVariable(KratosMultiphysics.KratosGlobals.GetVariable(mesh_velocity_variable))
@@ -200,6 +202,8 @@ class ConvectionDiffusionSolver(PythonSolver):
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetProjectionVariable())
             if convention_diffusion_settings.IsDefinedConvectionVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetConvectionVariable())
+            if convention_diffusion_settings.IsDefinedGradientVariable():
+                target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetGradientVariable())
             if convention_diffusion_settings.IsDefinedMeshVelocityVariable():
                 target_model_part.AddNodalSolutionStepVariable(convention_diffusion_settings.GetMeshVelocityVariable())
             if convention_diffusion_settings.IsDefinedTransferCoefficientVariable():
@@ -239,8 +243,12 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.is_restarted():
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
+            # Import material properties
+            materials_imported = self.import_materials()
+            if materials_imported:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
@@ -265,7 +273,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         if not self.is_restarted():
             convection_diffusion_solution_strategy.Initialize()
         else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
+            # SetInitializePerformedFlag is not a member of ImplicitSolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
                 convection_diffusion_solution_strategy.SetInitializePerformedFlag(True)
@@ -308,7 +316,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -414,6 +422,9 @@ class ConvectionDiffusionSolver(PythonSolver):
         if (thermal_settings.IsDefinedConvectionVariable()):
             if (thermal_settings.GetConvectionVariable() == var):
                 return True
+        if thermal_settings.IsDefinedGradientVariable():
+            if thermal_settings.GetGradientVariable() == var:
+                return True
         if (thermal_settings.IsDefinedTransferCoefficientVariable()):
             if (thermal_settings.GetTransferCoefficientVariable() == var):
                 return True
@@ -422,23 +433,6 @@ class ConvectionDiffusionSolver(PythonSolver):
                 return True
         else:
             return False
-
-    def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws."""
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
-
-        # Import constitutive laws.
-        materials_imported = self.import_materials()
-        if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
-        else:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information."""
@@ -616,6 +610,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "surface_source_variable", default_conv_diff_variables["surface_source_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "projection_variable", default_conv_diff_variables["projection_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "convection_variable", default_conv_diff_variables["convection_variable"].GetString())
+            self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "gradient_variable", default_conv_diff_variables["gradient_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "mesh_velocity_variable", default_conv_diff_variables["mesh_velocity_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "transfer_coefficient_variable", default_conv_diff_variables["transfer_coefficient_variable"].GetString())
             self._ConvectionDiffusionSingleVariableCheck(custom_conv_diff_variables, "velocity_variable", default_conv_diff_variables["velocity_variable"].GetString())

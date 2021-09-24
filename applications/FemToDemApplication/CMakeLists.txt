@@ -7,6 +7,7 @@ kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 ################### PYBIND11
 include(pybind11Tools)
@@ -18,6 +19,7 @@ include_directories(${KRATOS_SOURCE_DIR}/applications/PfemFluidDynamicsApplicati
 include_directories(${KRATOS_SOURCE_DIR}/applications/DelaunayMeshingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/DemStructuresCouplingApplication)
 include_directories(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+include_directories(${KRATOS_SOURCE_DIR}/applications/ConstitutiveLawsApplication)
 
 # generate variables with the sources
 set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
@@ -68,8 +70,13 @@ set( KRATOS_FEM_TO_DEM_APPLICATION_SOURCES
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFemToDemApplication MODULE ${KRATOS_FEM_TO_DEM_APPLICATION_SOURCES})
 
-target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore)
+target_link_libraries(KratosFemToDemApplication PRIVATE KratosStructuralMechanicsCore KratosDEMCore KratosMeshingCore KratosCore KratosPfemFluidDynamicsCore KratosConstitutiveLawsCore)
 set_target_properties(KratosFemToDemApplication PROPERTIES PREFIX "")
+
+# Set batch size in the unity build
+IF(CMAKE_UNITY_BUILD MATCHES ON)
+    set_target_properties(KratosFemToDemApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
+ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -80,11 +87,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set_target_properties(KratosFemToDemApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-# Cotire
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosFemToDemApplication)
-endif(USE_COTIRE MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/FemToDemApplication.py KratosMultiphysics/FemToDemApplication/__init__.py )
@@ -107,3 +109,6 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosFemToDemApplication DESTINATION libs )
+
+# Define custom targets
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosFemToDemApplication" PARENT_SCOPE)

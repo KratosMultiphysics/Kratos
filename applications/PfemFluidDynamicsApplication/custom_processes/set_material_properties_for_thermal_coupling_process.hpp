@@ -95,7 +95,6 @@ namespace Kratos
 
           // Loop over incident elements
           ElementWeakPtrVectorType& neighbour_elements = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-          int nel = neighbour_elements.size();
           int n = 0;
 
           for (auto& i_nelem : neighbour_elements) {

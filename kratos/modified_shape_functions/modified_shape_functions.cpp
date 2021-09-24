@@ -69,6 +69,382 @@ namespace Kratos
         return mNodalDistances;
     };
 
+    double ModifiedShapeFunctions::ComputePositiveSideDomainSize() const
+    {
+        auto p_splitting_util = this->pGetSplittingUtil();
+        KRATOS_ERROR_IF_NOT(this->IsSplit()) << "Calling \'ComputePositiveSideVolume\' with a non-intersected geometry." << std::endl;
+        return ComputeDomainSizeOnOneSide(p_splitting_util->GetPositiveSubdivisions());
+    };
+
+    double ModifiedShapeFunctions::ComputeNegativeSideDomainSize() const
+    {
+        auto p_splitting_util = this->pGetSplittingUtil();
+        KRATOS_ERROR_IF_NOT(this->IsSplit()) << "Calling \'ComputeNegativeSideVolume\' with a non-intersected geometry." << std::endl;
+        return ComputeDomainSizeOnOneSide(p_splitting_util->GetNegativeSubdivisions());
+    };
+
+    void ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndWeights(
+        Matrix &rPositiveSideShapeFunctionsValues,
+        Vector &rPositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the intersection points condensation matrix
+            Matrix p_matrix;
+            SetPositiveSideCondensationMatrix(p_matrix);
+
+            // Compute the positive side values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeValuesOnOneSide(
+                rPositiveSideShapeFunctionsValues,
+                rPositiveSideWeightsValues,
+                r_splitting_util.GetPositiveSubdivisions(),
+                p_matrix,
+                IntegrationMethod);
+
+        } else {
+            KRATOS_ERROR << "Using the \'ComputePositiveSideShapeFunctionsAndWeights\' method for a non divided geometry.";
+        }
+    };
+
+    void ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndWeights(
+        Matrix &rNegativeSideShapeFunctionsValues,
+        Vector &rNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the intersection points condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Compute the negative side values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeValuesOnOneSide(
+                rNegativeSideShapeFunctionsValues,
+                rNegativeSideWeightsValues,
+                r_splitting_util.GetNegativeSubdivisions(),
+                p_matrix,
+                IntegrationMethod);
+
+        } else {
+            KRATOS_ERROR << "Using the \'ComputeNegativeSideShapeFunctionsAndWeights\' method for a non divided geometry.";
+        }
+    }
+
+    // Internally computes the splitting pattern and returns all the shape function values for the positive side.
+    void ModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
+        Vector &rPositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the intersection points condensation matrix
+            Matrix p_matrix;
+            SetPositiveSideCondensationMatrix(p_matrix);
+
+            // Compute the positive side values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeValuesOnOneSide(
+                rPositiveSideShapeFunctionsValues,
+                rPositiveSideShapeFunctionsGradientsValues,
+                rPositiveSideWeightsValues,
+                r_splitting_util.GetPositiveSubdivisions(),
+                p_matrix,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the \'ComputePositiveSideShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Internally computes the splitting pattern and returns all the shape function values for the negative side.
+    void ModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rNegativeSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
+        Vector &rNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the intersection points condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Compute the negative side values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeValuesOnOneSide(
+                rNegativeSideShapeFunctionsValues,
+                rNegativeSideShapeFunctionsGradientsValues,
+                rNegativeSideWeightsValues,
+                r_splitting_util.GetNegativeSubdivisions(),
+                p_matrix,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the \'ComputeNegativeSideShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
+    void ModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+        Matrix &rInterfacePositiveSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
+        Vector &rInterfacePositiveSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the interface condensation matrix
+            Matrix p_matrix;
+            SetPositiveSideCondensationMatrix(p_matrix);
+
+            // Compute the positive side interface values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeFaceValuesOnOneSide(
+                rInterfacePositiveSideShapeFunctionsValues,
+                rInterfacePositiveSideShapeFunctionsGradientsValues,
+                rInterfacePositiveSideWeightsValues,
+                r_splitting_util.GetPositiveInterfaces(),
+                r_splitting_util.GetPositiveSubdivisions(),
+                r_splitting_util.GetPositiveInterfacesParentIds(),
+                p_matrix,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the \'ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
+    void ModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
+        Matrix &rInterfaceNegativeSideShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+        Vector &rInterfaceNegativeSideWeightsValues,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the interface condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Compute the positive side interface values
+            const auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeFaceValuesOnOneSide(
+                rInterfaceNegativeSideShapeFunctionsValues,
+                rInterfaceNegativeSideShapeFunctionsGradientsValues,
+                rInterfaceNegativeSideWeightsValues,
+                r_splitting_util.GetNegativeInterfaces(),
+                r_splitting_util.GetNegativeSubdivisions(),
+                r_splitting_util.GetNegativeInterfacesParentIds(),
+                p_matrix,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the \'ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Given a face id, computes the positive side subdivision shape function values in that face.
+    void ModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rPositiveExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rPositiveExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the condensation matrix
+            Matrix p_matrix;
+            SetPositiveSideCondensationMatrix(p_matrix);
+
+            // Get the external faces
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            std::vector < unsigned int > exterior_faces_parent_ids_vector;
+            std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+            r_splitting_util.GenerateExteriorFaces(
+                exterior_faces_vector,
+                exterior_faces_parent_ids_vector,
+                r_splitting_util.GetPositiveSubdivisions(),
+                FaceId);
+
+            // Compute the positive side external face values
+            this->ComputeFaceValuesOnOneSide(
+                rPositiveExteriorFaceShapeFunctionsValues,
+                rPositiveExteriorFaceShapeFunctionsGradientsValues,
+                rPositiveExteriorFaceWeightsValues,
+                exterior_faces_vector,
+                r_splitting_util.GetPositiveSubdivisions(),
+                exterior_faces_parent_ids_vector,
+                p_matrix,
+                IntegrationMethod);
+
+        } else {
+            KRATOS_ERROR << "Using the \'ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Given a face id, computes the positive side subdivision shape function values in that face.
+    void ModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+        Matrix &rNegativeExteriorFaceShapeFunctionsValues,
+        ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
+        Vector &rNegativeExteriorFaceWeightsValues,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Get the external faces
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            std::vector < unsigned int > exterior_faces_parent_ids_vector;
+            std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+            r_splitting_util.GenerateExteriorFaces(
+                exterior_faces_vector,
+                exterior_faces_parent_ids_vector,
+                r_splitting_util.GetNegativeSubdivisions(),
+                FaceId);
+
+            // Compute the positive side external face values
+            this->ComputeFaceValuesOnOneSide(
+                rNegativeExteriorFaceShapeFunctionsValues,
+                rNegativeExteriorFaceShapeFunctionsGradientsValues,
+                rNegativeExteriorFaceWeightsValues,
+                exterior_faces_vector,
+                r_splitting_util.GetNegativeSubdivisions(),
+                exterior_faces_parent_ids_vector,
+                p_matrix,
+                IntegrationMethod);
+
+        } else {
+            KRATOS_ERROR << "Using the \'ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues\' method for a non divided geometry.";
+        }
+    };
+
+    // Compute the positive side interface outwards area normal vector values.
+    void ModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
+        AreaNormalsContainerType& rPositiveSideInterfaceAreaNormal,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Compute the positive side interface outwars area normal values
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeFaceNormalOnOneSide(
+                rPositiveSideInterfaceAreaNormal,
+                r_splitting_util.GetPositiveInterfaces(),
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the \'ComputePositiveSideInterfaceAreaNormals\' method for a non divided geometry.";
+        }
+    };
+
+    // Compute the positive side interface outwards area normal vector values.
+    void ModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaNormals(
+        AreaNormalsContainerType& rNegativeSideInterfaceAreaNormal,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Compute the positive side interface outwars area normal values
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            this->ComputeFaceNormalOnOneSide(
+                rNegativeSideInterfaceAreaNormal,
+                r_splitting_util.GetNegativeInterfaces(),
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
+        }
+    };
+
+    // For a given face, computes the positive side face outwards area normal vector values.
+    void ModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
+        AreaNormalsContainerType& rPositiveExteriorFaceAreaNormal,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the external faces
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            std::vector<unsigned int> exterior_faces_parent_ids_vector;
+            std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+            r_splitting_util.GenerateExteriorFaces(
+                exterior_faces_vector,
+                exterior_faces_parent_ids_vector,
+                r_splitting_util.GetPositiveSubdivisions(),
+                FaceId);
+
+            // Compute the positive side interface outwars area normal values
+            this->ComputeFaceNormalOnOneSide(
+                rPositiveExteriorFaceAreaNormal,
+                exterior_faces_vector,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the ComputePositiveExteriorFaceAreaNormals method for a non divided geometry.";
+        }
+    };
+
+    // For a given face, computes the positive side face outwards area normal vector values.
+    void ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
+        AreaNormalsContainerType& rNegativeExteriorFaceAreaNormal,
+        const unsigned int FaceId,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        if (this->IsSplit()) {
+            // Get the external faces
+            auto& r_splitting_util = *(pGetSplittingUtil());
+            std::vector<unsigned int> exterior_faces_parent_ids_vector;
+            std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+            r_splitting_util.GenerateExteriorFaces(
+                exterior_faces_vector,
+                exterior_faces_parent_ids_vector,
+                r_splitting_util.GetNegativeSubdivisions(),
+                FaceId);
+
+            // Compute the positive side interface outwars area normal values
+            this->ComputeFaceNormalOnOneSide(
+                rNegativeExteriorFaceAreaNormal,
+                exterior_faces_vector,
+                IntegrationMethod);
+        } else {
+            KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceAreaNormals method for a non divided geometry.";
+        }
+    };
+
+    // Computes the positive side shape function values in the edges intersections
+    void ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeIntersections(Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues)
+    {
+        if (this->IsSplit()) {
+            // Get the interface condensation matrix
+            Matrix p_matrix;
+            SetPositiveSideCondensationMatrix(p_matrix);
+
+            // Compute the edge intersections shape function values
+            this->ComputeEdgeIntersectionValuesOnOneSide(
+                p_matrix,
+                rPositiveEdgeIntersectionsShapeFunctionsValues);
+
+        } else {
+            KRATOS_ERROR << "Using the ComputeShapeFunctionsOnPositiveEdgeIntersections method for a non divided geometry.";
+        }
+    };
+
+    // Computes the negative side shape function values in the edges intersections
+    void ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues)
+    {
+        if (this->IsSplit()) {
+            // Get the interface condensation matrix
+            Matrix p_matrix;
+            SetNegativeSideCondensationMatrix(p_matrix);
+
+            // Compute the edge intersections shape function values
+            this->ComputeEdgeIntersectionValuesOnOneSide(
+                p_matrix,
+                rNegativeEdgeIntersectionsShapeFunctionsValues);
+        } else {
+            KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
+        }
+    };
+
+    bool ModifiedShapeFunctions::IsSplit() const
+    {
+        return pGetSplittingUtil()->mIsSplit;
+    }
+
     // Sets the condensation matrix to transform the subdivision values to entire element ones.
     void ModifiedShapeFunctions::SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,
@@ -310,7 +686,7 @@ namespace Kratos
 
     // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
     void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceAreaNormalValues,
+        AreaNormalsContainerType& rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 
@@ -362,5 +738,81 @@ namespace Kratos
             }
         }
     };
+
+    double ModifiedShapeFunctions::ComputeDomainSizeOnOneSide(const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector) const
+    {
+        double volume = 0.0;
+        for (auto& r_subdivision_geom : rSubdivisionsVector) {
+            volume += r_subdivision_geom->DomainSize();
+        }
+        return volume;
+    }
+
+    void ModifiedShapeFunctions::ComputeValuesOnOneSide(
+        Matrix &rShapeFunctionsValues,
+        Vector &rWeightsValues,
+        const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
+        const Matrix &rPmatrix,
+        const IntegrationMethodType IntegrationMethod)
+    {
+        // Set some auxiliar constants
+        const auto& r_input_geometry = *(this->GetInputGeometry());
+        const std::size_t n_edges_global = r_input_geometry.EdgesNumber(); // Number of edges in original geometry
+        const std::size_t n_nodes_global = r_input_geometry.PointsNumber(); // Number of nodes in original geometry
+        const std::size_t split_edges_size = n_edges_global + n_nodes_global; // Split edges vector size
+
+        const std::size_t n_subdivision = rSubdivisionsVector.size(); // Number of positive or negative subdivisions
+        const std::size_t n_nodes = rSubdivisionsVector[0]->PointsNumber(); // Number of nodes per subdivision
+        const std::size_t n_int_pts = rSubdivisionsVector[0]->IntegrationPointsNumber(IntegrationMethod); // Number of Gauss pts. per subdivision
+
+        // Resize the output arrays matrix
+        const std::size_t n_total_int_pts = n_subdivision * n_int_pts;
+
+        if (rShapeFunctionsValues.size1() != n_total_int_pts) {
+            rShapeFunctionsValues.resize(n_total_int_pts, n_nodes, false);
+        } else if (rShapeFunctionsValues.size2() != n_nodes) {
+            rShapeFunctionsValues.resize(n_total_int_pts, n_nodes, false);
+        }
+
+        if (rWeightsValues.size() != n_total_int_pts) {
+            rWeightsValues.resize(n_total_int_pts, false);
+        }
+
+        // Compute each Gauss pt. shape functions values
+        for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+            // Get the subdivision geometry
+            const auto& r_subdivision_geom = *rSubdivisionsVector[i_subdivision];
+
+            // Get the subdivision shape function values
+            const auto subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
+
+            // Get the subdivision Jacobian values on all Gauss pts.
+            Vector subdivision_jacobians_values;
+            r_subdivision_geom.DeterminantOfJacobian(subdivision_jacobians_values, IntegrationMethod);
+
+            // Get the subdivision Gauss pts. (x_coord, y_coord, z_coord, weight)
+            const auto subdivision_gauss_points = r_subdivision_geom.IntegrationPoints(IntegrationMethod);
+
+            // Apply the original nodes condensation
+            Vector sh_func_vect(split_edges_size);
+            Vector condensed_sh_func_values(n_nodes);
+            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
+                const std::size_t i_gauss_gl = i_subdivision*n_int_pts + i_gauss;
+
+                // Store the Gauss pts. weights values
+                rWeightsValues(i_gauss_gl) = subdivision_jacobians_values(i_gauss) * subdivision_gauss_points[i_gauss].Weight();
+
+                // Condense the shape function local values to obtain the original nodes ones
+                sh_func_vect = ZeroVector(split_edges_size);
+                for (unsigned int i = 0; i < n_nodes; ++i) {
+                    sh_func_vect(r_subdivision_geom[i].Id()) = subdivision_sh_func_values(i_gauss, i);
+                }
+                condensed_sh_func_values = prod(trans(rPmatrix),sh_func_vect);
+                for (unsigned int i = 0; i < n_nodes; ++i) {
+                    rShapeFunctionsValues(i_gauss_gl, i) = condensed_sh_func_values(i);
+                }
+            }
+        }
+    }
 
 }; // namespace Kratos

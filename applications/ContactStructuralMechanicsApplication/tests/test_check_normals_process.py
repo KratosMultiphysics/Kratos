@@ -1,4 +1,5 @@
 import KratosMultiphysics as KM
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 # Some imports
@@ -91,7 +92,7 @@ class TestCheckNormals(KratosUnittest.TestCase):
         self._normal_check_process_tests(input_filename)
 
     def test_check_normals_s_shape(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unittest/inverted_normals_s_shape"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/ALM_frictionless_contact_test_3D/self_contact_test"
 
         self._normal_check_process_tests(input_filename, "GENERIC_Contact_Auto1")
 

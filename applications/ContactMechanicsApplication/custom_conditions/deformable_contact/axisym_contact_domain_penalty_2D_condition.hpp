@@ -186,7 +186,7 @@ protected:
      * Calculate Condition Kinematics
      */
     void CalculateKinematics(ConditionVariables& rVariables,
-			     ProcessInfo& rCurrentProcessInfo,
+			     const ProcessInfo& rCurrentProcessInfo,
 			     const unsigned int& rPointNumber) override;
 
     /**

@@ -27,6 +27,7 @@
 #include "custom_utilities/mvqn_convergence_accelerator.hpp"
 #include "custom_utilities/mvqn_recursive_convergence_accelerator.hpp"
 #include "custom_utilities/aitken_convergence_accelerator.hpp"
+#include "custom_utilities/ibqn_mvqn_convergence_accelerator.h"
 
 namespace Kratos
 {
@@ -63,7 +64,16 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
     typedef typename MVQNFullJacobianConvergenceAcceleratorType::Pointer MVQNFullJacobianConvergenceAcceleratorPointerType;
     py::class_<MVQNFullJacobianConvergenceAcceleratorType, MVQNFullJacobianConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "MVQNFullJacobianConvergenceAccelerator")
         .def(py::init<Parameters>())
-        .def(py::init<double, double>())
+        .def(py::init<const double, const double, const bool>())
+    ;
+
+    // MVQN convergence accelerator
+    typedef IBQNMVQNConvergenceAccelerator<SparseSpaceType, DenseSpaceType> IBQNMVQNConvergenceAcceleratorType;
+    typedef typename IBQNMVQNConvergenceAcceleratorType::Pointer IBQNMVQNConvergenceAcceleratorPointerType;
+    py::class_<IBQNMVQNConvergenceAcceleratorType, IBQNMVQNConvergenceAcceleratorPointerType, BaseConvergenceAcceleratorType>(m, "IBQNMVQNConvergenceAccelerator")
+        .def(py::init<Parameters>())
+        .def("UpdateSolutionLeft", &IBQNMVQNConvergenceAcceleratorType::UpdateSolutionLeft)
+        .def("UpdateSolutionRight", &IBQNMVQNConvergenceAcceleratorType::UpdateSolutionRight)
     ;
 
     // MVQN recursive convergence accelerator

@@ -1,20 +1,17 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics
 import KratosMultiphysics.RomApplication as romapp
 from KratosMultiphysics.RomApplication.structural_mechanics_analysis_rom import StructuralMechanicsAnalysisROM
 
 import numpy as np
-import json
 
 class TestStructuralMechanicsDynamicROM(StructuralMechanicsAnalysisROM):
 
     def __init__(self,model,project_parameters):
-        super(TestStructuralMechanicsDynamicROM,self).__init__(model,project_parameters)
+        super().__init__(model,project_parameters)
         self.selected_time_step_solution_container = []
 
     def FinalizeSolutionStep(self):
-        super(TestStructuralMechanicsDynamicROM,self).FinalizeSolutionStep()
+        super().FinalizeSolutionStep()
         ArrayOfDisplacements = []
         if np.isclose(self.time,2) or np.isclose(self.time,4) or np.isclose(self.time,6) or np.isclose(self.time,8) or np.isclose(self.time,10):
             for node in self._GetSolver().GetComputingModelPart().Nodes:

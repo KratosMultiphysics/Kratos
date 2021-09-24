@@ -4,10 +4,20 @@ on:
   pull_request:
     paths:
     - '.github/workflows/nightly_build.yml'
+    - '.github/workflows/configure.sh'
+    - '.github/workflows/configure.cmd'
+    - 'kratos/**'
+    - 'external_libraries/**'
+    - 'cmake_modules/**'
+    - 'CMakeLists.txt'
+    - 'applications/LinearSolversApplication/**'
+    - 'applications/MetisApplication/**'
+    - 'applications/TrilinosApplication/**'
+    
 
   schedule:
     - cron:  '0 1 * * *'
-  
+
   workflow_dispatch:
 
 
@@ -20,9 +30,6 @@ jobs:
         compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: Release
-      MKLVARS_ARCHITECTURE: intel64
-      MKLVARS_INTERFACE: lp64
-      FC: gfortran-7
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
@@ -36,48 +43,53 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Build
+      shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=gcc
-          export CXX=g++
+          export CC=/usr/bin/gcc
+          export CXX=/usr/bin/g++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=clang-9
-          export CXX=clang++-9
+          export CC=/usr/bin/clang
+          export CXX=/usr/bin/clang++
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_4_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
           exit 1
         fi
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure.sh configure.sh # maybe use different configure script in the future
         bash configure.sh
 
     - name: Running tests
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/run_tests.py -l nightly -c python3
 
     - name: Running Python MPI tests (2 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3 -f--oversubscribe
 
     - name: Running Python MPI tests (4 Cores)
+      shell: bash
       run: |
-        . /opt/intel/mkl/bin/mklvars.sh
+        source /opt/intel/oneapi/setvars.sh
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4 -f--oversubscribe
@@ -95,10 +107,18 @@ jobs:
       with:
         python-version: '3.6'
 
+    - name: Download boost
+      run: |
+        $url = "https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.gz/download"
+        (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
+        7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
+        7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
+
     - name: Installing dependencies
       shell: cmd
       run: |
         pip install numpy
+        pip install h5py
 
     - name: Build
       shell: cmd

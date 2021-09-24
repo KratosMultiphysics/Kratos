@@ -7,16 +7,16 @@ namespace Kratos {
     StationarityChecker::StationarityChecker() {
         mPreviousChangeTime = 0.0;
     }
-    
+
     StationarityChecker::~StationarityChecker() {}
-    
+
     bool StationarityChecker::CheckIfItsTimeToChangeGravity(ModelPart& rSpheresModelPart,
                                        const double velocity_threshold_for_gravity_change,
                                        const double min_time_between_changes,
                                        const double max_time_between_changes) {
 
         const double& current_time = rSpheresModelPart.GetProcessInfo()[TIME];
-                        
+
         if (current_time < mPreviousChangeTime + min_time_between_changes) return false;
         if (current_time > mPreviousChangeTime + max_time_between_changes) {
             mPreviousChangeTime  = current_time;
@@ -26,7 +26,7 @@ namespace Kratos {
         const size_t number_of_nodes = rSpheresModelPart.Nodes().size();
         double max_squared_velocity = 0.0;
         for (size_t i = 0; i < number_of_nodes; i++) {
-            
+
             const auto node_it = rSpheresModelPart.Nodes().begin() + i;
             auto& vel = node_it->FastGetSolutionStepValue(VELOCITY);
             const double node_i_squared_velocity_module = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
@@ -39,6 +39,23 @@ namespace Kratos {
         } else return false;
     }
 
+    bool StationarityChecker::CheckIfVariableIsNullInModelPart(const ModelPart& r_spheres_modelPart,
+                                                    const Variable<double>& r_var,
+                                                    const double& tolerance){
+
+        KRATOS_ERROR_IF(!r_spheres_modelPart.HasNodalSolutionStepVariable(r_var))<<"Variable "<<r_var.Name()<<" is not added to the nodes of the ModelPart. Steadiness cannot be assessed with this variable"<<std::endl;
+
+        const size_t number_of_nodes = r_spheres_modelPart.Nodes().size();
+        for (size_t i = 0; i < number_of_nodes; i++) {
+            const auto node_it = r_spheres_modelPart.Nodes().begin() + i;
+            const double& value = node_it->FastGetSolutionStepValue(r_var);
+            if (std::abs(value) > tolerance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     std::string StationarityChecker::Info() const {
         std::stringstream buffer;
         buffer << "StationarityChecker" ;
@@ -48,5 +65,5 @@ namespace Kratos {
     void StationarityChecker::PrintInfo(std::ostream& rOStream) const {rOStream << "StationarityChecker";}
 
     void StationarityChecker::PrintData(std::ostream& rOStream) const {}
-    
+
 } // namespace Kratos

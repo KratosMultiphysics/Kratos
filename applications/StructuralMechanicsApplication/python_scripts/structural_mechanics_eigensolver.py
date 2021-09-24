@@ -35,9 +35,8 @@ class EigenSolver(MechanicalSolver):
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
             "eigensolver_settings" : {
-                "solver_type"           : "eigen_eigensystem",
+                "solver_type"           : "spectra_sym_g_eigs_shift",
                 "max_iteration"         : 1000,
-                "tolerance"             : 1e-6,
                 "number_of_eigenvalues" : 5,
                 "echo_level"            : 1
             },
@@ -80,7 +79,7 @@ class EigenSolver(MechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
 
         solver_type = self.settings["eigensolver_settings"]["solver_type"].GetString()
-        if solver_type == "eigen_eigensystem":
+        if solver_type in ["eigen_eigensystem", "spectra_sym_g_eigs_shift"]: # TODO evaluate what has to be used for spectra
             mass_matrix_diagonal_value = 0.0
             stiffness_matrix_diagonal_value = 1.0
         elif solver_type == "feast":

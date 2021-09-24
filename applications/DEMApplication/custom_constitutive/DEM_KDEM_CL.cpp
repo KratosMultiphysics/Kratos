@@ -20,8 +20,44 @@ namespace Kratos {
         this->Check(pProp);
     }
 
+    void DEM_KDEM::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM to Properties " << pProp->Id() <<" with given parameters"<< std::endl;
+        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+
+        TransferParametersToProperties(parameters, pProp);
+
+        this->Check(pProp);
+    }
+
+    void DEM_KDEM::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp)  {
+        BaseClassType::TransferParametersToProperties(parameters, pProp);
+        if(parameters.Has("CONTACT_INTERNAL_FRICC")) {
+            pProp->SetValue(CONTACT_INTERNAL_FRICC, parameters["CONTACT_INTERNAL_FRICC"].GetDouble());
+        }
+        if(parameters.Has("CONTACT_TAU_ZERO")) {
+            pProp->SetValue(CONTACT_TAU_ZERO, parameters["CONTACT_TAU_ZERO"].GetDouble());
+        }
+        if(parameters.Has("ROTATIONAL_MOMENT_COEFFICIENT")) {
+            pProp->SetValue(ROTATIONAL_MOMENT_COEFFICIENT, parameters["ROTATIONAL_MOMENT_COEFFICIENT"].GetDouble());
+        }
+    }
+
     void DEM_KDEM::Check(Properties::Pointer pProp) const {
         DEMContinuumConstitutiveLaw::Check(pProp);
+
+        if(!pProp->Has(CONTACT_INTERNAL_FRICC)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONTACT_INTERNAL_FRICC should be present in the properties when using DEM_KDEM. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(CONTACT_INTERNAL_FRICC) = 0.0;
+        }
+
+        if(!pProp->Has(CONTACT_TAU_ZERO)) {
+            KRATOS_WARNING("DEM")<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable CONTACT_TAU_ZERO should be present in the properties when using DEM_KDEM. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<std::endl;
+            pProp->GetValue(CONTACT_TAU_ZERO) = 0.0;
+        }
 
         if(!pProp->Has(ROTATIONAL_MOMENT_COEFFICIENT)) {
             KRATOS_WARNING("DEM")<<std::endl;
@@ -60,13 +96,33 @@ namespace Kratos {
     }
 
     void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
-                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+                                             double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) {
 
         KRATOS_TRY
 
-        const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson));
-        kn_el = equiv_young * calculation_area / initial_dist;
-        kt_el = equiv_shear * calculation_area / initial_dist;
+        //Get equivalent Radius
+        const double my_radius       = element1->GetRadius();
+        const double other_radius    = element2->GetRadius();
+        const double radius_sum      = my_radius + other_radius;
+        const double radius_sum_inv  = 1.0 / radius_sum;
+        const double equiv_radius    = my_radius * other_radius * radius_sum_inv;
+
+        //Get equivalent Young's Modulus
+        const double my_young        = element1->GetYoung();
+        const double other_young     = element2->GetYoung();
+        const double my_poisson      = element1->GetPoisson();
+        const double other_poisson   = element2->GetPoisson();
+        const double equiv_young     = my_young * other_young / (other_young * (1.0 - my_poisson * my_poisson) + my_young * (1.0 - other_poisson * other_poisson));
+
+        //Get equivalent Shear Modulus
+        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+
+        const double beta = 1.432;
+        const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
+        kn_el = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
+        kt_el = 4.0 * equiv_shear * kn_el / equiv_young;
 
         KRATOS_CATCH("")
     }
@@ -85,12 +141,10 @@ namespace Kratos {
 
         const double equiv_mass = 1.0 / (1.0/my_mass + 1.0/other_mass);
 
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        const double damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
-        equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
-        equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);
+        equiv_visco_damp_coeff_normal     = 2.0 * damping_gamma * sqrt(equiv_mass * kn_el);
+        equiv_visco_damp_coeff_tangential = 2.0 * damping_gamma * sqrt(equiv_mass * kt_el);
 
         KRATOS_CATCH("")
     }
@@ -99,8 +153,6 @@ namespace Kratos {
                                             SphericContinuumParticle* element1,
                                             SphericContinuumParticle* element2) {
 
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
         double mTensionLimit;
 
         // calculation of equivalent Young modulus
@@ -122,11 +174,7 @@ namespace Kratos {
         // calculation of elastic constants
         double kn_el = equiv_young * calculation_area / initial_dist;
 
-        if (&element1_props == &element2_props) {
-            mTensionLimit = GetContactSigmaMax(element1);
-        } else {
-            mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2));
-        }
+        mTensionLimit = GetContactSigmaMax();
 
         const double Ntstr_el = mTensionLimit * calculation_area;
         double u1 = Ntstr_el / kn_el;
@@ -134,14 +182,16 @@ namespace Kratos {
         return u1;
     }
 
-    double DEM_KDEM::GetContactSigmaMax(SphericContinuumParticle* element) {
+    double DEM_KDEM::GetContactSigmaMax() {
 
         KRATOS_TRY
 
-        const double angle_of_internal_friction_in_radians = atan(element->GetFastProperties()->GetContactInternalFricc());
-        const double contact_tau_zero = element->GetFastProperties()->GetContactTauZero();
+        const double angle_of_internal_friction_in_radians = atan((*mpProperties)[CONTACT_INTERNAL_FRICC]);
+        const double& contact_tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
 
-        return (2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians)) / (1.0 + sin(angle_of_internal_friction_in_radians));
+        double sigma = 2.0 * contact_tau_zero * cos(angle_of_internal_friction_in_radians) / (1.0 + sin(angle_of_internal_friction_in_radians));
+
+        return sigma;
 
         KRATOS_CATCH("")
     }
@@ -185,24 +235,6 @@ namespace Kratos {
                 time_steps,
             r_process_info);
 
-        CalculateTangentialForces(OldLocalElasticContactForce,
-                LocalElasticContactForce,
-                LocalElasticExtraContactForce,
-                LocalCoordSystem,
-                LocalDeltDisp,
-                kt_el,
-                equiv_shear,
-                contact_sigma,
-                contact_tau,
-                indentation,
-                calculation_area,
-                failure_criterion_state,
-                element1,
-                element2,
-                i_neighbour_count,
-                sliding,
-                r_process_info);
-
         CalculateViscoDampingCoeff(equiv_visco_damp_coeff_normal,
                                    equiv_visco_damp_coeff_tangential,
                                    element1,
@@ -217,6 +249,26 @@ namespace Kratos {
                               equiv_visco_damp_coeff_tangential,
                               sliding,
                               element1->mIniNeighbourFailureId[i_neighbour_count]);
+
+        CalculateTangentialForces(OldLocalElasticContactForce,
+                LocalElasticContactForce,
+                LocalElasticExtraContactForce,
+                ViscoDampingLocalContactForce,
+                LocalCoordSystem,
+                LocalDeltDisp,
+                LocalRelVel,
+                kt_el,
+                equiv_shear,
+                contact_sigma,
+                contact_tau,
+                indentation,
+                calculation_area,
+                failure_criterion_state,
+                element1,
+                element2,
+                i_neighbour_count,
+                sliding,
+                r_process_info);
 
         KRATOS_CATCH("")
     }
@@ -241,7 +293,7 @@ namespace Kratos {
         else { //tension
             int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
             if (failure_type == 0) {
-                double mTensionLimit = 0.5 * (GetContactSigmaMax(element1) + GetContactSigmaMax(element2)); //N/m2
+                double mTensionLimit = GetContactSigmaMax(); //N/m2
                 const double limit_force = mTensionLimit * calculation_area;
                 LocalElasticContactForce[2] = kn_el * indentation;
                 if (fabs(LocalElasticContactForce[2]) > limit_force) {
@@ -259,19 +311,21 @@ namespace Kratos {
 
     double DEM_KDEM::GetTauZero(SphericContinuumParticle* element1) {
 
-        return element1->GetFastProperties()->GetContactTauZero();
+        return (*mpProperties)[CONTACT_TAU_ZERO];
     }
 
     double DEM_KDEM::GetInternalFricc(SphericContinuumParticle* element1) {
 
-        return element1->GetFastProperties()->GetContactInternalFricc();
+        return (*mpProperties)[CONTACT_INTERNAL_FRICC];
     }
 
     void DEM_KDEM::CalculateTangentialForces(double OldLocalElasticContactForce[3],
             double LocalElasticContactForce[3],
             double LocalElasticExtraContactForce[3],
+            double ViscoDampingLocalContactForce[3],
             double LocalCoordSystem[3][3],
             double LocalDeltDisp[3],
+            double LocalRelVel[3],
             const double kt_el,
             const double equiv_shear,
             double& contact_sigma,
@@ -294,23 +348,21 @@ namespace Kratos {
         double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                   + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
 
-        if (failure_type == 0) { // This means it has not broken
-            //Properties& element1_props = element1->GetProperties();
-            //Properties& element2_props = element2->GetProperties();
+        if (!failure_type) { // This means it has not broken
             if (r_process_info[SHEAR_STRAIN_PARALLEL_TO_BOND_OPTION]) { //TODO: use this only for intact bonds (not broken))
                 AddContributionOfShearStrainParallelToBond(OldLocalElasticContactForce, LocalElasticExtraContactForce, element1->mNeighbourElasticExtraContactForces[i_neighbour_count], LocalCoordSystem, kt_el, calculation_area,  element1, element2);
             }
 
-            const double mTauZero = 0.5 * (GetTauZero(element1) + GetTauZero(element2));
-            const double mInternalFriction = 0.5 * (GetInternalFricc(element1) + GetInternalFricc(element2));
+            const double& tau_zero = (*mpProperties)[CONTACT_TAU_ZERO];
+            const double& internal_friction = (*mpProperties)[CONTACT_INTERNAL_FRICC];
 
             contact_tau = ShearForceNow / calculation_area;
             contact_sigma = LocalElasticContactForce[2] / calculation_area;
 
-            double tau_strength = mTauZero;
+            double tau_strength = tau_zero;
 
             if (contact_sigma >= 0) {
-                tau_strength = mTauZero + mInternalFriction * contact_sigma;
+                tau_strength = tau_zero + internal_friction * contact_sigma;
             }
 
             if (contact_tau > tau_strength) {
@@ -318,24 +370,65 @@ namespace Kratos {
             }
         }
         else {
-            double equiv_tg_of_static_fri_ang = 0.5 * (element1->GetTgOfStaticFrictionAngle() + element2->GetTgOfStaticFrictionAngle());
-            double equiv_tg_of_dynamic_fri_ang = 0.5 * (element1->GetTgOfDynamicFrictionAngle() + element2->GetTgOfDynamicFrictionAngle());
+            const double& equiv_tg_of_static_fri_ang = (*mpProperties)[STATIC_FRICTION];
+            const double& equiv_tg_of_dynamic_fri_ang = (*mpProperties)[DYNAMIC_FRICTION];
+            const double& equiv_friction_decay_coefficient = (*mpProperties)[FRICTION_DECAY];
 
-            if(equiv_tg_of_static_fri_ang < 0.0 || equiv_tg_of_dynamic_fri_ang < 0.0) {
-                KRATOS_ERROR << "The averaged friction is negative for one contact of element with Id: "<< element1->Id()<<std::endl;
+            const double ShearRelVel = sqrt(LocalRelVel[0] * LocalRelVel[0] + LocalRelVel[1] * LocalRelVel[1]);
+            double equiv_friction = equiv_tg_of_dynamic_fri_ang + (equiv_tg_of_static_fri_ang - equiv_tg_of_dynamic_fri_ang) * exp(-equiv_friction_decay_coefficient * ShearRelVel);
+
+            double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
+
+            if (normal_contact_force < 0.0) {
+                normal_contact_force = 0.0;
+                ViscoDampingLocalContactForce[2] = -1.0 * LocalElasticContactForce[2];
             }
 
-            double Frictional_ShearForceMax = equiv_tg_of_static_fri_ang * LocalElasticContactForce[2];
-            if (ShearForceNow > Frictional_ShearForceMax) Frictional_ShearForceMax = equiv_tg_of_dynamic_fri_ang * LocalElasticContactForce[2];
+            double maximum_admissible_shear_force = normal_contact_force * equiv_friction;
 
+            const double tangential_contact_force_0 = LocalElasticContactForce[0] + ViscoDampingLocalContactForce[0];
+            const double tangential_contact_force_1 = LocalElasticContactForce[1] + ViscoDampingLocalContactForce[1];
 
-            if (Frictional_ShearForceMax < 0.0) {
-                Frictional_ShearForceMax = 0.0;
-            }
+            const double ActualTotalShearForce = sqrt(tangential_contact_force_0 * tangential_contact_force_0 + tangential_contact_force_1 * tangential_contact_force_1);
 
-            if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)) {
-                LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
-                LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
+            if (ActualTotalShearForce > maximum_admissible_shear_force) {
+
+                const double ActualElasticShearForce = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+
+                const double dot_product = LocalElasticContactForce[0] * ViscoDampingLocalContactForce[0] + LocalElasticContactForce[1] * ViscoDampingLocalContactForce[1];
+                const double ViscoDampingLocalContactForceModule = sqrt(ViscoDampingLocalContactForce[0] * ViscoDampingLocalContactForce[0] +\
+                                                                        ViscoDampingLocalContactForce[1] * ViscoDampingLocalContactForce[1]);
+
+                if (dot_product >= 0.0) {
+
+                    if (ActualElasticShearForce > maximum_admissible_shear_force) {
+                        const double fraction = maximum_admissible_shear_force / ActualElasticShearForce;
+                        LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
+                        LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
+                        ViscoDampingLocalContactForce[0] = 0.0;
+                        ViscoDampingLocalContactForce[1] = 0.0;
+                    }
+                    else {
+                        const double ActualViscousShearForce = maximum_admissible_shear_force - ActualElasticShearForce;
+                        const double fraction = ActualViscousShearForce / ViscoDampingLocalContactForceModule;
+                        ViscoDampingLocalContactForce[0] *= fraction;
+                        ViscoDampingLocalContactForce[1] *= fraction;
+                    }
+                }
+                else {
+                    if (ViscoDampingLocalContactForceModule >= ActualElasticShearForce) {
+                        const double fraction = (maximum_admissible_shear_force + ActualElasticShearForce) / ViscoDampingLocalContactForceModule;
+                        ViscoDampingLocalContactForce[0] *= fraction;
+                        ViscoDampingLocalContactForce[1] *= fraction;
+                    }
+                    else {
+                        const double fraction = maximum_admissible_shear_force / ActualElasticShearForce;
+                        LocalElasticContactForce[0]      = LocalElasticContactForce[0] * fraction;
+                        LocalElasticContactForce[1]      = LocalElasticContactForce[1] * fraction;
+                        ViscoDampingLocalContactForce[0] = 0.0;
+                        ViscoDampingLocalContactForce[1] = 0.0;
+                    }
+                }
                 sliding = true;
             }
         }
@@ -353,15 +446,19 @@ namespace Kratos {
 
         KRATOS_TRY
 
-        if ((indentation > 0) || (failure_id == 0)) {
+        if (indentation > 0 || !failure_id) {
             ViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
         }
-        if (((indentation > 0) || (failure_id == 0)) && (sliding == false)) {
+        if ((indentation > 0 || !failure_id) && !sliding) {
             ViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
             ViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         }
 
         KRATOS_CATCH("")
+    }
+
+    double DEM_KDEM::GetYoungModulusForComputingRotationalMoments(const double& equiv_young){
+        return equiv_young;
     }
 
     void DEM_KDEM::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
@@ -376,7 +473,7 @@ namespace Kratos {
                                                     double indentation) {
 
         KRATOS_TRY
-        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
+        const double& rotational_moment_coeff = (*mpProperties)[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -395,21 +492,18 @@ namespace Kratos {
         const double neighbor_mass = neighbor->GetMass();
         const double equiv_mass    = element_mass * neighbor_mass / (element_mass + neighbor_mass);
 
-        AdjustEquivalentYoung(equiv_young, element, neighbor);
+        const double young_modulus = GetYoungModulusForComputingRotationalMoments(equiv_young);
 
-        const double equiv_shear   = equiv_young / (2.0 * (1 + equiv_poisson));
         const double Inertia_I     = 0.25 * Globals::Pi * equivalent_radius * equivalent_radius * equivalent_radius * equivalent_radius;
         const double Inertia_J     = 2.0 * Inertia_I; // This is the polar inertia
 
-        const double my_gamma    = element->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = neighbor->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+        const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
 
         //Viscous parameter taken from Olmedo et al., 'Discrete element model of the dynamic response of fresh wood stems to impact'
         array_1d<double, 3> visc_param;
-        visc_param[0] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_young * Inertia_I / distance); // OLMEDO
-        visc_param[1] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_young * Inertia_I / distance); // OLMEDO
-        visc_param[2] = 2.0 * equiv_gamma * std::sqrt(equiv_mass * equiv_shear * Inertia_J / distance); // OLMEDO
+        visc_param[0] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_I / distance); // OLMEDO
+        visc_param[1] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_I / distance); // OLMEDO
+        visc_param[2] = 2.0 * damping_gamma * std::sqrt(equiv_mass * young_modulus * Inertia_J / distance); // OLMEDO
 
         double aux = (element->GetRadius() + neighbor->GetRadius()) / distance; // This is necessary because if spheres are not tangent the DeltaAngularVelocity has to be interpolated
 
@@ -423,9 +517,9 @@ namespace Kratos {
         LocalEffDeltaAngularVelocity[1] = LocalDeltaAngularVelocity[1] * aux;
         LocalEffDeltaAngularVelocity[2] = LocalDeltaAngularVelocity[2] * aux;
 
-        ElasticLocalRotationalMoment[0] = -equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[0] / distance;
-        ElasticLocalRotationalMoment[1] = -equiv_young * Inertia_I * LocalEffDeltaRotatedAngle[1] / distance;
-        ElasticLocalRotationalMoment[2] = -equiv_shear * Inertia_J * LocalEffDeltaRotatedAngle[2] / distance;
+        ElasticLocalRotationalMoment[0] = -young_modulus * Inertia_I * LocalEffDeltaRotatedAngle[0] / distance;
+        ElasticLocalRotationalMoment[1] = -young_modulus * Inertia_I * LocalEffDeltaRotatedAngle[1] / distance;
+        ElasticLocalRotationalMoment[2] = -young_modulus * Inertia_J * LocalEffDeltaRotatedAngle[2] / distance;
 
         ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
@@ -540,7 +634,5 @@ namespace Kratos {
             LocalElasticExtraContactForce[1] = LocalElasticExtraContactForce[1] / fabs(LocalElasticExtraContactForce[1]) * fabs(force_due_to_stress1);
         }
     }
-
-    void DEM_KDEM::AdjustEquivalentYoung(double& equiv_young, const SphericContinuumParticle* element, const SphericContinuumParticle* neighbor) {}
 
 } // namespace Kratos

@@ -75,7 +75,7 @@ HenckyBorjaCamClayPlastic3DLaw::~HenckyBorjaCamClayPlastic3DLaw()
 //*********************************CHECK**********************************************
 //************************************************************************************
 
-int HenckyBorjaCamClayPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo)
+int HenckyBorjaCamClayPlastic3DLaw::Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo) const
 {
     HenckyElasticPlastic3DLaw::Check(rProperties, rGeometry, rCurrentProcessInfo);
 
