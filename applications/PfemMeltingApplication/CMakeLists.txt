@@ -3,6 +3,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosPfemMeltingApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ConvectionDiffusionApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MeshingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/PFEM2Application)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication )
