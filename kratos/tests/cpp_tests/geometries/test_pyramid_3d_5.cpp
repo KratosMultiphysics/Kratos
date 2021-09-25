@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
-//
+//  Contirbutors:    Ashish Darekar
 //
 
 // System includes
@@ -28,8 +28,8 @@ typedef GeometryType::Pointer            BaseGeometryPtrType;
 typedef Pyramid3D5<NodeType>             Pyramid3D5GeometryType;
 
 /** Generates a sample Pyramid3D5.
- * Generates a trirectangular pyramid on the origin with positive volume and side 1.
- * @return Pointer to a Pyramid3D13
+ * Generates a rectangular pyramid on the origin with positive volume and side 1.
+ * @return Pointer to a Pyramid3D5
  */
 BaseGeometryPtrType GenerateRegularPyramid3D5() {
     return BaseGeometryPtrType(new Pyramid3D5GeometryType(
@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(Pyramid3D5PointLocalCoordinates, KratosCoreGeometriesF
 
     // Compute the global coordinates of the centre
     auto points = geom->Points();
-    auto centre = Point{points[0] + points[1] + points[2] + points[3] + points[4] + points[5]};
+    auto centre = Point{points[0] + points[1] + points[2] + points[3] + points[4]};
     centre /= 6.0; // TODO use Center()
 
     // Compute the centre local coordinates
