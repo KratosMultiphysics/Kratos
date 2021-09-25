@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
-//
+//  Contributors:    Ashish Darekar
 
 #if !defined (KRATOS_PYRAMID_3D_5_H_INCLUDED)
 #define KRATOS_PYRAMID_3D_5_H_INCLUDED
@@ -41,12 +41,12 @@ namespace Kratos {
  *           ,/      |  '.  \
  *         ,/       .' w |   \
  *       ,/         |  ^ |    \
- *      0----------.'--|-3    `.
+ *      3----------.'--|-2    `.
  *       `\        |   |  `\    \
  *         `\     .'   +----`\ - \ -> v
  *           `\   |    `\     `\  \
  *             `\.'      `\     `\`
- *                1----------------2
+ *                0----------------1
  *                          `\
  *                             u
  * @author Philipp Bucher
@@ -128,6 +128,11 @@ public:
      */
     typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType
     ShapeFunctionsLocalGradientsContainerType;
+
+    /**
+    * Type of coordinates array
+    */
+    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -297,6 +302,75 @@ public:
     }
 
     /**
+    * Returns a matrix of the local coordinates of all points
+    * @param rResult a Matrix that will be overwritten by the results
+    * @return the coordinates of all points of the current geometry
+    */
+    Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
+    {
+        if ( rResult.size1() != 5 || rResult.size2() != 3 )
+            rResult.resize( 5, 3, false );
+
+        rResult( 0, 0 ) = +1.0;
+        rResult( 0, 1 ) = -1.0;
+        rResult( 0, 2 ) =  0.0;
+
+        rResult( 1, 0 ) = +1.0;
+        rResult( 1, 1 ) = +1.0;
+        rResult( 1, 2 ) =  0.0;
+
+        rResult( 2, 0 ) = -1.0;
+        rResult( 2, 1 ) =  1.0;
+        rResult( 2, 2 ) =  0.0;
+
+        rResult( 3, 0 ) = -1.0;
+        rResult( 3, 1 ) = -1.0;
+        rResult( 3, 2 ) = 0.0;
+
+        rResult( 4, 0 ) = 0.0;
+        rResult( 4, 1 ) = 0.0;
+        rResult( 4, 2 ) = 1.0;
+
+        return rResult;
+    }
+
+        /**
+     * Shape Function
+     */
+
+    /**
+     * Calculates the value of a given shape function at a given point.
+     *
+     * @param ShapeFunctionIndex The number of the desired shape function
+     * @param rPoint the given point in local coordinates at which the
+     * value of the shape function is calculated
+     *
+     * @return the value of the shape function at the given point
+     */
+    double ShapeFunctionValue( IndexType ShapeFunctionIndex,
+                                       const CoordinatesArrayType& rPoint ) const override
+    {
+        switch ( ShapeFunctionIndex )
+        {
+        case 0:
+            return( (0.125) * (1 - rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
+        case 1:
+            return( (0.125) * (1 + rPoint[1]) * (1 - rPoint[0]) * (1 + rPoint[2]) );
+        case 2:
+            return( (0.125) * (1 + rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+        case 3:
+            return( (0.125) * (1 - rPoint[1]) * (1 + rPoint[0]) * (1 + rPoint[2]) );
+        case 4:
+            return( (0.5) * (1 + rPoint[2]) );
+        default:
+            KRATOS_ERROR << "Wrong index of shape function!" << *this  << std::endl;
+        }
+
+        return 0;
+    }
+
+
+    /**
      * Calculates the values of all shape function in all integration points.
      * Integration points are expected to be given in local coordinates
      *
@@ -312,31 +386,60 @@ public:
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
-        const int points_number = 6;
+        const int points_number = 5;
         //setting up return matrix
         Matrix shape_function_values( integration_points_number, points_number );
         //loop over all integration points
 
-        // for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
-        //     shape_function_values( pnt, 0 ) = ( 1.0
-        //                                         - integration_points[pnt].X()
-        //                                         - integration_points[pnt].Y()
-        //                                         - integration_points[pnt].Z()
-        //                                         + ( integration_points[pnt].X() * integration_points[pnt].Z() )
-        //                                         + ( integration_points[pnt].Y() * integration_points[pnt].Z() ) );
-        //     shape_function_values( pnt, 1 ) = integration_points[pnt].X()
-        //                                       - ( integration_points[pnt].X() * integration_points[pnt].Z() );
-        //     shape_function_values( pnt, 2 ) = integration_points[pnt].Y()
-        //                                       - ( integration_points[pnt].Y() * integration_points[pnt].Z() );
-        //     shape_function_values( pnt, 3 ) = integration_points[pnt].Z()
-        //                                       - ( integration_points[pnt].X() * integration_points[pnt].Z() )
-        //                                       - ( integration_points[pnt].Y() * integration_points[pnt].Z() );
-        //     shape_function_values( pnt, 4 ) = ( integration_points[pnt].X() * integration_points[pnt].Z() );
-        //     shape_function_values( pnt, 5 ) = ( integration_points[pnt].Y() * integration_points[pnt].Z() );
-        // }
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ ) {
+            shape_function_values( pnt, 0 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 1 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 - integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 2 ) = (0.125) * (1 + integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 3 ) = (0.125) * (1 - integration_points[pnt].Y()) * (1 + integration_points[pnt].X()) * (1 + integration_points[pnt].Z()) ;
+            shape_function_values( pnt, 4 ) = (0.5) * (1 + integration_points[pnt].Z()) ;
+        }
 
         return shape_function_values;
     }
+
+
+    /**
+     * Calculates the gradients in terms of local coordinateds
+     * of all shape functions in a given point.
+     *
+     * @param rPoint the current point at which the gradients are calculated
+     * @return the gradients of all shape functions
+     * \f$ \frac{\partial N^i}{\partial \xi_j} \f$
+     */
+    static Matrix& CalculateShapeFunctionsLocalGradients(
+        Matrix& rResult,
+        const CoordinatesArrayType& rPoint
+        )
+    {
+        rResult( 0, 0 ) =  (-0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 1 ) =  (-0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 0, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 - rPoint[0] ) ;
+
+        rResult( 1, 0 ) =  (-0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 1 ) =  (+0.125) * ( 1 - rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 1, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 - rPoint[0] ) ;
+
+        rResult( 2, 0 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 1 ) =  (+0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 2, 2 ) =  (+0.125) * ( 1 + rPoint[1] ) * ( 1 + rPoint[0] ) ;
+
+        rResult( 3, 0 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 1 ) =  (-0.125) * ( 1 + rPoint[0] ) * ( 1 + rPoint[2] ) ;
+        rResult( 3, 2 ) =  (+0.125) * ( 1 - rPoint[1] ) * ( 1 + rPoint[0] ) ;
+
+        rResult( 4, 0 ) =   0.00 ;
+        rResult( 4, 1 ) =   0.00 ;
+        rResult( 4, 2 ) =  +0.50 ;
+
+        return rResult;
+    }
+
+
 
     /**
      * Calculates the local gradients of all shape functions in all integration points.
@@ -349,42 +452,43 @@ public:
      */
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients(typename BaseType::IntegrationMethod ThisMethod)
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
-        //number of integration points
-        const int integration_points_number = integration_points.size();
-        ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
-        //initialising container
-        //loop over all integration points
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType integration_points = all_integration_points[ThisMethod]; //number of integration points
 
-        // for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        // {
-        //     Matrix result = ZeroMatrix( 6, 3 );
-        //     result( 0, 0 ) = -1.0 + integration_points[pnt].Z();
-        //     result( 0, 1 ) = -1.0 + integration_points[pnt].Z();
-        //     result( 0, 2 ) = -1.0 + integration_points[pnt].X() + integration_points[pnt].Y();
-        //     result( 1, 0 ) =  1.0 - integration_points[pnt].Z();
-        //     result( 1, 1 ) =  0.0;
-        //     result( 1, 2 ) =  -integration_points[pnt].X();
-        //     result( 2, 0 ) =  0.0;
-        //     result( 2, 1 ) =  1.0 - integration_points[pnt].Z();
-        //     result( 2, 2 ) =  -integration_points[pnt].Y();
-        //     result( 3, 0 ) =  -integration_points[pnt].Z();
-        //     result( 3, 1 ) =  -integration_points[pnt].Z();
-        //     result( 3, 2 ) =  1.0 - integration_points[pnt].X() - integration_points[pnt].Y();
-        //     result( 4, 0 ) =  integration_points[pnt].Z();
-        //     result( 4, 1 ) =  0.0;
-        //     result( 4, 2 ) =  integration_points[pnt].X();
-        //     result( 5, 0 ) =  0.0;
-        //     result( 5, 1 ) =  integration_points[pnt].Z();
-        //     result( 5, 2 ) =  integration_points[pnt].Y();
-        //     d_shape_f_values[pnt] = result;
-        // }
+        const int integration_points_number = integration_points.size();
+        ShapeFunctionsGradientsType d_shape_f_values( integration_points_number ); //initialising container
+
+        //loop over all integration points
+        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            Matrix result = ZeroMatrix( 5, 3 );
+
+            result( 0, 0 ) =  (-0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 1 ) =  (-0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 0, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+
+            result( 1, 0 ) =  (-0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 1 ) =  (+0.125) * ( 1 - integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 1, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 - integration_points[pnt].X() ) ;
+
+            result( 2, 0 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 1 ) =  (+0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 2, 2 ) =  (+0.125) * ( 1 + integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+
+            result( 3, 0 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 1 ) =  (-0.125) * ( 1 + integration_points[pnt].X() ) * ( 1 + integration_points[pnt].Z() ) ;
+            result( 3, 2 ) =  (+0.125) * ( 1 - integration_points[pnt].Y() ) * ( 1 + integration_points[pnt].X() ) ;
+
+            result( 4, 0 ) =   0.00 ;
+            result( 4, 1 ) =   0.00 ;
+            result( 4, 2 ) =  +0.50 ;
+
+            d_shape_f_values[pnt] = result;
+        }
 
         return d_shape_f_values;
     }
+
 
     ///@}
     ///@name Input and output
