@@ -78,8 +78,8 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
 template <class TConstLawIntegratorType>
 void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    double max_stress = mMaxStress;
-    double min_stress = mMinStress;
+    const double max_stress = mMaxStress;
+    const double min_stress = mMinStress;
     bool max_indicator = mMaxDetected;
     bool min_indicator = mMinDetected;
     double fatigue_reduction_factor = mFatigueReductionFactor;
@@ -93,7 +93,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     double wohler_stress = mWohlerStress;
     bool new_cycle = false;
     double s_th = mThresholdStress;
-    double CyclesToFailure = mCyclesToFailure;
+    double cycles_to_failure = mCyclesToFailure;
     bool adnvance_strategy_applied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
     bool damage_activation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
 
@@ -108,7 +108,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            CyclesToFailure);
+            cycles_to_failure);
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (std::abs(min_stress) < 0.001) {
@@ -128,7 +128,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         min_indicator = false;
         previous_max_stress = max_stress;
         previous_min_stress = min_stress;
-        mCyclesToFailure = CyclesToFailure;
+        mCyclesToFailure = cycles_to_failure;
 
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
@@ -150,7 +150,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             B0,
             s_th,
             alphat,
-            CyclesToFailure);
+            cycles_to_failure);
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
                                                                                         max_stress,
                                                                                         local_number_of_cycles,
