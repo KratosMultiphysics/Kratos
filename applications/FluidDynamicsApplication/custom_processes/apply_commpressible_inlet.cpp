@@ -5,7 +5,7 @@
 namespace Kratos
 {
 
-ApplyCompressibleInlet::ApplyCompressibleInlet(Model& rModel, Parameters& rParameters)
+ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(Model& rModel, Parameters& rParameters)
 {
     KRATOS_TRY
 
@@ -29,7 +29,7 @@ ApplyCompressibleInlet::ApplyCompressibleInlet(Model& rModel, Parameters& rParam
     KRATOS_CATCH("");
 }
 
-void ApplyCompressibleInlet::ExecuteInitializeSolutionStep()
+void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 {
     // Enabling and disabling BC according to the time and active interval
     const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
@@ -59,7 +59,7 @@ void ApplyCompressibleInlet::ExecuteInitializeSolutionStep()
 }
 
 
-ApplyCompressibleInlet::BoundaryConditionUtility::
+ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 BoundaryConditionUtility(const std::string & variable_name, const double Value, const double Start, const double End)
     : mValue(Value), mStart(Start), mEnd(End)
 {
@@ -72,7 +72,7 @@ BoundaryConditionUtility(const std::string & variable_name, const double Value, 
     KRATOS_CATCH("")
 }
 
-void ApplyCompressibleInlet::BoundaryConditionUtility::
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 ActivateIfInsideInterval(const double time)
 {
     if(time >= mStart && time < mEnd)
@@ -86,26 +86,26 @@ ActivateIfInsideInterval(const double time)
 }
 
 
-void ApplyCompressibleInlet::BoundaryConditionUtility::
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 Enforce(NodeType & rNode) const
 {
     mEnforceInternal(*this, rNode);
 }
 
-void ApplyCompressibleInlet::BoundaryConditionUtility::
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 EnforceActive(const BoundaryConditionUtility & rUtility, NodeType & rNode)
 {
     rNode.GetSolutionStepValue(*rUtility.mpVariable) = rUtility.mValue;
     rNode.pGetDof(*rUtility.mpVariable)->FixDof();
 }
 
-void ApplyCompressibleInlet::BoundaryConditionUtility::
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 EnforcePassive(const BoundaryConditionUtility & rUtility, NodeType & rNode)
 {
 }
 
 
-constexpr char ApplyCompressibleInlet::IndexToAxis(const unsigned int i)
+constexpr char ApplyMachDependentBoundaryConditions::IndexToAxis(const unsigned int i)
 {
     return static_cast<char>(static_cast<unsigned int>('X') + i);
 }
@@ -130,7 +130,7 @@ double ReadTime(const Parameters & raw_data)
     KRATOS_CATCH("")
 }
 
-void ApplyCompressibleInlet::ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters)
+void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters)
 {
     KRATOS_TRY
 
@@ -187,13 +187,13 @@ void ApplyCompressibleInlet::ReadBoundaryCondition(std::vector<BoundaryCondition
         return;
     }
 
-    KRATOS_ERROR << "ApplyCompressibleInlet supports only double and vector variables:\n" << Parameters << std::endl;
+    KRATOS_ERROR << "ApplyMachDependentBoundaryConditions supports only double and vector variables:\n" << Parameters << std::endl;
 
     KRATOS_CATCH("");
 }
 
 
-const Parameters ApplyCompressibleInlet::GetDefaultParameters() const
+const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() const
 {
     return Parameters(R"(
     {
@@ -205,12 +205,12 @@ const Parameters ApplyCompressibleInlet::GetDefaultParameters() const
     )");
     /* Expected boundary condition format:
     [
-        {
+        { // For scalar variables
             "variable" : "DENSITY",
             "value" : 0.0
             "interval" : [0, "End"]
         },
-        {
+        { // For vector variables
             "variable" : "MOMENTUM",
             "value" : [0.0, 1.0, 5.0],
             "constrained" : [false, true, false]
@@ -220,17 +220,17 @@ const Parameters ApplyCompressibleInlet::GetDefaultParameters() const
     */
 }
 
-std::string ApplyCompressibleInlet::Info() const
+std::string ApplyMachDependentBoundaryConditions::Info() const
 {
     return "ApplyCompressibleInlet";
 }
 
-void ApplyCompressibleInlet::PrintInfo(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "ApplyCompressibleInlet";
 }
 
-void ApplyCompressibleInlet::PrintData(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::PrintData(std::ostream& rOStream) const
 {
 }
 
@@ -239,7 +239,7 @@ void ApplyCompressibleInlet::PrintData(std::ostream& rOStream) const
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ApplyCompressibleInlet& rThis)
+    const ApplyMachDependentBoundaryConditions& rThis)
 {
     rThis.PrintData(rOStream);
     return rOStream;

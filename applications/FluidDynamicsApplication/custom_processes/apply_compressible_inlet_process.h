@@ -58,7 +58,7 @@ namespace Kratos
   /** This process applies diferent boundary conditions accoring to the mach regime.
    * 
    */
-  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyCompressibleInlet: public Process
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyMachDependentBoundaryConditions: public Process
   {
   public:
         ///@name Type Definitions
@@ -103,18 +103,18 @@ namespace Kratos
             std::function<decltype(EnforceActive)> mEnforceInternal = EnforcePassive;
         };
 
-        /// Pointer definition of ApplyCompressibleInlet
-        KRATOS_CLASS_POINTER_DEFINITION(ApplyCompressibleInlet);
+        /// Pointer definition of ApplyMachDependentBoundaryConditions
+        KRATOS_CLASS_POINTER_DEFINITION(ApplyMachDependentBoundaryConditions);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Constructor
-        ApplyCompressibleInlet(Model& rModel, Parameters& rParameters);
+        ApplyMachDependentBoundaryConditions(Model& rModel, Parameters& rParameters);
 
         /// Destructor.
-        ~ApplyCompressibleInlet() override;
+        ~ApplyMachDependentBoundaryConditions() override;
 
 
         ///@}
@@ -247,15 +247,15 @@ namespace Kratos
         ///@{
 
         /// Assignment operator.
-        ApplyCompressibleInlet& operator=(ApplyCompressibleInlet const& rOther);
+        ApplyMachDependentBoundaryConditions& operator=(ApplyMachDependentBoundaryConditions const& rOther);
 
         /// Copy constructor.
-        ApplyCompressibleInlet(ApplyCompressibleInlet const& rOther);
+        ApplyMachDependentBoundaryConditions(ApplyMachDependentBoundaryConditions const& rOther);
 
 
         ///@}
 
-        }; // Class ApplyCompressibleInlet
+        }; // Class ApplyMachDependentBoundaryConditions
 
     ///@}
 
@@ -271,7 +271,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const ApplyCompressibleInlet& rThis);
+        const ApplyMachDependentBoundaryConditions& rThis);
 
     ///@}
 
