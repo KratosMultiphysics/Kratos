@@ -120,12 +120,6 @@ FreeDof(const BoundaryConditionUtility & rUtility, NodeType & rNode)
 }
 
 
-constexpr char ApplyMachDependentBoundaryConditions::IndexToAxis(const unsigned int i)
-{
-    return static_cast<char>(static_cast<unsigned int>('X') + i);
-}
-
-
 void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters)
 {
     KRATOS_TRY
@@ -134,7 +128,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
         << "Missing string field 'variable' in boundary condition:\n" << Parameters  << std::endl;
     
     KRATOS_ERROR_IF_NOT(Parameters.Has("value"))
-        << "Missing double field 'value' in boundary condition:\n" << Parameters  << std::endl;
+        << "Missing double (or vector) field 'value' in boundary condition:\n" << Parameters  << std::endl;
 
     // Reading interval
     IntervalUtility interval_utility{Parameters};
@@ -152,25 +146,32 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
 
     if(Parameters["value"].IsVector())
     {
-        const auto values = Parameters["value"].GetVector();
-
         KRATOS_ERROR_IF_NOT(Parameters.Has("constrained"))
-            << "Missing boolean array field 'constrained' in boundary condition:\n" << Parameters  << std::endl;
+            << "Missing boolean array field 'constrained' in boundary condition:\n"
+            << Parameters  << std::endl;
 
-        KRATOS_ERROR_IF_NOT(values.size() == Parameters["constrained"].size())
-            << "The number of values specified must be the same as number of constraints specified:\n" << Parameters << std::endl;
+        const auto values = Parameters["value"].GetVector();
+        const auto & constraints = Parameters["constrained"];
 
-        KRATOS_ERROR_IF(values.size() > 3)
-            << "Allowed vector variables are at most 3-dimensional:\n" << Parameters << std::endl;
+        const std::size_t n_components = values.size();
+        const std::size_t n_constraints = constraints.size();
 
-        for(std::size_t i=0; i<Parameters["constrained"].size(); i++)
+        KRATOS_ERROR_IF(n_constraints != n_components)
+            << "The number of values specified must be the same as number of constraints specified:\n"
+            << Parameters << std::endl;
+
+        KRATOS_ERROR_IF(n_components > 3)
+            << "Allowed vector variables are at most 3-dimensional:\n"
+            << Parameters << std::endl;
+
+        std::string variable_component_name = Parameters["variable"].GetString() + "_X";
+        
+        for(std::size_t i=0; i<n_components; i++)
         {
-            if(Parameters["constrained"][i].GetBool())
+            if(constraints[i].GetBool())
             {
-                std::string variable_name = Parameters["variable"].GetString();
-                variable_name.push_back('_');
-                variable_name.push_back(IndexToAxis(i));
-                rBCList.emplace_back(variable_name, values[i], interval_utility);
+                variable_component_name.back() = "XYZ"[i];
+                rBCList.emplace_back(variable_component_name, values[i], interval_utility);
             }
         }
 

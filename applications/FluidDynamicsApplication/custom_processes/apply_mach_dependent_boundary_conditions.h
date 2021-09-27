@@ -242,12 +242,6 @@ namespace Kratos
          */
         void ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters);
 
-        /**
-         * @brief Performs the conversion [0, 1, 2] -> ['X', 'Y', 'Z'] at
-         * compile-time
-         */
-        static constexpr char IndexToAxis(const unsigned int i);
-
         ///@}
         ///@name Private  Access
         ///@{
