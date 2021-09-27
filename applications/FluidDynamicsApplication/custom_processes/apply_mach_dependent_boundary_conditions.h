@@ -29,7 +29,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "containers/model.h"
-
+#include "utilities/interval_utility.h"
 namespace Kratos
 {
   ///@addtogroup FluidDynamicsApplication
@@ -75,8 +75,7 @@ namespace Kratos
         public:
             BoundaryConditionUtility(const std::string & variable_name,
                                      const double Value,
-                                     const double Start,
-                                     const double End);
+                                     const Intervalutility & rIntervalUtility);
             /**
              * @brief Checks that the curent time is within the interval, and decides accordingly what function 
              * to use during Enforce. This avoids checking the time at every node.
@@ -90,8 +89,7 @@ namespace Kratos
         private:
             const Variable<double> * mpVariable;
             const double mValue; // Value to enforce
-            const double mStart; // Start of the active interval
-            const double mEnd;   // End of the active interval
+            IntervalUtility mInterval;
             
             /// This function will be called when the time is within the specified interval
             static void EnforceActive(const BoundaryConditionUtility & rUtility, NodeType & rNode);

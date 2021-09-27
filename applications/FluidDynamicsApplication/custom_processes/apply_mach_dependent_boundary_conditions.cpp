@@ -60,8 +60,8 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 
 
 ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-BoundaryConditionUtility(const std::string & variable_name, const double Value, const double Start, const double End)
-    : mValue(Value), mStart(Start), mEnd(End)
+BoundaryConditionUtility(const std::string & variable_name, const double Value, const IntervalUtility & rIntervalUtility)
+    : mValue(Value), mIntervalUtility(rIntervalUtility)
 {
     KRATOS_TRY
 
@@ -75,7 +75,7 @@ BoundaryConditionUtility(const std::string & variable_name, const double Value, 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 ActivateIfInsideInterval(const double time)
 {
-    if(time >= mStart && time < mEnd)
+    if(mInterval.IsInInterval(time))
     {
         mEnforceInternal = &EnforceActive;
     }
@@ -141,16 +141,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
         << "Missing double field 'value' in boundary condition:\n" << Parameters  << std::endl;
 
     // Reading interval
-    double interval_start = 0.0;
-    double interval_end   = std::numeric_limits<double>::max();
-    if(Parameters.Has("interval"))
-    {
-        KRATOS_ERROR_IF_NOT(Parameters["interval"].size() == 2)
-            << "Field 'interval' is expected to contain an array with two entries [start, end]:\n" << Parameters << std::endl;
-        interval_start = ReadTime(Parameters["interval"][0]);
-        interval_end = ReadTime(Parameters["interval"][1]);
-    }
-
+    IntervalUtility interval_utility{Parameters};
     
     // Reading value and acting depending on if it's vector or double
     if(Parameters["value"].IsDouble())
@@ -158,8 +149,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
         rBCList.emplace_back(
             Parameters["variable"].GetString(),
             Parameters["value"].GetDouble(),
-            interval_start,
-            interval_end
+            interval_utility
         );
         return;
     }
