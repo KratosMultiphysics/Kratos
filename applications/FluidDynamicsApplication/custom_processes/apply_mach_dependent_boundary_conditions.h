@@ -113,9 +113,6 @@ namespace Kratos
         /// Constructor
         ApplyMachDependentBoundaryConditions(Model& rModel, Parameters& rParameters);
 
-        /// Destructor.
-        ~ApplyMachDependentBoundaryConditions() override;
-
 
         ///@}
         ///@name Operators
