@@ -156,7 +156,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
                 std::string variable_name = Parameters["variable"].GetString();
                 variable_name.push_back('_');
                 variable_name.push_back(IndexToAxis(i));
-                rBCList.emplace_back(variable_name, values[i], interval_start, interval_end);
+                rBCList.emplace_back(variable_name, values[i], interval_utility);
             }
         }
 
