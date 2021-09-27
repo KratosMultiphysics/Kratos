@@ -30,6 +30,7 @@
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
 #include "custom_processes/distribute_load_on_surface_process.h"
+#include "custom_processes/rans_variable_data_transfer_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -39,6 +40,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     namespace py = pybind11;
 
     /// Processes
+    
+    py::class_<RansVariableDataTransferProcess, RansVariableDataTransferProcess::Pointer, Process>(m,"RansVariableDataTransferProcess").def(py::init<Model&,Parameters>());
+
     py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
         .def(py::init<ModelPart&, Parameters>());
 
