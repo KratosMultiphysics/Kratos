@@ -201,6 +201,59 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 msg="Failed to fix supersonic boundary condition.")
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273.15,
                 msg="Failed to set value for supersonic boundary condition.")
+
+        process.ExecuteFinalizeSolutionStep()
+
+    def testInterval(self):
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "Parameters" : {
+                "model_part_name" : "main_model_part",
+                "subsonic_boundary_conditions" : [
+                    {
+                        "variable" : "DENSITY",
+                        "value" : 1.225,
+                        "interval" : [0, 5.0]
+                    }
+                ]
+            }
+        }
+        """)
+
+        process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+        model_part = self.model["main_model_part"]
+
+        process.ExecuteInitialize()
+        process.ExecuteBeforeSolutionLoop()
+
+        for node in model_part.Nodes:
+            node.SetValue(FluidDynamicsApplication.MACH, 0.5)
+
+        # t inside interval
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 1.0)
+
+
+        process.ExecuteInitializeSolutionStep()
+
+        for node in model_part.Nodes:
+            self.assertTrue(node.IsFixed(KratosMultiphysics.DENSITY),
+                msg="Failed to fix subsonic boundary condition.")
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 1.225,
+                msg="Failed to set value for subsonic boundary condition.")
+
+        self._ResetVariablesToZero()
+        process.ExecuteFinalizeSolutionStep()
+
+        # t outside interval
+        model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 100.0)
+
+        process.ExecuteInitializeSolutionStep()
+
+        for node in model_part.Nodes:
+            self.assertFalse(node.IsFixed(KratosMultiphysics.DENSITY),
+                msg="Mistakenly fixed boundary condition outside the specified time interval.")
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 0.0,
+                msg="Mistakenly modified value for boundary condition outside the specified time interval.")
         
         process.ExecuteFinalizeSolutionStep()
 
