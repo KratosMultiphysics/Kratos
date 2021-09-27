@@ -129,14 +129,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -151,14 +145,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -174,9 +162,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -191,9 +178,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -296,8 +282,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-
 
     void InitializeInterfaceCommunicator()
     {
@@ -509,14 +493,14 @@ private:
     ///@name Private  Access
     ///@{
 
-    MapperUniquePointerType& GetInverseMapper()
+    InterpolativeMapperBase& GetInverseMapper()
     {
         KRATOS_TRY;
 
         if (!mpInverseMapper) {
             InitializeInverseMapper();
         }
-        return mpInverseMapper;
+        return *(static_cast<InterpolativeMapperBase*>(mpInverseMapper.get()));
 
         KRATOS_CATCH("");
     }
