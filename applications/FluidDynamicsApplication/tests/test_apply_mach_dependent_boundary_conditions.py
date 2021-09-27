@@ -257,6 +257,76 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         
         process.ExecuteFinalizeSolutionStep()
 
+    def testErrorMissingValue(self):
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "Parameters" : {
+                "model_part_name" : "main_model_part",
+                "subsonic_boundary_conditions" : [
+                    {
+                        "variable" : "DENSITY",
+                        "interval" : [0, 5.0]
+                    }
+                ]
+            }
+        }
+        """)
+
+        with self.assertRaises(RuntimeError) as context:
+            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+
+        self.assertIn("Missing double (or vector) field 'value' in boundary condition", str(context.exception))
+        self.assertIn("DENSITY", str(context.exception))
+
+    def testErrorMissingConstraint(self):
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "Parameters" : {
+                "model_part_name" : "main_model_part",
+                "subsonic_boundary_conditions" : [
+                    {
+                        "variable" : "VELOCITY",
+                        "value" : [0,1,3],
+                        "interval" : [0, 5.0]
+                    }
+                ]
+            }
+        }
+        """)
+
+        with self.assertRaises(RuntimeError) as context:
+            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+
+        self.assertIn("Missing boolean array field \'constrained", str(context.exception))
+        self.assertIn("VELOCITY", str(context.exception))
+
+    def testErrorTooManyValues(self):
+        """
+        This error is particularly important because it prevents possible
+        segmentation faults
+        """
+        settings = KratosMultiphysics.Parameters("""
+        {
+            "Parameters" : {
+                "model_part_name" : "main_model_part",
+                "subsonic_boundary_conditions" : [
+                    {
+                        "variable" : "VELOCITY",
+                        "value" : [0,1, 3, 4],
+                        "constrained" : [true, true, true, true],
+                        "interval" : [0, 5.0]
+                    }
+                ]
+            }
+        }
+        """)
+
+        with self.assertRaises(RuntimeError) as context:
+            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+
+        self.assertIn("Allowed vector variables are at most 3-dimensional", str(context.exception))
+        self.assertIn("VELOCITY", str(context.exception))
+
 
 if __name__ == '__main__':
     UnitTest.main()
