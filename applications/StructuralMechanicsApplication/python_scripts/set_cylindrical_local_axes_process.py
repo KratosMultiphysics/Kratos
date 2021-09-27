@@ -6,6 +6,11 @@ from KratosMultiphysics import Logger
 def Factory(settings, Model):
     if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
+    return SetCylindricalLocalAxesProcess(Model, settings["Parameters"])
+
+def Factory(settings, Model):
+    if not isinstance(settings, KM.Parameters):
+        raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
 
     default_settings = KM.Parameters(
         """{
