@@ -407,7 +407,7 @@ void WaveElement<TNumNodes>::AddArtificialViscosityTerms(
             bjh[1] = rDN_DX(j,1);
 
             tmp = prod(D, trans(bjq));
-            SwMathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
+            MathUtils<double>::AddMatrix(rMatrix, Weight*prod(biq, tmp), 3*i, 3*j);
             rMatrix(3*i + 2, 3*j + 2) += inner_prod(bih, Weight*prod(C, bjh));
         }
     }
