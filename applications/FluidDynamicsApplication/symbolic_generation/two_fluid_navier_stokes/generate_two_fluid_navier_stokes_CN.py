@@ -50,16 +50,16 @@ for dim in dim_vector:
     DNenr = DefineMatrix('DNenr',nnodes,dim)
     Nenr = DefineVector('Nenr',nnodes)
 
+    theta=Symbol('theta',positive=True)
 
     ## Unknown fields definition
     v = DefineMatrix('v',nnodes,dim)            # Current step velocity (v(i,j) refers to velocity of node i component j)
     vn = DefineMatrix('vn',nnodes,dim)          # Previous step velocity
-    v_cn = 0.5*(v + vn)
+    v_cn = theta*v+(1-theta)*vn
     p = DefineVector('p',nnodes)                # Pressure
     pn = DefineVector('pn',nnodes)              # Previous steo pressure
-    p_cn = 0.5*(p + pn)
-    #FIXME: Enriched Pressure hacemos algo ???
-    penr= DefineVector('penr',nnodes)	        # Enriched Pressure
+    p_cn = theta*p+(1-theta)*pn
+    #FIXME: Enriched Pressure hacemos algo ??        # Enriched Pressure
     penr_cn= DefineVector('penr_cn',nnodes)
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
@@ -78,11 +78,13 @@ for dim in dim_vector:
     ## Other simbols definition
     dt  = Symbol('dt', positive = True)
     rho = Symbol('rho', positive = True)
+    nu  = Symbol('nu', positive = True)
     mu  = Symbol('mu', positive = True)
     tau1 = Symbol('tau1', positive = True)
     tau2 = Symbol('tau2', positive = True)
     h = Symbol('h', positive = True)
     dyn_tau = Symbol('dyn_tau', positive = True)
+
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
     K_darcy = Symbol('K_darcy', positive = True)
@@ -120,7 +122,6 @@ for dim in dim_vector:
     accel_gauss_cn=((v-vn)/dt).transpose()*N
     p_cn_gauss=p_cn.transpose()*N
     # FIXME: LA ENRICHMENTE ???
-    penr_gauss = penr.transpose()*Nenr
     penr_cn_gauss = penr_cn.transpose()*Nenr
     w_gauss = w.transpose()*N
     q_gauss = q.transpose()*N
@@ -141,7 +142,7 @@ for dim in dim_vector:
     # div_vconv_cn=div(DN,vconv)
 
     # FIXME: GRADIENTE??
-    grad_sym_v_cn_voigt = grad_sym_voigtform(DN,v_cn)     # Symmetric gradient of v in Voigt notation
+    grad_sym_v_cn_voigt = grad_sym_voigtform(DN,v_cn)   # Symmetric gradient of v in Voigt notation
     grad_sym_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 

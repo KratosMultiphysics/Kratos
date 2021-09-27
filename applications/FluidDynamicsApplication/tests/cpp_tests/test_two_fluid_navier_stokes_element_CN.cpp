@@ -58,6 +58,7 @@ namespace Kratos {
 
             // Process info creation
             double delta_time = 0.1;
+            modelPart.GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.5);
             modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
             modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
             modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
@@ -106,7 +107,7 @@ namespace Kratos {
                 for (unsigned int k = 0; k < 3; k++)
                 {
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i, k);
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9 * vel_original(i, k);
+                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] =3.14*vel_original(i, k);
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k] = 0.0;
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
                 }

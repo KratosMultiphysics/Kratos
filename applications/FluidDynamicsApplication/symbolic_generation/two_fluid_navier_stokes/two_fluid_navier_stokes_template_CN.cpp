@@ -315,15 +315,35 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
     rData.ComputeDarcyTerm();
 }
 
-template <class TElementData>
-void TwoFluidNavierStokesCN<TElementData>::CalculateStrainRate(TElementData& rData) const
+template <>
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesData<2, 3>& rData) const
 {
-    const typename TElementData::NodalVectorData mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+    const BoundedMatrix<double,3,2> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+    auto& rDNDX = rData.DN_DX;
+    auto& r_strain_rate = rData.StrainRate;
+    noalias(r_strain_rate) = ZeroVector(3);
+    for (unsigned int i = 0; i < 3; i++) {
+        r_strain_rate[0] += rDNDX(i,0)*mid_step_velocity(i,0);
+        r_strain_rate[1] += rDNDX(i,1)*mid_step_velocity(i,1);
+        r_strain_rate[2] += rDNDX(i,0)*mid_step_velocity(i,1) + rDNDX(i,1)*mid_step_velocity(i,0);
+    }
+}
 
-    Internals::StrainRateSpecialization<TElementData,TElementData::Dim>::Calculate(
-        rData.StrainRate,
-        mid_step_velocity,
-        rData.DN_DX);
+template <>
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesData<3, 4>& rData) const
+{
+    const BoundedMatrix<double,4,3> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
+    auto& rDNDX = rData.DN_DX;
+    auto& r_strain_rate = rData.StrainRate;
+    noalias(r_strain_rate) = ZeroVector(6);
+    for (unsigned int i = 0; i < 4; i++) {
+        r_strain_rate[0] += rDNDX(i,0)*mid_step_velocity(i,0);
+        r_strain_rate[1] += rDNDX(i,1)*mid_step_velocity(i,1);
+        r_strain_rate[2] += rDNDX(i,2)*mid_step_velocity(i,2);
+        r_strain_rate[3] += rDNDX(i,0)*mid_step_velocity(i,1) + rDNDX(i,1)*mid_step_velocity(i,0);
+        r_strain_rate[4] += rDNDX(i,1)*mid_step_velocity(i,2) + rDNDX(i,2)*mid_step_velocity(i,1);
+        r_strain_rate[5] += rDNDX(i,0)*mid_step_velocity(i,2) + rDNDX(i,2)*mid_step_velocity(i,0);
+    }
 }
 
 template <>
@@ -337,7 +357,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLH
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
@@ -348,7 +367,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLH
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &v_CN = 0.5 * (vn + v);
+    const double theta=rData.theta;
+    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
     const auto &vconv_CN = v_CN - vmesh;
 
 
@@ -385,7 +405,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLH
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
 
     const double dyn_tau = rData.DynamicTau;
 
@@ -395,7 +414,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLH
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
     const auto &vmesh = rData.MeshVelocity;
-    const auto &v_CN = 0.5 * (vn + v);
+    const auto &theta=rData.theta;
+    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
     const auto &vconv_CN = v_CN - vmesh;
 
     // Get constitutive matrix
@@ -429,9 +449,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRH
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
@@ -448,7 +465,9 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRH
     const auto &stress = rData.ShearStress;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const auto v_CN = 0.5 * (vn + v);
+    const double  theta=rData.theta;
+    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
+
     const auto vconv_CN = v_CN - vmesh;
 
     // Get shape function values
@@ -485,9 +504,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRH
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
@@ -504,7 +520,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRH
     const auto &stress = rData.ShearStress;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const auto v_CN = 0.5 * (vn + v);
+    const double  theta=rData.theta;
+    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
     const auto vconv_CN = v_CN - vmesh;
 
     // Get shape function values
@@ -544,9 +561,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEn
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
@@ -561,7 +575,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEn
     const auto &p=rData.Pressure;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const auto v_CN = 0.5 * (vn + v);
+    const double  theta=rData.theta;
+    const BoundedMatrix<double,3,2> v_CN = theta*v+(1-theta)*vn;
     const auto vconv_CN = v_CN - vmesh;
 
     // Get shape function values
@@ -618,9 +633,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEn
     const double h = rData.ElementSize;
 
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
 
     const double dyn_tau = rData.DynamicTau;
     const double K_darcy = rData.DarcyTerm;
@@ -636,7 +648,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEn
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
     // FIXME: Mesh velocity should be evaluated at 0.5dt
-    const auto v_CN = 0.5 * (vn + v);
+    const double theta=rData.theta;
+    const BoundedMatrix<double,4,3> v_CN = theta*v+(1-theta)*vn;
     const auto vconv_CN = v_CN - vmesh;
 
     // Get shape function values
@@ -920,7 +933,8 @@ void TwoFluidNavierStokesCN<TElementData>::PressureGradientStabilization(
     const auto &vn = rData.Velocity_OldStep1;
 
     // TODO: Velocity CRANK NICOLSON at 0.5dt
-    const auto v_CN = 0.5 * (vn + v);
+    const double  theta=rData.theta;
+    const BoundedMatrix<double,NumNodes,Dim> v_CN = theta*v+(1-theta)*vn;
     const auto vmesh=rData.MeshVelocity;
     const auto v_convection_CN = v_CN - vmesh;
 
@@ -1019,6 +1033,7 @@ void TwoFluidNavierStokesCN<TElementData>::CondenseEnrichmentWithContinuity(
                     double sum_d = di + dj;
                     double Ni = dj / sum_d;
                     double Nj = di / sum_d;
+                    //FIXME: ESTO QUE ES???
                     double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
                     rKeeTot(i, i) += penalty_coeff * Ni * Ni;
                     rKeeTot(i, j) -= penalty_coeff * Ni * Nj;

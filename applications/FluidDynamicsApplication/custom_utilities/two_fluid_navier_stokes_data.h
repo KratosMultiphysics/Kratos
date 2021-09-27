@@ -54,7 +54,7 @@ NodalVectorData Velocity_OldStep1;
 NodalVectorData Velocity_OldStep2;
 NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
-
+NodalVectorData velocity_midstep;
 NodalScalarData Pressure_OldStep1;
 NodalScalarData Pressure;
 NodalScalarData Distance;
@@ -73,6 +73,8 @@ double VolumeError;
 double bdf0;
 double bdf1;
 double bdf2;
+double theta;
+
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -130,7 +132,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-
+    this->FillFromProcessInfo(theta,TIME_INTEGRATION_THETA,rProcessInfo);
+    velocity_midstep=theta*(Velocity)+(1-theta)*Velocity_OldStep1;
     const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
