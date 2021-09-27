@@ -215,6 +215,8 @@ void AddPotentialGradientStabilizationTerm(Element& rElement,
 
 void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, const unsigned int NumberOfSweeps);
 
+void BlockBodyNodes(ModelPart& rBodyModelPart);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

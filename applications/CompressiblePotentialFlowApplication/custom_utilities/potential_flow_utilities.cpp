@@ -1355,6 +1355,15 @@ void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, con
     KRATOS_WATCH(selected_node_counter)
 }
 
+void BlockBodyNodes(ModelPart& rBodyModelPart)
+{
+    block_for_each(rBodyModelPart.Nodes(), [&](Node<3>& rNode)
+    {
+        rNode.Set(BLOCKED);
+        rNode.SetValue(METRIC_SCALAR, 1e6);
+    });
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 
