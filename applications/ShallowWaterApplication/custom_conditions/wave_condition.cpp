@@ -269,12 +269,12 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
             }
 
             /// First component
-            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
-            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
 
             /// Second component
-            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
-            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix,  Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector, -Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
         }
     }
 }
