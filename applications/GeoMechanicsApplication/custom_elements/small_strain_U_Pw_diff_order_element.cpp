@@ -1442,6 +1442,11 @@ void SmallStrainUPwDiffOrderElement::
 
     const bool hasBiotCoefficient = Prop.Has(BIOT_COEFFICIENT);
 
+    // if (this->Id()==222) {
+    //     KRATOS_INFO("CalculateStiffnessMatrixFlag") <<CalculateStiffnessMatrixFlag << std::endl;
+    //     KRATOS_INFO("CalculateResidualVectorFlag") <<CalculateResidualVectorFlag << std::endl;
+    // }
+
     for ( unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
