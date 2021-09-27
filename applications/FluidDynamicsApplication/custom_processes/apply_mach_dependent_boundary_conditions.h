@@ -127,8 +127,6 @@ namespace Kratos
 
         const Parameters GetDefaultParameters() const override;
 
-        bool ValidateParameters(Parameters Params) const;
-
         ///@}
         ///@name Access
         ///@{
