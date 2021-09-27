@@ -102,14 +102,14 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
         for node in model_part.Nodes:
             self.assertTrue(node.IsFixed(KratosMultiphysics.TEMPERATURE),
-                msg="Failed to fix subsonic boundary condition.")
+                msg="Failed to fix supersonic boundary condition.")
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273.15,
-                msg="Failed to set value for subsonic boundary condition.")
+                msg="Failed to set value for supersonic boundary condition.")
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.DENSITY),
-                msg="Mistakenly fixed supersonic boundary condition.")
+                msg="Mistakenly fixed subsonic boundary condition.")
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 0.0,
-                msg="Mistakenly modified value for supersonic boundary condition.")
+                msg="Mistakenly modified value for subsonic boundary condition.")
         
         process.ExecuteFinalizeSolutionStep()
 
