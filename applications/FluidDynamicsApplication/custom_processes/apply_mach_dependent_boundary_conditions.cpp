@@ -125,7 +125,7 @@ double ReadTime(const Parameters & raw_data)
         return std::numeric_limits<double>::max();
     }
 
-    KRATOS_ERROR << "Interval must contain either a number of the string 'End'" << std::endl;
+    KRATOS_ERROR << "Interval must contain either a number or the string 'End'" << std::endl;
 
     KRATOS_CATCH("")
 }
