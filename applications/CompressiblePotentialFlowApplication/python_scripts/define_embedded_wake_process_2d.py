@@ -24,17 +24,16 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         self.main_model_part = Model[settings["model_part_name"].GetString()].GetRootModelPart()
+        if Model.HasModelPart("wake"):
+            Model.DeleteModelPart("wake")
         self.wake_model_part=Model.CreateModelPart("wake")
         self.model=Model
 
         self.epsilon = settings["epsilon"].GetDouble()
 
-    def ExecuteInitialize(self):
-    # def ExecuteInitializeSolutionStep(self):
-        data_communicator  = KratosMultiphysics.DataCommunicator.GetDefault()
-        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(
-            data_communicator,
-            self.main_model_part).Execute()
+    # def ExecuteInitialize(self):
+    def ExecuteInitializeSolutionStep(self):
+        KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.main_model_part).Execute()
 
         ini_time = time.time()
 
@@ -259,11 +258,8 @@ class DefineEmbeddedWakeProcess(KratosMultiphysics.Process):
         le_node = -1
         for node in skin_model_part.GetSubModelPart("LeadingEdgeNode").Nodes:
             le_node = node
-        print(te_node.Id)
-        print(le_node.Id)
         te_weight=0.95
         self.wake_model_part.CreateNewNode(1, (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y, 0.0)
-        print("WAKE_ORIGIN", (1-te_weight)*le_node.X+te_weight*te_node.X, (1-te_weight)*le_node.Y+te_weight*te_node.Y)
         self.wake_model_part.CreateNewNode(2, te_node.X, te_node.Y, 0.0)
         self.wake_model_part.CreateNewNode(3, 200.0, te_node.Y, 0.0)
         self.wake_model_part.CreateNewElement("Element2D2N", 1, [1,2], KratosMultiphysics.Properties(0))
