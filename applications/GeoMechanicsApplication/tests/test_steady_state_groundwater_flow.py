@@ -47,7 +47,14 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         simulation = test_helper.run_kratos(file_path)
 
         self.assert_outflow_discharge(simulation, 0.827800245)
+    
+    def test_darcy_law_on_one_element(self):
+        test_name = 'test_darcy_law'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
 
+        self.assert_outflow_discharge(simulation, 2)
+        
 
     def calculate_outflow_discharge(self, simulation):
         """
