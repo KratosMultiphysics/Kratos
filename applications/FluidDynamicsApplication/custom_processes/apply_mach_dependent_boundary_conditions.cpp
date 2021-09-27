@@ -111,25 +111,6 @@ constexpr char ApplyMachDependentBoundaryConditions::IndexToAxis(const unsigned 
 }
 
 
-double ApplyMachDependentBoundaryConditions::ReadTime(const Parameters & raw_data)
-{
-    KRATOS_TRY
-    
-    if(raw_data.IsDouble())
-    {
-        return raw_data.GetDouble();
-    }
-    
-    if(raw_data.IsString() && raw_data.GetString() == "End")
-    {
-        return std::numeric_limits<double>::max();
-    }
-
-    KRATOS_ERROR << "Interval must contain either a number or the string 'End'" << std::endl;
-
-    KRATOS_CATCH("")
-}
-
 void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters)
 {
     KRATOS_TRY
@@ -214,21 +195,23 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
     */
 }
 
+
 std::string ApplyMachDependentBoundaryConditions::Info() const
 {
     return "ApplyCompressibleInlet";
 }
+
 
 void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "ApplyCompressibleInlet";
 }
 
+
 void ApplyMachDependentBoundaryConditions::PrintData(std::ostream& rOStream) const
 {
 }
 
-/* External functions *****************************************************/
 
 /// output stream function
 inline std::ostream& operator << (
