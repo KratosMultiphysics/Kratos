@@ -175,6 +175,11 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
+    if (rCurrentProcessInfo.Has(INTEGRATE_BY_PARTS)) {
+        rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS];
+    } else {
+        rData.integrate_by_parts = false;
+    }
     rData.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
@@ -274,7 +279,6 @@ void WaveElement<TNumNodes>::AddWaveTerms(
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
     const double Weight)
 {
-    const bool integrate_by_parts = false;
     const auto z = rData.nodal_z;
     const double l = StabilizationParameter(rData);
 
@@ -294,7 +298,7 @@ void WaveElement<TNumNodes>::AddWaveTerms(
             double g1_ij;
             double g2_ij;
             double d_ij;
-            if (integrate_by_parts) {
+            if (rData.integrate_by_parts) {
                 g1_ij = -rDN_DX(i,0) * rN[j];
                 g2_ij = -rDN_DX(i,1) * rN[j];
             } else {

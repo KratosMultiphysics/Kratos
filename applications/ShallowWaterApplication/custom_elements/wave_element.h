@@ -277,6 +277,7 @@ protected:
 
     struct ElementData
     {
+        bool integrate_by_parts;
         double stab_factor;
         double shock_stab_factor;
         double relative_dry_height;
