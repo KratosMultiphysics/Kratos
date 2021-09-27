@@ -190,7 +190,6 @@ void SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::ExecuteFinal
 
 void SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::SetInitialBodyForceAndPorosityField()
 {
-    const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
     const double rho = mDensity;
@@ -319,7 +318,6 @@ void SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::SetInitialBo
 void SpatialDependantSinusoidalPorositySolutionAndBodyForceProcess::SetBodyForceAndPorosityField()
 {
 
-    const double time = mrModelPart.GetProcessInfo()[TIME];
     const double dim = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     const double delta_alpha = mDeltaAlpha;
     const double rho = mDensity;
