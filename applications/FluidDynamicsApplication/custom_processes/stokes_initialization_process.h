@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -108,7 +108,7 @@ public:
         // pointer types for the solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
-        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+        typedef typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
         // Solution scheme: Linear static scheme
         SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
@@ -124,15 +124,14 @@ public:
         bool ReformDofSetFlag = false;
         bool CalculateNormDxFlag = false;
         bool MoveMeshFlag = false;
-        mpSolutionStrategy = StrategyPointerType( 
-            new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(r_stokes_part,
-                                                                                                                            pScheme,
-                                                                                                                            mpLinearSolver,
-                                                                                                                            pBuildAndSolver,
-                                                                                                                            ReactionFlag,
-                                                                                                                            ReformDofSetFlag,
-                                                                                                                            CalculateNormDxFlag,
-                                                                                                                            MoveMeshFlag) );
+        mpSolutionStrategy = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
+            r_stokes_part,
+            pScheme,
+            pBuildAndSolver,
+            ReactionFlag,
+            ReformDofSetFlag,
+            CalculateNormDxFlag,
+            MoveMeshFlag) );
         mpSolutionStrategy->SetEchoLevel(0);
         mpSolutionStrategy->Check();
 
@@ -186,8 +185,8 @@ public:
 
     void SetConditions(ModelPart& rStokesPart, ModelPart::ConditionsContainerType::Pointer pConditions)
     {
-        
-        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().GetModelPart("StokesModelPart");    
+
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().GetModelPart("StokesModelPart");
         rStokesPart.SetConditions(pConditions);
         r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }
@@ -246,7 +245,7 @@ protected:
 
     unsigned int mDomainSize;
 
-    typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
+    typename ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
     bool mIsCleared;
 
@@ -288,7 +287,7 @@ protected:
 
 
     // Liberate memory.
-    virtual void Clear()
+    void Clear() override
     {
         mpSolutionStrategy->Clear();
         mIsCleared = true;

@@ -1,6 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
-
-# Importing the Kratos Library
+﻿# Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -19,6 +17,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         origin_model_part = current_model.CreateModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         origin_model_part.SetBufferSize(2)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(origin_model_part)
@@ -27,6 +26,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         destination_model_part = current_model.CreateModelPart("DestinationModelPart")
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         destination_model_part.SetBufferSize(2)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(destination_model_part)
@@ -57,6 +57,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         origin_model_part = current_model.CreateModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         origin_model_part.SetBufferSize(2)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(origin_model_part)
@@ -66,6 +67,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         destination_model_part.SetBufferSize(2)
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(destination_model_part)
 
@@ -91,6 +93,90 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(KratosMultiphysics.VELOCITY_X), node.X)
             self.assertEqual(node.GetValue(KratosMultiphysics.DISPLACEMENT_X), node.X)
 
+    def test_copy_model_part_flagged_nodal_historical_var_to_historical_var(self):
+        def test_method(m_orig, m_dest, v_orig, v_dest, read_buffer, write_buffer):
+            KratosMultiphysics.VariableUtils().CopyModelPartFlaggedNodalHistoricalVarToHistoricalVar(
+                v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True, read_buffer, write_buffer)
+
+        def test_case(read_buffer, write_buffer):
+            self.__test_copy_model_part_flagged_methods(
+                lambda m_orig, m_dest, v_orig, v_dest: test_method(m_orig, m_dest, v_orig, v_dest, read_buffer, write_buffer),
+                lambda model_part: model_part.Nodes,
+                lambda node, variable, value: node.SetSolutionStepValue(variable, read_buffer, value),
+                lambda node, variable: node.GetSolutionStepValue(variable, read_buffer),
+                lambda node, variable, value: node.SetSolutionStepValue(variable, write_buffer, value),
+                lambda node, variable: node.GetSolutionStepValue(variable, write_buffer)
+            )
+
+        test_case(0, 0)
+        test_case(0, 1)
+        test_case(1, 0)
+        test_case(1, 1)
+
+    def test_copy_model_part_flagged_nodal_historical_var_to_non_historical_var(self):
+        def test_method(m_orig, m_dest, v_orig, v_dest, read_buffer):
+            KratosMultiphysics.VariableUtils().CopyModelPartFlaggedNodalHistoricalVarToNonHistoricalVar(
+                v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True, read_buffer)
+        def test_case(read_buffer):
+            self.__test_copy_model_part_flagged_methods(
+                lambda m_orig, m_dest, v_orig, v_dest: test_method(m_orig, m_dest, v_orig, v_dest, read_buffer),
+                lambda model_part: model_part.Nodes,
+                lambda node, variable, value: node.SetSolutionStepValue(variable, read_buffer, value),
+                lambda node, variable: node.GetSolutionStepValue(variable, read_buffer),
+                lambda node, variable, value: node.SetValue(variable, value),
+                lambda node, variable: node.GetValue(variable)
+            )
+
+        test_case(0)
+        test_case(1)
+
+    def test_copy_model_part_flagged_nodal_non_historical_var_to_historical_var(self):
+        def test_method(m_orig, m_dest, v_orig, v_dest, write_buffer):
+            KratosMultiphysics.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToHistoricalVar(
+                v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True, write_buffer)
+        def test_case(write_buffer):
+            self.__test_copy_model_part_flagged_methods(
+                lambda m_orig, m_dest, v_orig, v_dest: test_method(m_orig, m_dest, v_orig, v_dest, write_buffer),
+                lambda model_part: model_part.Nodes,
+                lambda node, variable, value: node.SetValue(variable, value),
+                lambda node, variable: node.GetValue(variable),
+                lambda node, variable, value: node.SetSolutionStepValue(variable, write_buffer, value),
+                lambda node, variable: node.GetSolutionStepValue(variable, write_buffer)
+            )
+
+        test_case(0)
+        test_case(1)
+
+    def test_copy_model_part_flagged_nodal_non_historical_var_to_non_historical_var(self):
+        self.__test_copy_model_part_flagged_methods(
+            lambda m_orig, m_dest, v_orig, v_dest: KratosMultiphysics.VariableUtils().CopyModelPartFlaggedNodalNonHistoricalVarToNonHistoricalVar(v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True),
+            lambda model_part: model_part.Nodes,
+            lambda node, variable, value: node.SetValue(variable, value),
+            lambda node, variable: node.GetValue(variable),
+            lambda node, variable, value: node.SetValue(variable, value),
+            lambda node, variable: node.GetValue(variable)
+        )
+
+    def test_copy_model_part_flagged_element_var(self):
+        self.__test_copy_model_part_flagged_methods(
+            lambda m_orig, m_dest, v_orig, v_dest: KratosMultiphysics.VariableUtils().CopyModelPartFlaggedElementVar(v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True),
+            lambda model_part: model_part.Elements,
+            lambda element, variable, value: element.SetValue(variable, value),
+            lambda element, variable: element.GetValue(variable),
+            lambda element, variable, value: element.SetValue(variable, value),
+            lambda element, variable: element.GetValue(variable)
+        )
+
+    def test_copy_model_part_flagged_condition_var(self):
+        self.__test_copy_model_part_flagged_methods(
+            lambda m_orig, m_dest, v_orig, v_dest: KratosMultiphysics.VariableUtils().CopyModelPartFlaggedConditionVar(v_orig, v_dest, m_orig, m_dest, KratosMultiphysics.INLET, True),
+            lambda model_part: model_part.Conditions,
+            lambda condition, variable, value: condition.SetValue(variable, value),
+            lambda condition, variable: condition.GetValue(variable),
+            lambda condition, variable, value: condition.SetValue(variable, value),
+            lambda condition, variable: condition.GetValue(variable)
+        )
+
     def test_copy_model_part_elemental_var(self):
         current_model = KratosMultiphysics.Model()
 
@@ -98,6 +184,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         origin_model_part = current_model.CreateModelPart("OriginModelPart")
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(origin_model_part)
 
@@ -105,6 +192,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         destination_model_part = current_model.CreateModelPart("DestinationModelPart")
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(destination_model_part)
         ##set the values in the destination model part
@@ -177,6 +265,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ORIENTATION)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -227,6 +316,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -264,6 +354,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -414,6 +505,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -462,6 +554,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -488,6 +581,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -510,6 +604,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -528,6 +623,48 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
             self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
 
+    def test_apply_flagged_fixity(self):
+        current_model = KratosMultiphysics.Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
+        model_part_io.ReadModelPart(model_part)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VISCOSITY, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, model_part)
+
+        for node in model_part.Nodes:
+            if (node.Id % 3 == 0):
+                node.Set(KratosMultiphysics.INLET)
+            elif (node.Id % 3 == 1):
+                node.Set(KratosMultiphysics.OUTLET)
+            elif (node.Id % 3 == 2):
+                node.Set(KratosMultiphysics.SLIP)
+
+        ##apply the fixity
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VISCOSITY, True, model_part.Nodes, KratosMultiphysics.INLET, True)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, model_part.Nodes, KratosMultiphysics.OUTLET, False)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, False, model_part.Nodes, KratosMultiphysics.SLIP, True)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, model_part.Nodes, KratosMultiphysics.SLIP, False)
+
+        ##verify the result
+        for node in model_part.Nodes:
+            node_type = node.Id % 3
+            if (node_type == 0):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.VISCOSITY))
+            if (node_type != 1):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+            if (node_type == 2):
+                self.assertFalse(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+            if (node_type != 2):
+                self.assertTrue(node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+
     def test_apply_vector(self):
         current_model = KratosMultiphysics.Model()
 
@@ -535,6 +672,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -724,6 +862,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -768,6 +907,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -809,6 +949,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"))
         model_part_io.ReadModelPart(model_part)
 
@@ -843,6 +984,74 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
             local_index += 1
 
+    def __test_copy_model_part_flagged_methods(
+        self,
+        method,
+        get_entity_container,
+        origin_entity_value_setter,
+        origin_entity_value_getter,
+        destination_entity_value_setter,
+        destination_entity_value_getter,
+        add_origin_variables_to_solution_step_variables_list = True,
+        add_destination_variables_to_solution_step_variables_list = True):
+        ##set the origin model part
+        current_model = KratosMultiphysics.Model()
+        origin_model_part = current_model.CreateModelPart("OriginModelPart")
+        if (add_origin_variables_to_solution_step_variables_list):
+            origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+            origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+            origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        origin_model_part.SetBufferSize(2)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR)
+        model_part_io.ReadModelPart(origin_model_part)
+
+        ##set the destination model part
+        destination_model_part = current_model.CreateModelPart("DestinationModelPart")
+        destination_model_part.SetBufferSize(2)
+        if (add_destination_variables_to_solution_step_variables_list):
+            destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+            destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+            destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+            destination_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/test_model_part_io_read"), KratosMultiphysics.ModelPartIO.READ | KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR)
+        model_part_io.ReadModelPart(destination_model_part)
+
+        ##set the values in the origin model part
+        for entity in get_entity_container(origin_model_part):
+            entity.Set(KratosMultiphysics.INLET, entity.Id % 2)
+            origin_entity_value_setter(entity, KratosMultiphysics.VISCOSITY, entity.Id * 3)
+            origin_entity_value_setter(entity, KratosMultiphysics.DISPLACEMENT, [entity.Id * 3, entity.Id * 7, entity.Id * 23])
+
+        ##  initialize the containers in destination model part (otherwise the operation is not threadsafe!)
+        for entity in get_entity_container(destination_model_part):
+            destination_entity_value_setter(entity, KratosMultiphysics.VISCOSITY, 0.0)
+            destination_entity_value_setter(entity, KratosMultiphysics.DENSITY, 0.0)
+            destination_entity_value_setter(entity, KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.Array3(0.0))
+            destination_entity_value_setter(entity, KratosMultiphysics.VELOCITY, KratosMultiphysics.Array3(0.0))
+
+        ##copy the values to the destination model part
+        method(origin_model_part, destination_model_part, KratosMultiphysics.VISCOSITY, KratosMultiphysics.DENSITY)
+        method(origin_model_part, destination_model_part, KratosMultiphysics.VISCOSITY, KratosMultiphysics.VISCOSITY)
+        method(origin_model_part, destination_model_part, KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.DISPLACEMENT)
+        method(origin_model_part, destination_model_part, KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.VELOCITY)
+
+        ##check the copied values
+        for origin_entity, destination_entity in zip(get_entity_container(origin_model_part), get_entity_container(destination_model_part)):
+            if (origin_entity.Is(KratosMultiphysics.INLET)):
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.VISCOSITY), destination_entity_value_getter(destination_entity, KratosMultiphysics.VISCOSITY))
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.VISCOSITY), destination_entity_value_getter(destination_entity, KratosMultiphysics.DENSITY))
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.DISPLACEMENT_X), destination_entity_value_getter(destination_entity, KratosMultiphysics.DISPLACEMENT_X))
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.DISPLACEMENT_Y), destination_entity_value_getter(destination_entity, KratosMultiphysics.DISPLACEMENT_Y))
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.DISPLACEMENT_X), destination_entity_value_getter(destination_entity, KratosMultiphysics.VELOCITY_X))
+                self.assertEqual(origin_entity_value_getter(origin_entity, KratosMultiphysics.DISPLACEMENT_Y), destination_entity_value_getter(destination_entity, KratosMultiphysics.VELOCITY_Y))
+            else:
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.VISCOSITY), 0.0)
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.DENSITY), 0.0)
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.DISPLACEMENT_X), 0.0)
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.DISPLACEMENT_Y), 0.0)
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.VELOCITY_X), 0.0)
+                self.assertEqual(destination_entity_value_getter(destination_entity, KratosMultiphysics.VELOCITY_Y), 0.0)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

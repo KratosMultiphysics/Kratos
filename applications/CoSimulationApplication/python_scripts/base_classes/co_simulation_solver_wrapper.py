@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
@@ -12,7 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.colors as colors
 def Create(settings, name):
     raise Exception('"CoSimulationSolverWrapper" is a baseclass and cannot be used directly!')
 
-class CoSimulationSolverWrapper(object):
+class CoSimulationSolverWrapper:
     """Baseclass for the solver wrappers used for CoSimulation
     It wraps solvers used in the CoSimulation
     """
@@ -38,14 +36,13 @@ class CoSimulationSolverWrapper(object):
             raise Exception(err_msg)
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(self._GetDefaultSettings())
+        self.settings.ValidateAndAssignDefaults(self._GetDefaultParameters())
 
         self.name = solver_name
         if "." in self.name:
             raise Exception("cannot contain dot!")
 
         self.echo_level = self.settings["echo_level"].GetInt()
-        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
 
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
@@ -54,14 +51,10 @@ class CoSimulationSolverWrapper(object):
         raise Exception('Trying to get SolverWrapper "{}" of "{}" which is not a coupled solver!'.format(solver_name, self.name))
 
     def Initialize(self):
+        self.data_dict = {data_name : CouplingInterfaceData(data_config, self.model, data_name, self.name) for (data_name, data_config) in self.settings["data"].items()}
+
         if self.__HasIO():
             self.__GetIO().Initialize()
-
-    def InitializeCouplingInterfaceData(self):
-        # Initializing of the CouplingInterfaceData can only be done after the meshes are read
-        # and all ModelParts are created
-        for data in self.data_dict.values():
-            data.Initialize()
 
     def Finalize(self):
         if self.__HasIO():
@@ -85,8 +78,7 @@ class CoSimulationSolverWrapper(object):
         pass
 
     def SolveSolutionStep(self):
-        for data in self.data_dict.values():
-            data.is_outdated = True
+        pass
 
 
     def CreateIO(self, io_echo_level):
@@ -96,7 +88,7 @@ class CoSimulationSolverWrapper(object):
         io_settings = self.settings["io_settings"]
 
         if not io_settings.Has("echo_level"):
-            io_settings.AddEmptyValue("echo_level").SetInt(self.echo_level)
+            io_settings.AddEmptyValue("echo_level").SetInt(io_echo_level)
 
         self.__io = io_factory.CreateIO(self.settings["io_settings"], self.model, self.name, self._GetIOType())
 
@@ -158,7 +150,7 @@ class CoSimulationSolverWrapper(object):
         return self.__io is not None
 
     @classmethod
-    def _GetDefaultSettings(cls):
+    def _GetDefaultParameters(cls):
         return KM.Parameters("""{
             "type"                    : "",
             "solver_wrapper_settings" : {},

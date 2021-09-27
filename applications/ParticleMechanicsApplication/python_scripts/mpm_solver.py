@@ -30,7 +30,7 @@ class MPMSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
-    def GetDefaultSettings(cls):
+    def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""
         {
             "model_part_name" : "MPM_Material",
@@ -89,7 +89,7 @@ class MPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
-        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultSettings())
+        this_defaults.AddMissingParameters(super(MPMSolver, cls).GetDefaultParameters())
         return this_defaults
 
     ### Solver public functions
@@ -334,10 +334,15 @@ class MPMSolver(PythonSolver):
             R_AT = convergence_criterion_parameters["residual_absolute_tolerance"].GetDouble()
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
+        elif (convergence_criterion_parameters["convergence_criterion"].GetString() == "displacement_criterion"):
+            D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
+            D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
+            convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
+            convergence_criterion.SetEchoLevel(convergence_criterion_parameters["echo_level"].GetInt())
         else:
             err_msg  = "The requested convergence criteria \"" + convergence_criterion_parameters["convergence_criterion"].GetString()
             err_msg += "\" is not supported for ParticleMechanicsApplication!\n"
-            err_msg += "Available options are: \"residual_criterion\""
+            err_msg += "Available options are: \"residual_criterion\" or \"displacement_criterion\""
             raise Exception(err_msg)
 
         return convergence_criterion
@@ -430,7 +435,15 @@ class MPMSolver(PythonSolver):
     ### Solver private functions
 
     def __ComputeDeltaTime(self):
-        return self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.settings["time_stepping"].Has("time_step"):
+            return self.settings["time_stepping"]["time_step"].GetDouble()
+        elif self.settings["time_stepping"].Has("time_step_table"):
+            current_time = self.grid_model_part.ProcessInfo[KratosMultiphysics.TIME]
+            time_step_table = self.settings["time_stepping"]["time_step_table"].GetMatrix()
+            tb = KratosMultiphysics.PiecewiseLinearTable(time_step_table)
+            return tb.GetValue(current_time)
+        else:
+            raise Exception("::[ParticleSolver]:: Time stepping not defined!")
 
     def __ExecuteCheckAndPrepare(self):
         # Specific active node and element check for particle MPM solver

@@ -87,6 +87,10 @@ class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
 class GravityApplicationTest(ParticleMechanicsTestFactory):
     file_name = "gravity_tests/dynamic_gravity_application_test"
 
+### Gravity Time Step Table Tests
+class GravityTimeStepTableTest(ParticleMechanicsTestFactory):
+    file_name = "gravity_tests/dynamic_gravity_time_step_table_test"
+
 ### Penalty Imposition Tests
 class PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest(ParticleMechanicsTestFactory):
     file_name = "beam_tests/hyperelastic_cantilever_beam/penalty_self_weight_load_2D_quad_test"
@@ -128,3 +132,13 @@ class Explicit3dHexCompressibleOscillatingPointTest(ParticleMechanicsTestFactory
 
 class Explicit3dTetCompressibleOscillatingPointTest(ParticleMechanicsTestFactory):
     file_name = "explicit_tests/oscillating_point_3d/3dtet_compressible_explicit_oscillating_point_test"
+
+### PQMPM tests
+class PQMPMExplicitQuadTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_quad_test"
+
+class PQMPMExplicitTriTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_tri_test"
+
+class PQMPMExplicitHexTest(ParticleMechanicsTestFactory):
+    file_name = "pqmpm_tests/pqmpm_explicit_hex_test"

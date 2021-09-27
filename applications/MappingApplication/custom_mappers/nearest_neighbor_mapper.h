@@ -130,8 +130,9 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+class KRATOS_API(MAPPING_APPLICATION) NearestNeighborMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
 
@@ -143,7 +144,7 @@ public:
     /// Pointer definition of NearestNeighborMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -163,8 +164,12 @@ public:
                                      rModelPartDestination,
                                      JsonParameters)
     {
+        KRATOS_TRY;
+
         this->ValidateInput();
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -178,10 +183,14 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace>>(
+        KRATOS_TRY;
+
+        return Kratos::make_unique<NearestNeighborMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -232,9 +241,12 @@ private:
     Parameters GetMapperDefaultSettings() const override
     {
         return Parameters( R"({
-            "search_radius"            : -1.0,
-            "search_iterations"        : 3,
-            "echo_level"               : 0
+            "search_radius"                : -1.0,
+            "search_iterations"            : 3,
+            "use_initial_configuration"    : false,
+            "echo_level"                   : 0,
+            "print_pairing_status_to_file" : true,
+            "pairing_status_file_path"     : ""
         })");
     }
 

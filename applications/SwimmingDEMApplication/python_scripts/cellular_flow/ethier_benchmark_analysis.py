@@ -164,12 +164,12 @@ class EthierBenchmarkAnalysis(BaseAnalysis):
             self.laplacian_errors.append(self.current_laplacian_errors)
 
             text_width = 40
-            print('\n' + '-.' * text_width)
-            print('L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
-            print('max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
-            print('L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
-            print('max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
-            print('-.' * text_width + '\n')
+            Kratos.Logger.PrintInfo("SwimmingDEM", '\n' + '-.' * text_width)
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'L2 error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[0])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'max error for the material derivative'.ljust(text_width), self.current_mat_deriv_errors[1])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'L2 error for the laplacian'.ljust(text_width), self.current_laplacian_errors[0])
+            Kratos.Logger.PrintInfo("SwimmingDEM", 'max error for the laplacian'.ljust(text_width), self.current_laplacian_errors[1])
+            Kratos.Logger.PrintInfo('-.' * text_width + '\n')
 
     def PerformFinalOperations(self, time = None):
 

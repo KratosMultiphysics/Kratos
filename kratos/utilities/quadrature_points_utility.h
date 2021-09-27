@@ -22,6 +22,7 @@
 #include "geometries/geometry.h"
 #include "geometries/quadrature_point_geometry.h"
 #include "geometries/quadrature_point_curve_on_surface_geometry.h"
+#include "geometries/quadrature_point_surface_in_volume_geometry.h"
 
 namespace Kratos
 {
@@ -129,6 +130,32 @@ namespace Kratos
                     LocalTangentV);
         }
 
+        static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            Matrix LocalTangentMatrix,
+            GeometryType* pGeometryParent)
+        {
+            return Kratos::make_shared<
+                QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentMatrix,
+                    pGeometryParent);
+        }
+
+        static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            Matrix LocalTangentMatrix)
+        {
+            return Kratos::make_shared<
+                QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentMatrix );
+        }
+
         static GeometryPointerType CreateQuadraturePoint(
             SizeType WorkingSpaceDimension,
             SizeType LocalSpaceDimension,
@@ -145,6 +172,12 @@ namespace Kratos
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
                     QuadraturePointGeometry<TPointType, 2, 1>>(
+                        rPoints,
+                        rShapeFunctionContainer,
+                        pGeometryParent);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                    QuadraturePointGeometry<TPointType, 3, 1>>(
                         rPoints,
                         rShapeFunctionContainer,
                         pGeometryParent);
@@ -188,6 +221,11 @@ namespace Kratos
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
                 QuadraturePointGeometry<TPointType, 2, 1>>(
+                    rPoints,
+                    rShapeFunctionContainer);
+            else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 1)
+                return Kratos::make_shared<
+                QuadraturePointGeometry<TPointType, 3, 1>>(
                     rPoints,
                     rShapeFunctionContainer);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
@@ -277,6 +315,52 @@ namespace Kratos
             return geometry_pointer_vector;
 
             KRATOS_CATCH("");
+        }
+
+        /// creates a quadrature point geometry on a provided location.
+        static void Create(
+            GeometryType& rGeometry,
+            typename GeometryType::GeometriesArrayType& rResultGeometries,
+            typename GeometryType::IntegrationPointsArrayType& rIntegrationPoints,
+            SizeType NumberOfShapeFunctionDerivatives)
+        {
+            KRATOS_ERROR_IF(NumberOfShapeFunctionDerivatives > 1)
+                << "Create can only compute shape functions up to an derivative order of 1. "
+                << "Demanded derivative order: " << NumberOfShapeFunctionDerivatives << std::endl;
+
+            // Resize containers.
+            if (rResultGeometries.size() != rIntegrationPoints.size())
+                rResultGeometries.resize(rIntegrationPoints.size());
+
+            auto default_method = rGeometry.GetDefaultIntegrationMethod();
+
+            Vector N;
+            Matrix DN_De;
+            for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
+            {
+                rGeometry.ShapeFunctionsValues(N, rIntegrationPoints[i]);
+
+                Matrix N_matrix = ZeroMatrix(1, N.size());
+                if (NumberOfShapeFunctionDerivatives >= 0) {
+                    for (IndexType j = 0; j < N.size(); ++j)
+                    {
+                        N_matrix(0, j) = N[j];
+                    }
+                }
+
+                /// Get Shape Function Derivatives DN_De, ...
+                if (NumberOfShapeFunctionDerivatives > 0) {
+                    rGeometry.ShapeFunctionsLocalGradients(DN_De, rIntegrationPoints[i]);
+                }
+
+                GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
+                    default_method, rIntegrationPoints[i],
+                    N_matrix, DN_De);
+
+                rResultGeometries(i) = CreateQuadraturePointsUtility<TPointType>::CreateQuadraturePoint(
+                    rGeometry.WorkingSpaceDimension(), rGeometry.LocalSpaceDimension(),
+                    data_container, rGeometry);
+            }
         }
 
         ///@}

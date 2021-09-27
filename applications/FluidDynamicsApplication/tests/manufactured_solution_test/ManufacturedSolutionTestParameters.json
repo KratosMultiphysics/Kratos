@@ -1,0 +1,48 @@
+{
+    "problem_data"                     : {
+        "problem_name"           : "manufactured_solution",
+        "parallel_type"          : "OpenMP",
+        "echo_level"             : 0,
+        "start_time"             : 0.0,
+        "end_time"               : 0.1
+    },
+    "solver_settings"                  : {
+        "domain_size" : 2,
+        "solver_type" : "Monolithic",
+        "model_import_settings"        : {
+            "input_type"     : "mdpa",
+            "input_filename" : "TO_BE_DEFINED_IN_TEST_FILE"
+        },
+        "material_import_settings": {
+            "materials_filename": "ManufacturedSolutionTestMaterials.json"
+        },
+        "compute_reactions"            : true,
+        "maximum_iterations"           : 20,
+        "relative_velocity_tolerance"  : 1e-5,
+        "absolute_velocity_tolerance"  : 1e-7,
+        "relative_pressure_tolerance"  : 1e-5,
+        "absolute_pressure_tolerance"  : 1e-7,
+        "linear_solver_settings"       : {
+            "solver_type" : "LinearSolversApplication.sparse_lu"
+        },
+        "volume_model_part_name"       : "Parts_Fluid",
+        "skin_parts"                   : ["Inlet2D_Contour"],
+        "time_stepping"                : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.0025
+        },
+        "time_scheme" : "bdf2",
+        "formulation": {
+            "element_type": "weakly_compressible",
+            "dynamic_tau": 0.001
+        }
+    },
+    "processes": {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [],
+        "gravity"                          : []
+    },
+    "output_processes" : {
+        "gid_output" : []
+    }
+}

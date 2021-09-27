@@ -87,7 +87,7 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+              const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
      * Input and output
@@ -121,10 +121,10 @@ class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) BinghamTemperatureDependent2DL
     double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     /// Get the effective yield shear for the fluid.
-    double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const;
+    double GetEffectiveYieldShear(ConstitutiveLaw::Parameters& rParameters) const override;
 
     /// Get the effective dynamic viscosity for the fluid.
-    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+    double GetEffectiveDynamicViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
 

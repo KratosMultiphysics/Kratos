@@ -145,6 +145,54 @@ protected:
             // MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN
             accumulated_plastic_deviatoric_strain = 1.0;
         }
+
+    private:
+
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
+
+        void save( Serializer& rSerializer ) const
+        {
+            rSerializer.save("xg",xg);
+            rSerializer.save("mass",mass);
+            rSerializer.save("density",density);
+            rSerializer.save("volume",volume);
+            rSerializer.save("displacement",displacement);
+            rSerializer.save("velocity",velocity);
+            rSerializer.save("acceleration",acceleration);
+            rSerializer.save("volume_acceleration",volume_acceleration);
+            rSerializer.save("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.save("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.save("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.save("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.save("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.save("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.save("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.save("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+
+        void load( Serializer& rSerializer )
+        {
+            rSerializer.load("xg",xg);
+            rSerializer.load("mass",mass);
+            rSerializer.load("density",density);
+            rSerializer.load("volume",volume);
+            rSerializer.load("displacement",displacement);
+            rSerializer.load("velocity",velocity);
+            rSerializer.load("acceleration",acceleration);
+            rSerializer.load("volume_acceleration",volume_acceleration);
+            rSerializer.load("cauchy_stress_vector",cauchy_stress_vector);
+            rSerializer.load("almansi_strain_vector",almansi_strain_vector);
+            rSerializer.load("delta_plastic_strain",delta_plastic_strain);
+            rSerializer.load("delta_plastic_volumetric_strain",delta_plastic_volumetric_strain);
+            rSerializer.load("delta_plastic_deviatoric_strain",delta_plastic_deviatoric_strain);
+            rSerializer.load("equivalent_plastic_strain",equivalent_plastic_strain);
+            rSerializer.load("accumulated_plastic_volumetric_strain",accumulated_plastic_volumetric_strain);
+            rSerializer.load("accumulated_plastic_deviatoric_strain",accumulated_plastic_deviatoric_strain);
+        }
+        ///@}
     };
 
     /**
@@ -246,17 +294,17 @@ public:
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) override;
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
 
     //************* STARTING - ENDING  METHODS
 
@@ -264,12 +312,12 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    virtual void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of eahc solution step
@@ -344,7 +392,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 
     ///@}
@@ -406,19 +454,19 @@ public:
     ///@{
 
     void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
-        std::vector<int>& rValues,
+        const std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
-        std::vector<double>& rValues,
+        const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > > rValues,
+        const std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-        std::vector<Vector>& rValues,
+        const std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
@@ -547,7 +595,7 @@ protected:
     /**
      * Initialize Material Properties on the Constitutive Law
      */
-    void InitializeMaterial ();
+    virtual void InitializeMaterial ();
 
 
     /**

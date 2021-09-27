@@ -60,7 +60,7 @@ class TwoFluidInletTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "time",
-                                "output_frequency"    : 0.1,
+                                "output_interval"     : 0.1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,
@@ -105,7 +105,7 @@ class TwoFluidInletTest(UnitTest.TestCase):
                                 },
                                 "file_label"          : "time",
                                 "output_control_type" : "time",
-                                "output_frequency"    : 0.1,
+                                "output_interval"     : 0.1,
                                 "body_output"         : true,
                                 "node_output"         : false,
                                 "skin_output"         : false,
@@ -129,7 +129,7 @@ class TwoFluidInletTest(UnitTest.TestCase):
     def _check_results_serial( self ):
 
         model = self.simulation._GetSolver().GetComputingModelPart().GetModel()
-        inlet = model.GetModelPart("AutomaticInlet3D_Inlet")
+        inlet = model.GetModelPart("FluidModelPart.AutomaticInlet3D_Inlet")
 
         for node in inlet.Nodes:
 

@@ -1,5 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -31,9 +29,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
-        
+
         KratosMultiphysics.Logger.PrintWarning("ReadMaterialsProcess", "\n\nDEPRECATED: This process is deprecated, please use the C++ utility: ReadMaterialsUtility")
-        
+
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
         {

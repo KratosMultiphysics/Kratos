@@ -79,13 +79,13 @@ class GiDOutputProcess(gid_output_process.GiDOutputProcess):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
+        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
             if self.output_control_is_time:
                 while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
             else:
                 while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+                    self.next_output += self.output_interval
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()

@@ -1,13 +1,33 @@
-# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
 # Application dependent names and paths
 from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics import Mapper, MapperFactory # for backward compatibility
 from KratosMappingApplication import *
 application = KratosMappingApplication()
 application_name = "KratosMappingApplication"
 
 _ImportApplication(application, application_name)
+
+
+# hack for backward compatibility
+from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+def CreateMPIMapper(*args):
+    IssueDeprecationWarning("MappingApplication", 'CreateMPIMapper is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.CreateMapper" instead')
+    from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
+    return MPIMapperFactory.CreateMapper(*args)
+
+def HasMPIMapper(*args):
+    IssueDeprecationWarning("MappingApplication", 'HasMPIMapper is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.HasMapper" instead')
+    from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
+    return MPIMapperFactory.HasMapper(*args)
+
+def GetRegisteredMPIMapperNames(*args):
+    IssueDeprecationWarning("MappingApplication", 'GetRegisteredMPIMapperNames is deprecated, please use "MappingApplication.MPIExtension.MPIMapperFactory.GetRegisteredMapperNames" instead')
+    from KratosMultiphysics.MappingApplication.MPIExtension import MPIMapperFactory
+    return MPIMapperFactory.GetRegisteredMapperNames(*args)
+
+setattr(MapperFactory, 'CreateMPIMapper', CreateMPIMapper)
+setattr(MapperFactory, 'HasMPIMapper', HasMPIMapper)
+setattr(MapperFactory, 'GetRegisteredMPIMapperNames', GetRegisteredMPIMapperNames)
 
 '''
 TODO:

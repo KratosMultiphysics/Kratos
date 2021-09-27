@@ -70,8 +70,8 @@ class ShapeParameter::Sequence
         }
 
     private:
-        const std::size_t mNumberOfNodes = -1;
-        const std::size_t mDimension = -1;
+        const std::size_t mNumberOfNodes;
+        const std::size_t mDimension;
         ShapeParameter mShapeParameter = {0, 0};
     };
 

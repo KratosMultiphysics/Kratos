@@ -85,7 +85,7 @@ public:
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 1;
     }
@@ -103,7 +103,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-    ) override;
+    ) const override;
 
     array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue) override;
@@ -114,6 +114,14 @@ public:
     Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<Vector>& rThisVariable,
         Vector& rValue) override;
+
+    // ConstitutiveLaw::StrainVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StrainVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StrainVectorType& rValue) override;
+
+    // ConstitutiveLaw::StressVectorType& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+    //     const Variable<StressVectorType>& rThisVariable,
+    //     ConstitutiveLaw::StressVectorType& rValue) override;
 
     array_1d<double, 3 > & CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
         const Variable<array_1d<double, 3 > >& rVariable,
@@ -133,7 +141,7 @@ public:
 
     //this functions calculates the current stress based on an element given (set)
     //strain
-    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues) const;
+    double CalculateStressElastic(ConstitutiveLaw::Parameters& rParameterValues);
 
 protected:
 

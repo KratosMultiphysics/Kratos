@@ -19,7 +19,7 @@ class TrilinosStaticMechanicalSolver(TrilinosMechanicalSolver):
     """
     def __init__(self, model, custom_settings):
         # Construct the base solver.
-        super(TrilinosStaticMechanicalSolver, self).__init__(model, custom_settings)
+        super().__init__(model, custom_settings)
         KratosMultiphysics.Logger.PrintInfo("::[TrilinosStaticMechanicalSolver]:: ", "Construction finished")
 
     def _create_solution_scheme(self):

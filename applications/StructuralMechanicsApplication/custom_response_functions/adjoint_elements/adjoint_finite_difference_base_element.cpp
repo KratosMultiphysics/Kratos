@@ -271,25 +271,10 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
 
     const GeometryType& r_geom = this->GetGeometry();
 
-    // verify that the variables are correctly initialized
-    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
-    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
-    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
-    KRATOS_CHECK_VARIABLE_KEY(ADJOINT_DISPLACEMENT);
-
-    if(mHasRotationDofs)
-    {
-        KRATOS_CHECK_VARIABLE_KEY(ROTATION);
-        KRATOS_CHECK_VARIABLE_KEY(ADJOINT_ROTATION);
-    }
-
     // TODO generic way of doing these checks without checking the dofs..
 
     // Check dofs
-    for (IndexType i = 0; i < r_geom.size(); ++i)
-    {
+    for (IndexType i = 0; i < r_geom.size(); ++i) {
         const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
@@ -299,8 +284,7 @@ int AdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInf
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
 
-        if(mHasRotationDofs)
-        {
+        if(mHasRotationDofs) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
@@ -324,13 +308,12 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     // Get perturbation size
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     Vector RHS;
-    this->pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+    this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
     // Get pseudo-load from utility
-    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, process_info);
+    FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
@@ -351,7 +334,6 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
     KRATOS_TRY;
 
     const double delta = this->GetPerturbationSize(rDesignVariable, rCurrentProcessInfo);
-    ProcessInfo process_info = rCurrentProcessInfo;
 
     const SizeType number_of_nodes = mpPrimalElement->GetGeometry().PointsNumber();
     const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
@@ -369,14 +351,14 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
         IndexType index = 0;
 
         Vector RHS;
-        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
         for(auto& node_i : mpPrimalElement->GetGeometry())
         {
             for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
             {
                 // Get pseudo-load contribution from utility
                 FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, *coord_directions[coord_dir_i],
-                                                                            node_i, delta, derived_RHS, process_info);
+                                                                            node_i, delta, derived_RHS, rCurrentProcessInfo);
 
                 KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
 
@@ -683,7 +665,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer& rSer
 
 }
 
-template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N>;
+template class AdjointFiniteDifferencingBaseElement<ShellThinElement3D3N<ShellKinematics::LINEAR>>;
 template class AdjointFiniteDifferencingBaseElement<CrBeamElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;

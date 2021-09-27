@@ -1,8 +1,4 @@
-# Import PyCOMPSs
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with runcompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
-
+from exaqute import *
 
 def updatePowerSumsOrder2Dimension0(samples, power_sum_1, power_sum_2):
     if isinstance(samples,tuple):
@@ -18,7 +14,7 @@ def updatePowerSumsOrder2Dimension0(samples, power_sum_1, power_sum_2):
             power_sum_2 = power_sum_2 + sample**(2)
     return power_sum_1, power_sum_2
 
-@ExaquteTask(returns=2, samples={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=2, samples={Type: COLLECTION_IN, Depth: 2})
 def updatePowerSumsOrder2Dimension0_Task(samples, *powerSums):
     return updatePowerSumsOrder2Dimension0(samples, *powerSums)
 
@@ -40,7 +36,7 @@ def updatePowerSumsOrder4Dimension0(samples, power_sum_1, power_sum_2, power_sum
             power_sum_4 = power_sum_4 + sample**(4)
     return power_sum_1, power_sum_2, power_sum_3, power_sum_4
 
-@ExaquteTask(returns=4, samples={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=4, samples={Type: COLLECTION_IN, Depth: 2})
 def updatePowerSumsOrder4Dimension0_Task(samples, *powerSums):
     return updatePowerSumsOrder4Dimension0(samples, *powerSums)
 
@@ -74,7 +70,7 @@ def updatePowerSumsOrder10Dimension0(samples, power_sum_1, power_sum_2, power_su
             power_sum_10 = power_sum_10 + sample**(10)
     return power_sum_1, power_sum_2, power_sum_3, power_sum_4, power_sum_5, power_sum_6, power_sum_7, power_sum_8, power_sum_9, power_sum_10
 
-@ExaquteTask(returns=10, samples={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=10, samples={Type: COLLECTION_IN, Depth: 2})
 def updatePowerSumsOrder10Dimension0_Task(samples, *powerSums):
     return updatePowerSumsOrder10Dimension0(samples, *powerSums)
 
@@ -99,6 +95,6 @@ def updatePowerSumsOrder2Dimension1(samples, power_sum_10, power_sum_01, power_s
             power_sum_02 = power_sum_02 + sample_dif**(2)
     return power_sum_10, power_sum_01, power_sum_20, power_sum_11, power_sum_02
 
-@ExaquteTask(returns=5, samples={Type: COLLECTION_IN, Depth: 2})
+@task(keep=True, returns=5, samples={Type: COLLECTION_IN, Depth: 2})
 def updatePowerSumsOrder2Dimension1_Task(samples, *powerSums):
     return updatePowerSumsOrder2Dimension1(samples, *powerSums)

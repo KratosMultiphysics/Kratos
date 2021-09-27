@@ -31,7 +31,7 @@ namespace Kratos
 	 * constitutive tensor is not implemented.
 	 */
 
-	class JohnsonCookThermalPlastic2DAxisymLaw : public JohnsonCookThermalPlastic2DPlaneStrainLaw
+	class KRATOS_API(PARTICLE_MECHANICS_APPLICATION) JohnsonCookThermalPlastic2DAxisymLaw : public JohnsonCookThermalPlastic2DPlaneStrainLaw
 	{
 	public:
 
@@ -71,7 +71,7 @@ namespace Kratos
 		~JohnsonCookThermalPlastic2DAxisymLaw() override;
 
 		/// Voigt tensor size:
-		SizeType GetStrainSize() override
+		SizeType GetStrainSize() const override
 		{
 			return 4;
 		};

@@ -13,6 +13,7 @@
 // Project includes
 #include "apply_far_field_process.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -36,6 +37,8 @@ void ApplyFarFieldProcess::Execute()
     if (mInitializeFlowField){
         InitializeFlowField();
     }
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, false, mrModelPart.GetRootModelPart().Nodes());
+    VariableUtils().SetNonHistoricalVariable(FAR_FIELD, true, mrModelPart.Nodes());
 }
 
 void ApplyFarFieldProcess::FindFarthestUpstreamBoundaryNode()

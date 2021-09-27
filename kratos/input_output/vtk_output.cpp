@@ -20,10 +20,45 @@
 // Project includes
 #include "vtk_output.h"
 #include "containers/model.h"
+#include "includes/kratos_filesystem.h"
 #include "processes/fast_transfer_between_model_parts_process.h"
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
+
+Parameters VtkOutput::GetDefaultParameters()
+{
+    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "binary",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_interval"                             : 1.0,
+        "output_sub_model_parts"                      : false,
+        "output_path"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "write_deformed_configuration"                : false,
+        "write_ids"                                   : false,
+        "nodal_solution_step_data_variables"          : [],
+        "nodal_data_value_variables"                  : [],
+        "nodal_flags"                                 : [],
+        "element_data_value_variables"                : [],
+        "element_flags"                               : [],
+        "condition_data_value_variables"              : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_extrapolated_to_nodes" : [],
+        "gauss_point_variables_in_elements"           : []
+    })" );
+
+    return default_parameters;
+}
+
+
 VtkOutput::VtkOutput(
     ModelPart& rModelPart,
     Parameters ThisParameters
@@ -155,23 +190,16 @@ void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsS
 
 std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart, const std::string& rOutputFilename)
 {
-    // Putting everything together
     std::string output_file_name = "";
-    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
-        output_file_name = mOutputSettings["folder_name"].GetString() + "/";
-    }
 
-    if (rOutputFilename != "")
-    {
-        output_file_name += rOutputFilename + ".vtk";
-    }
-    else
-    {
+    if (rOutputFilename != "") { // user specified file name externally
+        output_file_name = rOutputFilename;
+    } else {
         const int rank = rModelPart.GetCommunicator().MyPID();
         std::string model_part_name;
 
         if (IsSubModelPart) {
-            model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+            model_part_name = rModelPart.GetParentModelPart().Name() + "_" + rModelPart.Name();
         } else {
             model_part_name = rModelPart.Name();
         }
@@ -193,10 +221,26 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
                 << "are: \"step\", \"time\"" << std::endl;
         }
 
-
         const std::string& r_custom_name_prefix = mOutputSettings["custom_name_prefix"].GetString();
         const std::string& r_custom_name_postfix = mOutputSettings["custom_name_postfix"].GetString();
-        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label + ".vtk";
+        output_file_name += r_custom_name_prefix + model_part_name + r_custom_name_postfix + "_" + std::to_string(rank) + "_" + label;
+    }
+
+    output_file_name += ".vtk";
+
+    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
+        const std::string output_path = mOutputSettings["output_path"].GetString();
+
+        // Create folder if it doesn't exist before
+        if (!Kratos::filesystem::is_directory(output_path) && rModelPart.GetCommunicator().MyPID() == 0) {
+            Kratos::filesystem::create_directories(output_path);
+        }
+
+        // All ranks must wait until the folder is created otherwise writing might fail
+        // if some ranks are faster and try to create files in a not-yet existing folder
+        rModelPart.GetCommunicator().GetDataCommunicator().Barrier();
+
+        output_file_name = Kratos::FilesystemExtensions::JoinPaths({output_path, output_file_name});
     }
 
     return output_file_name;
@@ -307,19 +351,11 @@ void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, st
 /***********************************************************************************/
 
 template<typename TContainerType>
-unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
+std::size_t VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
-    unsigned int vtk_cell_list_size_container = 0;
-
-    const auto container_begin = rContainer.begin();
-    const int num_entities = static_cast<int>(rContainer.size());
-    #pragma omp parallel for reduction(+:vtk_cell_list_size_container)
-    for (int i=0; i<num_entities; ++i) {
-        const auto entity_i = container_begin + i;
-        vtk_cell_list_size_container += entity_i->GetGeometry().PointsNumber() + 1;
-    }
-
-    return vtk_cell_list_size_container;
+    return block_for_each<SumReduction<std::size_t>>(rContainer,[](const typename TContainerType::data_type& rEntity){
+        return rEntity.GetGeometry().PointsNumber() + 1;
+    });
 }
 
 /***********************************************************************************/
@@ -328,6 +364,7 @@ unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContaine
 template <typename TContainerType>
 void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
+    KRATOS_TRY
     // NOTE: also in MPI all nodes (local and ghost) have to be written, because
     // they might be needed by the elements/conditions due to the connectivity
 
@@ -339,11 +376,14 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
         for (const auto& r_node : r_geom) {
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
-            int id = r_id_map.at(r_node.Id());
-            WriteScalarDataToFile((int)id, rFileStream);
+            auto id_iter = r_id_map.find(r_node.Id());
+            KRATOS_DEBUG_ERROR_IF(id_iter == r_id_map.end()) << "The node with Id " << r_node.Id() << " is not part of the ModelPart but used for Elements/Conditions!" << std::endl;
+            WriteScalarDataToFile((int)id_iter->second, rFileStream);
         }
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -796,7 +836,6 @@ void VtkOutput::WriteVectorSolutionStepVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -894,7 +933,6 @@ void VtkOutput::WriteVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -919,7 +957,6 @@ void VtkOutput::WriteIntegrationVectorContainerVariable(
     std::ofstream& rFileStream) const
 {
     if (rContainer.size() == 0) {
-        KRATOS_WARNING("VtkOutput") << mrModelPart.GetCommunicator().GetDataCommunicator() << "Empty container!" << std::endl;
         return;
     }
 
@@ -1047,40 +1084,6 @@ void VtkOutput::WriteModelPartWithoutNodesToFile(ModelPart& rModelPart, const st
 
     // Deletin auxiliar modek part
     r_model.DeleteModelPart("AUXILIAR_" + r_name_model_part);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-Parameters VtkOutput::GetDefaultParameters()
-{
-    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
-    Parameters default_parameters = Parameters(R"(
-    {
-        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "file_format"                                 : "ascii",
-        "output_precision"                            : 7,
-        "output_control_type"                         : "step",
-        "output_interval"                             : 1.0,
-        "output_sub_model_parts"                      : false,
-        "folder_name"                                 : "VTK_Output",
-        "custom_name_prefix"                          : "",
-        "custom_name_postfix"                         : "",
-        "save_output_files_in_folder"                 : true,
-        "write_deformed_configuration"                : false,
-        "write_ids"                                   : false,
-        "nodal_solution_step_data_variables"          : [],
-        "nodal_data_value_variables"                  : [],
-        "nodal_flags"                                 : [],
-        "element_data_value_variables"                : [],
-        "element_flags"                               : [],
-        "condition_data_value_variables"              : [],
-        "condition_flags"                             : [],
-        "gauss_point_variables_extrapolated_to_nodes" : [],
-        "gauss_point_variables_in_elements"           : []
-    })" );
-
-    return default_parameters;
 }
 
 } // namespace Kratos

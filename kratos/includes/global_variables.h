@@ -12,22 +12,16 @@
 //
 //
 
-
 #if !defined(KRATOS_GLOBAL_VARIABLES_H_INCLUDED )
 #define  KRATOS_GLOBAL_VARIABLES_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
 
-
 // Project includes
-
 
 namespace Kratos
 {
@@ -37,19 +31,25 @@ namespace Globals
 
     static constexpr int MaxAllowedThreads = 128; //we assume that no more than MaxAllowedThreads is used in SMP
 
-/*		class VariableData;
-		class Element;
-		class Condition;
-	*/
+    ///@name Kratos Globals
+    ///@{
+    ///@name Enums
+    ///@{
+
+    /**
+     * @brief Enum for Initial and Current configurations
+     */
+    enum class Configuration
+    {
+        Initial = 0,
+        Current = 1
+    };
+
+    ///@}
+    ///@}
 ///@name Kratos Globals
 ///@{
-//
-// This variable is NOT synchronized between different applications threads
-/*
-		extern KratosComponents<VariableData> VariableDataComponents;
-		extern KratosComponents<Condition> ConditionComponents;
-		extern KratosComponents<Element> ElementComponents;
-  */
+
 ///@}
 ///@name Type Definitions
 ///@{

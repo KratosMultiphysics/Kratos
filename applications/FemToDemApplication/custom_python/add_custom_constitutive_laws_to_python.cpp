@@ -45,24 +45,24 @@ namespace Python
 {
     void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     {
-        py::class_<LinearPlaneStress, typename LinearPlaneStress::Pointer, ConstitutiveLaw >
-            (m, "LinearPlaneStress").def(py::init<>() )
+        py::class_<LinearPlaneStressFEMDEM, typename LinearPlaneStressFEMDEM::Pointer, ConstitutiveLaw >
+            (m, "LinearPlaneStressFEMDEM").def(py::init<>() )
             ;
 
-        py::class_<LinearPlaneStrain, typename LinearPlaneStrain::Pointer, ConstitutiveLaw >
-            (m, "LinearPlaneStrain").def(py::init<>() )
+        py::class_<LinearPlaneStrainFEMDEM, typename LinearPlaneStrainFEMDEM::Pointer, ConstitutiveLaw >
+            (m, "LinearPlaneStrainFEMDEM").def(py::init<>() )
             ;
 
-        py::class_<ElasticIsotropic3D, typename ElasticIsotropic3D::Pointer, ConstitutiveLaw >
-            (m, "ElasticIsotropic3D").def(py::init<>() )
+        py::class_<ElasticIsotropic3DFEMDEM, typename ElasticIsotropic3DFEMDEM::Pointer, ConstitutiveLaw >
+            (m, "ElasticIsotropic3DFEMDEM").def(py::init<>() )
             ;
 
-        py::class_<HyperElasticIsotropicNeoHookean3D, typename HyperElasticIsotropicNeoHookean3D::Pointer, ConstitutiveLaw >
-            (m, "HyperElasticIsotropicNeoHookean3D").def(py::init<>() )
+        py::class_<HyperElasticIsotropicNeoHookean3DFEMDEM, typename HyperElasticIsotropicNeoHookean3DFEMDEM::Pointer, ConstitutiveLaw >
+            (m, "HyperElasticIsotropicNeoHookean3DFEMDEM").def(py::init<>() )
             ;
 
-        py::class_<HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >
-            (m, "HyperElasticIsotropicNeoHookeanPlaneStrain2D").def(py::init<>() )
+        py::class_<HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM, typename HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM::Pointer, ConstitutiveLaw >
+            (m, "HyperElasticIsotropicNeoHookeanPlaneStrain2DFEMDEM").def(py::init<>() )
             ;
     }
 }  // namespace Python.

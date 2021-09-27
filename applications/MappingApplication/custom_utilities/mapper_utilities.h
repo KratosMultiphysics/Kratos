@@ -17,12 +17,16 @@
 #define  KRATOS_MAPPER_UTILITIES_H_INCLUDED
 
 // System includes
+#include <array>
+#include <vector>
 
 // External includes
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_utilities/mapper_flags.h"
+#include "utilities/parallel_utilities.h"
+#include "mapping_application_variables.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 namespace Kratos
@@ -43,6 +47,9 @@ typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterface
 typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
 typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
+
+using BoundingBoxType = std::array<double, 6>;
+// using BoundingBoxContainerType = std::vector<BoundingBoxType>;
 
 
 template< class TVarType >
@@ -158,6 +165,12 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
     for (int i=0; i<num_local_nodes; i++) {
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     }
+
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+    }
 }
 
 /**
@@ -193,23 +206,9 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         << "No mapper local systems were created" << std::endl;
 }
 
-inline int ComputeNumberOfNodes(ModelPart& rModelPart)
-{
-    int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_nodes); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfConditions(ModelPart& rModelPart)
-{
-    int num_conditions = rModelPart.GetCommunicator().LocalMesh().NumberOfConditions();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_conditions); // Compute the sum among the partitions
-}
-
-inline int ComputeNumberOfElements(ModelPart& rModelPart)
-{
-    int num_elements = rModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(num_elements); // Compute the sum among the partitions
-}
+void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                            const Communicator& rModelPartCommunicator,
+                                            std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
 
 template <class T1, class T2>
 inline double ComputeDistance(const T1& rCoords1,
@@ -221,61 +220,41 @@ inline double ComputeDistance(const T1& rCoords1,
 }
 
 template <typename T>
-inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
-{
-    double max_element_size = 0.0;
-    // Loop through each edge of a geometrical entity ONCE
-    for (const auto& r_entity : rEntityContainer) {
-        for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
-            for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
-                double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
-                                                        r_entity.GetGeometry()[j].Coordinates());
-                max_element_size = std::max(max_element_size, edge_length);
-            }
-        }
-    }
-    return max_element_size;
-}
+double ComputeMaxEdgeLengthLocal(const T& rEntityContainer);
 
-inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNodes)
-{
-    double max_element_size = 0.0;
-    // TODO modify loop such that it loop only once over the nodes
-    for (const auto& r_node_1 : rNodes) {
-        for (const auto& r_node_2 : rNodes) {
-            double edge_length = ComputeDistance(r_node_1.Coordinates(),
-                                                    r_node_2.Coordinates());
-            max_element_size = std::max(max_element_size, edge_length);
-        }
-    }
-    return max_element_size;
-}
+double ComputeSearchRadius(const ModelPart& rModelPart, int EchoLevel);
 
-double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel);
-
-inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, const int EchoLevel)
-{
-    double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
-                                    ComputeSearchRadius(rModelPart2, EchoLevel));
-
-    KRATOS_INFO_IF("Mapper", EchoLevel > 0) << "Computed search-radius: "
-        << search_radius << std::endl;
-
-    return search_radius;
-}
+double ComputeSearchRadius(const ModelPart& rModelPart1, const ModelPart& rModelPart2, const int EchoLevel);
 
 void CheckInterfaceModelParts(const int CommRank);
 
-std::vector<double> ComputeLocalBoundingBox(ModelPart& rModelPart);
+BoundingBoxType ComputeLocalBoundingBox(const ModelPart& rModelPart);
+
+BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart);
 
 void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
                                        const double Tolerance,
                                        std::vector<double>& rBoundingBoxesWithTolerance);
 
-std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
+std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox);
 
-bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
+bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
                               const array_1d<double, 3>& rCoords);
+
+void KRATOS_API(MAPPING_APPLICATION) SaveCurrentConfiguration(ModelPart& rModelPart);
+void KRATOS_API(MAPPING_APPLICATION) RestoreCurrentConfiguration(ModelPart& rModelPart);
+
+template<class TDataType>
+void EraseNodalVariable(ModelPart& rModelPart, const Variable<TDataType>& rVariable)
+{
+    KRATOS_TRY;
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        rNode.Data().Erase(rVariable);
+    });
+
+    KRATOS_CATCH("");
+}
 
 void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,

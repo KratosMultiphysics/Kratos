@@ -136,9 +136,9 @@ proc WriteLoadVectorProcess {FileVar GroupNum Groups VarName TableDict NumGroups
 
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         incr MyGroupNum
-        puts $MyFileVar "        \"python_module\": \"assign_modulus_and_direction_to_conditions_process\","
-        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.SolidMechanicsApplication\","
-        puts $MyFileVar "        \"process_name\":  \"AssignModulusAndDirectionToConditionsProcess\","
+        puts $MyFileVar "        \"python_module\": \"assign_vector_by_direction_to_condition_process\","
+        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics\","
+        puts $MyFileVar "        \"process_name\":  \"AssignVectorByDirectionToConditionProcess\","
         puts $MyFileVar "        \"Parameters\":    \{"
         #puts $MyFileVar "            \"mesh_id\":         0,"
         puts $MyFileVar "            \"model_part_name\": \"[lindex [lindex $Groups $i] 1]\","
