@@ -5,7 +5,10 @@
 namespace Kratos
 {
 
-ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(Model& rModel, Parameters& rParameters)
+
+ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
+    Model& rModel,
+    Parameters& rParameters)
 {
     KRATOS_TRY
 
@@ -28,6 +31,7 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(Model
 
     KRATOS_CATCH("");
 }
+
 
 void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 {
@@ -67,7 +71,9 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 
 
 ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-BoundaryConditionUtility(const std::string & variable_name, const double Value, const IntervalUtility & rIntervalUtility)
+    BoundaryConditionUtility(const std::string & variable_name,
+                            const double Value,
+                            const IntervalUtility & rIntervalUtility)
     : mValue(Value), mInterval(rIntervalUtility)
 {
     KRATOS_TRY
@@ -80,8 +86,9 @@ BoundaryConditionUtility(const std::string & variable_name, const double Value, 
     KRATOS_CATCH("")
 }
 
+
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-ActivateIfInsideTimeInterval(const double time)
+    ActivateIfInsideTimeInterval(const double time)
 {
     if(mInterval.IsInInterval(time))
     {
@@ -95,32 +102,39 @@ ActivateIfInsideTimeInterval(const double time)
 
 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-Enforce(NodeType & rNode) const
+    Enforce(NodeType & rNode) const
 {
     mEnforceInternal(*this, rNode);
 }
 
+
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-Release(NodeType & rNode) const
+    Release(NodeType & rNode) const
 {
     FreeDof(*this, rNode);
 }
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-FixDof(const BoundaryConditionUtility & rUtility, NodeType & rNode)
+
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FixDof(
+    const BoundaryConditionUtility & rUtility,
+    NodeType & rNode)
 {
     rNode.GetSolutionStepValue(*rUtility.mpVariable) = rUtility.mValue;
     rNode.pGetDof(*rUtility.mpVariable)->FixDof();
 }
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-FreeDof(const BoundaryConditionUtility & rUtility, NodeType & rNode)
+
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FreeDof(
+    const BoundaryConditionUtility & rUtility,
+    NodeType & rNode)
 {
     rNode.pGetDof(*rUtility.mpVariable)->FreeDof();
 }
 
 
-void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters)
+void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
+    std::vector<BoundaryConditionUtility> & rBCList,
+    Parameters Parameters)
 {
     KRATOS_TRY
 
@@ -217,13 +231,15 @@ std::string ApplyMachDependentBoundaryConditions::Info() const
 }
 
 
-void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::
+    PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "ApplyCompressibleInlet";
 }
 
 
-void ApplyMachDependentBoundaryConditions::PrintData(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::
+    PrintData(std::ostream& rOStream) const
 {
 }
 
@@ -236,5 +252,6 @@ inline std::ostream& operator << (
     rThis.PrintData(rOStream);
     return rOStream;
 }
+
 
 } // namespace Kratos
