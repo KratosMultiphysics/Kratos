@@ -173,23 +173,22 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
 {
     return Parameters(R"(
     {
-
         "model_part_name" : "main_model_part",
-        "subsonic_boundary_conditions" : [ ]
-        "supersonic_boundary_conditions"< : [ ]
+        "subsonic_boundary_conditions" : [ ],
+        "supersonic_boundary_conditions" : [ ]
     }
     )");
     /* Expected boundary condition format:
     [
         { // For scalar variables
             "variable" : "DENSITY",
-            "value" : 0.0
+            "value" : 0.0,
             "interval" : [0, "End"]
         },
         { // For vector variables
             "variable" : "MOMENTUM",
             "value" : [0.0, 1.0, 5.0],
-            "constrained" : [false, true, false]
+            "constrained" : [false, true, false],
             "interval" : [0.0, 15.3]
         }
     ]
