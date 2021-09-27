@@ -1251,7 +1251,7 @@ void AddPotentialGradientStabilizationTerm(
     noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
-void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, const int NumberOfSweeps)
+void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, const unsigned int NumberOfSweeps)
 {
     // Initialize variables and block domain
     ModelPart& root_model_part = rWakeModelPart.GetRootModelPart();
@@ -1276,7 +1276,7 @@ void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, con
     }
     // For NumberOfSweeps > 1
     else{
-        // First we unblock only the wake nodes
+        // First, we unblock only the wake nodes
         int node_marker = 5;
         block_for_each(root_model_part.Elements(), [&](Element& rElement)
         {
@@ -1306,10 +1306,53 @@ void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, con
                 }
             }
         });
+
+        // Second, we unblock the nodes surrounding the wake nodes
+        for (unsigned int i = 0; i < NumberOfSweeps; i++){
+            // Loop over all elements
+            for (auto& r_elem : root_model_part.Elements()){
+                // Check that element is not selected yet
+                if (std::abs(r_elem.GetValue(DEACTIVATED_WAKE) - 10.0) > 1e-6){
+                    auto& r_geometry = r_elem.GetGeometry();
+                    // Loop over element nodes
+                    for (unsigned int j = 0; j < r_geometry.size(); j++){
+                        // Check whether node is marked
+                        if (std::abs(r_geometry[j].GetValue(DEACTIVATED_WAKE)- node_marker) < 1e-6){
+                            // If node is marked, unblock all nodes from element
+                            for (unsigned int k = 0; k < r_geometry.size(); k++){
+                                const double this_h = r_geometry[k].GetValue(NODAL_H);
+                                if (this_h > TargetHWake){
+                                    r_geometry[k].Set(BLOCKED, false);
+                                    r_geometry[k].SetValue(METRIC_SCALAR, TargetHWake);
+                                }
+                            }
+                            // Mark element for next sweep iteration
+                            r_elem.SetValue(DEACTIVATED_WAKE, 10.0);
+                        }
+                    }
+                }
+            }
+
+            node_marker += 1;
+
+            // Marking nodes for next iteration
+            block_for_each(root_model_part.Nodes(), [&](Node<3>& rNode)
+            {
+                if(rNode.IsNot(BLOCKED)){
+                    rNode.SetValue(DEACTIVATED_WAKE, node_marker);
+                }
+            });
+        }
+
     }
 
-
-
+    int selected_node_counter = 0;
+    for (auto& r_node : root_model_part.Nodes()){
+        if(r_node.IsNot(BLOCKED)){
+            selected_node_counter +=1;
+        }
+    }
+    KRATOS_WATCH(selected_node_counter)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
