@@ -11,11 +11,11 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
         mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        
+
         mpart.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
 
         mpart.CreateNewNode(1, 0.0, 0.0, 0.0)
-        mpart.CreateNewNode(2, 1.0, 0.0, 0.0)   
+        mpart.CreateNewNode(2, 1.0, 0.0, 0.0)
         mpart.CreateNewNode(3, 0.0, 1.0, 0.0)
         mpart.CreateNewNode(4, 0.0, 0.0, 1.0)
 
