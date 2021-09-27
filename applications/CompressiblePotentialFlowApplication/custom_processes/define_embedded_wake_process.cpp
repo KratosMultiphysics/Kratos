@@ -522,7 +522,6 @@ void DefineEmbeddedWakeProcess::ComputeTrailingEdgeNode(){
 
 
     KRATOS_ERROR_IF(max_node_i < 0) << "No trailing edge nodes were found" << std::endl;
-    KRATOS_WATCH(p_max_elem->Id());
     // KRATOS_WATCH(r_max_element_geometry[max_node_i].Id());
 
     // r_max_element_geometry[max_node_i].SetValue(AIRFOIL, true);
