@@ -120,7 +120,7 @@ void ComputeNodalValueProcess::AddElementsContribution(const Variable<TValueType
     #pragma omp parallel for firstprivate(N)
     for(int i_elem=0; i_elem<static_cast<int>(mrModelPart.Elements().size()); ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
-        if (it_elem->Is(ACTIVE)) {
+        if (it_elem->Is(ACTIVE) || it_elem->IsNotDefined(ACTIVE)) {
             auto& r_geometry = it_elem->GetGeometry();
 
             // Current geometry information
