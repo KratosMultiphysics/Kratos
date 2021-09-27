@@ -829,7 +829,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
 
     if (local_mach_number > mach_number_limit)
     { // Clamping the mach number to mach_number_limit
-        KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
+        // KRATOS_WARNING("ComputeDensity") << "Clamping the local mach number to " << mach_number_limit << std::endl;
         local_mach_number = mach_number_limit;
     }
 
@@ -849,7 +849,7 @@ double CompressiblePotentialFlowElement<Dim, NumNodes>::ComputeDensity(const Pro
     }
     else
     {
-        KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
+        // KRATOS_WARNING("ComputeDensity") << "Using density correction" << std::endl;
         return rho_inf * 0.00001;
     }
 }
