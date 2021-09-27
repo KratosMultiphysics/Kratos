@@ -36,12 +36,12 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 
     for(auto & boundary_condition: mSupersonicBCs)
     {
-        boundary_condition.ActivateIfInsideInterval(time);
+        boundary_condition.ActivateIfInsideTimeInterval(time);
     }
 
     for(auto & boundary_condition: mSubsonicBCs)
     {
-        boundary_condition.ActivateIfInsideInterval(time);
+        boundary_condition.ActivateIfInsideTimeInterval(time);
     }
 
     // Enforcing boundary conditions
@@ -49,12 +49,19 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
     {
         const bool supersonic = rNode.GetValue(MACH) >= 1.0;
         
-        const auto & bc_list = supersonic ? mSupersonicBCs : mSubsonicBCs;
+        const auto & active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
+        const auto & passive_bc = supersonic ? mSubsonicBCs   : mSupersonicBCs;
 
-        for(const auto & boundary_condition: bc_list)
+        for(const auto & boundary_condition: active_bc)
         {
             boundary_condition.Enforce(rNode);
         }
+
+        for(const auto & boundary_condition: passive_bc)
+        {
+            boundary_condition.Release(rNode);
+        }
+
     });
 }
 
@@ -74,15 +81,15 @@ BoundaryConditionUtility(const std::string & variable_name, const double Value, 
 }
 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-ActivateIfInsideInterval(const double time)
+ActivateIfInsideTimeInterval(const double time)
 {
     if(mInterval.IsInInterval(time))
     {
-        mEnforceInternal = &EnforceActive;
+        mEnforceInternal = &FixDof;
     }
     else
     {
-        mEnforceInternal = &EnforcePassive;
+        mEnforceInternal = &FreeDof;
     }
 }
 
@@ -94,15 +101,22 @@ Enforce(NodeType & rNode) const
 }
 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-EnforceActive(const BoundaryConditionUtility & rUtility, NodeType & rNode)
+Release(NodeType & rNode) const
+{
+    FreeDof(*this, rNode);
+}
+
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
+FixDof(const BoundaryConditionUtility & rUtility, NodeType & rNode)
 {
     rNode.GetSolutionStepValue(*rUtility.mpVariable) = rUtility.mValue;
     rNode.pGetDof(*rUtility.mpVariable)->FixDof();
 }
 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-EnforcePassive(const BoundaryConditionUtility & rUtility, NodeType & rNode)
+FreeDof(const BoundaryConditionUtility & rUtility, NodeType & rNode)
 {
+    rNode.pGetDof(*rUtility.mpVariable)->FreeDof();
 }
 
 

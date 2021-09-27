@@ -54,9 +54,9 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// 
-  /** This process applies diferent boundary conditions accoring to the mach regime.
-   * 
+  /** 
+   * @ brief This process applies diferent boundary conditions accoring to the
+   * mach regime.
    */
   class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyMachDependentBoundaryConditions: public Process
   {
@@ -69,6 +69,18 @@ namespace Kratos
         /**
          * @brief This class validates and manages a variable to fix
          * and the value to fix it to.
+         * 
+         * Method ActivateIfInsideTimeInterval must be called at the begining
+         * of the time step to see if the BC is active or not. This will cause
+         * the following behaviour in the other two public methods:
+         * - Enforce:
+         *     - If t inside interval  -> Fix dof
+         *     - If t outside interval -> Free dof
+         * - Release
+         *     - Always -> Free dof
+         * 
+         * This allows checking the time only once at the beginning of the
+         * time-step rather than at every node.
          */
         class BoundaryConditionUtility
         {
@@ -77,28 +89,38 @@ namespace Kratos
                                      const double Value,
                                      const IntervalUtility & rIntervalUtility);
             /**
-             * @brief Checks that the curent time is within the interval, and decides accordingly what function 
-             * to use during Enforce. This avoids checking the time at every node.
+             * @brief Checks that the current time is within the interval, and
+             * decides accordingly what function to bind to mEnforceInternal
+             * (either FreeDof or FixDof).
              */
-            void ActivateIfInsideInterval(const double time);
+            void ActivateIfInsideTimeInterval(const double time);
 
             /**
-             * @brief Enforces (or not, depending on ActivateIfInsideInterval) the boundary condition.
+             * @brief Calls mEnforceInternal. This will either fix or free the
+             * Dof depending on the result of ActivateIfInsideTimeInterval.
              */
             void Enforce(NodeType & rNode) const;
+
+            /// @brief Frees the Dof.
+            void Release(NodeType & rNode) const;
+
         private:
             const Variable<double> * mpVariable;
             const double mValue; // Value to enforce
             IntervalUtility mInterval;
             
-            /// This function will be called when the time is within the specified interval
-            static void EnforceActive(const BoundaryConditionUtility & rUtility, NodeType & rNode);
+            /* @brief Fixes the Dof managed by this class and sets the value
+             * to the one specified by mValue
+             */
+            static void FixDof(const BoundaryConditionUtility & rUtility, NodeType & rNode);
 
-            /// This function will be called when the  time is outside the specified interval
-            static void EnforcePassive(const BoundaryConditionUtility & rUtility, NodeType & rNode);
+            /// @brief Frees the Dof managed by this class
+            static void FreeDof(const BoundaryConditionUtility & rUtility, NodeType & rNode);
 
-            /// This object points to the proper Enforce(Active|Passive) function
-            std::function<decltype(EnforceActive)> mEnforceInternal = EnforcePassive;
+            /** @brief This object points to the proper (Fix|Free)Dof function
+             * according to the time interval.
+             */
+            std::function<decltype(FixDof)> mEnforceInternal = FreeDof;
         };
 
         /// Pointer definition of ApplyMachDependentBoundaryConditions
@@ -215,13 +237,14 @@ namespace Kratos
         ///@{
         
         /**
-         * @brief Reads the JSON parameters for a variable and appends the resulting
-         * BoundaryConditionUtility to the provided list
+         * @brief Reads the JSON parameters for a variable and appends the 
+         * resulting BoundaryConditionUtility to the provided list
          */
         void ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters);
 
         /**
-         * @brief Performs the conversion [0, 1, 2] -> ['X', 'Y', 'Z'] at compile-time
+         * @brief Performs the conversion [0, 1, 2] -> ['X', 'Y', 'Z'] at
+         * compile-time
          */
         static constexpr char IndexToAxis(const unsigned int i);
 
