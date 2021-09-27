@@ -174,6 +174,9 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(std::vector<Bou
         KRATOS_ERROR_IF_NOT(values.size() == Parameters["constrained"].size())
             << "The number of values specified must be the same as number of constraints specified:\n" << Parameters << std::endl;
 
+        KRATOS_ERROR_IF(values.size() > 3)
+            << "Allowed vector variables are at most 3-dimensional:\n" << Parameters << std::endl;
+
         for(std::size_t i=0; i<Parameters["constrained"].size(); i++)
         {
             if(Parameters["constrained"][i].GetBool())
