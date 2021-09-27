@@ -30,6 +30,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
                 "input_type": "calculate",
                 "update_coefficient": 0.5,
                 "remeshing_flag": false,
+                "perform_moving": true,
                 "ray_casting_tolerance": 1e-9,
                 "initial_angle_of_attack" : 0.0,
                 "moving_parameters":    {
@@ -76,6 +77,7 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         self.input_type = settings["input_type"].GetString()
 
         self.moving_parameters = settings["moving_parameters"]
+        self.perform_moving = settings["perform_moving"].GetBool()
         # Synchronizing parameters for the wake process
         if self.moving_parameters.Has("rotation_point"):
             self.main_model_part.ProcessInfo.SetValue(CompressiblePotentialFlow.WAKE_ORIGIN, self.moving_parameters["rotation_point"].GetVector())
@@ -91,82 +93,29 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Executing Initialize Geometry')
         self._InitializeSkinModelPart()
-        self.wake_model_part = self.model.CreateModelPart("aux_wake")
-        self.target_h_wake = 0.2
-        self._DefineWakeModelPart()
+        # self.wake_model_part = self.model.CreateModelPart("aux_wake")
+        # self.target_h_wake = 0.2
+        # self._DefineWakeModelPart()
 
         ini_time=time.time()
-        if self.input_type == "calculate":
-            try:
-                distance_values = [float(line.split(' ')[0]) for line in open('distance_field_'+self.problem_name+'.dat').readlines()]
-                for line, node in zip(distance_values, self.main_model_part.Nodes):
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,line)
-                elemental_distance_values = [[float(line.split(' ')[i]) for i in range(0,3)] for line in open('elemental_distance_'+self.problem_name+'.dat').readlines()]
-                for elemental_values, elem in zip(elemental_distance_values, self.main_model_part.Elements):
-                    distances = KratosMultiphysics.Vector(elemental_values)
-                    elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, distances)
-            except FileNotFoundError:
-                distance_values = []
-                elemental_distance_values = []
-            # if len(distance_values) != self.main_model_part.NumberOfNodes() or len(elemental_distance_values) != self.main_model_part.NumberOfElements() or self.do_remeshing:
-            if True:
-                # print(len(distance_values))
-                # print(self.main_model_part.NumberOfNodes())
-                self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
-                self._CalculateDistance()
+        # self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
+        self._CalculateDistance()
 
-                ini_time=time.time()
-                while self.step < self.max_iter and self.do_remeshing:
-                    self.step += 1
-                    KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
-                    self._ExtendDistance()
-                    self._RefineMesh()
-                    if self.step < self.max_iter:
-                        self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
-                    self._CalculateDistance()
-                    self._UpdateParameters()
-                # with open('distance_field_'+self.problem_name+'.dat','w') as dat_file:
-                #     for node in self.main_model_part.Nodes:
-                #         dat_file.write('%.15f \n' % (node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)))
-                # with open('elemental_distance_'+self.problem_name+'.dat','w') as dat_file:
-                #     for elem in self.main_model_part.Elements:
-                #         distances = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
-                #         dat_file.write('%.15f %.15f %.15f\n' % (distances[0], distances[1], distances[2]))
+        ini_time=time.time()
+        if self.do_remeshing:
+            print("EXECUTING LEVEL SET REMESHING. Source nnodes:", self.main_model_part.NumberOfNodes())
+        while self.step < self.max_iter and self.do_remeshing:
+            self.step += 1
+            KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','##### Executing refinement #', self.step, ' #####')
+            self._ExtendDistance()
+            self._RefineMesh()
+            # if self.step < self.max_iter:
+                # self._CalculateDiscontinuousDistanceAndComputeWakeMetric()
+            self._CalculateDistance()
+            self._UpdateParameters()
+
         self._ModifyFinalDistance()
         self._CopyAndDeleteDefaultDistance()
-
-        # self.main_model_part.GetElement(41101).Set(KratosMultiphysics.ACTIVE, True)
-        # self.main_model_part.GetElement(112489).Set(KratosMultiphysics.ACTIVE, True)
-        # self.main_model_part.GetElement(140408).Set(KratosMultiphysics.ACTIVE, True)
-        # self.main_model_part.GetNode(32409).SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE, 1e-9)
-        # self.main_model_part.GetNode(63726).SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE, 1e-9)
-
-        gid_output = GiDOutputProcess(self.main_model_part,
-                                    "remeshed_"+str(self.step),
-                                    KratosMultiphysics.Parameters("""
-                                        {
-                                            "result_file_configuration" : {
-                                                "gidpost_flags": {
-                                                    "GiDPostMode": "GiD_PostBinary",
-                                                    "WriteDeformedMeshFlag": "WriteUndeformed",
-                                                    "WriteConditionsFlag": "WriteConditions",
-                                                    "MultiFileFlag": "SingleFile"
-                                                },
-                                                "nodal_results" : ["GEOMETRY_DISTANCE", "DISTANCE_GRADIENT"],
-                                                "nodal_nonhistorical_results": ["METRIC_TENSOR_2D","TEMPERATURE"]
-                                            }
-                                        }
-                                        """)
-                                    )
-
-        gid_output.ExecuteInitialize()
-        gid_output.ExecuteBeforeSolutionLoop()
-        gid_output.ExecuteInitializeSolutionStep()
-        gid_output.PrintOutput()
-        gid_output.ExecuteFinalizeSolutionStep()
-        gid_output.ExecuteFinalize()
-
-        KratosMultiphysics.ModelPartIO("remeshed_mdpa_after_init", KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.main_model_part)
 
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','Elapsed time: ',time.time()-ini_time)
@@ -189,12 +138,12 @@ class LevelSetRemeshingProcess(KratosMultiphysics.Process):
         else:
             self.skin_model_part = self.model.GetModelPart("skin")
             print("GETTING SKIN MODEL PART")
+        if self.perform_moving:
+            # Moving and rotating the skin model part
+            angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
+            self.moving_parameters["rotation_angle"].SetDouble(angle)
 
-        # Moving and rotating the skin model part
-        angle=math.radians(-self.moving_parameters["rotation_angle"].GetDouble())
-        self.moving_parameters["rotation_angle"].SetDouble(angle)
-
-        CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
+            CompressiblePotentialFlow.MoveModelPartProcess(self.skin_model_part, self.moving_parameters).Execute()
 
         KratosMultiphysics.Logger.PrintInfo('LevelSetRemeshing','InitializeSkin time: ',time.time()-ini_time)
 
