@@ -62,6 +62,7 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
     def Initialize(self):
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
+        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.IS_MOVED_MESH] = self.is_moved_mesh
 
         super().Initialize()
 
@@ -117,6 +118,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self.number_cycles       = project_parameters["solver_settings"]["number_cycles"].GetInt()
         self.solution_type       = project_parameters["solver_settings"]["solution_type"].GetString()
         self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
+        self.is_moved_mesh       = project_parameters["solver_settings"]["move_mesh_flag"].GetBool()
         self.start_time          = project_parameters["solver_settings"]["start_time"].GetDouble()
         self.end_time            = project_parameters["problem_data"]["end_time"].GetDouble()
 
@@ -125,92 +127,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
         if(self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] > self.max_iterations):
             raise Exception("max_number_of_iterations_exceeded")
-
-    # def RunSolutionLoop(self):
-    #     """This function executes the solution loop of the AnalysisStage
-    #     It can be overridden by derived classes
-    #     """
-    #     if self._GetSolver().settings["reset_displacements"].GetBool():
-    #         old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
-    #                                    for node in self._GetSolver().GetComputingModelPart().Nodes]
-
-    #     self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.START_TIME] = self.start_time
-    #     self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.END_TIME] = self.end_time
-
-    #     while self.KeepAdvancingSolutionLoop():
-    #         # KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "DELTA_TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME])
-    #         # KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "TIME: ", self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME])
-    #         # KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "self.start_time: ", self.start_time)
-    #         # KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "self.end_time: ", self.end_time)
-
-    #         if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] > self.max_delta_time):
-    #             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = self.max_delta_time
-    #             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
-
-    #         new_time =  self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]      \
-    #                   + self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-    #         if (new_time > self.end_time):
-    #             new_time = self.end_time
-    #             self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = \
-    #                 new_time - self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-    #             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to reach end_time: ", self.end_time)
-
-    #         self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
-    #         self._GetSolver().main_model_part.CloneTimeStep(new_time)
-
-    #         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "--------------------------------------", " ")
-
-    #         converged = False
-    #         number_cycle = 0
-    #         while (not converged and number_cycle < self.number_cycles):
-
-    #             number_cycle +=1
-    #             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)
-
-    #             self.InitializeSolutionStep()
-    #             self._GetSolver().Predict()
-    #             converged = self._GetSolver().SolveSolutionStep()
-
-    #             if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] >= self.max_iterations or not converged):
-    #                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
-    #                 # reset time to the previous value
-    #                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] -= \
-    #                     self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-    #                 # reduce delta time
-    #                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] *= self.reduction_factor
-    #                 # set new time
-    #                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] += \
-    #                     self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-    #                 # Reset displacements to the initial
-    #                 KratosMultiphysics.VariableUtils().UpdateCurrentPosition(self._GetSolver().GetComputingModelPart().Nodes, KratosMultiphysics.DISPLACEMENT,1)
-    #                 for node in self._GetSolver().GetComputingModelPart().Nodes:
-    #                     dold = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1)
-    #                     node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,dold)
-
-    #             elif (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] < self.min_iterations):
-    #                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Up-scaling with factor: ", self.increase_factor)
-
-    #                 self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] *= self.increase_factor
-    #                 new_time =  self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] \
-    #                           + self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME]
-    #                 if (new_time > self.end_time):
-    #                     new_time = self.end_time
-    #                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to reach end_time: ", self.end_time)
-    #                     self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.DELTA_TIME] = \
-    #                         new_time - self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
-
-    #         if (not converged):
-    #             raise Exception('The maximum number of cycles is reached without convergence!')
-
-    #         if self._GetSolver().settings["reset_displacements"].GetBool() and converged:
-    #             for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
-    #                 self._CalculateTotalDisplacement(node, old_total_displacements[idx])
-
-
-    #         self.FinalizeSolutionStep()
-    #         self.OutputSolutionStep()
 
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
