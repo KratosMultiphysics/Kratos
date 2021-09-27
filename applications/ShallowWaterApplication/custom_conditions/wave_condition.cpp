@@ -19,8 +19,8 @@
 // Project includes
 #include "wave_condition.h"
 #include "includes/checks.h"
+#include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_utilities/sw_math_utils.h"
 #include "shallow_water_application_variables.h"
 #include "custom_utilities/shallow_water_utilities.h"
 
@@ -265,12 +265,12 @@ void WaveCondition<TNumNodes>::AddWaveTerms(
             }
 
             /// First component
-            SwMathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
-            SwMathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A1*n[0], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b1*n[0]*z[j], 3*i);
 
             /// Second component
-            SwMathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
-            SwMathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
+            MathUtils<double>::AddMatrix(rMatrix, -Weight*n_ij*rData.A2*n[1], 3*i, 3*j);
+            MathUtils<double>::AddVector(rVector,  Weight*n_ij*rData.b2*n[1]*z[j], 3*i);
         }
     }
 }
