@@ -468,11 +468,81 @@ namespace Kratos
             upp_lim = sqrt(param - pow(((param - r_min*r_min + distance*distance) / (2*distance)),2));
 
           // Heat transfer coefficient from integral expression solved numerically
-          h = fluid_conductivity * IntegralSurrLayer(r_process_info, distance, this_radius, other_radius, low_lim, upp_lim);
+          h = fluid_conductivity * IntegralSurrLayer(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance);
         }
 
         // Compute heat flux
         mConductiveHeatFlux += h * temp_grad;
+      }
+      else if (model.compare("voronoi_a") == 0) {
+
+        // Compute direction and distance between centroids
+        array_1d<double, 3> direction;
+        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
+        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+
+        double distance = DEM_MODULUS_3(direction);
+
+        // Check if particles are close enough
+        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
+        if (distance > this_radius + other_radius + cutoff * std::max(this_radius, other_radius))
+          continue;
+
+        // Compute lower limit of integral (contact radius)
+        double low_lim;
+
+        if (distance < this_radius + other_radius)
+          low_lim = sqrt(fabs(this_radius * this_radius - pow(((this_radius * this_radius - other_radius * other_radius + distance * distance) / (2 * distance)), 2)));
+        else
+          low_lim = 0.0;
+
+        // Get porosity
+        // TODO: currently, global average porosity is an input
+        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+        if      (porosity <  0.0) porosity = 0.0;
+        else if (porosity >= 1.0) porosity = 0.999;
+
+        // Compute conduction radius from porosity
+        double rij = 0.56 * this_radius / pow((1.0-porosity),1/3);
+
+        // Compute heat transfer coefficient
+        double other_conductivity = neighbour_iterator->mThermalConductivity;
+        double h = 0.0;
+
+        if (this_radius == other_radius) {
+
+          // Compute effective thermal conductivity
+          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
+
+          // Compute upper limit of integral
+          double upp_lim = this_radius * rij / sqrt(rij*rij + distance*distance/4.0);
+
+          // Heat transfer coefficient from integral expression solved numerically
+          h = IntegralVoronoiMono(r_process_info, low_lim, upp_lim, this_radius, distance, rij, eff_conductivity);
+        }
+        else {
+
+          // Compute upper limit of integral
+          double D1, D2, rij_, upp_lim;
+
+          if (distance < this_radius + other_radius) D1 = sqrt(this_radius*this_radius - low_lim*low_lim);
+          else                                       D1 = (this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance);
+          D2 = distance - D1;
+          
+          if (this_radius <= other_radius) upp_lim = this_radius  * rij / sqrt(rij*rij + D1*D1);
+          else                             upp_lim = other_radius * rij / sqrt(rij*rij + D2*D2);
+          rij_ = D2*upp_lim / sqrt(other_radius*other_radius - upp_lim *upp_lim);
+
+          // Heat transfer coefficient from integral expression solved numerically
+          h = IntegralVoronoiMulti(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance, rij, rij_, D1, D2);
+        }
+
+        // Compute heat flux
+        mConductiveHeatFlux += h * temp_grad;
+      }
+      else if (model.compare("voronoi_b") == 0) {
+
       }
     }
 
@@ -560,6 +630,12 @@ namespace Kratos
 
         // Compute heat flux
         mConductiveHeatFlux += h * temp_grad;
+      }
+      else if (model.compare("voronoi_a") == 0) {
+
+      }
+      else if (model.compare("voronoi_b") == 0) {
+
       }
     }
 
@@ -780,6 +856,10 @@ namespace Kratos
         double model_search_distance = GetRadius() * r_process_info[FLUID_LAYER_THICKNESS];
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
+      else if (model.compare("voronoi_a") == 0 || model.compare("voronoi_b") == 0) {
+        double model_search_distance = GetRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
+        added_search_distance = std::max(added_search_distance, model_search_distance);
+      }
     }
 
     if (this->Is(DEMFlags::HAS_RADIATION)) {
@@ -795,34 +875,34 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::IntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b) {
+  double ThermalSphericParticle<TBaseElement>::IntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d) {
     KRATOS_TRY
 
     // Initialization
-    double fa  = EvalIntegrandSurrLayer(r_process_info, d, r1, r2, a);
-    double fb  = EvalIntegrandSurrLayer(r_process_info, d, r1, r2, b);
-    double fc  = EvalIntegrandSurrLayer(r_process_info, d, r1, r2, (a+b)/2);
+    double fa  = EvalIntegrandSurrLayer(r_process_info, a, r1, r2, d);
+    double fb  = EvalIntegrandSurrLayer(r_process_info, b, r1, r2, d);
+    double fc  = EvalIntegrandSurrLayer(r_process_info, (a+b)/2, r1, r2, d);
     double tol = r_process_info[INTEGRAL_TOLERANCE];
     constexpr double eps = std::numeric_limits<double>::epsilon();
     if (tol < 10.0*eps)
       tol = 10.0*eps;
 
     // Solve integral recursively with adaptive Simpson quadrature
-    return SolveIntegralSurrLayer(r_process_info, d, r1, r2, a, b, tol, fa, fb, fc);
+    return SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b, double tol, double fa, double fb, double fc) {
+  double ThermalSphericParticle<TBaseElement>::SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d) {
     KRATOS_TRY
 
     // TODO: in order to catch possible erros that can occur in singularities,
     //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
 
     double c  = (a + b) / 2;
-    double fd = EvalIntegrandSurrLayer(r_process_info, d, r1, r2, (a+c)/2);
-    double fe = EvalIntegrandSurrLayer(r_process_info, d, r1, r2, (c+b)/2);
+    double fd = EvalIntegrandSurrLayer(r_process_info, (a+c)/2, r1, r2, d);
+    double fe = EvalIntegrandSurrLayer(r_process_info, (c+b)/2, r1, r2, d);
     double I1 = (b-a)/6  * (fa + 4*fc + fb);
     double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
 
@@ -830,8 +910,8 @@ namespace Kratos
       return I2 + (I2 - I1) / 15;
     }
     else { // sub-divide interval recursively
-      double Ia = SolveIntegralSurrLayer(r_process_info, d, r1, r2, a, c, tol, fa ,fd, fc);
-      double Ib = SolveIntegralSurrLayer(r_process_info, d, r1, r2, c, b, tol, fc, fe, fb);
+      double Ia = SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
+      double Ib = SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
       return Ia + Ib;
     }
 
@@ -839,9 +919,60 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double r) {
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double r, double r1, double r2, double d) {
     KRATOS_TRY
     return 2 * Globals::Pi * r / std::max(r_process_info[MIN_CONDUCTION_DISTANCE], d - sqrt(r1*r1-r*r) - sqrt(r2*r2-r*r));
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::IntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double rp, double d, double rij, double keff) {
+    KRATOS_TRY
+
+    // Initialization
+    double fa  = EvalIntegrandVoronoiMono(r_process_info, a, rp, d, rij, keff);
+    double fb  = EvalIntegrandVoronoiMono(r_process_info, b, rp, d, rij, keff);
+    double fc  = EvalIntegrandVoronoiMono(r_process_info, (a+b)/2, rp, d, rij, keff);
+    double tol = r_process_info[INTEGRAL_TOLERANCE];
+    constexpr double eps = std::numeric_limits<double>::epsilon();
+    if (tol < 10.0*eps)
+      tol = 10.0*eps;
+
+    // Solve integral recursively with adaptive Simpson quadrature
+    return SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::SolveIntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double rp, double d, double rij, double keff) {
+    KRATOS_TRY
+
+    // TODO: in order to catch possible erros that can occur in singularities,
+    //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
+
+    double c  = (a + b) / 2;
+    double fd = EvalIntegrandVoronoiMono(r_process_info, (a+c)/2, rp, d, rij, keff);
+    double fe = EvalIntegrandVoronoiMono(r_process_info, (c+b)/2, rp, d, rij, keff);
+    double I1 = (b-a)/6  * (fa + 4*fc + fb);
+    double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+
+    if (fabs(I2-I1) <= tol) {
+      return I2 + (I2 - I1) / 15;
+    }
+    else { // sub-divide interval recursively
+      double Ia = SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
+      double Ib = SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
+      return Ia + Ib;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(const ProcessInfo& r_process_info, double r, double rp, double d, double rij, double keff) {
+    KRATOS_TRY
+    return 2 * Globals::Pi * r / ((sqrt(rp*rp-r*r)-r*d/(2*rij))/keff + 2*(d/2-sqrt(rp*rp-r*r))/r_process_info[FLUID_THERMAL_CONDUCTIVITY]);
     KRATOS_CATCH("")
   }
 

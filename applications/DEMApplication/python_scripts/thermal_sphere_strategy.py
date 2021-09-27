@@ -19,12 +19,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "indirect_conduction_model"      : "surrounding_layer",
             "integral_tolerance"             : 0.000001,
             "min_conduction_distance"        : 0.0000000275,
+            "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
             "compute_convection"             : false,
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "compute_radiation"              : false,
             "radiation_model"                : "continuum_zhou",
             "radiation_radius_factor"        : 3.0,
+            "global_porosity"                : 0.0,
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
                 "fluid_viscosity"            : 1.0,
@@ -58,7 +60,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.direct_conduction_model != "collisional"):
             raise Exception('DEM', 'Direct thermal conduction model \'' + self.direct_conduction_model + '\' is not implemented.')
 
-        if (self.indirect_conduction_model != "surrounding_layer"):
+        if (self.indirect_conduction_model != "surrounding_layer" and
+            self.indirect_conduction_model != "voronoi_a"         and
+            self.indirect_conduction_model != "voronoi_b"):
             raise Exception('DEM', 'Indirect thermal conduction model \'' + self.indirect_conduction_model + '\' is not implemented.')
 
         if (self.nusselt_correlation != "sphere_hanz_marshall" and
@@ -72,8 +76,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Set model parameters
         self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
+        self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.radiation_radius_factor = self.thermal_settings["radiation_radius_factor"].GetDouble()
+        self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
 
         # Set global properties of interstitial/surrounding fluid
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
@@ -112,10 +118,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
 
         # Model parameters
-        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,      self.integral_tolerance)
-        self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE, self.min_conduction_distance)
-        self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,   self.fluid_layer_thickness)
-        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS_FACTOR, self.radiation_radius_factor)
+        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
+        self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
+        self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS_FACTOR,    self.radiation_radius_factor)
+        self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
 
         # Global properties for interstitial/surrounding fluid 
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_DENSITY,              self.fluid_density)

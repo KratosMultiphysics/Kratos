@@ -90,9 +90,15 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Auxiliary computation methods
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
   void ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
-  double IntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b);
-  double SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double a, double b, double tol, double fa, double fb, double fc);
-  double EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double d, double r1, double r2, double r);
+  double IntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d);
+  double SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d);
+  double EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double r, double r1, double r2, double d);
+  double IntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double rp, double d, double rij, double keff);
+  double SolveIntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double rp, double d, double rij, double keff);
+  double EvalIntegrandVoronoiMono(const ProcessInfo& r_process_info, double r, double rp, double d, double rij, double keff);
+  double IntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d, double rij, double rij_, double D1, double D2);
+  double SolveIntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d, double rij, double rij_, double D1, double D2);
+  double EvalIntegrandVoronoiMulti(const ProcessInfo& r_process_info, double r, double r1, double r2, double d, double rij, double rij_, double D1, double D2);
 
   // Get/Set methods
   const double& GetParticleTemperature();
