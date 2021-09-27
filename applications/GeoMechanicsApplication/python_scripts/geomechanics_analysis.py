@@ -62,7 +62,6 @@ class GeoMechanicsAnalysisBase(AnalysisStage):
 
     def Initialize(self):
         self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
-        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.IS_MOVED_MESH] = self.is_moved_mesh
 
         super().Initialize()
 
@@ -118,7 +117,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self.number_cycles       = project_parameters["solver_settings"]["number_cycles"].GetInt()
         self.solution_type       = project_parameters["solver_settings"]["solution_type"].GetString()
         self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
-        self.is_moved_mesh       = project_parameters["solver_settings"]["move_mesh_flag"].GetBool()
         self.start_time          = project_parameters["solver_settings"]["start_time"].GetDouble()
         self.end_time            = project_parameters["problem_data"]["end_time"].GetDouble()
 

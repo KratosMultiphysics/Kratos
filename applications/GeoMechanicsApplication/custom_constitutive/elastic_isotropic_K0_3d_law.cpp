@@ -247,7 +247,7 @@ void ElasticIsotropicK03DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::
 
 int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
                                    const GeometryType& rElementGeometry,
-                                   const ProcessInfo& rCurrentProcessInfo)
+                                   const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_ERROR_IF(!rMaterialProperties.Has(YOUNG_MODULUS))
                     << "YOUNG_MODULUS is not availabe in material parameters" << std::endl;

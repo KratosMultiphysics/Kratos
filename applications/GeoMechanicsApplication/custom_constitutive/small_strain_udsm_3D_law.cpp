@@ -202,7 +202,7 @@ void SmallStrainUDSM3DLaw::GetLawFeatures(Features &rFeatures)
 //----------------------------------------------------------------------------------------
 int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
                                 const GeometryType &rElementGeometry,
-                                const ProcessInfo &rCurrentProcessInfo)
+                                const ProcessInfo &rCurrentProcessInfo) const
 {
    KRATOS_TRY;
    // KRATOS_INFO("0-SmallStrainUDSM3DLaw::Check()") << std::endl;
@@ -223,28 +223,6 @@ int SmallStrainUDSM3DLaw::Check(const Properties &rMaterialProperties,
                    << rMaterialProperties.Id()
                    << std::endl;
 
-   // load UDSM model
-   if (!mIsUDSMLoaded) mIsUDSMLoaded = loadUDSM(rMaterialProperties);
-
-   if (!mIsUDSMLoaded)
-   {
-      KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
-   }
-
-   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
-   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
-   if ( nUmatParametersSize != nParametersUDSM)
-   {
-      KRATOS_ERROR << "Number of parameters is wrong."
-                   << " The UDSM gives " 
-                   << std::to_string(nParametersUDSM)
-                   << " while size of UMAT_PARAMETERS is "
-                   << std::to_string(nUmatParametersSize)
-                   << rMaterialProperties[UDSM_NAME]
-                   << std::endl;
-   }
-
-
    // KRATOS_INFO("1-SmallStrainUDSM3DLaw::Check()") << std::endl;
    return 0;
    KRATOS_CATCH("");
@@ -261,6 +239,22 @@ void SmallStrainUDSM3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 
    // loading the model
    mIsUDSMLoaded = loadUDSM(rMaterialProperties);
+
+   if (!mIsUDSMLoaded) {
+      KRATOS_ERROR << "cannot load the specified UDSM " << rMaterialProperties[UDSM_NAME] << std::endl;
+   }
+
+   const int nUmatParametersSize = rMaterialProperties[UMAT_PARAMETERS].size();
+   const int nParametersUDSM = GetNumberOfMaterialParametersFromUDSM(rMaterialProperties);
+   if ( nUmatParametersSize != nParametersUDSM) {
+      KRATOS_ERROR << "Number of parameters is wrong."
+                   << " The UDSM gives " 
+                   << std::to_string(nParametersUDSM)
+                   << " while size of UMAT_PARAMETERS is "
+                   << std::to_string(nUmatParametersSize)
+                   << rMaterialProperties[UDSM_NAME]
+                   << std::endl;
+   }
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
