@@ -70,7 +70,7 @@ public:
 
     /// Pointer definition of BDF2TurbulentSchemeDEMCoupled
     KRATOS_CLASS_POINTER_DEFINITION(BDF2TurbulentSchemeDEMCoupled);
-    typedef BDF2TurbulentScheme<TSparseSpace,TDenseSpace> BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
     typedef typename TSparseSpace::VectorType TSystemVectorType;
@@ -141,6 +141,18 @@ public:
 
         BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
         this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
+    }
+
+    void FinalizeNonLinIteration(
+        ModelPart &rModelPart,
+        TSystemMatrixType &A,
+        TSystemVectorType &Dx,
+        TSystemVectorType &b) override
+    {
+
+        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+        BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+
     }
 
     void UpdateFluidFraction(
