@@ -97,6 +97,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Get/Set methods
   const double& GetParticleTemperature();
   void SetParticleTemperature(const double temperature);
+  void SetParticlePrescribedHeatFlux(const double heat_flux);
 
   // Turn back information as a string.
   virtual std::string Info() const override {
@@ -116,6 +117,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;
   double mRadiativeHeatFlux;
+  double mPrescribedHeatFlux;
   double mTotalHeatFlux;
   double mPreviousTemperature;
 

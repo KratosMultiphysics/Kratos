@@ -12,6 +12,7 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_elements/Particle_Contact_Element.h"
+#include "custom_elements/thermal_spheric_particle.h"
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 
@@ -213,6 +214,7 @@ namespace Kratos {
         virtual void DisplayThreadInfo();
         virtual void CalculateMaxTimeStep();
         double CalculateMaxInletTimeStep();
+        void InitializeThermalDataInSubModelParts();
         virtual void InitializeClusters();
         virtual void GetClustersForce();
         virtual void GetRigidBodyElementsForce();

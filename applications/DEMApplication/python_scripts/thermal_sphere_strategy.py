@@ -124,3 +124,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_HEAT_CAPACITY,        self.fluid_heat_capacity)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
+
+    def Initialize(self):
+        # Base class initializer
+        BaseExplicitStrategy.Initialize(self)
+
+        # Set thermal properties of SubModelParts
+        (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()

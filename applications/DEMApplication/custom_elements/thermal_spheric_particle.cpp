@@ -46,6 +46,9 @@ namespace Kratos
 
     if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_RADIATION,           true);
     else                                            this->Set(DEMFlags::HAS_RADIATION,           false);
+
+    // Initialize prescribed heat flux
+    SetParticlePrescribedHeatFlux(0.0);
   }
 
   template <class TBaseElement>
@@ -96,7 +99,7 @@ namespace Kratos
     }
 
     // Sum up contributions
-    mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux;
+    mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
   }
 
   // Compute heat fluxes components
@@ -112,6 +115,10 @@ namespace Kratos
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
       if (mNeighbourElements[i] == NULL) continue;
       ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+
+      // Check if neighbour is adiabatic
+      if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
+        continue;
 
       // Get particles radii
       double this_radius  = GetRadius();
@@ -240,6 +247,10 @@ namespace Kratos
       DEMWall* wall = rNeighbours[i];
       if (wall == NULL) continue;
       
+      // Check if neighbour is adiabatic
+      if (wall->Is(DEMFlags::IS_ADIABATIC))
+        continue;
+
       // Compute distance between particle and wall
       // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
       double dummy1[3][3];
@@ -376,6 +387,10 @@ namespace Kratos
       if (mNeighbourElements[i] == NULL) continue;
       ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
 
+      // Check if neighbour is adiabatic
+      if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
+        continue;
+
       // Get particles temperatures
       double this_temp  = GetParticleTemperature();
       double other_temp = neighbour_iterator->GetParticleTemperature();
@@ -477,6 +492,10 @@ namespace Kratos
       DEMWall* wall = rNeighbours[i];
       if (wall == NULL) continue;
       
+      // Check if neighbour is adiabatic
+      if (wall->Is(DEMFlags::IS_ADIABATIC))
+        continue;
+
       // Get temperatures
       // (Assumption: wall temperature is the average of its nodes)
       double wall_temp = 0.0;
@@ -630,6 +649,10 @@ namespace Kratos
         if (mNeighbourElements[i] == NULL) continue;
         ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
         
+        // Check if neighbour is adiabatic
+        if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
+          continue;
+
         // Compute direction and distance between centroids
         array_1d<double, 3> direction;
         direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
@@ -669,7 +692,7 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) {
     // Condition to avoid issue when mSpecificHeat is equal zero
-    if (mSpecificHeat > 0) {
+    if (mSpecificHeat > 0 && !this->Is(DEMFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMFlags::IS_ADIABATIC)) {
       // Compute new temperature
       double dt              = r_process_info[DELTA_TIME];
       double thermal_inertia = GetMass() * mSpecificHeat;
@@ -832,6 +855,11 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
     GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFlux(const double heat_flux) {
+    mPrescribedHeatFlux = heat_flux;
   }
 
   //Explicit Instantiation

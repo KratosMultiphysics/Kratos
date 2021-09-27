@@ -360,6 +360,64 @@ namespace Kratos {
         return 0.0;
     }
 
+    void ExplicitSolverStrategy::InitializeThermalDataInSubModelParts() {
+      KRATOS_TRY
+
+      // Set particles data
+      ModelPart& r_model_part = GetModelPart();
+
+      if (r_model_part.NumberOfSubModelParts()) {
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = r_model_part.SubModelPartsBegin();
+                                                             sub_model_part != r_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart& submp = *sub_model_part;
+          ElementsArrayType& rElements = submp.GetCommunicator().LocalMesh().Elements();
+
+          block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            Element* p_element = &(rElement);
+            ThermalSphericParticle<SphericParticle>* p_sphere = dynamic_cast<ThermalSphericParticle<SphericParticle>*>(p_element);
+
+            if (submp.Has(TEMPERATURE))
+              p_sphere->SetParticleTemperature(submp[TEMPERATURE]);
+
+            if (submp.Has(HEATFLUX))
+              p_sphere->SetParticlePrescribedHeatFlux(submp[HEATFLUX]);
+            else
+              p_sphere->SetParticlePrescribedHeatFlux(0.0);
+
+            if (submp.Has(FIXED_TEMPERATURE))
+              p_sphere->Set(DEMFlags::HAS_FIXED_TEMPERATURE, submp[FIXED_TEMPERATURE]);
+            else
+              p_sphere->Set(DEMFlags::HAS_FIXED_TEMPERATURE, false);
+
+            if (submp.Has(ADIABATIC))
+              p_sphere->Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
+            else
+              p_sphere->Set(DEMFlags::IS_ADIABATIC, false);
+          });
+        }
+      }
+
+      // Set walls data
+      ModelPart& fem_model_part = GetFemModelPart();
+
+      if (fem_model_part.NumberOfSubModelParts()) {
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part  = fem_model_part.SubModelPartsBegin();
+                                                             sub_model_part != fem_model_part.SubModelPartsEnd(); ++sub_model_part) {
+          ModelPart& submp = *sub_model_part;
+          ElementsArrayType& rElements = submp.GetCommunicator().LocalMesh().Elements();
+
+          block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
+            if (submp.Has(ADIABATIC))
+              rElement.Set(DEMFlags::IS_ADIABATIC, submp[ADIABATIC]);
+            else
+              rElement.Set(DEMFlags::IS_ADIABATIC, false);
+          });
+        }
+      }
+
+      KRATOS_CATCH("")
+    }
+
     void ExplicitSolverStrategy::InitializeClusters() {
         KRATOS_TRY
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
