@@ -61,11 +61,12 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 
 ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 BoundaryConditionUtility(const std::string & variable_name, const double Value, const IntervalUtility & rIntervalUtility)
-    : mValue(Value), mIntervalUtility(rIntervalUtility)
+    : mValue(Value), mInterval(rIntervalUtility)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(variable_name));
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(variable_name))
+        << "There is no double variable named " << variable_name << std::endl;
 
     mpVariable = &KratosComponents<Variable<double>>::Get(variable_name);
 
