@@ -2,6 +2,7 @@ import json, os, math, time
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis as potential_flow_analysis
 import KratosMultiphysics.MappingApplication
@@ -432,6 +433,253 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         for variable in self.primal_state_variables:
             variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
+class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
+    def __init__(self,input_model,input_parameters,sample):
+        self.sample = sample
+        self.mapping = False
+        self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
+        self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
+        self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
+        self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
+        self.model = input_model
+        super().__init__(self.model,input_parameters)
+
+    def Initialize(self):
+        if self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()=="use_input_model_part":
+            self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["remeshing_flag"].SetBool(False)
+            if not self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].Has("perform_moving"):
+                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].AddBool("perform_moving", False)
+            else:
+                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["perform_moving"].SetBool(False)
+
+        super().Initialize()
+
+    def Finalize(self):
+
+        super().Finalize()
+        aoa = self.project_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].GetDouble()
+        mach = self.project_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].GetDouble()
+        self.primal_model_part = self._GetSolver().main_model_part
+        self.skin_model_part = self.model.GetModelPart(self.design_surface_sub_model_part_name)
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
+        nodal_velocity_process.Execute()
+        # from KratosMultiphysics.gid_output_process import GiDOutputProcess
+        # gid_output = GiDOutputProcess(
+        #         self.primal_model_part,
+        #         "primal_"+str(self.sample[0]),
+        #         KratosMultiphysics.Parameters("""
+        #             {
+        #                 "result_file_configuration" : {
+        #                     "gidpost_flags": {
+        #                         "GiDPostMode": "GiD_PostBinary",
+        #                         "MultiFileFlag": "SingleFile"
+        #                     },
+        #                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
+        #                     "nodal_nonhistorical_results": ["VELOCITY","METRIC_TENSOR_2D","TEMPERATURE","DISTANCE","TRAILING_EDGE"],
+        #                     "gauss_point_results" : ["WAKE","KUTTA", "PRESSURE_COEFFICIENT"],
+        #                     "nodal_flags_results": [],
+        #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE"]
+        #                 }
+        #             }
+        #             """)
+        #         )
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
+        # Store mesh to solve with adjoint after remeshing
+        self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
+        self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
+        if not self.primal_model_part.HasProperties(0):
+            self.primal_model_part.AddProperties(KratosMultiphysics.Properties(0))
+        if not self.primal_model_part.HasProperties(1):
+            self.primal_model_part.AddProperties(KratosMultiphysics.Properties(1))
+        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path+"_"+str(self.sample[0]), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.primal_model_part)
+
+        with open(self.adjoint_parameters_path,'r') as parameter_file:
+            adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
+        # Create the adjoint solver
+        adjoint_parameters = _CheckParameters(adjoint_parameters)
+        adjoint_model = KratosMultiphysics.Model()
+
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].SetDouble(mach)
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].SetDouble(aoa)
+        adjoint_parameters["solver_settings"]["formulation"]["element_type"].SetString(self.project_parameters["solver_settings"]["formulation"]["element_type"].GetString())
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.auxiliary_mdpa_path+"_"+str(self.sample[0]))
+        self.this_skin_model_part = adjoint_model.CreateModelPart("skin")
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED)
+        skin_model_part_name = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["skin_model_part_name"].GetString()
+        KratosMultiphysics.ModelPartIO(skin_model_part_name).ReadModelPart(self.this_skin_model_part)
+        self._SynchronizeSkinToCurrent(self.this_skin_model_part)
+
+        self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
+
+        self.adjoint_analysis.Initialize()
+        self.adjoint_model_part = self.adjoint_analysis._GetSolver().main_model_part
+
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
+
+        self.adjoint_analysis.RunSolutionLoop()
+        self.adjoint_analysis.Finalize()
+        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
+        self.response_function.InitializeSolutionStep()
+
+        # from KratosMultiphysics.gid_output_process import GiDOutputProcess
+        # gid_output = GiDOutputProcess(
+        #         self.adjoint_model_part,
+        #         "adjoint_"+str(self.sample[0]),
+        #         KratosMultiphysics.Parameters("""
+        #             {
+        #                 "result_file_configuration" : {
+        #                     "gidpost_flags": {
+        #                         "GiDPostMode": "GiD_PostBinary",
+        #                         "MultiFileFlag": "SingleFile"
+        #                     },
+        #                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
+        #                     "nodal_nonhistorical_results": ["VELOCITY","METRIC_TENSOR_2D","TEMPERATURE","DISTANCE","TRAILING_EDGE"],
+        #                     "gauss_point_results" : ["WAKE","KUTTA", "PRESSURE_COEFFICIENT"],
+        #                     "nodal_flags_results": [],
+        #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE"]
+        #                 }
+        #             }
+        #             """)
+        #         )
+        # gid_output.ExecuteInitialize()
+        # gid_output.ExecuteBeforeSolutionLoop()
+        # gid_output.ExecuteInitializeSolutionStep()
+        # gid_output.PrintOutput()
+        # gid_output.ExecuteFinalizeSolutionStep()
+        # gid_output.ExecuteFinalize()
+        # stop
+
+    def ModifyInitialProperties(self):
+        """
+        Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
+        """
+        mach = abs(self.sample[1])
+        alpha = self.sample[2]
+        for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
+            if boundary_process["python_module"].GetString() == "apply_far_field_process":
+                boundary_process["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
+                boundary_process["Parameters"]["angle_of_attack"].SetDouble(0.0)
+                self.i_boundary = i_boundary
+                break
+        super().ModifyInitialProperties()
+
+
+    def EvaluateQuantityOfInterest(self):
+        """
+        Method evaluating the QoI of the problem: lift coefficient.
+        """
+        qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
+        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
+
+        model_part = self.adjoint_model_part
+        skin_model_part = self.this_skin_model_part
+
+        KratosMultiphysics.ParallelDistanceCalculator2D().CalculateDistances(model_part,
+            KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE,
+            KratosMultiphysics.NODAL_AREA,
+            10,
+            2.0)
+
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(model_part,
+        KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Parts_Parts_Auto1",
+            "search_radius" : 0.005,
+            "echo_level" : 0
+            }""")
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(model_part, skin_model_part,mapping_parameters)
+        mapper.Map(KratosMultiphysics.NORMAL_SENSITIVITY,KratosMultiphysics.NORMAL_SENSITIVITY)
+        mapper.Map(KratosMultiphysics.DISTANCE_GRADIENT,KratosMultiphysics.DISTANCE_GRADIENT)
+        mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+            KratosMultiphysics.PRESSURE_COEFFICIENT,        \
+            KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+
+        pressure_coefficient = []
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+        if (self.mapping is not True):
+            for node in skin_model_part.Nodes:
+                this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+                pressure_coefficient.append(this_pressure)
+            pressure_coefficient.extend([0.0]*skin_model_part.NumberOfNodes()*2)
+
+        elif (self.mapping is True):
+            raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+        qoi_list.append(pressure_coefficient)
+
+        shape_sensitivity = []
+        if (self.mapping is not True):
+            for node in skin_model_part.Nodes:
+                distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+                sensitivity=node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY)
+                this_shape_sensitivity =[-1*sensitivity*i for i in distance_gradient]
+                shape_sensitivity.extend(this_shape_sensitivity)
+        elif (self.mapping is True):
+            raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
+        qoi_list.append(shape_sensitivity)
+        Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
+        return qoi_list
+
+    def MappingAndEvaluateQuantityOfInterest(self):
+        raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
+    def _SynchronizeAdjointFromPrimal(self):
+
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
+        variable_utils = KratosMultiphysics.VariableUtils()
+        for variable in self.primal_state_variables:
+            variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+
+    def _SynchronizeSkinToCurrent(self, this_skin_model_part):
+        Logger.PrintInfo("EmbeddedSimulationScenario", "Synchronizing skin coordinates")
+
+        self.current_model_part = self.skin_model_part
+        if len(self.current_model_part.Nodes) != len(this_skin_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.current_model_part.Nodes, this_skin_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
 def _CheckParameters(parameters):
     if not parameters["solver_settings"].Has("reform_dofs_at_each_step") or not parameters["solver_settings"]["reform_dofs_at_each_step"].GetBool():
         if not parameters["solver_settings"].Has("reform_dofs_at_each_step"):
@@ -441,7 +689,7 @@ def _CheckParameters(parameters):
         wrn_msg += 'The solver setting has been set to True'
     for subproc_keys, subproc_values in parameters["processes"].items():
         for process  in subproc_values:
-            if "wake" in process["python_module"].GetString():
+            if "wake" in process["python_module"].GetString() and not "embedded" in process["python_module"].GetString():
                 if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
                     if not process["Parameters"].Has("compute_wake_at_each_step"):
                         process["Parameters"].AddEmptyValue("compute_wake_at_each_step")
