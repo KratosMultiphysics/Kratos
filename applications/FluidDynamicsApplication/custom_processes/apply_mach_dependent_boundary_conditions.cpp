@@ -111,7 +111,7 @@ constexpr char ApplyMachDependentBoundaryConditions::IndexToAxis(const unsigned 
 }
 
 
-double ReadTime(const Parameters & raw_data)
+double ApplyMachDependentBoundaryConditions::ReadTime(const Parameters & raw_data)
 {
     KRATOS_TRY
     

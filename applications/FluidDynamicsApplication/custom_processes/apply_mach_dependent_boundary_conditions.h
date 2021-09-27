@@ -226,6 +226,11 @@ namespace Kratos
          * BoundaryConditionUtility to the provided list
          */
         void ReadBoundaryCondition(std::vector<BoundaryConditionUtility> & rBCList, Parameters Parameters);
+        
+        /**
+         * @brief Reads the JSON field and returns either the containing double, or MAX_DOUBLE if it contains the word End
+         */
+        static double ReadTime(const Parameters & raw_data);
 
         /**
          * @brief Performs the conversion [0, 1, 2] -> ['X', 'Y', 'Z'] at compile-time
