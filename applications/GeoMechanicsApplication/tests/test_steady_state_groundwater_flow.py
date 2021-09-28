@@ -54,6 +54,17 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         simulation = test_helper.run_kratos(file_path)
 
         self.assert_outflow_discharge(simulation, 2)
+
+    def test_pressure_in_confined_aquifer(self):
+        test_name = 'test_pressure_in_confined_aquifer'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+
+        self.assert_outflow_discharge(simulation, 1.5)
+        # get water pressure
+        water_pressure = test_helper.get_water_pressure(simulation)
+        pore_pressure_middle = water_pressure[344]
+        self.assertAlmostEqual(-127.53, pore_pressure_middle)
         
 
     def calculate_outflow_discharge(self, simulation):
