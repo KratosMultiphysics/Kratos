@@ -320,6 +320,9 @@ public:
         KRATOS_CATCH("");
     }
 
+    void InitializeDofUpdater() {
+    }
+
     void Clear() override
     {
         this->mpDofUpdater->Clear();

@@ -138,6 +138,7 @@ class ScalarRansFormulation(RansFormulation):
                     self.GetSolvingVariable(),
                     Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
 
+        self.scheme = scheme
         solver_type = GetKratosObjectPrototype("ResidualBasedNewtonRaphsonStrategy")
         self.solver = solver_type(
             self.GetModelPart(),
@@ -158,6 +159,7 @@ class ScalarRansFormulation(RansFormulation):
     def SolveCouplingStep(self):
         if (self.IsBufferInitialized()):
             self.ExecuteBeforeCouplingSolveStep()
+            self.scheme.InitializeDofUpdater()
             self.solver.SolveSolutionStep()
             self.ExecuteAfterCouplingSolveStep()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Solved  formulation.")

@@ -67,7 +67,10 @@ public:
 
     /// Default constructor.
     RelaxedDofUpdater(const double RelaxationFactor)
-        : mRelaxationFactor(RelaxationFactor)
+        : mRelaxationFactor(RelaxationFactor),
+          mInitialRelaxationFactor(0.1),
+          mMinRelaxationFactor(1e-5),
+          mMaxRelaxationFactor(1.0)
     {}
 
     /// Deleted copy constructor
@@ -102,6 +105,10 @@ public:
     void Initialize(
         const DofsArrayType& rDofSet,
         const SystemVectorType& rDx) override;
+
+    void InitializeAitken() {
+        mOldRelaxationFactor = 0.0;
+    }
 
     /// Free internal storage to reset the instance and/or optimize memory consumption.
     /** Note that the base RelaxedDofUpdater does not have internal data, so this does nothing.
@@ -149,9 +156,19 @@ private:
     bool mImportIsInitialized = false;
     const double mRelaxationFactor;
 
+    const double mInitialRelaxationFactor;
+    const double mMinRelaxationFactor;
+    const double mMaxRelaxationFactor;
+
+    double mOldRelaxationFactor;
+    Vector mOldDx;
+    Vector mDiffDx;
+
     #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     /// Auxiliary trilinos data structure to import out-of-process data in the update vector.
     std::shared_ptr<Epetra_Import> mpDofImport = nullptr;
+    #else
+
     #endif
 
     ///@}
