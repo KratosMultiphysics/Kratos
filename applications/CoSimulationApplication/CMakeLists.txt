@@ -7,6 +7,11 @@ include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
+
+set(BUILD_TESTING OFF CACHE BOOL "")
+set(CO_SIM_IO_ENABLE_MPI ${USE_MPI} CACHE BOOL "")
+add_subdirectory(custom_external_libraries/CoSimIO)
+
 ## CoSimulation Core sources
 file(GLOB_RECURSE KRATOS_CO_SIMULATION_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/co_simulation_application.cpp
@@ -35,7 +40,7 @@ set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SIMULATION_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore)
+target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore co_sim_io)
 set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -80,11 +85,13 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+install(TARGETS co_sim_io DESTINATION libs )
 
 ## If MPI is used, then enable the MPIExtension
 if(${USE_MPI})
   message("Enabling mpi extension for CoSimulationApplication")
   add_subdirectory(mpi_extension)
+  install(TARGETS co_sim_io_mpi DESTINATION libs )
 endif(${USE_MPI})
 
 # Define custom targets
