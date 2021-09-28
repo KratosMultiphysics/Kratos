@@ -327,7 +327,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 msg="Mistakenly fixed boundary condition outside the specified time interval (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 0.0,
                 msg="Mistakenly modified value for boundary condition outside the specified time interval (Node #%d)." % node.Id)
-        
+
         process.ExecuteFinalizeSolutionStep()
 
     def testErrorMissingValue(self):
@@ -376,9 +376,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         self.assertIn("VELOCITY", str(context.exception))
 
     def testErrorTooManyValues(self):
-        """
-        This error is particularly important because it prevents possible segmentation faults.
-        """
+        "This error is particularly important because it prevents possible segmentation faults."
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -404,6 +402,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
     
     def testSameVariable(self):
+        "Fixing all axes in subsonic, but only VELOCITY_Z in supersonic."
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -428,7 +427,6 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
             }
         }
         """)
-        # Fixing all axes in subsonic, but only one in supersonic.
 
         process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
         main_model_part = self.model["main_model_part"]
