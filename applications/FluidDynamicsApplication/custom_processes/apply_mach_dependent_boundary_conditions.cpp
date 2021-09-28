@@ -193,7 +193,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
             << Parameters  << std::endl;
 
         const auto values = Parameters["value"].GetVector();
-        const auto & constraints = Parameters["constrained"];
+        const auto constraints = Parameters["constrained"];
 
         const std::size_t n_components = values.size();
         const std::size_t n_constraints = constraints.size();
