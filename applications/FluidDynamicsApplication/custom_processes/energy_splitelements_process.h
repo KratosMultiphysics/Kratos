@@ -313,6 +313,7 @@ public:
             //     }
             // }
         }
+
         else if(mDomainSize == 3)
         {
             double total_energy = 0.0;
@@ -356,7 +357,7 @@ public:
                         interface_area+=w_gauss_interface[i_gauss_interface];;
                     }
 
-                    for (unsigned int i_gauss = 0; i_gauss < 4; ++i_gauss)
+                    for (unsigned int i_gauss = 0; i_gauss < n_neg_gauss_pt; ++i_gauss)
                     {
                         const double Water_Density = 1e+3;
                         Vector N_gauss = row(N_neg_side, i_gauss);
