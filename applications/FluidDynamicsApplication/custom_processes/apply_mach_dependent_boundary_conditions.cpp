@@ -1,7 +1,7 @@
 #include "apply_mach_dependent_boundary_conditions.h"
 #include "fluid_dynamics_application_variables.h"
 #include "utilities/parallel_utilities.h"
-
+#include "utilities/normal_calculation_utils.h"
 namespace Kratos
 {
 
@@ -14,6 +14,16 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
 
     Parameters.ValidateAndAssignDefaults(GetDefaultParameters());
     mpModelPart = &rModel.GetModelPart(Parameters["model_part_name"].GetString());
+    
+    // Reading flow direction
+    const auto flow_direction_name = Parameters["flow_direction_variable"].GetString();
+
+    KRATOS_ERROR_IF_NOT(KratosComponents<VectorVariable>::Has(flow_direction_name))
+        << "specified flow direction variable is not a known vector variable." << std::endl;
+    
+    mpFlowDirectionVariable = & KratosComponents<VectorVariable>::Get(flow_direction_name);
+
+    mRefreshNormalsEveryTimeStep = Parameters["refresh_normals_every_time_step"].GetBool();
 
     // Reading boundary conditions to enforce
     mSubsonicBCs.reserve(Parameters["subsonic_boundary_conditions"].size());
@@ -32,9 +42,19 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
     KRATOS_CATCH("");
 }
 
+void ApplyMachDependentBoundaryConditions::ExecuteInitialize()
+{
+    NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
+}
+
 
 void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
 {
+    if(mRefreshNormalsEveryTimeStep)
+    {
+        NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
+    }
+
     // Enabling and disabling BC according to the time and active interval
     const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
 
@@ -51,7 +71,15 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
     // Enforcing boundary conditions
     block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
     {
-        const bool supersonic = rNode.GetValue(MACH) >= 1.0;
+        // Computing mach projected onto normal
+        const auto & normal = rNode.FastGetSolutionStepValue(NORMAL);
+        const auto & flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
+
+        const double & mach = rNode.GetValue(MACH);
+        const double mach_projection = mach * inner_prod(normal, flow_direction) / norm_2(flow_direction);
+        
+        // Chosing BC set to enforce according to mach
+        const bool supersonic = fabs(mach_projection) >= 1.0;
         
         const auto & active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
         const auto & passive_bc = supersonic ? mSubsonicBCs   : mSupersonicBCs;
@@ -203,6 +231,8 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
     return Parameters(R"(
     {
         "model_part_name" : "main_model_part",
+        "flow_direction_variable" : "PLEASE SPECIFY FLOW DIRECTION VARIABLE",
+        "refresh_normals_every_time_step" : false,
         "subsonic_boundary_conditions" : [ ],
         "supersonic_boundary_conditions" : [ ]
     }

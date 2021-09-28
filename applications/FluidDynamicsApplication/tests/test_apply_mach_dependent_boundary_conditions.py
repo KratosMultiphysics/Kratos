@@ -7,19 +7,57 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
     def setUp(self):
         self.model = KratosMultiphysics.Model()
-        mpart = self.model.CreateModelPart("main_model_part")
 
-        mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        main_mpart = self.model.CreateModelPart("main_model_part")
+        open_mpart = main_mpart.CreateSubModelPart("open_boundaries")
+        closed_mpart = main_mpart.CreateSubModelPart("closed_boundaries")
+        inlet_mpart = open_mpart.CreateSubModelPart("inlet")
+        outlet_mpart = open_mpart.CreateSubModelPart("outlet")
 
-        mpart.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        main_mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        main_mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        main_mpart.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
 
-        mpart.CreateNewNode(1, 0.0, 0.0, 0.0)
-        mpart.CreateNewNode(2, 1.0, 0.0, 0.0)
-        mpart.CreateNewNode(3, 0.0, 1.0, 0.0)
-        mpart.CreateNewNode(4, 0.0, 0.0, 1.0)
+        main_mpart.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        main_mpart.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
 
-        for node in mpart.Nodes:
+        # Modelpart:
+        # 7 - 8 - 9  : outlet
+        # |   |   |       Δ
+        # 4 - 5 - 6       |  direction of flow
+        # |   |   |       |
+        # 1 - 2 - 3  :  inlet
+
+        main_mpart.CreateNewNode(1, 0.0, 0.0, 0.0)
+        main_mpart.CreateNewNode(2, 1.0, 0.0, 0.0)
+        main_mpart.CreateNewNode(3, 2.0, 0.0, 0.0)
+        main_mpart.CreateNewNode(4, 0.0, 1.0, 0.0)
+        main_mpart.CreateNewNode(5, 1.0, 1.0, 0.0)
+        main_mpart.CreateNewNode(6, 2.0, 1.0, 0.0)
+        main_mpart.CreateNewNode(7, 0.0, 2.0, 0.0)
+        main_mpart.CreateNewNode(8, 1.0, 2.0, 0.0)
+        main_mpart.CreateNewNode(9, 2.0, 2.0, 0.0)
+
+        inlet_mpart.AddNodes([1, 2, 3])
+        outlet_mpart.AddNodes([7, 8, 9])
+        closed_mpart.AddNodes([4, 6])
+        
+
+        props = main_mpart.Properties[0]
+
+        inlet_mpart.CreateNewCondition("LineCondition2D2N", 1, [1, 2], props)
+        inlet_mpart.CreateNewCondition("LineCondition2D2N", 2, [2, 3], props)
+
+        main_mpart.CreateNewCondition("LineCondition2D2N", 3, [3, 6], props)
+        main_mpart.CreateNewCondition("LineCondition2D2N", 4, [6, 9], props)
+
+        outlet_mpart.CreateNewCondition("LineCondition2D2N", 5, [9, 8], props)
+        outlet_mpart.CreateNewCondition("LineCondition2D2N", 6, [8, 7], props)
+
+        main_mpart.CreateNewCondition("LineCondition2D2N", 7, [7, 4], props)
+        main_mpart.CreateNewCondition("LineCondition2D2N", 8, [4, 1], props)
+
+        for node in main_mpart.Nodes:
             node.AddDof(KratosMultiphysics.TEMPERATURE)
             node.AddDof(KratosMultiphysics.DENSITY)
 
@@ -27,27 +65,27 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
             node.AddDof(KratosMultiphysics.VELOCITY_Y)
             node.AddDof(KratosMultiphysics.VELOCITY_Z)
 
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.0)
-            node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0.0)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
-        
         self._ResetVariablesToZero()
 
     def _ResetVariablesToZero(self):
         for node in self.model["main_model_part"].Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0.0)
             node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0.0)
+
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X, 0.0)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0.0)
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z, 0.0)
+
+            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_X, 0.0)
+            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Y, 1.0)
+            node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Z, 0.0)
 
     def testDoubleVariable(self):
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "DENSITY",
@@ -67,50 +105,62 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         """)
 
         process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
-        model_part = self.model["main_model_part"]
+        main_model_part = self.model["main_model_part"]
 
         process.ExecuteInitialize()
         process.ExecuteBeforeSolutionLoop()
 
-        model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 1.0)
+        main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, 1.0)
 
         # Subsonic case
-        for node in model_part.Nodes:
-            node.SetValue(FluidDynamicsApplication.MACH, 0.5)
+        for node in main_model_part.Nodes:
+            node.SetValue(FluidDynamicsApplication.MACH, 0.0)
 
         process.ExecuteInitializeSolutionStep()
 
-        for node in model_part.Nodes:
+        for node in main_model_part.Nodes:
             self.assertTrue(node.IsFixed(KratosMultiphysics.DENSITY),
-                msg="Failed to fix subsonic boundary condition.")
+                msg="Failed to fix subsonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 1.225,
-                msg="Failed to set value for subsonic boundary condition.")
+                msg="Failed to set value for subsonic boundary condition (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.TEMPERATURE),
-                msg="Mistakenly fixed supersonic boundary condition.")
+                msg="Mistakenly fixed supersonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0,
-                msg="Mistakenly modified value for supersonic boundary condition.")
+                msg="Mistakenly modified value for supersonic boundary condition (Node #%d)." % node.Id)
 
         self._ResetVariablesToZero()
         process.ExecuteFinalizeSolutionStep()
 
         # Supersonic case
-        for node in model_part.Nodes:
-            node.SetValue(FluidDynamicsApplication.MACH, 1.5)
+        for node in main_model_part.Nodes:
+            node.SetValue(FluidDynamicsApplication.MACH, 5.0)
 
         process.ExecuteInitializeSolutionStep()
 
-        for node in model_part.Nodes:
+        for node in self.model["main_model_part.open_boundaries"].Nodes:
             self.assertTrue(node.IsFixed(KratosMultiphysics.TEMPERATURE),
-                msg="Failed to fix supersonic boundary condition.")
+                msg="Failed to fix supersonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273.15,
-                msg="Failed to set value for supersonic boundary condition.")
+                msg="Failed to set value for supersonic boundary condition (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.DENSITY),
-                msg="Mistakenly fixed subsonic boundary condition.")
+                msg="Mistakenly fixed subsonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 0.0,
-                msg="Mistakenly modified value for subsonic boundary condition.")
-        
+                msg="Mistakenly modified value for subsonic boundary condition (Node #%d)." % node.Id)
+
+        for node in self.model["main_model_part.closed_boundaries"].Nodes:
+            # These boundaries are still subsonic because they're perpendicular to the flow
+            self.assertTrue(node.IsFixed(KratosMultiphysics.DENSITY),
+                msg="Failed to fix subsonic boundary condition (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 1.225,
+                msg="Failed to set value for subsonic boundary condition (Node #%d)." % node.Id)
+
+            self.assertFalse(node.IsFixed(KratosMultiphysics.TEMPERATURE),
+                msg="Mistakenly fixed supersonic boundary condition (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0,
+                msg="Mistakenly modified value for supersonic boundary condition (Node #%d)." % node.Id)
+
         process.ExecuteFinalizeSolutionStep()
 
     def testVectorVariable(self):
@@ -118,6 +168,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "VELOCITY",
@@ -151,56 +202,78 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
         process.ExecuteInitializeSolutionStep()
 
-        for node in model_part.Nodes:
+        for node in self.model["main_model_part.open_boundaries"].Nodes:
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X),
-                msg="Mistakenly fixed unconstrained component of vector variable.")
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X), 0.0,
-                msg="Mistakenly modified value for unconstrained component of vector variable.")
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y),
-                msg="Mistakenly fixed unconstrained component of vector variable.")
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y), 0.0,
-                msg="Mistakenly modified value for unconstrained component of vector variable.")
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
 
             self.assertTrue(node.IsFixed(KratosMultiphysics.VELOCITY_Z),
-                msg="Failed to fix subsonic boundary condition.")
+                msg="Failed to fix subsonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z), 3.0,
-                msg="Failed to set value for subsonic boundary condition.")
+                msg="Failed to set value for subsonic boundary condition (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.TEMPERATURE),
-                msg="Mistakenly fixed supersonic boundary condition.")
+                msg="Mistakenly fixed supersonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0,
-                msg="Mistakenly modified value for supersonic boundary condition.")
+                msg="Mistakenly modified value for supersonic boundary condition (Node #%d)." % node.Id)
 
         self._ResetVariablesToZero()
         process.ExecuteFinalizeSolutionStep()
 
         # Supersonic case
         for node in model_part.Nodes:
-            node.SetValue(FluidDynamicsApplication.MACH, 1.5)
+            node.SetValue(FluidDynamicsApplication.MACH, 15)
 
         process.ExecuteInitializeSolutionStep()
 
-        for node in model_part.Nodes:
+        for node in self.model["main_model_part.open_boundaries"].Nodes:
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X),
-                msg="Mistakenly fixed unconstrained component of vector variable.")
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X), 0.0,
-                msg="Mistakenly modified value for unconstrained component of vector variable.")
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y),
-                msg="Mistakenly fixed unconstrained component of vector variable.")
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y), 0.0,
-                msg="Mistakenly modified value for unconstrained component of vector variable.")
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
 
             self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Z),
-                msg="Mistakenly fixed subsonic boundary condition.")
+                msg="Mistakenly fixed subsonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z), 0.0,
-                msg="Mistakenly modified value for subsonic boundary condition.")
+                msg="Mistakenly modified value for subsonic boundary condition (Node #%d)." % node.Id)
 
             self.assertTrue(node.IsFixed(KratosMultiphysics.TEMPERATURE),
-                msg="Failed to fix supersonic boundary condition.")
+                msg="Failed to fix supersonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 273.15,
-                msg="Failed to set value for supersonic boundary condition.")
+                msg="Failed to set value for supersonic boundary condition (Node #%d)." % node.Id)
+
+        for node in self.model["main_model_part.closed_boundaries"].Nodes:
+            # These boundaries are still subsonic because they're perpendicular to the flow
+            self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_X),
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X), 0.0,
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
+
+            self.assertFalse(node.IsFixed(KratosMultiphysics.VELOCITY_Y),
+                msg="Mistakenly fixed unconstrained component of vector variable (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y), 0.0,
+                msg="Mistakenly modified value for unconstrained component of vector variable (Node #%d)." % node.Id)
+
+            self.assertTrue(node.IsFixed(KratosMultiphysics.VELOCITY_Z),
+                msg="Failed to fix subsonic boundary condition (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z), 3.0,
+                msg="Failed to set value for subsonic boundary condition (Node #%d)." % node.Id)
+
+            self.assertFalse(node.IsFixed(KratosMultiphysics.TEMPERATURE),
+                msg="Mistakenly fixed supersonic boundary condition (Node #%d)." % node.Id)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE), 0.0,
+                msg="Mistakenly modified value for supersonic boundary condition (Node #%d)." % node.Id)
 
         process.ExecuteFinalizeSolutionStep()
 
@@ -209,6 +282,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "DENSITY",
@@ -237,9 +311,9 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
         for node in model_part.Nodes:
             self.assertTrue(node.IsFixed(KratosMultiphysics.DENSITY),
-                msg="Failed to fix subsonic boundary condition.")
+                msg="Failed to fix subsonic boundary condition (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 1.225,
-                msg="Failed to set value for subsonic boundary condition.")
+                msg="Failed to set value for subsonic boundary condition (Node #%d)." % node.Id)
 
         self._ResetVariablesToZero()
         process.ExecuteFinalizeSolutionStep()
@@ -251,9 +325,9 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
         for node in model_part.Nodes:
             self.assertFalse(node.IsFixed(KratosMultiphysics.DENSITY),
-                msg="Mistakenly fixed boundary condition outside the specified time interval.")
+                msg="Mistakenly fixed boundary condition outside the specified time interval (Node #%d)." % node.Id)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DENSITY), 0.0,
-                msg="Mistakenly modified value for boundary condition outside the specified time interval.")
+                msg="Mistakenly modified value for boundary condition outside the specified time interval (Node #%d)." % node.Id)
         
         process.ExecuteFinalizeSolutionStep()
 
@@ -262,6 +336,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "DENSITY",
@@ -283,6 +358,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "VELOCITY",
@@ -309,6 +385,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         {
             "Parameters" : {
                 "model_part_name" : "main_model_part",
+                "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
                         "variable" : "VELOCITY",

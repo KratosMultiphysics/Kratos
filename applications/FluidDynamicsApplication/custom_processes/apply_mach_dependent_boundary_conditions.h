@@ -55,7 +55,7 @@ namespace Kratos
   ///@{
 
   /** 
-   * @ brief This process applies diferent boundary conditions accoring to the
+   * @brief This process applies diferent boundary conditions accoring to the
    * mach regime.
    */
   class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyMachDependentBoundaryConditions: public Process
@@ -65,12 +65,13 @@ namespace Kratos
         ///@{
         //
         typedef ModelPart::NodeType NodeType;
+        typedef Variable<array_1d<double, 3>> VectorVariable;
         
         /**
          * @brief This class validates and manages a variable to fix
          * and the value to fix it to.
          * 
-         * Method ActivateIfInsideTimeInterval must be called at the begining
+         * Method ActivateIfInsideTimeInterval must be called at the beginning
          * of the time step to see if the BC is active or not. This will cause
          * the following behaviour in the other two public methods:
          * - Enforce:
@@ -79,7 +80,7 @@ namespace Kratos
          * - Release
          *     - Always -> Free dof
          * 
-         * This allows checking the time only once at the beginning of the
+         * This allows for checking the time only once at the beginning of the
          * time-step rather than at every node.
          */
         class BoundaryConditionUtility
@@ -142,6 +143,8 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
+        
+        void ExecuteInitialize() override;
 
         void ExecuteInitializeSolutionStep() override;
 
@@ -224,6 +227,8 @@ namespace Kratos
         ///@{
 
         ModelPart * mpModelPart;
+        VectorVariable const * mpFlowDirectionVariable;
+        bool mRefreshNormalsEveryTimeStep;
         std::vector<BoundaryConditionUtility> mSubsonicBCs = {};
         std::vector<BoundaryConditionUtility> mSupersonicBCs = {};
 
