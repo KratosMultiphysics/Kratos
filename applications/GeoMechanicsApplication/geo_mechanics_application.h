@@ -61,6 +61,7 @@
 #include "custom_elements/small_strain_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/U_Pw_small_strain_axisymmetric_element.hpp"
 #include "custom_elements/U_Pw_small_strain_axisymmetric_FIC_element.hpp"
+#include "custom_elements/transient_Pw_interface_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -288,6 +289,10 @@ private:
     const TransientPwElement<3,10> mTransientPwElement3D10N;
     const TransientPwElement<3,20> mTransientPwElement3D20N;
     const TransientPwElement<3,27> mTransientPwElement3D27N;
+
+    const TransientPwInterfaceElement<2,4> mTransientPwInterfaceElement2D4N;
+    const TransientPwInterfaceElement<3,6> mTransientPwInterfaceElement3D6N;
+    const TransientPwInterfaceElement<3,8> mTransientPwInterfaceElement3D8N;
 
     // Steady-State one-phase flow elements:
     const SteadyStatePwElement<2,3> mSteadyStatePwElement2D3N;

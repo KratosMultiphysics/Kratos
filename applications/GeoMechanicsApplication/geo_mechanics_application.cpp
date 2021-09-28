@@ -139,6 +139,10 @@ KratosGeoMechanicsApplication::KratosGeoMechanicsApplication():
     mUPwSmallStrainInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwSmallStrainInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
 
+    mTransientPwInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
+    mTransientPwInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
+    mTransientPwInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
+
     mUPwSmallStrainLinkInterfaceElement2D4N( 0, Element::GeometryType::Pointer( new QuadrilateralInterface2D4 <NodeType >( Element::GeometryType::PointsArrayType(4)))),
     mUPwSmallStrainLinkInterfaceElement3D6N( 0, Element::GeometryType::Pointer( new PrismInterface3D6 <NodeType >( Element::GeometryType::PointsArrayType(6)))),
     mUPwSmallStrainLinkInterfaceElement3D8N( 0, Element::GeometryType::Pointer( new HexahedraInterface3D8 <NodeType >( Element::GeometryType::PointsArrayType(8)))),
@@ -317,6 +321,10 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement2D4N", mUPwSmallStrainInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N )
+
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement2D4N", mTransientPwInterfaceElement2D4N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement3D6N", mTransientPwInterfaceElement3D6N )
+    KRATOS_REGISTER_ELEMENT( "TransientPwInterfaceElement2D8N", mTransientPwInterfaceElement3D8N )
 
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement2D4N", mUPwSmallStrainLinkInterfaceElement2D4N )
     KRATOS_REGISTER_ELEMENT( "UPwSmallStrainLinkInterfaceElement3D6N", mUPwSmallStrainLinkInterfaceElement3D6N )
