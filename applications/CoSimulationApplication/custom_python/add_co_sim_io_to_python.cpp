@@ -23,20 +23,12 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 
 // CoSimIO
-// defining the macros that are used within the CoSimIO to point the the Kratos-native macros
-// Note that this has to be done BEFORE including the header the first time
-// see co_sim_io/impl/macros.hpp
-#define CO_SIM_IO_INFO          KRATOS_INFO
-#define CO_SIM_IO_INFO_IF       KRATOS_INFO_IF
-#define CO_SIM_IO_ERROR         KRATOS_ERROR
-#define CO_SIM_IO_ERROR_IF      KRATOS_ERROR_IF
-#define CO_SIM_IO_ERROR_IF_NOT  KRATOS_ERROR_IF_NOT
-#include "custom_external_libraries/co_sim_io/co_sim_io.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/co_sim_io.hpp"
 
-#include "custom_external_libraries/co_sim_io/python/connection_status_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/info_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/vector_to_python.hpp"
-#include "custom_external_libraries/co_sim_io/python/version_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/connection_status_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/info_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/vector_to_python.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/python/version_to_python.hpp"
 
 namespace Kratos {
 namespace Python {
