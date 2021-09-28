@@ -503,7 +503,7 @@ namespace Kratos
         if      (porosity <  0.0) porosity = 0.0;
         else if (porosity >= 1.0) porosity = 0.999;
 
-        // Compute conduction radius from porosity
+        // Compute voronoi edge radius from porosity
         double rij = 0.56 * this_radius / pow((1.0-porosity),1/3);
 
         // Compute heat transfer coefficient
@@ -535,7 +535,7 @@ namespace Kratos
           rij_ = D2*upp_lim / sqrt(other_radius*other_radius - upp_lim *upp_lim);
 
           // Heat transfer coefficient from integral expression solved numerically
-          h = IntegralVoronoiMulti(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance, rij, rij_, D1, D2);
+          h = IntegralVoronoiMulti(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance, rij, rij_, D1, D2, mThermalConductivity, other_conductivity);
         }
 
         // Compute heat flux
@@ -543,6 +543,96 @@ namespace Kratos
       }
       else if (model.compare("voronoi_b") == 0) {
 
+        // Compute direction and distance between centroids
+        array_1d<double, 3> direction;
+        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
+        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
+        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
+
+        double distance = DEM_MODULUS_3(direction);
+
+        // Check if particles are close enough
+        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
+        if (distance > this_radius + other_radius + cutoff * std::max(this_radius, other_radius))
+          continue;
+
+        // Compute contact radius
+        double contact_radius;
+
+        if (distance < this_radius + other_radius)
+          contact_radius = sqrt(fabs(this_radius * this_radius - pow(((this_radius * this_radius - other_radius * other_radius + distance * distance) / (2 * distance)), 2)));
+        else
+          contact_radius = 0.0;
+
+        // Get porosity
+        // TODO: currently, global average porosity is an input
+        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+        if      (porosity <  0.0) porosity = 0.0;
+        else if (porosity >= 1.0) porosity = 0.999;
+
+        // Compute voronoi edge radius from porosity
+        double rij = 0.56 * this_radius / pow((1.0-porosity),1/3);
+
+        // Compute heat transfer coefficient
+        double other_conductivity = neighbour_iterator->mThermalConductivity;
+        double core = r_process_info[ISOTHERMAL_CORE_RADIUS];
+        double kf = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+        double h = 0.0;
+
+        if (this_radius == other_radius) {
+
+          // Compute effective thermal conductivity
+          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
+
+          // Parameters
+          double D  = distance / 2;
+          double a  = (1/core - 1/this_radius)/(2*eff_conductivity) + 1/(kf*this_radius);
+          double b  = 1/(kf*D);
+          double c0 = D / sqrt(rij*rij + D*D);
+          double c1 = D / sqrt(contact_radius*contact_radius + D*D);
+          double f  = (a-b*c0)/(a-b*c1);
+          double ln = 0.0;
+          if (f > 0.0)
+            ln = log(f);
+
+          // Heat transfer coefficient
+          h = Globals::Pi * ln / b;
+        }
+        else {
+
+          // Compute area of neighboring voronoi cells
+          double An = Globals::Pi * rij * rij;
+
+          // Parameters
+          double gamma1 = this_radius  / distance;
+          double gamma2 = other_radius / distance;
+          double dgamma = gamma2 - gamma1;
+
+          double A = (mThermalConductivity + kf * (1/core-1)) / (mThermalConductivity * gamma1);
+          double B = (other_conductivity   + kf * (1/core-1)) / (other_conductivity   * gamma2);
+          
+          double lambda = (1+dgamma*A)*(1-dgamma*B);
+          
+          double delmax = 0.5 * (sqrt((4 * An) / (Globals::Pi * distance * distance * (1-dgamma*dgamma)) + 1) - dgamma);
+          double delmin = 0.5 * (sqrt((4 * contact_radius * contact_radius) / (distance * distance *(1-dgamma*dgamma)) + 1) - dgamma);
+          
+          double Xmax = ((A+B)*delmax + dgamma*B - 1) / sqrt(fabs(lambda));
+          double Xmin = ((A+B)*delmin + dgamma*B - 1) / sqrt(fabs(lambda));
+          
+          double Y1 = (Xmax-Xmin) / (1-Xmax*Xmin);
+          double Y2 = (Xmax-Xmin) / (1+Xmax*Xmin);
+
+          // Heat transfer coefficient
+          if (lambda > 0.0)
+            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * log(fabs((1-Y1) / (1+Y1))) / (2*sqrt(fabs(lambda)));
+          else if(lambda < 0.0)
+            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * atan(Y2) / (2*sqrt(fabs(lambda)));
+          else
+            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * (1/delmin - 1/delmax) / (A+B);
+        }
+
+        // Compute heat flux
+        mConductiveHeatFlux += h * temp_grad;
       }
     }
 
@@ -579,7 +669,7 @@ namespace Kratos
       double particle_temp = GetParticleTemperature();
       double temp_grad = wall_temp - particle_temp;
 
-      // Get particles radii
+      // Get particle radius
       double particle_radius  = GetRadius();
       
       // Get interstitial fluid properties
@@ -632,10 +722,118 @@ namespace Kratos
         mConductiveHeatFlux += h * temp_grad;
       }
       else if (model.compare("voronoi_a") == 0) {
+        
+        // Compute distance between particle and wall
+        // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
+        double dummy1[3][3];
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+        array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+        array_1d<double, 3> dummy3 = ZeroVector(3);
+        array_1d<double, 3> dummy4 = ZeroVector(3);
+        double distance = 0.0;
+        int ContactType = -1;
+        wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
 
+        // Check if particle is close enough to wall
+        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
+        if (distance > cutoff * particle_radius)
+          continue;
+
+        // Compute lower limit of integral (contact radius)
+        double low_lim;
+        double indentation;
+
+        if (distance < particle_radius) {
+          indentation = particle_radius - distance;
+          low_lim = sqrt(indentation * (2 * particle_radius - indentation));
+        }
+        else
+          low_lim = 0.0;
+
+        // Get porosity
+        // TODO: currently, global average porosity is an input
+        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+        if      (porosity <  0.0) porosity = 0.0;
+        else if (porosity >= 1.0) porosity = 0.999;
+
+        // Compute voronoi edge radius from porosity
+        double rij = 0.56 * particle_radius / pow((1.0-porosity),1/3);
+
+        // Compute effective thermal conductivity
+        double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
+        double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
+
+        // Compute upper limit of integral
+        double upp_lim = particle_radius * rij / sqrt(rij*rij + distance*distance/4.0);
+
+        // Heat transfer coefficient from integral expression solved numerically
+        double h = IntegralVoronoiMono(r_process_info, low_lim, upp_lim, particle_radius, distance, rij, eff_conductivity);
+
+        // Compute heat flux
+        mConductiveHeatFlux += h * temp_grad;
       }
       else if (model.compare("voronoi_b") == 0) {
 
+        // Compute distance between particle and wall
+        // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
+        double dummy1[3][3];
+        DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+        array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+        array_1d<double, 3> dummy3 = ZeroVector(3);
+        array_1d<double, 3> dummy4 = ZeroVector(3);
+        double distance = 0.0;
+        int ContactType = -1;
+        wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
+
+        // Check if particle is close enough to wall
+        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
+        if (distance > cutoff * particle_radius)
+          continue;
+
+        // Compute contact radius
+        double contact_radius;
+        double indentation;
+
+        if (distance < particle_radius) {
+          indentation = particle_radius - distance;
+          contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
+        }
+        else
+          contact_radius = 0.0;
+
+        // Get porosity
+        // TODO: currently, global average porosity is an input (do in Py)
+        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+        if      (porosity <  0.0) porosity = 0.0;
+        else if (porosity >= 1.0) porosity = 0.999;
+
+        // Compute voronoi edge radius from porosity
+        double rij = 0.56 * particle_radius / pow((1.0-porosity),1/3);
+
+        // Compute heat transfer coefficient
+        double core = r_process_info[ISOTHERMAL_CORE_RADIUS];
+        double kf = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+
+        // Compute effective thermal conductivity
+        double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
+        double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
+
+        // Parameters
+        double D  = distance / 2;
+        double a  = (1/core - 1/particle_radius)/(2*eff_conductivity) + 1/(kf*particle_radius);
+        double b  = 1/(kf*D);
+        double c0 = D / sqrt(rij*rij + D*D);
+        double c1 = D / sqrt(contact_radius*contact_radius + D*D);
+        double f  = (a-b*c0)/(a-b*c1);
+        double ln = 0.0;
+        if (f > 0.0)
+          ln = log(f);
+
+        // Heat transfer coefficient
+        double h = Globals::Pi * ln / b;
+		
+        // Compute heat flux
+        mConductiveHeatFlux += h * temp_grad;
       }
     }
 
@@ -973,6 +1171,57 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(const ProcessInfo& r_process_info, double r, double rp, double d, double rij, double keff) {
     KRATOS_TRY
     return 2 * Globals::Pi * r / ((sqrt(rp*rp-r*r)-r*d/(2*rij))/keff + 2*(d/2-sqrt(rp*rp-r*r))/r_process_info[FLUID_THERMAL_CONDUCTIVITY]);
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::IntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
+    KRATOS_TRY
+
+    // Initialization
+    double fa  = EvalIntegrandVoronoiMulti(r_process_info, a, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+    double fb  = EvalIntegrandVoronoiMulti(r_process_info, b, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+    double fc  = EvalIntegrandVoronoiMulti(r_process_info, (a+b)/2, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+    double tol = r_process_info[INTEGRAL_TOLERANCE];
+    constexpr double eps = std::numeric_limits<double>::epsilon();
+    if (tol < 10.0*eps)
+      tol = 10.0*eps;
+
+    // Solve integral recursively with adaptive Simpson quadrature
+    return SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::SolveIntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
+    KRATOS_TRY
+
+    // TODO: in order to catch possible erros that can occur in singularities,
+    //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
+
+    double c  = (a + b) / 2;
+    double fd = EvalIntegrandVoronoiMulti(r_process_info, (a+c)/2,  r1, r2, d, rij, rij_, D1, D2, k1, k2);
+    double fe = EvalIntegrandVoronoiMulti(r_process_info, (c+b)/2,  r1, r2, d, rij, rij_, D1, D2, k1, k2);
+    double I1 = (b-a)/6  * (fa + 4*fc + fb);
+    double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+
+    if (fabs(I2-I1) <= tol) {
+      return I2 + (I2 - I1) / 15;
+    }
+    else { // sub-divide interval recursively
+      double Ia = SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+      double Ib = SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
+      return Ia + Ib;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMulti(const ProcessInfo& r_process_info, double r, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
+    KRATOS_TRY
+    return 2 * Globals::Pi * r / ((sqrt(r1*r1-r*r)-r*D1/rij)/k1 + (sqrt(r2*r2-r*r)-r*D2/rij_)/k2 + (d-sqrt(r1*r1-r*r)-sqrt(r2*r2-r*r))/r_process_info[FLUID_THERMAL_CONDUCTIVITY]);
     KRATOS_CATCH("")
   }
 

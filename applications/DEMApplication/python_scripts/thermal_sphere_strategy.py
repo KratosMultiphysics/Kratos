@@ -21,6 +21,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "min_conduction_distance"        : 0.0000000275,
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
+            "isothermal_core_radius"         : 0.5,
             "compute_convection"             : false,
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "compute_radiation"              : false,
@@ -78,6 +79,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
         self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
+        self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.radiation_radius_factor = self.thermal_settings["radiation_radius_factor"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
 
@@ -122,6 +124,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
+        self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS_FACTOR,    self.radiation_radius_factor)
         self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
 
