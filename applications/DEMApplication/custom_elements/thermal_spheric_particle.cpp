@@ -938,7 +938,7 @@ namespace Kratos
         // Check if particles are close enough
         // (Assumption: radiation influence factor applied to the maximum radius)
         double other_radius = neighbour_iterator->GetRadius();
-        if (distance > r_process_info[RADIATION_RADIUS_FACTOR] * std::max(this_radius, other_radius))
+        if (distance > r_process_info[RADIATION_RADIUS] * std::max(this_radius, other_radius))
           continue;
 
         // Get particle properties
@@ -1064,7 +1064,7 @@ namespace Kratos
       std::string model = r_process_info[RADIATION_MODEL];
       if (model.compare("sphere_hanz_marshall") == 0 ||
           model.compare("sphere_whitaker") == 0) {
-        double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS_FACTOR] - 1);
+        double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS] - 1);
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
     }

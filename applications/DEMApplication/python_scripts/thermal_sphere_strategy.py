@@ -14,20 +14,20 @@ class ExplicitStrategy(BaseExplicitStrategy):
         default_settings = Parameters("""
         {
             "compute_direct_conduction"      : false,
-            "direct_conduction_model"        : "batchelor_obrien",
             "compute_indirect_conduction"    : false,
+            "compute_convection"             : false,
+            "compute_radiation"              : false,
+            "direct_conduction_model"        : "batchelor_obrien",
             "indirect_conduction_model"      : "surrounding_layer",
-            "integral_tolerance"             : 0.000001,
+            "nusselt_correlation"            : "sphere_hanz_marshall",
+            "radiation_model"                : "continuum_zhou",
             "min_conduction_distance"        : 0.0000000275,
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
             "isothermal_core_radius"         : 0.5,
-            "compute_convection"             : false,
-            "nusselt_correlation"            : "sphere_hanz_marshall",
-            "compute_radiation"              : false,
-            "radiation_model"                : "continuum_zhou",
-            "radiation_radius_factor"        : 3.0,
+            "radiation_radius"               : 3.0,
             "global_porosity"                : 0.0,
+            "integral_tolerance"             : 0.000001,
             "global_fluid_properties"        : {
                 "fluid_density"              : 1.0,
                 "fluid_viscosity"            : 1.0,
@@ -80,7 +80,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
-        self.radiation_radius_factor = self.thermal_settings["radiation_radius_factor"].GetDouble()
+        self.radiation_radius        = self.thermal_settings["radiation_radius"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
 
         # Set global properties of interstitial/surrounding fluid
@@ -125,7 +125,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
-        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS_FACTOR,    self.radiation_radius_factor)
+        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS,           self.radiation_radius)
         self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
 
         # Global properties for interstitial/surrounding fluid 
