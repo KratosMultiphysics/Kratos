@@ -77,24 +77,29 @@ void TetrahedralMeshOrientationCheck::Execute()
     for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
         it_cond->Set(VISITED, false); //mark
 
-        GeometryType& geom = it_cond->GetGeometry();
-        DenseVector<int> ids(geom.size());
+        GeometryType& r_geometry = it_cond->GetGeometry();
 
-        for(IndexType i=0; i<ids.size(); i++) {
-            geom[i].Set(BOUNDARY,true);
-            ids[i] = geom[i].Id();
-        }
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
-        std::sort(ids.begin(), ids.end());
+        if (geometry_type == GeometryData::Kratos_Triangle3D3  || geometry_type == GeometryData::Kratos_Line2D2) {
+            DenseVector<int> ids(r_geometry.size());
 
-        // Insert a pointer to the condition identified by the hash value ids
-        hashmap::iterator it_face = faces_map.find(ids);
-        if(it_face != faces_map.end() ) { // Already defined geometry
-            KRATOS_ERROR_IF_NOT(mrOptions.Is(ALLOW_REPEATED_CONDITIONS)) << "The condition of ID:\t" << it_cond->Id() << " shares the same geometry as the condition ID:\t" << it_face->second[0]->Id() << " this is not allowed. Please, check your mesh" << std::endl;
-            it_face->second.push_back(*it_cond.base());
-        } else {
-            faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
+            for(IndexType i=0; i<ids.size(); i++) {
+                r_geometry[i].Set(BOUNDARY,true);
+                ids[i] = r_geometry[i].Id();
+            }
+
+            //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+            std::sort(ids.begin(), ids.end());
+
+            // Insert a pointer to the condition identified by the hash value ids
+            hashmap::iterator it_face = faces_map.find(ids);
+            if(it_face != faces_map.end() ) { // Already defined geometry
+                KRATOS_ERROR_IF_NOT(mrOptions.Is(ALLOW_REPEATED_CONDITIONS)) << "The condition of ID:\t" << it_cond->Id() << " shares the same geometry as the condition ID:\t" << it_face->second[0]->Id() << " this is not allowed. Please, check your mesh" << std::endl;
+                it_face->second.push_back(*it_cond.base());
+            } else {
+                faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
+            }
         }
     }
 
@@ -243,8 +248,8 @@ bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
     const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_1;
 
     // Re-orient the element if needed
-    const double DetJ = rGeometry.DeterminantOfJacobian(point_index,integration_method);
-    if (DetJ < 0.0) {
+    const double det_J = rGeometry.DeterminantOfJacobian(point_index,integration_method);
+    if (det_J < 0.0) {
         // Swap two nodes to change orientation
         rGeometry(0).swap(rGeometry(1));
         return true;

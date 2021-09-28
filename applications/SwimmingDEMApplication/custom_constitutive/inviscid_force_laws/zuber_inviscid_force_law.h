@@ -17,7 +17,7 @@ namespace Kratos {
         // TODO: make mDoApplyFaxenCorrections an option
         ZuberInviscidForceLaw(){}
 
-        ZuberInviscidForceLaw(Parameters& r_parameters);
+        ZuberInviscidForceLaw(Parameters r_parameters);
 
         ~ZuberInviscidForceLaw(){}
 

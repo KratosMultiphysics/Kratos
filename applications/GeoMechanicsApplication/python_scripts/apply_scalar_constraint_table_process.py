@@ -20,9 +20,6 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
         if settings.Has("is_fixed"):
             self.params.AddValue("is_fixed",settings["is_fixed"])
 
-        if settings.Has("pressure_tension_cut_off"):
-            self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
-
         if settings.Has("fluid_pressure_type"):
             # if settings["hydrostatic"].GetBool() == False:
             if settings["fluid_pressure_type"].GetString() == "Uniform":
@@ -37,6 +34,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 self.params.AddValue("reference_coordinate",settings["reference_coordinate"])
                 self.params.AddValue("specific_weight",settings["specific_weight"])
 
+                if settings.Has("pressure_tension_cut_off"):
+                    self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
                 if settings["table"].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantHydrostaticPressureProcess(self.model_part, self.params)
                 else:
@@ -48,6 +48,10 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 self.params.AddValue("first_reference_coordinate",settings["first_reference_coordinate"])
                 self.params.AddValue("second_reference_coordinate",settings["second_reference_coordinate"])
                 self.params.AddValue("specific_weight",settings["specific_weight"])
+
+                if settings.Has("pressure_tension_cut_off"):
+                    self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
                 if settings["table"][0].GetInt() == 0 and settings["table"][1].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantPhreaticLinePressureProcess(self.model_part, self.params)
                 else:
@@ -56,6 +60,10 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
             elif settings["fluid_pressure_type"].GetString() == "Interpolate_Line":
                 self.params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.params.AddValue("out_of_plane_direction",settings["out_of_plane_direction"])
+
+                if settings.Has("pressure_tension_cut_off"):
+                    self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
                 if settings["table"].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantInterpolateLinePressureProcess(self.model_part, self.params)
                 else:
@@ -66,6 +74,10 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 self.params.AddValue("second_reference_coordinate",settings["second_reference_coordinate"])
                 self.params.AddValue("third_reference_coordinate",settings["third_reference_coordinate"])
                 self.params.AddValue("specific_weight",settings["specific_weight"])
+
+                if settings.Has("pressure_tension_cut_off"):
+                    self.params.AddValue("pressure_tension_cut_off",settings["pressure_tension_cut_off"])
+
                 if settings["table"][0].GetInt() == 0 and settings["table"][1].GetInt() == 0 and settings["table"][2].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantPhreaticSurfacePressureProcess(self.model_part, self.params)
                 else:

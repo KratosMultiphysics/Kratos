@@ -368,7 +368,6 @@ class Procedures():
 
         # MODEL
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
-        self.aux = AuxiliaryUtilities()
 
     def Barrier(self):
         pass
@@ -412,8 +411,8 @@ class Procedures():
         rigid_face_model_part = all_model_parts.Get('RigidFacePart')
 
         self.solver = weakref.proxy(solver)
-        self.translational_scheme = weakref.proxy(translational_scheme)
-        self.rotational_scheme = weakref.proxy(rotational_scheme)
+        #self.translational_scheme = weakref.proxy(translational_scheme)
+        #self.rotational_scheme = weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
         self.AddMpiVariables(spheres_model_part)
@@ -884,8 +883,6 @@ class DEMFEMProcedures():
         self.graphs_path = graphs_path
         self.spheres_model_part = spheres_model_part
         self.rigid_face_model_part = rigid_face_model_part
-        #self.solver = solver
-        self.aux = AuxiliaryUtilities()
 
         self.fem_mesh_nodes = []
 
@@ -897,7 +894,6 @@ class DEMFEMProcedures():
             # that means it is not possible to print results with a higher frequency than the computations delta time
             self.graph_frequency = 1
 
-        self.mesh_motion = DEMFEMUtilities()
 
         def Flush(self, a):
             a.flush()
@@ -1252,6 +1248,10 @@ class MaterialTest():
     def GenerateGraphics(self):
         if self.TestType != "None":
             self.script.GenerateGraphics()
+
+    def PrintCoordinationNumberGraph(self, time, solver):
+        if self.TestType != "None":
+            self.script.PrintCoordinationNumberGraph(time, solver)
 
 
 class MultifileList():

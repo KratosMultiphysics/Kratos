@@ -2,18 +2,22 @@ import importlib
 from operator import mul
 from functools import reduce
 from math import sqrt, log, factorial
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from typing import Any
 
 from exaqute import task
 
 
-def dynamicImport(fullName):
+def dynamicImport(fullName: str) -> Any:
     """
     This function returns the requested attribute of a module; it manages the necessary imports.
     The input argument is the full name as a string, e.g. 'module.package.method'.
-    Alternatively, the input argument may be a list of such full names. The output will then be a list of same size containing the requested attributes in the same order.
-    This only works for modern Python (at least Python > 3).
+    Alternatively, the input argument may be a sequence of such full names. The output will then be a list of same size containing the requested attributes in the same order.
+    If the input argument is neither a string nor a sequence, it will be returned.
     """
+    if not (isinstance(fullName, str) or isinstance(fullName, Sequence)):
+        # Assume the object is 'already imported': return it.
+        return fullName
     if fullName is None:  # safety
         return None
     elif fullName is list or fullName is tuple:

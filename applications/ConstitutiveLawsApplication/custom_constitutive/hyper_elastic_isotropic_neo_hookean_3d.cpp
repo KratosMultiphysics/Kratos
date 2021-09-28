@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "constitutive_laws_application_variables.h"
 #include "structural_mechanics_application_variables.h"
@@ -315,12 +316,12 @@ Vector& HyperElasticIsotropicNeoHookean3D::CalculateValue(
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            ConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateHenckyStrain(C_tensor, r_strain_vector);
         } else if (rThisVariable == BIOT_STRAIN_VECTOR) {
             const Matrix& deformation_gradient_f = rParameterValues.GetDeformationGradientF();
             const Matrix C_tensor = prod(trans( deformation_gradient_f), deformation_gradient_f);
             Vector& r_strain_vector = rParameterValues.GetStrainVector();
-            ConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
+            AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateBiotStrain(C_tensor, r_strain_vector);
         }
 
         rValue = rParameterValues.GetStrainVector();
@@ -440,7 +441,7 @@ int HyperElasticIsotropicNeoHookean3D::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0) << "YOUNG_MODULUS is null or negative." << std::endl;
 
@@ -580,7 +581,7 @@ void HyperElasticIsotropicNeoHookean3D::CalculateAlmansiStrain(
 
     // 2.-COmpute e = 0.5*(1-inv(B))
     const Matrix B_tensor = prod(F,trans(F));
-    ConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
+    AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateAlmansiStrain(B_tensor, rStrainVector);
 }
 
 } // Namespace Kratos

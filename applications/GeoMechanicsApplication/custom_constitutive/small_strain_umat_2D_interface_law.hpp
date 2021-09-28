@@ -113,7 +113,7 @@ namespace Kratos
       /**
        * @brief Voigt tensor size:
        */
-      SizeType GetStrainSize() override
+      SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }
@@ -202,7 +202,6 @@ namespace Kratos
       ///@name Protected  Access
       ///@{
       void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues) override;
-      void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues) override;
       void SetExternalStressVector(Vector& rStressVector) override;
       void SetInternalStressVector(const Vector& rStressVector) override;
       void SetInternalStrainVector(const Vector& rStrainVector) override;
@@ -220,7 +219,7 @@ namespace Kratos
 
 
       ///@}
-   
+
    private:
       ///@name Static Member Variables
       ///@{
@@ -291,6 +290,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SMALL_STRAIN_UMAT_2D_INTERFACE_LAW_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_STRAIN_UMAT_2D_INTERFACE_LAW_H_INCLUDED  defined
 
 

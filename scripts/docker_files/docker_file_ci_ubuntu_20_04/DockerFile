@@ -1,7 +1,6 @@
 FROM ubuntu:focal
 
 ENV HOME /root
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/external_libraries/mmg/mmg_5_4_1/lib:/external_libraries/mmg/mmg_5_5_1/lib:/external_libraries/ParMmg_5ffc6ad/lib
 
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get -y install --no-install-recommends \
@@ -91,7 +90,3 @@ RUN apt-get update -y && apt-get upgrade -y && \
 CMD [ "/bin/bash" ]
 
 WORKDIR $HOME
-
-COPY scripts/docker_files/docker_file_ci_ubuntu_20_04/entrypoint_ci.sh /entrypoint_ci.sh
-
-ENTRYPOINT ["/entrypoint_ci.sh"]

@@ -401,8 +401,20 @@ public:
 
     void AssignNode(NodeType::Pointer pThisNode, IndexType ThisIndex = 0);
 
+    /** Returns if the Node corresponding to it's identifier exists */
+    bool HasNode(IndexType NodeId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasNode(NodeId);
+    }
+
     /** Returns the Node::Pointer  corresponding to it's identifier */
     NodeType::Pointer pGetNode(IndexType NodeId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetNode(NodeId);
+    }
+
+    /** Returns the Node::Pointer corresponding to it's identifier */
+    const NodeType::Pointer pGetNode(const IndexType NodeId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetNode(NodeId);
     }
@@ -507,11 +519,9 @@ public:
         return GetMesh(ThisIndex).NodesArray();
     }
 
-    template<class TDataType>
-    void AddNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable)
+    void AddNodalSolutionStepVariable(VariableData const& ThisVariable)
     {
-        if (!HasNodalSolutionStepVariable(ThisVariable))
-        {
+        if (!HasNodalSolutionStepVariable(ThisVariable)) {
             // This error prevents memory leaks if variables are being added to a non-empty modelpart
             KRATOS_ERROR_IF((this->GetRootModelPart()).Nodes().size() != 0)
                 << "Attempting to add the variable \"" << ThisVariable.Name()
@@ -521,8 +531,7 @@ public:
         }
     }
 
-    template<class TDataType>
-    bool HasNodalSolutionStepVariable(Variable<TDataType> const& ThisVariable) const
+    bool HasNodalSolutionStepVariable(VariableData const& ThisVariable) const
     {
         return mpVariablesList->Has(ThisVariable);
     }
@@ -1067,8 +1076,20 @@ public:
         IndexType Id, typename GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /** Returns if the Element corresponding to it's identifier exists */
+    bool HasElement(IndexType ElementId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasElement(ElementId);
+    }
+
     /** Returns the Element::Pointer  corresponding to it's identifier */
     ElementType::Pointer pGetElement(IndexType ElementId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetElement(ElementId);
+    }
+
+    /** Returns the Element::Pointer  corresponding to it's identifier */
+    const ElementType::Pointer pGetElement(const IndexType ElementId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetElement(ElementId);
     }
@@ -1247,8 +1268,20 @@ public:
             IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
+    /** Returns if the Condition corresponding to it's identifier exists */
+    bool HasCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).HasCondition(ConditionId);
+    }
+
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetCondition(IndexType ConditionId, IndexType ThisIndex = 0)
+    {
+        return GetMesh(ThisIndex).pGetCondition(ConditionId);
+    }
+
+    /** Returns the Condition::Pointer  corresponding to it's identifier */
+    const ConditionType::Pointer pGetCondition(const IndexType ConditionId, const IndexType ThisIndex = 0) const
     {
         return GetMesh(ThisIndex).pGetCondition(ConditionId);
     }
@@ -1375,7 +1408,7 @@ public:
         const std::string& rGeometryTypeName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
     /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
@@ -1398,7 +1431,7 @@ public:
         const std::vector<IndexType>& rGeometryNodeIds
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1410,7 +1443,7 @@ public:
         GeometryType::PointsArrayType pGeometryNodes
         );
 
-    /** 
+    /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added, must be registered.
      * @param GeometryId of the new geometry added.
@@ -1445,7 +1478,7 @@ public:
         const std::string& rGeometryIdentifierName,
         GeometryType::PointsArrayType pGeometryNodes
         );
-    
+
         /**
      * @brief Inserts a geometry in the current model part.
      * @param rGeometryTypeName The type of the geometry to be added. Must be registered.

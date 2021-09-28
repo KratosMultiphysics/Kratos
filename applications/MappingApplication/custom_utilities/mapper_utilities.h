@@ -26,7 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
 namespace Kratos
@@ -164,6 +164,12 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
     #pragma omp parallel for
     for (int i=0; i<num_local_nodes; i++) {
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
+    }
+
+    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+    } else {
+        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
     }
 }
 

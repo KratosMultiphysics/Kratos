@@ -25,11 +25,11 @@
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
 
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "mapping_application_variables.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -129,14 +129,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -151,14 +145,8 @@ public:
         KRATOS_TRY;
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
 
@@ -174,9 +162,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -191,9 +178,8 @@ public:
 
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
 
         KRATOS_CATCH("");
@@ -214,6 +200,7 @@ public:
 
     int AreMeshesConforming() const override
     {
+        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
         return mpIntefaceCommunicator->AreMeshesConforming();
     }
 
@@ -295,8 +282,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-
 
     void InitializeInterfaceCommunicator()
     {
@@ -508,14 +493,14 @@ private:
     ///@name Private  Access
     ///@{
 
-    MapperUniquePointerType& GetInverseMapper()
+    InterpolativeMapperBase& GetInverseMapper()
     {
         KRATOS_TRY;
 
         if (!mpInverseMapper) {
             InitializeInverseMapper();
         }
-        return mpInverseMapper;
+        return *(static_cast<InterpolativeMapperBase*>(mpInverseMapper.get()));
 
         KRATOS_CATCH("");
     }

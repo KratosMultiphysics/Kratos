@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
-#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -144,7 +144,7 @@ public:
      * @brief Voigt tensor size
      * @details This is not used, so 0 is returned
      */
-    SizeType GetStrainSize() override;
+    SizeType GetStrainSize() const override;
 
     /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
@@ -580,7 +580,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     /**
      * @brief This function computes the rotation matrix T-> E_loc = T*E_glob in order to rotate the strain
