@@ -60,12 +60,11 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
-        self.assert_outflow_discharge(simulation, 1.5)
+        self.assert_total_discharge(simulation, 1e-6)
         # get water pressure
         water_pressure = test_helper.get_water_pressure(simulation)
-        pore_pressure_middle = water_pressure[344]
-        self.assertAlmostEqual(-127.53, pore_pressure_middle)
-        
+        pore_pressure_middle = water_pressure[343]
+        self.assertAlmostEqual(-127.12110773605288, pore_pressure_middle)
 
     def calculate_outflow_discharge(self, simulation):
         """
@@ -80,6 +79,20 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         from functools import reduce
         return reduce(lambda a,b: a+b if b>0 else a, hydraulic_discharge, 0)
 
+    def calculate_total_discharge(self, simulation):
+        """
+        calculate total outflow discharge.
+
+        :param simulation: Kratos simulation
+        :return: total outflow discharge
+        """
+
+        hydraulic_discharge = test_helper.get_hydraulic_discharge(simulation)
+
+        from functools import reduce
+        return reduce(lambda a,b: a+b, hydraulic_discharge, 0)
+
+
     def assert_outflow_discharge(self, simulation, expected_value):
         """
         assert total outflow discharge.
@@ -93,6 +106,18 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         error = abs(outflow_discharge - expected_value) / (expected_value + 1e-60)
         tolerated_error = 1e-6
         self.assertLess(error, tolerated_error)
+
+    def assert_total_discharge(self, simulation, max_value):
+        """
+        assert total outflow discharge.
+
+        :param simulation: Kratos simulation
+        :param expected_value: expected value
+        :return:
+        """
+
+        total_discharge = abs(self.calculate_total_discharge(simulation))
+        self.assertLess(total_discharge, max_value)
 
 
 if __name__ == '__main__':

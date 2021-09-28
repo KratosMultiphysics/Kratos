@@ -233,8 +233,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                    mThisIntegrationMethod );
 
     //Loop over integration points
-    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint )
-    {
+    for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
         noalias(Variables.GradNpT) = Variables.DN_DXContainer[GPoint];
         Variables.detJ = Variables.detJContainer[GPoint];
 
@@ -244,11 +243,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
                                                   GPoint,
                                                   Variables.detJ);
 
-        for (unsigned int node = 0; node < TNumNodes; ++node)
-        {
+        for (unsigned int node = 0; node < TNumNodes; ++node) {
             double HydraulicDischarge = 0;
-            for (unsigned int iDir = 0; iDir < TDim; ++iDir)
-            {
+            for (unsigned int iDir = 0; iDir < TDim; ++iDir) {
                 HydraulicDischarge += Variables.GradNpT(node, iDir) * FluidFlux[GPoint][iDir];
             }
 
