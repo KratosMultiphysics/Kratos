@@ -45,8 +45,16 @@ class CoSimulationSolverWrapper:
 
         self.echo_level = self.settings["echo_level"].GetInt()
 
+<<<<<<< Updated upstream
         self.data_communicator = self.__GetDataCommunicator()
 
+=======
+<<<<<<< Updated upstream
+=======
+        self.data_communicator = self._GetDataCommunicator()
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
         # The IO is only used if the corresponding solver is used in coupling and it initialized from the "higher instance, i.e. the coupling-solver
         self.__io = None
 
