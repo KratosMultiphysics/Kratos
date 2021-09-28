@@ -239,16 +239,17 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
     )");
     /* Expected boundary condition format:
     [
-        { // For scalar variables
-            "variable" : "DENSITY",
-            "value" : 0.0,
-            "interval" : [0, "End"]
+        {                                     // For scalar variables
+            "variable" : "DENSITY",   <--- The variable to fix. Must be a "double" variable
+            "interval" : [0, "End"],  <--- Time interval for it to be fixeds
+            "value" : 0.0             <--- The value to fix it to
         },
-        { // For vector variables
-            "variable" : "MOMENTUM",
+        {                                    // For vector variables
+            "variable" : "MOMENTUM",              <--- Must be a "vector with components" variable.
+            "interval" : [0.0, 15.3],             <--- Between 1 and 3 components.
             "value" : [0.0, 1.0, 5.0],
-            "constrained" : [false, true, false],
-            "interval" : [0.0, 15.3]
+            "constrained" : [false, true, false]  <-- What components to fix. Others will be ignored.
+                                                      Must have the same number of components as value.
         }
     ]
     */

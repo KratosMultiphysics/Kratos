@@ -57,6 +57,18 @@ namespace Kratos
   /** 
    * @brief This process applies diferent boundary conditions accoring to the
    * mach regime.
+   * Parameters:
+   * @param model_part_name The model part onto which to enforce the boundary
+   *    conditions.
+   * @param flow_direction_variable A variable to use to know direction of the
+   *    flow. Its magnitude will me ignored. must be historical.
+   * @param refresh_normals_every_time_step Whether to recompute the normal
+   *    direction every time-step.Leave at false unless your mesh or geometry
+   *    is expected to change.
+   * @param subsonic_boundary_conditions A list of variables to fix when the
+   *    mach projected onto the normal of the boundary is below 1.
+   * @param supersonic_boundary_conditions  A list of variables to fix when
+   *    the mach projected onto the normal of the boundary is above 1.
    */
   class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyMachDependentBoundaryConditions: public Process
   {
