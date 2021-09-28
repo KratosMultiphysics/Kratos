@@ -110,7 +110,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
     def InitializeSolutionStep(self):
         self.current_model_part.RemoveSubModelPart("fluid_computational_model_part")
         self.step = self.current_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart( self.current_model_part)
+        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart( self.current_model_part)
 
         initial_time = time.time()
         self._RunXMC()
@@ -315,8 +315,10 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         # Store mesh to solve with adjoint after remeshing
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
         self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
-        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path+"_"+str(self.sample[0]), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.primal_model_part)
-
+        auxiliary_mdpa_path = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
+        if not os.path.exists(auxiliary_mdpa_path):
+            KratosMultiphysics.ModelPartIO(auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(self.primal_model_part)
+        time.sleep(1)
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
         # Create the adjoint solver
@@ -325,7 +327,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
         adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(aoa)
-        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.auxiliary_mdpa_path+"_"+str(self.sample[0]))
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(auxiliary_mdpa_path)
         self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
 
         self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
@@ -346,8 +348,8 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(mach)
-        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(alpha)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
+        self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["angle_of_attack"].SetDouble(0.0)
         super().ModifyInitialProperties()
 
 
@@ -356,7 +358,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         Method evaluating the QoI of the problem: lift coefficient.
         """
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
-        Logger.PrintInfo("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
+        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
 
         pressure_coefficient = []
         nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
@@ -496,7 +498,11 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
             self.primal_model_part.AddProperties(KratosMultiphysics.Properties(0))
         if not self.primal_model_part.HasProperties(1):
             self.primal_model_part.AddProperties(KratosMultiphysics.Properties(1))
-        KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path+"_"+str(self.sample[0]), KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY).WriteModelPart(self.primal_model_part)
+
+        auxiliary_mdpa_path = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
+        if not os.path.exists(auxiliary_mdpa_path):
+            KratosMultiphysics.ModelPartIO(auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(self.primal_model_part)
+        time.sleep(1)
 
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
@@ -507,7 +513,7 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].SetDouble(mach)
         adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].SetDouble(aoa)
         adjoint_parameters["solver_settings"]["formulation"]["element_type"].SetString(self.project_parameters["solver_settings"]["formulation"]["element_type"].GetString())
-        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(self.auxiliary_mdpa_path+"_"+str(self.sample[0]))
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(auxiliary_mdpa_path)
         self.this_skin_model_part = adjoint_model.CreateModelPart("skin")
         self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
