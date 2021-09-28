@@ -58,14 +58,9 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         KRATOS_ERROR << "MINIMUM_JOINT_WIDTH has Key zero, is not defined or has an invalid value at element"
                      << this->Id()
                      << std::endl;
-    
-    // Verify specific properties
-    bool IgnoreUndrained = false;
-    if (Prop.Has(IGNORE_UNDRAINED))
-        IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
-    if (!IgnoreUndrained)
-    {
+    // Verify specific properties
+    if (!Prop[IGNORE_UNDRAINED]) {
         if ( Prop.Has( TRANSVERSAL_PERMEABILITY ) == false || Prop[TRANSVERSAL_PERMEABILITY] < 0.0 )
             KRATOS_ERROR << "TRANSVERSAL_PERMEABILITY has Key zero, is not defined or has an invalid value at element"
                         << this->Id()
@@ -88,14 +83,12 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
                      << this->Id()
                      << std::endl;
 
-    if ( Prop[CONSTITUTIVE_LAW] != NULL )
-    {
+    if ( Prop[CONSTITUTIVE_LAW] != NULL ) {
         // Verify compatibility of the element with the constitutive law
         ConstitutiveLaw::Features LawFeatures;
         Prop[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
         bool correct_strain_measure = false;
-        for (unsigned int i=0; i < LawFeatures.mStrainMeasures.size(); ++i)
-        {
+        for (unsigned int i=0; i < LawFeatures.mStrainMeasures.size(); ++i) {
             if (LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Infinitesimal)
                 correct_strain_measure = true;
         }
@@ -128,7 +121,6 @@ int UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
@@ -177,7 +169,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement::CalculateMassMatrix()") << std::endl;
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resizing mass matrix
     if ( rMassMatrix.size1() != N_DOF )
@@ -805,7 +797,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
 
-        const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
+        const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
 
         array_1d<double,TDim> LocalFluidFlux;
         array_1d<double,TDim> GradPressureTerm;
@@ -852,7 +844,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             InterfaceElementUtilities::
                 FillPermeabilityMatrix(Variables.LocalPermeabilityMatrix,
                                        JointWidth,
-                                       Transversal_Permeability);
+                                       TransversalPermeability);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT), Variables.PressureVector);
             noalias(GradPressureTerm) +=  PORE_PRESSURE_SIGN_FACTOR 
@@ -936,9 +928,9 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
-        const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
+        const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
-        const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
+        const double DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
         array_1d<double,TDim> LocalFluidFlux;
         array_1d<double,TDim> GradPressureTerm;
@@ -972,7 +964,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
-                                                                   Transversal_Permeability);
+                                                                   TransversalPermeability);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += PORE_PRESSURE_SIGN_FACTOR * FluidDensity*BodyAcceleration;
@@ -1015,7 +1007,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
-        const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
+        const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
 
@@ -1032,7 +1024,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
-                                                                   Transversal_Permeability);
+                                                                   TransversalPermeability);
 
             noalias(PermeabilityMatrix) = prod( trans(RotationMatrix),
                                                 BoundedMatrix<double,TDim, TDim>(prod(LocalPermeabilityMatrix,RotationMatrix)) );
@@ -1059,7 +1051,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
         array_1d<double,TDim> RelDispVector;
         const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
         double JointWidth;
-        const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
+        const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
         BoundedMatrix<double,TDim, TDim> LocalPermeabilityMatrix = ZeroMatrix(TDim,TDim);
 
         //Loop over integration points
@@ -1075,7 +1067,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
             InterfaceElementUtilities::FillPermeabilityMatrix(LocalPermeabilityMatrix,
                                                                    JointWidth,
-                                                                   Transversal_Permeability);
+                                                                   TransversalPermeability);
 
             rOutput[GPoint].resize(TDim,TDim,false);
             noalias(rOutput[GPoint]) = LocalPermeabilityMatrix;
@@ -1193,7 +1185,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     KRATOS_TRY
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::CalculateMaterialStiffnessMatrix()") << std::endl;
 
-    const unsigned int N_DOF = TNumNodes * (TDim + 1);
+    const unsigned int N_DOF = this->GetNumberOfDOF();
 
     //Resizing mass matrix
     if ( rStiffnessMatrix.size1() != N_DOF )
@@ -1316,7 +1308,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
     //Auxiliary variables
     const double& MinimumJointWidth = Prop[MINIMUM_JOINT_WIDTH];
-    const double& Transversal_Permeability = Prop[TRANSVERSAL_PERMEABILITY];
+    const double& TransversalPermeability = Prop[TRANSVERSAL_PERMEABILITY];
     array_1d<double,TDim> RelDispVector;
     SFGradAuxVariables SFGradAuxVars;
 
@@ -1361,7 +1353,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
 
         InterfaceElementUtilities::FillPermeabilityMatrix( Variables.LocalPermeabilityMatrix,
                                                            Variables.JointWidth,
-                                                           Transversal_Permeability );
+                                                           TransversalPermeability );
 
         //Compute constitutive tensor and stresses
         ConstitutiveParameters.SetStressVector(mStressVector[GPoint]);
@@ -1405,11 +1397,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement:::InitializeElementVariables()") << std::endl;
 
     //Properties variables
-    rVariables.IgnoreUndrained = false;
-    if (Prop.Has(IGNORE_UNDRAINED))
-    {
-        rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
-    }
+    rVariables.IgnoreUndrained = Prop[IGNORE_UNDRAINED];
 
     rVariables.DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
     rVariables.FluidDensity            = Prop[DENSITY_WATER];
