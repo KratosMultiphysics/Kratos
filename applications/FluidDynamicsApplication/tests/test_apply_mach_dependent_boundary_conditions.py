@@ -41,7 +41,6 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         inlet_mpart.AddNodes([1, 2, 3])
         outlet_mpart.AddNodes([7, 8, 9])
         closed_mpart.AddNodes([4, 6])
-        
 
         props = main_mpart.Properties[0]
 
@@ -378,8 +377,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
     def testErrorTooManyValues(self):
         """
-        This error is particularly important because it prevents possible
-        segmentation faults
+        This error is particularly important because it prevents possible segmentation faults.
         """
         settings = KratosMultiphysics.Parameters("""
         {
