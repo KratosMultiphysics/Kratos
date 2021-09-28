@@ -143,13 +143,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
 
         # Model parameters
-        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS,           self.radiation_radius)
         self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
+        self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
 
         # Global properties for interstitial/surrounding fluid 
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_DENSITY,              self.fluid_density)
@@ -163,5 +163,5 @@ class ExplicitStrategy(BaseExplicitStrategy):
         # Base class initializer
         BaseExplicitStrategy.Initialize(self)
 
-        # Set thermal properties of SubModelParts
+        # Set thermal properties of provided in SubModelParts data
         (self.cplusplus_strategy).InitializeThermalDataInSubModelParts()
