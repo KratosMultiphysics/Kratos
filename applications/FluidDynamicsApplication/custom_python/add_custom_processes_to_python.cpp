@@ -166,7 +166,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     ;
 
     py::class_<ApplyMachDependentBoundaryConditions, ApplyMachDependentBoundaryConditions::Pointer, Process>(m, "ApplyMachDependentBoundaryConditions")
-    .def(py::init<Model&, Parameters&>())
+    .def(py::init<Model&, Parameters>())
     ;
 }
 

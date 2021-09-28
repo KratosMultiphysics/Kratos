@@ -131,7 +131,7 @@ namespace Kratos
         ///@{
 
         /// Constructor
-        ApplyMachDependentBoundaryConditions(Model& rModel, Parameters& rParameters);
+        ApplyMachDependentBoundaryConditions(Model& rModel, Parameters Parameters);
 
 
         ///@}

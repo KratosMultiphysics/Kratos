@@ -8,23 +8,23 @@ namespace Kratos
 
 ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
     Model& rModel,
-    Parameters& rParameters)
+    Parameters Parameters)
 {
     KRATOS_TRY
 
-    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
-    mpModelPart = &rModel.GetModelPart(rParameters["model_part_name"].GetString());
+    Parameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    mpModelPart = &rModel.GetModelPart(Parameters["model_part_name"].GetString());
 
     // Reading boundary conditions to enforce
-    mSubsonicBCs.reserve(rParameters["subsonic_boundary_conditions"].size());
-    mSupersonicBCs.reserve(rParameters["supersonic_boundary_conditions"].size());
+    mSubsonicBCs.reserve(Parameters["subsonic_boundary_conditions"].size());
+    mSupersonicBCs.reserve(Parameters["supersonic_boundary_conditions"].size());
 
-    for(auto & var_settings : rParameters["subsonic_boundary_conditions"])
+    for(auto & var_settings : Parameters["subsonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSubsonicBCs, var_settings);
     }
 
-    for(auto & var_settings : rParameters["supersonic_boundary_conditions"])
+    for(auto & var_settings : Parameters["supersonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSupersonicBCs, var_settings);
     }
