@@ -279,6 +279,10 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
+    sigma *= viscosity;
+
+    const auto& fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
@@ -286,12 +290,18 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
 
     for (unsigned int i = 0; i < NumNodes; i++) {
         array_1d<double,Dim> sigma_u = ZeroVector(Dim);
+        BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
+        Vector grad_alpha_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
+            double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_u[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
+                sym_gradient_u(d,e) += 1.0 / 2.0 * (rData.DN_DX(i,d) * rData.Velocity(i,e) + rData.DN_DX(i,e) * rData.Velocity(i,d));
+                grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[d] * sym_gradient_u(d,e);
+                div_u += rData.DN_DX(i,e) * rData.Velocity(i,e);
             }
             rMomentumRHS[d] += density * ( rData.N[i] * (rData.BodyForce(i,d)) /*- fluid_fraction *  rData.N[i] * rAcc[d]*/
-                                - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) - fluid_fraction * rData.DN_DX(i,d)*rData.Pressure[i] - sigma_u[d];
+                                - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d)*rData.Pressure[i] - sigma_u[d];
         }
     }
 }
