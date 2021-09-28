@@ -135,7 +135,6 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                 raise NameError("There are multiple response functions with the following identifier: " + response_id)
 
             response_type = response_settings["response_type"].GetString()
-            print("Response TYPE", response_type)
             if response_type in csm_response_functions:
                 if csm_response_factory is None:
                     raise RuntimeError("ShapeOpt: {} response function requires StructuralMechanicsApplication.".format(response_type))
