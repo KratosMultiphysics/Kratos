@@ -84,14 +84,14 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
         const auto & active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
         const auto & passive_bc = supersonic ? mSubsonicBCs   : mSupersonicBCs;
 
-        for(const auto & boundary_condition: active_bc)
-        {
-            boundary_condition.Enforce(rNode);
-        }
-
         for(const auto & boundary_condition: passive_bc)
         {
             boundary_condition.Release(rNode);
+        }
+
+        for(const auto & boundary_condition: active_bc)
+        {
+            boundary_condition.Enforce(rNode);
         }
 
     });
