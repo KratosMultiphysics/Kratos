@@ -342,18 +342,18 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = 9.81#0.0#TimeStep*DT/0.01*9.81
+            gravity = TimeStep*DT/0.01*9.81#9.81#0.0#
             if gravity > 9.81:
                 gravity = 9.81
 
             tilting_angle = 0.0
 
-            # if gravity == 9.81:
-            #     tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
-            #     if tilting_angle < 0.0:
-            #         tilting_angle = 0.0
-            #     elif tilting_angle > (30.0/180.0)*math.pi:
-            #         tilting_angle = (30.0/180.0)*math.pi
+            if gravity == 9.81:
+                tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
+                if tilting_angle < 0.0:
+                    tilting_angle = 0.0
+                elif tilting_angle > (30.0/180.0)*math.pi:
+                    tilting_angle = (30.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
@@ -390,13 +390,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
                 #(self.hyperbolic_distance_reinitialization).Execute()
 
-                layers = 200#int(4000/100000*self.main_model_part.NumberOfElements())
-                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances(
+                layers = 300#int(4000/100000*self.main_model_part.NumberOfElements())
+                (self.parallel_distance_process).CalculateInterfacePreservingDistances( #CalculateDistances( #
                     self.main_model_part,
                     KratosMultiphysics.DISTANCE,
                     KratosCFD.AREA_VARIABLE_AUX,
                     layers,
-                    1.0e0),
+                    1.0e0)#,
                     #(self.parallel_distance_process).CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
                 # print(time.time())

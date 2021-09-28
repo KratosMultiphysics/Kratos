@@ -266,7 +266,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.0e-10;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    const double epsilon = 5.0e-10;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // HINT: 5e-10 is fine for median mesh and exact gradient (1.3e-9 for finer mesh)
     // For the Avg. Gradient value, a larger epsilon is needed.

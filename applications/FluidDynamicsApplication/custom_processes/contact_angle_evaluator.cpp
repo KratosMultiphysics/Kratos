@@ -190,8 +190,8 @@ void ContactAngleEvaluator::Execute()
                 } */
 
                 if ( ( !(velocity_direction <= 0 && contact_angle <= theta_receding) &&
-                    !(velocity_direction >= 0 && contact_angle >= theta_advancing) ) ||
-                    (velocity_direction == 0 && contact_angle < theta_advancing && contact_angle > theta_receding) ){
+                    !(velocity_direction >= 0 && contact_angle >= theta_advancing) ) /* ||
+                    (velocity_direction == 0 && contact_angle < theta_advancing && contact_angle > theta_receding) */ ){ // this last OR condition is unnecessary!
                     it_node->Fix(DISTANCE);
                     it_node->FastGetSolutionStepValue(CONTACT_VELOCITY) = static_cast<double>(velocity_direction);
                 }
