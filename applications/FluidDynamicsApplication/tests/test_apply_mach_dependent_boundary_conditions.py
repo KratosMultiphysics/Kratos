@@ -87,14 +87,14 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "DENSITY",
+                        "variable_name" : "DENSITY",
                         "value" : 1.225,
                         "interval" : [0, "End"]
                     }
                 ],
                 "supersonic_boundary_conditions" : [
                     {
-                        "variable" : "TEMPERATURE",
+                        "variable_name" : "TEMPERATURE",
                         "value" : 273.15,
                         "interval" : [0, "End"]
                     }
@@ -170,7 +170,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "VELOCITY",
+                        "variable_name" : "VELOCITY",
                         "value" : [1.0, 2.0, 3.0],
                         "constrained" : [false, false, true],
                         "interval" : [0, "End"]
@@ -178,7 +178,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 ],
                 "supersonic_boundary_conditions" : [
                     {
-                        "variable" : "TEMPERATURE",
+                        "variable_name" : "TEMPERATURE",
                         "value" : 273.15,
                         "interval" : [0, "End"]
                     }
@@ -284,7 +284,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "DENSITY",
+                        "variable_name" : "DENSITY",
                         "value" : 1.225,
                         "interval" : [0, 5.0]
                     }
@@ -338,7 +338,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "DENSITY",
+                        "variable_name" : "DENSITY",
                         "interval" : [0, 5.0]
                     }
                 ]
@@ -360,7 +360,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "VELOCITY",
+                        "variable_name" : "VELOCITY",
                         "value" : [0,1,3],
                         "interval" : [0, 5.0]
                     }
@@ -386,7 +386,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
                 "flow_direction_variable" : "MOMENTUM",
                 "subsonic_boundary_conditions" : [
                     {
-                        "variable" : "VELOCITY",
+                        "variable_name" : "VELOCITY",
                         "value" : [0,1, 3, 4],
                         "constrained" : [true, true, true, true],
                         "interval" : [0, 5.0]

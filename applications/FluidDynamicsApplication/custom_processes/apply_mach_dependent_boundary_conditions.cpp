@@ -166,8 +166,8 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(Parameters.Has("variable"))
-        << "Missing string field 'variable' in boundary condition:\n" << Parameters  << std::endl;
+    KRATOS_ERROR_IF_NOT(Parameters.Has("variable_name"))
+        << "Missing string field 'variable_name' in boundary condition:\n" << Parameters  << std::endl;
     
     KRATOS_ERROR_IF_NOT(Parameters.Has("value"))
         << "Missing double (or vector) field 'value' in boundary condition:\n" << Parameters  << std::endl;
@@ -179,7 +179,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
     if(Parameters["value"].IsDouble())
     {
         rBCList.emplace_back(
-            Parameters["variable"].GetString(),
+            Parameters["variable_name"].GetString(),
             Parameters["value"].GetDouble(),
             interval_utility
         );
@@ -206,7 +206,7 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
             << "Allowed vector variables are at most 3-dimensional:\n"
             << Parameters << std::endl;
 
-        std::string variable_component_name = Parameters["variable"].GetString() + "_X";
+        std::string variable_component_name = Parameters["variable_name"].GetString() + "_X";
         
         for(std::size_t i=0; i<n_components; i++)
         {
@@ -240,12 +240,12 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
     /* Expected boundary condition format:
     [
         {                                     // For scalar variables
-            "variable" : "DENSITY",   <--- The variable to fix. Must be a "double" variable
-            "interval" : [0, "End"],  <--- Time interval for it to be fixeds
-            "value" : 0.0             <--- The value to fix it to
+            "variable_name" : "DENSITY",   <--- The variable to fix. Must be a "double" variable
+            "interval" : [0, "End"],       <--- Time interval for it to be fixeds
+            "value" : 0.0                  <--- The value to fix it to
         },
         {                                    // For vector variables
-            "variable" : "MOMENTUM",              <--- Must be a "vector with components" variable.
+            "variable_name" : "MOMENTUM",         <--- Must be a "vector with components" variable.
             "interval" : [0.0, 15.3],             <--- Between 1 and 3 components.
             "value" : [0.0, 1.0, 5.0],
             "constrained" : [false, true, false]  <-- What components to fix. Others will be ignored.
