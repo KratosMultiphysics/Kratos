@@ -52,13 +52,17 @@ public:
         ModelPart& rSectionModelPart,
         const array_1d<double,3>& rVersor,
         const array_1d<double,3>& rOrigin,
-        const std::vector<std::string>& rVariableStringArray);
+        const std::vector<std::string>& rVariableStringArray,
+        double Xmin,
+        double Xmax);
 
     ComputeWingSectionVariableProcess(
         ModelPart& rModelPart,
         ModelPart& rSectionModelPart,
         const array_1d<double,3>& rVersor,
-        const array_1d<double,3>& rOrigin);
+        const array_1d<double,3>& rOrigin,
+        double Xmin,
+        double Xmax);
 
     /// Destructor.
     ~ComputeWingSectionVariableProcess() override
@@ -117,6 +121,8 @@ private:
     array_1d<double,3> mrOrigin; // A point of the plane
     std::vector<const Variable<array_1d<double, 3>>*>    mArrayVariablesList;
     std::vector<const Variable<double>*>                 mDoubleVariablesList;
+    double mXmin;
+    double mXmax;
 
     ///@}
 

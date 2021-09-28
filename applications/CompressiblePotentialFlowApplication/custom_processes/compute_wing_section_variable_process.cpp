@@ -28,11 +28,15 @@ ComputeWingSectionVariableProcess<TRunType>::ComputeWingSectionVariableProcess(
     ModelPart& rSectionModelPart,
     const array_1d<double,3>& rVersor,
     const array_1d<double,3>& rOrigin,
-    const std::vector<std::string>& rVariableStringArray)
+    const std::vector<std::string>& rVariableStringArray,
+    double Xmin,
+    double Xmax)
     :mrModelPart(rModelPart),
     mrSectionModelPart(rSectionModelPart),
     mrVersor(rVersor),
-    mrOrigin(rOrigin)
+    mrOrigin(rOrigin),
+    mXmin(Xmin),
+    mXmax(Xmax)
 {
     KRATOS_TRY
 
@@ -51,11 +55,15 @@ ComputeWingSectionVariableProcess<TRunType>::ComputeWingSectionVariableProcess(
     ModelPart& rModelPart,
     ModelPart& rSectionModelPart,
     const array_1d<double,3>& rVersor,
-    const array_1d<double,3>& rOrigin)
+    const array_1d<double,3>& rOrigin,
+    double Xmin,
+    double Xmax)
     :mrModelPart(rModelPart),
     mrSectionModelPart(rSectionModelPart),
     mrVersor(rVersor),
-    mrOrigin(rOrigin)
+    mrOrigin(rOrigin),
+    mXmin(Xmin),
+    mXmax(Xmax)
 {
     KRATOS_TRY
 
@@ -83,7 +91,7 @@ void ComputeWingSectionVariableProcess<ComputeWingSectionVariableProcessSettings
             cond_distances[i]= r_geometry[i].GetValue(DISTANCE);
         }
 
-        if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(cond_distances)) {
+        if (PotentialFlowUtilities::CheckIfElementIsCutByDistance<2,3>(cond_distances) && r_geometry.Center().X() > mXmin && r_geometry.Center().X() < mXmax) {
             auto p_node = mrSectionModelPart.CreateNewNode(++node_index, r_geometry.Center().X(), r_geometry.Center().Y(), r_geometry.Center().Z());
             AssignNodalVariablesFromContainer(p_node, r_cond);
         }

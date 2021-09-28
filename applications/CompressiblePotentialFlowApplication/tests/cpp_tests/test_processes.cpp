@@ -406,7 +406,7 @@ namespace Kratos {
                                       model_part,
                                       section_model_part_1,
                                       versor,
-                                      origin);
+                                      origin, -1000.0, 1000.0);
       ComputeWingSectionVariableProcessDefault.Execute();
 
       auto& r_node_section_1 = section_model_part_1.GetNode(1);
@@ -419,7 +419,7 @@ namespace Kratos {
                                       section_model_part_2,
                                       versor,
                                       origin,
-                                      variable_array);
+                                      variable_array, -1000.0, 1000.0);
       ComputeWingSectionVariableProcessWithArray.Execute();
 
       auto& r_node_section_2 = section_model_part_2.GetNode(1);
@@ -486,7 +486,7 @@ namespace Kratos {
                                       model_part,
                                       section_model_part_1,
                                       versor,
-                                      origin);
+                                      origin, -1000.0, 1000.0);
       ComputeWingSectionVariableProcessDefault.Execute();
 
       auto& r_node_section_1 = section_model_part_1.GetNode(1);
@@ -499,7 +499,7 @@ namespace Kratos {
                                       section_model_part_2,
                                       versor,
                                       origin,
-                                      variable_array);
+                                      variable_array, -1000.0, 1000.0);
       ComputeWingSectionVariableProcessWithArray.Execute();
 
       auto& r_node_section_2 = section_model_part_2.GetNode(1);
