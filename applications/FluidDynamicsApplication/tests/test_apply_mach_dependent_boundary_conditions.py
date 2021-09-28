@@ -3,6 +3,7 @@ from KratosMultiphysics import FluidDynamicsApplication
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.FluidDynamicsApplication import apply_mach_depenedent_boundary_conditions
 
+
 class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
     def setUp(self):
