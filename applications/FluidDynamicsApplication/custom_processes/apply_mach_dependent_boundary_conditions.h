@@ -133,7 +133,7 @@ namespace Kratos
             /** @brief This object points to the proper (Fix|Free)Dof function
              * according to the time interval.
              */
-            std::function<decltype(FixDof)> mEnforceInternal = FreeDof;
+            decltype(FixDof) * mEnforceInternal = & FreeDof;
         };
 
         /// Pointer definition of ApplyMachDependentBoundaryConditions
