@@ -38,8 +38,7 @@ class ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProce
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess = KratosSDEM.SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(self.model_part, settings)
-
+        self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess = KratosSDEM.SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess(self.model_part, self.settings)
 
     def ExecuteBeforeSolutionLoop(self):
         self.ApplySpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess.ExecuteBeforeSolutionLoop()

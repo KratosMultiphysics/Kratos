@@ -38,8 +38,7 @@ class ApplySpatialDependantPorositySolutionTransientBodyForceProcess(KratosMulti
         self.model_part = model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
 
-        self.ApplySpatialDependantPorositySolutionTransientBodyForceProcess = KratosSDEM.SpatialDependantPorositySolutionTransientBodyForceProcess(self.model_part, settings)
-
+        self.ApplySpatialDependantPorositySolutionTransientBodyForceProcess = KratosSDEM.SpatialDependantPorositySolutionTransientBodyForceProcess(self.model_part, self.settings)
 
     def ExecuteBeforeSolutionLoop(self):
         self.ApplySpatialDependantPorositySolutionTransientBodyForceProcess.ExecuteBeforeSolutionLoop()

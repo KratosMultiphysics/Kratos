@@ -68,6 +68,7 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ch
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
     mDensity     = rParameters["benchmark_parameters"]["density"].GetDouble();
+    mViscosity   = rParameters["benchmark_parameters"]["viscosity"].GetDouble();
     mUchar       = rParameters["benchmark_parameters"]["u_char"].GetDouble();
     mLength      = rParameters["benchmark_parameters"]["length"].GetDouble();
     mMeanAlpha   = rParameters["benchmark_parameters"]["mean_alpha"].GetDouble();
@@ -81,7 +82,7 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ch
 
     double &r_nu = mViscosity;
 
-    this->CalculateKinematicViscosity(mReynoldsNumber, r_nu);
+    //this->CalculateKinematicViscosity(mReynoldsNumber, r_nu);
 
     double dynamic_viscosity = r_nu * mDensity;
 
@@ -135,6 +136,7 @@ const Parameters SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForc
                                                 "velocity"    : 1.0,
                                                 "length"      : 1.0,
                                                 "density"     : 1.0,
+                                                "viscosity"   : 0.1,
                                                 "min_alpha"   : 0.5,
                                                 "mean_alpha" : 0.25,
                                                 "height"   : 0.5,
