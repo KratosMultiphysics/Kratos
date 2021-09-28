@@ -119,8 +119,6 @@ public:
 
     void SetInitialBodyForceAndPorosityField();
 
-    void SetBodyForceAndPorosityField();
-
     void SetFluidProperties();
 
     bool IsInsideEllipticalSupport(
