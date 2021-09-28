@@ -75,13 +75,29 @@ class ExplicitStrategy(BaseExplicitStrategy):
             raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
         # Set model parameters
-        self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
         self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
         self.radiation_radius        = self.thermal_settings["radiation_radius"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
+        self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
+        
+        # Check / adjust parameters
+        if (self.min_conduction_distance <= 0):
+            raise Exception('DEM', '"min_conduction_distance" must be positive.')
+        if (self.max_conduction_distance < 0):
+            self.max_conduction_distance = 0
+        if (self.fluid_layer_thickness < 0):
+            self.fluid_layer_thickness = 0
+        if (self.isothermal_core_radius < 0):
+            self.isothermal_core_radius = 0
+        if (self.radiation_radius < 0 ):
+            self.radiation_radius = 0
+        if (self.global_porosity < 0 or self.global_porosity >= 1):
+            raise Exception('DEM', '"global_porosity" must be between zero and one.')
+        if (self.integral_tolerance <= 0):
+            raise Exception('DEM', '"integral_tolerance" must be positive.')
 
         # Set global properties of interstitial/surrounding fluid
         self.fluid_props                = self.thermal_settings["global_fluid_properties"]
@@ -94,6 +110,13 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.fluid_velocity[0]          = self.fluid_props["fluid_velocity_X"].GetDouble()
         self.fluid_velocity[1]          = self.fluid_props["fluid_velocity_Y"].GetDouble()
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
+
+        # Check / adjust fluid properties
+        if (self.fluid_density              <= 0 or
+            self.fluid_viscosity            <= 0 or
+            self.fluid_thermal_conductivity <= 0 or
+            self.fluid_heat_capacity        <= 0):
+            raise Exception('DEM', '"global_fluid_properties" must contain positive values for material properties.')
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         # Add general additional variables (currently empty)
