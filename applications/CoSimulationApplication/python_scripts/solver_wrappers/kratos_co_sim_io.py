@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics as KM
+default_data_comm = KM.ParallelEnvironment.GetDefaultDataCommunicator() # hack until the solver has its own DataCommunicator
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_io import CoSimulationIO
@@ -24,7 +25,12 @@ class KratosCoSimIO(CoSimulationIO):
         connection_settings = CoSimIO.InfoFromParameters(self.settings)
         connection_settings.SetString("my_name", solver_name)
 
-        info = CoSimIO.Connect(connection_settings)
+        if default_data_comm.IsDistributed():
+            from KratosMultiphysics.CoSimulationApplication.MPIExtension import CoSimIO as CoSimIOMPI
+            info = CoSimIOMPI.ConnectMPI(connection_settings, default_data_comm)
+        else:
+            info = CoSimIO.Connect(connection_settings)
+
         if info.GetInt("connection_status") != CoSimIO.ConnectionStatus.Connected:
             raise Exception("Connecting failed!")
 
