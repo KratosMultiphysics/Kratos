@@ -12,7 +12,7 @@ endif()
 
 # this has to be specified BEFORE including CTest!
 # suppressions file has to be included in the options, as using "MEMORYCHECK_SUPPRESSIONS_FILE" doesn't work on all systems
-set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes --tool=memcheck --error-exitcode=1 --suppressions=${CMAKE_SOURCE_DIR}/tests/valgrind_suppressions.supp --gen-suppressions=all")
+set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes --tool=memcheck --error-exitcode=1 --suppressions=${CMAKE_CURRENT_SOURCE_DIR}/tests/valgrind_suppressions.supp --gen-suppressions=all")
 
 include(CTest)
 
@@ -41,9 +41,6 @@ message("    CO_SIM_IO_BUILD_PYTHON:    " ${CO_SIM_IO_BUILD_PYTHON})
 message("    CO_SIM_IO_STRICT_COMPILER: " ${CO_SIM_IO_STRICT_COMPILER})
 message("")
 
-include_directories(co_sim_io)
-include_directories(SYSTEM external_libraries)
-include_directories(SYSTEM external_libraries/asio/include)
 
 if (CO_SIM_IO_ENABLE_MPI)
     find_package(MPI REQUIRED)
@@ -115,27 +112,30 @@ file(REMOVE_RECURSE bin)
 
 # Adding CoSimIO library
 file(GLOB_RECURSE co_sim_io_source_files
-    ${CMAKE_SOURCE_DIR}/co_sim_io/sources/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/sources/*.cpp
 )
 add_library (co_sim_io SHARED ${co_sim_io_source_files})
 
 # To automatically configure a library export header into build tree
 include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
-                        ${CMAKE_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
+                        ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION ${CMAKE_SOURCE_DIR}/bin)
-
+install(TARGETS co_sim_io DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 if (CO_SIM_IO_ENABLE_MPI)
     # Adding CoSimIO library
-    file(GLOB_RECURSE co_sim_io_mpi_source_files ${CMAKE_SOURCE_DIR}/co_sim_io/mpi/sources/*.cpp)
+    file(GLOB_RECURSE co_sim_io_mpi_source_files ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/mpi/sources/*.cpp)
     add_library (co_sim_io_mpi SHARED ${co_sim_io_mpi_source_files})
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION ${CMAKE_SOURCE_DIR}/bin)
+    install(TARGETS co_sim_io_mpi DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 endif()
+
+target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
+target_include_directories(co_sim_io SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries)
+target_include_directories(co_sim_io SYSTEM PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/asio/include)
 
 if (CO_SIM_IO_BUILD_C)
     add_subdirectory(co_sim_io/c)
@@ -157,9 +157,10 @@ if (BUILD_TESTING)
     endif()
     include(external_libraries/doctest/doctest.cmake)
     add_subdirectory(tests)
+
+    configure_file(
+      "tests/compiled_config.json.in"
+      "${CMAKE_CURRENT_SOURCE_DIR}/tests/compiled_config.json"
+    )
 endif()
 
-configure_file(
-  "tests/compiled_config.json.in"
-  "${CMAKE_SOURCE_DIR}/tests/compiled_config.json"
-)

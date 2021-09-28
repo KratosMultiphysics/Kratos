@@ -21,7 +21,7 @@
 #include <array>
 
 // External includes
-#include "intrusive_ptr/intrusive_ptr.hpp"
+#include "../../external_libraries/intrusive_ptr/intrusive_ptr.hpp" // full path as otherwise can conflict in Kratos
 
 // Project includes
 #include "co_sim_io_api.hpp"
