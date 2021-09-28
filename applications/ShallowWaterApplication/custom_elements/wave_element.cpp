@@ -180,7 +180,7 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
     rData.p_bottom_friction = Kratos::make_shared<ManningLaw>();
-    rData.p_bottom_friction->Initialize(this->GetGeometry(), rCurrentProcessInfo);
+    rData.p_bottom_friction->Initialize(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 }
 
 template<std::size_t TNumNodes>

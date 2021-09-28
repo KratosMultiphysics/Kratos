@@ -24,7 +24,10 @@
 namespace Kratos
 {
 
-void WindWaterFriction::Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo)
+void WindWaterFriction::Initialize(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
 {
     mAirDensity = rProcessInfo[DENSITY_AIR];
     mWaterDensity = rProcessInfo[DENSITY];

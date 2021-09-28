@@ -87,7 +87,10 @@ public:
     /**
      * @brief Initialize the friction law variables
      */
-    void Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo) override;
+    void Initialize(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo) override;
 
     /**
      * @brief Calculate the LHS coefficient for the given data

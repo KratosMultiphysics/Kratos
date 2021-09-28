@@ -168,10 +168,10 @@ void ShallowWater2D3::CalculateLocalSystem(
     ComputeDampingCoefficient(data.damping, rCurrentProcessInfo[ABSORBING_DISTANCE], rCurrentProcessInfo[DISSIPATION]);
 
     data.pBottomFriction = Kratos::make_shared<ManningLaw>();
-    data.pBottomFriction->Initialize(GetGeometry(), rCurrentProcessInfo);
+    data.pBottomFriction->Initialize(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     data.pSurfaceFriction = Kratos::make_shared<WindWaterFriction>();
-    data.pSurfaceFriction->Initialize(GetGeometry(), rCurrentProcessInfo);
+    data.pSurfaceFriction->Initialize(GetGeometry(), GetProperties(), rCurrentProcessInfo);
 
     AddGradientTerms(rLeftHandSideMatrix, rRightHandSideVector, data, N, DN_DX);
 

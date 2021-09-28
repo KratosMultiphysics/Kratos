@@ -89,6 +89,7 @@ public:
      */
     void Initialize(
         const GeometryType& rGeometry,
+        const Properties& rProperty,
         const ProcessInfo& rProcessInfo) override;
 
     /**

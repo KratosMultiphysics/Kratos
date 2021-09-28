@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/node.h"
+#include "includes/properties.h"
 #include "includes/process_info.h"
 #include "geometries/geometry.h"
 
@@ -101,7 +102,10 @@ public:
     /**
      * @brief Initialize the friction law variables
      */
-    virtual void Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo) {}
+    virtual void Initialize(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo) {}
 
     /**
      * @brief Calculate the LHS coefficient for the given data

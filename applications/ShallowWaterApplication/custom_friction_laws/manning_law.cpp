@@ -24,14 +24,21 @@
 namespace Kratos
 {
 
-void ManningLaw::Initialize(const GeometryType& rGeometry, const ProcessInfo& rProcessInfo)
+void ManningLaw::Initialize(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
 {
     double manning = 0.0;
-    for (auto& r_node : rGeometry)
-    {
-        manning += r_node.FastGetSolutionStepValue(MANNING);
+    if (rProperty.Has(MANNING)) {
+        manning = rProperty.GetValue(MANNING);
+    } else {
+        for (auto& r_node : rGeometry)
+        {
+            manning += r_node.FastGetSolutionStepValue(MANNING);
+        }
+        manning /= rGeometry.size();
     }
-    manning /= rGeometry.size();
     mManning2 = std::pow(manning, 2);
 
     mEpsilon = rGeometry.Length() * rProcessInfo[RELATIVE_DRY_HEIGHT];
