@@ -68,10 +68,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     ManningLaw() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    ManningLaw(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Initialize the friction law variables
+     */
     virtual ~ManningLaw() {}
 
     ///@}

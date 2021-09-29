@@ -33,13 +33,13 @@ FrictionLaw::Pointer FrictionLawsFactory::CreateBottomFrictionLaw(
     const ProcessInfo& rProcessInfo)
 {
     if (rProperty.Has(MANNING)) {
-        return Kratos::make_shared<ManningLaw>();
+        return Kratos::make_shared<ManningLaw>(rGeometry, rProperty, rProcessInfo);
     }
     else if (rProperty.Has(CHEZY)) {
-        return Kratos::make_shared<ChezyLaw>();
+        return Kratos::make_shared<ChezyLaw>(rGeometry, rProperty, rProcessInfo);
     }
     else if (rGeometry[0].SolutionStepsDataHas(MANNING)) {
-        return Kratos::make_shared<NodalManningLaw>();
+        return Kratos::make_shared<NodalManningLaw>(rGeometry, rProperty, rProcessInfo);
     }
     else {
         return Kratos::make_shared<FrictionLaw>();
@@ -52,7 +52,7 @@ FrictionLaw::Pointer FrictionLawsFactory::CreateSurfaceFrictionLaw(
     const ProcessInfo& rProcessInfo)
 {
     if (rProcessInfo.Has(DENSITY_AIR) & rGeometry[0].SolutionStepsDataHas(WIND)) {
-        return Kratos::make_shared<WindWaterFriction>();
+        return Kratos::make_shared<WindWaterFriction>(rGeometry, rProperty, rProcessInfo);
     }
     else {
         return Kratos::make_shared<FrictionLaw>();

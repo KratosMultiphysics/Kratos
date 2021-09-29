@@ -70,6 +70,14 @@ public:
     NodalManningLaw() {}
 
     /**
+     * @brief Constructor with data
+     */
+    NodalManningLaw(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
      * @brief Destructor
      */
     virtual ~NodalManningLaw() {}

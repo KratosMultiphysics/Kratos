@@ -24,6 +24,14 @@
 namespace Kratos
 {
 
+WindWaterFriction::WindWaterFriction(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
+{
+    this->Initialize(rGeometry, rProperty, rProcessInfo);
+}
+
 void WindWaterFriction::Initialize(
     const GeometryType& rGeometry,
     const Properties& rProperty,

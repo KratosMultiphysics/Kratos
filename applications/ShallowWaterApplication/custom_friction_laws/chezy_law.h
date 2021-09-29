@@ -68,10 +68,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     ChezyLaw() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    ChezyLaw(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Destructor
+     */
     virtual ~ChezyLaw() {}
 
     ///@}
@@ -130,19 +142,6 @@ public:
         buffer << "ChezyLaw";
         return buffer.str();
     }
-    
-    /**
-     * @brief Print information about this object.
-     */
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ChezyLaw";
-    }
-
-    /**
-     * @brief Print object's data.
-     */
-    void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends

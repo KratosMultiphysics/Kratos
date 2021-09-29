@@ -25,6 +25,14 @@
 namespace Kratos
 {
 
+NodalManningLaw::NodalManningLaw(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
+{
+    this->Initialize(rGeometry, rProperty, rProcessInfo);
+}
+
 void NodalManningLaw::Initialize(
     const GeometryType& rGeometry,
     const Properties& rProperty,

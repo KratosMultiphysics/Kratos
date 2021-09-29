@@ -25,6 +25,14 @@
 namespace Kratos
 {
 
+ChezyLaw::ChezyLaw(
+    const GeometryType& rGeometry,
+    const Properties& rProperty,
+    const ProcessInfo& rProcessInfo)
+{
+    this->Initialize(rGeometry, rProperty, rProcessInfo);
+}
+
 void ChezyLaw::Initialize(
     const GeometryType& rGeometry,
     const Properties& rProperty,

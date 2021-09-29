@@ -57,10 +57,22 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default Constructor
+     */
     WindWaterFriction() {}
 
-    /// Destructor.
+    /**
+     * @brief Constructor with data
+     */
+    WindWaterFriction(
+        const GeometryType& rGeometry,
+        const Properties& rProperty,
+        const ProcessInfo& rProcessInfo);
+
+    /**
+     * @brief Destructor
+     */
     virtual ~WindWaterFriction() {}
 
     ///@}
