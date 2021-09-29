@@ -82,8 +82,6 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ch
 
     double &r_nu = mViscosity;
 
-    //this->CalculateKinematicViscosity(mReynoldsNumber, r_nu);
-
     double dynamic_viscosity = r_nu * mDensity;
 
     double &permeability = mPermeability;
@@ -92,15 +90,6 @@ void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::Ch
 
     this->CalculateFunctionParameters(mFirstParameter, mSecondParameter);
 
-}
-
-void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculateKinematicViscosity(
-    double &rReynoldsNumber,
-    double &rviscosity)
-{
-    double u_characteristic = mUchar;
-    double L = mLength;
-    rviscosity = u_characteristic * L / rReynoldsNumber;
 }
 
 void SpatialDependantHyperbolicTangentialPorositySolutionAndBodyForceProcess::CalculatePermeability(

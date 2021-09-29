@@ -124,10 +124,6 @@ public:
 
     const Parameters GetDefaultParameters() const override;
 
-    void CalculateKinematicViscosity(
-        double &rReynoldsNumber,
-        double &viscosity);
-
     void CalculatePermeability(
         double &rDamKohlerNumber,
         double &dynamic_viscosity,
