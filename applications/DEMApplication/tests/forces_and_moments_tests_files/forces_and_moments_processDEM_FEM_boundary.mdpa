@@ -89,6 +89,7 @@ Begin SubModelPart Cube1
     FREE_BODY_MOTION 1
     IDENTIFIER Cube
     FORCE_INTEGRATION_GROUP 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT 1
   End SubModelPartData
   Begin SubModelPartNodes
         3
@@ -126,6 +127,7 @@ Begin SubModelPart Cube2
     FREE_BODY_MOTION 1
     IDENTIFIER Cube
     FORCE_INTEGRATION_GROUP 0
+    COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT 1
   End SubModelPartData
   Begin SubModelPartNodes
        13
