@@ -559,8 +559,8 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< >
-double GeoCurvedBeamElement<2,3>::
+template< unsigned int TDim, unsigned int TNumNodes >
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateElementAngle(unsigned int GPoint,
                           const BoundedMatrix<double,TNumNodes, TNumNodes> &DN_DXContainer) const
 {
@@ -583,8 +583,8 @@ double GeoCurvedBeamElement<2,3>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< >
-double GeoCurvedBeamElement<2, 3>::
+template< unsigned int TDim, unsigned int TNumNodes >
+double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateElementAngle(const Matrix &GradNpT) const
 {
     KRATOS_TRY;
@@ -618,14 +618,14 @@ void GeoCurvedBeamElement<2,3>::
     const double sinPhi = sin(phi);
 
     TransformationMatrix(0,0) = cosPhi * cosPhi;
-    TransformationMatrix(1,1) = TransformationMatrix(0,0)
+    TransformationMatrix(1,1) = TransformationMatrix(0,0);
 
     TransformationMatrix(0,1) = sinPhi * sinPhi;
-    TransformationMatrix(1,0) = TransformationMatrix(0,1)
+    TransformationMatrix(1,0) = TransformationMatrix(0,1);
 
-    TransformationMatrix(2,2) =   TransformationMatrix(0,0) - TransformationMatrix(0,1);
-    TransformationMatrix(0,2) =  -2.0 * sinPhi * cosPhi;
-    TransformationMatrix(1,2) =  -TransformationMatrix(0,2);
+    TransformationMatrix(2,2) = TransformationMatrix(0,0) - TransformationMatrix(0,1);
+    TransformationMatrix(0,2) = -2.0 * sinPhi * cosPhi;
+    TransformationMatrix(1,2) = -TransformationMatrix(0,2);
 
     TransformationMatrix(0,2) = sinPhi * cosPhi;
     TransformationMatrix(1,2) = - TransformationMatrix(0,2);
