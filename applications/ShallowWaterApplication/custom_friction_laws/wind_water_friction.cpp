@@ -31,14 +31,17 @@ void WindWaterFriction::Initialize(
 {
     mAirDensity = rProcessInfo[DENSITY_AIR];
     mWaterDensity = rProcessInfo[DENSITY];
+    mWind = ZeroVector(3);
+    for (auto& r_node : rGeometry) {
+        mWind += r_node.FastGetSolutionStepValue(WIND);
+    }
+    mWind /= rGeometry.size();
 }
 
-double WindWaterFriction::CalculateLHS(
-    const array_1d<double,3>& rInnerVelocity,
-    const array_1d<double,3>& rOuterVelocity)
+double WindWaterFriction::CalculateLHS(const array_1d<double,3>& rVelocity)
 {
-    const auto wind = rOuterVelocity - rInnerVelocity;
-    const double abs_wind = norm_2(wind);
+    const auto rel_wind = mWind - rVelocity;
+    const double abs_wind = norm_2(rel_wind);
     double coefficient;
     if (abs_wind < 1.0)
     {
@@ -55,12 +58,10 @@ double WindWaterFriction::CalculateLHS(
     return mAirDensity / mWaterDensity * coefficient * abs_wind;
 }
 
-array_1d<double,3> WindWaterFriction::CalculateRHS(
-    const array_1d<double,3>& rInnerVelocity,
-    const array_1d<double,3>& rOuterVelocity)
+array_1d<double,3> WindWaterFriction::CalculateRHS(const array_1d<double,3>& rVelocity)
 {
-    const auto wind = rOuterVelocity - rInnerVelocity;
-    return wind * CalculateLHS(rInnerVelocity, rOuterVelocity);
+    const auto rel_wind = mWind - rVelocity;
+    return rel_wind * CalculateLHS(rVelocity);
 }
 
 }  // namespace Kratos

@@ -30,18 +30,8 @@ void ChezyLaw::Initialize(
     const Properties& rProperty,
     const ProcessInfo& rProcessInfo)
 {
-    double chezy = 0.0;
-    if (rProperty.Has(CHEZY)) {
-        chezy = rProperty.GetValue(CHEZY);
-    } else {
-        for (auto& r_node : rGeometry)
-        {
-            chezy += r_node.FastGetSolutionStepValue(CHEZY);
-        }
-        chezy /= rGeometry.size();
-    }
+    const double chezy = rProperty.GetValue(CHEZY);
     mCoefficient = 1. / std::pow(chezy, 2);
-
     mEpsilon = rGeometry.Length() * rProcessInfo[RELATIVE_DRY_HEIGHT];
 }
 
