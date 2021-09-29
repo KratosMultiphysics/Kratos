@@ -1366,17 +1366,17 @@ void BlockBodyNodes(ModelPart& rBodyModelPart)
 
 array_1d<double, 3> ComputeForceCoefficientVectorFromPressure(ModelPart& rBodyModelPart)
 {
-    array_1d<double, 3> force_coefficient = ZeroVector(3);
-
-    for (auto& r_condition : rBodyModelPart.Conditions()){
-        const auto& r_geometry = r_condition.GetGeometry();
+    array_1d<double, 3> force_coefficient = block_for_each<SumReduction<array_1d<double, 3>>>(rBodyModelPart.Conditions(), [&](Condition& rCondition){
+        array_1d<double, 3> local_force_coefficient_pres;
+        const auto& r_geometry = rCondition.GetGeometry();
         array_1d<double,3> aux_coordinates;
         r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
         const auto& surface_normal = r_geometry.Normal(aux_coordinates);
-        const double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
+        const double pressure_coefficient = rCondition.GetValue(PRESSURE_COEFFICIENT);
 
-        force_coefficient += surface_normal * pressure_coefficient;
-    }
+        local_force_coefficient_pres = surface_normal * pressure_coefficient;
+        return local_force_coefficient_pres;
+    });
 
     return force_coefficient;
 }
@@ -1384,23 +1384,20 @@ array_1d<double, 3> ComputeForceCoefficientVectorFromPressure(ModelPart& rBodyMo
 array_1d<double, 3> ComputeMomentCoefficientVectorFromPressure(
     ModelPart& rBodyModelPart, const array_1d<double, 3>& rMomentReferencePoint)
 {
-    array_1d<double, 3> moment_coefficient = ZeroVector(3);
-
-    for (auto& r_condition : rBodyModelPart.Conditions()){
-        const auto& r_geometry = r_condition.GetGeometry();
+    array_1d<double, 3> moment_coefficient = block_for_each<SumReduction<array_1d<double, 3>>>(rBodyModelPart.Conditions(), [&](Condition& rCondition){
+        array_1d<double, 3> local_moment_coefficient_pres;
+        const auto& r_geometry = rCondition.GetGeometry();
         array_1d<double,3> aux_coordinates;
         r_geometry.PointLocalCoordinates(aux_coordinates, r_geometry.Center());
         const auto& surface_normal = r_geometry.Normal(aux_coordinates);
-        const double pressure_coefficient = r_condition.GetValue(PRESSURE_COEFFICIENT);
+        const double pressure_coefficient = rCondition.GetValue(PRESSURE_COEFFICIENT);
 
         const auto& mid_point = r_geometry.Center();
         const auto& lever = mid_point - rMomentReferencePoint;
 
-        array_1d<double, 3> moment_contribution = ZeroVector(3);
-        MathUtils<double>::CrossProduct(moment_contribution, lever, surface_normal * pressure_coefficient);
-
-        moment_coefficient += moment_contribution;
-    }
+        MathUtils<double>::CrossProduct(local_moment_coefficient_pres, lever, surface_normal * pressure_coefficient);
+        return local_moment_coefficient_pres;
+    });
 
     return moment_coefficient;
 }
