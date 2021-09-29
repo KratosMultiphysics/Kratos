@@ -872,6 +872,19 @@ namespace Kratos {
                 std::vector<std::size_t> ElementIds;
                 ElementIds.push_back(element_id);
 
+                bool do_compute_forces = false;
+
+                if (central_node.Is(DEMFlags::FIXED_VEL_X) && central_node.Is(DEMFlags::FIXED_VEL_Y) && central_node.Is(DEMFlags::FIXED_VEL_Z) && central_node.Is(DEMFlags::FIXED_ANG_VEL_X) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Z)){
+                    if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT)) {
+                        if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 1) do_compute_forces = true;
+                    }
+                    if (submp.Has(FORCE_INTEGRATION_GROUP)) {
+                        if (submp[FORCE_INTEGRATION_GROUP] == 1) do_compute_forces = true;
+                    }
+                }
+
+                if (do_compute_forces) {central_node->Set(DEMFlags::COMPUTE_REACTIONS, true);}
+
                 if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
                     if (submp[FREE_BODY_MOTION]) {
 
@@ -944,23 +957,11 @@ namespace Kratos {
 
             Node<3>& central_node = rigid_body_element.GetGeometry()[0];
 
-            bool do_compute_forces = false;
-
-            if (central_node.Is(DEMFlags::FIXED_VEL_X) && central_node.Is(DEMFlags::FIXED_VEL_Y) && central_node.Is(DEMFlags::FIXED_VEL_Z) && central_node.Is(DEMFlags::FIXED_ANG_VEL_X) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Y) && central_node.Is(DEMFlags::FIXED_ANG_VEL_Z)){
-                if (submp.Has(COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT)) {
-                    if (submp[COMPUTE_FORCES_ON_THIS_RIGID_ELEMENT] == 1) do_compute_forces = true;
-                }
-                if (submp.Has(FORCE_INTEGRATION_GROUP)) {
-                    if (submp[FORCE_INTEGRATION_GROUP] == 1) do_compute_forces = true;
-                }
-            }
-
-            if (do_compute_forces == false) {continue;}
+            if (central_node->IsNot(DEMFlags::COMPUTE_REACTIONS)) continue;
 
             ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
             ProcessInfo& r_process_info = GetFemModelPart().GetProcessInfo();
             const ProcessInfo& r_const_process_info = GetFemModelPart().GetProcessInfo();
-
 
             struct my_tls {
                 Vector rhs_cond;
