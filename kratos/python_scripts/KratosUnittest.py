@@ -1,4 +1,4 @@
-from KratosMultiphysics import DataCommunicator
+from KratosMultiphysics import Testing
 from KratosMultiphysics.kratos_utilities import GetNotAvailableApplications
 
 from unittest import * # needed to make all functions available to the tests using this file
@@ -183,7 +183,7 @@ def runTests(tests):
         print('[Warning]: "{}" test suite is empty'.format(level),file=sys.stderr)
     else:
         result = not TextTestRunner(verbosity=args.verbosity, buffer=True).run(tests[level]).wasSuccessful()
-        if DataCommunicator.GetDefault().Rank() == 0 and args.timing:
+        if Testing.GetDefaultDataCommunicator().Rank() == 0 and args.timing:
             print("Test Execution Times:")
             for test_time, test_name in sorted(test_timing_results.items(), reverse=True):
                 print(test_name, " {0:.{1}f} [sec]".format(test_time,2))
