@@ -1,3 +1,7 @@
+import numpy as np
+
+from pathlib import Path
+
 # Importing the Kratos Library
 import KratosMultiphysics as Kratos
 
@@ -10,6 +14,10 @@ from KratosMultiphysics.RANSApplication.formulations.utilities import CalculateN
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetKratosObjectPrototype
 from KratosMultiphysics.RANSApplication.formulations.utilities import CreateBlockBuilderAndSolver
 from KratosMultiphysics.RANSApplication.formulations.utilities import GetTimeDerivativeVariablesRecursively
+from KratosMultiphysics.RANSApplication.formulations.utilities import ExecutionScope
+from KratosMultiphysics.RANSApplication.formulations.utilities import SolveProblem
+
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_stabilization_utilities import ComputeStabilizationCoefficient
 
 try:
     from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as InputFactory
@@ -55,15 +63,65 @@ class DiffusionSolutionController(AdjointSolutionController):
         super().__init__(main_model_part, parameters)
 
         default_parameters = Kratos.Parameters("""{
-            "solution_control_method"   : "diffusion",
-            "stabilization_length_scale": 10.0
+            "solution_control_method"                : "diffusion",
+            "stabilization_coefficient"              : 0.0,
+            "stabilization_residual_scaling_vector"  : [1.0],
+            "stabilization_derivative_scaling_vector": [1.0],
+            "stabilization_computation_settings"     :{}
         }""")
+
+        if self.parameters.Has("stabilization_coefficient"):
+            if self.parameters["stabilization_coefficient"].IsString():
+                default_parameters["stabilization_coefficient"].SetString("")
 
         self.parameters.ValidateAndAssignDefaults(default_parameters)
 
     def AddTimeSchemeParameters(self, parameters):
-        parameters.AddEmptyValue("stabilization_length_scale")
-        parameters["stabilization_length_scale"].SetDouble(self.parameters["stabilization_length_scale"].GetDouble())
+        if self.parameters.Has("stabilization_coefficient"):
+            if self.parameters["stabilization_coefficient"].IsString():
+                if self.parameters["stabilization_coefficient"].GetString() == "computed":
+                    from KratosMultiphysics.RANSApplication.adjoint_rans_analysis import AdjointRANSAnalysis
+                    stabilization_coefficient = ComputeStabilizationCoefficient(
+                                                    AdjointRANSAnalysis,
+                                                    self.parameters["stabilization_computation_settings"],
+                                                    DiffusionSolutionController.__ExecuteAnalysis)
+                else:
+                    raise Exception("Only \"computed\" is supported as a string literal for stabilization_coefficient, or use double value. [ stabilization_coefficient = {:s} ].".format(self.parameters["stabilization_coefficient"].GetString()))
+            elif self.parameters["stabilization_coefficient"].IsDouble():
+                stabilization_coefficient = self.parameters["stabilization_coefficient"].GetDouble()
+            else:
+                raise Exception("Only doubel and \"computed\" is supported as values for stabilization_coefficient.")
+
+        # now add only necessary settings
+        parameters.AddValue("stabilization_residual_scaling_vector", self.parameters["stabilization_residual_scaling_vector"])
+        parameters.AddValue("stabilization_derivative_scaling_vector", self.parameters["stabilization_derivative_scaling_vector"])
+        parameters.AddEmptyValue("stabilization_coefficient")
+        parameters["stabilization_coefficient"].SetDouble(stabilization_coefficient)
+
+    @staticmethod
+    def __ExecuteAnalysis(analysis_class_type, adjoint_parameters, stabilization_coefficient, solve_id):
+        Kratos.Logger.PrintInfo("Stabilization Analysis", "Solving adjoint problem with {:e} stabilization coefficient.".format(stabilization_coefficient))
+        scheme_settings = adjoint_parameters["solver_settings"]["adjoint_solution_controller_settings"]
+        if not scheme_settings.Has("stabilization_coefficient"):
+            scheme_settings.AddEmptyValue("stabilization_coefficient")
+        scheme_settings["stabilization_coefficient"].SetDouble(stabilization_coefficient)
+
+        with ExecutionScope("adjoint_stabilization_analysis/{:d}".format(solve_id)):
+            execute_analysis = not Path("adjoint_stabilization_data.dat").is_file()
+            if not execute_analysis:
+                if Path("stabilization_coefficient.json").is_file():
+                    with open("stabilization_coefficient.json", "r") as file_input:
+                        kratos_parameters = Kratos.Parameters(file_input.read())
+                    execute_analysis = kratos_parameters["solver_settings"]["adjoint_solution_controller_settings"]["stabilization_coefficient"].GetDouble() != stabilization_coefficient
+                else:
+                    execute_analysis = True
+
+            if execute_analysis:
+                _, simulation = SolveProblem(analysis_class_type, adjoint_parameters, "stabilization_coefficient")
+                return simulation.time_series_data
+            else:
+                Kratos.Logger.PrintInfo("Stabilization Analysis", "Found existing solution at {:s}".format(str(Path(".").absolute())))
+                return np.loadtxt("adjoint_stabilization_data.dat")
 
 class ResetToZeroAdjointSolutionController(AdjointSolutionController):
     def __init__(self, main_model_part, parameters):

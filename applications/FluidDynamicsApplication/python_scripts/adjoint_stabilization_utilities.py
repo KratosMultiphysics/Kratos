@@ -80,7 +80,7 @@ def __ExecuteAnalysis(analysis_class_type, adjoint_parameters, stabilization_coe
             Kratos.Logger.PrintInfo("Stabilization Analysis", "Found existing solution at {:s}".format(str(Path(".").absolute())))
             return np.loadtxt("adjoint_stabilization_data.dat")
 
-def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings):
+def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings, execution_method=__ExecuteAnalysis):
     default_parameters = Kratos.Parameters("""{
         "initial_coefficient_bounds"  : [0.0, 1.0],
         "tolerance"                   : 1e-4,
@@ -137,7 +137,7 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings)
                 solve_id += 1
                 coefficient_data[1] = __IsPlateau(
                                         __CalculateTimeSeriesSlope(
-                                            __ExecuteAnalysis(
+                                            execution_method(
                                                 StabilizationAnalysisClass,
                                                 adjoint_parameters.Clone(),
                                                 coefficient_data[0],
