@@ -22,7 +22,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_advanced_constitutive/viscous_generalized_maxwell.h"
+#include "custom_constitutive/viscous_generalized_maxwell.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
@@ -38,7 +38,7 @@ typedef Node<3> NodeType;
 * Check the correct calculation of the integrated stress with the CL's
 */
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosConstitutiveLawsFastSuite)
 {
     //
     // Test: check correct behavior of internal and calculated variables
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosStructu
 }
 
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosStructuralMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosConstitutiveLawsFastSuite)
 {
     ConstitutiveLaw::Parameters cl_parameters;
     Properties material_properties;

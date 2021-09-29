@@ -36,7 +36,10 @@ using NodalScalarData = typename TFluidData::NodalScalarData;
 using NodalVectorData = typename TFluidData::NodalVectorData;
 
 typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
-typedef std::vector< Vector > InterfaceNormalsType;
+typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
+
+/// Number of edges of the element (simplex elements are assumed)
+constexpr static std::size_t NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 
 ///@}
 ///@name Public Members
@@ -46,6 +49,8 @@ double SlipLength;
 double PenaltyCoefficient;
 
 NodalScalarData ElementalDistances;
+Vector ElementalEdgeDistances;
+Vector ElementalEdgeDistancesExtrapolated;
 
 Matrix PositiveSideN;
 Matrix NegativeSideN;
@@ -66,8 +71,10 @@ InterfaceNormalsType NegativeInterfaceUnitNormals;
 std::vector< size_t > PositiveIndices;
 std::vector< size_t > NegativeIndices;
 
-size_t NumPositiveNodes;
-size_t NumNegativeNodes;
+std::size_t NumPositiveNodes;
+std::size_t NumNegativeNodes;
+std::size_t NumIntersectedEdges;
+std::size_t NumIntersectedEdgesExtrapolated;
 
 ///@}
 ///@name Public Operations
@@ -77,7 +84,8 @@ size_t NumNegativeNodes;
  * @brief Discontinuous embedded formulation data container initialization
  * This method initializes the discontinuous embedded formulation data container. This implies to intialize
  * the base formulation data container as well as to get the elemental distances from the elemental variable
- * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation).
+ * ELEMENTAL_DISTANCES (note that this requires the ELEMENTAL_DISTANCES to be set before this operation) and
+ * the elemental edge distances from ELEMENTAL_EDGE_DISTANCES and ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED.
  * @param rElement reference to the element that owns the data container
  * @param rProcessInfo reference to the current ProcessInfo container
  */
@@ -87,9 +95,13 @@ void Initialize(
 {
     TFluidData::Initialize(rElement, rProcessInfo);
     this->FillFromElementData(ElementalDistances, ELEMENTAL_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistances, ELEMENTAL_EDGE_DISTANCES, rElement);
+    this->FillFromElementData(ElementalEdgeDistancesExtrapolated, ELEMENTAL_EDGE_DISTANCES_EXTRAPOLATED, rElement);
 
     NumPositiveNodes = 0;
     NumNegativeNodes = 0;
+    NumIntersectedEdges = 0;
+    NumIntersectedEdgesExtrapolated = 0;
 }
 
 /**
@@ -128,7 +140,24 @@ static int Check(
  */
 bool IsCut()
 {
-    return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+    if (IsIncised()) {
+        return false;
+    } else {
+        return (NumPositiveNodes > 0) && (NumNegativeNodes > 0);
+    }
+}
+
+/**
+ * @brief Checks if the current element is partially intersected (incised) and if extrapolated intersections where calculated.
+ * Checks if the current element is partially intersected by checking the number of extrapolated intersected edges
+ * This number will only be non-zero if user provided flag to calculate extrapolated edge distances.
+ * The case in which three edges of a tetrahedra are cut and element is only incised is also considered.
+ * @return true if the element is incised
+ * @return false if the element is not incised
+ */
+inline bool IsIncised()
+{
+    return NumIntersectedEdgesExtrapolated > 0 ? true : false;
 }
 
 ///@}

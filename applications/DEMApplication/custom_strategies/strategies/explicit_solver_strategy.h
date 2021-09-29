@@ -31,7 +31,7 @@
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/implicit_solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/dem_integration_scheme.h"
 #include "custom_utilities/create_and_destroy.h"
@@ -121,9 +121,16 @@ namespace Kratos {
             mpParticleCreatorDestructor = p_creator_destructor;
             mpDemFemSearch = p_dem_fem_search;
             mpSpSearch = pSpSearch;
-            if(mParameters["do_search_neighbours"].GetBool()) mDoSearchNeighbourElements = true;
-            else mDoSearchNeighbourElements = false;
+
+            //Also checks old flag name for backward compatibility issues.
+            if(mParameters["do_search_dem_neighbours"].GetBool()) {
+                mDoSearchNeighbourElements = true;
+            } else mDoSearchNeighbourElements = false;
             p_creator_destructor->SetDoSearchNeighbourElements(mDoSearchNeighbourElements);
+
+            if(mParameters["do_search_fem_neighbours"].GetBool()) mDoSearchNeighbourFEMElements = true;
+            else mDoSearchNeighbourFEMElements = false;
+
             mMaxTimeStep = max_delta_time;
             mNStepSearch = n_step_search;
             mSafetyFactor = safety_factor;
@@ -255,6 +262,7 @@ namespace Kratos {
         void SynchronizeHistoricalVariables(ModelPart& r_model_part);
         void SynchronizeRHS(ModelPart& r_model_part);
         void CleanEnergies();
+        void Check_MPI(bool& has_mpi);
 
         ModelPart& GetModelPart() { return (*mpDem_model_part);}
         ModelPart& GetFemModelPart() { return (*mpFem_model_part);}
@@ -272,12 +280,10 @@ namespace Kratos {
         double& GetMaxTimeStep() { return (mMaxTimeStep);}
         double& GetSafetyFactor() { return (mSafetyFactor);}
         int& GetDeltaOption() { return (mDeltaOption);}
-        std::vector<unsigned int>& GetElementPartition() { return (mElementPartition);}
         ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor() { return (mpParticleCreatorDestructor);}
         SpatialSearch::Pointer& GetSpSearch() { return (mpSpSearch);}
         VectorResultConditionsContainerType& GetRigidFaceResults() { return (mRigidFaceResults);}
         VectorDistanceType& GetRigidFaceResultsDistances() { return (mRigidFaceResultsDistances);}
-        std::vector<unsigned int>& GetConditionPartition() { return (mConditionPartition);}
         DEM_FEM_Search::Pointer& GetDemFemSearch() { return (mpDemFemSearch);}
         virtual ElementsArrayType& GetElements(ModelPart& r_model_part) { return r_model_part.GetCommunicator().LocalMesh().Elements();}
         virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part) {
@@ -297,14 +303,13 @@ namespace Kratos {
         double mMaxTimeStep;
         double mSafetyFactor;
         int mDeltaOption;
-        std::vector<unsigned int> mElementPartition;
         ParticleCreatorDestructor::Pointer mpParticleCreatorDestructor;
         DEM_FEM_Search::Pointer mpDemFemSearch;
         SpatialSearch::Pointer mpSpSearch;
         bool mDoSearchNeighbourElements;
+        bool mDoSearchNeighbourFEMElements;
         VectorResultConditionsContainerType mRigidFaceResults;
         VectorDistanceType mRigidFaceResultsDistances;
-        std::vector<unsigned int> mConditionPartition;
         ModelPart *mpFem_model_part;
         ModelPart *mpDem_model_part;
         ModelPart *mpInlet_model_part;

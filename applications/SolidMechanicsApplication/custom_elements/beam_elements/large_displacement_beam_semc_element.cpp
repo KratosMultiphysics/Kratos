@@ -276,7 +276,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementBeamSEMCElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacementBeamSEMCElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -431,7 +431,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamSEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
+  void LargeDisplacementBeamSEMCElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
     KRATOS_TRY
@@ -569,7 +569,7 @@ namespace Kratos
   //************************************************************************************
 
   //Inertia in the SPATIAL configuration
-  void LargeDisplacementBeamSEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
+  void LargeDisplacementBeamSEMCElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
@@ -791,7 +791,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int LargeDisplacementBeamSEMCElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int LargeDisplacementBeamSEMCElement::Check(const ProcessInfo& rCurrentProcessInfo) const
   {
     KRATOS_TRY
 
@@ -821,5 +821,3 @@ namespace Kratos
 
 
 } // Namespace Kratos
-
-

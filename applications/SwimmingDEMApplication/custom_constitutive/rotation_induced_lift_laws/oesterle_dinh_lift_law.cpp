@@ -11,7 +11,7 @@ namespace Kratos {
         return p_clone;
     }
 
-    OesterleAndDinhLiftLaw::OesterleAndDinhLiftLaw(Parameters& r_parameters)
+    OesterleAndDinhLiftLaw::OesterleAndDinhLiftLaw(Parameters r_parameters)
     {
 
     }

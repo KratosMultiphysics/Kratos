@@ -194,12 +194,16 @@ public:
                                     rModelPartDestination,
                                     JsonParameters)
     {
+        KRATOS_TRY;
+
         this->ValidateInput();
 
         mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
         KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
 
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -213,10 +217,14 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
+        KRATOS_TRY;
+
         return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}

@@ -813,20 +813,20 @@ public:
     /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
-     * @param rFlagValue flag value to be set
+     * @param FlagValue flag value to be set
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(
         const Flags& rFlag,
-        const bool& rFlagValue,
+        const bool FlagValue,
         TContainerType& rContainer
         )
     {
         KRATOS_TRY
 
         block_for_each(rContainer, [&](typename TContainerType::value_type& rEntity){
-                rEntity.Set(rFlag, rFlagValue);
+                rEntity.Set(rFlag, FlagValue);
         });
 
         KRATOS_CATCH("")

@@ -105,7 +105,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
         if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
             BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -165,6 +165,8 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::CalculateMa
 
                 if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                     this->CalculateTangentTensor(rValues); // this modifies the ConstitutiveMatrix
+                } else {
+                    BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
                 }
             }
         }
@@ -300,7 +302,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
 
     // Integrate Stress plasticity
-    const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
     if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
@@ -348,6 +350,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
             plastic_dissipation, plastic_strain_increment,
             r_constitutive_matrix, plastic_strain, rValues,
             characteristic_length);
+        BaseType::CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
 
     mPlasticDissipation = plastic_dissipation;
@@ -596,7 +599,7 @@ int GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);

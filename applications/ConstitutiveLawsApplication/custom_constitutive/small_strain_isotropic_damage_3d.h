@@ -45,13 +45,14 @@ namespace Kratos
 /**
  * @class SmallStrainIsotropicDamage3D
  * @ingroup StructuralMechanicsApplication
- * @brief Defines a damage with hardening/softening constitutive law in 3D
+ * @brief Defines a damage with hardening constitutive law in 3D
  * @details This material law is defined by the parameters:
  * - YOUNG_MODULUS
  * - POISSON_RATIO
- * - YIELD_STRESS
- * - INFINITY_YIELD_STRESS
- * - HARDENING_MODULI_VECTOR: List of hardening modules (only two branches considered)
+ * - HARDEDNING_CURVE: Type of hardening model: 0 exponential, 1 multilinear
+ * - STRESS_LIMITS: list of stress values in which the corresponding hardening
+ *   parameter is valid
+ * - HARDENING_PARAMETERS: List of hardening modules (max three branches considered)
  * @warning Valid for small strains
  * @note
  * @author Marcelo Raschi
@@ -231,7 +232,7 @@ public:
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Inquiry

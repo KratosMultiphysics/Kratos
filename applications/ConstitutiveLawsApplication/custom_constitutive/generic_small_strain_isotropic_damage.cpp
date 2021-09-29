@@ -126,7 +126,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
             }
         } else { // Damage case
-            const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
@@ -277,7 +277,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         const double F = uniaxial_stress - threshold;
 
         if (F >= 0.0) { // Plastic case
-            const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+            const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
                 predictive_stress_vector,
@@ -306,6 +306,8 @@ bool GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Has(const Varia
     if (rThisVariable == DAMAGE) {
         return true;
     } else if (rThisVariable == THRESHOLD) {
+        return true;
+    } else if (rThisVariable == UNIAXIAL_STRESS) {
         return true;
     } else {
         return BaseType::Has(rThisVariable);
@@ -477,7 +479,7 @@ int GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
     const int check_integrator = TConstLawIntegratorType::Check(rMaterialProperties);

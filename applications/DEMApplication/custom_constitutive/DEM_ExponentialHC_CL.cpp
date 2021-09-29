@@ -11,7 +11,7 @@
 
 namespace Kratos {
 
-    void DEM_ExponentialHC::Initialize(SphericContinuumParticle* owner_sphere) {
+    void DEM_ExponentialHC::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) {
         KRATOS_TRY
         mHistoryMaxInd              = 0.0; //maximum indentation achieved
         mHistoryMaxForce            = 0.0; //maximum force achieved
@@ -50,24 +50,11 @@ namespace Kratos {
 
         int &mNeighbourFailureId_count = element1->mIniNeighbourFailureId[i_neighbour_count];
 
-        Properties& element1_props = element1->GetProperties();
-        Properties& element2_props = element2->GetProperties();
         double mDamageMaxDisplacementFactor;
         double mTensionLimit;
 
-        if(&element1_props == &element2_props ){
-
-
-             mDamageMaxDisplacementFactor = element1_props[DAMAGE_FACTOR];
-             mTensionLimit = element1_props[CONTACT_SIGMA_MIN]; //N/m2
-        }
-
-        else{
-
-
-            mDamageMaxDisplacementFactor = 0.5*(element1_props[DAMAGE_FACTOR] + element2_props[DAMAGE_FACTOR]);
-            mTensionLimit = 0.5*(element1_props[CONTACT_SIGMA_MIN] + element2_props[CONTACT_SIGMA_MIN]); //N/m2
-        }
+        mDamageMaxDisplacementFactor = (*mpProperties)[DAMAGE_FACTOR];
+        mTensionLimit = (*mpProperties)[CONTACT_SIGMA_MIN];
 
         mGamma1 = 0.2;
         mGamma2 = 16;

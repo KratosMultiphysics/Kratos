@@ -25,11 +25,11 @@
 #include "input_output/vtk_output.h"
 #include "utilities/variable_utils.h"
 
-#include "mapper.h"
+#include "mappers/mapper.h"
 #include "mapping_application_variables.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 #include "custom_utilities/mapping_matrix_utilities.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -101,6 +101,8 @@ public:
         Kratos::Flags MappingOptions,
         double SearchRadius) override
     {
+        KRATOS_TRY;
+
         KRATOS_WARNING_IF("Mapper", mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface while using the initial configuration for mapping!" << std::endl;
 
         // Set the Flags according to the type of remeshing
@@ -115,6 +117,8 @@ public:
             mpInverseMapper->UpdateInterface(MappingOptions,
                                              SearchRadius);
         }
+
+        KRATOS_CATCH("");
     }
 
     void Map(
@@ -122,17 +126,15 @@ public:
         const Variable<double>& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
+        KRATOS_TRY;
+
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
+
+        KRATOS_CATCH("");
     }
 
     void Map(
@@ -140,17 +142,15 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
+        KRATOS_TRY;
+
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
-            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
-        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
-            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
-        }
-        else {
+            GetInverseMapper().MapInternalTranspose(rDestinationVariable, rOriginVariable, MappingOptions);
+        } else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
+
+        KRATOS_CATCH("");
     }
 
     void InverseMap(
@@ -158,12 +158,15 @@ public:
         const Variable<double>& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
+        KRATOS_TRY;
+
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
+
+        KRATOS_CATCH("");
     }
 
     void InverseMap(
@@ -171,12 +174,15 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
+        KRATOS_TRY;
+
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
+        } else {
+            GetInverseMapper().Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
-        else {
-            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
-        }
+
+        KRATOS_CATCH("");
     }
 
     ///@}
@@ -194,6 +200,7 @@ public:
 
     int AreMeshesConforming() const override
     {
+        KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
         return mpIntefaceCommunicator->AreMeshesConforming();
     }
 
@@ -229,8 +236,12 @@ protected:
     */
     void Initialize()
     {
+        KRATOS_TRY;
+
         InitializeInterfaceCommunicator();
         InitializeInterface();
+
+        KRATOS_CATCH("");
     }
 
     void ValidateInput()
@@ -272,26 +283,34 @@ private:
     ///@name Private Operations
     ///@{
 
-
-
     void InitializeInterfaceCommunicator()
     {
+        KRATOS_TRY;
+
         mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorType>(
             mrModelPartOrigin,
             mMapperLocalSystems,
             mMapperSettings);
+
+        KRATOS_CATCH("");
     }
 
     void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags())
     {
+        KRATOS_TRY;
+
         CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
                                 mMapperLocalSystems);
 
         BuildMappingMatrix(MappingOptions);
+
+        KRATOS_CATCH("");
     }
 
     void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags())
     {
+        KRATOS_TRY;
+
         const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
 
         if (use_initial_configuration) {
@@ -331,6 +350,8 @@ private:
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartOrigin);
             MapperUtilities::RestoreCurrentConfiguration(mrModelPartDestination);
         }
+
+        KRATOS_CATCH("");
     }
 
     void AssignInterfaceEquationIds()
@@ -343,6 +364,8 @@ private:
                      const Variable<double>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
     {
+        KRATOS_TRY;
+
         mpInterfaceVectorContainerOrigin->UpdateSystemVectorFromModelPart(rOriginVariable, MappingOptions);
 
         TSparseSpace::Mult(
@@ -351,12 +374,16 @@ private:
             mpInterfaceVectorContainerDestination->GetVector()); // rQd = rMdo * rQo
 
         mpInterfaceVectorContainerDestination->UpdateModelPartFromSystemVector(rDestinationVariable, MappingOptions);
+
+        KRATOS_CATCH("");
     }
 
     void MapInternalTranspose(const Variable<double>& rOriginVariable,
                               const Variable<double>& rDestinationVariable,
                               Kratos::Flags MappingOptions)
     {
+        KRATOS_TRY;
+
         mpInterfaceVectorContainerDestination->UpdateSystemVectorFromModelPart(rDestinationVariable, MappingOptions);
 
         TSparseSpace::TransposeMult(
@@ -365,30 +392,40 @@ private:
             mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
         mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(rOriginVariable, MappingOptions);
+
+        KRATOS_CATCH("");
     }
 
     void MapInternal(const Variable<array_1d<double, 3>>& rOriginVariable,
                      const Variable<array_1d<double, 3>>& rDestinationVariable,
                      Kratos::Flags MappingOptions)
     {
+        KRATOS_TRY;
+
         for (const auto var_ext : {"_X", "_Y", "_Z"}) {
             const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
             const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
             MapInternal(var_origin, var_destination, MappingOptions);
         }
+
+        KRATOS_CATCH("");
     }
 
     void MapInternalTranspose(const Variable<array_1d<double, 3>>& rOriginVariable,
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions)
     {
+        KRATOS_TRY;
+
         for (const auto var_ext : {"_X", "_Y", "_Z"}) {
             const auto& var_origin = KratosComponents<ComponentVariableType>::Get(rOriginVariable.Name() + var_ext);
             const auto& var_destination = KratosComponents<ComponentVariableType>::Get(rDestinationVariable.Name() + var_ext);
 
             MapInternalTranspose(var_origin, var_destination, MappingOptions);
         }
+
+        KRATOS_CATCH("");
     }
 
     void PrintPairingInfo(const int EchoLevel)
@@ -456,19 +493,27 @@ private:
     ///@name Private  Access
     ///@{
 
-    MapperUniquePointerType& GetInverseMapper()
+    InterpolativeMapperBase& GetInverseMapper()
     {
+        KRATOS_TRY;
+
         if (!mpInverseMapper) {
             InitializeInverseMapper();
         }
-        return mpInverseMapper;
+        return *(static_cast<InterpolativeMapperBase*>(mpInverseMapper.get()));
+
+        KRATOS_CATCH("");
     }
 
     void InitializeInverseMapper()
     {
+        KRATOS_TRY;
+
         mpInverseMapper = this->Clone(mrModelPartDestination,
                                       mrModelPartOrigin,
                                       mMapperSettings);
+
+        KRATOS_CATCH("");
     }
 
 }; // Class InterpolativeMapperBase
