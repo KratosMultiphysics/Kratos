@@ -2437,7 +2437,8 @@ void UPwSmallStrainInterfaceElement<3,8>::
 template<>
 template< class TValueType >
 void UPwSmallStrainInterfaceElement<2,4>::
-    InterpolateOutputValues( std::vector<TValueType>& rOutput, const std::vector<TValueType>& GPValues )
+    InterpolateOutputValues( std::vector<TValueType>& rOutput,
+                             const std::vector<TValueType>& GPValues )
 {
     KRATOS_TRY;
     // KRATOS_INFO("0-UPwSmallStrainInterfaceElement<2,4>::InterpolateOutputDoubles()") << std::endl;

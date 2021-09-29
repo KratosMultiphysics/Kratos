@@ -33,6 +33,8 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientPwInterfaceElement );
 
+    typedef UPwSmallStrainInterfaceElement<TDim, TNumNodes> BaseType;
+
     typedef std::size_t IndexType;
     typedef Properties PropertiesType;
     typedef Node <3> NodeType;
@@ -40,12 +42,19 @@ public:
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
     typedef Matrix MatrixType;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::mConstitutiveLawVector;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::mRetentionLawVector;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::mStressVector;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::mStateVariablesFinalized;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
-    using UPwSmallStrainInterfaceElement<TDim,TNumNodes>::mThisIntegrationMethod;
+
+    typedef Element::DofsVectorType DofsVectorType;
+    typedef Element::EquationIdVectorType EquationIdVectorType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
+    using BaseType::mRetentionLawVector;
+    using BaseType::mThisIntegrationMethod;
+    using BaseType::CalculateRetentionResponse;
+
+    typedef typename BaseType::InterfaceElementVariables InterfaceElementVariables;
+    typedef typename BaseType::SFGradAuxVariables SFGradAuxVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -154,7 +163,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType& rRightHandSideVector,
                             InterfaceElementVariables& rVariables,
-                            unsigned int GPoint);
+                            unsigned int GPoint) override;
 
     void CalculateAndAddCompressibilityFlow(VectorType& rRightHandSideVector,
                                             InterfaceElementVariables& rVariables) override;
@@ -165,7 +174,7 @@ protected:
     void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector,
                                       InterfaceElementVariables& rVariables) override;
 
-    unsigned int GetNumberOfDOF() const;
+    unsigned int GetNumberOfDOF() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
