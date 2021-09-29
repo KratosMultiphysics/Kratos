@@ -175,7 +175,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const
         this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
         //this->UpdateSubscaleVelocityPrediction(data);
-        this->UpdateSubscaleVelocity(data);
+        //this->UpdateSubscaleVelocity(data);
     }
 }
 

@@ -143,6 +143,28 @@ public:
         this->UpdateFluidFraction(rModelPart, CurrentProcessInfo);
     }
 
+    void InitializeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        //if orthogonal subscales are computed
+        if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
+        {
+            this->LumpedProjection(rModelPart);
+            //this->FullProjection(rModelPart);
+        }
+
+        KRATOS_CATCH("")
+    }
+
     void FinalizeNonLinIteration(
         ModelPart &rModelPart,
         TSystemMatrixType &A,
@@ -150,7 +172,7 @@ public:
         TSystemVectorType &b) override
     {
 
-        BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeNonLinIteration(rModelPart, A, Dx, b);
+        //BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeNonLinIteration(rModelPart, A, Dx, b);
         BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
 
     }
