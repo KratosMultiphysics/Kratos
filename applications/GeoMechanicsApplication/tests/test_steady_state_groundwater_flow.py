@@ -57,15 +57,27 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
 
     def test_pressure_in_confined_aquifer(self):
         test_name = 'test_pressure_in_confined_aquifer'
+        analytical_solution_Q = 1e-6
+        analytical_solution_water_pressure = -127.12110773605288       
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
-        self.assert_total_discharge(simulation, 1e-6)
+        self.assert_total_discharge(simulation, analytical_solution_Q)
         # get water pressure
         water_pressure = test_helper.get_water_pressure(simulation)
         pore_pressure_middle = water_pressure[343]
-        self.assertAlmostEqual(-127.12110773605288, pore_pressure_middle)
-
+        self.assertAlmostEqual(analytical_solution_water_pressure, pore_pressure_middle)
+        output_file_for_latex = open(r"test_output\test_pressure_in_confined_aquifer.csv","w")
+        output_file_for_latex.write('water pressure', 
+                                    str(analytical_solution_water_pressure), 
+                                    str(pore_pressure_middle), 
+                                    abs((analytical_solution_water_pressure-pore_pressure_middle)/analytical_solution_water_pressure)*100)
+        output_file_for_latex.write('Q', 
+                                    str(analytical_solution_Q), 
+                                    str(abs(self.calculate_total_discharge(simulation))), 
+                                    abs((analytical_solution_Q-abs(self.calculate_total_discharge(simulation)))/analytical_solution_Q)*100)
+        output_file_for_latex.close()                                     
+        
     def calculate_outflow_discharge(self, simulation):
         """
         calculate total outflow discharge.
