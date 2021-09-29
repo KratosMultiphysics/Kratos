@@ -91,6 +91,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)
 
     def _ComputeLiftFromPressure(self):
+        '''
         force_coefficient = KratosMultiphysics.Vector(3, 0.0)
 
         for cond in self.body_model_part.Conditions:
@@ -99,7 +100,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
             # Computing forces
             force_coefficient += surface_normal*pressure_coefficient
+        '''
 
+        force_coefficient = CPFApp.PotentialFlowUtilities.ComputeForceCoefficientVectorFromPressure(self.body_model_part)
         force_coefficient /= self.reference_area
 
         self._ProjectForceToFreeStreamVelocity(force_coefficient)
@@ -112,6 +115,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DRAG_COEFFICIENT, self.drag_coefficient)
 
     def _ComputeMomentFromPressure(self):
+        '''
         self.moment_coefficient = KratosMultiphysics.Vector(3, 0.0)
 
         for cond in self.body_model_part.Conditions:
@@ -122,7 +126,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             mid_point = cond.GetGeometry().Center()
             lever = mid_point-self.moment_reference_point
             self.moment_coefficient += _CrossProduct(lever, surface_normal*pressure_coefficient)
+        '''
 
+        self.moment_coefficient = CPFApp.PotentialFlowUtilities.ComputeMomentCoefficientVectorFromPressure(self.body_model_part, self.moment_reference_point)
         self.moment_coefficient /= self.reference_area * self.mean_aerodynamic_chord
 
         KratosMultiphysics.Logger.PrintInfo('ComputeLiftProcess',' Cmx = ', self.moment_coefficient[0])

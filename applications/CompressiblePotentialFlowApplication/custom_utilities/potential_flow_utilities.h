@@ -217,6 +217,10 @@ void SetRefinementLevel(ModelPart& rWakeModelPart, const double TargetHWake, con
 
 void BlockBodyNodes(ModelPart& rBodyModelPart);
 
+array_1d<double, 3> ComputeForceCoefficientVectorFromPressure(ModelPart& rBodyModelPart);
+
+array_1d<double, 3> ComputeMomentCoefficientVectorFromPressure(ModelPart& rBodyModelPart, const array_1d<double, 3>& rMomentReferencePoint);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 

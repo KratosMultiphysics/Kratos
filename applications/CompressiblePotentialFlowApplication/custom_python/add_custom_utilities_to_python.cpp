@@ -37,6 +37,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     mod_potential_flow_utilities.def("ComputePotentialJump3D",&PotentialFlowUtilities::ComputePotentialJump<3,4>);
     mod_potential_flow_utilities.def("SetRefinementLevel",&PotentialFlowUtilities::SetRefinementLevel);
     mod_potential_flow_utilities.def("BlockBodyNodes",&PotentialFlowUtilities::BlockBodyNodes);
+    mod_potential_flow_utilities.def("ComputeForceCoefficientVectorFromPressure",&PotentialFlowUtilities::ComputeForceCoefficientVectorFromPressure);
+    mod_potential_flow_utilities.def("ComputeMomentCoefficientVectorFromPressure",&PotentialFlowUtilities::ComputeMomentCoefficientVectorFromPressure);
 }
 
 }  // namespace Python.
