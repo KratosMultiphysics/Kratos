@@ -377,7 +377,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         self.assertIn("VELOCITY", str(context.exception))
 
     def testErrorTooManyValues(self):
-        """This error is particularly important because it prevents possible segmentation faults."""
+        """Raising this exception is particularly important because it prevents possible segmentation faults."""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
