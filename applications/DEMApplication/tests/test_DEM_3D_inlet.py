@@ -24,16 +24,20 @@ class DEM3D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
-        tolerance = 1.001
+        tolerance = 1e-8
         for node in self.spheres_model_part.Nodes:
-            node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
-            if node.Id == 6:
+            if node.Id == 10:
                 if self.time >= 1.15:
-                    Logger.PrintInfo(node_vel)
-                    Logger.PrintInfo(node_force)
-                    self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
-                    self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
+                    node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
+                    node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
+                    self.assertAlmostEqual(node_vel, 0.40632795240200154, delta=tolerance)
+                    self.assertAlmostEqual(node_force, -68713.6675439023, delta=tolerance)
+
+            if node.Id == 11:
+                if self.time >= 1.15:
+                    node_disp = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
+                    self.assertAlmostEqual(node_disp, 0.046134545389347956, delta=tolerance)
+
 
     def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')

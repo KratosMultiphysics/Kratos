@@ -49,7 +49,7 @@ namespace Kratos
 
     //*********************************************************************
 
-    double begin_time = OpenMPUtils::GetCurrentTime();
+    // double begin_time = OpenMPUtils::GetCurrentTime();
 
     //Generate Mesh
     ////////////////////////////////////////////////////////////
@@ -70,11 +70,11 @@ namespace Kratos
       std::cout<<" [ MESH GENERATION FAILED: point insertion (initial = "<<in.numberofpoints<<" final = "<<out.numberofpoints<<") ] "<<std::endl;
     }
 
-    //Print out the mesh generation time
-    if( this->GetEchoLevel() > 0 ){
-      double end_time = OpenMPUtils::GetCurrentTime();
-      std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
-    }
+    // //Print out the mesh generation time
+    // if( this->GetEchoLevel() > 0 ){
+    //   double end_time = OpenMPUtils::GetCurrentTime();
+    //   std::cout<<" [ MESH GENERATION (TIME = "<<end_time-begin_time<<") ] "<<std::endl;
+    // }
 
     //*********************************************************************
 

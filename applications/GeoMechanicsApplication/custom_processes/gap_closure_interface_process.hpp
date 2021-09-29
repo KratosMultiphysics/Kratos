@@ -176,13 +176,15 @@ private:
             }
             else
             {
-                KRATOS_THROW_ERROR( std::logic_error, "undefined number of nodes in gap_closure_interface_process", "" )
+                KRATOS_ERROR << "undefined number of nodes in gap_closure_interface_process"
+                             << std::endl;
             }
         }
         else
         {
-            KRATOS_THROW_ERROR( std::logic_error, "undefined dimension in gap_closure_interface_process", "" )
-        }
+            KRATOS_ERROR << "undefined dimension in gap_closure_interface_process"
+                         << std::endl;
+         }
     }
 
 //----------------------------------------------------------------------------------------------------

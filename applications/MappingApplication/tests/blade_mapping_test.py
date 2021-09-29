@@ -1,8 +1,9 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 import KratosMultiphysics.MappingApplication as KratosMapping
-data_comm = KM.DataCommunicator.GetDefault()
+data_comm = KM.Testing.GetDefaultDataCommunicator()
+if data_comm.IsDistributed():
+    from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
+
 import mapper_test_case
 from math import cos
 import os
@@ -39,8 +40,8 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         cls.model_part_fluid = cls.model_part_destination
 
         if data_comm.IsDistributed():
-            cls.mapper_pressure_side = KratosMapping.MapperFactory.CreateMPIMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_p)
-            cls.mapper_suction_side = KratosMapping.MapperFactory.CreateMPIMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_s)
+            cls.mapper_pressure_side = MappingMPIExtension.MPIMapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_p)
+            cls.mapper_suction_side = MappingMPIExtension.MPIMapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_s)
         else:
             cls.mapper_pressure_side = KratosMapping.MapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_p)
             cls.mapper_suction_side = KratosMapping.MapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_s)

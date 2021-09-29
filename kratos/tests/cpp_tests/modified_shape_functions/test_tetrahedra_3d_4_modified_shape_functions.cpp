@@ -98,14 +98,14 @@ namespace Kratos
                    pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
                    pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
 
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType
                 pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
                 pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
                 pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
                 pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
 
-            Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-                   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+            Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+                   pos_ext_face_weights_1, neg_ext_face_weights_1,
                    pos_ext_face_weights_2, neg_ext_face_weights_2,
                    pos_ext_face_weights_3, neg_ext_face_weights_3;
 
@@ -166,7 +166,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             tetrahedra_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
@@ -177,7 +177,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the exterior faces outwards normal area vector calculator
-            std::vector<Vector>
+            std::vector<array_1d<double,3>>
                 area_normals_pos_face_0, area_normals_neg_face_0,
                 area_normals_pos_face_1, area_normals_neg_face_1,
                 area_normals_pos_face_2, area_normals_neg_face_2,
@@ -323,7 +323,7 @@ namespace Kratos
             KRATOS_CHECK_NEAR(pos_ext_face_sh_func_gradients_0[0](3,2),  1.0, tolerance);
 
             KRATOS_CHECK_NEAR(pos_ext_face_weights_0(0), 0.216506, 10e-5);
-            
+
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,0),     0.0, tolerance);
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,1),     0.5, tolerance);
             KRATOS_CHECK_NEAR(neg_ext_face_sh_func_0(0,2), 1.0/3.0, tolerance);
@@ -360,7 +360,7 @@ namespace Kratos
 
             KRATOS_CHECK_NEAR(neg_ext_face_weights_0(0), 0.433013, 10e-5);
             KRATOS_CHECK_NEAR(neg_ext_face_weights_0(1), 0.216506, 10e-5);
-            
+
             KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](0), 0.125, tolerance);
             KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](1), 0.125, tolerance);
             KRATOS_CHECK_NEAR(area_normals_pos_face_0[0](2), 0.125, tolerance);
@@ -385,7 +385,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ModifiedShapeFunctionsTetrahedra3D4Oblique, KratosCoreFastSuite)
         {
             Model current_model;
-            
+
             // Generate a model part with the previous
             ModelPart& base_model_part = current_model.CreateModelPart("Tetrahedra");
             base_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -457,14 +457,14 @@ namespace Kratos
                    pos_ext_face_sh_func_2, neg_ext_face_sh_func_2,
                    pos_ext_face_sh_func_3, neg_ext_face_sh_func_3;
 
-            ModifiedShapeFunctions::ShapeFunctionsGradientsType 
+            ModifiedShapeFunctions::ShapeFunctionsGradientsType
                 pos_ext_face_sh_func_gradients_0, neg_ext_face_sh_func_gradients_0,
                 pos_ext_face_sh_func_gradients_1, neg_ext_face_sh_func_gradients_1,
                 pos_ext_face_sh_func_gradients_2, neg_ext_face_sh_func_gradients_2,
                 pos_ext_face_sh_func_gradients_3, neg_ext_face_sh_func_gradients_3;
 
-            Vector pos_ext_face_weights_0, neg_ext_face_weights_0, 
-                   pos_ext_face_weights_1, neg_ext_face_weights_1, 
+            Vector pos_ext_face_weights_0, neg_ext_face_weights_0,
+                   pos_ext_face_weights_1, neg_ext_face_weights_1,
                    pos_ext_face_weights_2, neg_ext_face_weights_2,
                    pos_ext_face_weights_3, neg_ext_face_weights_3;
 
@@ -525,7 +525,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the interface outwards normal unit vector calculator
-            std::vector<Vector> positive_side_area_normals, negative_side_area_normals;
+            std::vector<array_1d<double,3>> positive_side_area_normals, negative_side_area_normals;
 
             tetrahedra_shape_functions.ComputePositiveSideInterfaceAreaNormals(
                 positive_side_area_normals,
@@ -536,7 +536,7 @@ namespace Kratos
                 GeometryData::GI_GAUSS_1);
 
             // Call the exterior faces outwards normal area vector calculator
-            std::vector<Vector>
+            std::vector<array_1d<double,3>>
                 area_normals_pos_face_0, area_normals_neg_face_0,
                 area_normals_pos_face_1, area_normals_neg_face_1,
                 area_normals_pos_face_2, area_normals_neg_face_2,

@@ -1,8 +1,6 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
 import KratosMultiphysics as KM
 from KratosMultiphysics import KratosUnittest
-data_comm = KM.DataCommunicator.GetDefault()
+data_comm = KM.Testing.GetDefaultDataCommunicator()
 import os
 from KratosMultiphysics import from_json_check_result_process
 from KratosMultiphysics import json_output_process
@@ -150,9 +148,8 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
             "tolerance"                 : 1e-6,
             "relative_tolerance"        : 1e-9,
             "time_frequency"            : 0.00,
-            "check_only_local_entities" : true
+            "check_only_local_entities" : false
         }""")
-        # TODO check all entities, requires some syncronization though!
 
         check_parameters["check_variables"].Append(variable.Name())
         check_parameters["input_file_name"].SetString(file_name + ".json")
