@@ -67,7 +67,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
         water_pressure = test_helper.get_water_pressure(simulation)
         pore_pressure_middle = water_pressure[343]
         self.assertAlmostEqual(analytical_solution_water_pressure, pore_pressure_middle)
-        output_file_for_latex = open(r"test_output\test_pressure_in_confined_aquifer.csv","w")
+        output_file_for_latex = open(r"test_pressure_in_confined_aquifer.csv","w")
         output_file_for_latex.write('water pressure', 
                                     str(analytical_solution_water_pressure), 
                                     str(pore_pressure_middle), 
