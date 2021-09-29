@@ -78,28 +78,6 @@ int TransientPwInterfaceElement<TDim,TNumNodes>::
     if (!Prop.Has( BIOT_COEFFICIENT ))
         KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material properties in element" << this->Id() << std::endl;
 
-    // Verify the constitutive law
-    if ( Prop.Has( CONSTITUTIVE_LAW ) == false )
-        KRATOS_ERROR << "CONSTITUTIVE_LAW has Key zero or is not defined at element "
-                     << this->Id()
-                     << std::endl;
-
-    if ( Prop[CONSTITUTIVE_LAW] != NULL ) {
-        // Check constitutive law
-        ierr = Prop[CONSTITUTIVE_LAW]->Check( Prop, this->GetGeometry(), rCurrentProcessInfo );
-    }
-    else
-        KRATOS_ERROR << "A constitutive law needs to be specified for the element "
-                     << this->Id()
-                     << std::endl;
-
-
-    const SizeType strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    if ( TDim == 2 ) {
-        KRATOS_ERROR_IF_NOT( strain_size == 2) << "Wrong constitutive law used. This is a 2D element! expected strain size is 2 (el id = ) " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 3) << "Wrong constitutive law used. This is a 3D element! expected strain size is 3 (el id = ) "<<  this->Id() << std::endl;
-    }
 
     // KRATOS_INFO("1-TransientPwInterfaceElement::Check()") << std::endl;
 
