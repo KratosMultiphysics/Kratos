@@ -172,7 +172,6 @@ public:
         TSystemVectorType &b) override
     {
 
-        //BDF2TurbulentScheme<TSparseSpace, TDenseSpace>::FinalizeNonLinIteration(rModelPart, A, Dx, b);
         BaseType::FinalizeNonLinIteration(rModelPart, A, Dx, b);
 
     }
