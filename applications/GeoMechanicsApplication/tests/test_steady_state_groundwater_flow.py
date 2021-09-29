@@ -58,7 +58,7 @@ class KratosGeoMechanicsSteadyStateGroundWaterFlowTests(KratosUnittest.TestCase)
     def test_pressure_in_confined_aquifer(self):
         test_name = 'test_pressure_in_confined_aquifer'
         analytical_solution_Q = 1e-6
-        analytical_solution_water_pressure = -127.12110773605288       
+        analytical_solution_water_pressure = -127.12110773605288
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
