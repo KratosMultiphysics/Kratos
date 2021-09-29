@@ -213,18 +213,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
 
     sigma *= viscosity;
 
-    // for (unsigned int i = 0; i < NumNodes; i++) {
-    //     Vector sigma_U = ZeroVector(Dim);
-    //     for (unsigned int d = 0; d < Dim; d++) {
-    //         for (unsigned int e = 0; e < Dim; e++){
-    //             sigma_U[d] += sigma(d,e) * rData.N[i] * rData.Velocity(i,e);
-    //         }
-    //         rMomentumRHS[d] += density * ( rData.N[i] * (rData.BodyForce(i,d)) /*- fluid_fraction *  rData.N[i] * rAcc[d]*/
-    //                             - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) - fluid_fraction * rData.DN_DX(i,d)*rData.Pressure[i] - sigma_U[d];
-
-    //     }
-    // }
-
     for (unsigned int i = 0; i < NumNodes; i++) {
         Vector sigma_U = ZeroVector(Dim);
         BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
@@ -614,13 +602,11 @@ void AlternativeQSVMSDEMCoupled<TElementData>::CalculateTau(
     double velocity_norm = std::sqrt(velocity_modulus);
     double fluid_fraction_gradient_norm = std::sqrt(fluid_fraction_gradient_modulus);
     double c_alpha = fluid_fraction + h / c1 * fluid_fraction_gradient_norm;
-    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha;
+    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h )) * c_alpha + std::sqrt(sigma_term);
     inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
 
     double tau_one = 1 / inv_tau;
     double tau_one_NS = 1 / inv_tau_NS;
-    //double c_alpha = 1.0;
-    //tau_one = tau_one_NS / c_alpha;
     TauOne = tau_one * I;
     TauTwo = h * h / (c1 * fluid_fraction * tau_one_NS);
 }

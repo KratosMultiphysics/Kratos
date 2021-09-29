@@ -695,7 +695,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     double velocity_norm = std::sqrt(velocity_modulus);
     double fluid_fraction_gradient_norm = std::sqrt(fluid_fraction_gradient_modulus);
     double c_alpha = fluid_fraction + h / c1 * fluid_fraction_gradient_norm;
-    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term)) * c_alpha + density * fluid_fraction / rData.DeltaTime;
+    inv_tau = (c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) ) * c_alpha + density * fluid_fraction / rData.DeltaTime + std::sqrt(sigma_term);
     inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
     double tau_one = 1 / inv_tau;
     double tau_one_NS = 1 / inv_tau_NS;
