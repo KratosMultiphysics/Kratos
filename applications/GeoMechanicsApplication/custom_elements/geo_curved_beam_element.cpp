@@ -177,13 +177,13 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         for (unsigned int node = 0; node < TNumNodes; ++node) {
             // displacement degrees of freedom
             for (unsigned int dof = 0; dof < N_DOF_NODE_DISP; ++dof) {
-                unsigned int i = index++;
+                const unsigned int i = index++;
                 rMassMatrix(i, i) += Density * NContainer(GPoint, node) * IntegrationCoefficient;
             }
 
             // rotational degrees of freedom
             for (unsigned int dof = 0; dof < N_DOF_NODE_ROT; ++dof) {
-                unsigned int i = index++;
+                const unsigned int i = index++;
                 rMassMatrix(i, i) += RotationalInertia[dof] * NContainer(GPoint, node) * IntegrationCoefficient;
             }
         }
@@ -559,10 +559,10 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-double GeoCurvedBeamElement<TDim,TNumNodes>::
+template< >
+double GeoCurvedBeamElement<2,3>::
     CalculateElementAngle(unsigned int GPoint,
-                          const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DXContainer) const
+                          const BoundedMatrix<double,TNumNodes, TNumNodes> &DN_DXContainer) const
 {
     KRATOS_TRY;
 
@@ -583,8 +583,8 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-template< unsigned int TDim, unsigned int TNumNodes >
-double GeoCurvedBeamElement<TDim,TNumNodes>::
+template< >
+double GeoCurvedBeamElement<2, 3>::
     CalculateElementAngle(const Matrix &GradNpT) const
 {
     KRATOS_TRY;
@@ -618,11 +618,18 @@ void GeoCurvedBeamElement<2,3>::
     const double sinPhi = sin(phi);
 
     TransformationMatrix(0,0) = cosPhi * cosPhi;
+    TransformationMatrix(1,1) = TransformationMatrix(0,0)
+
     TransformationMatrix(0,1) = sinPhi * sinPhi;
+    TransformationMatrix(1,0) = TransformationMatrix(0,1)
+
+    TransformationMatrix(2,2) =   TransformationMatrix(0,0) - TransformationMatrix(0,1);
+    TransformationMatrix(0,2) =  -2.0 * sinPhi * cosPhi;
+    TransformationMatrix(1,2) =  -TransformationMatrix(0,2);
+
     TransformationMatrix(0,2) = sinPhi * cosPhi;
-    TransformationMatrix(1,0) = - 2.0 * TransformationMatrix(0,2);
-    TransformationMatrix(1,1) = - TransformationMatrix(1,0);
-    TransformationMatrix(1,2) =   TransformationMatrix(0,0) - TransformationMatrix(0,1);
+    TransformationMatrix(1,2) = - TransformationMatrix(0,2);
+
 
     KRATOS_CATCH("");
 }
@@ -729,8 +736,7 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
     //noalias(BTransformed) = prod(rVariables.TransformationMatrix, B);
     noalias(BTransformed) = ZeroMatrix(BTransformed.size1(), BTransformed.size2());
-    for (unsigned int idim=0; idim < TDim; ++idim)
-    {
+    for (unsigned int idim=0; idim < TDim; ++idim) {
         for (unsigned int idof=0; idof < N_DOF_ELEMENT; ++idof) {
             for (unsigned int jvoigt=0; jvoigt < VoigtSize; ++jvoigt) {
                 BTransformed(idim, idof) += rVariables.TransformationMatrix(idim, jvoigt) * B(jvoigt,idof);

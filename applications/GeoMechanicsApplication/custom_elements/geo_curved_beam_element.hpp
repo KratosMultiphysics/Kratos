@@ -25,7 +25,11 @@ namespace Kratos
  *
  * @brief This is a geometrically non-linear (curved) beam element.
  *        The formulation can be found in papers written by Karan S. Surana, e.g:
- *        "Geometrically non-linear formulation for two dimensional curved beam elements"
+ *        "1. Geometrically non-linear formulation for two dimensional curved beam elements"
+ *        "2. Geometrically non-linear formulation for the axisymmetric shell elements"
+ *        or 
+ *        "Non-linear Finite element analysis of solids and structures" by De Borst et al.
+ * 
  * @author Vahid Galavi
  */
 
