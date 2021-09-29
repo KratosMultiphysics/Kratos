@@ -212,7 +212,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
              rVariable == DERIVATIVE_OF_SATURATION ||
              rVariable == RELATIVE_PERMEABILITY )
     {
-        UPwSmallStrainInterfaceElement::
+        UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             CalculateOnIntegrationPoints(rVariable,
                                          rValues,
                                          rCurrentProcessInfo);
@@ -252,7 +252,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
     if (rVariable == FLUID_FLUX_VECTOR ||
         rVariable == LOCAL_FLUID_FLUX_VECTOR)
     {
-        UPwSmallStrainInterfaceElement::
+        UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             CalculateOnIntegrationPoints(rVariable,
                                          rValues,
                                          rCurrentProcessInfo);
@@ -272,7 +272,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
-        this->InterpolateOutputValues< array_1d<double,3> >(rValues,GPValues);
+        this->template InterpolateOutputValues< array_1d<double,3> >(rValues,GPValues);
     }
 
     // KRATOS_INFO("1-TransientPwInterfaceElement:::CalculateOnIntegrationPoints<double,3>()") << std::endl;
@@ -292,7 +292,7 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
     if (rVariable == PERMEABILITY_MATRIX ||
         rVariable == LOCAL_PERMEABILITY_MATRIX)
     {
-        UPwSmallStrainInterfaceElement::
+        UPwSmallStrainInterfaceElement<TDim,TNumNodes>::
             CalculateOnIntegrationPoints(rVariable,
                                          rValues,
                                          rCurrentProcessInfo);
@@ -364,14 +364,15 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint )
         {
-            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,
-                                                                                           SFGradAuxVars,
-                                                                                           JContainer[GPoint],
-                                                                                           RotationMatrix,
-                                                                                           DN_DeContainer[GPoint],
-                                                                                           NContainer,
-                                                                                           JointWidth,
-                                                                                           GPoint);
+            this->template 
+                CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >(GradNpT,
+                                                                                         SFGradAuxVars,
+                                                                                         JContainer[GPoint],
+                                                                                         RotationMatrix,
+                                                                                         DN_DeContainer[GPoint],
+                                                                                         NContainer,
+                                                                                         JointWidth,
+                                                                                         GPoint);
 
             GeoElementUtilities::
                 InterpolateVariableWithComponents<TDim, TNumNodes>( Variables.BodyAcceleration,
@@ -440,14 +441,15 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
-            this->CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >( GradNpT,
-                                                                                            SFGradAuxVars,
-                                                                                            JContainer[GPoint],
-                                                                                            RotationMatrix,
-                                                                                            DN_DeContainer[GPoint],
-                                                                                            NContainer,
-                                                                                            JointWidth,
-                                                                                            GPoint);
+            this->template 
+                CalculateShapeFunctionsGradients< BoundedMatrix<double,TNumNodes,TDim> >( GradNpT,
+                                                                                          SFGradAuxVars,
+                                                                                          JContainer[GPoint],
+                                                                                          RotationMatrix,
+                                                                                          DN_DeContainer[GPoint],
+                                                                                          NContainer,
+                                                                                          JointWidth,
+                                                                                          GPoint);
 
             GeoElementUtilities::
                 InterpolateVariableWithComponents<TDim, TNumNodes>( BodyAcceleration,
@@ -490,9 +492,6 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
         const GeometryType& Geom = this->GetGeometry();
         const PropertiesType& Prop = this->GetProperties();
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
-
-        //Defining the shape functions container
-        const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
 
         //Defining necessary variables
         BoundedMatrix<double,TDim, TDim> RotationMatrix;
@@ -598,14 +597,15 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
         //Compute Np, StrainVector, JointWidth, GradNpT
         noalias(Variables.Np) = row(NContainer,GPoint);
 
-        this->CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
-                                                         SFGradAuxVars,
-                                                         JContainer[GPoint],
-                                                         Variables.RotationMatrix,
-                                                         DN_DeContainer[GPoint],
-                                                         NContainer,
-                                                         Variables.JointWidth,
-                                                         GPoint);
+        this->template 
+            CalculateShapeFunctionsGradients< Matrix >(Variables.GradNpT,
+                                                       SFGradAuxVars,
+                                                       JContainer[GPoint],
+                                                       Variables.RotationMatrix,
+                                                       DN_DeContainer[GPoint],
+                                                       NContainer,
+                                                       Variables.JointWidth,
+                                                       GPoint);
 
         //Compute BodyAcceleration and Permeability Matrix
         GeoElementUtilities::
@@ -917,7 +917,6 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
@@ -938,7 +937,6 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
@@ -959,7 +957,6 @@ void TransientPwInterfaceElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    const GeometryType& Geom = this->GetGeometry();
     const unsigned int N_DOF = this->GetNumberOfDOF();
 
     if ( rValues.size() != N_DOF )
