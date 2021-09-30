@@ -183,6 +183,7 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         custom_settings -- Kratos parameters containing fluid solver settings.
         """
         self._validate_settings_in_baseclass=True
+        self.dimension = custom_settings["domain_size"].GetInt()
         custom_settings = self._BackwardsCompatibilityHelper(custom_settings)
         super(NavierStokesSolverMonolithicDEM,self).__init__(model, custom_settings)
 
@@ -216,11 +217,24 @@ class NavierStokesSolverMonolithicDEM(FluidDEMSolver, NavierMonolithic.NavierSto
         for el in self.main_model_part.Elements:
             # Get PERMEABILITY from properties
             if set_permeability:
-                k = el.Properties.GetValue(KratosMultiphysics.PERMEABILITY)
-                break
-            else:
-                raise Exception("No fluid elements found in the main model part.")
-
-        # Transfer the obtained properties to the nodes
-        if set_permeability:
-            KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, k, self.main_model_part.Nodes)
+                if el.Properties.Has(KratosMultiphysics.PERMEABILITY):
+                    permeability = el.Properties.GetValue(KratosMultiphysics.PERMEABILITY)
+                    KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, permeability, self.main_model_part.Nodes)
+                else:
+                # TO DO: TO BE REMOVED WHEN NEXT GID VERSION LETS DEFINE PERMEABILITY FROM PROBLEMTYPE
+                    if self.dimension == 2:
+                        permeability = [
+                            [1e+89,1e+89],
+                            [1e+89,1e+90]
+                            ]
+                    else:
+                        permeability = [
+                            [1e+89,1e+89,0.0],
+                            [1e+89,1e+90,0.0],
+                            [0.0,1e+90,1e+89]]
+                    perm = KratosMultiphysics.Matrix(permeability)
+                    KratosMultiphysics.Logger.PrintWarning('No \'PERMEABILITY\' value found in Properties {0}. Setting default value {1}'.format(el.Properties.Id, perm))
+                    KratosMultiphysics.VariableUtils().SetVariable(KratosMultiphysics.PERMEABILITY, perm, self.main_model_part.Nodes)
+            break
+        else:
+            raise Exception("No fluid elements found in the main model part.")
