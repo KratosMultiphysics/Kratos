@@ -10,8 +10,8 @@
 //  Main authors:    Joaquin Gonzalez-Usua
 //
 
-#ifndef KRATOS_D_VMS_DEM_COUPLED_H
-#define KRATOS_D_VMS_DEM_COUPLED_H
+#ifndef KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
+#define KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -49,14 +49,14 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class DVMSDEMCoupled : public DVMS<TElementData>
+class AlternativeDVMSDEMCoupled : public DVMS<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DVMSDEMCoupled
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMSDEMCoupled);
+    /// Pointer definition of AlternativeDVMSDEMCoupled
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AlternativeDVMSDEMCoupled);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -108,21 +108,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    DVMSDEMCoupled(IndexType NewId = 0);
+    AlternativeDVMSDEMCoupled(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    DVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes);
+    AlternativeDVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
+    AlternativeDVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -130,10 +130,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    DVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    AlternativeDVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~DVMSDEMCoupled();
+    ~AlternativeDVMSDEMCoupled();
 
     ///@}
     ///@name Operators
@@ -147,7 +147,7 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new DVMSDEMCoupled element, created using given input
+     * Returns a pointer to a new AlternativeDVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -160,7 +160,7 @@ public:
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new DVMSDEMCoupled element, created using given input
+     * Returns a pointer to a new AlternativeDVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param pGeom a pointer to the geomerty to be used to create the element
      * @param pProperties the properties assigned to the new element
@@ -176,6 +176,8 @@ public:
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
@@ -212,6 +214,7 @@ protected:
     // Velocity subscale history, stored at integration points
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
 
     ///@}
     ///@name Protected Operators
@@ -239,11 +242,20 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    // Implementation details of DVMSDEMCoupled /////////////////////////////////////////
+    // Implementation details of AlternativeDVMSDEMCoupled /////////////////////////////////////////
+
+    void AddMassLHS(
+        TElementData& rData,
+        MatrixType& rMassMatrix) override;
 
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
+
+    void AddViscousTerm(
+        const TElementData& rData,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS) override;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
@@ -264,6 +276,9 @@ protected:
 
     void UpdateSubscaleVelocityPrediction(
         const TElementData& rData) override;
+
+    void UpdateSubscaleVelocity(
+        const TElementData& rData);
 
     void MassProjTerm(
         const TElementData& rData,
@@ -324,15 +339,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    DVMSDEMCoupled& operator=(DVMSDEMCoupled const& rOther);
+    AlternativeDVMSDEMCoupled& operator=(AlternativeDVMSDEMCoupled const& rOther);
 
     /// Copy constructor.
-    DVMSDEMCoupled(DVMSDEMCoupled const& rOther);
+    AlternativeDVMSDEMCoupled(AlternativeDVMSDEMCoupled const& rOther);
 
     ///@}
 
 
-}; // Class DVMSDEMCoupled
+}; // Class AlternativeDVMSDEMCoupled
 
 ///@}
 
@@ -348,7 +363,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DVMSDEMCoupled<TElementData>& rThis)
+                                 AlternativeDVMSDEMCoupled<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -356,7 +371,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DVMSDEMCoupled<TElementData>& rThis)
+                                 const AlternativeDVMSDEMCoupled<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -370,4 +385,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_D_VMS_DEM_COUPLED_H
+#endif // KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
