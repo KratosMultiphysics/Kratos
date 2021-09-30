@@ -81,6 +81,12 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
 
+## If MPI is used, then enable the MPIExtension
+if(${USE_MPI})
+  message("Enabling mpi extension for CoSimulationApplication")
+  add_subdirectory(mpi_extension)
+endif(${USE_MPI})
+
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosCoSimulationCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosCoSimulationApplication" PARENT_SCOPE)
