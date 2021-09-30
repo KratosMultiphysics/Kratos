@@ -268,7 +268,7 @@ protected:
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS) override;
 
-    //using QSVMS<TElementData>::CalculateTau;
+    using QSVMS<TElementData>::CalculateTau;
     void CalculateTau(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,

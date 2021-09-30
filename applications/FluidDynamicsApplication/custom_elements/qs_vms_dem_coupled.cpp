@@ -441,7 +441,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const TElementData& rData,
     const array_1d<double,3> &Velocity,
     BoundedMatrix<double,Dim,Dim> &TauOne,
-    double &TauTwo)
+    double &TauTwo) const
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -483,7 +483,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
 template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::SubscaleVelocity(
     const TElementData& rData,
-    array_1d<double,3> &rVelocitySubscale)
+    array_1d<double,3> &rVelocitySubscale) const
 {
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
@@ -504,7 +504,7 @@ void QSVMSDEMCoupled<TElementData>::SubscaleVelocity(
 template< class TElementData >
 void QSVMSDEMCoupled<TElementData>::SubscalePressure(
         const TElementData& rData,
-        double &rPressureSubscale)
+        double &rPressureSubscale) const
 {
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
