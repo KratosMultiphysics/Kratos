@@ -12,9 +12,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
     def __init__(self, model, settings):
         super().__init__(model, settings)
 
-        # Set the element and condition names for the replace settings
-        self.element_name = "ShallowWater"
-        self.condition_name = "LineCondition"
+        self._SetUpFormulation()
         self.min_buffer_size = self.settings["time_integration_order"].GetInt() + 1
 
     def AddVariables(self):
@@ -39,6 +37,11 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(SW.SHOCK_STABILIZATION_FACTOR, self.settings["shock_stabilization_factor"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
+        self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
+        if self.copmute_neighbors:
+            dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
+            avg_neigh = 2 * dimension
+            KM.FindElementalNeighboursProcess(self.main_model_part, dimension, avg_neigh).Execute()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -54,6 +57,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.0,
+        "shock_capturing_type"       : "residual_viscosity",
         "add_flux_correction"        : false
         }
         """)
@@ -82,3 +86,21 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         if abs(water_loss) > 1e-3 and self.echo_level > 1:
             msg = "Water loss : {} %"
             KM.Logger.PrintWarning(self.__class__.__name__, msg.format(water_loss*100))
+
+    def _SetUpFormulation(self):
+        shock_capturing_type = self.settings["shock_capturing_type"].GetString()
+        if  shock_capturing_type == "residual_viscosity":
+            self.element_name = "ShallowWater"
+            self.condition_name = "LineCondition"
+            self.copmute_neighbors = False
+        elif shock_capturing_type == "gradient_jump":
+            self.element_name = "ConservativeElement"
+            self.condition_name = "ConservativeCondition"
+            self.copmute_neighbors = True
+        else:
+            msg  = "StabilizedShallowWaterSolver._SetUpFormulation:\n"
+            msg += "The specified 'shock_capturing_type' : '{}' is not available.\n".format(shock_capturing_type)
+            msg += "The possible options are:\n"
+            msg += "\t- 'residual_viscosity'\n"
+            msg += "\t- 'gradient_jump'\n"
+            raise Exception(msg)
