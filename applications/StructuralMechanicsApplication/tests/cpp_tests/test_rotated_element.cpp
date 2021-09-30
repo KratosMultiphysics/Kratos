@@ -158,10 +158,11 @@ namespace Testing
         r_orientation_process.ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
-        local_axis_1[0] = 0.707107;
-        local_axis_1[1] = 0.707107;
+        const double number = 0.5 * sqrt(2.0);
+        local_axis_1[0] = number;
+        local_axis_1[1] = number;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
-        KRATOS_CHECK_VECTOR_NEAR(r_computed_local_axis_1, local_axis_1, 1.0e-4);
+        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(RotatedElementCylindrical3D4N, KratosStructuralMechanicsFastSuite)
@@ -206,13 +207,14 @@ namespace Testing
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         array_1d<double, 3> local_axis_2 = ZeroVector(3);
-        local_axis_1[0] = 0.707107;
-        local_axis_1[1] = 0.707107;
+        const double number = 0.5 * sqrt(2.0);
+        local_axis_1[0] = number;
+        local_axis_1[1] = number;
         local_axis_2[2] = 1.0;
         const array_1d<double, 3>& r_computed_local_axis_1 = p_element->GetValue(LOCAL_AXIS_1);
         const array_1d<double, 3>& r_computed_local_axis_2 = p_element->GetValue(LOCAL_AXIS_2);
-        KRATOS_CHECK_VECTOR_NEAR(r_computed_local_axis_1, local_axis_1, 1.0E-4);
-        KRATOS_CHECK_VECTOR_NEAR(r_computed_local_axis_2, local_axis_2, 1.0E-4);
+        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_1, local_axis_1);
+        KRATOS_CHECK_VECTOR_EQUAL(r_computed_local_axis_2, local_axis_2);
     }
 
 }
