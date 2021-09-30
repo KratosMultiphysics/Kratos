@@ -45,12 +45,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
 
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -89,12 +83,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 0.0 , 1.0);
-
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
 
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement3D4N", 1, element_nodes, p_elem_prop);
@@ -139,12 +127,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
 
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -186,12 +168,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 0.0 , 1.0);
-
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
 
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement3D4N", 1, element_nodes, p_elem_prop);
@@ -239,12 +215,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
 
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
         std::vector<ModelPart::IndexType> element_nodes {1,2,3};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
 
@@ -286,12 +256,6 @@ namespace Testing
         auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
         auto p_node_3 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
         auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 0.0 , 1.0);
-
-        for (auto& r_node : r_model_part.Nodes()) {
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
 
         std::vector<ModelPart::IndexType> element_nodes {1,2,3,4};
         auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement3D4N", 1, element_nodes, p_elem_prop);
