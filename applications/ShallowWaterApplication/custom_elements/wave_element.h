@@ -320,6 +320,10 @@ protected:
         const ElementData& rData,
         const BoundedMatrix<double,TNumNodes,2>& rDN_DX);
 
+    virtual void CalculateArtificialDamping(
+        BoundedMatrix<double,3,3>& rFriction,
+        const ElementData& rData);
+
     void CalculateGeometryData(
         Vector &rGaussWeights,
         Matrix &rNContainer,

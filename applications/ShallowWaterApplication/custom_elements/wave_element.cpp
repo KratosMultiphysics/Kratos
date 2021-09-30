@@ -132,7 +132,7 @@ void WaveElement<TNumNodes>::GetFirstDerivativesVector(Vector& rValues, int Step
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
-    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector This method is not supported by the formulation" << std::endl;
+    KRATOS_ERROR << "WaveElement::GetSecondDerivativesVector. This method is not supported by the formulation" << std::endl;
 }
 
 template<std::size_t TNumNodes>
@@ -154,7 +154,7 @@ const Variable<double>& WaveElement<TNumNodes>::GetUnknownComponent(int Index) c
         case 0: return VELOCITY_X;
         case 1: return VELOCITY_Y;
         case 2: return HEIGHT;
-        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent index out of bounds." << std::endl;
+        default: KRATOS_ERROR << "WaveElement::GetUnknownComponent. Index out of bounds." << std::endl;
     }
 }
 
@@ -245,6 +245,13 @@ void WaveElement<TNumNodes>::CalculateArtificialViscosity(
     BoundedMatrix<double,2,2>& rDiffusion,
     const ElementData& rData,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
+{
+}
+
+template<std::size_t TNumNodes>
+void WaveElement<TNumNodes>::CalculateArtificialDamping(
+    BoundedMatrix<double,3,3>& rFriction,
+    const ElementData& rData)
 {
 }
 
@@ -351,6 +358,10 @@ void WaveElement<TNumNodes>::AddFrictionTerms(
     BoundedMatrix<double,3,3> Sf = ZeroMatrix(3,3);
     Sf(0,0) = rData.gravity*s;
     Sf(1,1) = rData.gravity*s;
+
+    BoundedMatrix<double,3,3> art_s = ZeroMatrix(3,3);
+    this->CalculateArtificialDamping(art_s, rData);
+    Sf += art_s;
 
     BoundedMatrix<double,3,3> ASf1 = prod(rData.A1, Sf);
     BoundedMatrix<double,3,3> ASf2 = prod(rData.A2, Sf);
