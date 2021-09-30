@@ -47,6 +47,7 @@ struct DataBuffers {
 // declaring the static members
 std::vector<double> DataBuffers::vector_doubles;
 
+// TODO refactor with switch
 const std::map<GeometryData::KratosGeometryType, CoSimIO::ElementType> elem_type_map {
     {GeometryData::KratosGeometryType::Kratos_Hexahedra3D20,    CoSimIO::ElementType::Hexahedra3D20   },
     {GeometryData::KratosGeometryType::Kratos_Hexahedra3D27,    CoSimIO::ElementType::Hexahedra3D27   },
@@ -73,6 +74,7 @@ const std::map<GeometryData::KratosGeometryType, CoSimIO::ElementType> elem_type
     {GeometryData::KratosGeometryType::Kratos_Point3D,          CoSimIO::ElementType::Point3D   }
 };
 
+// TODO refactor with switch
 const std::map<CoSimIO::ElementType, std::string> elem_name_map {
     {CoSimIO::ElementType::Hexahedra3D20, "Element3D20N"},
     {CoSimIO::ElementType::Hexahedra3D27, "Element3D27N"},
@@ -100,6 +102,7 @@ void ExportMesh(
 {
     KRATOS_TRY
 
+    // TODO also add the ghost nodes
     CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
     for (const auto& r_node : rModelPart.Nodes()) {
@@ -146,6 +149,8 @@ void ImportMesh(
 {
     KRATOS_TRY
 
+    // TODO also add the ghost nodes
+    // how to do the ParallelFillComm??
     CoSimIO::ModelPart co_sim_io_model_part(rModelPart.Name());
 
     CoSimIO::ImportMesh(
