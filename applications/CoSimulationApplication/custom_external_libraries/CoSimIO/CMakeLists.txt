@@ -19,22 +19,27 @@ include(CTest)
 # TODO check how this can be added (supported from CMake 3.17)
 # list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 
-OPTION ( CO_SIM_IO_ENABLE_MPI         "Enable MPI communication and MPI examples" OFF )
+OPTION ( CO_SIM_IO_BUILD_MPI         "Enable MPI communication and MPI examples" OFF )
 OPTION ( CO_SIM_IO_BUILD_C            "Building the CoSimIO for C"                OFF )
 OPTION ( CO_SIM_IO_BUILD_PYTHON       "Building the CoSimIO for Python"           OFF )
 OPTION ( CO_SIM_IO_BUILD_FORTRAN      "Building the CoSimIO for Fortran"          OFF )
 OPTION ( CO_SIM_IO_STRICT_COMPILER    "Compiler has more warnings"                OFF )
+OPTION ( CO_SIM_IO_BUILD_TESTING      "Build tests"                               ${BUILD_TESTING} )
 
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+if(NOT DEFINED CO_SIM_IO_BUILD_TYPE)
+    if(CMAKE_BUILD_TYPE)
+        set(CO_SIM_IO_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+    else()
+        set(CO_SIM_IO_BUILD_TYPE Release)
+    endif()
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DCO_SIM_IO_DEBUG")
 
 message("Building the CoSimIO with the following configuration:")
-message("    CMAKE_BUILD_TYPE:          " ${CMAKE_BUILD_TYPE})
-message("    CO_SIM_IO_ENABLE_MPI:      " ${CO_SIM_IO_ENABLE_MPI})
-message("    BUILD_TESTING:             " ${BUILD_TESTING})
+message("    CO_SIM_IO_BUILD_TYPE:      " ${CO_SIM_IO_BUILD_TYPE})
+message("    CO_SIM_IO_BUILD_MPI:       " ${CO_SIM_IO_BUILD_MPI})
+message("    CO_SIM_IO_BUILD_TESTING:   " ${CO_SIM_IO_BUILD_TESTING})
 message("    CO_SIM_IO_BUILD_C:         " ${CO_SIM_IO_BUILD_C})
 message("    CO_SIM_IO_BUILD_PYTHON:    " ${CO_SIM_IO_BUILD_PYTHON})
 # message("    CO_SIM_IO_BUILD_FORTRAN:   " ${CO_SIM_IO_BUILD_FORTRAN})
@@ -42,7 +47,7 @@ message("    CO_SIM_IO_STRICT_COMPILER: " ${CO_SIM_IO_STRICT_COMPILER})
 message("")
 
 
-if (CO_SIM_IO_ENABLE_MPI)
+if (CO_SIM_IO_BUILD_MPI)
     find_package(MPI REQUIRED)
     add_definitions( -DCO_SIM_IO_USING_MPI )
     set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
@@ -50,6 +55,15 @@ if (CO_SIM_IO_ENABLE_MPI)
     set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
+
+# Set installation directory
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" CACHE PATH "Default Install path" FORCE)
+    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 if(MSVC)
     # /Zc:__cplusplus: required such that "__cplusplus" is set to the correct value
@@ -107,7 +121,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_MACOSX_RPATH 0)
 endif()
 
-# clean the bin directory
+# clean the bin directory (only done if "CMAKE_INSTALL_PREFIX" is not specified)
 file(REMOVE_RECURSE bin)
 
 # Adding CoSimIO library
@@ -121,16 +135,16 @@ include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+install(TARGETS co_sim_io DESTINATION bin)
 
-if (CO_SIM_IO_ENABLE_MPI)
+if (CO_SIM_IO_BUILD_MPI)
     # Adding CoSimIO library
     file(GLOB_RECURSE co_sim_io_mpi_source_files ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/mpi/sources/*.cpp)
     add_library (co_sim_io_mpi SHARED ${co_sim_io_mpi_source_files})
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+    install(TARGETS co_sim_io_mpi DESTINATION bin)
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
@@ -151,7 +165,7 @@ if (CO_SIM_IO_BUILD_FORTRAN)
     add_subdirectory(co_sim_io/fortran)
 endif()
 
-if (BUILD_TESTING)
+if (CO_SIM_IO_BUILD_TESTING)
     if(CMAKE_MAJOR_VERSION LESS 3)
         message(FATAL_ERROR "Building the tests requires CMake 3")
     endif()
