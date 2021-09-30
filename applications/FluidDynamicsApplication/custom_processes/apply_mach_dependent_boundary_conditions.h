@@ -88,8 +88,8 @@ namespace Kratos
          * the following behaviour in the other two public methods:
          * - Enforce:
          *     - If t inside interval  -> Fix dof
-         *     - If t outside interval -> Free dof
-         * - Release
+         *     - If t outside interval -> Do nothing
+         * - Free
          *     - Always -> Free dof
          * 
          * This allows for checking the time only once at the beginning of the
@@ -104,18 +104,19 @@ namespace Kratos
             /**
              * @brief Checks that the current time is within the interval, and
              * decides accordingly what function to bind to mEnforceInternal
-             * (either FreeDof or FixDof).
+             * (either FreeDof or DoNothing).
              */
             void ActivateIfInsideTimeInterval(const double time);
 
             /**
-             * @brief Calls mEnforceInternal. This will either fix or free the
-             * Dof depending on the result of ActivateIfInsideTimeInterval.
+             * @brief Calls mEnforceInternal. This will either fix the Dof
+             * or do nothing depending on the result of 
+             * ActivateIfInsideTimeInterval.
              */
             void Enforce(NodeType & rNode) const;
 
             /// @brief Frees the Dof.
-            void Release(NodeType & rNode) const;
+            void Free(NodeType & rNode) const;
 
         private:
             const Variable<double> * mpVariable;
@@ -127,13 +128,15 @@ namespace Kratos
              */
             static void FixDof(const BoundaryConditionUtility & rUtility, NodeType & rNode);
 
-            /// @brief Frees the Dof managed by this class
-            static void FreeDof(const BoundaryConditionUtility & rUtility, NodeType & rNode);
-
-            /** @brief This object points to the proper (Fix|Free)Dof function
-             * according to the time interval.
+            /** @brief Does nothing. Used to replace FixDof when t is outside
+             * time interval
              */
-            decltype(FixDof) * mEnforceInternal = & FreeDof;
+            static void DoNothing(const BoundaryConditionUtility & rUtility, NodeType & rNode);
+
+            /** @brief This object points to the proper (FixDof|DoNothing)
+             * function according to the time interval.
+             */
+            decltype(FixDof) * mEnforceInternal = & DoNothing;
         };
 
         /// Pointer definition of ApplyMachDependentBoundaryConditions
@@ -159,6 +162,8 @@ namespace Kratos
         void ExecuteInitialize() override;
 
         void ExecuteInitializeSolutionStep() override;
+
+        void ExecuteFinalizeSolutionStep() override;
 
         const Parameters GetDefaultParameters() const override;
 

@@ -80,20 +80,29 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
         
         // Chosing BC set to enforce according to mach
         const bool supersonic = fabs(mach_projection) >= 1.0;
-        
         const auto & active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
-        const auto & passive_bc = supersonic ? mSubsonicBCs   : mSupersonicBCs;
-
-        for(const auto & boundary_condition: passive_bc)
-        {
-            boundary_condition.Release(rNode);
-        }
 
         for(const auto & boundary_condition: active_bc)
         {
             boundary_condition.Enforce(rNode);
         }
 
+    });
+}
+
+void ApplyMachDependentBoundaryConditions::ExecuteFinalizeSolutionStep()
+{
+    block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
+    {
+        for(const auto & boundary_condition: mSupersonicBCs)
+        {
+            boundary_condition.Free(rNode);
+        }
+
+        for(const auto & boundary_condition: mSubsonicBCs)
+        {
+            boundary_condition.Free(rNode);
+        }
     });
 }
 
@@ -124,7 +133,7 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
     }
     else
     {
-        mEnforceInternal = &FreeDof;
+        mEnforceInternal = &DoNothing;
     }
 }
 
@@ -137,9 +146,9 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 
 
 void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    Release(NodeType & rNode) const
+    Free(NodeType & rNode) const
 {
-    FreeDof(*this, rNode);
+    rNode.pGetDof(*mpVariable)->FreeDof();
 }
 
 
@@ -152,11 +161,10 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FixDof(
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FreeDof(
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::DoNothing(
     const BoundaryConditionUtility & rUtility,
     NodeType & rNode)
 {
-    rNode.pGetDof(*rUtility.mpVariable)->FreeDof();
 }
 
 
@@ -241,7 +249,7 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
     [
         {                                     // For scalar variables
             "variable_name" : "DENSITY",   <--- The variable to fix. Must be a "double" variable
-            "interval" : [0, "End"],       <--- Time interval for it to be fixeds
+            "interval" : [0, "End"],       <--- Time interval for it to be fixed
             "value" : 0.0                  <--- The value to fix it to
         },
         {                                    // For vector variables
