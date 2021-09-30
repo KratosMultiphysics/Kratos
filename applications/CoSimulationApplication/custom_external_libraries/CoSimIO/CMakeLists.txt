@@ -19,7 +19,7 @@ include(CTest)
 # TODO check how this can be added (supported from CMake 3.17)
 # list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 
-OPTION ( CO_SIM_IO_BUILD_MPI         "Enable MPI communication and MPI examples" OFF )
+OPTION ( CO_SIM_IO_BUILD_MPI          "Enable MPI communication and MPI examples" OFF )
 OPTION ( CO_SIM_IO_BUILD_C            "Building the CoSimIO for C"                OFF )
 OPTION ( CO_SIM_IO_BUILD_PYTHON       "Building the CoSimIO for Python"           OFF )
 OPTION ( CO_SIM_IO_BUILD_FORTRAN      "Building the CoSimIO for Fortran"          OFF )
@@ -64,6 +64,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
+if(NOT DEFINED CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY)
+    set(CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY bin)
+endif()
 
 if(MSVC)
     # /Zc:__cplusplus: required such that "__cplusplus" is set to the correct value
@@ -135,7 +139,7 @@ include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION bin)
+install(TARGETS co_sim_io DESTINATION ${CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY})
 
 if (CO_SIM_IO_BUILD_MPI)
     # Adding CoSimIO library
@@ -144,7 +148,7 @@ if (CO_SIM_IO_BUILD_MPI)
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION bin)
+    install(TARGETS co_sim_io_mpi DESTINATION ${CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY})
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)
