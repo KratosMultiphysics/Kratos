@@ -5,6 +5,8 @@ import KratosMultiphysics
 import numpy as np
 import json
 
+import pdb
+
 try:
     from matplotlib import pyplot as plt
     missing_matplotlib = False
@@ -27,7 +29,7 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
         Take_into_account_singular_values: whether to multiply the matrix of singular values by the matrix of left singular vectors. If false, convergence is easier
         Plotting: whether to plot the error evolution of the element selection algorithm
     """
-    def __init__(self, ECM_tolerance = 1e-6, SVD_tolerance = 1e-6, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
+    def __init__(self, ECM_tolerance = 1e-12, SVD_tolerance = 1e-12, Filter_tolerance = 1e-16, Take_into_account_singular_values = False, Plotting = False):
         super().__init__()
         self.ECM_tolerance = ECM_tolerance
         self.SVD_tolerance = SVD_tolerance
@@ -44,8 +46,9 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
             OriginalNumberOfElements: number of elements in the original model part. Necessary for the construction of the hyperreduced mdpa
             ModelPartName: name of the original model part. Necessary for the construction of the hyperreduced mdpa
     """
-    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName):
+    def SetUp(self, ResidualSnapshots, OriginalNumberOfElements, ModelPartName, RequestedElementsToInclude=None):
         super().SetUp()
+        self.RequestedElementsToInclude = RequestedElementsToInclude # in a python list,for example: [2,3,4,5,6,7,11,12,12,56,120]
         self.ModelPartName = ModelPartName
         self.OriginalNumberOfElements = OriginalNumberOfElements
         u , s  = self._ObtainBasis(ResidualSnapshots)
@@ -237,7 +240,17 @@ class EmpiricalCubatureMethod(ElementSelectionStrategy):
     Method to write a json file containing the selected elements and corresponding weights
     """
     def WriteSelectedElements(self):
+        if self.RequestedElementsToInclude == None:
+            pass
+        else:
+            self.z = (self.z).reshape(1,-1)
+            for i in range(len(self.RequestedElementsToInclude)):
+                if self.RequestedElementsToInclude[i] not in self.z:
+                    self.z = np.c_[self.z,self.RequestedElementsToInclude[i]]
+                    self.w = np.c_[self.w, 0.0]
+            self.z = np.squeeze(self.z)
         w = np.squeeze(self.w)
+
         ### Saving Elements and conditions
         ElementsAndWeights = {}
         ElementsAndWeights["Elements"] = {}

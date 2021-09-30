@@ -22,6 +22,7 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
+#include "custom_utilities/rom_model_part_utility.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
@@ -40,8 +41,22 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     class_<RomResidualsUtility, typename RomResidualsUtility::Pointer>(m, "RomResidualsUtility")
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
-    .def("GetResiduals",&RomResidualsUtility::Calculate) //
+    .def("GetResiduals",&RomResidualsUtility::Calculate)
     ;     
+
+    class_<RomModelPartUtility, typename RomModelPartUtility::Pointer>(m, "RomModelPartUtility")
+    .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) // 
+    .def("GetResiduals",&RomModelPartUtility::Calculate)
+    .def("GetNonProjectedResiduals",&RomModelPartUtility::GetNonProjectedResiduals) //
+    .def("GetConditionsList",&RomModelPartUtility::GetConditionsList) 
+    .def("GetNonProjectedResidualsFromConditionList",&RomModelPartUtility::GetNonProjectedResidualsFromConditionList)
+    .def("GetNonProjectedResidualsFromElementList",&RomModelPartUtility::GetNonProjectedResidualsFromElementList)
+    .def("GetElementListFromNode",&RomModelPartUtility::GetElementListFromNode)
+    .def("GetNodeList",&RomModelPartUtility::GetNodeList)
+    .def("GetDofsFromElementList",&RomModelPartUtility::GetDofsFromElementList)
+    .def("AssembleReactions",&RomModelPartUtility::AssembleReactions)
+    .def("AssembleStresses",&RomModelPartUtility::AssembleStresses)
+    ;
 
 }
 

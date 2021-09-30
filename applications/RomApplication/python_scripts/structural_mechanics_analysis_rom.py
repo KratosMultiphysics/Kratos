@@ -4,6 +4,7 @@ import KratosMultiphysics.StructuralMechanicsApplication
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom as solver_wrapper
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition#####
 
 import json
 import numpy as np
@@ -55,7 +56,7 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 counter+=1
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
-                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme())
+                self.ResidualUtilityObject = romapp.RomResidualsUtility(self._GetSolver().GetComputingModelPart(), self.project_parameters["solver_settings"]["rom_settings"], self._GetSolver().get_solution_scheme())
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -68,15 +69,40 @@ class StructuralMechanicsAnalysisROM(StructuralMechanicsAnalysis):
                 self.time_step_residual_matrix_container.append(NP_ResMat)
 
     def Finalize(self):
-        super().FinalizeSolutionStep()
+        super().Finalize()
         if self.hyper_reduction_element_selector != None:
             if self.hyper_reduction_element_selector.Name == "EmpiricalCubature":
                 OriginalNumberOfElements = self._GetSolver().GetComputingModelPart().NumberOfElements()
                 ModelPartName = self._GetSolver().settings["model_import_settings"]["input_filename"].GetString()
-                self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
-                self.hyper_reduction_element_selector.Run()
+                ###### Sebastian #######
+                builder_and_solver = self._GetSolver().get_builder_and_solver()
+                CalculateReactionsFlag = builder_and_solver.GetCalculateReactionsFlag()
+                # Load Residual parameters to force considering some restricted elements
+                if CalculateReactionsFlag:
+                    try:
+                        with open('RomParameters.json') as s:
+                            HR_data_residuals = json.load(s)
+                            restricted_residual_elements = np.array(HR_data_residuals["residual_parameters"]["rom_settings"]["restricted_elements"])-1
+                        selected_restricted_residual_elements = np.random.choice(restricted_residual_elements, 5).tolist()
+                        selected_restricted_residual_elements.sort()
+                        self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName,selected_restricted_residual_elements)
+                        self.hyper_reduction_element_selector.Run()
+                    except:
+                        self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                        self.hyper_reduction_element_selector.Run() 
+                else:
+                ########################
+                    self. hyper_reduction_element_selector.SetUp(self.time_step_residual_matrix_container, OriginalNumberOfElements, ModelPartName)
+                    self.hyper_reduction_element_selector.Run()
 
-
+    def ArrangeSnapshotMatrix(self,ResidualSnapshots):
+        ### Building the Snapshot matrix ####
+        for i in range (len(ResidualSnapshots)):
+            if i == 0:
+                SnapshotMatrix = ResidualSnapshots[i]
+            else:
+                SnapshotMatrix = np.c_[SnapshotMatrix,ResidualSnapshots[i]]
+        return SnapshotMatrix
 
 
 
