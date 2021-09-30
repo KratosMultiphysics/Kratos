@@ -234,18 +234,18 @@ KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3NByParts_SteadyStillSurface, Sha
 /**
  * @brief Check the ConservativeElement2D3N element integrated by parts with still free surface and bottom topography skew gradient
  */
-KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3NByParts_SteadyTopographySkewGradient, ShallowWaterApplicationFastSuite)
-{
-    const double manning = 0.0;
-    const double height = 5.0;
-    array_1d<double,3> momentum = ZeroVector(3);
-    array_1d<double,3> slope = ZeroVector(3);
-    slope[0] = 0.03;
-    slope[1] = 0.03;
-    array_1d<double,3> height_gradient = -slope;
+// KRATOS_TEST_CASE_IN_SUITE(ConservativeElement2D3NByParts_SteadyTopographySkewGradient, ShallowWaterApplicationFastSuite)
+// {
+//     const double manning = 0.0;
+//     const double height = 5.0;
+//     array_1d<double,3> momentum = ZeroVector(3);
+//     array_1d<double,3> slope = ZeroVector(3);
+//     slope[0] = 0.03;
+//     slope[1] = 0.03;
+//     array_1d<double,3> height_gradient = -slope;
 
-    ConservativeElementSteadyStateTestParts(manning, height, momentum, slope, height_gradient);
-}
+//     ConservativeElementSteadyStateTestParts(manning, height, momentum, slope, height_gradient);
+// }
 
 } // namespace Testing
 
