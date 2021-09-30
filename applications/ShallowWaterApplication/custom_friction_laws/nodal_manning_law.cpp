@@ -17,7 +17,7 @@
 
 
 // Project includes
-#include "chezy_law.h"
+#include "nodal_manning_law.h"
 #include "shallow_water_application_variables.h"
 #include "custom_utilities/shallow_water_utilities.h"
 
@@ -25,7 +25,7 @@
 namespace Kratos
 {
 
-ChezyLaw::ChezyLaw(
+NodalManningLaw::NodalManningLaw(
     const GeometryType& rGeometry,
     const Properties& rProperty,
     const ProcessInfo& rProcessInfo)
@@ -33,25 +33,19 @@ ChezyLaw::ChezyLaw(
     this->Initialize(rGeometry, rProperty, rProcessInfo);
 }
 
-void ChezyLaw::Initialize(
+void NodalManningLaw::Initialize(
     const GeometryType& rGeometry,
     const Properties& rProperty,
     const ProcessInfo& rProcessInfo)
 {
-    const double chezy = rProperty.GetValue(CHEZY);
-    mCoefficient = 1. / std::pow(chezy, 2);
+    double manning = 0.0;
+    for (auto& r_node : rGeometry) {
+        manning += r_node.FastGetSolutionStepValue(MANNING);
+    }
+    manning /= rGeometry.size();
+    mManning2 = std::pow(manning, 2);
+
     mEpsilon = rGeometry.Length() * rProcessInfo[RELATIVE_DRY_HEIGHT];
-}
-
-double ChezyLaw::CalculateLHS(const double& rHeight, const array_1d<double,3>& rVelocity)
-{
-    const double inv_height = ShallowWaterUtilities().InverseHeight(rHeight, mEpsilon);
-    return mCoefficient * norm_2(rVelocity) * inv_height;
-}
-
-array_1d<double,3> ChezyLaw::CalculateRHS(const double& rHeight, const array_1d<double,3>& rVelocity)
-{
-    return rVelocity * CalculateLHS(rHeight, rVelocity);
 }
 
 }  // namespace Kratos
