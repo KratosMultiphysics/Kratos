@@ -16,7 +16,7 @@
 namespace CoSimIO {
 
 int GetMajorVersion() {
-    return 2;
+    return 3;
 }
 
 int GetMinorVersion() {

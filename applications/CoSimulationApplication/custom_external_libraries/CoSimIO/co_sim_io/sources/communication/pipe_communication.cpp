@@ -41,7 +41,10 @@ PipeCommunication::PipeCommunication(
 
 Info PipeCommunication::ConnectDetail(const Info& I_Info)
 {
-    mpPipe = std::make_shared<BidirectionalPipe>(GetCommunicationDirectory(), GetConnectionName(), GetIsPrimaryConnection());
+    mpPipe = std::make_shared<BidirectionalPipe>(
+        GetCommunicationDirectory(),
+        GetConnectionName() + "_r" + std::to_string(GetDataCommunicator().Rank()),
+        GetIsPrimaryConnection());
 
     return Info(); // TODO use
 }
@@ -108,8 +111,8 @@ PipeCommunication::BidirectionalPipe::BidirectionalPipe(
     const fs::path& rBasePipeName,
     const bool IsPrimary)
 {
-    mPipeNameWrite = rPipeDir / rBasePipeName;
-    mPipeNameRead  = rPipeDir / rBasePipeName;
+    mPipeNameWrite = mPipeNameRead = rPipeDir / rBasePipeName;
+
     #ifdef CO_SIM_IO_COMPILED_IN_WINDOWS
     CO_SIM_IO_ERROR << "Pipe communication is not yet implemented for Windows!" << std::endl;
     #else

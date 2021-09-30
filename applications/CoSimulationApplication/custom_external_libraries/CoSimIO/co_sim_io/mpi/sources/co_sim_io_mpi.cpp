@@ -32,6 +32,10 @@ Info ConnectMPI(
     MPI_Initialized(&flag_initialized);
     CO_SIM_IO_ERROR_IF_NOT(flag_initialized) << "MPI must be initialized before calling \"ConnectMPI\"!" << std::endl;
 
+    // make sure a valid communicator is passed
+    CO_SIM_IO_ERROR_IF(ThisMPIComm == MPI_COMM_SELF) << "Passing \"MPI_COMM_SELF\" is not allowed!" << std::endl;
+    CO_SIM_IO_ERROR_IF(ThisMPIComm == MPI_COMM_NULL) << "Passing \"MPI_COMM_NULL\" is not allowed!" << std::endl;
+
     return Internals::ConnectImpl(I_Settings, std::make_shared<CoSimIO::Internals::MPIDataCommunicator>(ThisMPIComm));
 }
 
