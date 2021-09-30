@@ -195,13 +195,13 @@ public:
 
     /// Set up the element.
     /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    virtual void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     /// Update the values of tracked small scale quantities.
-    virtual void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /// Predict the value of the small scale velocity for the current iteration.
-    virtual void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -298,7 +298,7 @@ protected:
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
-    virtual void AddMassLHS(
+    void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
@@ -317,11 +317,11 @@ protected:
         double &TauTwo,
         double &TauP) const;
 
-    virtual void SubscaleVelocity(
+    void SubscaleVelocity(
         const TElementData& rData,
         array_1d<double,3>& rVelocitySubscale) const override;
 
-    virtual void SubscalePressure(
+    void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
