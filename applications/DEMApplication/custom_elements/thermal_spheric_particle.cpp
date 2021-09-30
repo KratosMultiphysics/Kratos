@@ -23,6 +23,7 @@ namespace Kratos
   template <class TBaseElement>
   ThermalSphericParticle<TBaseElement>::~ThermalSphericParticle() {}
 
+  //=====================================================================================================================================================================================
   // Initialization methods
 
   template <class TBaseElement>
@@ -30,22 +31,11 @@ namespace Kratos
     // Initialize base class
     TBaseElement::Initialize(r_process_info);
 
-    // Get material properties
-    mSpecificHeat        = GetProperties()[SPECIFIC_HEAT];
-    mThermalConductivity = GetProperties()[THERMAL_CONDUCTIVITY];
-
     // Set thermal flags
-    if (r_process_info[DIRECT_CONDUCTION_OPTION])   this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   true);
-    else                                            this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   false);
-
-    if (r_process_info[INDIRECT_CONDUCTION_OPTION]) this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, true);
-    else                                            this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, false);
-
-    if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_CONVECTION,          true);
-    else                                            this->Set(DEMFlags::HAS_CONVECTION,          false);
-
-    if (r_process_info[CONVECTION_OPTION])          this->Set(DEMFlags::HAS_RADIATION,           true);
-    else                                            this->Set(DEMFlags::HAS_RADIATION,           false);
+    this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   r_process_info[DIRECT_CONDUCTION_OPTION]);
+    this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, r_process_info[INDIRECT_CONDUCTION_OPTION]);
+    this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
+    this->Set(DEMFlags::HAS_RADIATION,           r_process_info[CONVECTION_OPTION]);
 
     // Initialize prescribed heat flux
     SetParticlePrescribedHeatFlux(0.0);
@@ -57,6 +47,7 @@ namespace Kratos
     TBaseElement::InitializeSolutionStep(r_process_info);
   }
 
+  //=====================================================================================================================================================================================
   // Calculate right hand side (forces and heat fluxes)
 
   template <class TBaseElement>
@@ -70,922 +61,79 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeHeatFluxes(const ProcessInfo& r_process_info) {
-    // Initialize heat flux contributions
+    KRATOS_TRY
+
+    // Initialize heat fluxes contributions
     mConductiveHeatFlux = 0.0;
     mConvectiveHeatFlux = 0.0;
     mRadiativeHeatFlux  = 0.0;
     mTotalHeatFlux      = 0.0;
 
-    // Direct conduction
-    if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION)) {
-      ComputeBallToBallDirectConductionHeatFlux(r_process_info);
-      ComputeBallToRigidFaceDirectConductionHeatFlux(r_process_info);
+    // Compute heat fluxes with neighbor particles
+    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+      if (mNeighbourElements[i] == NULL) continue;
+      mNeighbor_p   = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+      mNeighborType = PARTICLE_NEIGHBOR;
+      ComputeHeatFluxWithNeighbor(r_process_info);
     }
 
-    // Indirect conduction
-    if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)) {
-      ComputeBallToBallIndirectConductionHeatFlux(r_process_info);
-      ComputeBallToRigidFaceIndirectConductionHeatFlux(r_process_info);
+    // Compute heat fluxes with neighbor walls
+    for (unsigned int i = 0; i < mNeighbourRigidFaces.size(); i++) {
+      if (mNeighbourRigidFaces[i] == NULL) continue;
+      mNeighbor_w   = dynamic_cast<DEMWall*>(mNeighbourRigidFaces[i]);
+      mNeighborType = WALL_NEIGHBOR;
+      ComputeHeatFluxWithNeighbor(r_process_info);
     }
 
-    // Convection
-    if (this->Is(DEMFlags::HAS_CONVECTION)) {
+    // Compute convection with surrounding fluid
+    if (this->Is(DEMFlags::HAS_CONVECTION))
       ComputeConvectiveHeatFlux(r_process_info);
-    }
-
-    // Radiation
-    if (this->Is(DEMFlags::HAS_RADIATION)) {
-      ComputeRadiativeHeatFlux(r_process_info);
-    }
 
     // Sum up contributions
     mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
-  }
-
-  // Compute heat fluxes components
-
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeBallToBallDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Direct conduction model
-    std::string model = r_process_info[DIRECT_CONDUCTION_MODEL];
-
-    // Loop over neighbour particles
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-      if (mNeighbourElements[i] == NULL) continue;
-      ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-
-      // Check if neighbour is adiabatic
-      if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
-        continue;
-
-      // Get particles radii
-      double this_radius  = GetRadius();
-      double other_radius = neighbour_iterator->GetRadius();
-
-      // Compute direction and distance between centroids
-      array_1d<double, 3> direction;
-      direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-      direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
-      direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-
-      double distance = DEM_MODULUS_3(direction);
-
-      // Check if particles are in contact
-      if (distance >= this_radius + other_radius)
-        continue;
-
-      // Get particles temperatures
-      double this_temp  = GetParticleTemperature();
-      double other_temp = neighbour_iterator->GetParticleTemperature();
-      double temp_grad  = other_temp - this_temp;
-
-      // Get common properties
-      double other_conductivity = neighbour_iterator->mThermalConductivity;
-
-      // Compute heat flux according to selected model
-      if (model.compare("batchelor_obrien") == 0) {
-
-        // Compute effective thermal conductivity
-        double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
-
-        // Compute contact radius
-        double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-
-        // Compute heat flux
-        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
-      }
-      else if (model.compare("thermal_pipe") == 0) {
-
-        // Compute average thermal conductivity
-        double avg_conductivity = (this_radius + other_radius) / (this_radius/mThermalConductivity + other_radius/other_conductivity);
-
-        // Compute contact area
-        double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-        double contact_area   = Globals::Pi*contact_radius*contact_radius;
-
-        // Compute heat flux
-        mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / distance;
-      }
-      else if (model.compare("collisional") == 0) {
-        
-        // Get properties
-        double this_density       = GetDensity();
-        double this_mass          = GetMass();
-        double this_poisson       = GetPoisson();
-        double this_young         = GetYoung();
-        double other_density      = neighbour_iterator->GetDensity();
-        double other_mass         = neighbour_iterator->GetMass();
-        double other_poisson      = neighbour_iterator->GetPoisson();
-        double other_young        = neighbour_iterator->GetYoung();
-        double other_heatcapacity = neighbour_iterator->mSpecificHeat;
-
-        // Compute effective parameters
-        double eff_radius = this_radius * other_radius / (this_radius + other_radius);
-        double eff_mass   = this_mass * other_mass / (this_mass + other_mass);
-        double eff_young  = 1 / ((1-this_poisson*this_poisson)/this_young + (1-other_poisson*other_poisson)/other_young);
-
-        // Compute expected collision time
-        double impact_normal_velocity = 0.0;   // TODO: save impact normal velocity
-        double col_time = 0.0;                 // TODO: track collision time
-        double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
-
-        // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
-        if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
-          // Compute max contact radius
-          double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
-
-          // Compute coefficients
-          double a1 = this_density * mSpecificHeat;
-          double a2 = other_density * other_heatcapacity;
-          double b1 = a1 * mThermalConductivity;
-          double b2 = a2 * other_conductivity;
-          double c  = a1/a2;
-
-          // Fourier number (Assumption: average of both particles)
-          double fo1 = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
-          double fo2 = other_conductivity   * expect_col_time / (a2*contact_radius_max*contact_radius_max);
-          double fo  = (fo1+fo2)/2;
-
-          // Compute coefficient C
-          double c1 = -2.300*c*c +  8.909*c -  4.235;
-          double c2 =  8.169*c*c - 33.770*c + 24.885;
-          double c3 = -5.758*c*c + 24.464*c - 20.511;
-
-          double C_coeff = 0.435 * (sqrt(c2*c2-4*c1*(c3-fo)) - c2) / c1;
-
-          // Compute heat flux
-          mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
-        }
-        else {
-          // Compute effective thermal conductivity
-          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
-
-          // Compute contact radius
-          double contact_radius = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-
-          // Compute heat flux
-          mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
-        }
-      }
-    }
 
     KRATOS_CATCH("")
   }
 
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeBallToRigidFaceDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Direct conduction model
-    std::string model = r_process_info[DIRECT_CONDUCTION_MODEL];
-
-    // Loop over neighbour walls
-    std::vector<DEMWall*>& rNeighbours = mNeighbourRigidFaces;
-    for (unsigned int i = 0; i < rNeighbours.size(); i++) {
-      DEMWall* wall = rNeighbours[i];
-      if (wall == NULL) continue;
-      
-      // Check if neighbour is adiabatic
-      if (wall->Is(DEMFlags::IS_ADIABATIC))
-        continue;
-
-      // Compute distance between particle and wall
-      // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
-      double dummy1[3][3];
-      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-      array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-      array_1d<double, 3> dummy3 = ZeroVector(3);
-      array_1d<double, 3> dummy4 = ZeroVector(3);
-      double distance = 0.0;
-      int ContactType = -1;
-      wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
-
-      // Check if particle is in contact with wall
-      if (ContactType != 1 && ContactType != 2 && ContactType != 3)
-        continue;
-
-      // Get temperatures
-      // (Assumption: wall temperature is the average of its nodes)
-      double wall_temp = 0.0;
-      double n_nodes = wall->GetGeometry().size();
-      for (unsigned int i = 0; i < n_nodes; i++) {
-        double node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
-        wall_temp += node_temp;
-      }
-      wall_temp /= n_nodes;
-
-      double particle_temp = GetParticleTemperature();
-      double temp_grad = wall_temp - particle_temp;
-
-      // Get common properties
-      double particle_radius = GetRadius();
-      double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
-
-      // Compute heat flux according to selected model
-      if (model.compare("batchelor_obrien") == 0) {
-
-        // Compute effective thermal conductivity
-        double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
-
-        // Compute contact radius
-        double indentation    = particle_radius - distance;
-        double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
-
-        // Compute heat flux
-        mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
-      }
-      else if (model.compare("thermal_pipe") == 0) {
-        
-        // Compute average thermal conductivity
-        // (Assumption: average conductivity considers particle only)
-        double avg_conductivity = mThermalConductivity;
-
-        // Compute contact area
-        double indentation    = particle_radius - distance;
-        double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
-        double contact_area   = Globals::Pi*contact_radius*contact_radius;
-
-        // Compute heat flux
-        // (Assumption: twice the particle-wall distance as if the wall was another particle)
-        mConductiveHeatFlux += avg_conductivity * contact_area * temp_grad / (2*distance);
-
-      }
-      else if (model.compare("collisional") == 0) {
-        // Get properties
-        double particle_density  = GetDensity();
-        double particle_mass     = GetMass();
-        double particle_poisson  = GetPoisson();
-        double particle_young    = GetYoung();
-        double wall_density      = wall->GetProperties()[DENSITY];
-        double wall_poisson      = wall->GetPoisson();
-        double wall_young        = wall->GetYoung();
-        double wall_heatcapacity = wall->GetProperties()[SPECIFIC_HEAT];
-
-        // Compute effective parameters
-        double eff_radius = particle_radius;
-        double eff_mass   = particle_mass;
-        double eff_young  = 1 / ((1-particle_poisson*particle_poisson)/ particle_young + (1-wall_poisson*wall_poisson)/wall_young);
-
-        // Compute expected collision time
-        double impact_normal_velocity = 0.0;   // TODO: save impact normal velocity
-        double col_time = 0.0;                 // TODO: track collision time
-        double expect_col_time = 2.87 * pow(eff_mass*eff_mass / (eff_radius*eff_young*eff_young*impact_normal_velocity),1/5);
-
-        // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
-        if (col_time < expect_col_time && impact_normal_velocity != 0.0) {
-          // Compute max contact radius
-          double contact_radius_max = pow(15*eff_radius*eff_mass*impact_normal_velocity*impact_normal_velocity / (16*eff_young),1/5);
-
-          // Compute coefficients
-          double a1 = particle_density * mSpecificHeat;
-          double a2 = wall_density * wall_heatcapacity;
-          double b1 = a1 * mThermalConductivity;
-          double b2 = a2 * wall_conductivity;
-          double c  = a1/a2;
-
-          // Fourier number
-          double fo = mThermalConductivity * expect_col_time / (a1*contact_radius_max*contact_radius_max);
-
-          // Compute coefficient C
-          double c1 = -2.300*c*c +  8.909*c -  4.235;
-          double c2 =  8.169*c*c - 33.770*c + 24.885;
-          double c3 = -5.758*c*c + 24.464*c - 20.511;
-
-          double C_coeff = 0.435 * (sqrt(c2*c2-4*c1*(c3-fo)) - c2) / c1;
-
-          // Compute heat flux
-          mConductiveHeatFlux += C_coeff * Globals::Pi * contact_radius_max*contact_radius_max * pow(expect_col_time,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
-        }
-        else {
-          // Compute effective thermal conductivity
-          double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
-
-          // Compute contact radius
-          double indentation    = particle_radius - distance;
-          double contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
-
-          // Compute heat flux
-          mConductiveHeatFlux += 4 * eff_conductivity * contact_radius * temp_grad;
-        }
-      }
-    }
-
-    KRATOS_CATCH("")
-  }
+  //=====================================================================================================================================================================================
+  // Finalization methods
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeBallToBallIndirectConductionHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Indirect conduction model
-    std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
-
-    // Loop over neighbour particles
-    for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-      if (mNeighbourElements[i] == NULL) continue;
-      ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-
-      // Check if neighbour is adiabatic
-      if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
-        continue;
-
-      // Get particles temperatures
-      double this_temp  = GetParticleTemperature();
-      double other_temp = neighbour_iterator->GetParticleTemperature();
-      double temp_grad  = other_temp - this_temp;
-
-      // Get particles radii
-      double this_radius  = GetRadius();
-      double other_radius = neighbour_iterator->GetRadius();
-      
-      // Get interstitial fluid properties
-      double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-
-      // Compute heat flux according to selected model
-      if (model.compare("surrounding_layer") == 0) {
-        
-        // Get model parameters
-        double layer    = r_process_info[FLUID_LAYER_THICKNESS];
-        double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
-        
-        // Compute direction and distance between centroids
-        array_1d<double, 3> direction;
-        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
-        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-
-        double distance = DEM_MODULUS_3(direction);
-
-        // Check if particles are close enough
-        if (distance > this_radius + other_radius + layer * std::max(this_radius, other_radius))
-          continue;
-
-        // Compute heat transfer coefficient
-        double h = 0.0;
-        
-        if (this_radius == other_radius) {
-          
-          double a = (distance - 2*this_radius) / this_radius;
-          double r_in;
-          double r_out;
-
-          if (distance > 2*this_radius + min_dist)
-            r_in = 0.0;
-          else
-            r_in = sqrt(1-pow(min_dist/this_radius-a-1,2));
-
-          if (a > sqrt(pow((this_radius + (layer*this_radius)) / this_radius,2) - 1) - 1)
-            r_out = sqrt(pow((this_radius + (layer*this_radius)) / this_radius,2) - (a+1)*(a+1));
-          else
-            r_out = 1.0;
-
-          double b = sqrt(1-r_out*r_out);
-          double c = sqrt(1-r_in*r_in);
-
-          h = 2 * Globals::Pi * fluid_conductivity * this_radius * ((a+1) * log(abs((b-a-1) / (a-c+1))) + b - c);
-        }
-        else {
-
-          // Compute lower limit of integral (contact radius)
-          double low_lim;
-
-          if (distance < this_radius + other_radius)
-            low_lim = sqrt(fabs(this_radius*this_radius - pow(((this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance)),2)));
-          else
-            low_lim = 0.0;
-
-          // Compute upper limit of integral
-          double r_min = std::min(this_radius,other_radius);
-          double r_max = std::max(this_radius,other_radius);
-          double param = pow((r_max+(layer*r_max)),2);
-          double upp_lim;
-          
-          if (distance <= sqrt(param-r_min*r_min))
-            upp_lim = r_min;
-          else
-            upp_lim = sqrt(param - pow(((param - r_min*r_min + distance*distance) / (2*distance)),2));
-
-          // Heat transfer coefficient from integral expression solved numerically
-          h = fluid_conductivity * IntegralSurrLayer(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance);
-        }
-
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-      else if (model.compare("voronoi_a") == 0) {
-
-        // Compute direction and distance between centroids
-        array_1d<double, 3> direction;
-        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
-        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-
-        double distance = DEM_MODULUS_3(direction);
-
-        // Check if particles are close enough
-        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
-        if (distance > this_radius + other_radius + cutoff * std::max(this_radius, other_radius))
-          continue;
-
-        // Compute lower limit of integral (contact radius)
-        double low_lim;
-
-        if (distance < this_radius + other_radius)
-          low_lim = sqrt(fabs(this_radius * this_radius - pow(((this_radius * this_radius - other_radius * other_radius + distance * distance) / (2 * distance)), 2)));
-        else
-          low_lim = 0.0;
-
-        // Get porosity
-        // TODO: currently, global average porosity is an input
-        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-        if      (porosity <  0.0) porosity = 0.0;
-        else if (porosity >= 1.0) porosity = 0.999;
-
-        // Compute voronoi edge radius from porosity
-        double rij = 0.56 * this_radius / pow((1.0-porosity),1/3);
-
-        // Compute heat transfer coefficient
-        double other_conductivity = neighbour_iterator->mThermalConductivity;
-        double h = 0.0;
-
-        if (this_radius == other_radius) {
-
-          // Compute effective thermal conductivity
-          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
-
-          // Compute upper limit of integral
-          double upp_lim = this_radius * rij / sqrt(rij*rij + distance*distance/4.0);
-
-          // Heat transfer coefficient from integral expression solved numerically
-          h = IntegralVoronoiMono(r_process_info, low_lim, upp_lim, this_radius, distance, rij, eff_conductivity);
-        }
-        else {
-
-          // Compute upper limit of integral
-          double D1, D2, rij_, upp_lim;
-
-          if (distance < this_radius + other_radius) D1 = sqrt(this_radius*this_radius - low_lim*low_lim);
-          else                                       D1 = (this_radius*this_radius - other_radius*other_radius + distance*distance) / (2*distance);
-          D2 = distance - D1;
-          
-          if (this_radius <= other_radius) upp_lim = this_radius  * rij / sqrt(rij*rij + D1*D1);
-          else                             upp_lim = other_radius * rij / sqrt(rij*rij + D2*D2);
-          rij_ = D2*upp_lim / sqrt(other_radius*other_radius - upp_lim *upp_lim);
-
-          // Heat transfer coefficient from integral expression solved numerically
-          h = IntegralVoronoiMulti(r_process_info, low_lim, upp_lim, this_radius, other_radius, distance, rij, rij_, D1, D2, mThermalConductivity, other_conductivity);
-        }
-
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-      else if (model.compare("voronoi_b") == 0) {
-
-        // Compute direction and distance between centroids
-        array_1d<double, 3> direction;
-        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
-        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-
-        double distance = DEM_MODULUS_3(direction);
-
-        // Check if particles are close enough
-        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
-        if (distance > this_radius + other_radius + cutoff * std::max(this_radius, other_radius))
-          continue;
-
-        // Compute contact radius
-        double contact_radius;
-
-        if (distance < this_radius + other_radius)
-          contact_radius = sqrt(fabs(this_radius * this_radius - pow(((this_radius * this_radius - other_radius * other_radius + distance * distance) / (2 * distance)), 2)));
-        else
-          contact_radius = 0.0;
-
-        // Get porosity
-        // TODO: currently, global average porosity is an input
-        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-        if      (porosity <  0.0) porosity = 0.0;
-        else if (porosity >= 1.0) porosity = 0.999;
-
-        // Compute voronoi edge radius from porosity
-        double rij = 0.56 * this_radius / pow((1.0-porosity),1/3);
-
-        // Compute heat transfer coefficient
-        double other_conductivity = neighbour_iterator->mThermalConductivity;
-        double core = r_process_info[ISOTHERMAL_CORE_RADIUS];
-        double kf = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-        double h = 0.0;
-
-        if (this_radius == other_radius) {
-
-          // Compute effective thermal conductivity
-          double eff_conductivity = mThermalConductivity * other_conductivity / (mThermalConductivity + other_conductivity);
-
-          // Parameters
-          double D  = distance / 2;
-          double a  = (1/core - 1/this_radius)/(2*eff_conductivity) + 1/(kf*this_radius);
-          double b  = 1/(kf*D);
-          double c0 = D / sqrt(rij*rij + D*D);
-          double c1 = D / sqrt(contact_radius*contact_radius + D*D);
-          double f  = (a-b*c0)/(a-b*c1);
-          double ln = 0.0;
-          if (f > 0.0)
-            ln = log(f);
-
-          // Heat transfer coefficient
-          h = Globals::Pi * ln / b;
-        }
-        else {
-
-          // Compute area of neighboring voronoi cells
-          double An = Globals::Pi * rij * rij;
-
-          // Parameters
-          double gamma1 = this_radius  / distance;
-          double gamma2 = other_radius / distance;
-          double dgamma = gamma2 - gamma1;
-
-          double A = (mThermalConductivity + kf * (1/core-1)) / (mThermalConductivity * gamma1);
-          double B = (other_conductivity   + kf * (1/core-1)) / (other_conductivity   * gamma2);
-          
-          double lambda = (1+dgamma*A)*(1-dgamma*B);
-          
-          double delmax = 0.5 * (sqrt((4 * An) / (Globals::Pi * distance * distance * (1-dgamma*dgamma)) + 1) - dgamma);
-          double delmin = 0.5 * (sqrt((4 * contact_radius * contact_radius) / (distance * distance *(1-dgamma*dgamma)) + 1) - dgamma);
-          
-          double Xmax = ((A+B)*delmax + dgamma*B - 1) / sqrt(fabs(lambda));
-          double Xmin = ((A+B)*delmin + dgamma*B - 1) / sqrt(fabs(lambda));
-          
-          double Y1 = (Xmax-Xmin) / (1-Xmax*Xmin);
-          double Y2 = (Xmax-Xmin) / (1+Xmax*Xmin);
-
-          // Heat transfer coefficient
-          if (lambda > 0.0)
-            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * log(fabs((1-Y1) / (1+Y1))) / (2*sqrt(fabs(lambda)));
-          else if(lambda < 0.0)
-            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * atan(Y2) / (2*sqrt(fabs(lambda)));
-          else
-            h = Globals::Pi * kf * distance * (1 - dgamma*dgamma) * (1/delmin - 1/delmax) / (A+B);
-        }
-
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-    }
-
-    KRATOS_CATCH("")
+  void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
+    TBaseElement::FinalizeSolutionStep(r_process_info);
+    UpdateTemperature(r_process_info);
+    mPreviousTemperature = GetParticleTemperature();
+    SetParticleHeatFlux(mTotalHeatFlux);
   }
 
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeBallToRigidFaceIndirectConductionHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Indirect conduction model
-    std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
-
-    // Loop over neighbour walls
-    std::vector<DEMWall*>& rNeighbours = mNeighbourRigidFaces;
-    for (unsigned int i = 0; i < rNeighbours.size(); i++) {
-      DEMWall* wall = rNeighbours[i];
-      if (wall == NULL) continue;
-      
-      // Check if neighbour is adiabatic
-      if (wall->Is(DEMFlags::IS_ADIABATIC))
-        continue;
-
-      // Get temperatures
-      // (Assumption: wall temperature is the average of its nodes)
-      double wall_temp = 0.0;
-      double n_nodes = wall->GetGeometry().size();
-      for (unsigned int i = 0; i < n_nodes; i++) {
-        double node_temp = wall->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
-        wall_temp += node_temp;
-      }
-      wall_temp /= n_nodes;
-
-      double particle_temp = GetParticleTemperature();
-      double temp_grad = wall_temp - particle_temp;
-
-      // Get particle radius
-      double particle_radius  = GetRadius();
-      
-      // Get interstitial fluid properties
-      double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-
-      // Compute heat flux according to selected model
-      if (model.compare("surrounding_layer") == 0) {
-
-        // Get model parameters
-        double layer    = r_process_info[FLUID_LAYER_THICKNESS];
-        double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
-        
-        // Compute distance between particle and wall
-        // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
-        double dummy1[3][3];
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-        array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-        array_1d<double, 3> dummy3 = ZeroVector(3);
-        array_1d<double, 3> dummy4 = ZeroVector(3);
-        double distance = 0.0;
-        int ContactType = -1;
-        wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
-
-        // Check if particle is close enough to wall
-        if (distance > particle_radius + layer * particle_radius)
-          continue;
-
-        // Compute heat transfer coefficient
-        // (Assumption: particle-Wall is treated as 2 equal size particles)          
-        double a = (distance - 2*particle_radius) / particle_radius;
-        double r_in;
-        double r_out;
-
-        if (distance > 2*particle_radius + min_dist)
-          r_in = 0.0;
-        else
-          r_in = sqrt(1-pow(min_dist/particle_radius-a-1,2));
-
-        if (a > sqrt(pow((particle_radius + (layer*particle_radius)) / particle_radius,2) - 1) - 1)
-          r_out = sqrt(pow((particle_radius + (layer*particle_radius)) / particle_radius,2) - (a+1)*(a+1));
-        else
-          r_out = 1.0;
-
-        double b = sqrt(1-r_out*r_out);
-        double c = sqrt(1-r_in*r_in);
-
-        double h = 2 * Globals::Pi * fluid_conductivity * particle_radius * ((a+1) * log(abs((b-a-1) / (a-c+1))) + b - c);
-
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-      else if (model.compare("voronoi_a") == 0) {
-        
-        // Compute distance between particle and wall
-        // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
-        double dummy1[3][3];
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-        array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-        array_1d<double, 3> dummy3 = ZeroVector(3);
-        array_1d<double, 3> dummy4 = ZeroVector(3);
-        double distance = 0.0;
-        int ContactType = -1;
-        wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
-
-        // Check if particle is close enough to wall
-        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
-        if (distance > cutoff * particle_radius)
-          continue;
-
-        // Compute lower limit of integral (contact radius)
-        double low_lim;
-        double indentation;
-
-        if (distance < particle_radius) {
-          indentation = particle_radius - distance;
-          low_lim = sqrt(indentation * (2 * particle_radius - indentation));
-        }
-        else
-          low_lim = 0.0;
-
-        // Get porosity
-        // TODO: currently, global average porosity is an input
-        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-        if      (porosity <  0.0) porosity = 0.0;
-        else if (porosity >= 1.0) porosity = 0.999;
-
-        // Compute voronoi edge radius from porosity
-        double rij = 0.56 * particle_radius / pow((1.0-porosity),1/3);
-
-        // Compute effective thermal conductivity
-        double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
-        double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
-
-        // Compute upper limit of integral
-        double upp_lim = particle_radius * rij / sqrt(rij*rij + distance*distance/4.0);
-
-        // Heat transfer coefficient from integral expression solved numerically
-        double h = IntegralVoronoiMono(r_process_info, low_lim, upp_lim, particle_radius, distance, rij, eff_conductivity);
-
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-      else if (model.compare("voronoi_b") == 0) {
-
-        // Compute distance between particle and wall
-        // (stolen from ComputeBallToRigidFaceContactForce in spheric_particle)
-        double dummy1[3][3];
-        DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-        array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-        array_1d<double, 3> dummy3 = ZeroVector(3);
-        array_1d<double, 3> dummy4 = ZeroVector(3);
-        double distance = 0.0;
-        int ContactType = -1;
-        wall->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, ContactType);
-
-        // Check if particle is close enough to wall
-        double cutoff = r_process_info[MAX_CONDUCTION_DISTANCE];
-        if (distance > cutoff * particle_radius)
-          continue;
-
-        // Compute contact radius
-        double contact_radius;
-        double indentation;
-
-        if (distance < particle_radius) {
-          indentation = particle_radius - distance;
-          contact_radius = sqrt(indentation * (2 * particle_radius - indentation));
-        }
-        else
-          contact_radius = 0.0;
-
-        // Get porosity
-        // TODO: currently, global average porosity is an input (do in Py)
-        double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-        if      (porosity <  0.0) porosity = 0.0;
-        else if (porosity >= 1.0) porosity = 0.999;
-
-        // Compute voronoi edge radius from porosity
-        double rij = 0.56 * particle_radius / pow((1.0-porosity),1/3);
-
-        // Compute heat transfer coefficient
-        double core = r_process_info[ISOTHERMAL_CORE_RADIUS];
-        double kf = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-
-        // Compute effective thermal conductivity
-        double wall_conductivity = wall->GetProperties()[THERMAL_CONDUCTIVITY];
-        double eff_conductivity = mThermalConductivity * wall_conductivity / (mThermalConductivity + wall_conductivity);
-
-        // Parameters
-        double D  = distance / 2;
-        double a  = (1/core - 1/particle_radius)/(2*eff_conductivity) + 1/(kf*particle_radius);
-        double b  = 1/(kf*D);
-        double c0 = D / sqrt(rij*rij + D*D);
-        double c1 = D / sqrt(contact_radius*contact_radius + D*D);
-        double f  = (a-b*c0)/(a-b*c1);
-        double ln = 0.0;
-        if (f > 0.0)
-          ln = log(f);
-
-        // Heat transfer coefficient
-        double h = Globals::Pi * ln / b;
-		
-        // Compute heat flux
-        mConductiveHeatFlux += h * temp_grad;
-      }
-    }
-
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-    
-    // Get particle properties
-    double radius                    = GetRadius();
-    double surface_area              = 4 * Globals::Pi * radius*radius;
-    double char_length               = 2 * radius;
-    double particle_temp             = GetParticleTemperature();
-    array_1d<double, 3> particle_vel = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
-    // Get surrounding fluid properties
-    double              fluid_density      = r_process_info[FLUID_DENSITY];
-    double              fluid_viscosity    = r_process_info[FLUID_VISCOSITY];
-    double              fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-    double              fluid_heatcapacity = r_process_info[FLUID_HEAT_CAPACITY];
-    double              fluid_temp         = r_process_info[FLUID_TEMPERATURE];
-    array_1d<double, 3> fluid_velocity     = r_process_info[FLUID_VELOCITY];
-
-    // Relative velocity between particle and fluid
-    array_1d<double, 3> rel_velocity_vec = fluid_velocity;
-
-    for (unsigned int i = 0; i < rel_velocity_vec.size(); i++)
-      rel_velocity_vec[i] -= particle_vel[i];
-
-    double rel_velocity_mod = DEM_MODULUS_3(rel_velocity_vec);
-
-    // Compute Prandtl and Reynolds numbers
-    double Pr = fluid_viscosity * fluid_heatcapacity / fluid_conductivity;
-    double Re = fluid_density * char_length * rel_velocity_mod / fluid_viscosity;
-
-    // Compute Nusselt number according to selected correlation
-    std::string model = r_process_info[CONVECTION_MODEL];
-    double Nu = 0.0;
-
-    if (model.compare("sphere_hanz_marshall") == 0) {
-      Nu = 2 + 0.6 * pow(Re,1/2) * pow(Pr,1/3);
-    }
-    else if (model.compare("sphere_whitaker") == 0) {
-      Nu = 2 + (0.4 * pow(Re,1/2) + 0.06 * pow(Re,2/3)) * pow(Pr,2/5);
-    }
-
-    // Compute thermal convection coefficient 
-    double convection_coeff = Nu * fluid_conductivity / char_length;
-
-    // Compute heat flux
-    mConvectiveHeatFlux += convection_coeff * surface_area * (fluid_temp - particle_temp);
-
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Stefan-Boltzmann constant
-    const double B = 5.670374419e-8;
-
-    // Compute heat flux according to selected model
-    std::string model = r_process_info[RADIATION_MODEL];
-
-    if (model.compare("continuum_zhou") == 0) {
-      // TODO: Needs the porosity
-      mRadiativeHeatFlux += 0.0;
-    }
-    else if (model.compare("continuum_krause") == 0) {
-
-      // Get particle properties
-      double this_radius     = GetRadius();
-      double this_area       = 4 * Globals::Pi * this_radius*this_radius;
-      double this_emissivity = GetProperties()[EMISSIVITY];
-      double this_temp       = GetParticleTemperature();
-
-      // Initialize parameters
-      double num = 0.0;
-      double den = 0.0;
-
-      // Loop over neighbour particles
-      // (Assumption: walls not considered)
-      for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-        if (mNeighbourElements[i] == NULL) continue;
-        ThermalSphericParticle<TBaseElement>* neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-        
-        // Check if neighbour is adiabatic
-        if (neighbour_iterator->Is(DEMFlags::IS_ADIABATIC))
-          continue;
-
-        // Compute direction and distance between centroids
-        array_1d<double, 3> direction;
-        direction[0] = GetGeometry()[0].Coordinates()[0] - neighbour_iterator->GetGeometry()[0].Coordinates()[0];
-        direction[1] = GetGeometry()[0].Coordinates()[1] - neighbour_iterator->GetGeometry()[0].Coordinates()[1];
-        direction[2] = GetGeometry()[0].Coordinates()[2] - neighbour_iterator->GetGeometry()[0].Coordinates()[2];
-
-        double distance = DEM_MODULUS_3(direction);
-
-        // Check if particles are close enough
-        // (Assumption: radiation influence factor applied to the maximum radius)
-        double other_radius = neighbour_iterator->GetRadius();
-        if (distance > r_process_info[RADIATION_RADIUS] * std::max(this_radius, other_radius))
-          continue;
-
-        // Get particle properties
-        double other_area       = 4 * Globals::Pi * other_radius*other_radius;
-        double other_emissivity = neighbour_iterator->GetProperties()[EMISSIVITY];
-        double other_temp       = neighbour_iterator->GetParticleTemperature();
-
-        // Update parameters
-        den += B * other_emissivity * other_area / 2;
-        num += den * pow(other_temp,4);
-      }
-
-      // Averaged environment temperature
-      double env_temp = pow(num/den,1/4);
-
-      // Compute heat flux
-      mRadiativeHeatFlux += this_emissivity * B * this_area * (pow(env_temp,4) - pow(this_temp,4));
-    }
-
-    KRATOS_CATCH("")
-  }
-
+  //=====================================================================================================================================================================================
   // Update methods
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperature(const ProcessInfo& r_process_info) {
-    // Condition to avoid issue when mSpecificHeat is equal zero
-    if (mSpecificHeat > 0 && !this->Is(DEMFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMFlags::IS_ADIABATIC)) {
+    KRATOS_TRY
+
+    if (!this->Is(DEMFlags::HAS_FIXED_TEMPERATURE) && !this->Is(DEMFlags::IS_ADIABATIC)) {
       // Compute new temperature
-      double dt              = r_process_info[DELTA_TIME];
-      double thermal_inertia = GetMass() * mSpecificHeat;
-      double temp_increment  = mTotalHeatFlux / thermal_inertia * dt;
+      double thermal_inertia = GetMass() * GetParticleHeatCapacity();
+      double temp_increment  = mTotalHeatFlux / thermal_inertia * r_process_info[DELTA_TIME];
       double temp_new        = GetParticleTemperature() + temp_increment;
       
       // Set new temperature
       SetParticleTemperature(temp_new);
     }
+
+    KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info) {
-    double this_temp      = GetParticleTemperature();
-    double fluid_temp     = r_process_info[FLUID_TEMPERATURE];
-    double relative_temp  = this_temp - fluid_temp; // temp in Kelvin
-    double thermal_alpha  = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
-    double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
-    SetRadius(updated_radius);
+    //double this_temp      = GetParticleTemperature();
+    //double fluid_temp     = r_process_info[FLUID_TEMPERATURE];
+    //double relative_temp  = this_temp - fluid_temp; // temp in Kelvin
+    //double thermal_alpha  = GetProperties()[THERMAL_EXPANSION_COEFFICIENT];
+    //double updated_radius = GetRadius() * (1 + thermal_alpha * relative_temp);
+    //SetRadius(updated_radius);
   }
 
   template <class TBaseElement>
@@ -1016,33 +164,491 @@ namespace Kratos
                                                                                                             double RelVel[3],   //IN GLOBAL AXES
                                                                                                             double OldLocalCoordSystem[3][3],
                                                                                                             double LocalCoordSystem[3][3],
-                                                                                                            SphericParticle* neighbour_iterator) {
+                                                                                                            SphericParticle* neighbor_iterator) {
     //double thermalDeltDisp = 0;
     //double thermalRelVel   = 0;
-    //ThermalSphericParticle<TBaseElement>* thermal_neighbour_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbour_iterator);
-    //UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbour_iterator);
+    //ThermalSphericParticle<TBaseElement>* thermal_neighbor_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(neighbor_iterator);
+    //UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(r_process_info, thermalDeltDisp, thermalRelVel, thermal_neighbor_iterator);
     //double LocalRelVel[3] = {0.0};
     //GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel); //TODO: can we do this in global axes directly?
     ////LocalRelVel[2] -= thermalRelVel;
     //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRelVel, RelVel);
   }
 
-  // Finalization methods
+  //=====================================================================================================================================================================================
+  // Heat fluxes computation
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
-    TBaseElement::FinalizeSolutionStep(r_process_info);
-    UpdateTemperature(r_process_info);
-    mPreviousTemperature = GetParticleTemperature();
-    GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = mTotalHeatFlux;
-  }
+  void ThermalSphericParticle<TBaseElement>::ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
 
-  // Auxiliary computation methods
+  // Check if neighbor is adiabatic
+  if (CheckAdiabaticNeighbor())
+    return;
+
+  // Set distance between particles centroids
+  SetDistanceToNeighbor();
+
+  // Heat transfer mechanisms
+  if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION))   ComputeDirectConductionHeatFlux(r_process_info);
+  if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)) ComputeIndirectConductionHeatFlux(r_process_info);
+  if (this->Is(DEMFlags::HAS_RADIATION))           ComputeRadiativeHeatFlux(r_process_info);
+
+    KRATOS_CATCH("")
+  }
 
   template <class TBaseElement>
-  void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
-    calculation_area = Globals::Pi*rmin*rmin;
+  void ThermalSphericParticle<TBaseElement>::ComputeDirectConductionHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Check for contact
+    if (!CheckHeatTransferDistance(0.0))
+      return;
+
+    // Compute heat flux according to selected model
+    std::string model = r_process_info[DIRECT_CONDUCTION_MODEL];
+
+    if      (model.compare("batchelor_obrien") == 0) mConductiveHeatFlux += DirectConductionBatchelorOBrien(r_process_info);
+    else if (model.compare("thermal_pipe")     == 0) mConductiveHeatFlux += DirectConductionThermalPipe(r_process_info);
+    else if (model.compare("collisional")      == 0) mConductiveHeatFlux += DirectConductionCollisional(r_process_info);
+
+    KRATOS_CATCH("")
   }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Compute heat flux according to selected model
+    std::string model = r_process_info[INDIRECT_CONDUCTION_MODEL];
+
+    if      (model.compare("surrounding_layer") == 0) mConductiveHeatFlux += IndirectConductionSurroundingLayer(r_process_info);
+    else if (model.compare("voronoi_a")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiA(r_process_info);
+    else if (model.compare("voronoi_b")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiB(r_process_info);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // TODO: radiation with walls not yet implemented
+    if (mNeighborType == WALL_NEIGHBOR)
+      return;
+
+    // Compute heat flux according to selected model
+    std::string model = r_process_info[RADIATION_MODEL];
+
+    if      (model.compare("continuum_zhou")   == 0) mRadiativeHeatFlux += RadiationContinuumZhou(r_process_info);
+    else if (model.compare("continuum_krause") == 0) mRadiativeHeatFlux += RadiationContinuumKrause(r_process_info);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+    
+    double surface_area       = GetParticleSurfaceArea();
+    double char_length        = GetParticleCharacteristicLength();
+    double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double temp_grad          = r_process_info[FLUID_TEMPERATURE] - GetParticleTemperature();
+
+    // Compute Nusselt number according to selected model
+    double Nu = 0.0;
+    std::string model = r_process_info[CONVECTION_MODEL];
+    if      (model.compare("sphere_hanz_marshall") == 0) Nu = ConvectionHanzMarshall(r_process_info);
+    else if (model.compare("sphere_whitaker")      == 0) Nu = ConvectionWhitaker(r_process_info);
+
+    // Compute heat flux
+    mConvectiveHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
+
+    KRATOS_CATCH("")
+  }
+
+  //=====================================================================================================================================================================================
+  // Heat transfer models
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::DirectConductionBatchelorOBrien(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double keff      = ComputeEffectiveConductivity();
+    double Rc        = ComputeContactRadius();
+    double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
+
+    return 4.0 * keff * Rc * temp_grad;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::DirectConductionThermalPipe(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double kavg      = ComputeAverageConductivity();
+    double Rc        = ComputeContactRadius();
+    double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
+
+    return kavg * (Globals::Pi * Rc * Rc) * temp_grad / mNeighborDistance;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::DirectConductionCollisional(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
+    // TODO: track collision time and save impact velocity
+    double col_time = 0.0;
+    double impact_normal_velocity = 0.0;
+    double col_time_max = ComputeMaxCollisionTime();
+
+    if (col_time < col_time_max && impact_normal_velocity != 0.0) {
+      double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
+      double Rc_max    = ComputeMaxContactRadius();
+      double Fo        = ComputeFourierNumber();
+
+      double a1 = GetDensity() * GetParticleHeatCapacity();
+      double a2 = GetNeighborDensity() * GetNeighborHeatCapacity();
+      double b1 = a1 * GetParticleConductivity();
+      double b2 = a2 * GetNeighborConductivity();
+      double c  = a1 / a2;
+
+      double C1 = -2.300 * c * c +  8.909 * c - 4.235;
+      double C2 =  8.169 * c * c - 33.770 * c + 24.885;
+      double C3 = -5.758 * c * c + 24.464 * c - 20.511;
+
+      double C_coeff = 0.435 * (sqrt(C2 * C2 - 4 * C1 * (C3 - Fo)) - C2) / C1;
+
+      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
+    }
+    else {
+      return DirectConductionBatchelorOBrien(r_process_info);
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::IndirectConductionSurroundingLayer(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Check if particles are close enough
+    double layer = r_process_info[FLUID_LAYER_THICKNESS];
+    if (!CheckHeatTransferDistance(layer))
+      return 0.0;
+
+    // Compute heat transfer coefficient
+    // Assumption: neighbor wall is treated as a particle with the same radius
+    double particle_radius    = GetRadius();
+    double neighbor_radius    = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
+    double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double h = 0.0;
+
+    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
+      double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
+      double a = (mNeighborDistance - 2.0 * particle_radius) / particle_radius;
+      double r_in, r_out, b, c;
+
+      if (mNeighborDistance > 2.0 * particle_radius + min_dist)
+        r_in = 0.0;
+      else
+        r_in = sqrt(1.0 - pow(min_dist / particle_radius - a - 1.0, 2));
+
+      if (a > sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2) - 1.0) - 1.0)
+        r_out = sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2) - (a + 1.0) * (a + 1.0));
+      else
+        r_out = 1.0;
+
+      b = sqrt(1.0 - r_out * r_out);
+      c = sqrt(1.0 - r_in  * r_in);
+
+      // Heat transfer coefficient from analytica solution of the integral expression
+      h = 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(abs((b - a - 1.0) / (a - c + 1.0))) + b - c);
+    }
+    else {
+      // Compute lower limit of integral (contact radius)
+      double low_lim = ComputeContactRadius();
+
+      // Compute upper limit of integral
+      double r_min = std::min(particle_radius, neighbor_radius);
+      double r_max = std::max(particle_radius, neighbor_radius);
+      double param = pow((r_max + (layer * r_max)), 2);
+      double upp_lim;
+
+      if (mNeighborDistance <= sqrt(param - r_min * r_min))
+        upp_lim = r_min;
+      else
+        upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2));
+
+      // Build struct of integration parameters
+      struct IntegrandParams params;
+      params.r_process_info = r_process_info;
+      params.r1 = particle_radius;
+      params.r2 = neighbor_radius;
+
+      // Heat transfer coefficient from integral expression solved numerically
+      h = fluid_conductivity * AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandSurrLayer(params));
+    }
+
+    // Compute heat flux
+    return h * GetNeighborTemperature() - GetParticleTemperature();
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::IndirectConductionVoronoiA(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Check if particles are close enough
+    if (!CheckHeatTransferDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
+      return 0.0;
+
+    // Compute lower limit of integral (contact radius)
+    double particle_radius = GetRadius();
+    double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
+    double low_lim = ComputeContactRadius();
+
+    // Compute voronoi edge radius from porosity
+    // TODO: currently, global average porosity is an input
+    double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1/3);
+
+    // Compute heat transfer coefficient
+    // Assumption: neighbor wall is treated as a particle with the same radius
+    double h = 0.0;
+
+    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
+      double keff = ComputeEffectiveConductivity();
+      double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistance * mNeighborDistance / 4.0);
+
+      // Build struct of integration parameters
+      struct IntegrandParams params;
+      params.r_process_info = r_process_info;
+      params.keff = ComputeEffectiveConductivity();
+      params.r1   = particle_radius;
+      params.rij  = rij;
+
+      // Heat transfer coefficient from integral expression solved numerically
+      h = AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandVoronoiMono(params));
+    }
+    else {
+      double D1, D2, rij_, upp_lim;
+
+      if (mNeighborDistance < particle_radius + neighbor_radius)
+        D1 = sqrt(particle_radius * particle_radius - low_lim * low_lim);
+      else
+        D1 = (particle_radius * particle_radius - neighbor_radius * neighbor_radius + mNeighborDistance * mNeighborDistance) / (2 * mNeighborDistance);
+
+      D2 = mNeighborDistance - D1;
+
+      if (particle_radius <= neighbor_radius)
+        upp_lim = particle_radius * rij / sqrt(rij * rij + D1 * D1);
+      else
+        upp_lim = neighbor_radius * rij / sqrt(rij * rij + D2 * D2);
+
+      rij_ = D2 * upp_lim / sqrt(neighbor_radius * neighbor_radius - upp_lim * upp_lim);
+
+      // Build struct of integration parameters
+      struct IntegrandParams params;
+      params.r_process_info = r_process_info;
+      params.r1   = particle_radius;
+      params.r2   = neighbor_radius;
+      params.rij  = rij;
+      params.rij_ = rij_;
+      params.D1   = D1;
+      params.D2   = D2;
+      params.k1   = GetParticleConductivity();
+      params.k2   = GetNeighborConductivity();
+
+      // Heat transfer coefficient from integral expression solved numerically
+      h = AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandVoronoiMulti(params));
+    }
+
+    // Compute heat flux
+    return h * GetNeighborTemperature() - GetParticleTemperature();
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::IndirectConductionVoronoiB(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Check if particles are close enough
+    if (!CheckHeatTransferDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
+      return 0.0;
+
+    // Get parameters
+    double Rc                    = ComputeContactRadius();
+    double particle_radius       = GetRadius();
+    double neighbor_radius       = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
+    double particle_conductivity = GetParticleConductivity();
+    double neighbor_conductivity = GetNeighborConductivity();
+    double fluid_conductivity    = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double core                  = r_process_info[ISOTHERMAL_CORE_RADIUS];
+
+    // Compute voronoi edge radius from porosity
+    // TODO: currently, global average porosity is an input
+    double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
+    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1/3);
+
+    // Compute heat transfer coefficient
+    // Assumption: neighbor wall is treated as a particle with the same radius
+    double h = 0.0;
+
+    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
+      double keff = ComputeEffectiveConductivity();
+      double D    = mNeighborDistance / 2.0;
+      double a    = (1.0 / core - 1.0 / particle_radius) / (2.0 * keff) + 1.0 / (fluid_conductivity * particle_radius);
+      double b    = 1.0 / (fluid_conductivity * D);
+      double c0   = D / sqrt(rij * rij + D * D);
+      double c1   = D / sqrt(Rc * Rc + D * D);
+      double f    = (a - b * c0) / (a - b * c1);
+      double ln   = 0.0;
+      if (f > 0.0)
+        ln = log(f);
+
+      // Heat transfer coefficient
+      h = Globals::Pi * ln / b;
+    }
+    else {
+      double An = Globals::Pi * rij * rij;  // Compute area of neighboring voronoi cells
+
+      double gamma1 = particle_radius / mNeighborDistance;
+      double gamma2 = neighbor_radius / mNeighborDistance;
+      double dgamma = gamma2 - gamma1;
+
+      double A = (particle_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (particle_conductivity * gamma1);
+      double B = (neighbor_conductivity + fluid_conductivity * (1.0 / core - 1.0)) / (neighbor_conductivity * gamma2);
+
+      double lambda = (1.0 + dgamma * A) * (1.0 - dgamma * B);
+
+      double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      double delmin = 0.5 * (sqrt((4.0 * Rc * Rc) / (mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+
+      double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
+      double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
+
+      double Y1 = (Xmax - Xmin) / (1.0 - Xmax * Xmin);
+      double Y2 = (Xmax - Xmin) / (1.0 + Xmax * Xmin);
+
+      // Heat transfer coefficient
+      if (lambda > 0.0)
+        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * log(fabs((1.0 - Y1) / (1.0 + Y1))) / (2.0 * sqrt(fabs(lambda)));
+      else if (lambda < 0.0)
+        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * atan(Y2) / (2.0 * sqrt(fabs(lambda)));
+      else
+        h = Globals::Pi * fluid_conductivity * mNeighborDistance * (1.0 - dgamma * dgamma) * (1.0 / delmin - 1.0 / delmax) / (A + B);
+    }
+
+    // Compute heat flux
+    return h * GetNeighborTemperature() - GetParticleTemperature();
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::RadiationContinuumZhou(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // TODO: Needs the porosity
+    return 0.0;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::RadiationContinuumKrause(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // TODO: Needs to be computed outsie neighbors loop
+    return 0.0;
+
+    //// Get particle properties
+    //double this_radius = GetRadius();
+    //double this_area = 4 * Globals::Pi * this_radius * this_radius;
+    //double this_emissivity = mThermalEmissivity;
+    //double this_temp = GetParticleTemperature();
+
+    //// Initialize parameters
+    //double num = 0.0;
+    //double den = 0.0;
+
+    //// Loop over neighbor particles
+    //// (Assumption: walls not considered)
+    //for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+    //  if (mNeighbourElements[i] == NULL) continue;
+    //  ThermalSphericParticle<TBaseElement>* neighbor_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
+
+    //  // Check if neighbor is adiabatic
+    //  if (neighbor_iterator->Is(DEMFlags::IS_ADIABATIC))
+    //    continue;
+
+    //  // Compute direction and distance between centroids
+    //  array_1d<double, 3> direction;
+    //  direction[0] = GetGeometry()[0].Coordinates()[0] - neighbor_iterator->GetGeometry()[0].Coordinates()[0];
+    //  direction[1] = GetGeometry()[0].Coordinates()[1] - neighbor_iterator->GetGeometry()[0].Coordinates()[1];
+    //  direction[2] = GetGeometry()[0].Coordinates()[2] - neighbor_iterator->GetGeometry()[0].Coordinates()[2];
+
+    //  double distance = DEM_MODULUS_3(direction);
+
+    //  // Check if particles are close enough
+    //  // (Assumption: radiation influence factor applied to the maximum radius)
+    //  double other_radius = neighbor_iterator->GetRadius();
+    //  if (distance > r_process_info[RADIATION_RADIUS] * std::max(this_radius, other_radius))
+    //    continue;
+
+    //  // Get particle properties
+    //  double other_area = 4 * Globals::Pi * other_radius * other_radius;
+    //  double other_emissivity = neighbor_iterator->mThermalEmissivity;
+    //  double other_temp = neighbor_iterator->GetParticleTemperature();
+
+    //  // Update parameters
+    //  den += STEFAN_BOLTZMANN * other_emissivity * other_area / 2;
+    //  num += den * pow(other_temp, 4);
+    //}
+
+    //// Averaged environment temperature
+    //double env_temp = pow(num / den, 1 / 4);
+
+    //// Compute heat flux
+    //mRadiativeHeatFlux += this_emissivity * STEFAN_BOLTZMANN * this_area * (pow(env_temp, 4) - pow(this_temp, 4));
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ConvectionHanzMarshall(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double Pr = ComputePrandtlNumber(r_process_info);
+    double Re = ComputeReynoldNumber(r_process_info);
+
+    return 2.0 + 0.6 * pow(Re,1/2) * pow(Pr,1/3);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ConvectionWhitaker(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double Pr = ComputePrandtlNumber(r_process_info);
+    double Re = ComputeReynoldNumber(r_process_info);
+
+    // Assumption: temperature-dependent viscosity at particle surface is negleted
+    return 2.0 + (0.4 * pow(Re,1/2) + 0.06 * pow(Re,2/3)) * pow(Pr,2/5);
+
+    KRATOS_CATCH("")
+  }
+
+  //=====================================================================================================================================================================================
+  // Auxiliary computations
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) {
@@ -1054,7 +660,8 @@ namespace Kratos
         double model_search_distance = GetRadius() * r_process_info[FLUID_LAYER_THICKNESS];
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
-      else if (model.compare("voronoi_a") == 0 || model.compare("voronoi_b") == 0) {
+      else if (model.compare("voronoi_a") == 0 ||
+               model.compare("voronoi_b") == 0) {
         double model_search_distance = GetRadius() * r_process_info[MAX_CONDUCTION_DISTANCE];
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
@@ -1063,7 +670,7 @@ namespace Kratos
     if (this->Is(DEMFlags::HAS_RADIATION)) {
       std::string model = r_process_info[RADIATION_MODEL];
       if (model.compare("sphere_hanz_marshall") == 0 ||
-          model.compare("sphere_whitaker") == 0) {
+          model.compare("sphere_whitaker")      == 0) {
         double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS] - 1);
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
@@ -1073,43 +680,96 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::IntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d) {
+  double ThermalSphericParticle<TBaseElement>::ComputePrandtlNumber(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // Initialization
-    double fa  = EvalIntegrandSurrLayer(r_process_info, a, r1, r2, d);
-    double fb  = EvalIntegrandSurrLayer(r_process_info, b, r1, r2, d);
-    double fc  = EvalIntegrandSurrLayer(r_process_info, (a+b)/2, r1, r2, d);
-    double tol = r_process_info[INTEGRAL_TOLERANCE];
-    constexpr double eps = std::numeric_limits<double>::epsilon();
-    if (tol < 10.0*eps)
-      tol = 10.0*eps;
+    double fluid_viscosity    = r_process_info[FLUID_VISCOSITY];
+    double fluid_heatcapacity = r_process_info[FLUID_HEAT_CAPACITY];
+    double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
 
-    // Solve integral recursively with adaptive Simpson quadrature
-    return SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
+    return fluid_viscosity * fluid_heatcapacity / fluid_conductivity;
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d) {
+  double ThermalSphericParticle<TBaseElement>::ComputeReynoldNumber(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double char_length     = GetParticleCharacteristicLength();
+    double rel_velocity    = ComputeFluidRelativeVelocity(r_process_info);
+    double fluid_density   = r_process_info[FLUID_DENSITY];
+    double fluid_viscosity = r_process_info[FLUID_VISCOSITY];
+
+    return fluid_density * char_length * rel_velocity / fluid_viscosity;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeFluidRelativeVelocity(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    array_1d<double, 3> particle_velocity = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    array_1d<double, 3> rel_velocity      = r_process_info[FLUID_VELOCITY];
+
+    for (unsigned int i = 0; i < rel_velocity.size(); i++)
+      rel_velocity[i] -= particle_velocity[i];
+
+    return DEM_MODULUS_3(rel_velocity);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::AdaptiveSimpsonIntegration(double a, double b, double (*evalIntegrand)(IntegrandParams params)) {
+    KRATOS_TRY
+
+    // Initialization
+    params.position = a;
+    double fa = evalIntegrand(params);
+
+    params.position = b;
+    double fb = evalIntegrand(params);
+
+    params.position = (a + b) / 2.0;
+    double fc = evalIntegrand(params);
+
+    // Get tolerance
+    double tol = params.r_process_info[INTEGRAL_TOLERANCE];
+    constexpr double eps = std::numeric_limits<double>::epsilon();
+    if (tol < 10.0 * eps) tol = 10.0 * eps;
+
+    // Solve integral recursively with adaptive Simpson quadrature
+    return RecursiveSimpsonIntegration(a, b, fa, fb, fc, tol, evalIntegrand);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, double (*evalIntegrand)(IntegrandParams params)) {
     KRATOS_TRY
 
     // TODO: in order to catch possible erros that can occur in singularities,
     //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
 
-    double c  = (a + b) / 2;
-    double fd = EvalIntegrandSurrLayer(r_process_info, (a+c)/2, r1, r2, d);
-    double fe = EvalIntegrandSurrLayer(r_process_info, (c+b)/2, r1, r2, d);
-    double I1 = (b-a)/6  * (fa + 4*fc + fb);
-    double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+    double c  = (a + b) / 2.0;
+
+    params.position = (a + c) / 2.0;
+    double fd = evalIntegrand(params);
+
+    params.position = (c + b) / 2.0;
+    double fe = evalIntegrand(params);
+
+    double I1 = (b - a) / 6.0  * (fa + 4.0 * fc + fb);
+    double I2 = (b - a) / 12.0 * (fa + 4.0 * fd + 2.0 * fc + 4.0 * fe + fb);
 
     if (fabs(I2-I1) <= tol) {
-      return I2 + (I2 - I1) / 15;
+      return I2 + (I2 - I1) / 15.0;
     }
     else { // sub-divide interval recursively
-      double Ia = SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
-      double Ib = SolveIntegralSurrLayer(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d);
+      double Ia = RecursiveSimpsonIntegration(a, c, fa, fc, fd, tol, evalIntegrand);
+      double Ib = RecursiveSimpsonIntegration(c, b, fc, fb, fe, tol, evalIntegrand);
       return Ia + Ib;
     }
 
@@ -1117,114 +777,295 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double r, double r1, double r2, double d) {
-    KRATOS_TRY
-    return 2 * Globals::Pi * r / std::max(r_process_info[MIN_CONDUCTION_DISTANCE], d - sqrt(r1*r1-r*r) - sqrt(r2*r2-r*r));
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::IntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double rp, double d, double rij, double keff) {
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(IntegrandParams params) {
     KRATOS_TRY
 
-    // Initialization
-    double fa  = EvalIntegrandVoronoiMono(r_process_info, a, rp, d, rij, keff);
-    double fb  = EvalIntegrandVoronoiMono(r_process_info, b, rp, d, rij, keff);
-    double fc  = EvalIntegrandVoronoiMono(r_process_info, (a+b)/2, rp, d, rij, keff);
-    double tol = r_process_info[INTEGRAL_TOLERANCE];
-    constexpr double eps = std::numeric_limits<double>::epsilon();
-    if (tol < 10.0*eps)
-      tol = 10.0*eps;
+    double r  = params.position;
+    double r1 = params.r1;
+    double r2 = params.r2;
+    double d  = params.r_process_info[MIN_CONDUCTION_DISTANCE];
 
-    // Solve integral recursively with adaptive Simpson quadrature
-    return SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
+    return 2.0 * Globals::Pi * r / std::max(d, mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::SolveIntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double rp, double d, double rij, double keff) {
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(IntegrandParams params) {
     KRATOS_TRY
 
-    // TODO: in order to catch possible erros that can occur in singularities,
-    //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
+    double r    = params.position;
+    double rp   = params.r1;
+    double rij  = params.rij;
+    double keff = params.keff;
+    double kf   = params.r_process_info[FLUID_THERMAL_CONDUCTIVITY];
 
-    double c  = (a + b) / 2;
-    double fd = EvalIntegrandVoronoiMono(r_process_info, (a+c)/2, rp, d, rij, keff);
-    double fe = EvalIntegrandVoronoiMono(r_process_info, (c+b)/2, rp, d, rij, keff);
-    double I1 = (b-a)/6  * (fa + 4*fc + fb);
-    double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
+    return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * mNeighborDistance / (2.0 * rij)) / keff + 2.0 * (mNeighborDistance / 2.0 - sqrt(rp * rp - r * r)) / kf);
 
-    if (fabs(I2-I1) <= tol) {
-      return I2 + (I2 - I1) / 15;
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMulti(IntegrandParams params) {
+    KRATOS_TRY
+
+    double r     = params.position;
+    double r1    = params.r1;
+    double r2    = params.r2;
+    double rij   = params.rij;
+    double rij_  = params.rij_;
+    double D1    = params.D1;
+    double D2    = params.D2;
+    double k1    = params.k1;
+    double k2    = params.k2;
+    double kf    = params.r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+
+    return 2.0 * Globals::Pi * r / ((sqrt(r1 * r1 - r * r) - r * D1 / rij) / k1 + (sqrt(r2 * r2 - r * r) - r * D2 / rij_) / k2 + (mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r)) / kf);
+
+    KRATOS_CATCH("")
+  }
+
+  //=====================================================================================================================================================================================
+  // Neighbor interaction computations
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeContactArea(const double rmin, double indentation, double& calculation_area) {
+    calculation_area = Globals::Pi*rmin*rmin;
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetDistanceToNeighbor() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      array_1d<double, 3> direction;
+      direction[0] = GetGeometry()[0].Coordinates()[0] - mNeighbor_p->GetGeometry()[0].Coordinates()[0];
+      direction[1] = GetGeometry()[0].Coordinates()[1] - mNeighbor_p->GetGeometry()[0].Coordinates()[1];
+      direction[2] = GetGeometry()[0].Coordinates()[2] - mNeighbor_p->GetGeometry()[0].Coordinates()[2];
+      mNeighborDistance = DEM_MODULUS_3(direction);
     }
-    else { // sub-divide interval recursively
-      double Ia = SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
-      double Ib = SolveIntegralVoronoiMono(r_process_info, a, b, fa, fb, fc, tol, rp, d, rij, keff);
-      return Ia + Ib;
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
+      double dummy1[3][3];
+      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+      array_1d<double, 3> dummy3 = ZeroVector(3);
+      array_1d<double, 3> dummy4 = ZeroVector(3);
+      int dummy5 = -1;
+      double distance = 0.0;
+      mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
+      mNeighborDistance = distance;
+
+      // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
+      //array_1d<double, 3> cond_to_me_vect;
+      //array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
+      //noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_coordinates;
+      //mNeighborDistance = DEM_MODULUS_3(cond_to_me_vect);
     }
-
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(const ProcessInfo& r_process_info, double r, double rp, double d, double rij, double keff) {
-    KRATOS_TRY
-    return 2 * Globals::Pi * r / ((sqrt(rp*rp-r*r)-r*d/(2*rij))/keff + 2*(d/2-sqrt(rp*rp-r*r))/r_process_info[FLUID_THERMAL_CONDUCTIVITY]);
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::IntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
-    KRATOS_TRY
-
-    // Initialization
-    double fa  = EvalIntegrandVoronoiMulti(r_process_info, a, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-    double fb  = EvalIntegrandVoronoiMulti(r_process_info, b, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-    double fc  = EvalIntegrandVoronoiMulti(r_process_info, (a+b)/2, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-    double tol = r_process_info[INTEGRAL_TOLERANCE];
-    constexpr double eps = std::numeric_limits<double>::epsilon();
-    if (tol < 10.0*eps)
-      tol = 10.0*eps;
-
-    // Solve integral recursively with adaptive Simpson quadrature
-    return SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::SolveIntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
-    KRATOS_TRY
-
-    // TODO: in order to catch possible erros that can occur in singularities,
-    //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
-
-    double c  = (a + b) / 2;
-    double fd = EvalIntegrandVoronoiMulti(r_process_info, (a+c)/2,  r1, r2, d, rij, rij_, D1, D2, k1, k2);
-    double fe = EvalIntegrandVoronoiMulti(r_process_info, (c+b)/2,  r1, r2, d, rij, rij_, D1, D2, k1, k2);
-    double I1 = (b-a)/6  * (fa + 4*fc + fb);
-    double I2 = (b-a)/12 * (fa + 4*fd + 2*fc + 4*fe + fb);
-
-    if (fabs(I2-I1) <= tol) {
-      return I2 + (I2 - I1) / 15;
-    }
-    else { // sub-divide interval recursively
-      double Ia = SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-      double Ib = SolveIntegralVoronoiMulti(r_process_info, a, b, fa, fb, fc, tol, r1, r2, d, rij, rij_, D1, D2, k1, k2);
-      return Ia + Ib;
+    else {
+      mNeighborDistance = 0.0;
     }
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMulti(const ProcessInfo& r_process_info, double r, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2) {
+  bool ThermalSphericParticle<TBaseElement>::CheckHeatTransferDistance(const double radius_factor) {
     KRATOS_TRY
-    return 2 * Globals::Pi * r / ((sqrt(r1*r1-r*r)-r*D1/rij)/k1 + (sqrt(r2*r2-r*r)-r*D2/rij_)/k2 + (d-sqrt(r1*r1-r*r)-sqrt(r2*r2-r*r))/r_process_info[FLUID_THERMAL_CONDUCTIVITY]);
+
+    double particle_radius = GetRadius();
+    double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
+    double separation      = mNeighborDistance - particle_radius - neighbor_radius
+
+    // Assumption: radius_factor applies to the larger radius
+    return (separation < radius_factor * std::max(particle_radius, neighbor_radius));
+
     KRATOS_CATCH("")
   }
 
+  template <class TBaseElement>
+  bool ThermalSphericParticle<TBaseElement>::CheckAdiabaticNeighbor(void) {
+    KRATOS_TRY
+
+    return ((mNeighborType == PARTICLE_NEIGHBOR && mNeighbor_p->Is(DEMFlags::IS_ADIABATIC)) ||
+            (mNeighborType == WALL_NEIGHBOR     && mNeighbor_w->Is(DEMFlags::IS_ADIABATIC)));
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeFourierNumber() {
+    KRATOS_TRY
+
+    double col_time_max = ComputeMaxCollisionTime();
+    double Rc_max       = ComputeMaxContactRadius();
+
+    double Fo_particle = GetParticleConductivity() * col_time_max / (GetDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
+    double Fo_neighbor;
+
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
+    else if (mNeighborType == WALL_NEIGHBOR)
+      Fo_neighbor = 0.0;
+
+    // Assumption: average of both particles
+    return (Fo_particle + Fo_neighbor) / 2.0;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeMaxCollisionTime() {
+    KRATOS_TRY
+
+    // TODO: save impact normal velocity
+    double impact_normal_velocity = 0.0;
+    double eff_radius = ComputeEffectiveRadius();
+    double eff_mass   = ComputeEffectiveMass();
+    double eff_young  = ComputeEffectiveYoung();
+
+    return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 1/5);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeMaxContactRadius() {
+    KRATOS_TRY
+
+    // TODO: save impact normal velocity
+    double impact_normal_velocity = 0.0;
+    double eff_radius = ComputeEffectiveRadius();
+    double eff_mass   = ComputeEffectiveMass();
+    double eff_young  = ComputeEffectiveYoung();
+
+    return pow(15.0 * eff_radius * eff_mass * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 1/5);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeContactRadius() {
+    KRATOS_TRY
+    
+    double Rc = 0.0;
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double r1 = GetRadius();
+      double r2 = mNeighbor_p->GetRadius();
+      if (mNeighborDistance < r1 + r2)
+        Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2)));
+      else
+        Rc = 0.0;
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      double r = GetRadius();
+      double ident = r - mNeighborDistance;
+      if (ident > 0.0)
+        Rc = sqrt(ident * (2.0 * r - ident));
+      else
+        Rc = 0.0;
+    }
+
+    return Rc;
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeEffectiveRadius() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double particle_radius = GetRadius();
+      double neighbor_radius = mNeighbor_p->GetRadius();
+      return particle_radius * neighbor_radius / (particle_radius + neighbor_radius);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      return GetRadius();
+    }
+    else {
+      return 0.0;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeEffectiveMass() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double particle_mass = GetMass();
+      double neighbor_mass = mNeighbor_p->GetMass();
+      return particle_mass * neighbor_mass / (particle_mass + neighbor_mass);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      return GetMass();
+    }
+    else {
+      return 0.0;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeEffectiveYoung() {
+    KRATOS_TRY
+
+    double particle_young   = GetYoung();
+    double particle_poisson = GetPoisson();
+    double neighbor_young   = GetNeighborYoung();
+    double neighbor_poisson = GetNeighborPoisson();
+
+    return 1 / ((1 - particle_poisson * particle_poisson) / particle_young + (1 - neighbor_poisson * neighbor_poisson) / neighbor_young);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeEffectiveConductivity() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double particle_conductivity = GetParticleConductivity();
+      double neighbor_conductivity = GetNeighborConductivity();
+      return particle_conductivity * neighbor_conductivity / (particle_conductivity + neighbor_conductivity);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      return GetParticleConductivity();
+    }
+    else {
+      return 0.0;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeAverageConductivity() {
+    KRATOS_TRY
+
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double r1 = GetRadius();
+      double r2 = mNeighbor_p->GetRadius();
+      double particle_conductivity = GetParticleConductivity();
+      double neighbor_conductivity = GetNeighborConductivity();
+      return (r1 + r2) / (r1 / particle_conductivity + r2 / neighbor_conductivity);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      // Assumption: average conductivity considers particle only
+      return GetParticleConductivity();
+    }
+    else {
+      return 0.0;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  //=====================================================================================================================================================================================
   // Get/Set methods
 
   template <class TBaseElement>
@@ -1233,8 +1074,108 @@ namespace Kratos
   }
 
   template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleSurfaceArea() {
+    return 4 * Globals::Pi * GetRadius() * GetRadius();
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleCharacteristicLength() {
+    return 2 * GetRadius();
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleConductivity() {
+    return GetProperties()[THERMAL_CONDUCTIVITY];
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleHeatCapacity() {
+    return GetProperties()[SPECIFIC_HEAT];
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetParticleEmissivity() {
+    return GetProperties()[EMISSIVITY];
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetWallTemperature() {
+    // Assumption: wall temperature is the average of its nodes
+    double wall_temp = 0.0;
+    double n_nodes = mNeighbor_w->GetGeometry().size();
+    for (unsigned int i = 0; i < n_nodes; i++)
+      wall_temp += mNeighbor_w->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE);
+    return wall_temp / n_nodes;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborTemperature() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetParticleTemperature();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetWallTemperature();
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborDensity() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetDensity();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[DENSITY];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborYoung() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetYoung();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[YOUNG_MODULUS];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborPoisson() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetPoisson();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[POISSON_RATIO];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborConductivity() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetParticleConductivity();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[THERMAL_CONDUCTIVITY];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborHeatCapacity() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetParticleHeatCapacity();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[SPECIFIC_HEAT];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticleTemperature(const double temperature) {
     GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = temperature;
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetParticleHeatFlux(const double heat_flux) {
+    GetGeometry()[0].GetSolutionStepValue(HEATFLUX) = heat_flux;
   }
 
   template <class TBaseElement>
@@ -1242,7 +1183,7 @@ namespace Kratos
     mPrescribedHeatFlux = heat_flux;
   }
 
-  //Explicit Instantiation
+  // Explicit Instantiation
   template class ThermalSphericParticle<SphericParticle>;
   template class ThermalSphericParticle<SphericContinuumParticle>;
 

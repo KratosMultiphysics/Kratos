@@ -36,18 +36,25 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef std::size_t IndexType;
   typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
-  
-  using TBaseElement::GetDensity;
-  using TBaseElement::GetGeometry;
-  using TBaseElement::GetMass;
-  using TBaseElement::GetPoisson;
-  using TBaseElement::GetProperties;
-  using TBaseElement::GetRadius;
-  using TBaseElement::GetValue;
-  using TBaseElement::GetYoung;
-  using TBaseElement::SetRadius;
-  using TBaseElement::SetValue;
-  using TBaseElement::mNeighbourElements;
+
+  #define PARTICLE_NEIGHBOR  1
+  #define WALL_NEIGHBOR      2
+  #define STEFAN_BOLTZMANN   5.670374419e-8
+
+  struct IntegrandParams
+  {
+    const ProcessInfo& r_process_info;
+    double position;
+    double r1;
+    double r2;
+    double rij;
+    double rij_;
+    double D1;
+    double D2;
+    double k1;
+    double k2;
+    double keff;
+  };
 
   // Constructor
   ThermalSphericParticle():TBaseElement(){};
@@ -70,61 +77,117 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void CalculateRightHandSide(const ProcessInfo& r_process_info, double dt, const array_1d<double, 3>& gravity) override;
   void ComputeHeatFluxes(const ProcessInfo& r_process_info);
 
-  // Compute heat fluxes components
-  void ComputeBallToBallDirectConductionHeatFlux(const ProcessInfo& r_process_info);
-  void ComputeBallToRigidFaceDirectConductionHeatFlux(const ProcessInfo& r_process_info);
-  void ComputeBallToBallIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
-  void ComputeBallToRigidFaceIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
-  void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
-  void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
+  // Finalization methods
+  void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
 
   // Update methods
   void UpdateTemperature(const ProcessInfo& r_process_info);
   void UpdateTemperatureDependentRadius(const ProcessInfo& r_process_info);
   void UpdateNormalRelativeDisplacementAndVelocityDueToThermalExpansion(const ProcessInfo& r_process_info, double& thermalDeltDisp, double& thermalRelVel, ThermalSphericParticle<TBaseElement>* element2);
-  void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbour_iterator) override;
+  void RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(const ProcessInfo& r_process_info, double DeltDisp[3], double RelVel[3], double OldLocalCoordSystem[3][3], double LocalCoordSystem[3][3], SphericParticle* neighbor_iterator) override;
 
-  // Finalization methods
-  void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
+  // Heat fluxes computation
+  void ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info);
+  void ComputeDirectConductionHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
+  void ComputeConvectiveHeatFlux(const ProcessInfo& r_process_info);
 
-  // Auxiliary computation methods
+  // Heat transfer models
+  double DirectConductionBatchelorOBrien(const ProcessInfo& r_process_info);
+  double DirectConductionThermalPipe(const ProcessInfo& r_process_info);
+  double DirectConductionCollisional(const ProcessInfo& r_process_info);
+  double IndirectConductionSurroundingLayer(const ProcessInfo& r_process_info);
+  double IndirectConductionVoronoiA(const ProcessInfo& r_process_info);
+  double IndirectConductionVoronoiB(const ProcessInfo& r_process_info);
+  double RadiationContinuumZhou(const ProcessInfo& r_process_info);
+  double RadiationContinuumKrause(const ProcessInfo& r_process_info);
+  double ConvectionHanzMarshall(const ProcessInfo& r_process_info);
+  double ConvectionWhitaker(const ProcessInfo& r_process_info);
+
+  // Auxiliary computations
+  void   ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
+  double ComputePrandtlNumber(const ProcessInfo& r_process_info);
+  double ComputeReynoldNumber(const ProcessInfo& r_process_info);
+  double ComputeFluidRelativeVelocity(const ProcessInfo& r_process_info);
+  double AdaptiveSimpsonIntegration(double a, double b, double (*evalIntegrand)(IntegrandParams));
+  double RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, double (*evalIntegrand)(IntegrandParams));
+  double EvalIntegrandSurrLayer(IntegrandParams params);
+  double EvalIntegrandVoronoiMono(IntegrandParams params);
+  double EvalIntegrandVoronoiMulti(IntegrandParams params);
+
+  // Neighbor interaction computations
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
-  void ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
-  double IntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d);
-  double SolveIntegralSurrLayer(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d);
-  double EvalIntegrandSurrLayer(const ProcessInfo& r_process_info, double r, double r1, double r2, double d);
-  double IntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double rp, double d, double rij, double keff);
-  double SolveIntegralVoronoiMono(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double rp, double d, double rij, double keff);
-  double EvalIntegrandVoronoiMono(const ProcessInfo& r_process_info, double r, double rp, double d, double rij, double keff);
-  double IntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2);
-  double SolveIntegralVoronoiMulti(const ProcessInfo& r_process_info, double a, double b, double fa, double fb, double fc, double tol, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2);
-  double EvalIntegrandVoronoiMulti(const ProcessInfo& r_process_info, double r, double r1, double r2, double d, double rij, double rij_, double D1, double D2, double k1, double k2);
+  void   SetDistanceToNeighbor();
+  bool   CheckHeatTransferDistance(const double radius_factor);
+  bool   CheckAdiabaticNeighbor();
+  double ComputeFourierNumber();
+  double ComputeMaxCollisionTime();
+  double ComputeMaxContactRadius();
+  double ComputeContactRadius();
+  double ComputeEffectiveRadius();
+  double ComputeEffectiveMass();
+  double ComputeEffectiveYoung();
+  double ComputeEffectiveConductivity();
+  double ComputeAverageConductivity();
 
   // Get/Set methods
+  using TBaseElement::mNeighbourElements;
+  using TBaseElement::GetValue;
+  using TBaseElement::GetProperties;
+  using TBaseElement::GetGeometry;
+  using TBaseElement::GetRadius;
+  using TBaseElement::GetDensity;
+  using TBaseElement::GetMass;
+  using TBaseElement::GetYoung;
+  using TBaseElement::GetPoisson;
+  using TBaseElement::SetValue;
+  using TBaseElement::SetRadius;
+
   const double& GetParticleTemperature();
-  void SetParticleTemperature(const double temperature);
-  void SetParticlePrescribedHeatFlux(const double heat_flux);
+  double GetParticleSurfaceArea();
+  double GetParticleCharacteristicLength();
+  double GetParticleConductivity();
+  double GetParticleHeatCapacity();
+  double GetParticleEmissivity();
+  double GetWallTemperature();
+  double GetNeighborTemperature();
+  double GetNeighborDensity();
+  double GetNeighborYoung();
+  double GetNeighborPoisson();
+  double GetNeighborConductivity();
+  double GetNeighborHeatCapacity();
+  void   SetParticleTemperature(const double temperature);
+  void   SetParticleHeatFlux(const double heat_flux);
+  void   SetParticlePrescribedHeatFlux(const double heat_flux);
 
   // Turn back information as a string.
   virtual std::string Info() const override {
     std::stringstream buffer;
-    buffer << "ThermalSphericParticle" ;
+    buffer << "ThermalSphericParticle";
     return buffer.str();
   }
-  
+
   // Print object information
   virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "ThermalSphericParticle";}
   virtual void PrintData(std::ostream& rOStream) const override {}
 
   protected:
 
-  double mThermalConductivity;
-  double mSpecificHeat;
+  // Heat flux components properties
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;
   double mRadiativeHeatFlux;
   double mPrescribedHeatFlux;
   double mTotalHeatFlux;
+
+  // Interaction data
+  ThermalSphericParticle<TBaseElement>* mNeighbor_p;
+  DEMWall*                              mNeighbor_w;
+  int                                   mNeighborType;
+  double                                mNeighborDistance;
+
+  // History-dependent properties
   double mPreviousTemperature;
 
   private:
@@ -138,7 +201,6 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   virtual void load(Serializer& rSerializer) override {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle);
   }
-
 }; // Class ThermalSphericParticle
 
   /*
