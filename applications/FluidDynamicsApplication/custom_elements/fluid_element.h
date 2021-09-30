@@ -268,7 +268,7 @@ public:
      * @param Values Vector of nodal unknowns
      * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
      */
-    virtual void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
+    void GetFirstDerivativesVector(Vector& Values, int Step = 0) const override;
 
 
 
