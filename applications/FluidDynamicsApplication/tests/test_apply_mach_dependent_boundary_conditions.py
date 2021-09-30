@@ -7,6 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication import apply_mach_depenedent_bo
 class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
     def setUp(self):
+        """Generates the model part to work on"""
         self.model = KratosMultiphysics.Model()
 
         main_mpart = self.model.CreateModelPart("main_model_part")
@@ -81,6 +82,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.MOMENTUM_Z, 0.0)
 
     def testDoubleVariable(self):
+        """Tests that the process works well with variables of type array_1d<double, 3> works well with variables of type double"""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -164,6 +166,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         process.ExecuteFinalizeSolutionStep()
 
     def testVectorVariable(self):
+        """Tests that the process works well with variables of type array_1d<double, 3>"""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -278,6 +281,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         process.ExecuteFinalizeSolutionStep()
 
     def testInterval(self):
+        """Tests that the boundary conditions are enforced only during the relevant time interval"""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -332,6 +336,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         process.ExecuteFinalizeSolutionStep()
 
     def testErrorMissingValue(self):
+        """Ensures an easy-to understand error is raised when the parameter 'value' is missing"""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -354,6 +359,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         self.assertIn("DENSITY", str(context.exception))
 
     def testErrorMissingConstraint(self):
+        """Ensures an easy-to understand error is raised when the parameter 'constraint' is missing"""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
@@ -403,7 +409,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
 
 
     def testSameVariable(self):
-        """Fixing all axes in subsonic, but only VELOCITY_Z in supersonic."""
+        """Ensures fixing diferent axes on the same variable does not cause unexpected interfearances."""
         settings = KratosMultiphysics.Parameters("""
         {
             "Parameters" : {
