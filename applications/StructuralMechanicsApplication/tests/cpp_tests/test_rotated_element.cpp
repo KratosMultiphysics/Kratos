@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Alejandro Cornejo
 //
 
 // Project includes
@@ -53,8 +53,7 @@ namespace Testing
         {
             "cartesian_local_axis"          : [0.0,1.0,0.0]
         })");
-        const auto &r_cartesian_orientation_process = SetCartesianLocalAxesProcess(r_model_part, parameters);
-        r_cartesian_orientation_process.ExecuteInitialize();
+        SetCartesianLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         local_axis_1[1] = 1.0;
@@ -90,10 +89,9 @@ namespace Testing
         // Now we create the rotation process
         Parameters parameters = Parameters(R"(
         {
-            "cartesian_local_axis"          : [[0.0,1.0,0.0],[0.0,0.0,1.0]]
+            "cartesian_local_axis" : [[0.0,1.0,0.0],[0.0,0.0,1.0]]
         })");
-        const auto &r_cartesian_orientation_process = SetCartesianLocalAxesProcess(r_model_part, parameters);
-        r_cartesian_orientation_process.ExecuteInitialize();
+        SetCartesianLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         array_1d<double, 3> local_axis_2 = ZeroVector(3);
@@ -136,8 +134,7 @@ namespace Testing
             "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
             "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
         })");
-        const auto &r_orientation_process = SetCylindricalLocalAxesProcess(r_model_part, parameters);
-        r_orientation_process.ExecuteInitialize();
+        SetCylindricalLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         const double number = 0.5 * sqrt(2.0);
@@ -178,8 +175,7 @@ namespace Testing
             "cylindrical_generatrix_axis"   : [0.0,0.0,1.0],
             "cylindrical_generatrix_point"  : [0.0,0.0,0.0]
         })");
-        const auto &r_orientation_process = SetCylindricalLocalAxesProcess(r_model_part, parameters);
-        r_orientation_process.ExecuteInitialize();
+        SetCylindricalLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         array_1d<double, 3> local_axis_2 = ZeroVector(3);
@@ -224,8 +220,7 @@ namespace Testing
             "spherical_reference_axis"   : [0.0,0.0,1.0],
             "spherical_central_point"    : [0.0,0.0,0.0]
         })");
-        const auto &r_orientation_process = SetSphericalLocalAxesProcess(r_model_part, parameters);
-        r_orientation_process.ExecuteInitialize();
+        SetSphericalLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         const double number = 0.5 * sqrt(2.0);
@@ -266,8 +261,7 @@ namespace Testing
             "spherical_reference_axis"   : [0.0,0.0,1.0],
             "spherical_central_point"    : [0.0,0.0,0.0]
         })");
-        const auto &r_orientation_process = SetSphericalLocalAxesProcess(r_model_part, parameters);
-        r_orientation_process.ExecuteInitialize();
+        SetSphericalLocalAxesProcess(r_model_part, parameters).ExecuteInitialize();
 
         array_1d<double, 3> local_axis_1 = ZeroVector(3);
         array_1d<double, 3> local_axis_2 = ZeroVector(3);
