@@ -12,6 +12,8 @@
 #if !defined(KRATOS_SET_CYLINDRICAL_LOCAL_AXES_PROCESS )
 #define  KRATOS_SET_CYLINDRICAL_LOCAL_AXES_PROCESS
 
+#include "processes/process.h"
+
 namespace Kratos
 {
 

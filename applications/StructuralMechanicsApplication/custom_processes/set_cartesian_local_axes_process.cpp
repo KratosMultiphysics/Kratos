@@ -9,7 +9,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#include "processes/process.h"
+
 #include "includes/model_part.h"
 #include "custom_processes/set_cartesian_local_axes_process.h"
 #include "utilities/parallel_utilities.h"

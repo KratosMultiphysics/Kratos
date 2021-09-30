@@ -12,6 +12,7 @@
 #if !defined(KRATOS_SET_CARTESIAN_LOCAL_AXES_PROCESS )
 #define  KRATOS_SET_CARTESIAN_LOCAL_AXES_PROCESS
 
+#include "processes/process.h"
 
 namespace Kratos
 {
