@@ -321,8 +321,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     auto& LHS = rData.LHS;
     LHS.clear();
 
-    BoundedMatrix<double,LocalSize,LocalSize> v_stress = ZeroMatrix(LocalSize,LocalSize);
-
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
@@ -492,10 +490,10 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
             double VPhi = tau_two * rData.N[i] * fluid_fraction_gradient[d] * (mass_source - fluid_fraction_rate - MassProj);
             // OSS pressure subscale projection
             double DPhi = rData.DN_DX(i,d) * tau_two * fluid_fraction * (mass_source - fluid_fraction_rate - MassProj);
-            rLocalRHS[row+d] += rData.Weight * (VF + AF + DPhi - RSigmaF + GBetaF - DBetaF + VPhi) /*- v_stress(row+d,row+d)*/;
+            rLocalRHS[row+d] += rData.Weight * (VF + AF + DPhi - RSigmaF + GBetaF - DBetaF + VPhi);
         }
         double Q = rData.N[i] * (mass_source - fluid_fraction_rate);
-        rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q) /*- v_stress(row+0,row+1)*/; // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row+Dim] += rData.Weight * (QAlphaF + Q); // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -509,7 +507,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
      */
     this->AddViscousTerm(rData,LHS,rLocalRHS);
 
-    noalias(rLocalLHS) += LHS /*+ v_stress*/;
+    noalias(rLocalLHS) += LHS;
 }
 
 template< class TElementData >

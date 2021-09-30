@@ -314,8 +314,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     auto& LHS = rData.LHS;
     LHS.clear();
 
-    BoundedMatrix<double,LocalSize,LocalSize> v_stress = ZeroMatrix(LocalSize,LocalSize);
-
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
@@ -891,8 +889,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     array_1d<double,Dim> rhs = ZeroVector(Dim);
     array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du = ZeroVector(Dim);
-
-    BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
 
     while ( (!converged) && (iter++ < subscale_prediction_maximum_iterations) ) {
 
