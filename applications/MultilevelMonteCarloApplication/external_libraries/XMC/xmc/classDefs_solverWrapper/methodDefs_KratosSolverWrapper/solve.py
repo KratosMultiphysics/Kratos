@@ -119,7 +119,7 @@ def executeInstanceReadingFromFile_Wrapper(current_index,pickled_model,pickled_p
 
 @constraint(computing_units=computing_units_mlmc_execute_0)
 @task(keep=True,returns=2)
-def SerializeSerialModel(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
+def SerializeSerialModel_Task(pickled_parameters, main_model_part_name, fake_sample_to_serialize, analysis):
     """
     Function serializing and pickling the Kratos Model of the problem. It builds pickled_model and serialized_model. It is called if we are not runnnig in MPI.
 
