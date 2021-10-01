@@ -172,10 +172,11 @@ CoSimIO::Info InfoFromParameters(Parameters rSettings)
     CoSimIO::Info info;
 
     for (auto it = rSettings.begin(); it != rSettings.end(); ++it) {
-        if      (it->IsString()) info.Set<std::string>(it.name(), it->GetString());
-        else if (it->IsInt())    info.Set<int>(it.name(),    it->GetInt());
-        else if (it->IsBool())   info.Set<bool>(it.name(),   it->GetBool());
-        else if (it->IsDouble()) info.Set<double>(it.name(), it->GetDouble());
+        if      (it->IsString())       info.Set<std::string>(it.name(),   it->GetString());
+        else if (it->IsInt())          info.Set<int>(it.name(),           it->GetInt());
+        else if (it->IsBool())         info.Set<bool>(it.name(),          it->GetBool());
+        else if (it->IsDouble())       info.Set<double>(it.name(),        it->GetDouble());
+        else if (it->IsSubParameter()) info.Set<CoSimIO::Info>(it.name(), InfoFromParameters(*it));
         else KRATOS_WARNING("Kratos-CoSimIO") << "Setting with name \"" << it.name() << "\" cannot be converted to CoSimIO::Info and is ignored!" << std::endl;
     }
 

@@ -107,7 +107,6 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart_NodesOnly, KratosCos
         KRATOS_CHECK_DOUBLE_EQUAL(r_kratos_node.Z(), r_co_sim_io_node.Z());
         KRATOS_CHECK_DOUBLE_EQUAL(r_kratos_node.Z0(), r_co_sim_io_node.Z());
     }
-
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationFastSuite)
