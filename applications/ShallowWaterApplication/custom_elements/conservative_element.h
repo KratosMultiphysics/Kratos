@@ -195,6 +195,8 @@ protected:
 
     void CalculateGradient(array_1d<double,2>& rGradient, const GeometryType& rGeometry);
 
+    void CalculateEdgeUnitNormal(array_1d<double,2>& rNormal, const GeometryType& rGeometry);
+
     ///@}
 
 private:

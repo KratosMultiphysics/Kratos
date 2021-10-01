@@ -122,12 +122,15 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     array_1d<double,2> inner_grad_h = prod(rData.nodal_h, rDN_DX);
     for (auto& r_elem : this->GetValue(NEIGHBOUR_ELEMENTS)) {
         array_1d<double,2> outer_grad_h;
+        array_1d<double,2> normal;
         CalculateGradient(outer_grad_h, r_elem.GetGeometry());
+        CalculateEdgeUnitNormal(normal, r_elem.GetGeometry());
 
-        const double gj_h = std::abs(norm_2(inner_grad_h) - norm_2(outer_grad_h));
-        const double gm_h =  1e-30 + (norm_2(inner_grad_h) + norm_2(outer_grad_h));
+        const double gj_h = norm_2(inner_grad_h - outer_grad_h);
+        const double gm_h = std::abs(inner_prod(inner_grad_h, normal)) + std::abs(inner_prod(outer_grad_h, normal)) + 1e-16;
+        const double correction = std::abs(inner_prod(inner_grad_h, normal)) / (norm_2(inner_grad_h) + 1e-16);
 
-        jump = std::max(jump, gj_h / gm_h);
+        jump = std::max(jump, correction * gj_h / gm_h);
     }
     const double lambda = std::sqrt(rData.gravity * std::abs(rData.height)) + norm_2(rData.velocity);
     const double visc = rData.shock_stab_factor * rData.length * lambda * jump;
@@ -162,6 +165,19 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
         nodal_h[i++] = r_node.FastGetSolutionStepValue(HEIGHT);
     }
     rGradient = prod(nodal_h, DN_DX);
+}
+
+template<std::size_t TNumNodes>
+void ConservativeElement<TNumNodes>::CalculateEdgeUnitNormal(
+    array_1d<double,2>& rNormal,
+    const GeometryType& rGeometry)
+{
+    array_1d<double,3> normal;
+    normal = rGeometry.Center();
+    normal -= this->GetGeometry().Center();
+    normal /= norm_2(normal) + 1e-16;
+    rNormal[0] = normal[0];
+    rNormal[1] = normal[1];
 }
 
 template class ConservativeElement<3>;
