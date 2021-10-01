@@ -86,6 +86,7 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
         "tolerance"                   : 1e-4,
         "plateau_time_range"          : [20.0, 40.0],
         "plateau_max_slope"           : 0.1,
+        "max_iterations"              : 20,
         "adjoint_parameters_file_name": "PLEASE_SPECIFY_ADJOINT_KRATOS_PARAMETERS_JSON_FILE_NAME"
     }""")
 
@@ -129,8 +130,11 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
     ]
 
     solve_id = 0
-    while (coefficient_data_list[2][0] - coefficient_data_list[0][0] > tolerance):
-        msg = "Summary of bisection results:"
+    iteration = 0
+    max_iterations = stabilization_settings["max_iterations"].GetInt()
+    while (coefficient_data_list[2][0] - coefficient_data_list[0][0] > tolerance and iteration <= max_iterations):
+        iteration += 1
+        msg = "Summary of bisection results in iteration {:d}/{:d}:".format(iteration, max_iterations)
 
         for index, coefficient_data in enumerate(coefficient_data_list):
             if coefficient_data[1] is None:
