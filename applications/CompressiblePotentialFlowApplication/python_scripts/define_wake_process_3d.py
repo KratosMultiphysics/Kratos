@@ -159,7 +159,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         #     self.body_model_part.GetRootModelPart().RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
 
         #self._BlockDomain()
-        self.number_of_sweeps = 2
+        self.number_of_sweeps = 1
         self.remove_modelparts = True
 
         # Refinement iteration loop
@@ -199,13 +199,15 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
             # self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("Wake3D_Wake_Auto1")
             CPFApp.Define3DWakeProcess(self.trailing_edge_model_part, self.body_model_part,
                                    self.wake_model_part, self.wake_process_cpp_parameters).ExecuteInitialize()
-            #self.target_h_wake /= 2.0
+            self.target_h_wake /= 2.0
             # Set target for next iteration
-            if self.target_h_wake < 0.3:
-                self.number_of_sweeps = 1
-                self.target_h_wake /= 2.0
-            else:
-                self.target_h_wake -= 0.2
+            # if self.target_h_wake < 0.3:
+            #     self.number_of_sweeps = 1
+            #     self.target_h_wake /= 2.0
+            # else:
+            #     self.target_h_wake -= 0.2
+            if self.target_h_wake < 3:
+                self.number_of_sweeps = 0
 
         # # Output the wake in GiD for visualization
         if(self.output_wake):
@@ -226,9 +228,9 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         from stl import mesh #this requires numpy-stl
         wake_stl_mesh = mesh.Mesh.from_multi_file(self.wake_stl_file_name)
 
-        z = -1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
-        y = 0.0
-        x = -3e-4
+        z = 0.003#-1.44e-3#-2.87e-3#-1e-4 #-1.44e-3
+        y = -0.001
+        x = -0.001#-3e-4
 
         # Looping over stl meshes
         for stl_mesh in wake_stl_mesh:
@@ -341,7 +343,7 @@ class DefineWakeProcess3D(KratosMultiphysics.Process):
         else:
             self.wake_sub_model_part = self.fluid_model_part.GetSubModelPart("wake_elements_model_part")
 
-        CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level-1)
+    #     CPFApp.PotentialFlowUtilities.CheckIfWakeConditionsAreFulfilled3D(self.wake_sub_model_part, 1e-1, self.echo_level-1)
         CPFApp.PotentialFlowUtilities.ComputePotentialJump3D(self.wake_sub_model_part)
 
     def _BlockDomain(self):
