@@ -21,8 +21,8 @@
 #include "includes/checks.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "custom_friction_laws/manning_law.h"
 #include "custom_utilities/shallow_water_utilities.h"
+#include "custom_friction_laws/friction_laws_factory.h"
 #include "shallow_water_application_variables.h"
 
 namespace Kratos
@@ -43,7 +43,6 @@ int WaveElement<TNumNodes>::Check(const ProcessInfo& rCurrentProcessInfo) const
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MOMENTUM, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(HEIGHT, r_node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MANNING, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TOPOGRAPHY, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION, r_node)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VERTICAL_VELOCITY, r_node)
@@ -179,8 +178,8 @@ void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInf
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
     rData.gravity = rCurrentProcessInfo[GRAVITY_Z];
-    rData.p_bottom_friction = Kratos::make_shared<ManningLaw>();
-    rData.p_bottom_friction->Initialize(this->GetGeometry(), rCurrentProcessInfo);
+    rData.p_bottom_friction = FrictionLawsFactory().CreateBottomFrictionLaw(
+        this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 }
 
 template<std::size_t TNumNodes>
