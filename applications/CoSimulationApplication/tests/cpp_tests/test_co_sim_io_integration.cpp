@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart_NodesOnly, KratosCos
     const auto nodes_begin = co_sim_io_model_part.NodesBegin();
 
     for (std::size_t i=0; i<num_nodes; ++i) {
-        const std::size_t exp_id = i+1;
+        const int exp_id = i+1;
 
         const auto& r_co_sim_io_node = **(nodes_begin+i);
 
