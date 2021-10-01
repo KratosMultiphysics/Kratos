@@ -132,7 +132,7 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
     solve_id = 0
     iteration = 0
     max_iterations = stabilization_settings["max_iterations"].GetInt()
-    while (coefficient_data_list[2][0] - coefficient_data_list[0][0] > tolerance and iteration <= max_iterations):
+    while (coefficient_data_list[2][0] - coefficient_data_list[0][0] > tolerance and iteration < max_iterations):
         iteration += 1
         msg = "Summary of bisection results in iteration {:d}/{:d}:".format(iteration, max_iterations)
 
@@ -157,6 +157,9 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
         Kratos.Logger.PrintInfo("Stabilization Analysis", msg)
 
         coefficient_data_list = __Bisect(coefficient_data_list)
+
+    if iteration == max_iterations:
+        Kratos.Logger.PrintWarning("Stabilization Analysis", "Adjoint stabilization computation reached maximum iterations.")
 
     stabilization_coefficient = (coefficient_data_list[2][0] + coefficient_data_list[0][0]) / 2.0
     Kratos.Logger.PrintInfo("Stabilization Analysis", "Computed adjoint stabilization coefficient = {:e}".format(stabilization_coefficient))
