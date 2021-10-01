@@ -17,10 +17,12 @@
 
 // External includes
 #include "custom_external_libraries/CoSimIO/co_sim_io/includes/model_part.hpp"
+#include "custom_external_libraries/CoSimIO/co_sim_io/includes/info.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -66,6 +68,8 @@ public:
     static void KratosModelPartToCoSimIOModelPart(
         const Kratos::ModelPart& rKratosModelPart,
         CoSimIO::ModelPart& rCoSimIOModelPart);
+
+    static CoSimIO::Info InfoFromParameters(const Parameters rSettings);
 
     ///@}
 
