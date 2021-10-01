@@ -81,6 +81,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   // Heat fluxes computation
   void ComputeHeatFluxWithNeighbor(const ProcessInfo& r_process_info);
+  void ComputeAdjustedContactRadius(const ProcessInfo& r_process_info);
   void ComputeDirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeIndirectConductionHeatFlux(const ProcessInfo& r_process_info);
   void ComputeRadiativeHeatFlux(const ProcessInfo& r_process_info);
@@ -101,6 +102,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double NusseltLiMason(const ProcessInfo& r_process_info);
   double RadiationContinuumZhou(const ProcessInfo& r_process_info);
   double RadiationContinuumKrause(const ProcessInfo& r_process_info);
+  double AdjustedContactRadiusZhou(const ProcessInfo& r_process_info);
 
   // Auxiliary computations
   void   ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
@@ -186,6 +188,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   DEMWall*                              mNeighbor_w;
   int                                   mNeighborType;
   double                                mNeighborDistance;
+  double                                mContactRadius;
 
   // Radiation environment-related
   int    mEnvironmentCount;

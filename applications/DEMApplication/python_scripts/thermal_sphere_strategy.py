@@ -17,10 +17,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "compute_indirect_conduction"    : false,
             "compute_convection"             : false,
             "compute_radiation"              : false,
+            "compute_adjusted_contact"       : false,
             "direct_conduction_model"        : "batchelor_obrien",
             "indirect_conduction_model"      : "surrounding_layer",
             "nusselt_correlation"            : "sphere_hanz_marshall",
             "radiation_model"                : "continuum_zhou",
+            "adjusted_contact_model"         : "zhou",
             "min_conduction_distance"        : 0.0000000275,
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
@@ -48,12 +50,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.compute_indirect_conduction_option = self.thermal_settings["compute_indirect_conduction"].GetBool()
         self.compute_convection_option          = self.thermal_settings["compute_convection"].GetBool()
         self.compute_radiation_option           = self.thermal_settings["compute_radiation"].GetBool()
+        self.compute_adjusted_contact_option    = self.thermal_settings["compute_adjusted_contact"].GetBool()
 
         # Set models for heat transfer mechanisms
         self.direct_conduction_model   = self.thermal_settings["direct_conduction_model"].GetString()
         self.indirect_conduction_model = self.thermal_settings["indirect_conduction_model"].GetString()
         self.nusselt_correlation       = self.thermal_settings["nusselt_correlation"].GetString()
         self.radiation_model           = self.thermal_settings["radiation_model"].GetString()
+        self.adjusted_contact_model    = self.thermal_settings["adjusted_contact_model"].GetString()
 
         # Check models
         if (self.direct_conduction_model != "batchelor_obrien" and
@@ -76,6 +80,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.radiation_model != "continuum_zhou" and
             self.radiation_model != "continuum_krause"):
             raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
+
+        if (self.adjusted_contact_model != "zhou"):
+            raise Exception('DEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         # Set model parameters
         self.min_conduction_distance = self.thermal_settings["min_conduction_distance"].GetDouble()
@@ -138,12 +145,14 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, INDIRECT_CONDUCTION_OPTION, self.compute_indirect_conduction_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, CONVECTION_OPTION,          self.compute_convection_option)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, RADIATION_OPTION,           self.compute_radiation_option)
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, ADJUSTED_CONTACT_OPTION,    self.compute_adjusted_contact_option)
 
         # Models for heat transfer mechanisms
         self.spheres_model_part.ProcessInfo.SetValue(DIRECT_CONDUCTION_MODEL,   self.direct_conduction_model)
         self.spheres_model_part.ProcessInfo.SetValue(INDIRECT_CONDUCTION_MODEL, self.indirect_conduction_model)
         self.spheres_model_part.ProcessInfo.SetValue(CONVECTION_MODEL,          self.nusselt_correlation)
         self.spheres_model_part.ProcessInfo.SetValue(RADIATION_MODEL,           self.radiation_model)
+        self.spheres_model_part.ProcessInfo.SetValue(ADJUSTED_CONTACT_MODEL,    self.adjusted_contact_model)
 
         # Model parameters
         self.spheres_model_part.ProcessInfo.SetValue(MIN_CONDUCTION_DISTANCE,    self.min_conduction_distance)

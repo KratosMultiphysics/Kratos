@@ -38,6 +38,7 @@ namespace Kratos
     this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, r_process_info[INDIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
     this->Set(DEMFlags::HAS_RADIATION,           r_process_info[CONVECTION_OPTION]);
+    this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,    r_process_info[ADJUSTED_CONTACT_OPTION]);
 
     // Initialize prescribed heat flux (currently a constant value)
     SetParticlePrescribedHeatFlux(0.0);
@@ -214,10 +215,35 @@ namespace Kratos
   // Set distance between particles centroids
   SetDistanceToNeighbor();
 
+  // Compute adjusted or simulated contact radius
+  ComputeAdjustedContactRadius(r_process_info);
+
   // Heat transfer mechanisms
   if (this->Is(DEMFlags::HAS_DIRECT_CONDUCTION))   ComputeDirectConductionHeatFlux(r_process_info);
   if (this->Is(DEMFlags::HAS_INDIRECT_CONDUCTION)) ComputeIndirectConductionHeatFlux(r_process_info);
   if (this->Is(DEMFlags::HAS_RADIATION))           ComputeRadiativeHeatFlux(r_process_info);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeAdjustedContactRadius(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    if (!CheckHeatTransferDistance(0.0)) {
+      // Non-contact
+      mContactRadius = 0.0;
+    }
+    else if (this->Is(DEMFlags::HAS_ADJUSTED_CONTACT)) {
+      // Compute adjusted contact radius according to selected model
+      std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
+
+      if (model.compare("zhou") == 0) mContactRadius = AdjustedContactRadiusZhou(r_process_info);
+    }
+    else {
+      // Compute simulated contact radius
+      mContactRadius = ComputeContactRadius();
+    }
 
     KRATOS_CATCH("")
   }
@@ -331,10 +357,9 @@ namespace Kratos
     KRATOS_TRY
 
     double keff      = ComputeEffectiveConductivity();
-    double Rc        = ComputeContactRadius();
     double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
 
-    return 4.0 * keff * Rc * temp_grad;
+    return 4.0 * keff * mContactRadius * temp_grad;
 
     KRATOS_CATCH("")
   }
@@ -344,10 +369,9 @@ namespace Kratos
     KRATOS_TRY
 
     double kavg      = ComputeAverageConductivity();
-    double Rc        = ComputeContactRadius();
     double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
 
-    return kavg * (Globals::Pi * Rc * Rc) * temp_grad / mNeighborDistance;
+    return kavg * (Globals::Pi * mContactRadius * mContactRadius) * temp_grad / mNeighborDistance;
 
     KRATOS_CATCH("")
   }
@@ -426,9 +450,6 @@ namespace Kratos
       h = 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(abs((b - a - 1.0) / (a - c + 1.0))) + b - c);
     }
     else {
-      // Compute lower limit of integral (contact radius)
-      double low_lim = ComputeContactRadius();
-
       // Compute upper limit of integral
       double r_min = std::min(particle_radius, neighbor_radius);
       double r_max = std::max(particle_radius, neighbor_radius);
@@ -447,7 +468,7 @@ namespace Kratos
       params.p3 = neighbor_radius;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
+      h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
     }
 
     // Compute heat flux
@@ -464,10 +485,9 @@ namespace Kratos
     if (!CheckHeatTransferDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
       return 0.0;
 
-    // Compute lower limit of integral (contact radius)
+    // Get radii
     double particle_radius = GetRadius();
     double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
-    double low_lim = ComputeContactRadius();
 
     // Compute voronoi edge radius from porosity
     // TODO: currently, global average porosity is an input
@@ -490,13 +510,13 @@ namespace Kratos
       params.p4 = rij;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
+      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
     }
     else {
       double D1, D2, rij_, upp_lim;
 
       if (mNeighborDistance < particle_radius + neighbor_radius)
-        D1 = sqrt(particle_radius * particle_radius - low_lim * low_lim);
+        D1 = sqrt(particle_radius * particle_radius - mContactRadius * mContactRadius);
       else
         D1 = (particle_radius * particle_radius - neighbor_radius * neighbor_radius + mNeighborDistance * mNeighborDistance) / (2 * mNeighborDistance);
 
@@ -522,7 +542,7 @@ namespace Kratos
       params.p9 = D2;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMulti);
+      h = AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMulti);
     }
 
     // Compute heat flux
@@ -540,7 +560,6 @@ namespace Kratos
       return 0.0;
 
     // Get parameters
-    double Rc                    = ComputeContactRadius();
     double particle_radius       = GetRadius();
     double neighbor_radius       = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
     double particle_conductivity = GetParticleConductivity();
@@ -563,7 +582,7 @@ namespace Kratos
       double a    = (1.0 / core - 1.0 / particle_radius) / (2.0 * keff) + 1.0 / (fluid_conductivity * particle_radius);
       double b    = 1.0 / (fluid_conductivity * D);
       double c0   = D / sqrt(rij * rij + D * D);
-      double c1   = D / sqrt(Rc * Rc + D * D);
+      double c1   = D / sqrt(mContactRadius * mContactRadius + D * D);
       double f    = (a - b * c0) / (a - b * c1);
       double ln   = 0.0;
       if (f > 0.0)
@@ -585,7 +604,7 @@ namespace Kratos
       double lambda = (1.0 + dgamma * A) * (1.0 - dgamma * B);
 
       double delmax = 0.5 * (sqrt((4.0 * An) / (Globals::Pi * mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
-      double delmin = 0.5 * (sqrt((4.0 * Rc * Rc) / (mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
+      double delmin = 0.5 * (sqrt((4.0 * mContactRadius * mContactRadius) / (mNeighborDistance * mNeighborDistance * (1.0 - dgamma * dgamma)) + 1.0) - dgamma);
 
       double Xmax = ((A + B) * delmax + dgamma * B - 1.0) / sqrt(fabs(lambda));
       double Xmin = ((A + B) * delmin + dgamma * B - 1.0) / sqrt(fabs(lambda));
@@ -618,7 +637,6 @@ namespace Kratos
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
     double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
-    double Rc                 = ComputeContactRadius();
     double temp_grad          = GetNeighborTemperature() - GetParticleTemperature();
 
     // Assumption 2 : Model developed for mono-sized particles, but the average radius is being used (if neighbor is a wall, it is assumed as a particle with the same radius)
@@ -627,7 +645,7 @@ namespace Kratos
     double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
-    return fluid_conductivity * 4.0 * Globals::Pi * (1.0 - 0.5 * pow(Rc / avg_radius, 2) * (avg_radius - Rc)) * temp_grad / (1.0 - Globals::Pi / 4.0);
+    return fluid_conductivity * 4.0 * Globals::Pi * (1.0 - 0.5 * pow(mContactRadius / avg_radius, 2) * (avg_radius - mContactRadius)) * temp_grad / (1.0 - Globals::Pi / 4.0);
 
     KRATOS_CATCH("")
   }
@@ -720,6 +738,16 @@ namespace Kratos
 
     // Compute heat flux
     return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusZhou(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+      // TODO: Need the real Young modulus
+      return 0.0;
 
     KRATOS_CATCH("")
   }
