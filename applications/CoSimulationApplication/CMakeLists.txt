@@ -8,9 +8,8 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 
-set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "" FORCE)
-set(CO_SIM_IO_INSTALL_DIRECTORY libs CACHE BOOL "" FORCE)
+set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "")
+set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "")
 add_subdirectory(custom_external_libraries/CoSimIO)
 
 ## CoSimulation Core sources
@@ -86,11 +85,13 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosCoSimulationCore DESTINATION libs )
 install(TARGETS KratosCoSimulationApplication DESTINATION libs )
+install(TARGETS co_sim_io DESTINATION libs )
 
 ## If MPI is used, then enable the MPIExtension
 if(${USE_MPI})
   message("Enabling mpi extension for CoSimulationApplication")
   add_subdirectory(mpi_extension)
+  install(TARGETS co_sim_io_mpi DESTINATION libs )
 endif(${USE_MPI})
 
 # Define custom targets

@@ -19,7 +19,7 @@ include(CTest)
 # TODO check how this can be added (supported from CMake 3.17)
 # list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 
-OPTION ( CO_SIM_IO_BUILD_MPI          "Enable MPI communication and MPI examples" OFF )
+OPTION ( CO_SIM_IO_BUILD_MPI         "Enable MPI communication and MPI examples" OFF )
 OPTION ( CO_SIM_IO_BUILD_C            "Building the CoSimIO for C"                OFF )
 OPTION ( CO_SIM_IO_BUILD_PYTHON       "Building the CoSimIO for Python"           OFF )
 OPTION ( CO_SIM_IO_BUILD_FORTRAN      "Building the CoSimIO for Fortran"          OFF )
