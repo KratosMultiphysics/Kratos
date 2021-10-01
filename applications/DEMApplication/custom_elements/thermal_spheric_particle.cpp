@@ -935,14 +935,12 @@ namespace Kratos
     double Rc_max       = ComputeMaxContactRadius();
 
     double Fo_particle = GetParticleConductivity() * col_time_max / (GetDensity() * GetParticleHeatCapacity() * Rc_max * Rc_max);
-    double Fo_neighbor;
-
-    if (mNeighborType == PARTICLE_NEIGHBOR)
-      Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
-    else if (mNeighborType == WALL_NEIGHBOR)
-      Fo_neighbor = 0.0;
+    double Fo_neighbor = 0.0;
 
     // Assumption: average of both particles
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      Fo_neighbor = GetNeighborConductivity() * col_time_max / (GetNeighborDensity() * GetNeighborHeatCapacity() * Rc_max * Rc_max);
+
     return (Fo_particle + Fo_neighbor) / 2.0;
 
     KRATOS_CATCH("")
@@ -1062,17 +1060,10 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::ComputeEffectiveConductivity() {
     KRATOS_TRY
 
-    if (mNeighborType == PARTICLE_NEIGHBOR) {
-      double particle_conductivity = GetParticleConductivity();
-      double neighbor_conductivity = GetNeighborConductivity();
-      return particle_conductivity * neighbor_conductivity / (particle_conductivity + neighbor_conductivity);
-    }
-    else if (mNeighborType == WALL_NEIGHBOR) {
-      return GetParticleConductivity();
-    }
-    else {
-      return 0.0;
-    }
+    double particle_conductivity = GetParticleConductivity();
+    double neighbor_conductivity = GetNeighborConductivity();
+
+    return particle_conductivity * neighbor_conductivity / (particle_conductivity + neighbor_conductivity);
 
     KRATOS_CATCH("")
   }
