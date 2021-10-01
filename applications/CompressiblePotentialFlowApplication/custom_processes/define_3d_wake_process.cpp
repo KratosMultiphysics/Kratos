@@ -77,6 +77,7 @@ void Define3DWakeProcess::ExecuteInitialize()
         r_nodes.SetValue(TRAILING_EDGE, false);
         r_nodes.SetValue(KUTTA, false);
         r_nodes.SetValue(WAKE_DISTANCE, 0.0);
+        r_nodes.Set(SOLID, false);
     });
     auto& r_elements = root_model_part.Elements();
     VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
@@ -87,6 +88,8 @@ void Define3DWakeProcess::ExecuteInitialize()
 
     // Compute span direction as the cross product: mWakeNormal x mWakeDirection
     MathUtils<double>::CrossProduct(mSpanDirection, mWakeNormal, mWakeDirection);
+
+    MarkBodyNodesAsSolid();
 
     MarkTrailingEdgeNodesAndFindWingtipNodes();
 
@@ -113,6 +116,9 @@ void Define3DWakeProcess::ExecuteInitialize()
     SaveLocalWakeNormalInElements();
 
     AddWakeNodesToWakeModelPart();
+
+    // Needed for fuselage:
+    // MarkFuselageTrailingEdgeNodes();
 
     if(mCountElementsNumber){
         CountElementsNumber();
@@ -178,6 +184,14 @@ void Define3DWakeProcess::InitializeWakeSubModelpart() const
         // Creating the wake_sub_model_part
         root_model_part.CreateSubModelPart("wake_elements_model_part");
     }
+}
+
+void Define3DWakeProcess::MarkBodyNodesAsSolid() const
+{
+    block_for_each(mrBodyModelPart.Nodes(), [&](Node<3>& r_node)
+    {
+        r_node.Set(SOLID);
+    });
 }
 
 // This function marks the trailing edge nodes and finds the wingtip nodes
@@ -478,7 +492,8 @@ void Define3DWakeProcess::MarkWakeElements() const
 
     BuiltinTimer timer;
 
-    CalculateDiscontinuousDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
+    // CalculateDiscontinuousDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
+    CalculateDistanceToSkinProcess<3> distance_calculator(root_model_part, mrStlWakeModelPart);
     distance_calculator.Execute();
 
     KRATOS_INFO_IF("MarkWakeElements", mEchoLevel > 0)
@@ -878,6 +893,42 @@ void Define3DWakeProcess::AddWakeNodesToWakeModelPart() const
     std::sort(wake_nodes_ordered_ids.begin(),
               wake_nodes_ordered_ids.end());
     wake_sub_model_part.AddNodes(wake_nodes_ordered_ids);
+
+    block_for_each(wake_sub_model_part.Nodes(), [&](Node<3>& rNode)
+    {
+        const double wake_distance = rNode.GetValue(WAKE_DISTANCE);
+        if (wake_distance > 0.0){
+            rNode.SetValue(WATER_PRESSURE, 5.0);
+        }
+        else{
+            rNode.SetValue(WATER_PRESSURE, -5.0);
+        }
+    });
+}
+
+void Define3DWakeProcess::MarkFuselageTrailingEdgeNodes() const
+{
+    ModelPart& root_model_part = mrBodyModelPart.GetRootModelPart();
+    ModelPart& wake_sub_model_part =
+            root_model_part.GetSubModelPart("wake_elements_model_part");
+
+    block_for_each(wake_sub_model_part.Nodes(), [&](Node<3>& rNode)
+    {
+        if(rNode.Is(SOLID)){
+            rNode.SetValue(TRAILING_EDGE, true);
+        }
+    });
+
+    block_for_each(wake_sub_model_part.Elements(), [&](Element& rElement)
+    {
+        auto& r_geometry = rElement.GetGeometry();
+        for (unsigned int i = 0; i < r_geometry.size(); i++){
+            if(r_geometry[i].Is(SOLID)){
+                rElement.Set(STRUCTURE);
+            }
+        }
+    });
+
 }
 
 // This function counts the number of elements of each type. Useful for

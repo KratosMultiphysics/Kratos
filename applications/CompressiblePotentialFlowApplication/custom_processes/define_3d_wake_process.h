@@ -120,6 +120,8 @@ private:
 
     void InitializeWakeSubModelpart() const;
 
+    void MarkBodyNodesAsSolid() const;
+
     void MarkTrailingEdgeNodesAndFindWingtipNodes();
 
     void ComputeWingLowerSurfaceNormals() const;
@@ -193,6 +195,8 @@ private:
     void SaveLocalWakeNormalInElements() const;
 
     void AddWakeNodesToWakeModelPart() const;
+
+    void MarkFuselageTrailingEdgeNodes() const;
 
     void CountElementsNumber() const;
 
