@@ -425,33 +425,6 @@ class KratosSolverWrapper(sw.SolverWrapper):
         self.is_model_pickled = True
 
 
-    def SerializeSerialModel(self, parameters):
-        """
-        Method serializing and pickling the Kratos Model and the Kratos Parameters of the problem. It builds self.pickled_model and self.pickled_project_parameters. It is called if we are not runnnig in MPI.
-
-        Inputs:
-
-
-        parameters: KratosMultiphysics.ProjectParameters object.
-            It contains the settings of the simulation.
-        """
-        # prepare the model to serialize
-        model = KratosMultiphysics.Model()
-        fake_sample = self.fake_sample_to_serialize
-        simulation = self.analysis(model,parameters,fake_sample)
-        simulation.Initialize()
-        # reset general flags
-        main_model_part_name = self.wrapper.GetModelPartName()
-        simulation.model.GetModelPart(main_model_part_name).ProcessInfo.SetValue(KratosMultiphysics.IS_RESTARTED,True)
-        # serialize model
-        serialized_model = KratosMultiphysics.MpiSerializer()
-        serialized_model.Save("ModelSerialization",simulation.model)
-        self.serialized_model.append(serialized_model)
-        # pickle dataserialized_data
-        pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-        return pickled_model
-
-
     def SerializeModelParametersStochasticAdaptiveRefinement(self):
         """
         Method serializing and pickling the Kratos Model and the Kratos Parameters of the problem. It builds self.pickled_model and self.pickled_project_parameters. To be called if the selected refinement strategy is stochastic_adaptive_refinement.
@@ -506,8 +479,9 @@ class KratosSolverWrapper(sw.SolverWrapper):
         else:
             if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                 raise(Exception("Kratos is set in MPI but XMC is not!"))
-            pickled_model = self.SerializeSerialModel(parameters)
+            serialized_model, pickled_model = mds.SerializeSerialModel(pickled_project_parameters_tmp, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
         # append to attribute
+        self.serialized_model.append(serialized_model)
         self.pickled_model.append(pickled_model)
 
         # remove temporary objects created for MPI serialization
@@ -605,7 +579,8 @@ class KratosSolverWrapper(sw.SolverWrapper):
             else:
                 if parameters["problem_data"]["parallel_type"].GetString()=="MPI":
                     raise(Exception("Kratos is set in MPI but XMC is not!"))
-                pickled_model = self.SerializeSerialModel(parameters)
+                serialized_model, pickled_model = mds.SerializeSerialModel(pickled_project_parameters, self.wrapper.GetModelPartName(), self.fake_sample_to_serialize, self.analysis)
+                self.serialized_model.append(serialized_model)
             # append to attribute
             self.pickled_model.append(pickled_model)
             if self.is_mpi:
@@ -725,3 +700,4 @@ class KratosSolverWrapper(sw.SolverWrapper):
 
         """
         return len(self.qoi_estimator)
+
