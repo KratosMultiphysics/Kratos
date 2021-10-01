@@ -35,13 +35,13 @@ set(KRATOS_CO_SIMULATION_TESTING_CPP_PONG_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/te
 
 
 add_library(KratosCoSimulationCore SHARED ${KRATOS_CO_SIMULATION_APPLICATION_CORE} ${KRATOS_CO_SIMULATION_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore)
+target_link_libraries(KratosCoSimulationCore PUBLIC KratosCore co_sim_io)
 set_target_properties(KratosCoSimulationCore PROPERTIES COMPILE_DEFINITIONS "CO_SIMULATION_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosCoSimulationApplication MODULE THIN_LTO ${KRATOS_CO_SIMULATION_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore co_sim_io)
+target_link_libraries(KratosCoSimulationApplication PRIVATE KratosCoSimulationCore )
 set_target_properties(KratosCoSimulationApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
