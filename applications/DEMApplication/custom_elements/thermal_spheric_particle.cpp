@@ -260,6 +260,8 @@ namespace Kratos
     std::string model = r_process_info[CONVECTION_MODEL];
     if      (model.compare("sphere_hanz_marshall") == 0) Nu = ConvectionHanzMarshall(r_process_info);
     else if (model.compare("sphere_whitaker")      == 0) Nu = ConvectionWhitaker(r_process_info);
+    else if (model.compare("sphere_gunn")          == 0) Nu = ConvectionGunn(r_process_info);
+    else if (model.compare("sphere_LiMason")       == 0) Nu = ConvectionLiMason(r_process_info);
 
     // Compute heat flux
     mConvectiveHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
@@ -647,6 +649,35 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ConvectionGunn(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double Pr  = ComputePrandtlNumber(r_process_info);
+    double Re  = ComputeReynoldNumber(r_process_info);
+    double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    
+    return (7.0 - 10.0 * por + 5.0 * por * por) * (1.0 + 0.7 * pow(Re,1/5) * pow(Pr,1/3)) + (1.33 - 2.4 * por + 1.2 * por * por) * pow(Re,7/10) * pow(Pr,1/3);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ConvectionLiMason(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    double Pr  = ComputePrandtlNumber(r_process_info);
+    double Re  = ComputeReynoldNumber(r_process_info);
+    double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double m   = 4.75; // Assumption: exponent "m = 4.75" recommended for dense systems (3.50 is recommended for dilute systems)
+
+    if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,1/2) * pow(Pr,1/3);
+    else if (Re < 1500.0) return 2.0 + pow(por,m) * (0.5 * pow(Re,1/2) + 0.02 * pow(Re,4/5)) * pow(Pr,1/3);
+    else                  return 2.0 + 0.000045 * pow(por,m) * pow(Re,9/5);
+
+    KRATOS_CATCH("")
+  }
+
   //=====================================================================================================================================================================================
   // Auxiliary computations
 
@@ -669,8 +700,8 @@ namespace Kratos
 
     if (this->Is(DEMFlags::HAS_RADIATION)) {
       std::string model = r_process_info[RADIATION_MODEL];
-      if (model.compare("sphere_hanz_marshall") == 0 ||
-          model.compare("sphere_whitaker")      == 0) {
+      if (model.compare("continuum_zhou")   == 0 ||
+          model.compare("continuum_krause") == 0) {
         double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS] - 1);
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }

@@ -96,6 +96,8 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double RadiationContinuumKrause(const ProcessInfo& r_process_info);
   double ConvectionHanzMarshall(const ProcessInfo& r_process_info);
   double ConvectionWhitaker(const ProcessInfo& r_process_info);
+  double ConvectionGunn(const ProcessInfo& r_process_info);
+  double ConvectionLiMason(const ProcessInfo& r_process_info);
 
   // Auxiliary computations
   void   ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
