@@ -93,7 +93,10 @@ void CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(
         );
     };
 
-    auto p_props = rKratosModelPart.CreateNewProperties(0);
+    Properties::Pointer p_props;
+    if (rCoSimIOModelPart.NumberOfElements() > 0) {
+        p_props = rKratosModelPart.CreateNewProperties(0);
+    }
 
     std::vector<IndexType> conn;
     for (const auto& r_elem : rCoSimIOModelPart.Elements()) {
