@@ -25,7 +25,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
             "isothermal_core_radius"         : 0.5,
-            "radiation_radius"               : 3.0,
+            "max_radiation_distance"         : 3.0,
             "global_porosity"                : 0.0,
             "integral_tolerance"             : 0.000001,
             "global_fluid_properties"        : {
@@ -69,7 +69,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.nusselt_correlation != "sphere_hanz_marshall" and
             self.nusselt_correlation != "sphere_whitaker"      and
             self.nusselt_correlation != "sphere_gunn"          and
-            self.nusselt_correlation != "sphere_LiMason"):
+            self.nusselt_correlation != "sphere_li _mason"):
             raise Exception('DEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
         
         if (self.radiation_model != "continuum_zhou" and
@@ -81,7 +81,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.max_conduction_distance = self.thermal_settings["max_conduction_distance"].GetDouble()
         self.fluid_layer_thickness   = self.thermal_settings["fluid_layer_thickness"].GetDouble()
         self.isothermal_core_radius  = self.thermal_settings["isothermal_core_radius"].GetDouble()
-        self.radiation_radius        = self.thermal_settings["radiation_radius"].GetDouble()
+        self.max_radiation_distance  = self.thermal_settings["max_radiation_distance"].GetDouble()
         self.global_porosity         = self.thermal_settings["global_porosity"].GetDouble()
         self.integral_tolerance      = self.thermal_settings["integral_tolerance"].GetDouble()
         
@@ -94,8 +94,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.fluid_layer_thickness = 0
         if (self.isothermal_core_radius < 0):
             self.isothermal_core_radius = 0
-        if (self.radiation_radius < 0 ):
-            self.radiation_radius = 0
+        if (self.max_radiation_distance < 0 ):
+            self.max_radiation_distance = 0
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('DEM', '"global_porosity" must be between zero and one.')
         if (self.integral_tolerance <= 0):
@@ -149,7 +149,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(MAX_CONDUCTION_DISTANCE,    self.max_conduction_distance)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_LAYER_THICKNESS,      self.fluid_layer_thickness)
         self.spheres_model_part.ProcessInfo.SetValue(ISOTHERMAL_CORE_RADIUS,     self.isothermal_core_radius)
-        self.spheres_model_part.ProcessInfo.SetValue(RADIATION_RADIUS,           self.radiation_radius)
+        self.spheres_model_part.ProcessInfo.SetValue(MAX_RADIATION_DISTANCE,     self.max_radiation_distance)
         self.spheres_model_part.ProcessInfo.SetValue(PRESCRIBED_GLOBAL_POROSITY, self.global_porosity)
         self.spheres_model_part.ProcessInfo.SetValue(INTEGRAL_TOLERANCE,         self.integral_tolerance)
 

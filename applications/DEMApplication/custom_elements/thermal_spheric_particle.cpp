@@ -28,6 +28,8 @@ namespace Kratos
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
     // Initialize base class
     TBaseElement::Initialize(r_process_info);
 
@@ -37,14 +39,36 @@ namespace Kratos
     this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
     this->Set(DEMFlags::HAS_RADIATION,           r_process_info[CONVECTION_OPTION]);
 
-    // Initialize prescribed heat flux
+    // Initialize prescribed heat flux (currently a constant value)
     SetParticlePrescribedHeatFlux(0.0);
+
+    KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::InitializeSolutionStep(const ProcessInfo& r_process_info) {
     // Initialize base class
     TBaseElement::InitializeSolutionStep(r_process_info);
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::InitializeHeatFluxComputation(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Initialize heat fluxes contributions
+    mConductiveHeatFlux = 0.0;
+    mConvectiveHeatFlux = 0.0;
+    mRadiativeHeatFlux  = 0.0;
+    mTotalHeatFlux      = 0.0;
+
+    // Initialize environment-related variables for radiation
+    if (this->Is(DEMFlags::HAS_RADIATION)) {
+      mEnvironmentCount       = 0;
+      mEnvironmentTemperature = 0.0;
+      mEnvironmentTempAux     = 0.0;
+    }
+
+    KRATOS_CATCH("")
   }
 
   //=====================================================================================================================================================================================
@@ -63,11 +87,8 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::ComputeHeatFluxes(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // Initialize heat fluxes contributions
-    mConductiveHeatFlux = 0.0;
-    mConvectiveHeatFlux = 0.0;
-    mRadiativeHeatFlux  = 0.0;
-    mTotalHeatFlux      = 0.0;
+    // Initialize heat fluxes computation
+    InitializeHeatFluxComputation(r_process_info);
 
     // Compute heat fluxes with neighbor particles
     for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
@@ -89,7 +110,11 @@ namespace Kratos
     if (this->Is(DEMFlags::HAS_CONVECTION))
       ComputeConvectiveHeatFlux(r_process_info);
 
-    // Sum up contributions
+    // Finalize radiation computation of continuous methods
+    if (this->Is(DEMFlags::HAS_RADIATION))
+      ComputeContinuumRadiativeHeatFlux(r_process_info);
+
+    // Sum up heat fluxes contributions
     mTotalHeatFlux = mConductiveHeatFlux + mConvectiveHeatFlux + mRadiativeHeatFlux + mPrescribedHeatFlux;
 
     KRATOS_CATCH("")
@@ -237,7 +262,35 @@ namespace Kratos
     if (mNeighborType == WALL_NEIGHBOR)
       return;
 
-    // Compute heat flux according to selected model
+    // Check if particles are close enough
+    if (!CheckHeatTransferDistance(r_process_info[MAX_RADIATION_DISTANCE]))
+      return;
+
+    // Update number of radiative neighbors
+    mEnvironmentCount++;
+
+    // Accumulate environment temperature (in continuum methods) or compute heat flux (in discrete methods) according to selected model
+    std::string model = r_process_info[RADIATION_MODEL];
+
+    if (model.compare("continuum_zhou") == 0) {
+      mEnvironmentTemperature += GetNeighborTemperature();
+    }
+    else if (model.compare("continuum_krause") == 0) {
+      double neighbor_emissivity  = mNeighbor_p->GetParticleEmissivity();
+      double neighbor_surface     = mNeighbor_p->GetParticleSurfaceArea();
+      double neighbor_temperature = mNeighbor_p->GetParticleTemperature();
+      mEnvironmentTemperature += 0.5 * STEFAN_BOLTZMANN * neighbor_emissivity * neighbor_surface * pow(neighbor_temperature, 4);
+      mEnvironmentTempAux     += 0.5 * STEFAN_BOLTZMANN * neighbor_emissivity * neighbor_surface;
+    }
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::ComputeContinuumRadiativeHeatFlux(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // compute heat flux of continuous methods according to selected model
     std::string model = r_process_info[RADIATION_MODEL];
 
     if      (model.compare("continuum_zhou")   == 0) mRadiativeHeatFlux += RadiationContinuumZhou(r_process_info);
@@ -258,10 +311,10 @@ namespace Kratos
     // Compute Nusselt number according to selected model
     double Nu = 0.0;
     std::string model = r_process_info[CONVECTION_MODEL];
-    if      (model.compare("sphere_hanz_marshall") == 0) Nu = ConvectionHanzMarshall(r_process_info);
-    else if (model.compare("sphere_whitaker")      == 0) Nu = ConvectionWhitaker(r_process_info);
-    else if (model.compare("sphere_gunn")          == 0) Nu = ConvectionGunn(r_process_info);
-    else if (model.compare("sphere_LiMason")       == 0) Nu = ConvectionLiMason(r_process_info);
+    if      (model.compare("sphere_hanz_marshall") == 0) Nu = NusseltHanzMarshall(r_process_info);
+    else if (model.compare("sphere_whitaker")      == 0) Nu = NusseltWhitaker(r_process_info);
+    else if (model.compare("sphere_gunn")          == 0) Nu = NusseltGunn(r_process_info);
+    else if (model.compare("sphere_li_mason")      == 0) Nu = NusseltLiMason(r_process_info);
 
     // Compute heat flux
     mConvectiveHeatFlux += (Nu * fluid_conductivity / char_length) * surface_area * temp_grad;
@@ -558,8 +611,18 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::RadiationContinuumZhou(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // TODO: Needs the porosity
-    return 0.0;
+    // Get parameters
+    double particle_emissivity  = GetParticleEmissivity();
+    double particle_surface     = GetParticleSurfaceArea();
+    double particle_temperature = GetParticleTemperature();
+    double porosity             = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double f_temperature        = r_process_info[FLUID_TEMPERATURE];
+
+    // Compute final value of environment temperature
+    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mEnvironmentCount;
+
+    // Compute heat flux
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
 
     KRATOS_CATCH("")
   }
@@ -568,64 +631,22 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::RadiationContinuumKrause(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // TODO: Needs to be computed outsie neighbors loop
-    return 0.0;
+    // Get parameters
+    double particle_emissivity  = GetParticleEmissivity();
+    double particle_surface     = GetParticleSurfaceArea();
+    double particle_temperature = GetParticleTemperature();
 
-    //// Get particle properties
-    //double this_radius = GetRadius();
-    //double this_area = 4 * Globals::Pi * this_radius * this_radius;
-    //double this_emissivity = mThermalEmissivity;
-    //double this_temp = GetParticleTemperature();
+    // Compute final value of environment temperature
+    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 1/4);
 
-    //// Initialize parameters
-    //double num = 0.0;
-    //double den = 0.0;
-
-    //// Loop over neighbor particles
-    //// (Assumption: walls not considered)
-    //for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
-    //  if (mNeighbourElements[i] == NULL) continue;
-    //  ThermalSphericParticle<TBaseElement>* neighbor_iterator = dynamic_cast<ThermalSphericParticle<TBaseElement>*>(mNeighbourElements[i]);
-
-    //  // Check if neighbor is adiabatic
-    //  if (neighbor_iterator->Is(DEMFlags::IS_ADIABATIC))
-    //    continue;
-
-    //  // Compute direction and distance between centroids
-    //  array_1d<double, 3> direction;
-    //  direction[0] = GetGeometry()[0].Coordinates()[0] - neighbor_iterator->GetGeometry()[0].Coordinates()[0];
-    //  direction[1] = GetGeometry()[0].Coordinates()[1] - neighbor_iterator->GetGeometry()[0].Coordinates()[1];
-    //  direction[2] = GetGeometry()[0].Coordinates()[2] - neighbor_iterator->GetGeometry()[0].Coordinates()[2];
-
-    //  double distance = DEM_MODULUS_3(direction);
-
-    //  // Check if particles are close enough
-    //  // (Assumption: radiation influence factor applied to the maximum radius)
-    //  double other_radius = neighbor_iterator->GetRadius();
-    //  if (distance > r_process_info[RADIATION_RADIUS] * std::max(this_radius, other_radius))
-    //    continue;
-
-    //  // Get particle properties
-    //  double other_area = 4 * Globals::Pi * other_radius * other_radius;
-    //  double other_emissivity = neighbor_iterator->mThermalEmissivity;
-    //  double other_temp = neighbor_iterator->GetParticleTemperature();
-
-    //  // Update parameters
-    //  den += STEFAN_BOLTZMANN * other_emissivity * other_area / 2;
-    //  num += den * pow(other_temp, 4);
-    //}
-
-    //// Averaged environment temperature
-    //double env_temp = pow(num / den, 1 / 4);
-
-    //// Compute heat flux
-    //mRadiativeHeatFlux += this_emissivity * STEFAN_BOLTZMANN * this_area * (pow(env_temp, 4) - pow(this_temp, 4));
+    // Compute heat flux
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::ConvectionHanzMarshall(const ProcessInfo& r_process_info) {
+  double ThermalSphericParticle<TBaseElement>::NusseltHanzMarshall(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     double Pr = ComputePrandtlNumber(r_process_info);
@@ -637,7 +658,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::ConvectionWhitaker(const ProcessInfo& r_process_info) {
+  double ThermalSphericParticle<TBaseElement>::NusseltWhitaker(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     double Pr = ComputePrandtlNumber(r_process_info);
@@ -650,7 +671,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::ConvectionGunn(const ProcessInfo& r_process_info) {
+  double ThermalSphericParticle<TBaseElement>::NusseltGunn(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     double Pr  = ComputePrandtlNumber(r_process_info);
@@ -663,7 +684,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::ConvectionLiMason(const ProcessInfo& r_process_info) {
+  double ThermalSphericParticle<TBaseElement>::NusseltLiMason(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
     double Pr  = ComputePrandtlNumber(r_process_info);
@@ -702,7 +723,7 @@ namespace Kratos
       std::string model = r_process_info[RADIATION_MODEL];
       if (model.compare("continuum_zhou")   == 0 ||
           model.compare("continuum_krause") == 0) {
-        double model_search_distance = GetRadius() * (r_process_info[RADIATION_RADIUS] - 1);
+        double model_search_distance = GetRadius() * (r_process_info[MAX_RADIATION_DISTANCE]);
         added_search_distance = std::max(added_search_distance, model_search_distance);
       }
     }
@@ -1189,6 +1210,16 @@ namespace Kratos
       return mNeighbor_p->GetParticleHeatCapacity();
     else if (mNeighborType == WALL_NEIGHBOR)
       return mNeighbor_w->GetProperties()[SPECIFIC_HEAT];
+    else
+      return 0.0;
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::GetNeighborEmissivity() {
+    if (mNeighborType == PARTICLE_NEIGHBOR)
+      return mNeighbor_p->GetParticleEmissivity();
+    else if (mNeighborType == WALL_NEIGHBOR)
+      return mNeighbor_w->GetProperties()[EMISSIVITY];
     else
       return 0.0;
   }
