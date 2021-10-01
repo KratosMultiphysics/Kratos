@@ -27,7 +27,7 @@ class TestCoSimIOPyExposure_aux_tests(KratosUnittest.TestCase):
         }""")
 
         info = CoSimIO.InfoFromParameters(params)
-        self.assertEqual(info.Size(), 5)
+        self.assertEqual(info.Size(), 6)
         self.assertTrue(info.Has("some_bool"))
         self.assertTrue(info.Has("the_string"))
         self.assertTrue(info.Has("another_string"))
@@ -44,6 +44,7 @@ class TestCoSimIOPyExposure_aux_tests(KratosUnittest.TestCase):
         self.assertAlmostEqual(info.GetDouble("double_val"), 0.223)
 
         sub_info = info.GetInfo("sub_param")
+        self.assertEqual(sub_info.Size(), 3)
         self.assertAlmostEqual(sub_info.GetDouble("tol"), 0.01)
         self.assertFalse(sub_info.GetBool("is_converged"))
         self.assertEqual(sub_info.GetInt("echo_lvl"), 5)
