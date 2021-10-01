@@ -94,6 +94,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double IndirectConductionSurroundingLayer(const ProcessInfo& r_process_info);
   double IndirectConductionVoronoiA(const ProcessInfo& r_process_info);
   double IndirectConductionVoronoiB(const ProcessInfo& r_process_info);
+  double IndirectConductionVargasMcCarthy(const ProcessInfo& r_process_info);
   double NusseltHanzMarshall(const ProcessInfo& r_process_info);
   double NusseltWhitaker(const ProcessInfo& r_process_info);
   double NusseltGunn(const ProcessInfo& r_process_info);

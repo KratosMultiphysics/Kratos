@@ -63,7 +63,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
 
         if (self.indirect_conduction_model != "surrounding_layer" and
             self.indirect_conduction_model != "voronoi_a"         and
-            self.indirect_conduction_model != "voronoi_b"):
+            self.indirect_conduction_model != "voronoi_b"         and
+            self.indirect_conduction_model != "vargas_mccarthy"):
             raise Exception('DEM', 'Indirect thermal conduction model \'' + self.indirect_conduction_model + '\' is not implemented.')
 
         if (self.nusselt_correlation != "sphere_hanz_marshall" and

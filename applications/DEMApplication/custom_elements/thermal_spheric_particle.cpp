@@ -250,6 +250,7 @@ namespace Kratos
     if      (model.compare("surrounding_layer") == 0) mConductiveHeatFlux += IndirectConductionSurroundingLayer(r_process_info);
     else if (model.compare("voronoi_a")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiA(r_process_info);
     else if (model.compare("voronoi_b")         == 0) mConductiveHeatFlux += IndirectConductionVoronoiB(r_process_info);
+    else if (model.compare("vargas_mccarthy")   == 0) mConductiveHeatFlux += IndirectConductionVargasMcCarthy(r_process_info);
 
     KRATOS_CATCH("")
   }
@@ -608,39 +609,25 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::RadiationContinuumZhou(const ProcessInfo& r_process_info) {
+  double ThermalSphericParticle<TBaseElement>::IndirectConductionVargasMcCarthy(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // Get parameters
-    double particle_emissivity  = GetParticleEmissivity();
-    double particle_surface     = GetParticleSurfaceArea();
-    double particle_temperature = GetParticleTemperature();
-    double porosity             = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
-    double f_temperature        = r_process_info[FLUID_TEMPERATURE];
+    // Check for contact
+    if (!CheckHeatTransferDistance(0.0))
+      return;
 
-    // Compute final value of environment temperature
-    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mEnvironmentCount;
+    // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
+    double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double Rc                 = ComputeContactRadius();
+    double temp_grad          = GetNeighborTemperature() - GetParticleTemperature();
 
-    // Compute heat flux
-    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
-
-    KRATOS_CATCH("")
-  }
-
-  template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::RadiationContinuumKrause(const ProcessInfo& r_process_info) {
-    KRATOS_TRY
-
-    // Get parameters
-    double particle_emissivity  = GetParticleEmissivity();
-    double particle_surface     = GetParticleSurfaceArea();
-    double particle_temperature = GetParticleTemperature();
-
-    // Compute final value of environment temperature
-    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 1/4);
+    // Assumption 2 : Model developed for mono-sized particles, but the average radius is being used (if neighbor is a wall, it is assumed as a particle with the same radius)
+    double particle_radius = GetRadius();
+    double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : particle_radius;
+    double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
-    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
+    return fluid_conductivity * 4.0 * Globals::Pi * (1.0 - 0.5 * pow(Rc / avg_radius, 2) * (avg_radius - Rc)) * temp_grad / (1.0 - Globals::Pi / 4.0);
 
     KRATOS_CATCH("")
   }
@@ -695,6 +682,44 @@ namespace Kratos
     if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,1/2) * pow(Pr,1/3);
     else if (Re < 1500.0) return 2.0 + pow(por,m) * (0.5 * pow(Re,1/2) + 0.02 * pow(Re,4/5)) * pow(Pr,1/3);
     else                  return 2.0 + 0.000045 * pow(por,m) * pow(Re,9/5);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::RadiationContinuumZhou(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Get parameters
+    double particle_emissivity  = GetParticleEmissivity();
+    double particle_surface     = GetParticleSurfaceArea();
+    double particle_temperature = GetParticleTemperature();
+    double porosity             = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
+    double f_temperature        = r_process_info[FLUID_TEMPERATURE];
+
+    // Compute final value of environment temperature
+    double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mEnvironmentCount;
+
+    // Compute heat flux
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::RadiationContinuumKrause(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Get parameters
+    double particle_emissivity  = GetParticleEmissivity();
+    double particle_surface     = GetParticleSurfaceArea();
+    double particle_temperature = GetParticleTemperature();
+
+    // Compute final value of environment temperature
+    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 1/4);
+
+    // Compute heat flux
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
 
     KRATOS_CATCH("")
   }
