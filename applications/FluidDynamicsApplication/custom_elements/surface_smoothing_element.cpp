@@ -266,7 +266,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     double area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, area); //asking for gradients and other info
     const double he = ElementSizeCalculator<3,4>::GradientsElementSize(DN_DX);
-    const double epsilon = 5.0e-11;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
+    //const double epsilon = 5.0e-11;//1.7e-9;//6.0e5*dt*he*he;//5.0e5*dt*he*he;//1.0e2*dt*he*he;//1.0e0*dt*he;//1.0e4*dt*he*he;
 
     // HINT: 5e-10 is fine for median mesh and exact gradient (1.3e-9 for finer mesh)
     // For the Avg. Gradient value, a larger epsilon is needed.
@@ -320,6 +320,14 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         }
     }
 
+    const double norm_grad_phi_old = norm_2(grad_phi_old);
+    double epsilon = 1.0 - 1.0/norm_grad_phi_old;
+    //KRATOS_INFO("Epsilon") << epsilon << std::endl;
+    //if (std::abs(epsilon) < 1.0e-12){epsilon = 1.0e-12;}
+
+    const double pseudo_time_step = 5.0e-6;
+    epsilon = pseudo_time_step*epsilon;
+
     for(unsigned int i = 0; i<num_nodes; i++){
         PHIold[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         PHIdof[i] = GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX);
@@ -333,9 +341,9 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             tempM(i,j) = area*N[i]*N[j];
 
             for (unsigned int k = 0; k<num_dim; k++){
-                tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+                tempA(i,j) += pseudo_time_step*area*DN_DX(i,k)*DN_DX(j,k);//area*epsilon*DN_DX(i,k)*DN_DX(j,k);
 
-                tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                tempLaplacianRHS[i] += pseudo_time_step*area/norm_grad_phi_old*DN_DX(i,k)*N[j]*grad_phi_old[k];//area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
             }
 
             //tempA(i,j) -= 0.5*area*epsilon*n_dot_grad(i)*n_dot_grad(j);
@@ -344,7 +352,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         //grad_phi_avg += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT);
     }
 
-    // const double norm_grad_phi_old = norm_2(grad_phi_old); // It is not correct to normalize the gradient.
+    // It is not correct to normalize the gradient.
     // if (norm_grad_phi_old > 1.0-1 && norm_grad_phi_old < 1.0e1)
     //     grad_phi_old = (1.0/norm_grad_phi_old)*grad_phi_old;//1.0/static_cast<double>(num_nodes)*grad_phi_old;//
     // else
@@ -354,12 +362,12 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     ///////////////////////////////////////////////////////////////////////////////
     GeometryType::GeometriesArrayType faces = GetGeometry().GenerateFaces();
 
-    bool not_found_surface = true;
+    //bool not_found_surface = true;
     unsigned int i_face = 0;
 
-    while (i_face < num_faces && not_found_surface) {
+    while (i_face < num_faces /* && not_found_surface */) {
         GeometryType& r_face = faces[i_face];
-        unsigned int contact_node = 0;
+        unsigned int outer_face_node = 0;
         const unsigned int num_face_nodes = num_nodes - 1;
         unsigned int n_pos = 0;
 
@@ -371,8 +379,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
         Vector solid_normal = ZeroVector(num_dim);
 
         for (unsigned int i=0; i < num_face_nodes; ++i){
-            if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 ){
-                contact_node++;
+            if ( r_face[i].GetValue(IS_STRUCTURE) == 1.0 || r_face[i].Is(BOUNDARY)){
+                outer_face_node++;
                 const double contact_angle_i = r_face[i].FastGetSolutionStepValue(CONTACT_ANGLE);
                 if (contact_angle_i > 1.0e-12)
                 {
@@ -389,8 +397,8 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
             }
         }
 
-        if (contact_node == num_face_nodes){
-            not_found_surface = false;
+        if (outer_face_node == num_face_nodes){
+            //not_found_surface = false;
 
             double minus_cos_contact_angle = 0.0;
             const double norm_solid_normal = Kratos::norm_2(solid_normal);
@@ -554,10 +562,11 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                     if (contact_angle_weight > 0.0){
                         minus_cos_contact_angle = -std::cos(contact_angle/contact_angle_weight);
                     } else{
-                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal,
+                        minus_cos_contact_angle = Kratos::inner_prod(solid_normal,//1.0/norm_grad_phi_old*grad_phi_old);
                             GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
                     }
-                    tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                    //tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                    //In case we use this process for the sake of redistancing, this RHS contribution should be turned off.
                 }
             }
         }
@@ -571,7 +580,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     //if (step == 1){
         noalias(rLeftHandSideMatrix) = tempM + tempA; // + tempMlumped;
-        noalias(rRightHandSideVector) = /* -tempLaplacianRHS + */ tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
+        noalias(rRightHandSideVector) = tempLaplacianRHS + tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);
     //} else {
     //    noalias(rLeftHandSideMatrix) = tempM; //+ tempA; // + tempMlumped;
     //    noalias(rRightHandSideVector) = tempLaplacianRHS - tempBCRHS + prod(tempM,PHIold) - prod(rLeftHandSideMatrix,PHIdof);

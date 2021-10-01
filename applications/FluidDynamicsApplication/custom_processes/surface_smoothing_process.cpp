@@ -152,6 +152,16 @@ void SurfaceSmoothingProcess::Execute()
         } else {
             it_node->Free(DISTANCE_AUX);
         }
+
+        it_node->Set(BOUNDARY,false);
+    }
+
+    #pragma omp parallel for
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); ++it_cond){
+        Geometry< Node<3> >& geom = it_cond->GetGeometry();
+        for(unsigned int i=0; i<geom.size(); i++){
+            geom[i].Set(BOUNDARY,true);
+        }
     }
 
     //Model& current_model = mrModelPart.GetModel();
@@ -242,10 +252,10 @@ void SurfaceSmoothingProcess::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
-        if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
-             it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
-                it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
-        }
+        // if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
+        //      it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
+        //         it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+        // }
 
     //     it_node->Free(DISTANCE_AUX);
     }
