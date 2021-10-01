@@ -9,7 +9,9 @@ try:
     import numpy as np
     from KratosMultiphysics.CompressiblePotentialFlowApplication import stochastic_potential_flow_response
     is_xmc_available = True
-except:
+except Exception as err:
+    print(err)
+    stop
     is_xmc_available = False
 
 def CreateResponseFunction(response_id, response_settings, model):
