@@ -8,9 +8,9 @@ include(pybind11Tools)
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 
-set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "")
-set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "")
-set(CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY libs CACHE BOOL "")
+set(CO_SIM_IO_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(CO_SIM_IO_BUILD_MPI ${USE_MPI} CACHE BOOL "" FORCE)
+set(CO_SIM_IO_INSTALL_DIRECTORY libs CACHE BOOL "" FORCE)
 add_subdirectory(custom_external_libraries/CoSimIO)
 
 ## CoSimulation Core sources
