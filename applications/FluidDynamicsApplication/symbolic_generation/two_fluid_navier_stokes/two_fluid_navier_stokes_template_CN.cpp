@@ -12,7 +12,7 @@
 //
 
 #include "two_fluid_navier_stokes_CN.h"
-#include "custom_utilities/two_fluid_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_CN_data.h"
 
 namespace Kratos
 {
@@ -1034,7 +1034,7 @@ void TwoFluidNavierStokesCN<TElementData>::CondenseEnrichmentWithContinuity(
                     double Ni = dj / sum_d;
                     double Nj = di / sum_d;
                     //FIXME: ESTO QUE ES???
-                    double penalty_coeff = max_diag * 0.001; // h/BDFVector[0];
+                    double penalty_coeff = max_diag * 0.001;
                     rKeeTot(i, i) += penalty_coeff * Ni * Ni;
                     rKeeTot(i, j) -= penalty_coeff * Ni * Nj;
                     rKeeTot(j, i) -= penalty_coeff * Nj * Ni;

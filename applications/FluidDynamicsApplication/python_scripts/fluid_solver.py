@@ -305,9 +305,10 @@ class FluidSolver(PythonSolver):
                 time_order = 2
                 self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
             else:
-                err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
-                err_msg += "Available options are: \"bdf2\""
-                raise Exception(err_msg)
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
+                    err_msg += "Available options are: \"bdf2\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
         # Cases in which a time scheme manages the time integration
         else:
             # Bossak time integration scheme
@@ -332,9 +333,10 @@ class FluidSolver(PythonSolver):
                         self.settings["pressure_relaxation"].GetDouble(),
                         domain_size)
             else:
-                err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
-                err_msg += "Available options are: \"bossak\", \"bdf2\" and \"steady\""
-                raise Exception(err_msg)
+                if  (self.settings["time_scheme"].GetString()!= "crank_nicolson"):
+                    err_msg = "Requested time scheme " + self.settings["time_scheme"].GetString() + " is not available.\n"
+                    err_msg += "Available options are: \"bossak\", \"bdf2\" ,\"steady\" and \"crank_nicolson\""
+                    raise Exception(err_msg)
 
         return scheme
 

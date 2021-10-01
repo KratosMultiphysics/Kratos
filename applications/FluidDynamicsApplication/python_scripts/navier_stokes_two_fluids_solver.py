@@ -40,8 +40,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
-            "time_scheme": "bdf2",
-            "time_scheme_aux":"bdf2",
+            "time_scheme:"bdf2",
+            "initial_first_order_steps":0,
             "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
@@ -115,21 +115,44 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
-        time_scheme=custom_settings["time_scheme_aux"].GetString()
-        if time_scheme == "crank_nicolson":
+        # Set the time integration scheme for two fluid element.
+        self.time_scheme=custom_settings["time_scheme"].GetString()
+        self.time_order=custom_setting["time_order"].GetInt()
+        self.initial_first_order_steps=custom_settings["initial_first_order_steps"].GetInt()
+        if self.time_scheme == "theta_scheme":
             self.element_name= "TwoFluidNavierStokesCN"
-        elif time_scheme == "bdf2":
-
+            self.min_buffer_size = 2
+            if (self.time_order == 1):
+                self.theta=1
+            elif (self.time_order ==2):
+                self.theta==0.5
+            else:
+                raise ValueError("{} time order is not implemented. Use \'1\' for Backward Euler   or \'2\' for CrankNicolson.".format(time_order))
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
+        elif self.time_scheme == "bdf2":
             self.element_name = "TwoFluidNavierStokes"
+            self.min_buffer_size = 3
+        else:
+            raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
+
+
+        if (self.initial_first_order_steps!=0):
+            if (self.time_scheme == "theta_scheme") and self.time_order==1:
+                    KratosMultiphysics.Logger.PrintWarning:
+
+            elif :
+                raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
 
         else:
-            raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'crank_nicolson\'.".format(time_scheme))
+            if (self.time_scheme == "theta_scheme"):
+
+
+
 
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
 
-        self.min_buffer_size = 3
 
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
@@ -242,23 +265,21 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
-        #TODO:PROBANDO
-        self._SetNodalProperties()
-
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
 
     def InitializeSolutionStep(self):
 
-        time_step_limit=40
-        time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
-        print(time_step)
-        if  time_step < time_step_limit:
-            theta=1
-        else:
-            theta=0.5
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
+        # If Crank Nicolson time integration scheme is using,in order to avoid some stabiliztation term the first steps of the simulation can be runned with backward euler time integration scheme. This limit is decided by user.
+        if self.time_scheme == "theta_scheme":
+            if self.settings["time_scheme"].Has("backwardeuler_number_step"):
+                time_step_limit=self.settings["time_scheme"]["backwardeuler_number_step"].GetString()
+            time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
+            if  time_step < time_step_limit:
+                theta=1
+            else:
+                theta=0.5
 
-
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
@@ -440,7 +461,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             time_order = 2
             self.time_discretization = KratosMultiphysics.TimeDiscretization.BDF(time_order)
         else:
-            if not self.settings["time_scheme"].GetString() == "crank_nicolson":
+            if not self.settings["time_scheme"].GetString() == "theta_scheme":
                 err_msg = "Requested elemental time scheme \"" + self.settings["time_scheme"].GetString()+ "\" is not available.\n"
                 err_msg += "Available options are: \"bdf2\""
                 raise Exception(err_msg)

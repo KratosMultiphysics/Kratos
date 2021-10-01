@@ -59,6 +59,12 @@ class TwoFluidMassConservationTest(UnitTest.TestCase):
         self._has_inlet = False
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
+    # runs the two dimensional test case
+    def testTwoFluidMassConservationTest2DCN(self):
+        self._has_inlet = False
+        self._time_scheme = "cn"
+        self._AuxiliaryRunTest("ProjectParameters2D.json")
+
     # runs the three dimensional test case
     def testTwoFluidMassConservationTest3D(self):
         self._has_inlet = False
