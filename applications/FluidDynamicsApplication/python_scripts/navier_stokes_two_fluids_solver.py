@@ -348,12 +348,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
             tilting_angle = 0.0
 
-            if gravity == 9.81:
-                tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
-                if tilting_angle < 0.0:
-                    tilting_angle = 0.0
-                elif tilting_angle > (30.0/180.0)*math.pi:
-                    tilting_angle = (30.0/180.0)*math.pi
+            # if gravity == 9.81:
+            #     tilting_angle = (TimeStep*DT - 0.01)/0.09*(90.0/180.0)*math.pi
+            #     if tilting_angle < 0.0:
+            #         tilting_angle = 0.0
+            #     elif tilting_angle > (30.0/180.0)*math.pi:
+            #         tilting_angle = (30.0/180.0)*math.pi
 
             sinAlpha = math.sin(tilting_angle)
             cosAlpha = math.cos(tilting_angle)
