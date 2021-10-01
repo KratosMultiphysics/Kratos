@@ -322,7 +322,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
+    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -353,6 +353,9 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
+    body_force *= density; // Force per unit of volume
+    AGradN *= density; // Convective term is always multiplied by density
+
 
     // Multiplying convective operator by density to have correct units
     // Note: Dof order is (u,v,[w,]p) for each node
@@ -376,7 +379,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 // Stabilization: u*grad(v) * TauOne * u*grad(u)
                 // The last term comes from vh*d(u_ss)
                 double AA = tau_one(d,d) * AGradN[i] * std::pow(fluid_fraction, 2) * AGradN[j];
-
                 double AGBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[d]);
                 double GBetaADiag = 2.0 / 3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
 

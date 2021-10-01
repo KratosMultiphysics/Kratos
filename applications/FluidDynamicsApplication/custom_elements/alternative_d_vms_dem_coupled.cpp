@@ -124,11 +124,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCur
         for (unsigned int g = 0; g < number_of_gauss_points; g++)
             mOldSubscaleVelocity[g] = ZeroVector(Dim);
     }
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    mSubscaleIterationError.resize(number_of_gauss_points);
-    mSubscaleIterationCount.resize(number_of_gauss_points);
-    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,8 +313,12 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
 
     const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
+    array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
 
-    noalias(mPreviousVelocity[rData.IntegrationPointIndex]) = this->GetAtCoordinate(rData.Velocity,rData.N);
+    array_1d<double,Dim>& r_prev_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    for (unsigned int n = 0; n < Dim; n++){
+        r_prev_velocity[n] = velocity[n];
+    }
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
@@ -337,11 +336,13 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const array_1d<double,3> MomentumProj = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
     const double MassProj = this->GetAtCoordinate(rData.MassProjection,rData.N);
 
+    // Multiplying convective operator by density to have correct units
+    AGradN *= density;
+
     double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     double kin_viscosity = viscosity / density;
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
@@ -350,7 +351,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-
     // Multiplying convective operator by density to have correct units
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++) {

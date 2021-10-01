@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {-2.665425819,-1.87894198,-0.02477280423,-10.27651236,-5.037560437,-0.05013494554,-19.87147169,-19.57971097,-0.06709466598,-14.8532568,-21.17045328,-0.05799758425}; // QSVMSDEMCoupled2D4N
+    std::vector<double> output = {-2.612132937,-1.825649098,-0.02444088699,-10.26505248,-5.026100555,-0.05018263308,-19.91543582,-19.6236751,-0.06731403955,-14.87404543,-21.19124191,-0.05806244039}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();

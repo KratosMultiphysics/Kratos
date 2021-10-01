@@ -112,10 +112,6 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
             mOldSubscaleVelocity[g] = ZeroVector(Dim);
     }
 
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    mSubscaleIterationError.resize(number_of_gauss_points);
-    mSubscaleIterationCount.resize(number_of_gauss_points);
-    #endif
 }
 
 template <class TElementData>
@@ -294,7 +290,8 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-
+    // Multiplying convective operator by density to have correct units
+    AGradN *= density;
     // Multiplying convective operator by density to have correct units
 
     // Note: Dof order is (u,v,[w,]p) for each node

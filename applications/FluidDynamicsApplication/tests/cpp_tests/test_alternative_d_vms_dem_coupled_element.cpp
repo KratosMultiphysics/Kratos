@@ -71,6 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
         it_node->AddDof(VELOCITY_Y,REACTION_Y);
         it_node->AddDof(VELOCITY_Z,REACTION_Z);
         it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+
         double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
         r_fluid_fraction = 1.0;
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
@@ -114,12 +115,11 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {2.64281021,3.429294049,-0.06416213274,-2.614965629,2.623986294,-0.04749997559,-2.918315118,-2.626554399,-0.03583749724,2.884198912,-3.43299757,-0.05250039442}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {2.186533804,2.973017643,-0.059632738,-3.422867224,1.8160847,-0.0474755927,-5.326122843,-5.034362124,-0.03999724473,0.2908305509,-6.026365931,-0.05289442457}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
-
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
