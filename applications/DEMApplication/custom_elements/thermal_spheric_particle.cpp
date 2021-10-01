@@ -385,13 +385,13 @@ namespace Kratos
         upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2));
 
       // Build struct of integration parameters
-      struct IntegrandParams params;
-      params.r_process_info = r_process_info;
-      params.r1 = particle_radius;
-      params.r2 = neighbor_radius;
+      IntegrandParams params;
+      params.p1 = r_process_info[MIN_CONDUCTION_DISTANCE];
+      params.p2 = particle_radius;
+      params.p3 = neighbor_radius;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = fluid_conductivity * AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandSurrLayer(params));
+      h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
     }
 
     // Compute heat flux
@@ -427,14 +427,14 @@ namespace Kratos
       double upp_lim = particle_radius * rij / sqrt(rij * rij + mNeighborDistance * mNeighborDistance / 4.0);
 
       // Build struct of integration parameters
-      struct IntegrandParams params;
-      params.r_process_info = r_process_info;
-      params.keff = ComputeEffectiveConductivity();
-      params.r1   = particle_radius;
-      params.rij  = rij;
+      IntegrandParams params;
+      params.p1 = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+      params.p2 = ComputeEffectiveConductivity();
+      params.p3 = particle_radius;
+      params.p4 = rij;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandVoronoiMono(params));
+      h = AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMono);
     }
     else {
       double D1, D2, rij_, upp_lim;
@@ -454,19 +454,19 @@ namespace Kratos
       rij_ = D2 * upp_lim / sqrt(neighbor_radius * neighbor_radius - upp_lim * upp_lim);
 
       // Build struct of integration parameters
-      struct IntegrandParams params;
-      params.r_process_info = r_process_info;
-      params.r1   = particle_radius;
-      params.r2   = neighbor_radius;
-      params.rij  = rij;
-      params.rij_ = rij_;
-      params.D1   = D1;
-      params.D2   = D2;
-      params.k1   = GetParticleConductivity();
-      params.k2   = GetNeighborConductivity();
+      IntegrandParams params;
+      params.p1 = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+      params.p2 = GetParticleConductivity();
+      params.p3 = GetNeighborConductivity();
+      params.p4 = particle_radius;
+      params.p5 = neighbor_radius;
+      params.p6 = rij;
+      params.p7 = rij_;
+      params.p8 = D1;
+      params.p9 = D2;
 
       // Heat transfer coefficient from integral expression solved numerically
-      h = AdaptiveSimpsonIntegration(low_lim, upp_lim, &EvalIntegrandVoronoiMulti(params));
+      h = AdaptiveSimpsonIntegration(r_process_info, low_lim, upp_lim, params, &ThermalSphericParticle::EvalIntegrandVoronoiMulti);
     }
 
     // Compute heat flux
@@ -721,55 +721,58 @@ namespace Kratos
     KRATOS_CATCH("")
   }
 
+  //=====================================================================================================================================================================================
+  // Numerical integration
+
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::AdaptiveSimpsonIntegration(double a, double b, double (*evalIntegrand)(IntegrandParams params)) {
+  double ThermalSphericParticle<TBaseElement>::AdaptiveSimpsonIntegration(const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams)) {
     KRATOS_TRY
 
     // Initialization
-    params.position = a;
-    double fa = evalIntegrand(params);
+    params.x = a;
+    double fa = (this->*evalIntegrand)(params);
 
-    params.position = b;
-    double fb = evalIntegrand(params);
+    params.x = b;
+    double fb = (this->*evalIntegrand)(params);
 
-    params.position = (a + b) / 2.0;
-    double fc = evalIntegrand(params);
+    params.x = (a + b) / 2.0;
+    double fc = (this->*evalIntegrand)(params);
 
     // Get tolerance
-    double tol = params.r_process_info[INTEGRAL_TOLERANCE];
+    double tol = r_process_info[INTEGRAL_TOLERANCE];
     constexpr double eps = std::numeric_limits<double>::epsilon();
     if (tol < 10.0 * eps) tol = 10.0 * eps;
 
     // Solve integral recursively with adaptive Simpson quadrature
-    return RecursiveSimpsonIntegration(a, b, fa, fb, fc, tol, evalIntegrand);
+    return RecursiveSimpsonIntegration(a, b, fa, fb, fc, tol, params, evalIntegrand);
 
     KRATOS_CATCH("")
   }
 
   template <class TBaseElement>
-  double ThermalSphericParticle<TBaseElement>::RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, double (*evalIntegrand)(IntegrandParams params)) {
+  double ThermalSphericParticle<TBaseElement>::RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams)) {
     KRATOS_TRY
 
     // TODO: in order to catch possible erros that can occur in singularities,
     //       add a min value for subdivision size (to contain machine representable point) and a max number of function evaluation (+- 10000).
 
-    double c  = (a + b) / 2.0;
+    double c = (a + b) / 2.0;
 
-    params.position = (a + c) / 2.0;
-    double fd = evalIntegrand(params);
+    params.x = (a + c) / 2.0;
+    double fd = (this->*evalIntegrand)(params);
 
-    params.position = (c + b) / 2.0;
-    double fe = evalIntegrand(params);
+    params.x = (c + b) / 2.0;
+    double fe = (this->*evalIntegrand)(params);
 
     double I1 = (b - a) / 6.0  * (fa + 4.0 * fc + fb);
     double I2 = (b - a) / 12.0 * (fa + 4.0 * fd + 2.0 * fc + 4.0 * fe + fb);
 
-    if (fabs(I2-I1) <= tol) {
+    if (fabs(I2 - I1) <= tol) {
       return I2 + (I2 - I1) / 15.0;
     }
     else { // sub-divide interval recursively
-      double Ia = RecursiveSimpsonIntegration(a, c, fa, fc, fd, tol, evalIntegrand);
-      double Ib = RecursiveSimpsonIntegration(c, b, fc, fb, fe, tol, evalIntegrand);
+      double Ia = RecursiveSimpsonIntegration(a, c, fa, fc, fd, tol, params, evalIntegrand);
+      double Ib = RecursiveSimpsonIntegration(c, b, fc, fb, fe, tol, params, evalIntegrand);
       return Ia + Ib;
     }
 
@@ -780,12 +783,12 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandSurrLayer(IntegrandParams params) {
     KRATOS_TRY
 
-    double r  = params.position;
-    double r1 = params.r1;
-    double r2 = params.r2;
-    double d  = params.r_process_info[MIN_CONDUCTION_DISTANCE];
+    double r    = params.x;
+    double dmin = params.p1;
+    double r1   = params.p2;
+    double r2   = params.p3;
 
-    return 2.0 * Globals::Pi * r / std::max(d, mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
+    return 2.0 * Globals::Pi * r / std::max(dmin, mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r));
 
     KRATOS_CATCH("")
   }
@@ -794,11 +797,11 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMono(IntegrandParams params) {
     KRATOS_TRY
 
-    double r    = params.position;
-    double rp   = params.r1;
-    double rij  = params.rij;
-    double keff = params.keff;
-    double kf   = params.r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double r    = params.x;
+    double kf   = params.p1;
+    double keff = params.p2;
+    double rp   = params.p3;
+    double rij  = params.p4;
 
     return 2.0 * Globals::Pi * r / ((sqrt(rp * rp - r * r) - r * mNeighborDistance / (2.0 * rij)) / keff + 2.0 * (mNeighborDistance / 2.0 - sqrt(rp * rp - r * r)) / kf);
 
@@ -809,16 +812,16 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::EvalIntegrandVoronoiMulti(IntegrandParams params) {
     KRATOS_TRY
 
-    double r     = params.position;
-    double r1    = params.r1;
-    double r2    = params.r2;
-    double rij   = params.rij;
-    double rij_  = params.rij_;
-    double D1    = params.D1;
-    double D2    = params.D2;
-    double k1    = params.k1;
-    double k2    = params.k2;
-    double kf    = params.r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double r    = params.x;
+    double kf   = params.p1;
+    double k1   = params.p2;
+    double k2   = params.p3;
+    double r1   = params.p4;
+    double r2   = params.p5;
+    double rij  = params.p6;
+    double rij_ = params.p7;
+    double D1   = params.p8;
+    double D2   = params.p9;
 
     return 2.0 * Globals::Pi * r / ((sqrt(r1 * r1 - r * r) - r * D1 / rij) / k1 + (sqrt(r2 * r2 - r * r) - r * D2 / rij_) / k2 + (mNeighborDistance - sqrt(r1 * r1 - r * r) - sqrt(r2 * r2 - r * r)) / kf);
 
@@ -846,21 +849,21 @@ namespace Kratos
     }
     else if (mNeighborType == WALL_NEIGHBOR) {
       // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
-      double dummy1[3][3];
-      DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
-      array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
-      array_1d<double, 3> dummy3 = ZeroVector(3);
-      array_1d<double, 3> dummy4 = ZeroVector(3);
-      int dummy5 = -1;
-      double distance = 0.0;
-      mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
-      mNeighborDistance = distance;
+      //double dummy1[3][3];
+      //DEM_SET_COMPONENTS_TO_ZERO_3x3(dummy1);
+      //array_1d<double, 4> dummy2 = this->mContactConditionWeights[i];
+      //array_1d<double, 3> dummy3 = ZeroVector(3);
+      //array_1d<double, 3> dummy4 = ZeroVector(3);
+      //int dummy5 = -1;
+      //double distance = 0.0;
+      //mNeighbor_w->ComputeConditionRelativeData(i, this, dummy1, distance, dummy2, dummy3, dummy4, dummy5);
+      //mNeighborDistance = distance;
 
       // Stolen from ComputeBallToRigidFaceContactForce in spheric_particle
-      //array_1d<double, 3> cond_to_me_vect;
-      //array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
-      //noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_coordinates;
-      //mNeighborDistance = DEM_MODULUS_3(cond_to_me_vect);
+      array_1d<double, 3> cond_to_me_vect;
+      array_1d<double, 3> wall_coordinates = mNeighbor_w->GetGeometry().Center();
+      noalias(cond_to_me_vect) = GetGeometry()[0].Coordinates() - wall_coordinates;
+      mNeighborDistance = DEM_MODULUS_3(cond_to_me_vect);
     }
     else {
       mNeighborDistance = 0.0;
@@ -875,7 +878,7 @@ namespace Kratos
 
     double particle_radius = GetRadius();
     double neighbor_radius = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
-    double separation      = mNeighborDistance - particle_radius - neighbor_radius
+    double separation      = mNeighborDistance - particle_radius - neighbor_radius;
 
     // Assumption: radius_factor applies to the larger radius
     return (separation < radius_factor * std::max(particle_radius, neighbor_radius));
@@ -1113,7 +1116,7 @@ namespace Kratos
     if (mNeighborType == PARTICLE_NEIGHBOR)
       return mNeighbor_p->GetParticleTemperature();
     else if (mNeighborType == WALL_NEIGHBOR)
-      return mNeighbor_w->GetWallTemperature();
+      return GetWallTemperature();
     else
       return 0.0;
   }

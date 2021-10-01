@@ -37,23 +37,15 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   typedef Geometry<Node<3>> GeometryType;
   typedef Properties PropertiesType;
 
+  // Definitions
   #define PARTICLE_NEIGHBOR  1
   #define WALL_NEIGHBOR      2
   #define STEFAN_BOLTZMANN   5.670374419e-8
 
   struct IntegrandParams
   {
-    const ProcessInfo& r_process_info;
-    double position;
-    double r1;
-    double r2;
-    double rij;
-    double rij_;
-    double D1;
-    double D2;
-    double k1;
-    double k2;
-    double keff;
+    double x;
+    double p1, p2, p3, p4, p5, p6, p7, p8, p9;
   };
 
   // Constructor
@@ -110,8 +102,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double ComputePrandtlNumber(const ProcessInfo& r_process_info);
   double ComputeReynoldNumber(const ProcessInfo& r_process_info);
   double ComputeFluidRelativeVelocity(const ProcessInfo& r_process_info);
-  double AdaptiveSimpsonIntegration(double a, double b, double (*evalIntegrand)(IntegrandParams));
-  double RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, double (*evalIntegrand)(IntegrandParams));
+
+  // Numerical integration
+  double AdaptiveSimpsonIntegration(const ProcessInfo& r_process_info, double a, double b, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
+  double RecursiveSimpsonIntegration(double a, double b, double fa, double fb, double fc, double tol, IntegrandParams params, double (ThermalSphericParticle::*evalIntegrand)(IntegrandParams));
   double EvalIntegrandSurrLayer(IntegrandParams params);
   double EvalIntegrandVoronoiMono(IntegrandParams params);
   double EvalIntegrandVoronoiMulti(IntegrandParams params);
