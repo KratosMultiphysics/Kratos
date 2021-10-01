@@ -7,7 +7,6 @@ import KratosMultiphysics.base_convergence_criteria_factory as convergence_crite
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication
-import KratosMultiphysics.ConvectionDiffusionApplication.check_and_prepare_model_process_convection_diffusion as check_and_prepare_model_process
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -84,7 +83,6 @@ class ConvectionDiffusionSolver(PythonSolver):
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
-            "computing_model_part_name" : "thermal_computing_domain",
             "material_import_settings" :{
                 "materials_filename": ""
             },
@@ -245,8 +243,12 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.is_restarted():
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
+            # Import material properties
+            materials_imported = self.import_materials()
+            if materials_imported:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
+            else:
+                KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
@@ -314,7 +316,7 @@ class ConvectionDiffusionSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def GetComputingModelPart(self):
-        return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
+        return self.main_model_part
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -431,23 +433,6 @@ class ConvectionDiffusionSolver(PythonSolver):
                 return True
         else:
             return False
-
-    def _execute_after_reading(self):
-        """Prepare computing model part and import constitutive laws."""
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        # Assign mesh entities from domain and process sub model parts to the computing model part.
-        check_and_prepare_model_process.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
-
-        # Import constitutive laws.
-        materials_imported = self.import_materials()
-        if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
-        else:
-            KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information."""
