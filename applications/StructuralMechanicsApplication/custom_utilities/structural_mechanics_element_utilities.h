@@ -240,6 +240,26 @@ double CalculateReferenceLength3D2N(const Element& rElement);
  */
 double CalculateCurrentLength3D2N(const Element& rElement);
 
+/**
+ * @brief This function checks the norm of the vectors
+ * @param rvi The vector of which norm has to be different from null
+ */
+void InitialCheckLocalAxes(
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3,
+    const double Tolerance = 1.0e4*std::numeric_limits<double>::epsilon());
+
+/**
+ * @brief This function fills a rotation matrix from a set of vectors
+ * @param rRotationMatrix The rotation matrix from global to local axes
+ */
+void BuildRotationMatrix(
+    BoundedMatrix<double, 3, 3>& rRotationMatrix,
+    const array_1d<double, 3>& rv1,
+    const array_1d<double, 3>& rv2,
+    const array_1d<double, 3>& rv3);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 
