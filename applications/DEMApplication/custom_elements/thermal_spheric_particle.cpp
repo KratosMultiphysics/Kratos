@@ -614,7 +614,7 @@ namespace Kratos
 
     // Check for contact
     if (!CheckHeatTransferDistance(0.0))
-      return;
+      return 0.0;
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
     double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
