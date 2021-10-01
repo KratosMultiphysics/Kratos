@@ -1,4 +1,5 @@
 import json, os, math, time
+import numpy as np
 import KratosMultiphysics
 from KratosMultiphysics import Parameters, Logger
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
@@ -113,6 +114,14 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         KratosMultiphysics.ModelPartIO(self.auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart( self.current_model_part)
 
         initial_time = time.time()
+        if not self.risk_measure == "cvar":
+            self.InitDevelopXMC()
+        else:
+            self.InitCVARXMC()
+
+    def InitDevelopXMC(self):
+
+        initial_time = time.time()
         self._RunXMC()
         elapsed_time = time.time() - initial_time
 
@@ -186,6 +195,17 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                 member += 1
 
             node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+
+
+    def InitCVARXMC(self):
+
+        self._RunCVaRXMC()
+        print ("FINISHED XMC!")
+        for node in self.current_model_part.GetSubModelPart(self.design_surface_sub_model_part_name).Nodes:
+            shape_sensitivity = KratosMultiphysics.Vector(3, 0.0)
+            shape_sensitivity[0] = 1.0
+            node.SetValue(KratosMultiphysics.SHAPE_SENSITIVITY, shape_sensitivity)
+
 
     def CalculateValue(self):
         pass
@@ -285,6 +305,386 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             self.xmc_analysis.runAsynchronousXMC()
         else:
             self.xmc_analysis.runXMC()
+    def _RunCVaRXMC(self):
+
+        # read parameters
+        with open(self.xmc_settings_path,'r') as parameter_file:
+                parameters = json.load(parameter_file)
+
+        significance = parameters["significance"]
+        errorTolerance = parameters["errorTolerance"]
+        tolRefinementRatio = 1.5
+        Nref = int(parameters["Nref"])
+        # iterationBounds = [Nref,Nref+3]
+        iterationBounds = [0,0]
+        toleranceSequence = [errorTolerance*(tolRefinementRatio**(Nref-i-1)) for i in range(Nref)]
+        print(toleranceSequence)
+        toleranceSplitting = [.001, .8] # fractions on interpolation and bias errors, respectively
+        optiParameters = self.current_model_part.NumberOfNodes()*2
+        optiWeights = [(2.5-1.5), (2.0-0.0)]
+        derivationOrder = 1
+        indexSpace = [0,3]
+        parameterPointsSpace = [10,10**3+1]
+        parameterPoints = np.linspace(0.2,1.8,num=parameterPointsSpace[0]).tolist()
+        sampleNumberSpace = [10,10**5]
+        initialHierarchy = [[[0],5,parameterPoints],[[1],5,parameterPoints],[[2],5,parameterPoints]]
+        sampleNumberSpace = list(np.ceil(sampleNumberSpace).astype(int))
+
+        # RandomGeneratorWrapper
+        randomGeneratorInputDict=parameters["randomGeneratorInputDictionary"]
+        # SolverWrapper
+        # Parameters are [c_mean,r_mean,c_std,r_std,c_time,r_time],
+        # marc: READING FROM JSON
+        solverWrapperInputDict = parameters["solverWrapperInputDictionary"]
+
+        # SampleGenerator
+        # marc: READING FROM JSON
+        samplerInputDict =  parameters["samplerInputDictionary"]
+        samplerInputDict["randomGeneratorInputDict"] = randomGeneratorInputDict
+        samplerInputDict["solverWrapperInputDict"] = solverWrapperInputDict
+                # SolverWrapper
+
+        # Indexwise Estimators
+        # Two for the function Phi, two for each Psi_i, so (optiParameters+1)*2
+        # Ordering is [ParamEst(Phi), KDEst(Phi), ParamEst(Psi_1), KDEst(Psi_1),...,ParamEst(Psi_N), KDEst(Psi_N)]
+        qoiEstPaths = [None]*(optiParameters+1)*2
+        qoiEstDicts = [None]*(optiParameters+1)*2
+        iParamEstFunction = 0
+        iKDEstFunction = 1
+
+        qoiEstDicts[iParamEstFunction] = {'evaluator':'xmc.methodDefs_parametricMomentEstimator.evaluator.allInOneEvaluator',
+                                        'evaluationArguments':[significance],
+                                        'parameterPoints':parameterPoints,
+                                        'derivationOrder':derivationOrder}
+        qoiEstPaths[iParamEstFunction] = 'xmc.parametricMomentEstimator.ParametricExpectationEstimator'
+        qoiEstDicts[iKDEstFunction] = {'bandwidthMethod':'scott',
+                                        'analyticFunction':'xmc.methodDefs_kernelDensityEstimator.analyticFunction.allInOne',
+                                        'analyticFunctionParameters':significance,
+                                        'evaluationPoints':parameterPoints}
+        qoiEstPaths[iKDEstFunction] = 'xmc.kernelDensityEstimator.KernelDensityEstimator'
+
+        for i in range(optiParameters):
+            qoiEstDicts[2+2*i] = {'evaluator':'xmc.methodDefs_parametricMomentEstimator.evaluator.allInOneEvaluator',
+                                        'evaluationArguments':[significance],
+                                        'parameterPoints':parameterPoints,
+                                        'derivationOrder':derivationOrder}
+            qoiEstPaths[2+2*i] = 'xmc.parametricSensitivityEstimator.ParametricSensitivityEstimator'
+
+            qoiEstDicts[3+2*i] = {'bandwidthMethod':'scott',
+                            'analyticFunction':'xmc.methodDefs_kernelDensityEstimator.analyticFunction.allInOneJustPositive',
+                            'analyticFunctionParameters':significance,
+                            'evaluationPoints':parameterPoints}
+            qoiEstPaths[3+2*i] = 'xmc.kernelDensityEstimator.KernelDensityEstimator'
+
+        qoiForEstimatorsDict = [[0],[0]]
+        for i in range(optiParameters):
+            qoiForEstimatorsDict.append([0,i+1])
+            qoiForEstimatorsDict.append([0,i+1])
+
+        # # MonteCarloIndex Constructor
+        # mci_inputDict = parameters["monteCarloIndexInputDictionary"]
+        # mci_inputDict["samplerInputDict"] = samplerInputDict
+        # mci_inputDict["qoiForEstimators"] = qoiForEstimatorsDict
+        # mci_inputDict["qoiEstimator"] = qoiEstPaths
+        # mci_inputDict["qoiEstimatorInputDict"] = qoiEstDicts
+
+            # MonteCarloIndex Constructor
+        mci_inputDict = {'indexValue': None,
+                     'sampler':'xmc.sampleGenerator.SampleGenerator',
+                     'samplerInputDict':samplerInputDict,
+                     #'qoiForEstimators':[[0]]*2,
+                     'qoiForEstimators':qoiForEstimatorsDict,
+                     'qoiEstimator':qoiEstPaths,
+                     'qoiEstimatorInputDict':qoiEstDicts,
+                     'costEstimator':'xmc.momentEstimator.MomentEstimator',
+                     'costEstimatorInputDict':{'order':1},
+                     'areSamplesRecycledi':False}
+
+        solverWrapperInputDict["qoiEstimator"] = mci_inputDict["qoiEstimator"]
+
+        ################################# RUN TIME GENERATED ENTITIES END HERE #######################
+
+        # MonoCriterion
+        criteriaArray = [None]*3
+        criteriaInputs = [None]*3
+        iTotalErrCrit = 0
+        #iInterpErrCrit = 0
+        #iBiasErrCrit = 1
+        #iStatErrCrit = 2
+        criteriaArray[iTotalErrCrit] = xmc.monoCriterion.MonoCriterion(
+            'xmc.methodDefs_monoCriterion.criterionFunctions.isLowerThanOrEqualTo',
+            errorTolerance)
+        criteriaInputs[iTotalErrCrit] = ['error'+str(iTotalErrCrit)]
+
+        # min iterations criterion
+        criteriaArray.append(xmc.monoCriterion.MonoCriterion(
+            'xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo',
+            iterationBounds[0]))
+        criteriaInputs.append(['algorithmCost'])
+        # max iterations criterion
+        criteriaArray.append(xmc.monoCriterion.MonoCriterion(
+            'xmc.methodDefs_monoCriterion.criterionFunctions.isGreaterThanOrEqualTo',
+            iterationBounds[1]))
+        criteriaInputs.append(['algorithmCost'])
+
+        # MultiCriterion
+        criterionDict = {'criteria':criteriaArray,
+                        'inputsForCriterion':criteriaInputs,
+    #                     'toleranceToSplit':errorTolerance,
+    #                     'splitCriteria':[iInterpErrCrit,iBiasErrCrit,iStatErrCrit],
+                        'interpreter':'xmc.methodDefs_multiCriterion.interpreter.interpretAsMultipleRequiredConvergencesAndIterationBounds',
+                        'flag':'xmc.methodDefs_multiCriterion.flag.plainFlag'}
+        criterion = xmc.multiCriterion.MultiCriterion(**criterionDict)
+
+        # ModelEstimator
+        genericModelDict = {'valueForParameters':
+                            'xmc.methodDefs_modelEstimator.valueForParameters.geometricModel',
+                            'updater': 'xmc.methodDefs_modelEstimator.update.updatePredictorGeometric_Task'}
+
+        qoiPredictors = [None]*(optiParameters+1)*2
+        estForPred = [[None]]*(optiParameters+1)*2
+        iBiasPredictorFunction = 0
+        iVariancePredictorFunction = 1
+
+        qoiPredictors[iBiasPredictorFunction] = xmc.modelEstimator.ModelEstimator(**genericModelDict)
+        estForPred[iBiasPredictorFunction] = [iParamEstFunction,[13],xmc.tools.returnInput]
+        qoiPredictors[iVariancePredictorFunction] = xmc.modelEstimator.ModelEstimator(**genericModelDict)
+        estForPred[iVariancePredictorFunction] = [iParamEstFunction,[3],xmc.tools.returnInput]
+
+        for i in range(optiParameters):
+            qoiPredictors[2+2*i] = xmc.modelEstimator.ModelEstimator(**genericModelDict)
+            estForPred[2+2*i] = [2+2*i,[13],xmc.tools.returnInput]
+            qoiPredictors[3+2*i] = xmc.modelEstimator.ModelEstimator(**genericModelDict)
+            estForPred[3+2*i] = [2+2*i,[3],xmc.tools.returnInput]
+
+        costPredictor = xmc.modelEstimator.ModelEstimator(**genericModelDict)
+        costEstForPred = [1,True,False]
+
+        # HierarchyOptimiser
+        inputDict = {'indexSpace': indexSpace,
+                    'sampleNumberSpace':sampleNumberSpace,
+                    'parameterPointsSpace':parameterPointsSpace,
+                    'tolerances':toleranceSequence,
+                    'toleranceRefinementFactor':1.1,
+                    'toleranceSplittingBounds': [[s]*2 for s in toleranceSplitting],
+                    'derivationOrder':derivationOrder,
+                    'sensParameters':optiParameters,
+    #                 'optimalIndexSet': 'xmc.methodDefs_hierarchyOptimiser.optimalIndexSet.incrementLevelsByOne',
+    #                 'optimalSampleNumbers': 'xmc.methodDefs_hierarchyOptimiser.optimalSampleNumbers.multiLevelDoubleAllSamples',
+                    'optimalIndexSet': 'xmc.methodDefs_hierarchyOptimiser.optimalIndexSet.derivativeInterpolationMSEPosterioriWeighted',
+                    'optimalSampleNumbers': 'xmc.methodDefs_hierarchyOptimiser.optimalSampleNumbers.derivativeInterpolationMSEBootstrapWeighted',
+                    'optimalParameterPoints':'xmc.methodDefs_hierarchyOptimiser.optimalParameterPoints.derivativeInterpolationMSEWeighted',
+                    'optimalToleranceSplitting':'xmc.methodDefs_hierarchyOptimiser.optimalToleranceSplitting.returnCurrent',
+                    'defaultHierarchy': initialHierarchy,
+                    'isVarianceBlended':False
+        }
+        hierarchyCostOptimiser = xmc.hierarchyOptimiser.HierarchyOptimiser(**inputDict)
+
+        # EstimationAssembler
+        mcsAssemblers = [None]*(3+3*optiParameters)
+        estForAssblr = [None]*(3+3*optiParameters)
+        iCVaRAssembler = 0
+        iSensAssembler = list(range(3+2*optiParameters,3+3*optiParameters))
+        iDerivativeNormAssemblerFunction = 1
+        iBiasAssemblerFunction = 2
+        iDerivativeNormAssemblerSens = list(range(3,3+2*optiParameters,2))
+        iBiasAssemblerSens = list(range(4,3+2*optiParameters,2))
+
+        # Assemble the actual VaR and CVaR from Phi
+        pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
+                                        'assembleEstimation':'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task'}
+        interpolatorSchematics = {'constructor':'xmc.interpolator.SplineInterpolator',
+                                'domain':[parameterPoints[0],parameterPoints[-1]]}
+        cvarAssemblerInputDict = {'interpolator':interpolatorSchematics,
+                                'pointwiseAssembler':pointwiseAssemblerSchematics,
+                                'post-processing':['argmin','min']}
+        mcsAssemblers[iCVaRAssembler] = xmc.parametricEstimationInterpolator.ParametricEstimationInterpolator(**cvarAssemblerInputDict)
+        estForAssblr[iCVaRAssembler] = [[iParamEstFunction,[0]]]
+
+        # norm of 4th deriveative and bias for Phi
+        mcsAssemblers[iDerivativeNormAssemblerFunction] = xmc.estimationAssembler.EstimationAssembler(
+            assembleEstimation=
+            'xmc.methodDefs_estimationAssembler.assembleEstimation.normOfDerivative',
+            parameters=[4,0,1])
+        estForAssblr[iDerivativeNormAssemblerFunction] = [[iKDEstFunction,[2,10**2+6]]]
+        mcsAssemblers[iBiasAssemblerFunction] = xmc.estimationAssembler.EstimationAssembler(
+            assembleEstimation=
+            'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleBias_Task')
+        estForAssblr[iBiasAssemblerFunction] = [[iParamEstFunction,[13]]]
+
+        # norm of 4th derivative and bias for Psi_i
+        for i in range(optiParameters):
+            mcsAssemblers[3+2*i] = xmc.estimationAssembler.EstimationAssembler(
+                assembleEstimation=
+                'xmc.methodDefs_estimationAssembler.assembleEstimation.normOfDerivative',
+                parameters=[4,0,1])
+            estForAssblr[3+2*i] = [[3+2*i,[3,10**2+6]]]
+
+            mcsAssemblers[4+2*i] = xmc.estimationAssembler.EstimationAssembler(
+                assembleEstimation=
+                'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleBias_Task')
+            estForAssblr[4+2*i] = [[2+2*i,[13]]]
+
+        # Assemble the sensitivity functions Psi_i
+        pointwiseAssemblerSchematics = {'constructor':'xmc.estimationAssembler.EstimationAssembler',
+                                        'assembleEstimation':'xmc.methodDefs_estimationAssembler.assembleEstimation.assembleValue_Task'}
+        interpolatorSchematics = {'constructor':'xmc.interpolator.SplineInterpolator',
+                                'domain':[parameterPoints[0],parameterPoints[-1]]}
+        cvarAssemblerInputDict = {'interpolator':interpolatorSchematics,
+                                'pointwiseAssembler':pointwiseAssemblerSchematics,
+                                'post-processing':['argmin','min']}
+        for i in iSensAssembler:
+            mcsAssemblers[i] = xmc.parametricEstimationInterpolator.ParametricEstimationInterpolator(**cvarAssemblerInputDict)
+            estForAssblr[i] = [[2+2*i,[0]]]
+
+        # ErrorEstimator
+        mcsErrEst = [None]*(1+4+optiParameters*4)
+        errorOrders = [None]*(1+4+optiParameters*4)
+
+        iInterpErrPhi = 0
+        iBiasErrPhi = 1
+        iStatErrPhi = 2
+        iTotalErrPhi = 3
+
+        iInterpErrPsi = list(range(4,4+optiParameters*4,4))
+        iBiasErrPsi = list(range(5,4+optiParameters*4,4))
+        iStatErrPsi = list(range(6,4+optiParameters*4,4))
+        iTotalErrPsi = list(range(7,4+optiParameters*4,4))
+
+        iTotalErr = 4*(optiParameters+1)
+
+        ############ PHI1 ERROR ###################
+        mcsErrEst[iInterpErrPhi] = xmc.errorEstimator.ErrorEstimatorQ(
+            error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformInterpolationMSE',
+            parameters=1)
+        errorOrders[iInterpErrPhi] = {'manifest':'order',
+                                'interpolatorConstants':{'method':'interpolatorConstants',
+                                                            'arguments':[iCVaRAssembler,1]},
+                                'numberOfInterpolationPoints':{'method':'numberOfParameterPoints',
+                                                                'arguments':[0]},
+                                'derivativeNorm':{'method':'estimation',
+                                                    'arguments':[iDerivativeNormAssemblerFunction]},
+                                'interpolatorDomain':{'method':'interpolatorDomain','arguments':[iCVaRAssembler]}}
+
+        mcsErrEst[iBiasErrPhi] = xmc.errorEstimator.ErrorEstimatorQ(
+            error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeBiasMSEPosteriori',
+            parameters=1)
+        errorOrders[iBiasErrPhi] = {'manifest':'order',
+                                'bias':{'method':'estimation','arguments':[iBiasAssemblerFunction]},
+                                'biasParameters':{'method':'predictorParameters',
+                                                    'arguments':[iBiasPredictorFunction]}}
+
+        mcsErrEst[iStatErrPhi] = xmc.errorEstimator.ErrorEstimatorQ(
+            error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeVarianceMSEBootstrap',
+            parameters=1)
+        errorOrders[iStatErrPhi] = {'manifest':'order',
+                                'bootstrapSamples':{'method':'indexEstimation','arguments':[iParamEstFunction,[9]]},
+                                'parameterPoints':{'method':'parameterPoints','arguments':[iParamEstFunction]}}
+
+        mcsErrEst[iTotalErrPhi] = xmc.errorEstimator.ErrorEstimatorQ(
+            error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformTotalError',
+            parameters=1)
+
+        errorOrders[iTotalErrPhi] = {'manifest':'order',
+                                'errors':{'method':'errorEstimation','arguments':[[iInterpErrPhi,iBiasErrPhi,iStatErrPhi]]}}
+
+        ############ PSI1 ERROR ###################
+        for i in range(optiParameters):
+            mcsErrEst[iInterpErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
+                error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformInterpolationMSE',
+                parameters=1)
+            errorOrders[iInterpErrPsi[i]] = {'manifest':'order',
+                                    'interpolatorConstants':{'method':'interpolatorConstants',
+                                                                'arguments':[iCVaRAssembler,1]},
+                                    'numberOfInterpolationPoints':{'method':'numberOfParameterPoints',
+                                                                    'arguments':[0]},
+                                    'derivativeNorm':{'method':'estimation',
+                                                        'arguments':[3+2*i]},
+                                    'interpolatorDomain':{'method':'interpolatorDomain','arguments':[iCVaRAssembler]}}
+
+            mcsErrEst[iBiasErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
+                error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeBiasMSEPosteriori',
+                parameters=1)
+            errorOrders[iBiasErrPsi[i]] = {'manifest':'order',
+                                    'bias':{'method':'estimation','arguments':[4+2*i]},
+                                    'biasParameters':{'method':'predictorParameters',
+                                                        'arguments':[0]}}
+
+            mcsErrEst[iStatErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
+                error='xmc.methodDefs_errorEstimator.errorEstimation.uniformlyInterpolatedDerivativeVarianceMSEBootstrap',
+                parameters=derivationOrder)
+            errorOrders[iStatErrPsi[i]] = {'manifest':'order',
+                                    'bootstrapSamples':{'method':'indexEstimation','arguments':[2+2*i,[9]]},
+                                    'parameterPoints':{'method':'parameterPoints','arguments':[0]}}
+
+            mcsErrEst[iTotalErrPsi[i]] = xmc.errorEstimator.ErrorEstimatorQ(
+                error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformTotalError',
+                parameters=1)
+
+            errorOrders[iTotalErrPsi[i]] = {'manifest':'order',
+                                    'errors':{'method':'errorEstimation','arguments':[[iInterpErrPsi[i],iBiasErrPsi[i],iStatErrPsi[i]]]}}
+
+        ############ GRADIENT ERROR ###################
+        mcsErrEst[iTotalErr] = xmc.errorEstimator.ErrorEstimatorQ(
+            error='xmc.methodDefs_errorEstimator.errorEstimation.derivativeUniformTotalErrorWeighted',
+            parameters=optiWeights)
+
+        errorOrders[iTotalErr] = {'manifest':'order',
+                                'errors':{'method':'errorEstimation','arguments':[[iTotalErrPhi, *iTotalErrPsi]]}}
+
+        # MonteCarloSampler
+        samplerInputDict = {'indices': [],
+                            'indexConstructor':'xmc.monteCarloIndex.MonteCarloIndex',
+                            'indexConstructorDictionary':mci_inputDict,
+                            'assemblers': mcsAssemblers,
+                            'estimatorsForAssembler': estForAssblr,
+                            'qoiPredictor': qoiPredictors,
+                            'estimatorsForPredictor': estForPred,
+                            'costEstimatorsForPredictor': [1, True, False],
+                            'costPredictor': costPredictor,
+                            'errorEstimators': mcsErrEst,
+                            'assemblersForError': [[]]*len(mcsErrEst), # Deprecated
+                            'errorDataOrders':errorOrders,
+                            'isCostUpdated':True,
+        }
+        mcSampler = xmc.monteCarloSampler.MonteCarloSampler(**samplerInputDict)
+
+        # XMCAlgorithm
+        folder = os.getcwd()+'/output_function_sensitivity_potential_flow_new_cmlmc_'+str(errorTolerance)
+        print(folder)
+
+        indexEstimationsForHierarchy = [[0,[13]], [0,[3]]]
+        for i in range(optiParameters):
+            indexEstimationsForHierarchy.append([2+2*i,[13]])
+            indexEstimationsForHierarchy.append([2+2*i,[3]])
+
+        for i in range(optiParameters+1):
+            indexEstimationsForHierarchy.append([2*i,[9]])
+
+        errForCrit = [None]*1
+        errForCrit[0] = iTotalErr
+        algoInputDict = {
+            'monteCarloSampler': mcSampler,
+            'hierarchyOptimiser': hierarchyCostOptimiser,
+            'stoppingCriterion': criterion,
+            'errorsForStoppingCriterion': errForCrit,
+            'predictorsForHierarchy': list(range(2*(optiParameters+1))),# order important
+            'indexEstimationsForHierarchy': indexEstimationsForHierarchy,# order important
+            'globalEstimationsForHierarchy': list(range(1,3+2*optiParameters,2)),
+            'errorParametersForHierarchy': [len(mcsErrEst)-1],
+            'costEstimatorForHierarchy': [1,True,False],
+            'assemblersForHierarchy':[iCVaRAssembler],
+            'tolerancesForHierarchy':[-1],
+            'outputFolderPath':folder,
+            'isDataDumped':False,
+            'toleranceSplitting':toleranceSplitting
+        }
+        self.xmc_analysis = xmc.XMCAlgorithm(**algoInputDict)
+        self.xmc_analysis.runXMC()
+
+        self._value = self.xmc_analysis.estimation(0)[0]['argmin']
+
+        print("OBTAINED VALUE FROM XMC", self._value)
 
     def _GetAdjointParameters(self):
         with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
@@ -318,7 +718,7 @@ class SimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         auxiliary_mdpa_path = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
         if not os.path.exists(auxiliary_mdpa_path):
             KratosMultiphysics.ModelPartIO(auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(self.primal_model_part)
-        time.sleep(1)
+
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
         # Create the adjoint solver
@@ -449,11 +849,13 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
     def Initialize(self):
         if self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()=="use_input_model_part":
             self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["remeshing_flag"].SetBool(False)
-            if not self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].Has("perform_moving"):
-                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].AddBool("perform_moving", False)
-            else:
-                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["perform_moving"].SetBool(False)
-
+            # if not self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].Has("perform_moving"):
+            #     self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].AddBool("perform_moving", False)
+            # else:
+            #     self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["perform_moving"].SetBool(False)
+            premain_model_part = self.model.GetModelPart("model")
+            KratosMultiphysics.ModelPartIO("failed_preprimal_mdpa", KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(premain_model_part)
+            self.model.DeleteModelPart("skin")
         super().Initialize()
 
     def Finalize(self):
@@ -463,7 +865,8 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         mach = self.project_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].GetDouble()
         self.primal_model_part = self._GetSolver().main_model_part
         self.skin_model_part = self.model.GetModelPart(self.design_surface_sub_model_part_name)
-        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY"])
+
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY", "PRESSURE_COEFFICIENT"])
         nodal_velocity_process.Execute()
         # from KratosMultiphysics.gid_output_process import GiDOutputProcess
         # gid_output = GiDOutputProcess(
@@ -477,8 +880,8 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         #                         "MultiFileFlag": "SingleFile"
         #                     },
         #                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
-        #                     "nodal_nonhistorical_results": ["VELOCITY","METRIC_TENSOR_2D","TEMPERATURE","DISTANCE","TRAILING_EDGE"],
-        #                     "gauss_point_results" : ["WAKE","KUTTA", "PRESSURE_COEFFICIENT"],
+        #                     "nodal_nonhistorical_results": ["VELOCITY","METRIC_TENSOR_2D","PRESSURE_COEFFICIENT","DISTANCE","TRAILING_EDGE"],
+        #                     "gauss_point_results" : ["WAKE","KUTTA"],
         #                     "nodal_flags_results": [],
         #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE"]
         #                 }
@@ -502,7 +905,7 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         auxiliary_mdpa_path = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
         if not os.path.exists(auxiliary_mdpa_path):
             KratosMultiphysics.ModelPartIO(auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(self.primal_model_part)
-        time.sleep(1)
+
 
         with open(self.adjoint_parameters_path,'r') as parameter_file:
             adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
@@ -514,6 +917,11 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].SetDouble(aoa)
         adjoint_parameters["solver_settings"]["formulation"]["element_type"].SetString(self.project_parameters["solver_settings"]["formulation"]["element_type"].GetString())
         adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(auxiliary_mdpa_path)
+        if not adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].Has("perform_moving"):
+            adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].AddBool("perform_moving", False)
+        else:
+            adjoint_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["perform_moving"].SetBool(False)
+
         self.this_skin_model_part = adjoint_model.CreateModelPart("skin")
         self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
@@ -574,10 +982,11 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
+        # print("MACH ALPHA", mach, alpha)
         for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
             if boundary_process["python_module"].GetString() == "apply_far_field_process":
-                boundary_process["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
-                boundary_process["Parameters"]["angle_of_attack"].SetDouble(0.0)
+                boundary_process["Parameters"]["mach_infinity"].SetDouble(mach)
+                boundary_process["Parameters"]["angle_of_attack"].SetDouble(alpha)
                 self.i_boundary = i_boundary
                 break
         super().ModifyInitialProperties()
@@ -588,7 +997,7 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         Method evaluating the QoI of the problem: lift coefficient.
         """
         qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
-        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0])
+        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
 
         model_part = self.adjoint_model_part
         skin_model_part = self.this_skin_model_part
@@ -617,14 +1026,21 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
         mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(model_part, skin_model_part,mapping_parameters)
         mapper.Map(KratosMultiphysics.NORMAL_SENSITIVITY,KratosMultiphysics.NORMAL_SENSITIVITY)
         mapper.Map(KratosMultiphysics.DISTANCE_GRADIENT,KratosMultiphysics.DISTANCE_GRADIENT)
-        mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Parts_Parts_Auto1",
+            "search_radius" : 0.005,
+            "echo_level" : 0
+            }""")
+        primal_mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.primal_model_part, skin_model_part,mapping_parameters)
+        primal_mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
             KratosMultiphysics.PRESSURE_COEFFICIENT,        \
             KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
             KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
 
         pressure_coefficient = []
-        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
-        nodal_value_process.Execute()
+
         if (self.mapping is not True):
             for node in skin_model_part.Nodes:
                 this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
@@ -646,6 +1062,211 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
             raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
 
         qoi_list.append(shape_sensitivity)
+        Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
+        return qoi_list
+
+    def MappingAndEvaluateQuantityOfInterest(self):
+        raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
+    def _SynchronizeAdjointFromPrimal(self):
+
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
+        variable_utils = KratosMultiphysics.VariableUtils()
+        for variable in self.primal_state_variables:
+            variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+
+    def _SynchronizeSkinToCurrent(self, this_skin_model_part):
+        Logger.PrintInfo("EmbeddedSimulationScenario", "Synchronizing skin coordinates")
+
+        self.current_model_part = self.skin_model_part
+        if len(self.current_model_part.Nodes) != len(this_skin_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
+        # TODO this should happen automatically
+        for primal_node, adjoint_node in zip(self.current_model_part.Nodes, this_skin_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
+
+class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
+    def __init__(self,input_model,input_parameters,sample):
+        self.sample = sample
+        self.mapping = False
+        self.adjoint_parameters_path =input_parameters["adjoint_parameters_path"].GetString()
+        self.design_surface_sub_model_part_name = input_parameters["design_surface_sub_model_part_name"].GetString()
+        self.main_model_part_name = input_parameters["solver_settings"]["model_part_name"].GetString()
+        self.auxiliary_mdpa_path = input_parameters["auxiliary_mdpa_path"].GetString()
+        self.model = input_model
+        super().__init__(self.model,input_parameters)
+
+    def Initialize(self):
+        if self.project_parameters["solver_settings"]["model_import_settings"]["input_type"].GetString()=="use_input_model_part":
+            self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["remeshing_flag"].SetBool(False)
+            if not self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].Has("perform_moving"):
+                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"].AddBool("perform_moving", False)
+            else:
+                self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["perform_moving"].SetBool(False)
+
+        super().Initialize()
+
+    def Finalize(self):
+
+        super().Finalize()
+        aoa = self.project_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].GetDouble()
+        mach = self.project_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].GetDouble()
+        self.primal_model_part = self._GetSolver().main_model_part
+        self.skin_model_part = self.model.GetModelPart(self.design_surface_sub_model_part_name)
+        nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY", "PRESSURE_COEFFICIENT"])
+        nodal_velocity_process.Execute()
+
+        # Store mesh to solve with adjoint after remeshing
+        self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
+        self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
+        if not self.primal_model_part.HasProperties(0):
+            self.primal_model_part.AddProperties(KratosMultiphysics.Properties(0))
+        if not self.primal_model_part.HasProperties(1):
+            self.primal_model_part.AddProperties(KratosMultiphysics.Properties(1))
+
+        auxiliary_mdpa_path = self.auxiliary_mdpa_path+"_"+str(self.sample[0])+"_"+str(math.floor(time.time()*100000))[6:]
+        if not os.path.exists(auxiliary_mdpa_path):
+            KratosMultiphysics.ModelPartIO(auxiliary_mdpa_path, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SKIP_TIMER).WriteModelPart(self.primal_model_part)
+        #time.sleep(1)
+
+        with open(self.adjoint_parameters_path,'r') as parameter_file:
+            adjoint_parameters = KratosMultiphysics.Parameters( parameter_file.read() )
+        # Create the adjoint solver
+        adjoint_parameters = _CheckParameters(adjoint_parameters)
+        adjoint_model = KratosMultiphysics.Model()
+
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["mach_infinity"].SetDouble(mach)
+        adjoint_parameters["processes"]["boundary_conditions_process_list"][self.i_boundary]["Parameters"]["angle_of_attack"].SetDouble(aoa)
+        adjoint_parameters["solver_settings"]["formulation"]["element_type"].SetString(self.project_parameters["solver_settings"]["formulation"]["element_type"].GetString())
+        adjoint_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(auxiliary_mdpa_path)
+        self.this_skin_model_part = adjoint_model.CreateModelPart("skin")
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VAUX)
+        self.this_skin_model_part.AddNodalSolutionStepVariable(KSO.DF1DX_MAPPED)
+        skin_model_part_name = self.project_parameters["processes"]["boundary_conditions_process_list"][0]["Parameters"]["skin_model_part_name"].GetString()
+        KratosMultiphysics.ModelPartIO(skin_model_part_name).ReadModelPart(self.this_skin_model_part)
+        self._SynchronizeSkinToCurrent(self.this_skin_model_part)
+
+        self.adjoint_analysis = potential_flow_analysis.PotentialFlowAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [KCPFApp.VELOCITY_POTENTIAL, KCPFApp.AUXILIARY_VELOCITY_POTENTIAL]
+
+        self.adjoint_analysis.Initialize()
+        self.adjoint_model_part = self.adjoint_analysis._GetSolver().main_model_part
+
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
+
+        self.adjoint_analysis.RunSolutionLoop()
+        self.adjoint_analysis.Finalize()
+        self.response_function = self.adjoint_analysis._GetSolver()._GetResponseFunction()
+        self.response_function.InitializeSolutionStep()
+
+
+    def ModifyInitialProperties(self):
+        """
+        Method introducing the stochasticity in the right hand side. Mach number and angle of attack are random varaibles.
+        """
+        mach = abs(self.sample[1])
+        alpha = self.sample[2]
+        for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
+            if boundary_process["python_module"].GetString() == "apply_far_field_process":
+                boundary_process["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
+                boundary_process["Parameters"]["angle_of_attack"].SetDouble(0.0)
+                self.i_boundary = i_boundary
+                break
+        super().ModifyInitialProperties()
+
+
+    def EvaluateQuantityOfInterest(self):
+        """
+        Method evaluating the QoI of the problem: lift coefficient.
+        """
+        qoi_list = [self.response_function.CalculateValue(self.primal_model_part)]
+        print("StochasticAdjointResponse", " Lift Coefficient: ",qoi_list[0], "Number of nodes", self.primal_model_part.NumberOfNodes())
+
+        model_part = self.adjoint_model_part
+        skin_model_part = self.this_skin_model_part
+
+        KratosMultiphysics.ParallelDistanceCalculator2D().CalculateDistances(model_part,
+            KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE,
+            KratosMultiphysics.NODAL_AREA,
+            10,
+            2.0)
+
+        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(model_part,
+        KratosMultiphysics.CompressiblePotentialFlowApplication.GEOMETRY_DISTANCE,
+        KratosMultiphysics.DISTANCE_GRADIENT,
+        KratosMultiphysics.NODAL_AREA)
+        local_gradient.Execute()
+
+        nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        nodal_value_process.Execute()
+
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Parts_Parts_Auto1",
+            "search_radius" : 0.005,
+            "echo_level" : 0
+            }""")
+        mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(model_part, skin_model_part,mapping_parameters)
+        mapper.Map(KratosMultiphysics.NORMAL_SENSITIVITY,KratosMultiphysics.NORMAL_SENSITIVITY)
+        mapper.Map(KratosMultiphysics.DISTANCE_GRADIENT,KratosMultiphysics.DISTANCE_GRADIENT)
+
+        mapping_parameters = KratosMultiphysics.Parameters("""{
+            "mapper_type": "nearest_element",
+            "interface_submodel_part_origin": "Parts_Parts_Auto1",
+            "search_radius" : 0.005,
+            "echo_level" : 0
+            }""")
+        primal_mapper = KratosMultiphysics.MappingApplication.MapperFactory.CreateMapper(self.primal_model_part, skin_model_part,mapping_parameters)
+        primal_mapper.Map(KratosMultiphysics.PRESSURE_COEFFICIENT, \
+            KratosMultiphysics.PRESSURE_COEFFICIENT,        \
+            KratosMultiphysics.MappingApplication.Mapper.FROM_NON_HISTORICAL |     \
+            KratosMultiphysics.MappingApplication.Mapper.TO_NON_HISTORICAL)
+
+        # pressure_coefficient = []
+        # nodal_value_process = KCPFApp.ComputeNodalValueProcess(self.adjoint_analysis._GetSolver().main_model_part, ["PRESSURE_COEFFICIENT"])
+        # nodal_value_process.Execute()
+        # if (self.mapping is not True):
+            # for node in skin_model_part.Nodes:
+            #     this_pressure = node.GetValue(KratosMultiphysics.PRESSURE_COEFFICIENT)
+            #     pressure_coefficient.append(this_pressure)
+            # pressure_coefficient.extend([0.0]*skin_model_part.NumberOfNodes()*2)
+
+        # elif (self.mapping is True):
+        #     raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+        # qoi_list.append(pressure_coefficient)
+
+        if (self.mapping is not True):
+            for node in skin_model_part.Nodes:
+                distance_gradient=node.GetSolutionStepValue(KratosMultiphysics.DISTANCE_GRADIENT)
+                sensitivity=node.GetSolutionStepValue(KratosMultiphysics.NORMAL_SENSITIVITY)
+                this_shape_sensitivity =[-1*sensitivity*i for i in distance_gradient]
+                qoi_list.extend(this_shape_sensitivity[0:2])
+        elif (self.mapping is True):
+            raise(Exception("XMC mapping is NOT needed in embedded, as the skin stays the same"))
+
         Logger.PrintInfo("StochasticAdjointResponse", "Total number of QoI:",len(qoi_list))
         return qoi_list
 
