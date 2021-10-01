@@ -266,7 +266,7 @@ double FluidAuxiliaryUtilities::CalculateFlowRateAuxiliary(
                     const std::size_t n_parent_faces = r_parent_geom.FacesNumber();
                     DenseMatrix<unsigned int> nodes_in_faces(n_parent_faces, n_parent_faces);
                     r_parent_geom.NodesInFaces(nodes_in_faces);
-                    std::size_t face_id;
+                    std::size_t face_id=0;
                     for (std::size_t i_face = 0; i_face < n_parent_faces; ++i_face) {
                         std::size_t match_nodes = 0;
                         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
