@@ -91,7 +91,7 @@ void Connection::Initialize(const Info& I_Settings)
 {
     const std::string comm_format = I_Settings.Get<std::string>("communication_format", "file"); // default is file-communication
 
-    CO_SIM_IO_INFO("CoSimIO") << "CoSimIO from \"" << I_Settings.Get<std::string>("my_name") << "\" to \"" << I_Settings.Get<std::string>("connect_to") << "\" uses communication format: " << comm_format << std::endl;
+    CO_SIM_IO_INFO_IF("CoSimIO", mpDatacomm->Rank()==0) << "CoSimIO from \"" << I_Settings.Get<std::string>("my_name") << "\" to \"" << I_Settings.Get<std::string>("connect_to") << "\" uses communication format: " << comm_format << std::endl;
 
     if (comm_format == "file") {
         mpComm = CoSimIO::make_unique<FileCommunication>(I_Settings, mpDatacomm);

@@ -130,9 +130,7 @@ void Communication::BaseConnectDetail(const Info& I_Info)
         // delete and recreate directory to remove potential leftovers
         std::error_code ec;
         fs::remove_all(mCommFolder, ec);
-        if (ec) {
-            CO_SIM_IO_INFO("CoSimIO") << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
-        }
+        CO_SIM_IO_INFO_IF("CoSimIO", ec) << "Warning, communication directory (" << mCommFolder << ")could not be deleted!\nError code: " << ec.message() << std::endl;
         if (!fs::exists(mCommFolder)) {
             fs::create_directory(mCommFolder);
         }
@@ -212,17 +210,15 @@ void Communication::WaitForPath(const fs::path& rPath) const
 
     CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Waiting for: " << rPath << std::endl;
     if (!mUseAuxFileForFileAvailability) {
-        while(!fs::exists(rPath)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
-        }
+        Utilities::WaitUntilPathExists(rPath);
     } else {
         fs::path avail_file = fs::path(rPath.string()+".avail");
-        while(!fs::exists(avail_file)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(5)); // wait 0.001s before next check
-        }
+        Utilities::WaitUntilPathExists(avail_file);
 
         // once the file exists it means that the real file was written, hence it can be removed
-        fs::remove(avail_file);
+        std::error_code ec;
+        fs::remove(avail_file, ec);
+        CO_SIM_IO_ERROR_IF(ec) << avail_file << " could not be removed!\nError code: " << ec.message() << std::endl;
     }
     CO_SIM_IO_INFO_IF("CoSimIO", GetEchoLevel()>0) << "Found: " << rPath << std::endl;
 

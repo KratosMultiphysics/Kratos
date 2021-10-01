@@ -65,8 +65,8 @@ else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-if(NOT DEFINED CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY)
-    set(CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY bin)
+if(NOT DEFINED CO_SIM_IO_INSTALL_DIRECTORY)
+    set(CO_SIM_IO_INSTALL_DIRECTORY bin)
 endif()
 
 if(MSVC)
@@ -139,7 +139,7 @@ include(GenerateExportHeader)
 generate_export_header( co_sim_io EXPORT_MACRO_NAME CO_SIM_IO_API EXPORT_FILE_NAME
                         ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io/includes/co_sim_io_api.hpp )
 
-install(TARGETS co_sim_io DESTINATION ${CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY})
+install(TARGETS co_sim_io DESTINATION ${CO_SIM_IO_INSTALL_DIRECTORY})
 
 if (CO_SIM_IO_BUILD_MPI)
     # Adding CoSimIO library
@@ -148,7 +148,7 @@ if (CO_SIM_IO_BUILD_MPI)
 
     target_link_libraries(co_sim_io_mpi co_sim_io ${MPI_LIBRARIES})
 
-    install(TARGETS co_sim_io_mpi DESTINATION ${CO_SIM_IO_INSTALL_DESTINATION_DIRECTORY})
+    install(TARGETS co_sim_io_mpi DESTINATION ${CO_SIM_IO_INSTALL_DIRECTORY})
 endif()
 
 target_include_directories(co_sim_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/co_sim_io)

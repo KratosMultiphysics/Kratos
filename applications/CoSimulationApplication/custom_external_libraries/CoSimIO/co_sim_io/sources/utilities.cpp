@@ -16,6 +16,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <system_error>
 
 // Project includes
 #include "includes/utilities.hpp"
@@ -178,7 +179,8 @@ std::string GetElementName(const ElementType I_ElementType)
 
 void WaitUntilPathExists(const fs::path& rPath)
 {
-    while(!fs::exists(rPath)) {std::this_thread::sleep_for(std::chrono::milliseconds(5));} // wait 0.005s before next check
+    std::error_code ec;
+    while(!fs::exists(rPath, ec)) {std::this_thread::sleep_for(std::chrono::milliseconds(5));} // wait 0.005s before next check
 }
 
 std::set<std::size_t> ComputePartnerRanksAsImporter(
