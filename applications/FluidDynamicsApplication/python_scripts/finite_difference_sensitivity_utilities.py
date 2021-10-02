@@ -2,6 +2,7 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 from KratosMultiphysics.FluidDynamicsApplication.adjoint_fluid_analysis import AdjointFluidAnalysis
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_stabilization_utilities import CalculateDragFrequencyDistribution
 
 import os
 from math import fabs
@@ -192,6 +193,80 @@ class FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis:
         kratos_parameters["processes"]["auxiliar_process_list"].Append(
             response_parameters)
 
+
+class FiniteDifferenceBodyFittedDragFrequencyShapeSensitivityAnalysis:
+    @staticmethod
+    def ComputeSensitivity(node_ids, step_size,
+                           kratos_parameters,
+                           drag_direction,
+                           drag_model_part_name,
+                           primal_problem_solving_method,
+                           primal_output_process_inclusion_method,
+                           is_real_component,
+                           windowing_length,
+                           frequency_bin_index):
+
+        FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis._AddResponseFunctionOutput(
+            kratos_parameters, drag_model_part_name)
+
+        output_file_name = drag_model_part_name + "_drag.dat"
+
+        def compute_drag_amplitude(kratos_parameters):
+            primal_problem_solving_method(kratos_parameters)
+            time_steps, reactions = FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis._ReadDrag(output_file_name)
+            _, frequency_real_components, frequency_imag_components, _ = CalculateDragFrequencyDistribution(time_steps, reactions, drag_direction, windowing_length)
+            if is_real_component:
+                return frequency_real_components[frequency_bin_index]
+            else:
+                return frequency_imag_components[frequency_bin_index]
+
+        sensitivities = ComputeFiniteDifferenceSensitivity(node_ids, step_size,
+                                                           kratos_parameters, compute_drag_amplitude, primal_output_process_inclusion_method)
+
+        DeleteFileIfExisting(output_file_name)
+        return sensitivities
+
+    @staticmethod
+    def _ReadDrag(file_name):
+        with open(file_name, "r") as file_input:
+            lines = file_input.readlines()
+        time_steps = []
+        reaction = []
+        for line in lines:
+            line = line.strip()
+            if len(line) == 0 or line[0] == '#':
+                continue
+            time_step_data = [float(v) for v in line.split()]
+            time, fx, fy, fz = time_step_data
+            time_steps.append(time)
+            reaction.append([fx, fy, fz])
+        return time_steps, reaction
+
+    @staticmethod
+    def _AddResponseFunctionOutput(kratos_parameters, drag_model_part_name):
+        response_parameters = Kratos.Parameters(R'''
+        {
+            "python_module": "compute_body_fitted_drag_process",
+            "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
+            "process_name": "ComputeBodyFittedDragProcess",
+            "Parameters": {
+                "model_part_name": "<DRAG_MODEL_PART_NAME>",
+                "interval": [
+                    0.0,
+                    1e30
+                ],
+                "write_drag_output_file": true,
+                "print_drag_to_screen": false,
+                "print_format": "22.15e"
+            }
+        }
+        ''')
+
+        response_parameters["Parameters"]["model_part_name"].SetString(
+            drag_model_part_name)
+
+        kratos_parameters["processes"]["auxiliar_process_list"].Append(
+            response_parameters)
 
 class FiniteDifferenceVelocityPressureNormSquareShapeSensitivityAnalysis:
     @staticmethod

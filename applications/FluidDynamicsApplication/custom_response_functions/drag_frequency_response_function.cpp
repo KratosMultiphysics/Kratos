@@ -217,7 +217,10 @@ void DragFrequencyResponseFunction<TDim>::CalculateDragFrequencyContribution(
     const double current_time = rProcessInfo[TIME];
     const double offsetted_window_time = current_time - mTotalLength + mWindowingLength;
 
-    if (offsetted_window_time >= 0.0) {
+    // This is a check to see if the offsetted_window_time > 0, but instead of using 0.0,
+    // half of the delta time step is used. It is because, there can be precision errors
+    // in TIME variable which causes sometimes to calculate one additional/less time step contribution.
+    if (offsetted_window_time > -rProcessInfo[DELTA_TIME] / 2.0) {
         // calculate raw drag sensitivities
         BaseType::CalculateDragContribution(rDerivativesOfResidual, rNodes, rDerivativesOfDrag, rProcessInfo);
 

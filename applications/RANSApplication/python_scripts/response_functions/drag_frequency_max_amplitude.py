@@ -10,9 +10,10 @@ from KratosMultiphysics.response_functions.response_function_interface import Re
 
 from KratosMultiphysics.RANSApplication.response_functions.utilities import SolvePrimalProblem
 from KratosMultiphysics.RANSApplication.response_functions.utilities import SolveAdjointProblem
-from KratosMultiphysics.RANSApplication.response_functions.utilities import CalculateDragFrequencyDistribution
 from KratosMultiphysics.RANSApplication.response_functions.utilities import GetDragValues
 from KratosMultiphysics.RANSApplication.response_functions.utilities import RecursiveCopy
+
+from KratosMultiphysics.FluidDynamicsApplication.adjoint_stabilization_utilities import CalculateDragFrequencyDistribution
 
 class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
     def __init__(self, identifier, response_settings, model):
@@ -231,7 +232,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         delta_time = -1.0 * adjoint_model_part.ProcessInfo[Kratos.DELTA_TIME]
         windowing_steps = int(self.windowing_length / delta_time)
 
-        coeff = components_list[self.max_frequency_bin_index] * 4.0 / ((windowing_steps ** 2) * (self.frequency_amplitudes[self.max_frequency_bin_index]))
+        coeff = components_list[self.max_frequency_bin_index] * 8.0 / (windowing_steps ** 2)
 
         for node in adjoint_model_part.Nodes:
             self.gradients[node.Id] += node.GetSolutionStepValue(Kratos.SHAPE_SENSITIVITY) * coeff

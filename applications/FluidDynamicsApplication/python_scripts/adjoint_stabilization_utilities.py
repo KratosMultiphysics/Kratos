@@ -169,3 +169,34 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
     stabilization_coefficient = (coefficient_data_list[2][0] + coefficient_data_list[0][0]) / 2.0
     Kratos.Logger.PrintInfo("Stabilization Analysis", "Computed adjoint stabilization coefficient = {:e}".format(stabilization_coefficient))
     return stabilization_coefficient
+
+def CalculateDragFrequencyDistribution(time_steps, reactions, drag_direction, windowing_length):
+    delta_time = time_steps[1] - time_steps[0]
+
+    number_of_steps = len(reactions)
+    number_of_frequencies = number_of_steps // 2
+    windowing_steps = int(windowing_length / delta_time)
+
+    drag_values = [0.0] * number_of_steps
+    for index, reaction in enumerate(reactions):
+        drag_values[index] = (reaction[0] * drag_direction[0] + reaction[1] * drag_direction[1] + reaction[2] * drag_direction[2])
+
+    frequency_real_components = [0.0] * number_of_frequencies
+    frequency_imag_components = [0.0] * number_of_frequencies
+    frequency_amplitudes_square = [0.0] * number_of_frequencies
+    frequency_list = [0.0] * number_of_frequencies
+
+    for index, drag in enumerate(drag_values[number_of_steps - windowing_steps:]):
+        time_step_index = index + 1 + number_of_steps - windowing_steps
+        window_value = 0.5 * (1.0 - math.cos(2.0 * math.pi * (index + 1) / windowing_steps))
+        for k in range(number_of_frequencies):
+            time_step_value = 2.0 * math.pi * time_step_index * k / number_of_steps
+            frequency_real_components[k] += window_value * drag * math.cos(time_step_value)
+            frequency_imag_components[k] += window_value * drag * math.sin(time_step_value)
+
+    frequency_resolution = 1.0 / (delta_time * number_of_steps)
+    for k in range(number_of_frequencies):
+        frequency_list[k] = k * frequency_resolution
+        frequency_amplitudes_square[k] = (frequency_real_components[k] ** 2 + frequency_imag_components[k] ** 2) * 4 / (windowing_steps**2)
+
+    return frequency_list, frequency_real_components, frequency_imag_components, frequency_amplitudes_square
