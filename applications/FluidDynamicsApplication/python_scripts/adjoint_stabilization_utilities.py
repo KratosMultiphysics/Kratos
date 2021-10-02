@@ -138,19 +138,24 @@ def ComputeStabilizationCoefficient(analysis_class_type, stabilization_settings,
 
         for index, coefficient_data in enumerate(coefficient_data_list):
             if coefficient_data[1] is None:
-                solve_id += 1
-                coefficient_data[1] = __IsPlateau(
-                                        __CalculateTimeSeriesSlope(
-                                            execution_method(
-                                                StabilizationAnalysisClass,
-                                                adjoint_parameters.Clone(),
-                                                coefficient_data[0],
-                                                solve_id
+                if (index > 0 and coefficient_data_list[index-1][1] == 0) or (index == 0):
+                    solve_id += 1
+                    coefficient_data[1] = __IsPlateau(
+                                            __CalculateTimeSeriesSlope(
+                                                execution_method(
+                                                    StabilizationAnalysisClass,
+                                                    adjoint_parameters.Clone(),
+                                                    coefficient_data[0],
+                                                    solve_id
+                                                ),
+                                                plateau_time_range
                                             ),
-                                            plateau_time_range
-                                        ),
-                                    plateau_max_slope
-                                    )
+                                        plateau_max_slope
+                                        )
+                    Kratos.Logger.PrintInfo("Stabilization Analysis", "Stabilization coefficient {:f} resulted in a plateau : {:d}".format(coefficient_data[0], coefficient_data[1]))
+                else:
+                    Kratos.Logger.PrintInfo("Stabilization Analysis", "Found plateau in previous calculations, therefore assuming stabilization coefficient {:f} as plateau.".format(coefficient_data[0]))
+                    coefficient_data[1] = 1
 
             msg += "\n       point {:d}: stabilization coefficient = {:e}, is plateau = {:d}".format(index + 1, coefficient_data[0], int(coefficient_data[1]))
 
