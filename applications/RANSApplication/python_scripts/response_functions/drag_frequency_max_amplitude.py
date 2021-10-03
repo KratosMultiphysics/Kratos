@@ -107,6 +107,7 @@ class DragFrequencyMaxAmplitude(ResponseFunctionInterface):
         # read time step reaction values
         time_steps, reactions = GetDragValues(primal_parameters, self.drag_model_part_name)
         frequency_list, self.frequency_real_components, self.frequency_imag_components, self.frequency_amplitudes = CalculateDragFrequencyDistribution(time_steps, reactions, self.drag_direction, self.windowing_length)
+        self.frequency_amplitudes = [math.sqrt(_v) for _v in self.frequency_amplitudes]
         delta_time = time_steps[1] - time_steps[0]
 
         number_of_steps = len(reactions)
