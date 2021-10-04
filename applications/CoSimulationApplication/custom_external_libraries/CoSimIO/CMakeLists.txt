@@ -126,7 +126,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 # clean the bin directory (only done if "CMAKE_INSTALL_PREFIX" is not specified)
-file(REMOVE_RECURSE bin)
+# file(REMOVE_RECURSE bin)
 
 # Adding CoSimIO library
 file(GLOB_RECURSE co_sim_io_source_files
