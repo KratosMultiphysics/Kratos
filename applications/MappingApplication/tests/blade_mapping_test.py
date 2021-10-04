@@ -1,9 +1,11 @@
 import KratosMultiphysics as KM
+from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.MappingApplication as KratosMapping
 data_comm = KM.Testing.GetDefaultDataCommunicator()
 if data_comm.IsDistributed():
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
+from KratosMultiphysics.testing import utilities as testing_utils
 import mapper_test_case
 from math import cos
 import os
@@ -27,26 +29,29 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
 
-        mapper_parameters_p = mapper_parameters.Clone()
-        mapper_parameters_s = mapper_parameters.Clone()
-
-        mapper_parameters_p.AddEmptyValue("interface_submodel_part_origin").SetString("pressure_side_quad")
-        mapper_parameters_p.AddEmptyValue("interface_submodel_part_destination").SetString("pressure_side_tri")
-
-        mapper_parameters_s.AddEmptyValue("interface_submodel_part_origin").SetString("suction_side_quad")
-        mapper_parameters_s.AddEmptyValue("interface_submodel_part_destination").SetString("suction_side_tri")
-
         cls.model_part_structure = cls.model_part_origin
         cls.model_part_fluid = cls.model_part_destination
 
         if data_comm.IsDistributed():
-            cls.mapper_pressure_side = MappingMPIExtension.MPIMapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_p)
-            cls.mapper_suction_side = MappingMPIExtension.MPIMapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_s)
+            map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
-            cls.mapper_pressure_side = KratosMapping.MapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_p)
-            cls.mapper_suction_side = KratosMapping.MapperFactory.CreateMapper(cls.model_part_structure, cls.model_part_fluid, mapper_parameters_s)
+            map_creator = KratosMapping.MapperFactory.CreateMapper
+
+        cls.mapper_pressure_side = map_creator(
+            cls.GetStructureModelPart("pressure_side_quad"),
+            cls.model_part_fluid.GetSubModelPart("pressure_side_tri"),
+            mapper_parameters.Clone())
+
+        cls.mapper_suction_side = map_creator(
+            cls.GetStructureModelPart("suction_side_quad"),
+            cls.model_part_fluid.GetSubModelPart("suction_side_tri"),
+            mapper_parameters.Clone())
 
         cls.print_output = False # this can be overridden in derived classes to print the output
+
+    @classmethod
+    def GetStructureModelPart(cls, sub_model_part_name):
+        return cls.model_part_structure.GetSubModelPart(sub_model_part_name)
 
     def test_map_displacements(self):
         SetDisplacements(self.model_part_structure)
