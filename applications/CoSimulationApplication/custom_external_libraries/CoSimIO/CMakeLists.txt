@@ -19,7 +19,7 @@ include(CTest)
 # TODO check how this can be added (supported from CMake 3.17)
 # list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
 
-OPTION ( CO_SIM_IO_BUILD_MPI         "Enable MPI communication and MPI examples" OFF )
+OPTION ( CO_SIM_IO_BUILD_MPI          "Enable MPI communication and MPI examples" OFF )
 OPTION ( CO_SIM_IO_BUILD_C            "Building the CoSimIO for C"                OFF )
 OPTION ( CO_SIM_IO_BUILD_PYTHON       "Building the CoSimIO for Python"           OFF )
 OPTION ( CO_SIM_IO_BUILD_FORTRAN      "Building the CoSimIO for Fortran"          OFF )
@@ -56,14 +56,16 @@ if (CO_SIM_IO_BUILD_MPI)
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
 
-# # Set installation directory
-# if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-#     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
-#     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" CACHE PATH "Default Install path" FORCE)
-#     message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
-# else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-#     message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
-# endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+get_directory_property( hasParent PARENT_DIRECTORY)
+
+# Set installation directory
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" CACHE PATH "Default Install path" FORCE)
+    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 if(NOT DEFINED CO_SIM_IO_INSTALL_DIRECTORY)
     set(CO_SIM_IO_INSTALL_DIRECTORY bin)
@@ -125,8 +127,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_MACOSX_RPATH 0)
 endif()
 
-# clean the bin directory (only done if "CMAKE_INSTALL_PREFIX" is not specified)
-# file(REMOVE_RECURSE bin)
+# clean the ${CO_SIM_IO_INSTALL_DIRECTORY} directory
+if (NOT hasParent)
+    file(REMOVE_RECURSE ${CO_SIM_IO_INSTALL_DIRECTORY})
+endif()
 
 # Adding CoSimIO library
 file(GLOB_RECURSE co_sim_io_source_files
