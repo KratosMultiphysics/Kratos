@@ -44,12 +44,13 @@ namespace Kratos
         mWaveElement2D9N(0, Element::GeometryType::Pointer(new Quadrilateral2D9<Node<3>>(Element::GeometryType::PointsArrayType(9)))),
     
         mCrankNicolsonWaveElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
+    
+        mConservativeElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
         mShallowWater2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3>>(Element::GeometryType::PointsArrayType(3)))),
 
-        mNothingCondition2D2N( 0, Element::GeometryType::Pointer( new Line2D2< Node<3> >( Element::GeometryType::PointsArrayType (2) ) ) ),
-
-        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
+        mWaveCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2)))),
+        mConservativeCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3>>(Element::GeometryType::PointsArrayType(2))))
     {}
 
     void KratosShallowWaterApplication::Register()
@@ -132,10 +133,12 @@ namespace Kratos
 
         KRATOS_REGISTER_ELEMENT("CrankNicolsonWaveElement2D3N", mCrankNicolsonWaveElement2D3N)
 
+        KRATOS_REGISTER_ELEMENT("ConservativeElement2D3N", mConservativeElement2D3N)
+
         KRATOS_REGISTER_ELEMENT("ShallowWater2D3N", mShallowWater2D3N)
 
-        KRATOS_REGISTER_CONDITION("NothingCondition2D2N", mNothingCondition2D2N)
         KRATOS_REGISTER_CONDITION("WaveCondition2D2N", mWaveCondition2D2N)
+        KRATOS_REGISTER_CONDITION("ConservativeCondition2D2N", mConservativeCondition2D2N)
 
         // Register modelers
         KRATOS_REGISTER_MODELER("MeshMovingModeler", mMeshMovingModeler)
