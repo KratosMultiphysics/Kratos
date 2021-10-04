@@ -5,8 +5,6 @@ import KratosMultiphysics.MappingApplication
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import run_cpp_unit_tests
-
 # Import the tests or test_classes to create the suits
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
@@ -68,10 +66,4 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-    print("Running cpp unit tests for MappingApplication...")
-    run_cpp_unit_tests.run()
-    print("Finished running cpp unit tests!")
-    print("Running python tests for MappingApplication...")
     KratosUnittest.runTests(AssembleTestSuites())
-    print("Finished python tests!")
