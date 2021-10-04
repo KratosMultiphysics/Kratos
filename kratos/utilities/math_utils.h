@@ -1097,14 +1097,15 @@ public:
     /**
      * @brief "rInputMatrix" is ADDED to "Destination" matrix starting from InitialRow and InitialCol of the destination matrix
      * @details "Destination" is assumed to be able to contain the "input matrix" (no check is performed on the bounds)
-     * @param rDestination The matric destination
-     * @param rInputMatrix The input matrix to be computed
-     * @param InitialRow The initial row to compute
-     * @param InitialCol The initial column to compute
+     * @param rDestination The matrix destination
+     * @param rInputMatrix The input matrix to be added
+     * @param InitialRow The initial row
+     * @param InitialCol The initial column
      */
-    static inline void  AddMatrix(
-        MatrixType& rDestination,
-        const MatrixType& rInputMatrix,
+    template<class TMatrixType1, class TMatrixType2>
+    static inline void AddMatrix(
+        TMatrixType1& rDestination,
+        const TMatrixType2& rInputMatrix,
         const IndexType InitialRow,
         const IndexType InitialCol
         )
@@ -1115,6 +1116,28 @@ public:
             for(IndexType j = 0; j < rInputMatrix.size2(); ++j) {
                 rDestination(InitialRow+i, InitialCol+j) += rInputMatrix(i,j);
             }
+        }
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief "rInputVector" is ADDED to "Destination" vector starting from InitialIndex of the destination matrix
+     * @details "Destination" is assumed to be able to contain the "input vector" (no check is performed on the bounds)
+     * @param rDestination The vector destination
+     * @param rInputVector The input vector to be added
+     * @param InitialIndex The initial index
+     */
+    template<class TVectorType1, class TVectorType2>
+    static inline void AddVector(
+        TVectorType1& rDestination,
+        const TVectorType2& rInputVector,
+        const IndexType InitialIndex
+        )
+    {
+        KRATOS_TRY
+
+        for(IndexType i = 0; i < rInputVector.size(); ++i) {
+            rDestination[InitialIndex+i] += rInputVector[i];
         }
         KRATOS_CATCH("")
     }

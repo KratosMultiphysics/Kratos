@@ -134,6 +134,33 @@ The flags can also be combined:
 mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.ADD_VALUES | KM.Mapper.SWAP_SIGN)
 ~~~
 
+Historical nodal values are used by default. Mapping to an from nonhistorical nodal values is also supported, the following examples show the usage:
+
+This maps the values from the origin (`REACTION`) as historical values to the destination (`FORCE`) as nonhistorical values:
+~~~py
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.TO_NON_HISTORICAL)
+~~~
+
+This maps the values from the origin (`REACTION`) as nonhistorical values to the destination (`FORCE`) as historical values:
+~~~py
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.FROM_NON_HISTORICAL)
+~~~
+
+This maps the values from the destination (`FORCE`) as historical values to the origin (`REACTION`) as nonhistorical values:
+~~~py
+mapper.InverseMap(KM.REACTION, KM.FORCE, KM.Mapper.TO_NON_HISTORICAL)
+~~~
+
+This maps the values from the destination (`FORCE`) as nonhistorical values to the origin (`REACTION`) as historical values:
+~~~py
+mapper.InverseMap(KM.REACTION, KM.FORCE, KM.Mapper.FROM_NON_HISTORICAL)
+~~~
+
+Of course it is possible to use both origin and destination nonhistorical. This maps the values from the origin (`REACTION`) as nonhistorical values to the destination (`FORCE`) as nonhistorical values:
+~~~py
+mapper.Map(KM.REACTION, KM.FORCE, KM.Mapper.FROM_NON_HISTORICAL | KM.Mapper.TO_NON_HISTORICAL)
+~~~
+
 Many _Mappers_ internally construct a mapping matrix. It is possible to use the transpose of this matrix for mapping with `USE_TRANSPOSE`. This is often used for conservative mapping of forces in FSI, when the virtual work on both interfaces should be preserved.
 
 ~~~py

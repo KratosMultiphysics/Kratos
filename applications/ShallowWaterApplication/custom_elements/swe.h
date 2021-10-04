@@ -209,13 +209,13 @@ protected:
         double discharge_penalty;
 
         // Element variables
-        array_1d<double, 2> projected_momentum; // It is used to compute friction terms
+        array_1d<double, 3> projected_momentum; // It is used to compute friction terms
         double momentum_div; // It is used to compute shock capturing
         double velocity_div; // It is used to compute the convective term
         double height;
         double wave_vel_2;
         array_1d<double, 2> surface_grad; // Is used to compute shock capturing
-        array_1d<double, 2> velocity; // It is used to compute the convective stabilization
+        array_1d<double, 3> velocity; // It is used to compute the convective stabilization
 
         // Unknowns and nodal values
         LocalVectorType rain;

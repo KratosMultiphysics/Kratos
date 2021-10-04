@@ -97,7 +97,7 @@ public:
     /**
      * @brief Destructor
      */
-    virtual ~ WaveCondition(){}
+    ~ WaveCondition() override {};
 
     ///@}
     ///@name Operations
@@ -192,8 +192,8 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * @brief Calculate the elemental mass matrix
-     * @param rMassMatrix the elemental mass matrix
+     * @brief Calculate the condition mass matrix
+     * @param rMassMatrix the condition mass matrix
      * @param rCurrentProcessInfo the current process info instance
      */
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
@@ -250,7 +250,7 @@ protected:
     static constexpr IndexType mLocalSize = 3 * TNumNodes;
 
     ///@}
-    ///@name Protected classes
+    ///@name Protected Classes
     ///@{
 
     struct ConditionData
@@ -263,24 +263,34 @@ protected:
         array_1d<double,3> velocity;
         array_1d<double,3> normal;
 
-        std::array<double,TNumNodes> topography;
-        LocalVectorType unknown;
-    };
+        BoundedMatrix<double,3,3> A1;
+        BoundedMatrix<double,3,3> A2;
+        array_1d<double,3> b1;
+        array_1d<double,3> b2;
 
+        array_1d<double,TNumNodes> nodal_h;
+        array_1d<double,TNumNodes> nodal_z;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_v;
+        array_1d<array_1d<double,3>,TNumNodes> nodal_q;
+    };
+ 
     ///@}
     ///@name Protected Operations
     ///@{
 
+    virtual const Variable<double>& GetUnknownComponent(int Index) const;
+
+    virtual LocalVectorType GetUnknownVector(ConditionData& rData);
+
     void CalculateGeometryData(
         Vector &rGaussWeights,
-        Matrix &rNContainer,
-        ShapeFunctionsGradientsType &rDN_DXContainer) const;
+        Matrix &rNContainer) const;
 
     void InitializeData(
         ConditionData& rData,
         const ProcessInfo& rProcessInfo);
 
-    void CalculateGaussPointData(
+    virtual void CalculateGaussPointData(
         ConditionData& rData,
         const IndexType PointIndex,
         const array_1d<double,TNumNodes>& rN);
@@ -304,9 +314,7 @@ protected:
         const array_1d<double,TNumNodes>& rN,
         const double Weight);
 
-    double StabilizationParameter(const ConditionData& rData) const;
-
-    double InverseHeight(const ConditionData& rData) const;
+    const array_1d<double,3> VectorProduct(const array_1d<array_1d<double,3>,TNumNodes>& rV, const array_1d<double,TNumNodes>& rN) const;
 
     ///@}
 
