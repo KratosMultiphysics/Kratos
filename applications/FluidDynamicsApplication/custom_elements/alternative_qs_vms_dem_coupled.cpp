@@ -87,36 +87,7 @@ int AlternativeQSVMSDEMCoupled<TElementData>::Check(const ProcessInfo &rCurrentP
 
     return out;
 }
-
-template <class TElementData>
-void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<double>& rVariable,
-    double& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-}
-
-template <class TElementData>
-void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
-    const Variable<array_1d<double, 3>>& rVariable,
-    array_1d<double, 3>& rOutput,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    QSVMS<TElementData>::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-/**
- * @see AlternativeQSVMSDEMCoupled::EquationIdVector
- **/
-template < class TElementData >
-void AlternativeQSVMSDEMCoupled<TElementData>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo) const
-{
-    QSVMS<TElementData>::EquationIdVector(rResult, rCurrentProcessInfo);
-}
 
 template< class TElementData >
 std::string AlternativeQSVMSDEMCoupled<TElementData>::Info() const
@@ -133,32 +104,20 @@ void AlternativeQSVMSDEMCoupled<TElementData>::PrintInfo(std::ostream& rOStream)
     rOStream << "AlternativeQSVMSDEMCoupled" << Dim << "D";
 }
 
-template<class TElementData>
-void AlternativeQSVMSDEMCoupled<TElementData>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-        TElementData data;
-        data.Initialize(*this, rCurrentProcessInfo);
-
-        // Calculate this element RHS contribution
-        QSVMS<TElementData>::CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
-}
-
 template< class TElementData >
 void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const TElementData& rData,
     const array_1d<double,3> &rConvectionVelocity,
     array_1d<double,3>& rResidual) const
 {
-    const GeometryType rGeom = this->GetGeometry();
+    const auto& rGeom = this->GetGeometry();
 
     Vector convection; // u * grad(N)
     this->ConvectionOperator(convection,rConvectionVelocity,rData.DN_DX);
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    const auto& fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+    const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
     const auto& r_body_forces = rData.BodyForce;
@@ -169,12 +128,14 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
     sigma *= viscosity;
+    Vector grad_alpha_sym_grad_u, sigma_U;
+    BoundedMatrix<double,Dim,Dim> sym_gradient_u;
 
     for (unsigned int i = 0; i < NumNodes; i++) {
             const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-            Vector sigma_U = ZeroVector(Dim);
-            BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
-            Vector grad_alpha_sym_grad_u = ZeroVector(Dim);
+            sigma_U = ZeroVector(Dim);
+            sym_gradient_u = ZeroMatrix(Dim, Dim);
+            grad_alpha_sym_grad_u = ZeroVector(Dim);
             for (unsigned int d = 0; d < Dim; d++) {
                 double div_u = 0.0;
                 for (unsigned int e = 0; e < Dim; e++){
@@ -206,26 +167,27 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
-    const auto& fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto& r_fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-
+    Vector sigma_U, grad_alpha_sym_grad_u;
+    BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
-        Vector sigma_U = ZeroVector(Dim);
-        BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
-        Vector grad_alpha_sym_grad_u = ZeroVector(Dim);
+        sigma_U = ZeroVector(Dim);
+        sym_gradient_u = ZeroMatrix(Dim, Dim);
+        grad_alpha_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                 sym_gradient_u(d,e) += 1.0/2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
-                grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[d] * sym_gradient_u(d,e);
+                grad_alpha_sym_grad_u[d] += r_fluid_fraction_gradient[d] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * r_velocities(i,e);
             }
-            rMomentumRHS[d] += density * (rData.N[i] * r_body_forces(i,d) /*- fluid_fraction * rData.N[i] * r_acceleration[d]*/ - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rMomentumRHS[d] += density * (rData.N[i] * r_body_forces(i,d) /*- fluid_fraction * rData.N[i] * r_acceleration[d]*/ - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * r_fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -370,7 +332,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
             // Some terms are the same for all velocity components, calculate them once for each i,j
 
             // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
-            //double K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]);
             double V = fluid_fraction * rData.N[i] * AGradN[j];
 
             // q-p stabilization block (reset result)
@@ -539,7 +500,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddMassLHS(
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */
-    if ( rData.UseOSS != 1.0 )
+    if (!rData.UseOSS)
         this->AddMassStabilization(rData,rMassMatrix);
 }
 
@@ -623,7 +584,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::SubscaleVelocity(
 
     array_1d<double,3> Residual = ZeroVector(3);
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMomentumResidual(rData,convective_velocity,Residual);
     else
         this->OrthogonalMomentumResidual(rData,convective_velocity,Residual);
@@ -646,7 +607,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::SubscalePressure(
 
     double Residual = 0.0;
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMassResidual(rData,Residual);
     else
         this->OrthogonalMassResidual(rData,Residual);

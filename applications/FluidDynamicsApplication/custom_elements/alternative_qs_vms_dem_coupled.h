@@ -179,25 +179,6 @@ public:
         GeometryType::Pointer pGeom,
         Properties::Pointer pProperties) const override;
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<array_1d<double, 3>>& rVariable,
-        array_1d<double, 3>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        const ProcessInfo& rCurrentProcessInfo) const override;
-
-
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access
     ///@{
