@@ -5,6 +5,7 @@ import os
 from KratosMultiphysics import from_json_check_result_process
 from KratosMultiphysics import json_output_process
 from KratosMultiphysics import vtk_output_process
+from KratosMultiphysics.testing import utilities as testing_utils
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "mdpa_files", fileName)
@@ -44,12 +45,8 @@ class MapperTestCase(KratosUnittest.TestCase):
 
     @classmethod
     def ReadModelParts(cls):
-        if data_comm.IsDistributed():
-            ReadDistributedModelPart(cls.model_part_origin, cls.input_file_origin)
-            ReadDistributedModelPart(cls.model_part_destination, cls.input_file_destination)
-        else:
-            ReadModelPart(cls.model_part_origin, cls.input_file_origin)
-            ReadModelPart(cls.model_part_destination, cls.input_file_destination)
+        testing_utils.ReadModelPart(cls.input_file_origin, cls.model_part_origin)
+        testing_utils.ReadModelPart(cls.input_file_destination, cls.model_part_destination)
 
     def setUp(self):
         # reset the ModelPart
@@ -87,27 +84,6 @@ class MapperTestCase(KratosUnittest.TestCase):
             condition.SetValue(KM.TEMPERATURE, default_scalar)
             condition.SetValue(KM.VELOCITY, default_vector)
 
-def ReadModelPart(model_part, mdpa_file_name):
-    import_flags = KM.ModelPartIO.READ | KM.ModelPartIO.SKIP_TIMER
-
-    KM.ModelPartIO(mdpa_file_name, import_flags).ReadModelPart(model_part)
-
-def ReadDistributedModelPart(model_part, mdpa_file_name):
-    from KratosMultiphysics.mpi import distributed_import_model_part_utility
-    model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
-
-    importer_settings = KM.Parameters("""{
-        "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename": \"""" + mdpa_file_name + """\",
-            "partition_in_memory" : true
-        },
-        "echo_level" : 0
-    }""")
-
-    model_part_import_util = distributed_import_model_part_utility.DistributedImportModelPartUtility(model_part, importer_settings)
-    model_part_import_util.ImportModelPart()
-    model_part_import_util.CreateCommunicators()
 
 def GetFullModelPartName(model_part):
     full_name = model_part.Name
