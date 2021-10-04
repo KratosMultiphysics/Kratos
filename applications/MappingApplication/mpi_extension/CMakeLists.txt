@@ -48,3 +48,5 @@ install(TARGETS KratosMappingMPIExtension DESTINATION libs )
 ###############################################################################
 ## install python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MPIExtension.py" DESTINATION "KratosMultiphysics/MappingApplication")
+
+set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosMappingMPIExtension" PARENT_SCOPE)
