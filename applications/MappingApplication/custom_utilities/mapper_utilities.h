@@ -29,10 +29,8 @@
 #include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
-namespace Kratos
-{
-namespace MapperUtilities
-{
+namespace Kratos {
+namespace MapperUtilities {
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
