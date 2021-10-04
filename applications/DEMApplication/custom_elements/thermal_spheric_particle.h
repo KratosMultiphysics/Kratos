@@ -103,6 +103,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double RadiationContinuumZhou(const ProcessInfo& r_process_info);
   double RadiationContinuumKrause(const ProcessInfo& r_process_info);
   double AdjustedContactRadiusZhou(const ProcessInfo& r_process_info);
+  double AdjustedContactRadiusLu(const ProcessInfo& r_process_info);
 
   // Auxiliary computations
   void   ComputeAddedSearchDistance(const ProcessInfo& r_process_info, double& added_search_distance) override;
@@ -129,6 +130,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   double ComputeEffectiveRadius();
   double ComputeEffectiveMass();
   double ComputeEffectiveYoung();
+  double ComputeEffectiveYoungReal();
   double ComputeEffectiveConductivity();
   double ComputeAverageConductivity();
 
@@ -162,6 +164,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   void   SetParticleTemperature(const double temperature);
   void   SetParticleHeatFlux(const double heat_flux);
   void   SetParticlePrescribedHeatFlux(const double heat_flux);
+  void   SetParticleRealYoungRatio(const double ratio);
 
   // Turn back information as a string.
   virtual std::string Info() const override {
@@ -176,7 +179,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
 
   protected:
 
-  // Heat flux components properties
+  // Heat flux components
   double mConductiveHeatFlux;
   double mConvectiveHeatFlux;
   double mRadiativeHeatFlux;
@@ -188,7 +191,10 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   DEMWall*                              mNeighbor_w;
   int                                   mNeighborType;
   double                                mNeighborDistance;
-  double                                mContactRadius;
+
+  // Contact properties
+  double mContactRadius;
+  double mRealYoungRatio;
 
   // Radiation environment-related
   int    mEnvironmentCount;

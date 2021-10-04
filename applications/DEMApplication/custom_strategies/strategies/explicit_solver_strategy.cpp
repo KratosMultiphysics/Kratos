@@ -394,6 +394,11 @@ namespace Kratos {
             else
               p_sphere->SetParticlePrescribedHeatFlux(0.0);
 
+            if (submp.Has(REAL_YOUNG_MODULUS_RATIO))
+              p_sphere->SetParticleRealYoungRatio(submp[REAL_YOUNG_MODULUS_RATIO]);
+            else
+              p_sphere->SetParticleRealYoungRatio(1.0);
+
             if (submp.Has(FIXED_TEMPERATURE))
               p_sphere->Set(DEMFlags::HAS_FIXED_TEMPERATURE, submp[FIXED_TEMPERATURE]);
             else

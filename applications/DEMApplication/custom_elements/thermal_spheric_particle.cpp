@@ -239,6 +239,7 @@ namespace Kratos
       std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
 
       if (model.compare("zhou") == 0) mContactRadius = AdjustedContactRadiusZhou(r_process_info);
+      if (model.compare("lu") == 0)   mContactRadius = AdjustedContactRadiusLu(r_process_info);
     }
     else {
       // Compute simulated contact radius
@@ -306,7 +307,7 @@ namespace Kratos
       double neighbor_emissivity  = mNeighbor_p->GetParticleEmissivity();
       double neighbor_surface     = mNeighbor_p->GetParticleSurfaceArea();
       double neighbor_temperature = mNeighbor_p->GetParticleTemperature();
-      mEnvironmentTemperature += 0.5 * STEFAN_BOLTZMANN * neighbor_emissivity * neighbor_surface * pow(neighbor_temperature, 4);
+      mEnvironmentTemperature += 0.5 * STEFAN_BOLTZMANN * neighbor_emissivity * neighbor_surface * pow(neighbor_temperature, 4.0);
       mEnvironmentTempAux     += 0.5 * STEFAN_BOLTZMANN * neighbor_emissivity * neighbor_surface;
     }
 
@@ -403,7 +404,7 @@ namespace Kratos
 
       double C_coeff = 0.435 * (sqrt(C2 * C2 - 4 * C1 * (C3 - Fo)) - C2) / C1;
 
-      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-1/2) * temp_grad / (pow(b1,-1/2) + pow(b2,-1/2));
+      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-1.0/2.0) * temp_grad / (pow(b1,-1.0/2.0) + pow(b2,-1.0/2.0));
     }
     else {
       return DirectConductionBatchelorOBrien(r_process_info);
@@ -436,10 +437,10 @@ namespace Kratos
       if (mNeighborDistance > 2.0 * particle_radius + min_dist)
         r_in = 0.0;
       else
-        r_in = sqrt(1.0 - pow(min_dist / particle_radius - a - 1.0, 2));
+        r_in = sqrt(1.0 - pow(min_dist / particle_radius - a - 1.0, 2.0));
 
-      if (a > sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2) - 1.0) - 1.0)
-        r_out = sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2) - (a + 1.0) * (a + 1.0));
+      if (a > sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - 1.0) - 1.0)
+        r_out = sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - (a + 1.0) * (a + 1.0));
       else
         r_out = 1.0;
 
@@ -453,13 +454,13 @@ namespace Kratos
       // Compute upper limit of integral
       double r_min = std::min(particle_radius, neighbor_radius);
       double r_max = std::max(particle_radius, neighbor_radius);
-      double param = pow((r_max + (layer * r_max)), 2);
+      double param = pow((r_max + (layer * r_max)), 2.0);
       double upp_lim;
 
       if (mNeighborDistance <= sqrt(param - r_min * r_min))
         upp_lim = r_min;
       else
-        upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2));
+        upp_lim = sqrt(param - pow(((param - r_min * r_min + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0));
 
       // Build struct of integration parameters
       IntegrandParams params;
@@ -492,7 +493,7 @@ namespace Kratos
     // Compute voronoi edge radius from porosity
     // TODO: currently, global average porosity is an input
     double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1/3);
+    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1.0/3.0);
 
     // Compute heat transfer coefficient
     // Assumption: neighbor wall is treated as a particle with the same radius
@@ -570,7 +571,7 @@ namespace Kratos
     // Compute voronoi edge radius from porosity
     // TODO: currently, global average porosity is an input
     double porosity = r_process_info[PRESCRIBED_GLOBAL_POROSITY];
-    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1/3);
+    double rij = 0.56 * particle_radius / pow((1.0 - porosity), 1.0/3.0);
 
     // Compute heat transfer coefficient
     // Assumption: neighbor wall is treated as a particle with the same radius
@@ -645,7 +646,7 @@ namespace Kratos
     double avg_radius      = (particle_radius + neighbor_radius) / 2.0;
 
     // Compute heat flux
-    return fluid_conductivity * 4.0 * Globals::Pi * (1.0 - 0.5 * pow(mContactRadius / avg_radius, 2) * (avg_radius - mContactRadius)) * temp_grad / (1.0 - Globals::Pi / 4.0);
+    return fluid_conductivity * 4.0 * Globals::Pi * (1.0 - 0.5 * pow(mContactRadius / avg_radius, 2.0) * (avg_radius - mContactRadius)) * temp_grad / (1.0 - Globals::Pi / 4.0);
 
     KRATOS_CATCH("")
   }
@@ -657,7 +658,7 @@ namespace Kratos
     double Pr = ComputePrandtlNumber(r_process_info);
     double Re = ComputeReynoldNumber(r_process_info);
 
-    return 2.0 + 0.6 * pow(Re,1/2) * pow(Pr,1/3);
+    return 2.0 + 0.6 * pow(Re,1.0/2.0) * pow(Pr,1.0/3.0);
 
     KRATOS_CATCH("")
   }
@@ -670,7 +671,7 @@ namespace Kratos
     double Re = ComputeReynoldNumber(r_process_info);
 
     // Assumption: temperature-dependent viscosity at particle surface is negleted
-    return 2.0 + (0.4 * pow(Re,1/2) + 0.06 * pow(Re,2/3)) * pow(Pr,2/5);
+    return 2.0 + (0.4 * pow(Re,1.0/2.0) + 0.06 * pow(Re,2.0/3.0)) * pow(Pr,2.0/5.0);
 
     KRATOS_CATCH("")
   }
@@ -683,7 +684,7 @@ namespace Kratos
     double Re  = ComputeReynoldNumber(r_process_info);
     double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
     
-    return (7.0 - 10.0 * por + 5.0 * por * por) * (1.0 + 0.7 * pow(Re,1/5) * pow(Pr,1/3)) + (1.33 - 2.4 * por + 1.2 * por * por) * pow(Re,7/10) * pow(Pr,1/3);
+    return (7.0 - 10.0 * por + 5.0 * por * por) * (1.0 + 0.7 * pow(Re,1.0/5.0) * pow(Pr,1.0/3.0)) + (1.33 - 2.4 * por + 1.2 * por * por) * pow(Re,7.0/10.0) * pow(Pr,1.0/3.0);
 
     KRATOS_CATCH("")
   }
@@ -697,9 +698,9 @@ namespace Kratos
     double por = r_process_info[PRESCRIBED_GLOBAL_POROSITY]; // TODO: currently, global average porosity is an input
     double m   = 4.75; // Assumption: exponent "m = 4.75" recommended for dense systems (3.50 is recommended for dilute systems)
 
-    if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,1/2) * pow(Pr,1/3);
-    else if (Re < 1500.0) return 2.0 + pow(por,m) * (0.5 * pow(Re,1/2) + 0.02 * pow(Re,4/5)) * pow(Pr,1/3);
-    else                  return 2.0 + 0.000045 * pow(por,m) * pow(Re,9/5);
+    if      (Re < 200.0)  return 2.0 + 0.6 * pow(por,m) * pow(Re,1.0/2.0) * pow(Pr,1.0/3.0);
+    else if (Re < 1500.0) return 2.0 + pow(por,m) * (0.5 * pow(Re,1.0/2.0) + 0.02 * pow(Re,4.0/5.0)) * pow(Pr,1.0/3.0);
+    else                  return 2.0 + 0.000045 * pow(por,m) * pow(Re,9.0/5.0);
 
     KRATOS_CATCH("")
   }
@@ -719,7 +720,7 @@ namespace Kratos
     double env_temperature = porosity * f_temperature + (1.0 - porosity) * mEnvironmentTemperature / mEnvironmentCount;
 
     // Compute heat flux
-    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
 
     KRATOS_CATCH("")
   }
@@ -734,10 +735,10 @@ namespace Kratos
     double particle_temperature = GetParticleTemperature();
 
     // Compute final value of environment temperature
-    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 1/4);
+    double env_temperature = pow(mEnvironmentTemperature / mEnvironmentTempAux, 1.0/4.0);
 
     // Compute heat flux
-    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4) - pow(particle_temperature,4));
+    return STEFAN_BOLTZMANN * particle_emissivity * particle_surface * (pow(env_temperature,4.0) - pow(particle_temperature,4.0));
 
     KRATOS_CATCH("")
   }
@@ -746,8 +747,33 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusZhou(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-      // TODO: Need the real Young modulus
-      return 0.0;
+    // Simulation and real values of effective Young modulus
+    double eff_young      = ComputeEffectiveYoung();
+    double eff_young_real = ComputeEffectiveYoungReal();
+
+    // Real value of contact radius
+    return ComputeContactRadius() * pow(eff_young/eff_young_real, 1.0/5.0);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::AdjustedContactRadiusLu(const ProcessInfo& r_process_info) {
+    KRATOS_TRY
+
+    // Effective radius
+    double eff_radius = ComputeEffectiveRadius();
+
+    // Simulation and real values of effective Young modulus
+    double eff_young      = ComputeEffectiveYoung();
+    double eff_young_real = ComputeEffectiveYoungReal();
+
+    // Simulation and real values of stiffness
+    double stiff      = 4.0 / 3.0 * sqrt(eff_radius) * eff_young;
+    double stiff_real = 4.0 / 3.0 * sqrt(eff_radius) * eff_young_real;
+
+    // Real value of contact radius
+    return pow(ComputeContactRadius() * stiff / stiff_real, 2.0/3.0);
 
     KRATOS_CATCH("")
   }
@@ -1030,7 +1056,7 @@ namespace Kratos
     double eff_mass   = ComputeEffectiveMass();
     double eff_young  = ComputeEffectiveYoung();
 
-    return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 1/5);
+    return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 1.0/5.0);
 
     KRATOS_CATCH("")
   }
@@ -1045,7 +1071,7 @@ namespace Kratos
     double eff_mass   = ComputeEffectiveMass();
     double eff_young  = ComputeEffectiveYoung();
 
-    return pow(15.0 * eff_radius * eff_mass * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 1/5);
+    return pow(15.0 * eff_radius * eff_mass * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 1.0/5.0);
 
     KRATOS_CATCH("")
   }
@@ -1060,7 +1086,7 @@ namespace Kratos
       double r1 = GetRadius();
       double r2 = mNeighbor_p->GetRadius();
       if (mNeighborDistance < r1 + r2)
-        Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2)));
+        Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
       else
         Rc = 0.0;
     }
@@ -1123,6 +1149,20 @@ namespace Kratos
     double particle_young   = GetYoung();
     double particle_poisson = GetPoisson();
     double neighbor_young   = GetNeighborYoung();
+    double neighbor_poisson = GetNeighborPoisson();
+
+    return 1 / ((1 - particle_poisson * particle_poisson) / particle_young + (1 - neighbor_poisson * neighbor_poisson) / neighbor_young);
+
+    KRATOS_CATCH("")
+  }
+
+  template <class TBaseElement>
+  double ThermalSphericParticle<TBaseElement>::ComputeEffectiveYoungReal() {
+    KRATOS_TRY
+
+    double particle_young   = mRealYoungRatio* GetYoung();
+    double particle_poisson = GetPoisson();
+    double neighbor_young   = mRealYoungRatio * GetNeighborYoung();
     double neighbor_poisson = GetNeighborPoisson();
 
     return 1 / ((1 - particle_poisson * particle_poisson) / particle_young + (1 - neighbor_poisson * neighbor_poisson) / neighbor_young);
@@ -1290,6 +1330,11 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::SetParticlePrescribedHeatFlux(const double heat_flux) {
     mPrescribedHeatFlux = heat_flux;
+  }
+
+  template <class TBaseElement>
+  void ThermalSphericParticle<TBaseElement>::SetParticleRealYoungRatio(const double ratio) {
+    mRealYoungRatio = ratio;
   }
 
   // Explicit Instantiation
