@@ -30,11 +30,15 @@ def AssembleTestSuites():
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsSurface]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBasicTestsVolume]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.NearestNeighborBladeMapping]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BladeMappingSerialModelPart]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BladeMappingLessRanksModelPart]))
 
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsLine]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsSurface]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolume]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBladeMapping]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BladeMappingSerialModelPart]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BladeMappingLessRanksModelPart]))
 
     ### Nightly MPI tests ######################################################
     nightlyMPISuite = suites['mpi_nightly']

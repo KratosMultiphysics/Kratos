@@ -96,7 +96,7 @@ class NearestNeighborBladeMapping(blade_mapping_test.BladeMappingTests):
         super().setUpMapper(mapper_params)
         cls.print_output = False
 
-class NearestNeighborBladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialModelPart):
+class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialModelPart):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
@@ -106,7 +106,7 @@ class NearestNeighborBladeMappingSerialModelPart(blade_mapping_test.BladeMapping
         super().setUpMapper(mapper_params)
         cls.print_output = False
 
-class NearestNeighborBladeMappingLessRanksModelPart(blade_mapping_test.BladeMappingTestsLessRanksModelPart):
+class BladeMappingLessRanksModelPart(blade_mapping_test.BladeMappingTestsLessRanksModelPart):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
