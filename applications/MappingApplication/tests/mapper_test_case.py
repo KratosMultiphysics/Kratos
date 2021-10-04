@@ -40,6 +40,10 @@ class MapperTestCase(KratosUnittest.TestCase):
         cls.model_part_origin.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
         cls.model_part_destination.ProcessInfo[KM.DELTA_TIME] = 1.0 # needed for the check-processes
 
+        cls.ReadModelParts()
+
+    @classmethod
+    def ReadModelParts(cls):
         if data_comm.IsDistributed():
             ReadDistributedModelPart(cls.model_part_origin, cls.input_file_origin)
             ReadDistributedModelPart(cls.model_part_destination, cls.input_file_destination)
