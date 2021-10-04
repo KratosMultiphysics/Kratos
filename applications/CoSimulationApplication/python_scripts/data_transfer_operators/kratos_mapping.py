@@ -44,8 +44,7 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
         variable_destination        = to_solver_data.variable
         identifier_destination      = to_solver_data.solver_name + "." + model_part_destination_name
 
-        mapper_flags = self.__GetMapperFlags(transfer_options)
-        # TODO in the future automatically add the flags if the values are non-historical
+        mapper_flags = self.__GetMapperFlags(transfer_options, from_solver_data, to_solver_data)
 
         identifier_tuple         = (identifier_origin, identifier_destination)
         inverse_identifier_tuple = (identifier_destination, identifier_origin)
@@ -76,13 +75,11 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
 
     def _Check(self, from_solver_data, to_solver_data):
         def CheckData(data_to_check):
-            if data_to_check.location != "node_historical":
-                raise Exception('Currently only historical nodal values are supported by the "{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
+            if "node" not in data_to_check.location:
+                raise Exception('Mapping only supports nodal values!"{}"\nChecking ModelPart "{}" of solver "{}"'.format(self._ClassName(), data_to_check.model_part_name, data_to_check.solver_name))
 
         CheckData(from_solver_data)
         CheckData(to_solver_data)
-
-        # TODO in the future also non-historical nodal values will be supported, but this still requires some improvements in the MappingApp
 
     @classmethod
     def _GetDefaultParameters(cls):
@@ -98,9 +95,13 @@ class KratosMappingDataTransferOperator(CoSimulationDataTransferOperator):
     def _GetListAvailableTransferOptions(cls):
         return cls.__mapper_flags_dict.keys()
 
-    def __GetMapperFlags(self, transfer_options):
+    def __GetMapperFlags(self, transfer_options, from_solver_data, to_solver_data):
         mapper_flags = KM.Flags()
         for flag_name in transfer_options.GetStringArray():
             mapper_flags |= self.__mapper_flags_dict[flag_name]
+        if from_solver_data.location == "node_non_historical":
+            mapper_flags |= KM.Mapper.FROM_NON_HISTORICAL
+        if to_solver_data.location == "node_non_historical":
+            mapper_flags |= KM.Mapper.TO_NON_HISTORICAL
 
         return mapper_flags
