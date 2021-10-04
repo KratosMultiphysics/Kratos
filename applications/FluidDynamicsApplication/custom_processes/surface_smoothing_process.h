@@ -35,7 +35,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "utilities/variable_utils.h" //Now necessary!
-//#include "processes/compute_nodal_gradient_process.h"
+#include "processes/compute_nodal_gradient_process.h"
 //#include "custom_utilities/element_size_calculator.h"
 #include "includes/deprecated_variables.h" //For IS_STRUCTURED
 #include "includes/global_pointer_variables.h"
@@ -89,6 +89,9 @@ public:
     //typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::UniquePointer BuilderSolverPointerType;
 
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
+
+    typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
+    typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -181,6 +184,8 @@ private:
     std::string mAuxModelPartName = "Aux_Smoothing_Model_Part";
 
     SolvingStrategyType::UniquePointer mp_solving_strategy;
+
+    ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
     ///@}
     ///@name Protected Operators

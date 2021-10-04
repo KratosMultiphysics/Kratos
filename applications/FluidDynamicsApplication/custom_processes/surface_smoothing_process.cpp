@@ -80,13 +80,20 @@ SurfaceSmoothingProcess::SurfaceSmoothingProcess(
     //auto p_builder_solver = Kratos::make_unique<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
     InitializeSolutionStrategy(plinear_solver);//, p_builder_solver);
+
+    mpGradientCalculator = Kratos::make_unique<ComputeGradientProcessType>(
+        mrModelPart,
+        DISTANCE_AUX,
+        DISTANCE_GRADIENT,
+        NODAL_AREA,
+        false);
 }
 
 void SurfaceSmoothingProcess::CreateAuxModelPart()
 {
     ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
     ModelPart::ElementsContainerType& r_elems = mrModelPart.Elements();
-    
+
     Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart( mAuxModelPartName ))
         current_model.DeleteModelPart( mAuxModelPartName );
@@ -114,13 +121,12 @@ void SurfaceSmoothingProcess::CreateAuxModelPart()
 
     const double delta_time = mrModelPart.pGetProcessInfo()->GetValue(DELTA_TIME);
     r_smoothing_model_part.pGetProcessInfo()->SetValue(DELTA_TIME, delta_time);
-        
 }
 
 void SurfaceSmoothingProcess::Execute()
 {
     KRATOS_TRY;
-    
+
     const unsigned int NumNodes = mrModelPart.NumberOfNodes();
     const unsigned int NumElements = mrModelPart.NumberOfElements();
 
@@ -263,6 +269,7 @@ void SurfaceSmoothingProcess::Execute()
     r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
     for (int iter = 0; iter<3; ++iter){
+        mpGradientCalculator->Execute();
         KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, iteration: " << iter+1 << std::endl;
         mp_solving_strategy->Solve();
         KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved, iteration: " << iter+1 << std::endl;

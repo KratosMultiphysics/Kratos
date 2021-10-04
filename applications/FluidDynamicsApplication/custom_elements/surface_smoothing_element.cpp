@@ -314,33 +314,34 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
 
     VectorType grad_phi_old = ZeroVector(num_dim);
     VectorType grad_phi = ZeroVector(num_dim);
-    //VectorType grad_phi_avg = ZeroVector(num_dim);
+    VectorType grad_phi_avg = ZeroVector(num_dim);
     for(unsigned int i = 0; i<num_nodes; i++){
         for (unsigned int k = 0; k<num_dim; k++){
             grad_phi_old(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)*DN_DX(i,k);
             grad_phi(k) += GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_AUX)*DN_DX(i,k);
         }
+        grad_phi_avg += GetGeometry()[i].GetValue(DISTANCE_GRADIENT)*N[i];
     }
 
     const double norm_grad_phi_old = norm_2(grad_phi_old);
     const double norm_grad_phi = norm_2(grad_phi);
+    const double norm_grad_phi_avg = norm_2(grad_phi_avg);
     double epsilon = 0.0;
     double diffusion = 0.0;
     //KRATOS_INFO("Epsilon") << epsilon << std::endl;
     //if (std::abs(epsilon) < 1.0e-12){epsilon = 1.0e-12;}
     const double pseudo_time_step = 1.0e-7;
-    
 
     const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
     //KRATOS_INFO("STEP") << step << std::endl;
 
     if (step == 1){
-        epsilon = 5.0e-10;
+        epsilon = 5.0e-9;
     } else{
-        if (norm_grad_phi > 1.0){
-            diffusion = 1.0/norm_grad_phi;
+        if (norm_grad_phi_avg > 1.0){
+            diffusion = 1.0/norm_grad_phi_avg;
         } else{
-            diffusion = (2.0*norm_grad_phi - 1.0)*(norm_grad_phi - 1);
+            diffusion = (3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;
         }
         epsilon = 1.0 - diffusion;
 
