@@ -165,7 +165,7 @@ def VtkOutputNodesHistorical(model_part, variable, prefix=""):
         "file_format"                        : "binary",
         "output_control_type"                : "step",
         "output_sub_model_parts"             : false,
-        "folder_name"                        : \"""" + "VTK_Output_" + prefix + """\",
+        "output_path"                        : \"""" + "VTK_Output_" + prefix + """\",
         "save_output_files_in_folder"        : true,
             "custom_name_prefix"             : \"""" + prefix + "_" + """\",
         "nodal_solution_step_data_variables" : [\"""" + variable.Name() + """\"]
