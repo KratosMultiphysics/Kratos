@@ -21,7 +21,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
     def setUpMapper(cls, mapper_parameters):
         structure_mdpa_file_name = "blade_quad"
         fluid_mdpa_file_name     = "blade_tri"
-        super(BladeMappingTests, cls).setUpModelParts(structure_mdpa_file_name, fluid_mdpa_file_name)
+        super().setUpModelParts(structure_mdpa_file_name, fluid_mdpa_file_name)
 
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
