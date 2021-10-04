@@ -128,8 +128,8 @@ void LaplacianEmbeddedElement<TTDim>::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    VectorType temp(0);
-    CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
+    VectorType aux(0);
+    CalculateLocalSystem(rLeftHandSideMatrix, aux, rCurrentProcessInfo);
 }
 
 template<std::size_t TTDim>
@@ -137,8 +137,8 @@ void LaplacianEmbeddedElement<TTDim>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    MatrixType temp(0,0);
-    CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
+    MatrixType aux(0,0);
+    CalculateLocalSystem(aux, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template<std::size_t TTDim>
@@ -316,7 +316,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     }
 
     // Nitsche penalty constant - TODO: correct variable?
-    const double gamma = 1.0; //rCurrentProcessInfo[PENALTY_DIRICHLET]; 
+    const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET]; 
     // Dirichlet boundary value - TODO: get user-defined boundary value
     const double temp_bc = 0.0;
     // Measure of element size
