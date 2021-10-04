@@ -140,12 +140,12 @@ void AlternativeDVMSDEMCoupled<TElementData>::FinalizeSolutionStep(const Process
 
     TElementData data;
     data.Initialize(*this,rCurrentProcessInfo);
-
+    array_1d<double,3> UpdatedValue;
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         this->UpdateIntegrationPointData(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
-        array_1d<double,3> UpdatedValue = ZeroVector(3);
+        UpdatedValue = ZeroVector(3);
         this->SubscaleVelocity(data,UpdatedValue);
         array_1d<double,Dim>& r_value = mOldSubscaleVelocity[g];
         for (unsigned int d = 0; d < Dim; d++) {
@@ -226,34 +226,35 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    const auto& fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+    const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = ZeroMatrix(Dim, Dim);
 
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
-    const auto& fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
+    const auto& r_fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     double det_permeability = MathUtils<double>::Det(permeability);
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-
+    Vector sigma_U, grad_alpha_sym_grad_u;
+    BoundedMatrix<double,Dim,Dim> sym_gradient_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
         const array_1d<double,3>& r_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
-        Vector sigma_U = ZeroVector(Dim);
-        BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
-        Vector grad_alpha_sym_grad_u = ZeroVector(Dim);
+        sigma_U = ZeroVector(Dim);
+        sym_gradient_u = ZeroMatrix(Dim, Dim);
+        grad_alpha_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                 sym_gradient_u(d,e) += 1.0 / 2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
-                grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[d] * sym_gradient_u(d,e);
+                grad_alpha_sym_grad_u[d] += r_fluid_fraction_gradient[d] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * r_velocities(i,e);
             }
-            rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * r_fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
 }
@@ -281,11 +282,12 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-
+    Vector grad_alpha_sym_grad_u;
+    array_1d<double,Dim> sigma_u;
     for (unsigned int i = 0; i < NumNodes; i++) {
-        array_1d<double,Dim> sigma_u = ZeroVector(Dim);
+        sigma_u = ZeroVector(Dim);
         BoundedMatrix<double,Dim,Dim> sym_gradient_u = ZeroMatrix(Dim, Dim);
-        Vector grad_alpha_sym_grad_u = ZeroVector(Dim);
+        grad_alpha_sym_grad_u = ZeroVector(Dim);
         for (unsigned int d = 0; d < Dim; d++) {
             double div_u = 0.0;
             for (unsigned int e = 0; e < Dim; e++){
@@ -545,7 +547,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassLHS(
      * think that we solve F - (1-alpha)*M*u^(n+1) - alpha*M*u^(n) - K(u^(n+1)) = 0
      * so the projection of the dynamic terms should be Pi( (1-alpha)*u^(n+1) - alpha*u^(n) )
      */
-    if ( rData.UseOSS != 1.0 )
+    if ( !rData.UseOSS)
         this->AddMassStabilization(rData,rMassMatrix);
 }
 
@@ -556,9 +558,9 @@ void AlternativeDVMSDEMCoupled<TElementData>::MassProjTerm(
 {
         const auto velocities = rData.Velocity;
 
-        const auto fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-        const auto mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-        const auto fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
+        const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
+        const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
+        const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
         const auto fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
         // Compute this node's contribution to the residual (evaluated at integration point)
@@ -697,8 +699,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     inv_tau_NS = c1 * viscosity / (h*h) + density * (c2 * velocity_norm / h ) + std::sqrt(sigma_term);
     double tau_one = 1 / inv_tau;
     double tau_one_NS = 1 / inv_tau_NS;
-    //double c_alpha = 1.0;
-    //tau_one = tau_one_NS / c_alpha;
+
     TauOne = tau_one * I;
     TauTwo = h * h / (c1 * fluid_fraction * tau_one_NS);
 }
@@ -719,7 +720,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::SubscaleVelocity(
 
     array_1d<double,3> residual = ZeroVector(3);
 
-    if (rData.UseOSS != 1.0) {
+    if (!rData.UseOSS) {
         this->AlgebraicMomentumResidual(rData,convective_velocity,residual);
     }
     else {
@@ -746,7 +747,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::SubscalePressure(
 
     double residual = 0.0;
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMassResidual(rData,residual);
     else
         this->OrthogonalMassResidual(rData,residual);
@@ -779,7 +780,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     const double dt = rData.DeltaTime;
     array_1d<double,3> predicted_subscale_velocity = ZeroVector(3);
 
-    const array_1d<double,Dim>& old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
+    const array_1d<double,Dim>& r_old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
 
     array_1d<double, 3> previous_subscale_velocity = ZeroVector(3);
 
@@ -796,7 +797,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
     array_1d<double,3> static_residual = ZeroVector(3);
 
     // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
     else
         this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
@@ -813,7 +814,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocity(
 
     for (unsigned int d = 0; d < Dim; d++)
     {
-        predicted_subscale_velocity[d] = tau_one(d,d) * (static_residual[d] + fluid_fraction * (density/dt)*old_subscale_velocity[d]);
+        predicted_subscale_velocity[d] = tau_one(d,d) * (static_residual[d] + fluid_fraction * (density/dt)*r_old_subscale_velocity[d]);
     }
     noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = predicted_subscale_velocity;
 
@@ -855,7 +856,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     array_1d<double,3> static_residual = ZeroVector(3);
 
     // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
     else
         this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
@@ -883,11 +884,11 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
     bool converged = false;
-    double subscale_velocity_error = 2.0 * subscale_prediction_velocity_tolerance;
+    double subscale_velocity_error;
 
     BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs = ZeroVector(Dim);
-    array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
+    array_1d<double,Dim>& u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du = ZeroVector(Dim);
 
     while ( (!converged) && (iter++ < subscale_prediction_maximum_iterations) ) {
@@ -951,11 +952,6 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
             converged = true; // If RHS is zero, dU is zero too, converged.
         }
     }
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
-    mSubscaleIterationCount[rData.IntegrationPointIndex] = iter;
-    #endif
 
     // Store new subscale values or discard the calculation
     // If not converged, we will not use the subscale in the convective term.

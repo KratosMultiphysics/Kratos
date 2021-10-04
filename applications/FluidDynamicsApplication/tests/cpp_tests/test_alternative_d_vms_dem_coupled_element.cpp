@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        std::cout.precision(10);
+        //std::cout.precision(10);
         //std::cout << i->Info() << RHS << std::endl;
         //KRATOS_WATCH(RHS);
 

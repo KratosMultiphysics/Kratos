@@ -544,7 +544,7 @@ void DVMSDEMCoupled<TElementData>::SubscaleVelocity(
 
     array_1d<double,3> residual = ZeroVector(3);
 
-    if (rData.UseOSS != 1.0) {
+    if (!rData.UseOSS) {
         this->AlgebraicMomentumResidual(rData,convective_velocity,residual);
     }
     else {
@@ -571,7 +571,7 @@ void DVMSDEMCoupled<TElementData>::SubscalePressure(
 
     double residual = 0.0;
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMassResidual(rData,residual);
     else
         this->OrthogonalMassResidual(rData,residual);
@@ -623,7 +623,7 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     array_1d<double,3> static_residual = ZeroVector(3);
 
     // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMomentumResidual(rData,resolved_convection_velocity,static_residual);
     else
         this->OrthogonalMomentumResidual(rData,resolved_convection_velocity,static_residual);
@@ -641,7 +641,7 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
     bool converged = false;
-    double subscale_velocity_error = 2.0 * subscale_prediction_velocity_tolerance;
+    double subscale_velocity_error;
 
     BoundedMatrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs = ZeroVector(Dim);
@@ -707,11 +707,6 @@ void DVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
             converged = true; // If RHS is zero, dU is zero too, converged.
         }
     }
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    mSubscaleIterationError[rData.IntegrationPointIndex] = subscale_velocity_error;
-    mSubscaleIterationCount[rData.IntegrationPointIndex] = iter;
-    #endif
 
     // Store new subscale values or discard the calculation
     // If not converged, we will not use the subscale in the convective term.
