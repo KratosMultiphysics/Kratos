@@ -56,14 +56,14 @@ if (CO_SIM_IO_BUILD_MPI)
     include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 endif()
 
-# Set installation directory
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" CACHE PATH "Default Install path" FORCE)
-    message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
-else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
-endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+# # Set installation directory
+# if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#     # Setting the cache path prevents it to change in case someone 'make' after modifying this file and not reconfiguring
+#     set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}" CACHE PATH "Default Install path" FORCE)
+#     message("-- Standard install dir ${CMAKE_INSTALL_PREFIX}")
+# else(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#     message("-- User defined install dir ${CMAKE_INSTALL_PREFIX}")
+# endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 if(NOT DEFINED CO_SIM_IO_INSTALL_DIRECTORY)
     set(CO_SIM_IO_INSTALL_DIRECTORY bin)
