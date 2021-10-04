@@ -234,7 +234,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         #(self.hyperbolic_distance_reinitialization).Execute()
 
         self.parallel_distance_process = self._set_parallel_distance_process()
-        layers = int(4000/100000*self.main_model_part.NumberOfElements())
+        layers = 500#int(4000/100000*self.main_model_part.NumberOfElements())
         (self.parallel_distance_process).CalculateDistances(
                    self.main_model_part,
                    KratosMultiphysics.DISTANCE,
@@ -342,7 +342,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
             DT = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
-            gravity = TimeStep*DT/0.01*9.81#9.81#0.0#
+            gravity = 9.81#TimeStep*DT/0.01*9.81#0.0#
             if gravity > 9.81:
                 gravity = 9.81
 

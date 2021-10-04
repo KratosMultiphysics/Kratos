@@ -164,13 +164,13 @@ void SurfaceSmoothingProcess::Execute()
         }
     }
 
-    //Model& current_model = mrModelPart.GetModel();
-    //ModelPart& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
-    //r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+    Model& current_model = mrModelPart.GetModel();
+    ModelPart& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
+    r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
 
-    KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE" << std::endl;
+    KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, for smoothing" << std::endl;
     mp_solving_strategy->Solve();
-    KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved" << std::endl;
+    KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved, for smoothing" << std::endl;
 
     //#pragma omp parallel for
     //for (unsigned int k = 0; k < NumNodes; ++k) {
@@ -252,12 +252,20 @@ void SurfaceSmoothingProcess::Execute()
     for (unsigned int k = 0; k < NumNodes; ++k) {
         auto it_node = mrModelPart.NodesBegin() + k;
         //KRATOS_INFO("SurfaceSmoothingProcess, Nodes Id") << it_node->Id() << std::endl;
-        // if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
-        //      it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
-        //         it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
-        // }
+        if (NumNeighbors[it_node->Id()-1] != 0.0 && !it_node->IsFixed(DISTANCE)/* && it_node->GetValue(IS_STRUCTURE) == 0.0 */){
+             it_node->FastGetSolutionStepValue(DISTANCE_AUX) =
+                it_node->FastGetSolutionStepValue(DISTANCE_AUX) - 1.0/NumNeighbors[it_node->Id()-1]*DistDiffAvg[it_node->Id()-1];
+        }
 
     //     it_node->Free(DISTANCE_AUX);
+    }
+
+    r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
+
+    for (int iter = 0; iter<3; ++iter){
+        KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, iteration: " << iter+1 << std::endl;
+        mp_solving_strategy->Solve();
+        KRATOS_INFO("SurfaceSmoothingProcess") << "LSE is solved, iteration: " << iter+1 << std::endl;
     }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
