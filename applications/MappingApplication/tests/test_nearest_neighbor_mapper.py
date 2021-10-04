@@ -96,6 +96,26 @@ class NearestNeighborBladeMapping(blade_mapping_test.BladeMappingTests):
         super().setUpMapper(mapper_params)
         cls.print_output = False
 
+class NearestNeighborBladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialModelPart):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class NearestNeighborBladeMappingLessRanksModelPart(blade_mapping_test.BladeMappingTestsLessRanksModelPart):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
 if __name__ == '__main__':
     KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     import KratosMultiphysics.KratosUnittest as KratosUnittest

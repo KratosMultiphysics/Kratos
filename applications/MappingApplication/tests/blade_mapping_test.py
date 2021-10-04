@@ -1,8 +1,8 @@
 import KratosMultiphysics as KM
 from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.MappingApplication as KratosMapping
-data_comm = KM.Testing.GetDefaultDataCommunicator()
-if data_comm.IsDistributed():
+default_data_comm = KM.Testing.GetDefaultDataCommunicator()
+if default_data_comm.IsDistributed():
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
 from KratosMultiphysics.testing import utilities as testing_utils
@@ -32,7 +32,7 @@ class BladeMappingTests(mapper_test_case.MapperTestCase):
         cls.model_part_structure = cls.model_part_origin
         cls.model_part_fluid = cls.model_part_destination
 
-        if data_comm.IsDistributed():
+        if default_data_comm.IsDistributed():
             map_creator = MappingMPIExtension.MPIMapperFactory.CreateMapper
         else:
             map_creator = KratosMapping.MapperFactory.CreateMapper
@@ -134,13 +134,49 @@ class BladeMappingTestsSerialModelPart(BladeMappingTests):
 
     @classmethod
     def ReadModelParts(cls):
-        if data_comm.Rank() == 0:
+        if default_data_comm.Rank() == 0:
             testing_utils.ReadSerialModelPart(cls.input_file_origin, cls.model_part_origin) # structure
         testing_utils.ReadDistributedModelPart(cls.input_file_destination, cls.model_part_destination) # fluid
 
     @classmethod
     def GetStructureModelPart(cls, sub_model_part_name):
-        if data_comm.Rank() == 0:
+        if default_data_comm.Rank() == 0:
+            return cls.model_part_structure.GetSubModelPart(sub_model_part_name)
+        else:
+            # other ranks return a dummy ModelPart (here using the MainModelPart of the structure as example)
+            return cls.model_part_structure
+
+@KratosUnittest.skipUnless(default_data_comm.Size() > 2, "This test needs at least 3 mpi processes")
+class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
+    '''In these tests the structural ModelPart is distributed over less ranks
+    and the fluid ModelPart is distributed over all ranks
+    '''
+
+    @classmethod
+    def ReadModelParts(cls):
+        from KratosMultiphysics.mpi import DataCommunicatorFactory
+        num_ranks = default_data_comm.Size()
+        ranks_structure = list(range(num_ranks-1))
+        data_comm_name = "AllExceptLast"
+        cls.sub_comm = DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_structure, data_comm_name)
+        cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name)
+
+        importer_settings = KM.Parameters("""{
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": \"""" + cls.input_file_origin + """\",
+                "partition_in_memory" : true,
+                "data_communicator_name": \"""" + data_comm_name + """\"
+            },
+            "echo_level" : 0
+        }""")
+        if cls.sub_comm.IsDefinedOnThisRank():
+            testing_utils.ReadDistributedModelPart(cls.input_file_origin, cls.model_part_origin, importer_settings) # structure
+        testing_utils.ReadDistributedModelPart(cls.input_file_destination, cls.model_part_destination) # fluid
+
+    @classmethod
+    def GetStructureModelPart(cls, sub_model_part_name):
+        if cls.sub_comm.IsDefinedOnThisRank():
             return cls.model_part_structure.GetSubModelPart(sub_model_part_name)
         else:
             # other ranks return a dummy ModelPart (here using the MainModelPart of the structure as example)
