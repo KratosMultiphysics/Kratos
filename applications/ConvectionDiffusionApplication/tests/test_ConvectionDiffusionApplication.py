@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ConvectionDiffusionApplication
+from applications.ConvectionDiffusionApplication.tests.thermal_coupling_condition_test import ThermalCouplingConditionTest
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
@@ -21,6 +22,7 @@ from convection_diffusion_test_factory import BasicConvectionDiffusionTransientS
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
 from test_convection_diffusion_bar import TestConvectionDiffusionBar
+from thermal_coupling_condition_test import ThermalCouplingConditionTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -65,6 +67,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDASGS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQASGS'))
+    smallSuite.addTest(ThermalCouplingConditionTest('testThermalCouplingCondition'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite.addTests(smallSuite)
