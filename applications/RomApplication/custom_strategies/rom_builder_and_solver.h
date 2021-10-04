@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "utilities/builtin_timer.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -137,7 +138,7 @@ public:
 
         DofsVectorType dof_list, second_dof_list; // NOTE: The second dof list is only used on constraints to include master/slave relations
 
-        unsigned int nthreads = OpenMPUtils::GetNumThreads();
+        unsigned int nthreads = ParallelUtilities::GetNumThreads();
 
         typedef std::unordered_set<NodeType::DofType::Pointer, DofPointerHasher> set_type;
 
@@ -379,11 +380,10 @@ public:
         Vector brom = ZeroVector(mRomDofs);
         TSystemVectorType x(Dx.size());
 
-        double project_to_reduced_start = OpenMPUtils::GetCurrentTime();
+        const auto forward_projection_timer = BuiltinTimer();
         Vector xrom = ZeroVector(mRomDofs);
         //this->ProjectToReducedBasis(x, rModelPart.Nodes(),xrom);
-        const double project_to_reduced_end = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << project_to_reduced_end - project_to_reduced_start << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to reduced basis time: " << forward_projection_timer.ElapsedSeconds() << std::endl;
 
         //build the system matrix by looping over elements and conditions and assembling to A
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
@@ -416,7 +416,7 @@ public:
         Element::EquationIdVectorType EquationId;
 
         // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
+        const auto assembling_timer = BuiltinTimer();
 
 
         #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, el_begin, cond_begin)
@@ -489,27 +489,23 @@ public:
 
         }
 
-        const double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << stop_build - start_build << std::endl;
-
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Build time: " << assembling_timer.ElapsedSeconds() << std::endl;
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
 
         //solve for the rom unkowns dunk = Arom^-1 * brom
         Vector dxrom(xrom.size());
-        double start_solve = OpenMPUtils::GetCurrentTime();
+        const auto solving_timer = BuiltinTimer();
         MathUtils<double>::Solve(Arom, dxrom, brom);
-        const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // //update database
         // noalias(xrom) += dxrom;
 
         // project reduced solution back to full order model
-        double project_to_fine_start = OpenMPUtils::GetCurrentTime();
+        const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(dxrom, rModelPart, Dx);
-        const double project_to_fine_end = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << project_to_fine_end - project_to_fine_start << std::endl;
+        KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
     }
 
     void ResizeAndInitializeVectors(
