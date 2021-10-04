@@ -235,6 +235,7 @@ public:
             if (number_of_hrom_elements>0){
                 mHromSimulation = true;
             }
+            mHromWeightsInitialized = true;
         }
         else{
             #pragma omp parallel firstprivate(dof_list, second_dof_list)
