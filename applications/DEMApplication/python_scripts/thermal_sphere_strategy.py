@@ -81,7 +81,8 @@ class ExplicitStrategy(BaseExplicitStrategy):
             self.radiation_model != "continuum_krause"):
             raise Exception('DEM', 'Thermal radiation model \'' + self.radiation_model + '\' is not implemented.')
 
-        if (self.adjusted_contact_model != "zhou"):
+        if (self.adjusted_contact_model != "zhou" and
+            self.adjusted_contact_model != "lu"):
             raise Exception('DEM', 'Adjusted contact model \'' + self.adjusted_contact_model + '\' is not implemented.')
 
         # Set model parameters
