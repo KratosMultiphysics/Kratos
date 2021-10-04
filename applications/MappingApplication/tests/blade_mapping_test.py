@@ -125,3 +125,23 @@ def SetReactions(model_part_fluid):
         react_y = 0.0
         react_z = cos(node.Z*2)
         node.SetSolutionStepValue(KM.REACTION, KM.Vector([react_x, react_y, react_z]))
+
+
+@KratosUnittest.skipUnless(KM.IsDistributedRun(), "this test requires MPI")
+class BladeMappingTestsSerialModelPart(BladeMappingTests):
+    '''In these tests the structural ModelPart is serial and the fluid ModelPart is distributed
+    '''
+
+    @classmethod
+    def ReadModelParts(cls):
+        if data_comm.Rank() == 0:
+            testing_utils.ReadSerialModelPart(cls.input_file_origin, cls.model_part_origin) # structure
+        testing_utils.ReadDistributedModelPart(cls.input_file_destination, cls.model_part_destination) # fluid
+
+    @classmethod
+    def GetStructureModelPart(cls, sub_model_part_name):
+        if data_comm.Rank() == 0:
+            return cls.model_part_structure.GetSubModelPart(sub_model_part_name)
+        else:
+            # other ranks return a dummy ModelPart (here using the MainModelPart of the structure as example)
+            return cls.model_part_structure
