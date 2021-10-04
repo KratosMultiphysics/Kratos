@@ -68,16 +68,12 @@ inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 
     KRATOS_ERROR_IF(!mpContainingElement.get()) << "attempt to interpolate on a non-located vertex";
 
-    const auto& rGeometry = mpContainingElement->GetGeometry();
+    const auto& r_geometry = mpContainingElement->GetGeometry();
     auto value = ZeroInitialized<TValue>::Get();
 
-    // Compute shape function values here
-    Kratos::Vector shape_function_values;
-    rGeometry.ShapeFunctionsValues(shape_function_values, mLocalCoordinates);
-
     // Interpolate variable
-    for (std::size_t i_node=0; i_node<rGeometry.size(); ++i_node) {
-        value += shape_function_values[i_node] * mpVariableGetter->GetValue(rGeometry.GetPoint(i_node), rVariable);
+    for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node) {
+        value += mShapeFunctionValues[i_node] * mpVariableGetter->GetValue(r_geometry.GetPoint(i_node), rVariable);
     }
 
     return value;

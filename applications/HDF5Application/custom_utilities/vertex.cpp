@@ -43,8 +43,13 @@ Vertex::Vertex(const array_1d<double,3>& rPosition,
         mpVariableGetter = NodalVariableGetter::UniquePointer(new NonHistoricalVariableGetter);
     }
 
+    // Get shape function values if the containing element was found
     if (mpContainingElement.get()) {
-        mpContainingElement->GetGeometry().IsInside(*this, mLocalCoordinates);
+        Point local_coordinates;
+        mpContainingElement->GetGeometry().IsInside(*this, local_coordinates);
+
+        const auto& r_geometry = mpContainingElement->GetGeometry();
+        r_geometry.ShapeFunctionsValues(mShapeFunctionValues, local_coordinates);
     }
 
     KRATOS_CATCH("");

@@ -94,7 +94,7 @@ private:
 
     NodalVariableGetter::UniquePointer mpVariableGetter;
 
-    Point mLocalCoordinates;
+    Kratos::Vector mShapeFunctionValues;
 };
 
 
