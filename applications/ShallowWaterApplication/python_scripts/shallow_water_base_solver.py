@@ -41,6 +41,9 @@ class ShallowWaterBaseSolver(PythonSolver):
                 "input_type"               : "mdpa",
                 "input_filename"           : "unknown_name"
             },
+            "material_import_settings" :{
+                "materials_filename": ""
+            },
             "echo_level"               : 0,
             "convergence_criterion"    : "displacement",
             "relative_tolerance"       : 1e-6,
@@ -80,6 +83,13 @@ class ShallowWaterBaseSolver(PythonSolver):
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KM.IS_RESTARTED]:
+            # Import material properties
+            materials_imported = self._ImportMaterials()
+            if materials_imported:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were successfully imported.")
+            else:
+                KM.Logger.PrintInfo(self.__class__.__name__, "Materials were not imported.")
+
             ## Replace default elements and conditions
             self._ReplaceElementsAndConditions()
             ## Set buffer size
@@ -147,6 +157,18 @@ class ShallowWaterBaseSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.STEP, 0)
         self.main_model_part.ProcessInfo.SetValue(KM.DOMAIN_SIZE, self.settings["domain_size"].GetInt())
         self.main_model_part.ProcessInfo.SetValue(KM.GRAVITY_Z, self.settings["gravity"].GetDouble())
+
+    def _ImportMaterials(self):
+    # Add the properties from json file to model parts.
+        materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
+        if (materials_filename != ""):
+            material_settings = KM.Parameters("""{"Parameters": {} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KM.ReadMaterialsUtility(material_settings, self.model)
+            materials_imported = True
+        else:
+            materials_imported = False
+        return materials_imported
 
     def _ReplaceElementsAndConditions(self):
         ## Get number of nodes and domain size
