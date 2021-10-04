@@ -316,7 +316,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     }
 
     // Nitsche penalty constant - TODO: correct variable?
-    const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET]; 
+    const double gamma = 1.0; //rCurrentProcessInfo[PENALTY_DIRICHLET]; 
     // Dirichlet boundary value - TODO: get user-defined boundary value
     const double temp_bc = 0.0;
     // Measure of element size
