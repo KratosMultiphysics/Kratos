@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "interface_communicator.h"
+#include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos {
 
@@ -248,12 +249,14 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     }
 
     // Making sure that the data-structure was correctly initialized
-    int num_interface_objects = mpInterfaceObjectsOrigin->size(); // int bcs of MPI
-    num_interface_objects = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_objects);
+    if (MapperUtilities::ModelPartIsDefinedOnThisRank(mrModelPartOrigin)) {
+        int num_interface_objects = mpInterfaceObjectsOrigin->size(); // int bcs of MPI
+        num_interface_objects = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_objects);
 
-    KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
-        << "No interface objects were created in Origin-ModelPart \""
-        << mrModelPartOrigin.Name() << "\"!" << std::endl;
+        KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
+            << "No interface objects were created in Origin-ModelPart \""
+            << mrModelPartOrigin.Name() << "\"!" << std::endl;
+    }
 
     KRATOS_CATCH("");
 }
