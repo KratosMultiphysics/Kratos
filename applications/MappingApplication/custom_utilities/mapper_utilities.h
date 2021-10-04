@@ -50,11 +50,7 @@ typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPoin
 
 using BoundingBoxType = std::array<double, 6>;
 
-
-bool ModelPartIsDefinedOnThisRank(const ModelPart& rModelPart)
-{
-    return rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank();
-}
+bool ModelPartIsDefinedOnThisRank(const ModelPart& rModelPart);
 
 template< class TVarType >
 static void FillFunction(const NodeType& rNode,

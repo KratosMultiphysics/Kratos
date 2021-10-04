@@ -19,17 +19,29 @@
 
 // Project includes
 #include "includes/stream_serializer.h"
+#include "includes/parallel_environment.h"
 #include "utilities/parallel_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
 
-namespace Kratos
-{
-namespace MapperUtilities
-{
+namespace Kratos {
+namespace MapperUtilities {
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
+
+
+bool ModelPartIsDefinedOnThisRank(const ModelPart& rModelPart)
+{
+    const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
+    if (r_data_comm.IsDistributed()) {
+        return r_data_comm.IsDefinedOnThisRank();
+    } else {
+        // for serial Modelparts we use the global comm
+        // i.e. they can only live on rank 0
+        return ParallelEnvironment::GetDefaultDataCommunicator().Rank() == 0;
+    }
+}
 
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
