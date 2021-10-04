@@ -266,14 +266,14 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
 
 std::string ApplyMachDependentBoundaryConditions::Info() const
 {
-    return "ApplyCompressibleInlet";
+    return "ApplyMachDependentBoundaryConditions";
 }
 
 
 void ApplyMachDependentBoundaryConditions::
     PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyCompressibleInlet";
+    rOStream << "ApplyMachDependentBoundaryConditions";
 }
 
 
