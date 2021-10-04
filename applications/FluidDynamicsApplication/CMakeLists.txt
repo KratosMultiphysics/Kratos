@@ -89,6 +89,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_smoothing_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/calulate_levelset_consistent_nodal_gradient_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/shock_capturing_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/tait_equation_process.cpp
 )
 
 ## define python interface sources
