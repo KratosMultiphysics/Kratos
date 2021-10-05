@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
     unsigned int buffer_size = 2;
@@ -71,6 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
         it_node->AddDof(VELOCITY_Y,REACTION_Y);
         it_node->AddDof(VELOCITY_Z,REACTION_Z);
         it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+
         double& r_fluid_fraction = it_node->FastGetSolutionStepValue(FLUID_FRACTION);
         r_fluid_fraction = 1.0;
         Matrix& r_permeability = it_node->FastGetSolutionStepValue(PERMEABILITY);
@@ -81,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
-    model_part.CreateNewElement("DVMSDEMCoupled2D4N", 1, element_nodes, p_properties);
+    model_part.CreateNewElement("AlternativeDVMSDEMCoupled2D4N", 1, element_nodes, p_properties);
 
     // Loop starts at 1 because you need one less clone than time steps (JC)
     for (unsigned int i = 1; i < buffer_size; i++) {
@@ -119,11 +120,10 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
         i->Initialize(r_process_info); // Initialize constitutive law
-
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        std::cout.precision(10);
+        //std::cout.precision(10);
         //std::cout << i->Info() << RHS << std::endl;
         //KRATOS_WATCH(RHS);
 

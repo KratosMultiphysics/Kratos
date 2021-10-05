@@ -302,7 +302,7 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    void AddViscousTerm(
+    virtual void AddViscousTerm(
         const TElementData& rData,
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS);

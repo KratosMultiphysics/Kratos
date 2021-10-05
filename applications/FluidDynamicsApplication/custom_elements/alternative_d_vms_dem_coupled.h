@@ -7,13 +7,11 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:    Joaquin Gonzalez-Usua
 //
 
-#ifndef KRATOS_D_VMS_H
-#define KRATOS_D_VMS_H
-
-//#define KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
+#ifndef KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
+#define KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
 
 #include "includes/define.h"
 #include "includes/element.h"
@@ -21,7 +19,8 @@
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
-#include "custom_elements/qs_vms.h"
+#include "custom_elements/qs_vms_dem_coupled.h"
+#include "custom_elements/d_vms.h"
 #include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
@@ -50,14 +49,14 @@ namespace Kratos
 ///@{
 
 template< class TElementData >
-class DVMS : public QSVMS<TElementData>
+class AlternativeDVMSDEMCoupled : public DVMS<TElementData>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of DVMS
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(DVMS);
+    /// Pointer definition of AlternativeDVMSDEMCoupled
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AlternativeDVMSDEMCoupled);
 
     /// Node type (default is: Node<3>)
     typedef Node<3> NodeType;
@@ -93,11 +92,11 @@ public:
     /// Type for an array of shape function gradient matrices
     typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-    constexpr static unsigned int Dim = QSVMS<TElementData>::Dim;
-    constexpr static unsigned int NumNodes = QSVMS<TElementData>::NumNodes;
-    constexpr static unsigned int BlockSize = QSVMS<TElementData>::BlockSize;
-    constexpr static unsigned int LocalSize = QSVMS<TElementData>::LocalSize;
-    constexpr static unsigned int StrainSize = QSVMS<TElementData>::StrainSize;
+    constexpr static unsigned int Dim = DVMS<TElementData>::Dim;
+    constexpr static unsigned int NumNodes = DVMS<TElementData>::NumNodes;
+    constexpr static unsigned int BlockSize = DVMS<TElementData>::BlockSize;
+    constexpr static unsigned int LocalSize = DVMS<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = DVMS<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -109,21 +108,21 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    DVMS(IndexType NewId = 0);
+    AlternativeDVMSDEMCoupled(IndexType NewId = 0);
 
     /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    DVMS(IndexType NewId, const NodesArrayType& ThisNodes);
+    AlternativeDVMSDEMCoupled(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    DVMS(IndexType NewId, GeometryType::Pointer pGeometry);
+    AlternativeDVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
     /// Constuctor using geometry and properties.
     /**
@@ -131,10 +130,10 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    DVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
+    AlternativeDVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties);
 
     /// Destructor.
-    ~DVMS() override;
+    ~AlternativeDVMSDEMCoupled();
 
     ///@}
     ///@name Operators
@@ -148,95 +147,41 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new DVMS element, created using given input
+     * Returns a pointer to a new AlternativeDVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            NodesArrayType const& ThisNodes,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        Properties::Pointer pProperties) const override;
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new DVMS element, created using given input
+     * Returns a pointer to a new AlternativeDVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
      * @param pGeom a pointer to the geomerty to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId,
-                            GeometryType::Pointer pGeom,
-                            Properties::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        Properties::Pointer pProperties) const override;
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void Calculate(
-        const Variable<double>& rVariable,
-        double& rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<array_1d<double, 3 > >& rVariable,
-        array_1d<double, 3 > & rOutput,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    void Calculate(
-        const Variable<Vector >& rVariable,
-        Vector& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    void Calculate(
-        const Variable<Matrix >& rVariable,
-        Matrix& Output,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
-    /// Set up the element.
-    /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
-    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
-
-    /// Update the values of tracked small scale quantities.
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-    /// Predict the value of the small scale velocity for the current iteration.
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    void CalculateOnIntegrationPoints(
-        Variable<array_1d<double, 3>> const& rVariable,
-        std::vector<array_1d<double, 3>>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        Variable<double> const& rVariable,
-        std::vector<double>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        Variable<array_1d<double, 6>> const& rVariable,
-        std::vector<array_1d<double, 6>>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        Variable<Vector> const& rVariable,
-        std::vector<Vector>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(
-        Variable<Matrix> const& rVariable,
-        std::vector<Matrix>& rValues,
-        ProcessInfo const& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
     ///@{
-
-    int Check(const ProcessInfo &rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -262,12 +207,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    constexpr static double mTauC1 = 8.0;
-    constexpr static double mTauC2 = 2.0;
-    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
-    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
-    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
-
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -275,12 +214,7 @@ protected:
     // Velocity subscale history, stored at integration points
     DenseVector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
-
-    #ifdef KRATOS_D_VMS_SUBSCALE_ERROR_INSTRUMENTATION
-    std::vector< double > mSubscaleIterationError;
-    std::vector< unsigned int > mSubscaleIterationCount;
-    #endif
-
+    DenseVector< array_1d<double,Dim> > mPreviousVelocity;
 
     ///@}
     ///@name Protected Operators
@@ -293,29 +227,41 @@ protected:
 
     // Protected interface of FluidElement ////////////////////////////////////
 
+    void AlgebraicMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const override;
+
+    void MomentumProjTerm(
+        const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
+        array_1d<double,3> &rMomentumRHS) const override;
+
     void AddVelocitySystem(
         TElementData& rData,
         MatrixType& rLocalLHS,
         VectorType& rLocalRHS) override;
 
+    // Implementation details of AlternativeDVMSDEMCoupled /////////////////////////////////////////
+
     void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    // Implementation details of DVMS /////////////////////////////////////////
-
-    virtual void AddMassStabilization(
+    void AddMassStabilization(
         TElementData& rData,
-        MatrixType& rMassMatrix);
+        MatrixType& rMassMatrix) override;
 
-    void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+    void AddViscousTerm(
+        const TElementData& rData,
+        BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS) override;
 
     void CalculateStabilizationParameters(
         const TElementData& rData,
         const array_1d<double,3> &Velocity,
-        double &TauOne,
-        double &TauTwo,
-        double &TauP) const;
+        BoundedMatrix<double,Dim,Dim> &TauOne,
+        double &TauTwo) const;
 
     void SubscaleVelocity(
         const TElementData& rData,
@@ -323,13 +269,21 @@ protected:
 
     void SubscalePressure(
         const TElementData& rData,
-        double &rPressureSubscale) const override;
+        double& rPressureSubscale) const override;
 
-    virtual array_1d<double,3> FullConvectiveVelocity(
-        const TElementData& rData) const;
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const override;
 
-    virtual void UpdateSubscaleVelocityPrediction(
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData) override;
+
+    void UpdateSubscaleVelocity(
         const TElementData& rData);
+
+    void MassProjTerm(
+        const TElementData& rData,
+        double& rMassRHS) const override;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -349,10 +303,6 @@ protected:
 private:
 
     ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
     ///@{
 
     ///@}
@@ -389,15 +339,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    DVMS& operator=(DVMS const& rOther);
+    AlternativeDVMSDEMCoupled& operator=(AlternativeDVMSDEMCoupled const& rOther);
 
     /// Copy constructor.
-    DVMS(DVMS const& rOther);
+    AlternativeDVMSDEMCoupled(AlternativeDVMSDEMCoupled const& rOther);
 
     ///@}
 
 
-}; // Class DVMS
+}; // Class AlternativeDVMSDEMCoupled
 
 ///@}
 
@@ -413,7 +363,7 @@ private:
 /// input stream function
 template< class TElementData >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DVMS<TElementData>& rThis)
+                                 AlternativeDVMSDEMCoupled<TElementData>& rThis)
 {
     return rIStream;
 }
@@ -421,7 +371,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template< class TElementData >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DVMS<TElementData>& rThis)
+                                 const AlternativeDVMSDEMCoupled<TElementData>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -435,4 +385,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_D_VMS_H
+#endif // KRATOS_ALTERNATIVE_D_VMS_DEM_COUPLED_H
