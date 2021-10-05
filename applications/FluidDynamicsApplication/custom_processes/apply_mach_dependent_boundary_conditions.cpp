@@ -75,7 +75,7 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
         const auto & normal = rNode.FastGetSolutionStepValue(NORMAL);
         const auto & flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
 
-        const double & mach = rNode.GetValue(MACH);
+        const double mach = rNode.GetValue(MACH);
         const double mach_projection = mach * inner_prod(normal, flow_direction) / norm_2(flow_direction);
         
         // Chosing BC set to enforce according to mach
