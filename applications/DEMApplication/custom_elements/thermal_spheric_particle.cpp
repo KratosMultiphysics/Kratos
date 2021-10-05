@@ -37,7 +37,7 @@ namespace Kratos
     this->Set(DEMFlags::HAS_DIRECT_CONDUCTION,   r_process_info[DIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_INDIRECT_CONDUCTION, r_process_info[INDIRECT_CONDUCTION_OPTION]);
     this->Set(DEMFlags::HAS_CONVECTION,          r_process_info[CONVECTION_OPTION]);
-    this->Set(DEMFlags::HAS_RADIATION,           r_process_info[CONVECTION_OPTION]);
+    this->Set(DEMFlags::HAS_RADIATION,           r_process_info[RADIATION_OPTION]);
     this->Set(DEMFlags::HAS_ADJUSTED_CONTACT,    r_process_info[ADJUSTED_CONTACT_OPTION]);
 
     // Initialize prescribed heat flux (currently a constant value)
@@ -317,6 +317,10 @@ namespace Kratos
   template <class TBaseElement>
   void ThermalSphericParticle<TBaseElement>::ComputeContinuumRadiativeHeatFlux(const ProcessInfo& r_process_info) {
     KRATOS_TRY
+
+    // Check if radiation neighbors exist
+    if (mEnvironmentCount == 0)
+      return;
 
     // compute heat flux of continuous methods according to selected model
     std::string model = r_process_info[RADIATION_MODEL];
