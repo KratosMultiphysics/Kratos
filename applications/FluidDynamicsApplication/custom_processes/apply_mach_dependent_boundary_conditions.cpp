@@ -72,11 +72,11 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
     block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
     {
         // Computing mach projected onto normal
-        const auto & normal = rNode.FastGetSolutionStepValue(NORMAL);
-        const auto & flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
+        const auto & r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+        const auto & r_flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
 
         const double & mach = rNode.GetValue(MACH);
-        const double mach_projection = mach * inner_prod(normal, flow_direction) / norm_2(flow_direction);
+        const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / norm_2(r_flow_direction);
         
         // Chosing BC set to enforce according to mach
         const bool supersonic = fabs(mach_projection) >= 1.0;
