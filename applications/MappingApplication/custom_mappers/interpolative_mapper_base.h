@@ -105,7 +105,6 @@ public:
 
         KRATOS_WARNING_IF("Mapper", mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface while using the initial configuration for mapping!" << std::endl;
 
-        // Set the Flags according to the type of remeshing
         if (MappingOptions.Is(MapperFlags::REMESHED)) {
             InitializeInterface(MappingOptions);
         }
@@ -295,19 +294,19 @@ private:
         KRATOS_CATCH("");
     }
 
-    void InitializeInterface(Kratos::Flags MappingOptions = Kratos::Flags())
+    void InitializeInterface()
     {
         KRATOS_TRY;
 
         CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
-                                mMapperLocalSystems);
+                                 mMapperLocalSystems);
 
-        BuildMappingMatrix(MappingOptions);
+        BuildMappingMatrix();
 
         KRATOS_CATCH("");
     }
 
-    void BuildMappingMatrix(Kratos::Flags MappingOptions = Kratos::Flags())
+    void BuildMappingMatrix()
     {
         KRATOS_TRY;
 
@@ -328,8 +327,7 @@ private:
         const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
         mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
-                                                    MappingOptions,
-                                                    p_ref_interface_info);
+                                                      p_ref_interface_info);
 
         const int echo_level = mMapperSettings["echo_level"].GetInt();
 
