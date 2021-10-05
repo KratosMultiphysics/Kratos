@@ -42,6 +42,7 @@ ApplyCompressibleNavierStokesBoundaryConditionsProcess::ApplyCompressibleNavierS
     KRATOS_CATCH("");
 }
 
+
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitialize()
 {
     NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
@@ -89,6 +90,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
 
     });
 }
+
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteFinalizeSolutionStep()
 {
