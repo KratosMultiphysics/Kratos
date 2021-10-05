@@ -6,7 +6,7 @@
             "Variables" : {
                 "DENSITY"           : 900.0,
                 "DYNAMIC_VISCOSITY" : 100000000.0,
-                "CONDUCTIVITY"      : 10.0,
+                "CONDUCTIVITY"      : 0.003,
                 "SPECIFIC_HEAT"     : 1.76
             },
             "Tables"    : {}

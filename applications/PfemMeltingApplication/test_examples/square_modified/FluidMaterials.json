@@ -1,11 +1,11 @@
 {
     "properties" : [{
-        "model_part_name" : "FluidModelPart.Parts_Parts_Auto1",
+        "model_part_name" : "FluidModelPart.FluidParts_Parts_Auto1",
         "properties_id"   : 1,
         "Material"        : {
             "Variables" : {
-                "ACTIVATION_ENERGY"           : 200000.0,
-                "ARRHENIUS_COEFFICIENT" : 1000000000.0,
+                "ACTIVATION_ENERGY"           : 0.0,
+                "ARRHENIUS_COEFFICIENT" : 0.0,
                 "HEAT_OF_VAPORIZATION" : 0.0
             },
             "Tables": {

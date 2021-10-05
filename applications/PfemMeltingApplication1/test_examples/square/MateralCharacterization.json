@@ -11,7 +11,7 @@
             "Tables": {
                 "Table1" : {
                     "input_variable": "TEMPERATURE",
-                    "output_variable": "DYNAMIC_VISCOSITY",
+                    "output_variable": "VISCOSITY",
                     "data": [
                         [298.0, 1000000.0],
                         [374.0, 1000000.0],

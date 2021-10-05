@@ -5,13 +5,18 @@
         "parallel_type"         : "OpenMP",
         "echo_level"            : 0,
         "start_time"            : 0.0,
-        "end_time"              : 1000.0,
+        "end_time"              : 10.0,
         "laser_import_settings" : {
                         "laser_filename": "LaserSettings.json"
                 },
         "material_settings"     : {
                         "material_filename": "MateralCharacterization.json"
-                }
+                },
+         "environment_settings"   :{
+	        "gravity": [0,-10, 0],
+		"ambient_temperature" : 293.15
+	}
+
     },
     "output_processes" : {
         "gid_output" : [{
@@ -32,12 +37,12 @@
                         },
                         "file_label"          : "time",
                         "output_control_type" : "time",
-                        "output_frequency"    : 5.0,
+                        "output_frequency"    : 0.00000001,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT", "VISCOSITY"],
+                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []

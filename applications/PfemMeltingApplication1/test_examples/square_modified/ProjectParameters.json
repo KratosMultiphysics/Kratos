@@ -11,7 +11,11 @@
                 },
         "material_settings"     : {
                         "material_filename": "MateralCharacterization.json"
-                }
+                },
+         "environment_settings" : {
+	        "gravity": [0,-10.0, 0],
+		"ambient_temperature" : 293.15
+	}
     },
     "output_processes" : {
         "gid_output" : [{
@@ -37,7 +41,7 @@
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
-                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT", "VISCOSITY"],
+                        "nodal_results"       : ["VELOCITY","PRESSURE","TEMPERATURE","FACE_HEAT_FLUX","BODY_FORCE","ARRHENIUS_COEFFICIENT", "VISCOSITY", "CONDUCTIVITY", "SPECIFIC_HEAT"],
                         "gauss_point_results" : []
                     },
                     "point_data_configuration"  : []
@@ -91,7 +95,7 @@
             "absolute_velocity_tolerance" : 1e-5,
             "relative_pressure_tolerance" : 0.001,
             "absolute_pressure_tolerance" : 1e-5,
-            "volume_model_part_name"      : "Parts_Parts_Auto1",
+            "volume_model_part_name"      : "FluidParts_Parts_Auto1",
             "skin_parts"                  : ["NoSlip3D_No_Slip_Auto1"],
             "no_skin_parts"               : [],
             "time_stepping"               : {
@@ -128,7 +132,7 @@
             "solution_absolute_tolerance"        : 1e-7,
             "residual_relative_tolerance"        : 1e-5,
             "residual_absolute_tolerance"        : 1e-7,
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+            "problem_domain_sub_model_part_list" : ["FluidParts_Parts_Auto1"],
             "processes_sub_model_part_list"      : ["TEMPERATURE_Parts_Auto1","HeatFlux3D_Thermal_face_conditions_Auto3","ImposedTemperature3D_Imposed_temperature_Auto1","ThermalFace3D_Thermal_face_conditions_Auto3"],
             "time_stepping"                      : {
                 "time_step" : 0.01
@@ -183,15 +187,6 @@
                 "add_ambient_convection" : true,
                 "convection_coefficient" : 4.0,
                 "interval"               : [0.0,100.0]
-            }
-        },{
-            "python_module" : "apply_boussinesq_force_process",
-            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name"  : "ApplyBoussinesqForceProcess",
-            "Parameters"    : {
-                "model_part_name"     : "ThermalModelPart.Boussinesq__Boussinesq_hidden_",
-                "gravity"             : [0.0,-9.81,0.0],
-                "ambient_temperature" : 293.15
             }
         }]
     }
