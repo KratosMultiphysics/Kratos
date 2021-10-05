@@ -27,7 +27,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/variables.h"
 
 
 namespace Kratos
@@ -89,7 +88,6 @@ public:
 		mis_defined_VelocityVar=false;
 		mis_defined_SpecificHeatVar=false;
         mis_defined_ReactionVar=false;
-        mIsDefinedReactionGradientVar=false;
     };
     ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
         mpDensityVar(rOther.mpDensityVar),
@@ -105,7 +103,6 @@ public:
         mpVelocityVar(rOther.mpVelocityVar),
         mpSpecificHeatVar(rOther.mpSpecificHeatVar),
         mpReactionVar(rOther.mpReactionVar),
-        mpReactionGradientVar(rOther.mpReactionGradientVar),
         mis_defined_DensityVar(rOther.mis_defined_DensityVar),
 		mis_defined_DiffusionVar(rOther.mis_defined_DiffusionVar),
 		mis_defined_UnknownVar(rOther.mis_defined_UnknownVar),
@@ -118,8 +115,7 @@ public:
 		mis_defined_TransferCoefficientVar(rOther.mis_defined_TransferCoefficientVar),
 		mis_defined_VelocityVar(rOther.mis_defined_VelocityVar),
 		mis_defined_SpecificHeatVar(rOther.mis_defined_SpecificHeatVar),
-        mis_defined_ReactionVar(rOther.mis_defined_ReactionVar),
-        mIsDefinedReactionGradientVar(rOther.mIsDefinedReactionGradientVar)
+        mis_defined_ReactionVar(rOther.mis_defined_ReactionVar)
     {
     }
 
@@ -311,22 +307,6 @@ public:
 		return mis_defined_ReactionVar;
 	}
 
-    void SetReactionGradientVariable(const Variable<array_1d<double,3>>& rVar)
-    {
-        mpReactionGradientVar = &rVar;
-		mIsDefinedReactionGradientVar=true;
-    }
-
-    const Variable<array_1d<double,3>>& GetReactionGradientVariable()
-    {
-        return *mpReactionGradientVar;
-    }
-
-    bool IsDefinedReactionGradientVariable()
-    {
-		return mIsDefinedReactionGradientVar;
-	}
-
     ///@}
     ///@name Operations
     ///@{
@@ -351,7 +331,6 @@ public:
         mpVelocityVar = rOther.mpVelocityVar;
 		mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpReactionVar = rOther.mpReactionVar;
-        mpReactionGradientVar = rOther.mpReactionGradientVar;
         //now the is_defined
         mis_defined_DensityVar = rOther.mis_defined_DensityVar;
 		mis_defined_DiffusionVar = rOther.mis_defined_DiffusionVar;
@@ -366,7 +345,6 @@ public:
 		mis_defined_VelocityVar = rOther.mis_defined_VelocityVar;
 		mis_defined_SpecificHeatVar = rOther.mis_defined_SpecificHeatVar;
         mis_defined_ReactionVar = rOther.mis_defined_ReactionVar;
-        mIsDefinedReactionGradientVar = rOther.mIsDefinedReactionGradientVar;
 
         return *this;
     }
@@ -466,7 +444,6 @@ private:
     const Variable<array_1d<double,3> >* mpVelocityVar = nullptr;
     const Variable<double>* mpSpecificHeatVar = nullptr;
     const Variable<double>* mpReactionVar = nullptr;
-    const Variable<array_1d<double,3>>* mpReactionGradientVar = nullptr;
     bool mis_defined_DensityVar = false;
     bool mis_defined_DiffusionVar = false;
     bool mis_defined_UnknownVar = false;
@@ -480,7 +457,6 @@ private:
     bool mis_defined_VelocityVar = false;
     bool mis_defined_SpecificHeatVar = false;
     bool mis_defined_ReactionVar = false;
-    bool mIsDefinedReactionGradientVar = false;
 
     ///@}
     ///@name Private Operators
@@ -509,7 +485,6 @@ private:
         rSerializer.save("mis_defined_VelocityVar",mis_defined_VelocityVar);
         rSerializer.save("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
         rSerializer.save("mis_defined_ReactionVar",mis_defined_ReactionVar);
-        rSerializer.save("mIsDefinedReactionGradientVar", mIsDefinedReactionGradientVar);
 
         // Save the variable names
         // Note that the variable class save method only saves the name of the variables
@@ -552,9 +527,6 @@ private:
         if (mpReactionVar != nullptr && mis_defined_ReactionVar) {
             rSerializer.save("ReactionVarName",mpReactionVar);
         }
-        if (mpReactionGradientVar != nullptr && mIsDefinedReactionGradientVar) {
-            rSerializer.save("ReactionGradientVarName",mpReactionGradientVar);
-        }
     }
 
     virtual void load(Serializer& rSerializer)
@@ -573,7 +545,6 @@ private:
         rSerializer.load("mis_defined_VelocityVar",mis_defined_VelocityVar);
         rSerializer.load("mis_defined_SpecificHeatVar",mis_defined_SpecificHeatVar);
         rSerializer.load("mis_defined_ReactionVar",mis_defined_ReactionVar);
-        rSerializer.load("mIsDefinedReactionGradientVar", mIsDefinedReactionGradientVar);
 
         // If the variables are defined, load their name
         // Note that only the name has been saved to retrieve the already existent variable from the KratosComponents
@@ -641,11 +612,6 @@ private:
             std::string reaction_var_name;
             rSerializer.load("ReactionVarName", reaction_var_name);
             mpReactionVar = &(KratosComponents<Variable<double>>::Get(reaction_var_name));
-        }
-        if(mIsDefinedReactionGradientVar) {
-            std::string reaction_gradient_var_name;
-            rSerializer.load("ReactionGradientVarName", reaction_gradient_var_name);
-            mpReactionGradientVar = &(KratosComponents<Variable<array_1d<double,3>>>::Get(reaction_gradient_var_name));
         }
     }
 
