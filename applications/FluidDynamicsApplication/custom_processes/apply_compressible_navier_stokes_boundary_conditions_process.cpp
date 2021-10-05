@@ -59,31 +59,31 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
     // Enabling and disabling BC according to the time and active interval
     const double time = mpModelPart->GetProcessInfo().GetValue(TIME);
 
-    for(auto & boundary_condition: mSupersonicBCs)
+    for(auto& boundary_condition: mSupersonicBCs)
     {
         boundary_condition.ActivateIfInsideTimeInterval(time);
     }
 
-    for(auto & boundary_condition: mSubsonicBCs)
+    for(auto& boundary_condition: mSubsonicBCs)
     {
         boundary_condition.ActivateIfInsideTimeInterval(time);
     }
 
     // Enforcing boundary conditions
-    block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
+    block_for_each(mpModelPart->Nodes(), [&](NodeType& rNode)
     {
         // Computing mach projected onto normal
-        const auto & r_normal = rNode.FastGetSolutionStepValue(NORMAL);
-        const auto & r_flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
+        const auto& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
+        const auto& r_flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
 
         const double mach = rNode.GetValue(MACH);
         const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / norm_2(r_flow_direction);
         
         // Chosing BC set to enforce according to mach
         const bool supersonic = fabs(mach_projection) >= 1.0;
-        const auto & active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
+        const auto& active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
 
-        for(const auto & boundary_condition: active_bc)
+        for(const auto& boundary_condition: active_bc)
         {
             boundary_condition.Enforce(rNode);
         }
@@ -94,14 +94,14 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteFinalizeSolutionStep()
 {
-    block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
+    block_for_each(mpModelPart->Nodes(), [&](NodeType& rNode)
     {
-        for(const auto & boundary_condition: mSupersonicBCs)
+        for(const auto& boundary_condition: mSupersonicBCs)
         {
             boundary_condition.Free(rNode);
         }
 
-        for(const auto & boundary_condition: mSubsonicBCs)
+        for(const auto& boundary_condition: mSubsonicBCs)
         {
             boundary_condition.Free(rNode);
         }
@@ -153,8 +153,8 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUt
 
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::FixDof(
-    const BoundaryConditionUtility & rUtility,
-    NodeType & rNode)
+    const BoundaryConditionUtility& rUtility,
+    NodeType& rNode)
 {
     rNode.GetSolutionStepValue(*rUtility.mpVariable) = rUtility.mValue;
     rNode.pGetDof(*rUtility.mpVariable)->FixDof();
@@ -162,8 +162,8 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUt
 
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::DoNothing(
-    const BoundaryConditionUtility & rUtility,
-    NodeType & rNode)
+    const BoundaryConditionUtility& rUtility,
+    NodeType& rNode)
 {
 }
 

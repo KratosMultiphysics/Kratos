@@ -101,7 +101,7 @@ namespace Kratos
             BoundaryConditionUtility(
                 const std::string& rVariableName,
                 const double Value,
-                const IntervalUtility & rIntervalUtility);
+                const IntervalUtility& rIntervalUtility);
             /**
              * @brief Checks that the current time is within the interval, and
              * decides accordingly what function to bind to mEnforceInternal
@@ -114,10 +114,10 @@ namespace Kratos
              * or do nothing depending on the result of 
              * ActivateIfInsideTimeInterval.
              */
-            void Enforce(NodeType & rNode) const;
+            void Enforce(NodeType& rNode) const;
 
             /// @brief Frees the Dof.
-            void Free(NodeType & rNode) const;
+            void Free(NodeType& rNode) const;
 
         private:
             const Variable<double> * mpVariable;
@@ -127,12 +127,12 @@ namespace Kratos
             /* @brief Fixes the Dof managed by this class and sets the value
              * to the one specified by mValue
              */
-            static void FixDof(const BoundaryConditionUtility & rUtility, NodeType & rNode);
+            static void FixDof(const BoundaryConditionUtility& rUtility, NodeType& rNode);
 
             /** @brief Does nothing. Used to replace FixDof when t is outside
              * time interval
              */
-            static void DoNothing(const BoundaryConditionUtility & rUtility, NodeType & rNode);
+            static void DoNothing(const BoundaryConditionUtility& rUtility, NodeType& rNode);
 
             /** @brief This object points to the proper (FixDof|DoNothing)
              * function according to the time interval.
