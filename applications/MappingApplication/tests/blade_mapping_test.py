@@ -170,18 +170,15 @@ class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
     '''
 
     @classmethod
+    def GetRanksForStructure(cls):
+        raise NotImplementedError("This function mus be implemented in the derived classes!")
+
+    @classmethod
     def ReadModelParts(cls):
-        num_ranks = default_data_comm.Size()
-        ranks_structure = list(range(num_ranks-1))
-
-        data_comm_name = "AllExceptLast"
-        data_comm_name_rank_0 = "OnlyRank0"
-
-        cls.sub_comm = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_structure, data_comm_name)
-        cls.sub_comm_rank_0 = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, [0], data_comm_name_rank_0)
-
+        ranks_structure = cls.GetRanksForStructure()
+        data_comm_name = "structure_comm"
+        cls.sub_comm_structure = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, ranks_structure, data_comm_name)
         cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name)
-        cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name_rank_0)
 
         importer_settings = KM.Parameters("""{
             "model_import_settings": {
@@ -192,18 +189,37 @@ class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
             },
             "echo_level" : 0
         }""")
-        if cls.sub_comm.IsDefinedOnThisRank():
+        if cls.sub_comm_structure.IsDefinedOnThisRank():
             testing_utils.ReadDistributedModelPart(cls.input_file_origin, cls.model_part_origin, importer_settings) # structure
         else:
-            # set the DataComm that only has rank 0 in the "dummy" ModelPart to be used in the mapper
-            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(cls.model_part_origin, cls.sub_comm_rank_0)
+            # set the DataComm of the structure also in the other ranks, where it is not defined!
+            KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(cls.model_part_origin, cls.sub_comm_structure)
 
         testing_utils.ReadDistributedModelPart(cls.input_file_destination, cls.model_part_destination) # fluid
 
     @classmethod
     def GetStructureModelPart(cls, sub_model_part_name):
-        if cls.sub_comm.IsDefinedOnThisRank():
+        if cls.sub_comm_structure.IsDefinedOnThisRank():
             return cls.model_part_structure.GetSubModelPart(sub_model_part_name)
         else:
             # other ranks return a dummy ModelPart (here using the MainModelPart of the structure as example)
             return cls.model_part_structure
+
+class BladeMappingTestsAllRanksExceptLast(BladeMappingTestsLessRanksModelPart):
+    @classmethod
+    def GetRanksForStructure(cls):
+        num_ranks = default_data_comm.Size()
+        return list(range(num_ranks-1))
+
+class BladeMappingTestsAllRanksExceptFirst(BladeMappingTestsLessRanksModelPart):
+    @classmethod
+    def GetRanksForStructure(cls):
+        num_ranks = default_data_comm.Size()
+        return list(range(1, num_ranks))
+
+class BladeMappingTestsUnevenRanks(BladeMappingTestsLessRanksModelPart):
+    @classmethod
+    def GetRanksForStructure(cls):
+        num_ranks = default_data_comm.Size()
+        return list(range(1, num_ranks, 2))
+

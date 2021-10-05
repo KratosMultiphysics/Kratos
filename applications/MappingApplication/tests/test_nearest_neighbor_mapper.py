@@ -106,7 +106,27 @@ class BladeMappingSerialModelPart(blade_mapping_test.BladeMappingTestsSerialMode
         super().setUpMapper(mapper_params)
         cls.print_output = False
 
-class BladeMappingLessRanksModelPart(blade_mapping_test.BladeMappingTestsLessRanksModelPart):
+class BladeMappingAllRanksExceptLast(blade_mapping_test.BladeMappingTestsAllRanksExceptLast):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingAllRanksExceptFirst(blade_mapping_test.BladeMappingTestsAllRanksExceptFirst):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "nearest_neighbor",
+            "echo_level" : 0
+        }""")
+        super().setUpMapper(mapper_params)
+        cls.print_output = False
+
+class BladeMappingUnevenRanks(blade_mapping_test.BladeMappingTestsUnevenRanks):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
