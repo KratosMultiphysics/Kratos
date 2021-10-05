@@ -29,7 +29,7 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
     mSubsonicBCs.reserve(Parameters["subsonic_boundary_conditions"].size());
     mSupersonicBCs.reserve(Parameters["supersonic_boundary_conditions"].size());
 
-    for(auto & var_settings : Parameters["subsonic_boundary_conditions"])
+    for(auto var_settings : Parameters["subsonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSubsonicBCs, var_settings);
     }
