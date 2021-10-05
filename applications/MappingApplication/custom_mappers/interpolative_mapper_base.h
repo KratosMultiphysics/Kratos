@@ -105,12 +105,7 @@ public:
 
         KRATOS_WARNING_IF("Mapper", mMapperSettings["use_initial_configuration"].GetBool()) << "Updating the interface while using the initial configuration for mapping!" << std::endl;
 
-        if (MappingOptions.Is(MapperFlags::REMESHED)) {
-            InitializeInterface(MappingOptions);
-        }
-        else {
-            BuildMappingMatrix(MappingOptions);
-        }
+        Initialize();
 
         if (mpInverseMapper) {
             mpInverseMapper->UpdateInterface(MappingOptions,
@@ -200,7 +195,7 @@ public:
     int AreMeshesConforming() const override
     {
         KRATOS_WARNING_ONCE("Mapper") << "Developer-warning: \"AreMeshesConforming\" is deprecated and will be removed in the future" << std::endl;
-        return mpIntefaceCommunicator->AreMeshesConforming();
+        return mMeshesAreConforming;
     }
 
     ///@}
@@ -237,8 +232,7 @@ protected:
     {
         KRATOS_TRY;
 
-        InitializeInterfaceCommunicator();
-        InitializeInterface();
+        BuildMappingMatrix();
 
         KRATOS_CATCH("");
     }
@@ -274,41 +268,21 @@ private:
 
     MapperLocalSystemPointerVector mMapperLocalSystems;
 
-    InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
+
+    bool mMeshesAreConforming = false;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    void InitializeInterfaceCommunicator()
-    {
-        KRATOS_TRY;
-
-        mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorType>(
-            mrModelPartOrigin,
-            mMapperLocalSystems,
-            mMapperSettings);
-
-        KRATOS_CATCH("");
-    }
-
-    void InitializeInterface()
+    void BuildMappingMatrix()
     {
         KRATOS_TRY;
 
         CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
                                  mMapperLocalSystems);
-
-        BuildMappingMatrix();
-
-        KRATOS_CATCH("");
-    }
-
-    void BuildMappingMatrix()
-    {
-        KRATOS_TRY;
 
         const bool use_initial_configuration = mMapperSettings["use_initial_configuration"].GetBool();
 
@@ -322,12 +296,18 @@ private:
 
         AssignInterfaceEquationIds(); // Has to be done ever time in case of overlapping interfaces!
 
-        KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
+        auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
+            mrModelPartOrigin,
+            mMapperLocalSystems,
+            mMapperSettings);
 
         const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
-        mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+        p_interface_comm->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
                                                       p_ref_interface_info);
+
+        // ugly hack until this function can be removed
+        mMeshesAreConforming = p_interface_comm->AreMeshesConforming();
 
         const int echo_level = mMapperSettings["echo_level"].GetInt();
 
