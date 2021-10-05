@@ -380,7 +380,7 @@ class ExplicitStrategy():
 
     def Predict(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
-        self._MoveAllMeshes(time, self.dt)
+        #self._MoveAllMeshes(time, self.dt)
 
     def Check(self):
         pass

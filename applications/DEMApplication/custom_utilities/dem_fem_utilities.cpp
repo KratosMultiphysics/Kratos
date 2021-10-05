@@ -63,15 +63,38 @@ namespace Kratos
                 array_1d<double, 3> new_axes2;
                 array_1d<double, 3> new_axes3;
 
-                GeometryFunctions::TranslateGridOfNodes(time, velocity_start_time, velocity_stop_time, center_position, initial_center, previous_displ,
-                                                        linear_velocity_changed, linear_period, dt, linear_velocity);
+                GeometryFunctions::TranslateGridOfNodes(time,
+                                                        velocity_start_time,
+                                                        velocity_stop_time, center_position,
+                                                        initial_center,
+                                                        previous_displ,
+                                                        linear_velocity_changed,
+                                                        linear_period,
+                                                        dt,
+                                                        linear_velocity);
 
-                GeometryFunctions::RotateGridOfNodes(time, angular_velocity_start_time, angular_velocity_stop_time, angular_velocity_changed,
-                                                     angular_period, mod_angular_velocity, angular_velocity, new_axes1, new_axes2, new_axes3);
+                GeometryFunctions::RotateGridOfNodes(time,
+                                                     angular_velocity_start_time,
+                                                     angular_velocity_stop_time,
+                                                     angular_velocity_changed,
+                                                     angular_period,
+                                                     mod_angular_velocity,
+                                                     angular_velocity,
+                                                     new_axes1,
+                                                     new_axes2,
+                                                     new_axes3);
 
-                GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity, linear_velocity, initial_center, new_axes1,
-                                                                          new_axes2, new_axes3, angular_velocity_changed, linear_velocity_changed, center_position,
-                                                                          fixed_mesh, dt, rNodes);
+                GeometryFunctions::UpdateKinematicVariablesOfAGridOfNodes(mod_angular_velocity,
+                                                                          linear_velocity,
+                                                                          initial_center,
+                                                                          new_axes1,
+                                                                          new_axes2,
+                                                                          new_axes3,
+                                                                          angular_velocity_changed, linear_velocity_changed,
+                                                                          center_position,
+                                                                          fixed_mesh,
+                                                                          dt,
+                                                                          rNodes);
             } //for ModelPart::SubModelPartsContainerType::iterator
         } //if r_model_part.NumberOfMeshes() > 1
     }

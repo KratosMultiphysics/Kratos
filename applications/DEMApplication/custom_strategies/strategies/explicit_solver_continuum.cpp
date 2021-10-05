@@ -53,7 +53,7 @@ namespace Kratos {
         RebuildListOfSphericParticles <SphericParticle> (r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
         InitializeSolutionStep();
-        ApplyInitialConditions();
+        //ApplyInitialConditions();
 
         // Search Neighbors with tolerance (after first repartition process)
         SetSearchRadiiOnAllParticles(r_model_part, r_process_info[SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION], 1.0);

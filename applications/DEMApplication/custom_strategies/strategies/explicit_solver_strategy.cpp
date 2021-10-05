@@ -167,7 +167,7 @@ namespace Kratos {
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
 
         InitializeSolutionStep();
-        ApplyInitialConditions();
+        //ApplyInitialConditions();//todo DELETE
 
         // Search Neighbours and related operations
         SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
@@ -736,7 +736,7 @@ namespace Kratos {
             }
         }
 
-        ApplyPrescribedBoundaryConditions();
+        //ApplyPrescribedBoundaryConditions(); //todo DELETE
         KRATOS_CATCH("")
     }
 
@@ -886,38 +886,33 @@ namespace Kratos {
 
                 if (do_compute_forces) {central_node->Set(DEMFlags::COMPUTE_REACTIONS, true);}
 
-                if (submp.Has(FREE_BODY_MOTION)) { // JIG: Backward compatibility, it should be removed in the future
-                    if (submp[FREE_BODY_MOTION]) {
+                std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
+                thread_vectors_of_node_pointers.resize(mNumberOfThreads);
+                std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
+                thread_vectors_of_coordinates.resize(mNumberOfThreads);
 
-                        std::vector<std::vector<Node<3>::Pointer> > thread_vectors_of_node_pointers;
-                        thread_vectors_of_node_pointers.resize(mNumberOfThreads);
-                        std::vector<std::vector<array_1d<double, 3> > > thread_vectors_of_coordinates;
-                        thread_vectors_of_coordinates.resize(mNumberOfThreads);
+                #pragma omp parallel for
+                for (int k = 0; k < (int)pNodes.size(); k++) {
+                    ModelPart::NodeIterator i = pNodes.ptr_begin() + k;
+                    thread_vectors_of_node_pointers[OpenMPUtils::ThisThread()].push_back(*(i.base())); //TODO: this could be raw pointers. It would be a lot faster here (same speed when reading later on)
+                    thread_vectors_of_coordinates[OpenMPUtils::ThisThread()].push_back(i->Coordinates() - reference_coordinates);
+                }
+                for (int i = 0; i < mNumberOfThreads; i++) {
+                    rigid_body_element->mListOfNodes.insert(rigid_body_element->mListOfNodes.end(), thread_vectors_of_node_pointers[i].begin(), thread_vectors_of_node_pointers[i].end());
+                    rigid_body_element->mListOfCoordinates.insert(rigid_body_element->mListOfCoordinates.end(), thread_vectors_of_coordinates[i].begin(), thread_vectors_of_coordinates[i].end());
+                }
 
-                        #pragma omp parallel for
-                        for (int k = 0; k < (int)pNodes.size(); k++) {
-                            ModelPart::NodeIterator i = pNodes.ptr_begin() + k;
-                            thread_vectors_of_node_pointers[OpenMPUtils::ThisThread()].push_back(*(i.base())); //TODO: this could be raw pointers. It would be a lot faster here (same speed when reading later on)
-                            thread_vectors_of_coordinates[OpenMPUtils::ThisThread()].push_back(i->Coordinates() - reference_coordinates);
-                        }
-                        for (int i = 0; i < mNumberOfThreads; i++) {
-                            rigid_body_element->mListOfNodes.insert(rigid_body_element->mListOfNodes.end(), thread_vectors_of_node_pointers[i].begin(), thread_vectors_of_node_pointers[i].end());
-                            rigid_body_element->mListOfCoordinates.insert(rigid_body_element->mListOfCoordinates.end(), thread_vectors_of_coordinates[i].begin(), thread_vectors_of_coordinates[i].end());
-                        }
+                std::vector<std::vector<RigidFace3D*> > thread_vectors_of_rigid_faces;
+                thread_vectors_of_rigid_faces.resize(mNumberOfThreads);
 
-                        std::vector<std::vector<RigidFace3D*> > thread_vectors_of_rigid_faces;
-                        thread_vectors_of_rigid_faces.resize(mNumberOfThreads);
-
-                        #pragma omp parallel for
-                        for (int k = 0; k < (int)pTConditions.size(); k++) {
-                            ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;
-                            RigidFace3D* it_face = dynamic_cast<RigidFace3D*>(&(*it));
-                            thread_vectors_of_rigid_faces[OpenMPUtils::ThisThread()].push_back(it_face);
-                        }
-                        for (int i = 0; i < mNumberOfThreads; i++) {
-                            rigid_body_element->mListOfRigidFaces.insert(rigid_body_element->mListOfRigidFaces.end(), thread_vectors_of_rigid_faces[i].begin(), thread_vectors_of_rigid_faces[i].end());
-                        }
-                    }
+                #pragma omp parallel for
+                for (int k = 0; k < (int)pTConditions.size(); k++) {
+                    ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;
+                    RigidFace3D* it_face = dynamic_cast<RigidFace3D*>(&(*it));
+                    thread_vectors_of_rigid_faces[OpenMPUtils::ThisThread()].push_back(it_face);
+                }
+                for (int i = 0; i < mNumberOfThreads; i++) {
+                    rigid_body_element->mListOfRigidFaces.insert(rigid_body_element->mListOfRigidFaces.end(), thread_vectors_of_rigid_faces[i].begin(), thread_vectors_of_rigid_faces[i].end());
                 }
 
                 rigid_body_element->Initialize(r_process_info);
@@ -1263,9 +1258,7 @@ namespace Kratos {
                                 rigid_body_element.GetGeometry()[0].Set(DEMFlags::FIXED_ANG_VEL_Z, true);
                             }
                         }
-                    }
-
-                    else {
+                    }else {
                         rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[0] = 0.0;
                         rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[1] = 0.0;
                         rigid_body_element.GetGeometry()[0].FastGetSolutionStepValue(VELOCITY)[2] = 0.0;

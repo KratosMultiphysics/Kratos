@@ -118,12 +118,12 @@
                 "model_part_name" : "RigidFacePart.Cube1",
 		"velocity_constraints_settings" : {
                     "constrained"          : [true, true, true],
-                    "value"                : ["-0.5*t", 0.6, "(x+y)"],
+                    "value"                : ["1.0*t", 0.5, "1.0*t**2"],
                     "table"                : [null, null, null]
                 },
                 "angular_velocity_constraints_settings" : {
                     "constrained"          : [true, true, true],
-                    "value"                : ["(y**2+z)", "-2.0*t", 1.0],
+                    "value"                : [2.61799, 0.0, 0.0],
                     "table"                : [null, null, null]
                 },
                 "interval"             : [0.0, 1.0e30]
@@ -159,7 +159,7 @@
     "TranslationalIntegrationScheme" : "Symplectic_Euler",
     "RotationalIntegrationScheme"    : "Direct_Integration",
     "MaxTimeStep"                    : 0.0005,
-    "FinalTime"                      : 0.31,
+    "FinalTime"                      : 0.30,
     "NeighbourSearchFrequency"       : 50,
     "GraphExportFreq"                : 0.001,
     "VelTrapGraphExportFreq"         : 0.001,
