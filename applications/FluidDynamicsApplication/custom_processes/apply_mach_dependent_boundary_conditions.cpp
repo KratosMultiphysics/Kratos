@@ -145,8 +145,7 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Enforce(Nod
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    Free(NodeType & rNode) const
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Free(NodeType& rNode) const
 {
     rNode.pGetDof(*mpVariable)->FreeDof();
 }
