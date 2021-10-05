@@ -1,7 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 from KratosMultiphysics.CompressiblePotentialFlowApplication import ComputeNodalValueProcess
-from bin.RelWithDebInfo.KratosMultiphysics import analysis_stage
 
 def Factory(settings, model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -13,6 +12,7 @@ def Factory(settings, model):
 class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Process):
     """Initializes the values by solving a steady-state problem with the compressible potential flow analysis stage"""
     def __init__(self, model, settings):
+        super().__init__()
         settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
         self.model = model
@@ -25,7 +25,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters("""
         {
-            "model_part_name" : ""
+            "model_part_name" : "",
             "volume_model_part_name" : "",
             "skin_parts" : [],
             "materials_filename" : "FluidMaterials.json",
@@ -37,9 +37,19 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         """)
 
     def ExecuteInitialize(self):
-        self._GeneratePotentialModelPart()
+        # Creating model part
+        original_model_part = self.model[self.settings["model_part_name"].GetString()]
+        new_model_part = self.model.CreateModelPart("model_part_potential_analysis")
 
+        # Starting analysis
         self.analysis = PotentialFlowAnalysis(self.model, self.analysis_parameters)
+
+        # Filling model part
+        KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, new_model_part)
+        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
+        modeler.GenerateModelPart(original_model_part, new_model_part, "Element2D3N", "LineCondition2D2N")
+
+        # Running analysis
         self.analysis.Run()
 
         # Calculate the velocity and pressure nodal projections
@@ -97,56 +107,55 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         return rho, vel_norm*rho, total_energy
 
-    def _GeneratePotentialModelPart(self):
-        original_model_part = self.model[self.settings["model_part_name"].GetString()]
-        new_model_part = self.model.CreateModelPart("model_part_potential_analysis")
-
-        modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(original_model_part, new_model_part, "Element2D3N", "LineCondition2D2N")
-
     @classmethod
     def _GenerateAnalysisparameters(cls, settings):
         defaults = KratosMultiphysics.Parameters("""
         {
-            "problem_data"     : {
-                "problem_name"  : "internal_potential_solver",
-                "parallel_type" : "OpenMP",
-                "echo_level"    : 0,
-                "start_time"    : 0.0,
-                "end_time"      : 1
+            "problem_data":
+            {
+                "problem_name": "internal_potential_solver",
+                "parallel_type": "OpenMP",
+                "echo_level": 0,
+                "start_time": 0.0,
+                "end_time": 1
             },
-            "output_processes" : {
+            "output_processes":
+            {},
+            "solver_settings":
+            {
+                "model_part_name": "model_part_potential_analysis",
+                "domain_size": 2,
+                "solver_type": "potential_flow",
+                "model_import_settings":
+                {
+                    "input_type": "use_input_model_part"
+                },
+                "material_import_settings":
+                {
+                    "materials_filename": "{replace_me}"
+                },
+                "formulation":
+                {
+                    "element_type": "compressible"
+                },
+                "maximum_iterations": 10,
+                "echo_level": 0,
+                "volume_model_part_name": "{replace_me}",
+                "skin_parts": ["{replace_me}"],
+                "no_skin_parts": [],
+                "reform_dofs_at_each_step": false
             },
-            "solver_settings"  : {
-                "model_part_name"          : "model_part_potential_analysis",
-                "domain_size"              : 2,
-                "solver_type"              : "potential_flow",
-                "model_import_settings"    : {
-                    "input_type"     : "use_input_model_part"
-                },
-                "material_import_settings" : {
-                    "materials_filename" : "{replace_me}"
-                },
-                "formulation": {
-                    "element_type" : "compressible"
-                },
-                "maximum_iterations"       : 10,
-                "echo_level"               : 0,
-                "volume_model_part_name"   : "{replace_me}",
-                "skin_parts"               : [{replace_me}],
-                "no_skin_parts"            : [],
-                "reform_dofs_at_each_step" : false
-            },
-            "processes"        : {
-                "boundary_conditions_process_list" : [{replace_me}],
-                "auxiliar_process_list"            : []
+            "processes":
+            {
+                "boundary_conditions_process_list": ["{replace_me}"],
+                "auxiliar_process_list": []
             }
         }
         """)
-        defaults["solver_settings"]["model_part_name"] = settings["model_part_name"]
+
         defaults["solver_settings"]["volume_model_part_name"] = settings["volume_model_part_name"]
         defaults["solver_settings"]["skin_parts"] = settings["skin_parts"]
-        defaults["solver_settings"]["materials_filename"] = settings["materials_filename"]
-        defaults["boundary_conditions_process_list"] = settings["boundary_conditions_process_list"]
+        defaults["solver_settings"]["material_import_settings"]["materials_filename"] = settings["materials_filename"]
+        defaults["processes"]["boundary_conditions_process_list"] = settings["boundary_conditions_process_list"]
 
         return defaults
