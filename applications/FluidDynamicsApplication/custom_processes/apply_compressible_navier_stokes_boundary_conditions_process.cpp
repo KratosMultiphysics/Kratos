@@ -77,10 +77,17 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSo
         const auto& r_flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
 
         const double mach = rNode.GetValue(MACH);
-        const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / norm_2(r_flow_direction);
+        const double flow_direction_norm = norm_2(r_flow_direction);
+        
+        bool supersonic = false;
+        
+        if(std::abs(flow_direction_norm) > std::numeric_limits<double>::min())
+        {
+            const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / flow_direction_norm;
+            supersonic = std::abs(mach_projection) >= 1.0;
+        }
         
         // Chosing BC set to enforce according to mach
-        const bool supersonic = fabs(mach_projection) >= 1.0;
         const auto& active_bc  = supersonic ? mSupersonicBCs : mSubsonicBCs;
 
         for(const auto& boundary_condition: active_bc)
