@@ -33,8 +33,12 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected):
+    def WriteData(self, error_model_part, velocity_error_projected, pressure_error_projected, projection_type, model_type, subscale_type):
         self.error_model_part = error_model_part
+
+        self.projection_type = projection_type
+        self.model_type = model_type
+        self.subscale_type = subscale_type
 
         for Element in self.error_model_part.Elements:
             self.element_size = Element.GetGeometry().Length()
@@ -63,6 +67,10 @@ class ErrorProjectionPostProcessTool(object):
         self.sub_group.attrs['element_size'] = str(self.element_size)
         self.sub_group.attrs['n_elements'] = str(len(self.error_model_part.Elements))
         self.sub_group.attrs['delta_time'] = str(self.error_model_part.ProcessInfo[Kratos.DELTA_TIME])
+        self.sub_group.attrs['projection_type'] = str(self.projection_type)
+        self.sub_group.attrs['model_type'] = str(self.model_type)
+        self.sub_group.attrs['subscale_type'] = str(self.subscale_type)
+
         for name, datum in zip(names, data):
             if name in file_or_group:
                 file_or_group.__delitem__(name)
