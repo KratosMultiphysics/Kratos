@@ -269,8 +269,7 @@ std::string ApplyMachDependentBoundaryConditions::Info() const
 }
 
 
-void ApplyMachDependentBoundaryConditions::
-    PrintInfo(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "ApplyMachDependentBoundaryConditions";
 }
