@@ -25,7 +25,7 @@
 namespace Kratos {
 namespace Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
 {
     Model model;
     unsigned int buffer_size = 2;
@@ -51,6 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
 
     // Process info creation
     double delta_time = 0.1;
+    model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
     model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
 
     // Set the element properties
@@ -81,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     }
 
     std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
-    model_part.CreateNewElement("DVMSDEMCoupled2D4N", 1, element_nodes, p_properties);
+    model_part.CreateNewElement("AlternativeQSVMSDEMCoupled2D4N", 1, element_nodes, p_properties);
 
     // Loop starts at 1 because you need one less clone than time steps (JC)
     for (unsigned int i = 1; i < buffer_size; i++) {
@@ -114,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {2.186533804,2.973017643,-0.059632738,-3.422867224,1.8160847,-0.0474755927,-5.326122843,-5.034362124,-0.03999724473,0.2908305509,-6.026365931,-0.05289442457}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {-2.612132937,-1.825649098,-0.02444088699,-10.26505248,-5.026100555,-0.05018263308,-19.91543582,-19.6236751,-0.06731403955,-14.87404543,-21.19124191,-0.05806244039}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
@@ -123,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-        std::cout.precision(10);
-        //std::cout << i->Info() << RHS << std::endl;
+
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
