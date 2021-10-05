@@ -1,10 +1,8 @@
 Begin ModelPartData
-// VARIABLE_NAME value
 End ModelPartData
 
 Begin Properties 1
 End Properties
-
 
 Begin Nodes
 10 -2 1  -0.5
@@ -22,23 +20,10 @@ Begin Conditions RigidFace3D3N
 12 1 14 15 16
 End Conditions
 
-Begin SubModelPart 1 // DEM-FEM-Wall. Group name: disc
-  Begin SubModelPartData // DEM-FEM-Wall. Group name: disc
-  LINEAR_VELOCITY [3] (0.0,0.0,0.0)
-  VELOCITY_PERIOD 0.0
-  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
-  ROTATION_CENTER [3] (0.0,0.0,0.0)
-  ANGULAR_VELOCITY_PERIOD 0.0
-  VELOCITY_START_TIME 0.0
-  VELOCITY_STOP_TIME 1000.0
-  ANGULAR_VELOCITY_START_TIME 0.0
-  ANGULAR_VELOCITY_STOP_TIME 1000.0
+Begin SubModelPart 1
+  Begin SubModelPartData
   FIXED_MESH_OPTION 0
   RIGID_BODY_MOTION 1
-  IDENTIFIER disc
-  TOP 0
-  BOTTOM 0
-  FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
   10
@@ -46,31 +31,29 @@ Begin SubModelPart 1 // DEM-FEM-Wall. Group name: disc
   12
   13
   End SubModelPartNodes
+  Begin SubModelPartConditions
+    10
+    11
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
 End SubModelPart
 
-Begin SubModelPart 2 // DEM-FEM-Wall. Group name: disc
-  Begin SubModelPartData // DEM-FEM-Wall. Group name: disc
-  LINEAR_VELOCITY [3] (5.0,0.0,0.0)
-  VELOCITY_PERIOD 0.0
-  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
-  ROTATION_CENTER [3] (0.0,0.0,0.0)
-  ANGULAR_VELOCITY_PERIOD 0.0
-  VELOCITY_START_TIME 0.0
-  VELOCITY_STOP_TIME 1000.0
-  ANGULAR_VELOCITY_START_TIME 0.0
-  ANGULAR_VELOCITY_STOP_TIME 1000.0
+Begin SubModelPart 2
+  Begin SubModelPartData
   FIXED_MESH_OPTION 0
   RIGID_BODY_MOTION 1
-  IDENTIFIER disc
-  TOP 0
-  BOTTOM 0
-  FORCE_INTEGRATION_GROUP 0
   End SubModelPartData
   Begin SubModelPartNodes
   14
   15
   16
   End SubModelPartNodes
+  Begin SubModelPartConditions
+    12
+  End SubModelPartConditions
+  Begin SubModelPartTables
+  End SubModelPartTables
 End SubModelPart
 
 

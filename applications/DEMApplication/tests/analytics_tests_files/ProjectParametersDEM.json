@@ -1,7 +1,7 @@
 {
 "Dimension"                        : 3,
 "PeriodicDomainOption"             : false,
-"BoundingBoxOption"                : true,
+"BoundingBoxOption"                : false,
 "AutomaticBoundingBoxOption"       : false,
 "BoundingBoxEnlargementFactor"     : 1.0,
 "BoundingBoxStartTime"             : 0.0,
@@ -16,7 +16,7 @@
 "dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
-"GravityZ"                         : -9.81,
+"GravityZ"                         : 0.0,
 
 "EnergyCalculationOption"          : false,
 "VelocityTrapOption"               : false,
@@ -28,10 +28,83 @@
     "material_import_settings"           : {
         "materials_filename" : "MaterialsDEM.json"
     }
+
+},
+"processes"        : {
+    "constraints_process_list" : [{
+        "python_module" : "processes.apply_kinematic_constraints_process",
+        "kratos_module" : "KratosMultiphysics.DEMApplication",
+        "Parameters"    : {
+            "model_part_name" : "SpheresPart.2",
+    "velocity_constraints_settings" : {
+                "constrained"          : [true,false,false],
+                "value"                : [-3.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "angular_velocity_constraints_settings" : {
+                "constrained"          : [false,false,false],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "interval"             : [0.0, 2e-4]
+        }
+    },{
+        "python_module" : "processes.apply_kinematic_constraints_process",
+        "kratos_module" : "KratosMultiphysics.DEMApplication",
+        "Parameters"    : {
+            "model_part_name" : "SpheresPart.3",
+    "velocity_constraints_settings" : {
+                "constrained"          : [true,false,false],
+                "value"                : [-5.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "angular_velocity_constraints_settings" : {
+                "constrained"          : [false,false,false],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "interval"             : [0.0, 2e-4]
+        }
+    },{
+        "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+        "kratos_module" : "KratosMultiphysics.DEMApplication",
+        "Parameters"    : {
+            "model_part_name" : "RigidFacePart.1",
+    "velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "angular_velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "interval"             : [0.0, 1.0e30]
+        }
+    },{
+        "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+        "kratos_module" : "KratosMultiphysics.DEMApplication",
+        "Parameters"    : {
+            "model_part_name" : "RigidFacePart.2",
+            "velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [5.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "angular_velocity_constraints_settings" : {
+                "constrained"          : [true, true, true],
+                "value"                : [0.0, 0.0, 0.0],
+                "table"                : [null, null, null]
+            },
+            "interval"             : [0.0, 1.0e30]
+        }
+    }],
+    "loads_process_list"       : [],
+    "list_other_processes"     : []
 },
 
 "RemoveBallsInEmbeddedOption"      : true,
-
 "DeltaOption"                      : "Absolute",
 "SearchTolerance"                  : 0.0,
 "AmplifiedSearchRadiusExtension"   : 0.0,
@@ -53,15 +126,15 @@
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 50,
 
-"GraphExportFreq"                  : 1e-3,
-"VelTrapGraphExportFreq"           : 1e-3,
-"OutputTimeStep"                   : 1e-2,
+"GraphExportFreq"                  : 1,
+"VelTrapGraphExportFreq"           : 1,
+"OutputTimeStep"                   : 1,
 "PostBoundingBox"                  : true,
 "PostDisplacement"                 : false,
 "PostVelocity"                     : true,
 "PostTotalForces"                  : false,
 "PostRigidElementForces"           : false,
-"PostRadius"                       : true,
+"PostRadius"                       : false,
 "PostAngularVelocity"              : true,
 "PostParticleMoment"               : false,
 "PostEulerAngles"                  : false,

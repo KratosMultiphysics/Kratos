@@ -25,28 +25,21 @@ class AnalyticsTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
+    def Finalize(self):
         tolerance = 1e-3
         for node in self.spheres_model_part.Nodes:
             normal_impact_vel = node.GetSolutionStepValue(DEM.NORMAL_IMPACT_VELOCITY)
             face_normal_impact_vel = node.GetSolutionStepValue(DEM.FACE_NORMAL_IMPACT_VELOCITY)
             if node.Id == 1:
-                if self.time > 0.099:
-                    expected_value = 11.07179
+                    expected_value = 10.97245
                     self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
                     expected_value = 6.941702
+                    #wall constant speed 5 + ball speed
                     self.assertAlmostEqual(face_normal_impact_vel, expected_value, delta=tolerance)
-            if node.Id == 2:
-                if self.time > 0.099:
-                    expected_value = 16.29633
-                    self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
-            if node.Id == 3:
-                if self.time > 0.099:
-                    expected_value = 16.29633
+            if (node.Id == 2 or node.Id == 3):
+                    expected_value = 16.24117
                     self.assertAlmostEqual(normal_impact_vel, expected_value, delta=tolerance)
 
-    def Finalize(self):
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
