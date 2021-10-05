@@ -1169,6 +1169,31 @@ void AddPotentialGradientStabilizationTerm(
     noalias(rRightHandSideVector) += stabilization_factor*(stabilization_term_nodal_gradient-prod(stabilization_term_potential, potential));
 }
 
+void ComputeMeshMetrics2D(ModelPart& rModelPart) {
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        array_1d<double, 3> tensor_2d = ZeroVector(3);
+        const double nodal_h = rNode.GetValue(NODAL_H);
+        tensor_2d[0] = 1/(nodal_h*nodal_h);
+        tensor_2d[1] = 1/(nodal_h*nodal_h);
+        rNode.SetValue(POTENTIAL_METRIC_TENSOR_2D, tensor_2d);
+    });
+
+}
+
+void ComputeMeshMetrics3D(ModelPart& rModelPart) {
+
+    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode) {
+        array_1d<double, 6> tensor_3d = ZeroVector(6);
+        const double nodal_h = rNode.GetValue(NODAL_H);
+        tensor_3d[0] = 1/(nodal_h*nodal_h);
+        tensor_3d[1] = 1/(nodal_h*nodal_h);
+        tensor_3d[2] = 1/(nodal_h*nodal_h);
+        rNode.SetValue(POTENTIAL_METRIC_TENSOR_3D, tensor_3d);
+    });
+
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template instantiation
 

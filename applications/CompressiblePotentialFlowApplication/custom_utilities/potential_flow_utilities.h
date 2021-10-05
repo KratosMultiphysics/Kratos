@@ -203,6 +203,10 @@ void AddPotentialGradientStabilizationTerm(Element& rElement,
                               Vector& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
 
+void ComputeMeshMetrics2D(ModelPart& rModelPart);
+
+void ComputeMeshMetrics3D(ModelPart& rModelPart);
+
 } // namespace PotentialFlow
 } // namespace Kratos
 
