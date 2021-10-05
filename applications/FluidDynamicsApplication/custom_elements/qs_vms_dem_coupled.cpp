@@ -492,7 +492,7 @@ void QSVMSDEMCoupled<TElementData>::SubscaleVelocity(
 
     array_1d<double,3> Residual = ZeroVector(3);
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMomentumResidual(rData,convective_velocity,Residual);
     else
         this->OrthogonalMomentumResidual(rData,convective_velocity,Residual);
@@ -515,7 +515,7 @@ void QSVMSDEMCoupled<TElementData>::SubscalePressure(
 
     double Residual = 0.0;
 
-    if (rData.UseOSS != 1.0)
+    if (!rData.UseOSS)
         this->AlgebraicMassResidual(rData,Residual);
     else
         this->OrthogonalMassResidual(rData,Residual);

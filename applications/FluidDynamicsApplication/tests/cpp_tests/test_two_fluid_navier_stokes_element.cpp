@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Daniel Diez, Ruben Zorrilla
+//  Main authors:    Daniel Diez, Ruben Zorrilla, Uxue Chasco
 //
 //
 
@@ -1996,7 +1996,7 @@ namespace Kratos {
             bdf_coefs[1] = -2.0/delta_time;
             bdf_coefs[2] = 0.5*delta_time;
             modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
-            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+            modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 10.0);
 
             // Set the element properties
             Properties::Pointer pElemProp = modelPart.CreateNewProperties(0);
@@ -2066,22 +2066,22 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
             Vector reference_RHS = ZeroVector(16);
-            reference_RHS[0] = -118.03889688;
-            reference_RHS[1] = 14.78243843;
-            reference_RHS[2] = -213.62425998;
-            reference_RHS[3] = -0.05448084;
-            reference_RHS[4] = 22.78371861;
-            reference_RHS[5] = 27.42496766;
-            reference_RHS[6] = -403.33194690;
-            reference_RHS[7] = 0.15778148;
-            reference_RHS[8] = 60.36872332;
-            reference_RHS[9] = 15.21517182;
-            reference_RHS[10] = -419.85282231;
-            reference_RHS[11] = 0.00659561;
-            reference_RHS[12] = 80.61562161;
-            reference_RHS[13] = 37.68158875;
-            reference_RHS[14] = -453.71180415;
-            reference_RHS[15] = -0.20989625;
+            reference_RHS[0] = 3782.55;
+            reference_RHS[1] = 2744.98;
+            reference_RHS[2]=3686.97;
+            reference_RHS[3] = -5.52595;
+            reference_RHS[4] = -3777.86;
+            reference_RHS[5] = 237.471;
+            reference_RHS[6] = -453.676;
+            reference_RHS[7] = -4.00642;
+            reference_RHS[8] = 10.2705;
+            reference_RHS[9] = -3395.05;
+            reference_RHS[10] = -469.951;
+            reference_RHS[11] = -2.86019;
+            reference_RHS[12] = 30.7636;
+            reference_RHS[13]=507.703;
+            reference_RHS[14] = -4253.86;
+            reference_RHS[15] = -4.3741;
 
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
