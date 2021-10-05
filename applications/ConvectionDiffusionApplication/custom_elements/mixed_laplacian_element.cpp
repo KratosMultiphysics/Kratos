@@ -105,7 +105,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
     // Get nodal data
-    array_1d<double,3> temp;
+    array_1d<double,TNumNodes> temp;
     array_1d<double,TNumNodes> heat_flux_local;
     array_1d<double,TNumNodes> nodal_conductivity;
     BoundedMatrix<double,TNumNodes, TDim> grad_temp;
