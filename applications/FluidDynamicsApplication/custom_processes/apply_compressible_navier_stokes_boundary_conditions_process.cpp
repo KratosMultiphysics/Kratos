@@ -1,4 +1,4 @@
-#include "apply_mach_dependent_boundary_conditions.h"
+#include "apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "fluid_dynamics_application_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/normal_calculation_utils.h"

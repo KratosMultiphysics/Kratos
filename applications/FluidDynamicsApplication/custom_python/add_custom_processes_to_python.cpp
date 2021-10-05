@@ -40,7 +40,7 @@
 #include "custom_processes/two_fluids_inlet_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
-#include "custom_processes/apply_mach_dependent_boundary_conditions.h"
+#include "custom_processes/apply_compressible_navier_stokes_boundary_conditions_process.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/linear_solver.h"
