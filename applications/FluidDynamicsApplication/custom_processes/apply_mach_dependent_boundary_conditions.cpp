@@ -139,8 +139,7 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    Enforce(NodeType & rNode) const
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Enforce(NodeType& rNode) const
 {
     mEnforceInternal(*this, rNode);
 }
