@@ -1,7 +1,7 @@
 import KratosMultiphysics
 from KratosMultiphysics import FluidDynamicsApplication
 import KratosMultiphysics.KratosUnittest as UnitTest
-from KratosMultiphysics.FluidDynamicsApplication import apply_mach_depenedent_boundary_conditions
+from KratosMultiphysics.FluidDynamicsApplication import apply_compressible_navier_stokes_boundary_conditions_process
 
 
 class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
@@ -106,7 +106,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         }
         """)
 
-        process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+        process = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
         main_model_part = self.model["main_model_part"]
 
         process.ExecuteInitialize()
@@ -191,7 +191,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         }
         """)
 
-        process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+        process = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
         model_part = self.model["main_model_part"]
 
         process.ExecuteInitialize()
@@ -298,7 +298,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         }
         """)
 
-        process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+        process = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
         model_part = self.model["main_model_part"]
 
         process.ExecuteInitialize()
@@ -353,7 +353,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         """)
 
         with self.assertRaises(RuntimeError) as context:
-            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+            _ = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
 
         self.assertIn("Missing double (or vector) field 'value' in boundary condition", str(context.exception))
         self.assertIn("DENSITY", str(context.exception))
@@ -377,7 +377,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         """)
 
         with self.assertRaises(RuntimeError) as context:
-            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+            _ = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
 
         self.assertIn("Missing boolean array field \'constrained", str(context.exception))
         self.assertIn("VELOCITY", str(context.exception))
@@ -402,7 +402,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         """)
 
         with self.assertRaises(RuntimeError) as context:
-            _ = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+            _ = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
 
         self.assertIn("Allowed vector variables are at most 3-dimensional", str(context.exception))
         self.assertIn("VELOCITY", str(context.exception))
@@ -435,7 +435,7 @@ class ApplyMachDependentBoundaryConditionsTest(UnitTest.TestCase):
         }
         """)
 
-        process = apply_mach_depenedent_boundary_conditions.Factory(settings, self.model)
+        process = apply_compressible_navier_stokes_boundary_conditions_process.Factory(settings, self.model)
         main_model_part = self.model["main_model_part"]
 
         process.ExecuteInitialize()
