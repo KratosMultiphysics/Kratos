@@ -37,7 +37,7 @@ from adjoint_conditions import TestAdjointMonolithicWallCondition
 from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
-from apply_mach_dependent_boundary_conditions_test import ApplyMachDependentBoundaryConditionsTest
+from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
