@@ -18,7 +18,6 @@
 #include "co_sim_io_conversion_utilities.h"
 
 namespace Kratos {
-
 namespace {
 
 //  TODO refactor with switch?
