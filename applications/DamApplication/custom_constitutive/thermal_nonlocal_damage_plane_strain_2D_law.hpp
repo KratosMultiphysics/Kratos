@@ -56,7 +56,7 @@ public:
         return 2;
     }
 
-    SizeType GetStrainSize() override
+    SizeType GetStrainSize() const override
     {
         return 3;
     }
