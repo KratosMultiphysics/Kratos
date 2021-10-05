@@ -128,7 +128,7 @@
 
 "GraphExportFreq"                  : 1,
 "VelTrapGraphExportFreq"           : 1,
-"OutputTimeStep"                   : 1,
+"OutputTimeStep"                   : 0.1,
 "PostBoundingBox"                  : true,
 "PostDisplacement"                 : false,
 "PostVelocity"                     : true,
