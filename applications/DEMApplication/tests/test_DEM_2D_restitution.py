@@ -27,14 +27,8 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    '''def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        for node in self.spheres_model_part.Nodes:
-            final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
-            print(final_vel)'''
-
     def Finalize(self):
-        tolerance = 0.1
+        tolerance = 1e-5
         for node in self.spheres_model_part.Nodes:
             final_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             Logger.PrintInfo("initial velocity:", self.initial_normal_vel)
@@ -82,7 +76,7 @@ class DEM2D_RestitutionTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-        self.coeff = 1.0
+        self.coeff = 1.0 # analytic value should be 1.0
 
 class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
 
@@ -93,7 +87,7 @@ class DEM2D_RestitutionTestSolution_2(DEM2D_RestitutionTestSolution):
 
     @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
-        self.coeff = 0.5
+        self.coeff = 0.46637 # analytic value should be 0.5
 
 class TestDEM2DRestitution(KratosUnittest.TestCase):
 
@@ -111,7 +105,6 @@ class TestDEM2DRestitution(KratosUnittest.TestCase):
     def test_DEM2D_restitution_2(self):
         path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "DEM2D_restitution_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
-        materials_file_name = os.path.join(path, "MaterialsDEM2.json")
         model = KratosMultiphysics.Model()
         auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(DEM2D_RestitutionTestSolution_2, model, parameters_file_name, auxiliary_functions_for_tests.GetHardcodedNumberOfThreads())
 

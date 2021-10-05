@@ -38,7 +38,7 @@
 "ContactMeshOption"                : false,
 "OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
-"TranslationalIntegrationScheme"   : "Forward_Euler",
+"TranslationalIntegrationScheme"   : "Symplectic_Euler",
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
@@ -50,8 +50,8 @@
 
 "ElementType"                      : "CylinderPartDEMElement2D",
 
-"GraphExportFreq"                  : 0.000001,
-"VelTrapGraphExportFreq"           : 1e-3,
+"GraphExportFreq"                  : 1,
+"VelTrapGraphExportFreq"           : 1,
 "OutputTimeStep"                   : 1,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
