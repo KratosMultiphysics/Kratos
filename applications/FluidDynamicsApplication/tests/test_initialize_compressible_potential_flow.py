@@ -40,6 +40,9 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             model = KratosMultiphysics.Model()
             mpart = model.CreateModelPart("main_model_part")
             mpart.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENTUM)
+            mpart.AddNodalSolutionStepVariable(KratosMultiphysics.TOTAL_ENERGY)
             ReadModelPart(work_file, mpart)
 
             process = initialize_with_compressible_potential_solution_process.Factory(self._GetSettings(), model)
@@ -54,12 +57,15 @@ class InitializeWithCompressiblePotentialSolutionProcessTest(KratosUnittest.Test
             {
                 "Parameters" : {
                     "model_part_name": "main_model_part",
-                    "volume_model_part_name": "model_part_potential_analysis.Fluid",
+                    "volume_model_part_name": "Fluid",
                     "skin_parts": ["Inlet","Outlet","Walls"],
-                    "materials_filename": "fluid_materials.json",
-                    "free_stream_density": 1.19659,
-                    "free_stream_momentum": 329.598,
-                    "free_stream_energy": 298706.0,
+                    "properties" : {
+                        "c_v" : 722.14,
+                        "gamma" : 1.4,
+                        "free_stream_density" : 1.19659,
+                        "free_stream_momentum" : 329.598,
+                        "free_stream_energy" : 298706.0
+                    },
                     "boundary_conditions_process_list": [
                         {
                             "python_module": "apply_far_field_process",

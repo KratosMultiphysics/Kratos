@@ -1,4 +1,5 @@
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 from KratosMultiphysics.CompressiblePotentialFlowApplication.potential_flow_analysis import PotentialFlowAnalysis
 from KratosMultiphysics.CompressiblePotentialFlowApplication import ComputeNodalValueProcess
 
@@ -21,6 +22,8 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         self.analysis_parameters = self._GenerateAnalysisparameters(self.settings)
         self.analysis = None
 
+        self.freestream_properties = self._GenerateFreeStreamProperties(settings["properties"])
+
 
     def GetDefaultParameters(self):
         return KratosMultiphysics.Parameters("""
@@ -28,26 +31,29 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             "model_part_name" : "",
             "volume_model_part_name" : "",
             "skin_parts" : [],
-            "materials_filename" : "FluidMaterials.json",
             "boundary_conditions_process_list" : [],
-            "free_stream_density" : 1.19659,
-            "free_stream_momentum" : 0,
-            "free_stream_energy" : 2.53313e5
+            "properties" : {
+                "c_v" : 722.14,
+                "gamma" : 1.4,
+                "free_stream_density" : 1.19659,
+                "free_stream_momentum" : 0,
+                "free_stream_energy" : 2.53313e5
+            }
         }
         """)
 
     def ExecuteInitialize(self):
         # Creating model part
-        original_model_part = self.model[self.settings["model_part_name"].GetString()]
-        new_model_part = self.model.CreateModelPart("model_part_potential_analysis")
+        potential_mpart = self.model.CreateModelPart("model_part_potential_analysis")
 
         # Starting analysis
         self.analysis = PotentialFlowAnalysis(self.model, self.analysis_parameters)
 
         # Filling model part
-        KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, new_model_part)
+        original_model_part = self.model[self.settings["model_part_name"].GetString()]
+        KratosMultiphysics.MergeVariableListsUtility().Merge(original_model_part, potential_mpart)
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        modeler.GenerateModelPart(original_model_part, new_model_part, "Element2D3N", "LineCondition2D2N")
+        modeler.GenerateModelPart(original_model_part, potential_mpart, "Element2D3N", "LineCondition2D2N")
 
         # Running analysis
         self.analysis.Run()
@@ -58,14 +64,8 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         nodal_value_process = ComputeNodalValueProcess(computing_model_part, nodal_variables)
         nodal_value_process.Execute()
 
-        # Transfer the potential flow values as initial condition for the compressible problem
-        c_v = computing_model_part.Properties.GetValue("SPECIFIC_HEAT")
-        gamma = computing_model_part.Properties.GetValue("HEAT_CAPACITY_RATIO")
-
-        inlet_properties = self._ComputeInletProperties(c_v, gamma)
-
-        for node in computing_model_part.Nodes():
-            rho, momentum, total_energy = self._ComputeLocalProperties(node, gamma, c_v, inlet_properties)
+        for node in potential_mpart.Nodes:
+            rho, momentum, total_energy = self._ComputeLocalProperties(node)
 
             # Density initial condition
             node.SetSolutionStepValue(KratosMultiphysics.DENSITY, 0, rho)
@@ -77,33 +77,38 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
             node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY, 0, total_energy)
             node.SetSolutionStepValue(KratosMultiphysics.TOTAL_ENERGY, 1, total_energy)
 
-    def _ComputeInletProperties(self, c_v, gamma):
-        inlet_rho = self.settings["free_stream_rho"].GetDouble()
-        inlet_momentum = self.settings["free_stream_momentum"].GetDouble()
-        inlet_energy = self.settings["free_stream_energy"].GetDouble()
+    @classmethod
+    def _GenerateFreeStreamProperties(cls, settings):
+        c_v = settings["c_v"].GetDouble()
+        gamma = settings["gamma"].GetDouble()
+        rho = settings["free_stream_density"].GetDouble()
+        momentum = settings["free_stream_momentum"].GetDouble()
+        total_energy = settings["free_stream_energy"].GetDouble()
 
-        inlet_v = inlet_momentum / inlet_rho
-        inlet_temp = (inlet_energy / inlet_rho - 0.5 * inlet_v**2) / c_v
-        inlet_c = (gamma*(gamma-1.0)*c_v*inlet_temp)**0.5
-        inlet_mach = inlet_v / inlet_c
+        vel = momentum / rho
+        temperature = (total_energy / rho - 0.5 * vel**2) / c_v
+        sound_speed = (gamma*(gamma-1.0)*c_v*temperature)**0.5
+        mach_number = vel / sound_speed
 
-        inlet_properties = {}
-        inlet_properties["rho"] = inlet_rho
-        inlet_properties["temperature"] = inlet_temp
-        inlet_properties["c"] = inlet_c
-        inlet_properties["M"] = inlet_mach
+        freestream_properties = {}
+        freestream_properties["c_v"] = c_v
+        freestream_properties["gamma"] = gamma
+        freestream_properties["rho"] = rho
+        freestream_properties["temperature"] = temperature
+        freestream_properties["c"] = sound_speed
+        freestream_properties["M"] = mach_number
 
-        return inlet_properties
+        return freestream_properties
 
-    def _ComputeLocalProperties(self, node, gamma, c_v, inlet_properties):
+    def _ComputeLocalProperties(self, node):
         vel = node.GetValue(KratosMultiphysics.VELOCITY)
         vel2 = vel[0] * vel[0] + vel[1] * vel[1]
         vel_norm = vel2**0.5
-        mach = vel_norm / inlet_properties["c"]
-        num = 1.0 + 0.5 * (gamma - 1.0) * inlet_properties["M"]**2
-        det = 1.0 + 0.5 * (gamma - 1.0) * mach**2
-        rho = inlet_properties["rho"] * (num / det)**(1.0 / (gamma - 1.0))
-        total_energy = rho * (c_v * inlet_properties["temperature"] + 0.5 * vel2)
+        mach = vel_norm / self.freestream_properties["c"]
+        num = 1.0 + 0.5 * (self.freestream_properties["gamma"] - 1.0) * self.freestream_properties["M"]**2
+        det = 1.0 + 0.5 * (self.freestream_properties["gamma"] - 1.0) * mach**2
+        rho = self.freestream_properties["rho"] * (num / det)**(1.0 / (self.freestream_properties["gamma"] - 1.0))
+        total_energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
 
         return rho, vel_norm*rho, total_energy
 
@@ -130,10 +135,6 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
                 {
                     "input_type": "use_input_model_part"
                 },
-                "material_import_settings":
-                {
-                    "materials_filename": "{replace_me}"
-                },
                 "formulation":
                 {
                     "element_type": "compressible"
@@ -155,7 +156,6 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
 
         defaults["solver_settings"]["volume_model_part_name"] = settings["volume_model_part_name"]
         defaults["solver_settings"]["skin_parts"] = settings["skin_parts"]
-        defaults["solver_settings"]["material_import_settings"]["materials_filename"] = settings["materials_filename"]
         defaults["processes"]["boundary_conditions_process_list"] = settings["boundary_conditions_process_list"]
 
         return defaults
