@@ -6,7 +6,7 @@ namespace Kratos
 {
 
 
-ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
+ApplyCompressibleNavierStokesBoundaryConditionsProcess::ApplyCompressibleNavierStokesBoundaryConditionsProcess(
     Model& rModel,
     Parameters Parameters)
 {
@@ -42,13 +42,13 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
     KRATOS_CATCH("");
 }
 
-void ApplyMachDependentBoundaryConditions::ExecuteInitialize()
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitialize()
 {
     NormalCalculationUtils().CalculateUnitNormals<Condition>(*mpModelPart);
 }
 
 
-void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteInitializeSolutionStep()
 {
     if(mRefreshNormalsEveryTimeStep)
     {
@@ -90,7 +90,7 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
     });
 }
 
-void ApplyMachDependentBoundaryConditions::ExecuteFinalizeSolutionStep()
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteFinalizeSolutionStep()
 {
     block_for_each(mpModelPart->Nodes(), [&](NodeType & rNode)
     {
@@ -107,7 +107,7 @@ void ApplyMachDependentBoundaryConditions::ExecuteFinalizeSolutionStep()
 }
 
 
-ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::BoundaryConditionUtility(
+ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::BoundaryConditionUtility(
     const std::string &rVariableName,
     const double Value,
     const IntervalUtility& rIntervalUtility)
@@ -125,7 +125,7 @@ ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::BoundaryConditio
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::
     ActivateIfInsideTimeInterval(const double time)
 {
     if(mInterval.IsInInterval(time))
@@ -139,19 +139,19 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Enforce(NodeType& rNode) const
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::Enforce(NodeType& rNode) const
 {
     mEnforceInternal(*this, rNode);
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Free(NodeType& rNode) const
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::Free(NodeType& rNode) const
 {
     rNode.pGetDof(*mpVariable)->FreeDof();
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FixDof(
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::FixDof(
     const BoundaryConditionUtility & rUtility,
     NodeType & rNode)
 {
@@ -160,14 +160,14 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::FixDof(
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::DoNothing(
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::DoNothing(
     const BoundaryConditionUtility & rUtility,
     NodeType & rNode)
 {
 }
 
 
-void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryCondition(
     std::vector<BoundaryConditionUtility> & rBCList,
     Parameters Parameters)
 {
@@ -227,13 +227,13 @@ void ApplyMachDependentBoundaryConditions::ReadBoundaryCondition(
         return;
     }
 
-    KRATOS_ERROR << "ApplyMachDependentBoundaryConditions supports only double and vector variables:\n" << Parameters << std::endl;
+    KRATOS_ERROR << "ApplyCompressibleNavierStokesBoundaryConditionsProcess supports only double and vector variables:\n" << Parameters << std::endl;
 
     KRATOS_CATCH("");
 }
 
 
-const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() const
+const Parameters ApplyCompressibleNavierStokesBoundaryConditionsProcess::GetDefaultParameters() const
 {
     return Parameters(R"(
     {
@@ -263,19 +263,19 @@ const Parameters ApplyMachDependentBoundaryConditions::GetDefaultParameters() co
 }
 
 
-std::string ApplyMachDependentBoundaryConditions::Info() const
+std::string ApplyCompressibleNavierStokesBoundaryConditionsProcess::Info() const
 {
-    return "ApplyMachDependentBoundaryConditions";
+    return "ApplyCompressibleNavierStokesBoundaryConditionsProcess";
 }
 
 
-void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::PrintInfo(std::ostream& rOStream) const
 {
-    rOStream << "ApplyMachDependentBoundaryConditions";
+    rOStream << "ApplyCompressibleNavierStokesBoundaryConditionsProcess";
 }
 
 
-void ApplyMachDependentBoundaryConditions::
+void ApplyCompressibleNavierStokesBoundaryConditionsProcess::
     PrintData(std::ostream& rOStream) const
 {
 }
@@ -284,7 +284,7 @@ void ApplyMachDependentBoundaryConditions::
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const ApplyMachDependentBoundaryConditions& rThis)
+    const ApplyCompressibleNavierStokesBoundaryConditionsProcess& rThis)
 {
     rThis.PrintData(rOStream);
     return rOStream;

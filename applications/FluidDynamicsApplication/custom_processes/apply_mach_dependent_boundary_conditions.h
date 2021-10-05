@@ -70,7 +70,7 @@ namespace Kratos
    * @param supersonic_boundary_conditions  A list of variables to fix when
    *    the mach projected onto the normal of the boundary is above 1.
    */
-  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyMachDependentBoundaryConditions: public Process
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) ApplyCompressibleNavierStokesBoundaryConditionsProcess: public Process
   {
   public:
         ///@name Type Definitions
@@ -140,15 +140,15 @@ namespace Kratos
             decltype(FixDof) * mEnforceInternal = & DoNothing;
         };
 
-        /// Pointer definition of ApplyMachDependentBoundaryConditions
-        KRATOS_CLASS_POINTER_DEFINITION(ApplyMachDependentBoundaryConditions);
+        /// Pointer definition of ApplyCompressibleNavierStokesBoundaryConditionsProcess
+        KRATOS_CLASS_POINTER_DEFINITION(ApplyCompressibleNavierStokesBoundaryConditionsProcess);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Constructor
-        ApplyMachDependentBoundaryConditions(Model& rModel, Parameters Parameters);
+        ApplyCompressibleNavierStokesBoundaryConditionsProcess(Model& rModel, Parameters Parameters);
 
 
         ///@}
@@ -244,15 +244,15 @@ namespace Kratos
         ///@{
 
         /// Assignment operator.
-        ApplyMachDependentBoundaryConditions& operator=(ApplyMachDependentBoundaryConditions const& rOther);
+        ApplyCompressibleNavierStokesBoundaryConditionsProcess& operator=(ApplyCompressibleNavierStokesBoundaryConditionsProcess const& rOther);
 
         /// Copy constructor.
-        ApplyMachDependentBoundaryConditions(ApplyMachDependentBoundaryConditions const& rOther);
+        ApplyCompressibleNavierStokesBoundaryConditionsProcess(ApplyCompressibleNavierStokesBoundaryConditionsProcess const& rOther);
 
 
         ///@}
 
-        }; // Class ApplyMachDependentBoundaryConditions
+        }; // Class ApplyCompressibleNavierStokesBoundaryConditionsProcess
 
     ///@}
 
@@ -268,7 +268,7 @@ namespace Kratos
     /// output stream function
     inline std::ostream& operator << (
         std::ostream& rOStream,
-        const ApplyMachDependentBoundaryConditions& rThis);
+        const ApplyCompressibleNavierStokesBoundaryConditionsProcess& rThis);
 
     ///@}
 
