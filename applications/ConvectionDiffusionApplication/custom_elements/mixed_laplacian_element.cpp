@@ -154,8 +154,8 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
 
         // Calculate stabilization constants
         const double h = ElementSizeCalculator<TDim, TNumNodes>::AverageElementSize(r_geometry);
-        const double tau_temp = 0.0001*std::pow(h,2)/k_g;
-        const double tau_grad = 0.0001;
+        const double tau_temp = 0.1*std::pow(h,2)/k_g;
+        const double tau_grad = 0.1;
 
         // Calculating the local RHS
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
@@ -164,7 +164,7 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
             // Volumetric force terms
             rRightHandSideVector(i_node*BlockSize) += w_g * f_g * aux_N(i_node);
             for (std::size_t d = 0; d < TDim; ++d) {
-                rRightHandSideVector(i_node*BlockSize + d + 1) += w_g * tau_temp * aux_grad_N_i(d) * f_g;
+                rRightHandSideVector(i_node*BlockSize + d + 1) -= w_g * tau_temp * aux_grad_N_i(d) * f_g;
             }
 
             for (std::size_t j_node = 0; j_node < TNumNodes; ++j_node) {
@@ -172,32 +172,32 @@ void MixedLaplacianElement<TDim, TNumNodes>::CalculateLocalSystem(
                 noalias(aux_grad_N_j) = row(DN_DX, j_node);
                 noalias(grad_temp_j) = row(grad_temp, j_node);
 
-                const double aux_1 = w_g * (1+tau_grad) * k_g * aux_N(j_node);
-                const double aux_3 = w_g * (1+tau_grad) * aux_N(i_node) * aux_N(j_node);
+                const double aux_1 = w_g * (1-tau_grad) * k_g * aux_N(j_node);
+                const double aux_3 = w_g * (1-tau_grad) * aux_N(i_node) * aux_N(j_node);
                 for (std::size_t d = 0; d < TDim; ++d) {
 
                     rRightHandSideVector(i_node*BlockSize) -= aux_1 * aux_grad_N_i(d) * grad_temp_j(d);
                     rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize + d + 1) += aux_1 * aux_grad_N_i(d);
 
                     const double aux_2 = w_g * tau_grad * k_g * aux_grad_N_i(d) * aux_grad_N_j(d);
-                    rRightHandSideVector(i_node*BlockSize) += aux_2 * temp_j;
-                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize) -= aux_2;
+                    rRightHandSideVector(i_node*BlockSize) -= aux_2 * temp_j;
+                    rLeftHandSideMatrix(i_node*BlockSize, j_node*BlockSize) += aux_2;
 
-                    rRightHandSideVector(i_node*BlockSize + d + 1) += aux_3 * grad_temp_j(d);
-                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d + 1) -= aux_3;
+                    rRightHandSideVector(i_node*BlockSize + d + 1) -= aux_3 * grad_temp_j(d);
+                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d + 1) += aux_3;
 
-                    const double aux_4 = w_g * (1+tau_grad) * aux_N(i_node) * aux_grad_N_j(d);
-                    rRightHandSideVector(i_node*BlockSize + d + 1) -= aux_4 * temp_j;
-                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize) += aux_4;
+                    const double aux_4 = w_g * (1-tau_grad) * aux_N(i_node) * aux_grad_N_j(d);
+                    rRightHandSideVector(i_node*BlockSize + d + 1) += aux_4 * temp_j;
+                    rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize) -= aux_4;
 
                     for (std::size_t d2 = 0; d2 < TDim; ++d2) {
                         const double aux_5 = w_g * k_g * tau_temp * aux_grad_N_i(d) * aux_grad_N_j(d2);
-                        rRightHandSideVector(i_node*BlockSize + d + 1) += aux_5 * grad_temp_j(d2);
-                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) -= aux_5;
+                        rRightHandSideVector(i_node*BlockSize + d + 1) -= aux_5 * grad_temp_j(d2);
+                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) += aux_5;
 
                         const double aux_6 = w_g * tau_temp *aux_grad_N_i(d) * grad_k_g(d2) * aux_N(j_node);
-                        rRightHandSideVector(i_node*BlockSize + d + 1) += aux_6 * grad_temp_j(d2);
-                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) -= aux_6;
+                        rRightHandSideVector(i_node*BlockSize + d + 1) -= aux_6 * grad_temp_j(d2);
+                        rLeftHandSideMatrix(i_node*BlockSize + d + 1, j_node*BlockSize + d2 + 1) += aux_6;
                     }
                 }
             }
