@@ -29,12 +29,12 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
     mSubsonicBCs.reserve(Parameters["subsonic_boundary_conditions"].size());
     mSupersonicBCs.reserve(Parameters["supersonic_boundary_conditions"].size());
 
-    for(auto & var_settings : Parameters["subsonic_boundary_conditions"])
+    for(auto var_settings : Parameters["subsonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSubsonicBCs, var_settings);
     }
 
-    for(auto & var_settings : Parameters["supersonic_boundary_conditions"])
+    for(auto var_settings : Parameters["supersonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSupersonicBCs, var_settings);
     }
@@ -75,7 +75,7 @@ void ApplyMachDependentBoundaryConditions::ExecuteInitializeSolutionStep()
         const auto & r_normal = rNode.FastGetSolutionStepValue(NORMAL);
         const auto & r_flow_direction = rNode.FastGetSolutionStepValue(*mpFlowDirectionVariable);
 
-        const double & mach = rNode.GetValue(MACH);
+        const double mach = rNode.GetValue(MACH);
         const double mach_projection = mach * inner_prod(r_normal, r_flow_direction) / norm_2(r_flow_direction);
         
         // Chosing BC set to enforce according to mach
@@ -107,11 +107,12 @@ void ApplyMachDependentBoundaryConditions::ExecuteFinalizeSolutionStep()
 }
 
 
-ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    BoundaryConditionUtility(const std::string & variable_name,
-                            const double Value,
-                            const IntervalUtility & rIntervalUtility)
-    : mValue(Value), mInterval(rIntervalUtility)
+ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::BoundaryConditionUtility(
+    const std::string &rVariableName,
+    const double Value,
+    const IntervalUtility& rIntervalUtility)
+    : mValue(Value)
+    , mInterval(rIntervalUtility)
 {
     KRATOS_TRY
 
@@ -138,15 +139,13 @@ void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    Enforce(NodeType & rNode) const
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Enforce(NodeType& rNode) const
 {
     mEnforceInternal(*this, rNode);
 }
 
 
-void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    Free(NodeType & rNode) const
+void ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::Free(NodeType& rNode) const
 {
     rNode.pGetDof(*mpVariable)->FreeDof();
 }
@@ -270,8 +269,7 @@ std::string ApplyMachDependentBoundaryConditions::Info() const
 }
 
 
-void ApplyMachDependentBoundaryConditions::
-    PrintInfo(std::ostream& rOStream) const
+void ApplyMachDependentBoundaryConditions::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "ApplyMachDependentBoundaryConditions";
 }
