@@ -31,7 +31,7 @@ typedef std::size_t IndexType;
 
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
 {
-    if (!rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+    if (rModelPartCommunicator.GetDataCommunicator().IsNullOnThisRank()) {
         return;
     }
 
@@ -68,14 +68,14 @@ double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 
 double ComputeSearchRadius(const ModelPart& rModelPart, const int EchoLevel)
 {
-    static constexpr double search_safety_factor = 1.2;
-    double max_element_size = 0.0;
-
     const auto& r_comm = rModelPart.GetCommunicator();
 
-    if (!r_comm.GetDataCommunicator().IsDefinedOnThisRank()) {
+    if (r_comm.GetDataCommunicator().IsNullOnThisRank()) {
         return 0.0;
     }
+
+    static constexpr double search_safety_factor = 1.2;
+    double max_element_size = 0.0;
 
     if (r_comm.GlobalNumberOfConditions() > 0) {
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Conditions());
@@ -205,8 +205,10 @@ BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
 
     // compute global values
     const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
-    max_vals = r_data_comm.MaxAll(max_vals);
-    min_vals = r_data_comm.MinAll(min_vals);
+    if (r_data_comm.IsDefinedOnThisRank()) {
+        max_vals = r_data_comm.MaxAll(max_vals);
+        min_vals = r_data_comm.MinAll(min_vals);
+    }
 
     BoundingBoxType global_bounding_box;
     // extract information from buffers
@@ -278,9 +280,11 @@ void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLoca
         rLocalSystems[i] = rMapperLocalSystemPrototype.Create(p_geom);
     });
 
-    const int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        const int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
-    KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
 }
 
 void SaveCurrentConfiguration(ModelPart& rModelPart)

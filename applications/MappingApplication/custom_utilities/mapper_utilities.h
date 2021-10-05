@@ -162,10 +162,12 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     }
 
-    if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
-        rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-    } else {
-        rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+        if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+        } else {
+            rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+        }
     }
 }
 

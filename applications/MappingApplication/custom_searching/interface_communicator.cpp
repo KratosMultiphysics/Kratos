@@ -196,6 +196,10 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
 
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
 
+    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsNullOnThisRank()) {
+        return;
+    }
+
     const auto interface_obj_type = rpRefInterfaceInfo->GetInterfaceObjectType();
 
     if (interface_obj_type == InterfaceObject::ConstructionType::Node_Coords) {
@@ -250,14 +254,12 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     }
 
     // Making sure that the data-structure was correctly initialized
-    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
-        int num_interface_objects = mpInterfaceObjectsOrigin->size(); // int bcs of MPI
-        num_interface_objects = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_objects);
+    int num_interface_objects = mpInterfaceObjectsOrigin->size(); // int bcs of MPI
+    num_interface_objects = mrModelPartOrigin.GetCommunicator().GetDataCommunicator().SumAll(num_interface_objects);
 
-        KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
-            << "No interface objects were created in Origin-ModelPart \""
-            << mrModelPartOrigin.Name() << "\"!" << std::endl;
-    }
+    KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
+        << "No interface objects were created in Origin-ModelPart \""
+        << mrModelPartOrigin.Name() << "\"!" << std::endl;
 
     KRATOS_CATCH("");
 }
