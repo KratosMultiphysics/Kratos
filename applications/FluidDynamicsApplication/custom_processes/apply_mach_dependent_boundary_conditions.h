@@ -188,10 +188,6 @@ namespace Kratos
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override;
 
-        /// Print object's data.
-        void PrintData(std::ostream& rOStream) const override;
-
-
         ///@}
         ///@name Friends
         ///@{

@@ -275,12 +275,6 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::PrintInfo(std::ostr
 }
 
 
-void ApplyCompressibleNavierStokesBoundaryConditionsProcess::
-    PrintData(std::ostream& rOStream) const
-{
-}
-
-
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
