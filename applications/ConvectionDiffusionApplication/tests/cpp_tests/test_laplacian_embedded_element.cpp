@@ -115,7 +115,7 @@ namespace Testing
         // Test intersected element
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-        expected_RHS = {0.00617284,0.00617284,0.0432099};
+        expected_RHS = {0.00617284, 0.00617284, 0.0432099};
         KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4);
     }
 

@@ -318,7 +318,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     // Nitsche penalty constant
     const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET]; 
     // Dirichlet boundary value
-    const double temp_bc = this->GetValue(EMBEDDED_SCALAR);
+    const double temp_bc = 0.0; //this->GetValue(EMBEDDED_SCALAR);
     // Measure of element size
     const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(r_geom);
 
@@ -335,27 +335,23 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
         const double conductivity_gauss = inner_prod(N, nodal_conductivity);
         const double temp_gauss = inner_prod(N, temp);
 
-        // Get combination of dN/dx and normal vector
-        Vector DN_DX_normal(NumNodes);
-        for (std::size_t i = 0; i < NumNodes; ++i) {
-            for (std::size_t d = 0; d < TTDim; ++d) {
-                DN_DX_normal(i) += DN_DX(i, d) * unit_normal(d);
-            } 
-        }
-
         // Add Nitsche contributions
         for (std::size_t i = 0; i < NumNodes; ++i) {
 
             // Calculate contribution of Nitsche boundary condition - part 1
             const double aux_bc_1 = weight_gauss * conductivity_gauss * gamma / h * N(i);
+
             // Calculate contribution of Nitsche boundary condition - part 2
-            const double aux_bc_2 = weight_gauss * conductivity_gauss * DN_DX_normal(i);
-
+            double aux_bc_2 = 0.0;
+            for (std::size_t d = 0; d < TTDim; ++d) {
+                aux_bc_2 += weight_gauss * conductivity_gauss * DN_DX(i, d) * unit_normal(d);
+            }
+            
+            // Add contribution of Nitsche boundary condition to LHS
             for (std::size_t j = 0; j < NumNodes; ++j) {
-
-                // Add contribution of Nitsche boundary condition to LHS
                 rLeftHandSideMatrix(i, j) += aux_bc_1 * N(j) - aux_bc_2 * N(j);
             }
+
             // Add contribution of Nitsche boundary condition to RHS
             rRightHandSideVector(i) -= (aux_bc_1 - aux_bc_2) * (temp_gauss - temp_bc);
         }
