@@ -181,7 +181,7 @@ void WaveCondition<TNumNodes>::InitializeData(
     ConditionData& rData,
     const ProcessInfo& rProcessInfo)
 {
-    rData.integrate_by_parts = rProcessInfo[INTEGRATE_BY_PARTS];
+    rData.integrate_by_parts = rProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
     rData.gravity = rProcessInfo[GRAVITY_Z];
     rData.stab_factor = rProcessInfo[STABILIZATION_FACTOR];
     rData.relative_dry_height = rProcessInfo[RELATIVE_DRY_HEIGHT];

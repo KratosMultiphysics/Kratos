@@ -174,11 +174,7 @@ typename WaveElement<TNumNodes>::LocalVectorType WaveElement<TNumNodes>::GetUnkn
 template<std::size_t TNumNodes>
 void WaveElement<TNumNodes>::InitializeData(ElementData& rData, const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rCurrentProcessInfo.Has(INTEGRATE_BY_PARTS)) {
-        rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS];
-    } else {
-        rData.integrate_by_parts = false;
-    }
+    rData.integrate_by_parts = rCurrentProcessInfo[INTEGRATE_BY_PARTS]; //since it is passed as const it will return false if it doesn't have INTEGRATE_BY_PARTS
     rData.stab_factor = rCurrentProcessInfo[STABILIZATION_FACTOR];
     rData.shock_stab_factor = rCurrentProcessInfo[SHOCK_STABILIZATION_FACTOR];
     rData.relative_dry_height = rCurrentProcessInfo[RELATIVE_DRY_HEIGHT];
