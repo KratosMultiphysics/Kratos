@@ -1,7 +1,7 @@
 import KratosMultiphysics
-from KratosMultiphysics.FluidDynamicsApplication import ApplyMachDependentBoundaryConditionsTest
+from KratosMultiphysics.FluidDynamicsApplication import ApplyCompressibleNavierStokesBoundaryConditionsProcess
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyMachDependentBoundaryConditionsTest(Model, settings["Parameters"])
+    return ApplyCompressibleNavierStokesBoundaryConditionsProcess(Model, settings["Parameters"])
