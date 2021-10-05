@@ -88,7 +88,7 @@ void ApplyFarFieldProcess::AssignFarFieldBoundaryConditions()
         const auto normal = it_cond->GetGeometry().Normal(aux_coordinates);
 
         const double velocity_projection = inner_prod(normal, mFreeStreamVelocity);
-        if (velocity_projection < 0.0) {
+        if (velocity_projection < -1e-3) {
             AssignDirichletFarFieldBoundaryCondition(r_geometry);
         }
         else {
