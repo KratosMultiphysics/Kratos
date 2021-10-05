@@ -34,7 +34,7 @@ ApplyMachDependentBoundaryConditions::ApplyMachDependentBoundaryConditions(
         ReadBoundaryCondition(mSubsonicBCs, var_settings);
     }
 
-    for(auto & var_settings : Parameters["supersonic_boundary_conditions"])
+    for(auto var_settings : Parameters["supersonic_boundary_conditions"])
     {
         ReadBoundaryCondition(mSupersonicBCs, var_settings);
     }
