@@ -38,7 +38,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY_AIR, 1e0)
         self.main_model_part.ProcessInfo.SetValue(KM.DENSITY, 1e3)
         self.main_model_part.ProcessInfo.SetValue(SW.INTEGRATE_BY_PARTS, False)
-        if self.copmute_neighbors:
+        if self.compute_neighbors:
             dimension = self.main_model_part.ProcessInfo[KM.DOMAIN_SIZE]
             avg_neigh = 2 * dimension
             KM.FindElementalNeighboursProcess(self.main_model_part, dimension, avg_neigh).Execute()
@@ -57,18 +57,18 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.005,
         "shock_stabilization_factor" : 0.0,
-        "shock_capturing_type"       : "residual_viscosity",
-        "add_flux_correction"        : false
+        "shock_capturing_type"       : "residual_viscosity"
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
         return default_settings
 
     def _CreateScheme(self):
-        if self.settings["add_flux_correction"].GetBool():
+        if self.add_flux_correction:
             time_scheme = SW.FluxCorrectedShallowWaterScheme(self.settings["time_integration_order"].GetInt())
             if self.settings["shock_stabilization_factor"].GetDouble() > 0.0:
-                KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction, please, disable on of them.")
+                self.settings["shock_stabilization_factor"].SetDouble(0.0)
+                KM.Logger.PrintWarning(self.__class__.__name__, "Detected shock stabilization with flux correction. The shock stabilization factor will be set to 0.")
         else:
             time_scheme = SW.ShallowWaterResidualBasedBDFScheme(self.settings["time_integration_order"].GetInt())
         return time_scheme
@@ -92,15 +92,23 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         if  shock_capturing_type == "residual_viscosity":
             self.element_name = "ShallowWater"
             self.condition_name = "LineCondition"
-            self.copmute_neighbors = False
+            self.compute_neighbors = False
+            self.add_flux_correction = False
+        elif shock_capturing_type == "flux_correction":
+            self.element_name = "ShallowWater"
+            self.condition_name = "LineCondition"
+            self.compute_neighbors = False
+            self.add_flux_correction = True
         elif shock_capturing_type == "gradient_jump":
             self.element_name = "ConservativeElement"
             self.condition_name = "ConservativeCondition"
-            self.copmute_neighbors = True
+            self.compute_neighbors = True
+            self.add_flux_correction = False
         else:
             msg  = "StabilizedShallowWaterSolver._SetUpFormulation:\n"
             msg += "The specified 'shock_capturing_type' : '{}' is not available.\n".format(shock_capturing_type)
             msg += "The possible options are:\n"
             msg += "\t- 'residual_viscosity'\n"
+            msg += "\t- 'flux_correction'\n"
             msg += "\t- 'gradient_jump'\n"
             raise Exception(msg)
