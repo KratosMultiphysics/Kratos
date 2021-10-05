@@ -90,16 +90,8 @@ void InterfaceCommunicator::InitializeSearch(const Kratos::Flags& rOptions,
 {
     KRATOS_TRY;
 
-    if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED)) {
-        CreateInterfaceObjectsOrigin(rpRefInterfaceInfo);
-    }
-    else {
-        UpdateInterfaceObjectsOrigin();
-    }
-
-    if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY)) {
-        InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
-    }
+    CreateInterfaceObjectsOrigin(rpRefInterfaceInfo);
+    InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
 
     KRATOS_CATCH("");
 }
@@ -254,20 +246,6 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
         << "No interface objects were created in Origin-ModelPart \""
         << mrModelPartOrigin.Name() << "\"!" << std::endl;
-
-    KRATOS_CATCH("");
-}
-
-void InterfaceCommunicator::UpdateInterfaceObjectsOrigin()
-{
-    KRATOS_TRY;
-
-    const auto begin = mpInterfaceObjectsOrigin->begin();
-
-    #pragma omp parallel for
-    for (int i = 0; i< static_cast<int>(mpInterfaceObjectsOrigin->size()); ++i) {
-        (*(begin + i))->UpdateCoordinates();
-    }
 
     KRATOS_CATCH("");
 }
