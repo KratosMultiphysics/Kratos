@@ -474,10 +474,13 @@ void MMASolver::GenSub(const double *xval, const double *dfdx, const double *gx,
         }
 
         // The constant for the constraints
-        for (int j = 0; j < m; j++) {
+        for (int j = 0; j < m; j++) 
+        {
             b[j] = -gx[j]; 
-            for (int i = 0; i < nano; i++) {
+            for (int i = 0; i < nano; i++) 
+            {
                 b[j] += pij[i * m + j] / (upp[i] - xval[i]) + qij[i * m + j] / (xval[i] - low[i]);
+                std::cout << " consstraint value in MMA: "<< b[j] << std::endl;
             }
         }
 
