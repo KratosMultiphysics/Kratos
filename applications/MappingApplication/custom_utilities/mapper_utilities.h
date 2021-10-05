@@ -48,8 +48,6 @@ typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPoin
 
 using BoundingBoxType = std::array<double, 6>;
 
-bool ModelPartIsDefinedOnThisRank(const ModelPart& rModelPart);
-
 template< class TVarType >
 static void FillFunction(const NodeType& rNode,
                          const TVarType& rVariable,
@@ -198,10 +196,11 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
     }
 
-    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
-    KRATOS_ERROR_IF_NOT(num_local_systems > 0)
-        << "No mapper local systems were created" << std::endl;
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
 }
 
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
