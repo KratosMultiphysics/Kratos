@@ -21,6 +21,62 @@
         "materials_filename" : "MaterialsDEM.json"
     }
 },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.1",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [-3.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0, 4e-4]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "SpheresPart.2",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [-5.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true,true,true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0, 4e-4]
+            }
+        },{
+            "python_module" : "processes.apply_kinematic_constraints_to_walls_process",
+            "kratos_module" : "KratosMultiphysics.DEMApplication",
+            "Parameters"    : {
+                "model_part_name" : "RigidFacePart.1",
+		"velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [5.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "angular_velocity_constraints_settings" : {
+                    "constrained"          : [true, true, true],
+                    "value"                : [0.0, 0.0, 0.0],
+                    "table"                : [null, null, null]
+                },
+                "interval"             : [0.0, 1.0e30]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    },
 "VelocityTrapOption"               : false,
 "RotationOption"                   : true,
 "CleanIndentationsOption"          : false,
@@ -54,9 +110,9 @@
 },
 "MaxAmplificationRatioOfSearchRadius" : 1000,
 "ElementType"                      : "CylinderContPartDEMElement2D",
-"GraphExportFreq"                  : 1e-3,
-"VelTrapGraphExportFreq"           : 1e-3,
-"OutputTimeStep"                   : 1e-2,
+"GraphExportFreq"                  : 1,
+"VelTrapGraphExportFreq"           : 1,
+"OutputTimeStep"                   : 0.20,
 "PostDisplacement"                 : true,
 "PostVelocity"                     : true,
 "PostElasticForces"                : false,

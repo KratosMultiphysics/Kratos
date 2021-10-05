@@ -21,23 +21,17 @@ class DEM2DTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEM
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        tolerance = 1e-3
-        for node in self.spheres_model_part.Nodes:
-            normal_impact_vel = node.GetSolutionStepValue(Kratos.VELOCITY_X)
-            if node.Id == 1:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 6.135616337653889, delta=tolerance)
-            if node.Id == 2:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 3.532381836682557, delta=tolerance)
-            if node.Id == 3:
-                if self.time > 0.2:
-                    self.assertAlmostEqual(normal_impact_vel, 9.828777134668575, delta=tolerance)
-
-
     def Finalize(self):
+        tolerance = 1e-5
+        for node in self.spheres_model_part.Nodes:
+            vel_x = node.GetSolutionStepValue(Kratos.VELOCITY_X)
+            #first impact between 1 and 2: 2.7036+0.2964 = 3.0 (initial sphere '2' speed)
+            if node.Id == 1:
+                self.assertAlmostEqual(vel_x, 5.830681, delta=tolerance)
+            if node.Id == 2:
+                self.assertAlmostEqual(vel_x, 7.717169, delta=tolerance)
+            if node.Id == 3:
+                self.assertAlmostEqual(vel_x, 10.24280, delta=tolerance)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
