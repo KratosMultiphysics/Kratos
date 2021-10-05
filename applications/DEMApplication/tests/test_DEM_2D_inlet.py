@@ -22,20 +22,16 @@ class DEM2D_InletTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_sta
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        tolerance = 1.001
+    def Finalize(self):
+        tolerance = 1e-5
         for node in self.spheres_model_part.Nodes:
             node_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)
             node_force = node.GetSolutionStepValue(KratosMultiphysics.TOTAL_FORCES_Y)
             if node.Id == 6:
-                if self.time >= 1.15:
-                    Logger.PrintInfo(node_vel)
-                    Logger.PrintInfo(node_force)
-                    self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
-                    self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
-
-    def Finalize(self):
+                Logger.PrintInfo(node_vel)
+                Logger.PrintInfo(node_force)
+                self.assertAlmostEqual(node_vel, 0.380489240, delta=tolerance)
+                self.assertAlmostEqual(node_force, -120983.1002, delta=tolerance)
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
