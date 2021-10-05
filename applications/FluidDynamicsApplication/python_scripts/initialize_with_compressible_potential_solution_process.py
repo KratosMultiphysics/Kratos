@@ -110,7 +110,7 @@ class InitializeWithCompressiblePotentialSolutionProcess(KratosMultiphysics.Proc
         rho = self.freestream_properties["rho"] * (num / det)**(1.0 / (self.freestream_properties["gamma"] - 1.0))
         total_energy = rho * (self.freestream_properties["c_v"] * self.freestream_properties["temperature"] + 0.5 * vel2)
 
-        return rho, vel_norm*rho, total_energy
+        return rho, vel*rho, total_energy
 
     @classmethod
     def _GenerateAnalysisparameters(cls, settings):
