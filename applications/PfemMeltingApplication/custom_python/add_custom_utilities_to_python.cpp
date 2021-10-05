@@ -48,11 +48,13 @@ namespace py = pybind11;
    .def("SubSteppingElementbasedSI", &Streamline < 3 > ::SubSteppingElementbasedSI)
    .def("RungeKutta4ElementbasedSI", &Streamline < 3 > ::RungeKutta4ElementbasedSI)
    .def("RungeKutta4KernelbasedSI", &Streamline < 3 > ::RungeKutta4KernelbasedSI)
+   .def("CheckInvertElement", &Streamline < 3 > ::CheckInvertElement)
    ;
 
 
  py::class_<FaceHeatFlux < 3 > >(m,"FaceHeatFlux").def(py::init<>())
    .def("FaceHeatFluxDistribution", &FaceHeatFlux < 3 > ::FaceHeatFluxDistribution)
+   .def("FlameDistribution", &FaceHeatFlux < 3 > ::FlameDistribution)
    ;
 
  py::class_<HeatSource < 3 > >(m,"HeatSource").def(py::init<>())

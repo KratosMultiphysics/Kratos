@@ -172,6 +172,91 @@ namespace Kratos
 	  }
       
  
+ void FlameDistribution(ModelPart & rLagrangianModelPart, double limit)
+      {
+        KRATOS_TRY
+	  
+	  //defintions for spatial search
+	double volume0, volume1, rho;
+        double volume_total=0, volume_total1=0; double arrehnius0=0.0; double arrhenius1=0.0;
+        double sum_of_ARR=0.0; double sum_of_ARRpartial=0.0; double heat_of_combustion=0.0; double face_heat_flux=0.0;
+
+        double density=0.0;
+        double activation_energy=0.0;
+        double arrhenius_coefficient=0.0;  
+        double heat_of_vaporization=0.0;  
+        double temperature=0.0;  
+        double R=8.31; //universal gas constant
+        double aux_var_polymer=0.0;
+
+
+
+        for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
+	     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+	  {
+
+		    if(node_it->X()<0.0072)
+			{		
+		        volume0 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,0);
+		        volume1 = node_it->FastGetSolutionStepValue(RADIATIVE_INTENSITY,1);
+			rho = node_it->FastGetSolutionStepValue(DENSITY);
+			volume_total = volume_total + volume0 ;
+		        volume_total1 = volume_total1 + volume1 ;
+			if( node_it->FastGetSolutionStepValue(DENSITY)<limit)
+				{
+					arrehnius0 = node_it->FastGetSolutionStepValue(ARRHENIUS_VALUE,0);
+					arrhenius1 = node_it->FastGetSolutionStepValue(ARRHENIUS_VALUE,1);
+					sum_of_ARR = sum_of_ARR + arrehnius0;
+					sum_of_ARRpartial = sum_of_ARRpartial + arrhenius1;
+				}
+			}		
+	  }
+	heat_of_combustion=abs(sum_of_ARR-sum_of_ARRpartial);
+
+	for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+	  {
+		if( node_it->FastGetSolutionStepValue(IS_FREE_SURFACE)==1) 
+
+		{
+  
+			if(node_it->Y()>=0.11478 and node_it->Y()<0.55)
+				{
+				double aux=pow( (0.43522-(node_it->Y() - 0.11478))/0.43522,8);
+				face_heat_flux= 150000.0 * aux;// + heat_of_combustion * pow(abs((0.5555-node_it->Y())/0.555),3);
+				//node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=face_heat_flux;
+
+				if(node_it->Y()>=0.3037)
+					{
+					double aux=pow( (0.43522-(0.3037 - 0.11478))/0.43522,8);
+					face_heat_flux= 150000.0 * aux;// + heat_of_combustion * pow(abs((0.5555-node_it->Y())/0.555),3);
+					
+					}
+				node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=face_heat_flux;
+
+
+
+				}
+			
+			else
+				{
+				node_it->FastGetSolutionStepValue(FACE_HEAT_FLUX)=50000.0;
+
+				}
+
+
+		}	
+	}
+
+
+
+
+
+
+
+        KRATOS_CATCH("")
+	  }
+
+
     private:
       
       inline double SPHCubicKernel(const double sigma, const double r, const double hmax)

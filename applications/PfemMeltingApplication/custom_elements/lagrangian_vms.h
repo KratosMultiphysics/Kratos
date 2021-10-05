@@ -226,10 +226,10 @@ public:
         double GammaDot = this->EquivalentStrainRate(rDN_DX);
         //KRATOS_WATCH(GammaDot)
         double YieldStress = rProcessInfo[YIELD_STRESS];
-        YieldStress=1000.0;
+        YieldStress=1.0;
         double m = rProcessInfo[REGULARIZATION_COEFFICIENT];
         m=1000.0;
-	KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  viscosityyyyyyyyyy < FIRST !!!!!!!!", m);
+	//KRATOS_THROW_ERROR(std::logic_error, "!!!!!!!!!!!  viscosityyyyyyyyyy < FIRST !!!!!!!!", m);
 
 
 
@@ -247,8 +247,8 @@ public:
 
         return DynamicViscosity;
     }
-*/
 
+*/
     /// Provides local contributions from body forces to the RHS
     /**
      * This is called during the assembly process and provides the RHS terms of the
