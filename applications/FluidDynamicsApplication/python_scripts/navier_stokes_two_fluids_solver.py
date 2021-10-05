@@ -40,7 +40,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             "maximum_iterations": 7,
             "echo_level": 0,
             "time_order": 2,
-            "time_scheme:"bdf2",
+            "time_scheme":"bdf2",
             "initial_first_order_steps":0,
             "compute_reactions": false,
             "analysis_type": "non_linear",
@@ -116,38 +116,38 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         # Set the time integration scheme for two fluid element.
+
         self.time_scheme=custom_settings["time_scheme"].GetString()
-        self.time_order=custom_setting["time_order"].GetInt()
+        self.time_order=custom_settings["time_order"].GetInt()
         self.initial_first_order_steps=custom_settings["initial_first_order_steps"].GetInt()
+
         if self.time_scheme == "theta_scheme":
             self.element_name= "TwoFluidNavierStokesCN"
             self.min_buffer_size = 2
             if (self.time_order == 1):
-                self.theta=1
+                theta=1            
             elif (self.time_order ==2):
-                self.theta==0.5
+                theta=0.5
             else:
-                raise ValueError("{} time order is not implemented. Use \'1\' for Backward Euler   or \'2\' for CrankNicolson.".format(time_order))
+                raise ValueError("{} time order is not implemented. Use \'1\' for Backward Euler   or \'2\' for CrankNicolson.".format(self.time_order))
+            
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
+        
         elif self.time_scheme == "bdf2":
             self.element_name = "TwoFluidNavierStokes"
             self.min_buffer_size = 3
         else:
             raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
+       
 
-
+        self.initial_first_order =False
         if (self.initial_first_order_steps!=0):
             if (self.time_scheme == "theta_scheme") and self.time_order==1:
-                    KratosMultiphysics.Logger.PrintWarning:
-
-            elif :
-                raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
-
-        else:
-            if (self.time_scheme == "theta_scheme"):
-
-
-
+                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsSolver", "initial_first_order_steps {} for {} has not any effect since the same time scheme and order is using during simulation.".format(self.initial_first_order_steps))
+            elif self.time_scheme == "bdf2":
+                raise ValueError("{} has not implemented hybrid format between two order integration time scheme'.".format(time_scheme))
+            else:
+                self.initial_first_order==True
 
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
@@ -270,11 +270,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
     def InitializeSolutionStep(self):
 
         # If Crank Nicolson time integration scheme is using,in order to avoid some stabiliztation term the first steps of the simulation can be runned with backward euler time integration scheme. This limit is decided by user.
-        if self.time_scheme == "theta_scheme":
-            if self.settings["time_scheme"].Has("backwardeuler_number_step"):
-                time_step_limit=self.settings["time_scheme"]["backwardeuler_number_step"].GetString()
+
+        if self.initial_first_order:
             time_step=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]
-            if  time_step < time_step_limit:
+            if  time_step < self.initial_first_order_steps:
                 theta=1
             else:
                 theta=0.5
@@ -293,8 +292,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             system_volume = inlet_volume + self.initial_system_volume - outlet_volume
 
         if self._TimeBufferIsInitialized():
-            # Recompute the BDF2 coefficients
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+
+            if self.time_scheme == "bdf2":
+                # Recompute the BDF2 coefficients
+                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
             # Perform the level-set convection according to the previous step velocity
             self.__PerformLevelSetConvection()

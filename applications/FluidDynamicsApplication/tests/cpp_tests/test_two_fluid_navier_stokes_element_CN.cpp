@@ -307,6 +307,7 @@ namespace Kratos {
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
             }
+            }
 
             pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
             pElement->GetGeometry()[1].FastGetSolutionStepValue(DISTANCE) =  1.0;
@@ -465,7 +466,7 @@ namespace Kratos {
         // /** Checks the TwoFluidNavierStokesCN3D4N element
         //  * Checks the LHS and RHS for a positive element (distance > 0.0)
         //  */
-        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesPositiveSide3D4N, FluidDynamicsApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesPositiveSideCN3D4N, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
             ModelPart& modelPart = current_model.CreateModelPart("Main");
@@ -486,11 +487,6 @@ namespace Kratos {
             modelPart.GetProcessInfo().SetValue(TIME_INTEGRATION_THETA, 0.5);
             modelPart.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
             modelPart.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
-            Vector bdf_coefs(3);
-            bdf_coefs[0] = 3.0 / (2.0*delta_time);
-            bdf_coefs[1] = -2.0 / delta_time;
-            bdf_coefs[2] = 0.5*delta_time;
-            modelPart.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
             modelPart.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
 
             // Set the element properties
@@ -529,10 +525,9 @@ namespace Kratos {
                 for (unsigned int k = 0; k < 3; k++) {
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k] = vel_original(i, k);
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*vel_original(i, k);
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 2)[k] = 0.75*vel_original(i, k);
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k] = 0.0;
                     pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
-                    pElement->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 2)[k] = 0.0;
+
                 }
             }
             pElement->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = 1.0;
@@ -1907,7 +1902,6 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesCNCut3D4NError, FluidDynamicsApplicationFastSuite)
         {
             Model current_model;
-            modelPart.AddNodalSolutionStepVariable(DISTANCE);
             ModelPart& modelPart = current_model.CreateModelPart("Main");
             modelPart.SetBufferSize(2);
 

@@ -455,7 +455,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRH
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
@@ -510,7 +509,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRH
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
@@ -567,7 +565,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEn
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
@@ -639,7 +636,6 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEn
 
     const auto &v = rData.Velocity;
     const auto &vn = rData.Velocity_OldStep1;
-    const auto &vnn = rData.Velocity_OldStep2;
     const auto &vmesh = rData.MeshVelocity;
     const auto &vconv = v - vmesh;
     const auto &f = rData.BodyForce;
