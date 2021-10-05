@@ -90,7 +90,7 @@ class NearestElementBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapper
         }""")
         super().setUpMapper(mapper_params, switch_sides=True)
 
-class NearestElementBladeMapping(blade_mapping_test.BladeMappingTests):
+class BladeMapping(blade_mapping_test.BladeMappingTests):
     @classmethod
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
