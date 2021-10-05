@@ -9,6 +9,7 @@ from KratosMultiphysics.testing import utilities as testing_utils
 import mapper_test_case
 from math import cos
 import os
+from sys import version_info as py_version_info
 
 def GetFilePath(file_name):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
@@ -133,6 +134,7 @@ def SetReactions(model_part_fluid):
 
 
 @KratosUnittest.skipUnless(KM.IsDistributedRun(), "this test requires MPI")
+@KratosUnittest.skipIf((py_version_info[0], py_version_info[1]) < (3,8), 'this test requires at least python 3.8 (bcs of "addClassCleanup"')
 class BladeMappingTestsSerialModelPart(BladeMappingTests):
     '''In these tests the structural ModelPart is serial and the fluid ModelPart is distributed
     '''
@@ -161,6 +163,7 @@ class BladeMappingTestsSerialModelPart(BladeMappingTests):
             return cls.model_part_structure
 
 @KratosUnittest.skipUnless(default_data_comm.Size() > 2, "This test needs at least 3 mpi processes")
+@KratosUnittest.skipIf((py_version_info[0], py_version_info[1]) < (3,8), 'this test requires at least python 3.8 (bcs of "addClassCleanup"')
 class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
     '''In these tests the structural ModelPart is distributed over less ranks
     and the fluid ModelPart is distributed over all ranks
