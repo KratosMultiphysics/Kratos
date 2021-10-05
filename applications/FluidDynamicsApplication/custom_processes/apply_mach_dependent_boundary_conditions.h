@@ -98,9 +98,10 @@ namespace Kratos
         class BoundaryConditionUtility
         {
         public:
-            BoundaryConditionUtility(const std::string & variable_name,
-                                     const double Value,
-                                     const IntervalUtility & rIntervalUtility);
+            BoundaryConditionUtility(
+                const std::string& rVariableName,
+                const double Value,
+                const IntervalUtility & rIntervalUtility);
             /**
              * @brief Checks that the current time is within the interval, and
              * decides accordingly what function to bind to mEnforceInternal
