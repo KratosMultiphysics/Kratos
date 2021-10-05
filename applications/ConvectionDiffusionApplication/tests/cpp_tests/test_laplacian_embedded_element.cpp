@@ -60,6 +60,7 @@ namespace Testing
         rModelPart.AddNodalSolutionStepVariable(VELOCITY);
         rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
         rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
+        rModelPart.AddNodalSolutionStepVariable(DISTANCE);
 
         // Create a fake properties container
         auto p_elem_prop = rModelPart.CreateNewProperties(0);
