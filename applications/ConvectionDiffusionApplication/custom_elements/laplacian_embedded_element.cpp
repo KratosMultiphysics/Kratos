@@ -318,7 +318,7 @@ void LaplacianEmbeddedElement<TTDim>::AddNitscheBoundaryTerms(
     // Nitsche penalty constant
     const double gamma = rCurrentProcessInfo[PENALTY_DIRICHLET]; 
     // Dirichlet boundary value
-    const double temp_bc = 0.0; //this->GetValue(EMBEDDED_SCALAR);
+    const double temp_bc = GetValue(EMBEDDED_SCALAR);
     // Measure of element size
     const double h = ElementSizeCalculator<TTDim,NumNodes>::MinimumElementSize(r_geom);
 
