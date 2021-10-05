@@ -3,6 +3,7 @@ from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.MappingApplication as KratosMapping
 default_data_comm = KM.Testing.GetDefaultDataCommunicator()
 if default_data_comm.IsDistributed():
+    from KratosMultiphysics import mpi as KratosMPI
     from KratosMultiphysics.MappingApplication import MPIExtension as MappingMPIExtension
 
 from KratosMultiphysics.testing import utilities as testing_utils
@@ -141,7 +142,6 @@ class BladeMappingTestsSerialModelPart(BladeMappingTests):
 
     @classmethod
     def ReadModelParts(cls):
-        from KratosMultiphysics import mpi as KratosMPI
         data_comm_name_rank_0 = "OnlyRank0"
         cls.sub_comm_rank_0 = KratosMPI.DataCommunicatorFactory.CreateFromRanksAndRegister(default_data_comm, [0], data_comm_name_rank_0)
         cls.addClassCleanup(KM.ParallelEnvironment.UnregisterDataCommunicator, data_comm_name_rank_0)
@@ -171,8 +171,6 @@ class BladeMappingTestsLessRanksModelPart(BladeMappingTests):
 
     @classmethod
     def ReadModelParts(cls):
-        from KratosMultiphysics import mpi as KratosMPI
-
         num_ranks = default_data_comm.Size()
         ranks_structure = list(range(num_ranks-1))
 
