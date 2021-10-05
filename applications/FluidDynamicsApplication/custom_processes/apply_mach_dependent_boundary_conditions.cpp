@@ -107,11 +107,12 @@ void ApplyMachDependentBoundaryConditions::ExecuteFinalizeSolutionStep()
 }
 
 
-ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::
-    BoundaryConditionUtility(const std::string & variable_name,
-                            const double Value,
-                            const IntervalUtility & rIntervalUtility)
-    : mValue(Value), mInterval(rIntervalUtility)
+ApplyMachDependentBoundaryConditions::BoundaryConditionUtility::BoundaryConditionUtility(
+    const std::string &rVariableName,
+    const double Value,
+    const IntervalUtility& rIntervalUtility)
+    : mValue(Value)
+    , mInterval(rIntervalUtility)
 {
     KRATOS_TRY
 
