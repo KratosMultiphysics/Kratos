@@ -51,7 +51,7 @@ def __ModuleInitDetail():
                     return
 
                 from KratosMultiphysics import ParallelEnvironment
-                exc_value = exc_type("(on rank {}): {}".format(ParallelEnvironment.GetDefaultDataCommunicator().Rank(), exc_value))
+                exc_value = exc_type("(on rank {}): {}".format(ParallelEnvironment.GetDataCommunicator("World").Rank(), exc_value))
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
             sys.excepthook = CustomExceptionHook
