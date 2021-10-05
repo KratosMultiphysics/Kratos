@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/model_part.h"
 #include "interface_communicator.h"
-#include "custom_utilities/mapper_utilities.h"
 
 namespace Kratos {
 
