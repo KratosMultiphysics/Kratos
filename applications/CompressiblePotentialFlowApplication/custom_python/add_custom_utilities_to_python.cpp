@@ -39,6 +39,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     mod_potential_flow_utilities.def("BlockBodyNodes",&PotentialFlowUtilities::BlockBodyNodes);
     mod_potential_flow_utilities.def("ComputeForceCoefficientVectorFromPressure",&PotentialFlowUtilities::ComputeForceCoefficientVectorFromPressure);
     mod_potential_flow_utilities.def("ComputeMomentCoefficientVectorFromPressure",&PotentialFlowUtilities::ComputeMomentCoefficientVectorFromPressure);
+    mod_potential_flow_utilities.def("ComputeMeshMetrics2D",&PotentialFlowUtilities::ComputeMeshMetrics2D);
+    mod_potential_flow_utilities.def("ComputeMeshMetrics3D",&PotentialFlowUtilities::ComputeMeshMetrics3D);
 }
 
 }  // namespace Python.

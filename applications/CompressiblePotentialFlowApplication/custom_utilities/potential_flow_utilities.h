@@ -220,6 +220,9 @@ void BlockBodyNodes(ModelPart& rBodyModelPart);
 array_1d<double, 3> ComputeForceCoefficientVectorFromPressure(ModelPart& rBodyModelPart);
 
 array_1d<double, 3> ComputeMomentCoefficientVectorFromPressure(ModelPart& rBodyModelPart, const array_1d<double, 3>& rMomentReferencePoint);
+void ComputeMeshMetrics2D(ModelPart& rModelPart);
+
+void ComputeMeshMetrics3D(ModelPart& rModelPart);
 
 } // namespace PotentialFlow
 } // namespace Kratos
