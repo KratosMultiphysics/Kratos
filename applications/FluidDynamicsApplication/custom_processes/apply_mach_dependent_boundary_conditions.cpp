@@ -126,9 +126,9 @@ ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility
 
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::
-    ActivateIfInsideTimeInterval(const double time)
+    ActivateIfInsideTimeInterval(const double Time)
 {
-    if(mInterval.IsInInterval(time))
+    if(mInterval.IsInInterval(Time))
     {
         mEnforceInternal = &FixDof;
     }

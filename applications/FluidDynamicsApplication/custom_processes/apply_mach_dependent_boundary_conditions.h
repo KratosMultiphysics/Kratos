@@ -107,7 +107,7 @@ namespace Kratos
              * decides accordingly what function to bind to mEnforceInternal
              * (either FreeDof or DoNothing).
              */
-            void ActivateIfInsideTimeInterval(const double time);
+            void ActivateIfInsideTimeInterval(const double Time);
 
             /**
              * @brief Calls mEnforceInternal. This will either fix the Dof
