@@ -121,7 +121,7 @@ class KRATOS_API(DEM_APPLICATION) ThermalSphericParticle : public TBaseElement
   // Neighbor interaction computations
   virtual void ComputeContactArea(const double rmin, double indentation, double& calculation_area);
   void   SetDistanceToNeighbor();
-  bool   CheckHeatTransferDistance(const double radius_factor);
+  bool   CheckSurfaceDistance(const double radius_factor);
   bool   CheckAdiabaticNeighbor();
   double ComputeFourierNumber();
   double ComputeMaxCollisionTime();

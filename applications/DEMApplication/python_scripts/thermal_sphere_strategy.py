@@ -27,7 +27,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
             "max_conduction_distance"        : 1.0,
             "fluid_layer_thickness"          : 0.4,
             "isothermal_core_radius"         : 0.5,
-            "max_radiation_distance"         : 3.0,
+            "max_radiation_distance"         : 2.0,
             "global_porosity"                : 0.0,
             "integral_tolerance"             : 0.000001,
             "global_fluid_properties"        : {

@@ -230,7 +230,7 @@ namespace Kratos
   void ThermalSphericParticle<TBaseElement>::ComputeAdjustedContactRadius(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (!CheckHeatTransferDistance(0.0)) {
+    if (!CheckSurfaceDistance(0.0)) {
       // Non-contact
       mContactRadius = 0.0;
     }
@@ -239,7 +239,7 @@ namespace Kratos
       std::string model = r_process_info[ADJUSTED_CONTACT_MODEL];
 
       if (model.compare("zhou") == 0) mContactRadius = AdjustedContactRadiusZhou(r_process_info);
-      if (model.compare("lu") == 0)   mContactRadius = AdjustedContactRadiusLu(r_process_info);
+      if (model.compare("lu")   == 0) mContactRadius = AdjustedContactRadiusLu(r_process_info);
     }
     else {
       // Compute simulated contact radius
@@ -254,7 +254,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!CheckHeatTransferDistance(0.0))
+    if (!CheckSurfaceDistance(0.0))
       return;
 
     // Compute heat flux according to selected model
@@ -291,7 +291,7 @@ namespace Kratos
       return;
 
     // Check if particles are close enough
-    if (!CheckHeatTransferDistance(r_process_info[MAX_RADIATION_DISTANCE]))
+    if (!CheckSurfaceDistance(r_process_info[MAX_RADIATION_DISTANCE]))
       return;
 
     // Update number of radiative neighbors
@@ -339,6 +339,7 @@ namespace Kratos
     // Compute Nusselt number according to selected model
     double Nu = 0.0;
     std::string model = r_process_info[CONVECTION_MODEL];
+
     if      (model.compare("sphere_hanz_marshall") == 0) Nu = NusseltHanzMarshall(r_process_info);
     else if (model.compare("sphere_whitaker")      == 0) Nu = NusseltWhitaker(r_process_info);
     else if (model.compare("sphere_gunn")          == 0) Nu = NusseltGunn(r_process_info);
@@ -381,13 +382,17 @@ namespace Kratos
   double ThermalSphericParticle<TBaseElement>::DirectConductionCollisional(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
     // TODO: track collision time and save impact velocity
     double col_time = 0.0;
     double impact_normal_velocity = 0.0;
-    double col_time_max = ComputeMaxCollisionTime();
 
-    if (col_time < col_time_max && impact_normal_velocity != 0.0) {
+    // Check if collision time is smaller than expected value, otherwise use static model (batchelor_obrien)
+    double col_time_max = 0.0;
+
+    if (impact_normal_velocity != 0.0)
+      col_time_max = ComputeMaxCollisionTime();
+    
+    if (col_time < col_time_max) {
       double temp_grad = GetNeighborTemperature() - GetParticleTemperature();
       double Rc_max    = ComputeMaxContactRadius();
       double Fo        = ComputeFourierNumber();
@@ -404,7 +409,7 @@ namespace Kratos
 
       double C_coeff = 0.435 * (sqrt(C2 * C2 - 4 * C1 * (C3 - Fo)) - C2) / C1;
 
-      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-1.0/2.0) * temp_grad / (pow(b1,-1.0/2.0) + pow(b2,-1.0/2.0));
+      return C_coeff * Globals::Pi * Rc_max * Rc_max * pow(col_time_max,-0.5) * temp_grad / (pow(b1,-0.5) + pow(b2,-0.5));
     }
     else {
       return DirectConductionBatchelorOBrien(r_process_info);
@@ -419,41 +424,21 @@ namespace Kratos
 
     // Check if particles are close enough
     double layer = r_process_info[FLUID_LAYER_THICKNESS];
-    if (!CheckHeatTransferDistance(layer))
+    if (!CheckSurfaceDistance(layer))
       return 0.0;
 
     // Compute heat transfer coefficient
-    // Assumption: neighbor wall is treated as a particle with the same radius
-    double particle_radius    = GetRadius();
-    double neighbor_radius    = (mNeighborType == PARTICLE_NEIGHBOR) ? mNeighbor_p->GetRadius() : 0.0;
     double fluid_conductivity = r_process_info[FLUID_THERMAL_CONDUCTIVITY];
+    double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
     double h = 0.0;
 
-    if (particle_radius == neighbor_radius || mNeighborType == WALL_NEIGHBOR) {
-      double min_dist = r_process_info[MIN_CONDUCTION_DISTANCE];
-      double a = (mNeighborDistance - 2.0 * particle_radius) / particle_radius;
-      double r_in, r_out, b, c;
-
-      if (mNeighborDistance > 2.0 * particle_radius + min_dist)
-        r_in = 0.0;
-      else
-        r_in = sqrt(1.0 - pow(min_dist / particle_radius - a - 1.0, 2.0));
-
-      if (a > sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - 1.0) - 1.0)
-        r_out = sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - (a + 1.0) * (a + 1.0));
-      else
-        r_out = 1.0;
-
-      b = sqrt(1.0 - r_out * r_out);
-      c = sqrt(1.0 - r_in  * r_in);
-
-      // Heat transfer coefficient from analytica solution of the integral expression
-      h = 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(abs((b - a - 1.0) / (a - c + 1.0))) + b - c);
-    }
-    else {
-      // Compute upper limit of integral
+    if (mNeighborType == PARTICLE_NEIGHBOR) {
+      double particle_radius = GetRadius();
+      double neighbor_radius = mNeighbor_p->GetRadius();
       double r_min = std::min(particle_radius, neighbor_radius);
       double r_max = std::max(particle_radius, neighbor_radius);
+
+      // Compute upper limit of integral
       double param = pow((r_max + (layer * r_max)), 2.0);
       double upp_lim;
 
@@ -464,12 +449,34 @@ namespace Kratos
 
       // Build struct of integration parameters
       IntegrandParams params;
-      params.p1 = r_process_info[MIN_CONDUCTION_DISTANCE];
+      params.p1 = min_dist;
       params.p2 = particle_radius;
       params.p3 = neighbor_radius;
 
       // Heat transfer coefficient from integral expression solved numerically
       h = fluid_conductivity * AdaptiveSimpsonIntegration(r_process_info, mContactRadius, upp_lim, params, &ThermalSphericParticle::EvalIntegrandSurrLayer);
+    }
+    else if (mNeighborType == WALL_NEIGHBOR) {
+      double a, b, c, r_in, r_out;
+      double particle_radius = GetRadius();
+
+      a = (mNeighborDistance - particle_radius) / particle_radius;
+
+      if (mNeighborDistance > particle_radius + min_dist)
+        r_in = 0.0;
+      else
+        r_in = sqrt(1.0 - pow(min_dist / particle_radius - a - 1.0, 2.0));
+
+      if (a > sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - 1.0) - 1.0)
+        r_out = sqrt(pow((particle_radius + (layer * particle_radius)) / particle_radius, 2.0) - pow(a + 1.0, 2.0));
+      else
+        r_out = 1.0;
+
+      b = sqrt(1.0 - r_out * r_out);
+      c = sqrt(1.0 - r_in  * r_in);
+
+      // Heat transfer coefficient from analytical solution of the integral expression
+      h = 2.0 * Globals::Pi * fluid_conductivity * particle_radius * ((a + 1.0) * log(fabs(b - a - 1.0) / fabs(a - c + 1.0)) + b - c);
     }
 
     // Compute heat flux
@@ -483,7 +490,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check if particles are close enough
-    if (!CheckHeatTransferDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
+    if (!CheckSurfaceDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
       return 0.0;
 
     // Get radii
@@ -557,7 +564,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check if particles are close enough
-    if (!CheckHeatTransferDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
+    if (!CheckSurfaceDistance(r_process_info[MAX_CONDUCTION_DISTANCE]))
       return 0.0;
 
     // Get parameters
@@ -633,7 +640,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Check for contact
-    if (!CheckHeatTransferDistance(0.0))
+    if (!CheckSurfaceDistance(0.0))
       return 0.0;
 
     // Assumption 1: Formulation for a liquid (not gas) as the interstitial fluid is being used
@@ -1004,7 +1011,7 @@ namespace Kratos
   }
 
   template <class TBaseElement>
-  bool ThermalSphericParticle<TBaseElement>::CheckHeatTransferDistance(const double radius_factor) {
+  bool ThermalSphericParticle<TBaseElement>::CheckSurfaceDistance(const double radius_factor) {
     KRATOS_TRY
 
     double particle_radius = GetRadius();
