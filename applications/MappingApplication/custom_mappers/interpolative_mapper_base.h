@@ -271,7 +271,7 @@ private:
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
 
-    bool mMeshesAreConforming = false;
+    int mMeshesAreConforming = false;
 
     ///@}
     ///@name Private Operations
