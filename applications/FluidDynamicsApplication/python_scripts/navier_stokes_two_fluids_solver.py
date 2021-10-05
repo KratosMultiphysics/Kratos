@@ -125,20 +125,20 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             self.element_name= "TwoFluidNavierStokesCN"
             self.min_buffer_size = 2
             if (self.time_order == 1):
-                theta=1            
+                theta=1
             elif (self.time_order ==2):
                 theta=0.5
             else:
                 raise ValueError("{} time order is not implemented. Use \'1\' for Backward Euler   or \'2\' for CrankNicolson.".format(self.time_order))
-            
+
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_INTEGRATION_THETA,theta)
-        
+
         elif self.time_scheme == "bdf2":
             self.element_name = "TwoFluidNavierStokes"
             self.min_buffer_size = 3
         else:
             raise ValueError("{} time scheme is not implemented. Use \'bdf2\' or \'theta_scheme\'.".format(time_scheme))
-       
+
 
         self.initial_first_order =False
         if (self.initial_first_order_steps!=0):
@@ -332,7 +332,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=water_volume_after_transport
+                self.initial_system_volume=system_volume
             else:
                 volume_error=0
 

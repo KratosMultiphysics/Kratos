@@ -316,7 +316,7 @@ void TwoFluidNavierStokesCN<TElementData>::UpdateIntegrationPointData(
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesData<2, 3>& rData) const
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesCNData<2, 3>& rData) const
 {
     const BoundedMatrix<double,3,2> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
@@ -330,7 +330,7 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::CalculateStrainRate
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesData<3, 4>& rData) const
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::CalculateStrainRate(TwoFluidNavierStokesCNData<3, 4>& rData) const
 {
     const BoundedMatrix<double,4,3> mid_step_velocity = 0.5 * (rData.Velocity + rData.Velocity_OldStep1);
     auto& rDNDX = rData.DN_DX;
@@ -347,8 +347,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::CalculateStrainRate
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLHSContribution(
-    TwoFluidNavierStokesData<2, 3> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesCNData<2, 3> &rData,
     MatrixType &rLHS)
 {
     const double rho = rData.Density;
@@ -393,8 +393,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointLH
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLHSContribution(
-    TwoFluidNavierStokesData<3, 4> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPointLHSContribution(
+    TwoFluidNavierStokesCNData<3, 4> &rData,
     MatrixType &rLHS)
 {
 
@@ -438,8 +438,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointLH
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRHSContribution(
-    TwoFluidNavierStokesData<2, 3> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesCNData<2, 3> &rData,
     VectorType &rRHS)
 {
 
@@ -492,8 +492,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointRH
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRHSContribution(
-    TwoFluidNavierStokesData<3, 4> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPointRHSContribution(
+    TwoFluidNavierStokesCNData<3, 4> &rData,
     VectorType &rRHS)
 {
 
@@ -545,8 +545,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointRH
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEnrichmentContributions(
-    TwoFluidNavierStokesData<2, 3> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesCNData<2, 3> &rData,
     MatrixType &rV,
     MatrixType &rH,
     MatrixType &rKee,
@@ -616,8 +616,8 @@ void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>::ComputeGaussPointEn
 }
 
 template <>
-void TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>::ComputeGaussPointEnrichmentContributions(
-    TwoFluidNavierStokesData<3, 4> &rData,
+void TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>::ComputeGaussPointEnrichmentContributions(
+    TwoFluidNavierStokesCNData<3, 4> &rData,
     MatrixType &rV,
     MatrixType &rH,
     MatrixType &rKee,
@@ -796,7 +796,7 @@ void TwoFluidNavierStokesCN<TElementData>::ComputeSplitInterface(
 }
 
 template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesCN< TwoFluidNavierStokesData<2, 3> >::pGetModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesCN< TwoFluidNavierStokesCNData<2, 3> >::pGetModifiedShapeFunctionsUtility(
     const GeometryType::Pointer pGeometry,
     const Vector& rDistances)
 {
@@ -804,7 +804,7 @@ ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesCN< TwoFluidNavierStok
 }
 
 template <>
-ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesCN< TwoFluidNavierStokesData<3, 4> >::pGetModifiedShapeFunctionsUtility(
+ModifiedShapeFunctions::UniquePointer TwoFluidNavierStokesCN< TwoFluidNavierStokesCNData<3, 4> >::pGetModifiedShapeFunctionsUtility(
         const GeometryType::Pointer pGeometry,
         const Vector& rDistances)
 {
@@ -1181,7 +1181,7 @@ void TwoFluidNavierStokesCN<TElementData>::CalculateOnIntegrationPoints(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-template class TwoFluidNavierStokesCN<TwoFluidNavierStokesData<2, 3>>;
-template class TwoFluidNavierStokesCN<TwoFluidNavierStokesData<3, 4>>;
+template class TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<2, 3>>;
+template class TwoFluidNavierStokesCN<TwoFluidNavierStokesCNData<3, 4>>;
 
 } // namespace Kratos

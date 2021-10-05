@@ -30,7 +30,7 @@ namespace Kratos {
 ///@{
 
 template< size_t TDim, size_t TNumNodes >
-class TwoFluidNavierStokesData : public FluidElementData<TDim,TNumNodes, true>
+class TwoFluidNavierStokesCNData : public FluidElementData<TDim,TNumNodes, true>
 {
 public:
 
@@ -111,8 +111,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
+
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
+
+    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
+
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
+
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
