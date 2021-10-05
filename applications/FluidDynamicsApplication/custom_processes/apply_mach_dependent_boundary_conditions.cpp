@@ -116,10 +116,10 @@ ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(variable_name))
-        << "There is no double variable named " << variable_name << std::endl;
+    KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(rVariableName))
+        << "There is no double variable named " << rVariableName << std::endl;
 
-    mpVariable = &KratosComponents<Variable<double>>::Get(variable_name);
+    mpVariable = &KratosComponents<Variable<double>>::Get(rVariableName);
 
     KRATOS_CATCH("")
 }
