@@ -119,7 +119,8 @@ void UpdateSystemVectorFromModelPart(
     TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const Kratos::Flags& rMappingOptions)
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
 {
     // Here we construct a function pointer to not have the if all the time inside the loop
     const auto fill_fct = MapperUtilities::GetFillFunction(rMappingOptions);
@@ -128,19 +129,20 @@ void UpdateSystemVectorFromModelPart(
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
-    constexpr int max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
+    int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
+    IndexPartition<std::size_t, max_threads>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 }
 
-template<class TVectorType, bool TParallel=true>
+template<class TVectorType>
 void UpdateModelPartFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
     const Variable<double>& rVariable,
-    const Kratos::Flags& rMappingOptions)
+    const Kratos::Flags& rMappingOptions,
+    const bool InParallel=true)
 {
     const double factor = rMappingOptions.Is(MapperFlags::SWAP_SIGN) ? -1.0 : 1.0;
 
@@ -154,9 +156,9 @@ void UpdateModelPartFromSystemVector(
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
-    constexpr int max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
+    int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
+    IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 
