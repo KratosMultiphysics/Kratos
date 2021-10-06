@@ -36,14 +36,20 @@ template<>
 void VectorContainerType::UpdateSystemVectorFromModelPart(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateSystemVectorFromModelPart((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
+    MapperUtilities::UpdateSystemVectorFromModelPart<
+        decltype((*mpInterfaceVector)[0]),
+        false // not shared memory parallel
+            >((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 template<>
 void VectorContainerType::UpdateModelPartFromSystemVector(const Variable<double>& rVariable,
                                                           const Kratos::Flags& rMappingOptions)
 {
-    MapperUtilities::UpdateModelPartFromSystemVector((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
+    MapperUtilities::UpdateModelPartFromSystemVector<
+        decltype((*mpInterfaceVector)[0]),
+        false // not shared memory parallel
+            >((*mpInterfaceVector)[0], mrModelPart, rVariable, rMappingOptions);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
