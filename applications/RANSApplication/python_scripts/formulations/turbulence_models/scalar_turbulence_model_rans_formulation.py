@@ -152,11 +152,6 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Initialized formulation")
 
     def InitializeSolutionStep(self):
-        # settings = self.GetParameters()
-        # if settings["apply_chimera_constraints_every_step"].GetBool():
-        #     for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
-        #         if (constraint.GetSlaveDofsVector()[0].GetVariable() == self.GetSolvingVariable()):
-        #             self.GetModelPart().AddMasterSlaveConstraint(constraint)
         super().InitializeSolutionStep()
 
     def SolveCouplingStep(self):
