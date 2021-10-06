@@ -173,30 +173,6 @@ void UpdateModelPartFromSystemVector(
 */
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
-template<class TMapperLocalSystem>
-void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicator,
-                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
-{
-    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
-    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
-
-    if (rLocalSystems.size() != num_nodes) {
-        rLocalSystems.resize(num_nodes);
-    }
-
-    #pragma omp parallel for
-    for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
-        auto it_node = nodes_ptr_begin + i;
-        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
-    }
-
-    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
-        int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
-
-        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
-    }
-}
-
 void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                        const Communicator& rModelPartCommunicator,
                                        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
