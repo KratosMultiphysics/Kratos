@@ -67,7 +67,9 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     FinalizeSearch();
 
-    rComm.GetDataCommunicator().Barrier();
+    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+        rComm.GetDataCommunicator().Barrier();
+    }
 
     KRATOS_CATCH("");
 }
@@ -174,6 +176,10 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     KRATOS_TRY;
 
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
+
+    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsNullOnThisRank()) {
+        return;
+    }
 
     const auto interface_obj_type = rpRefInterfaceInfo->GetInterfaceObjectType();
 
@@ -307,8 +313,10 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
     if (mEchoLevel > 1) {
         const auto& r_data_comm = rComm.GetDataCommunicator();
-        sum_num_results = r_data_comm.Sum(sum_num_results, 0);
-        sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+        if (r_data_comm.IsDefinedOnThisRank()) {
+            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
+            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+        }
 
         const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
 
@@ -348,7 +356,9 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     }
 
     // This is necessary bcs not all partitions would start a new search iteration!
-    all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
+    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+        all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
+    }
 
     return all_neighbors_found > 0;
 
