@@ -10,8 +10,17 @@ class ConvergencePlotter:
     '''
 
     def __init__(self, file_name, analysis_name='analysis_000', area=1.0):
-        '''Construct the plotter, read the file and initialize the variables.'''
+        '''Construct the plotter, read the file and initialize the variables.
 
+        Parameters
+        ----------
+        file_name : str
+            The file name without extension
+        analysis_name : str
+            The name of the dataset inside the file
+        area : float
+            The area of the domain. It is used to compute the average element size
+        '''
         # Read the file
         file_name = file_name + '.hdf5'
         f = h5.File(file_name)
@@ -23,21 +32,43 @@ class ConvergencePlotter:
         self.dset_num_nodes = self.ds["num_nodes"]
         self.dset_elem_sizes = np.sqrt(area / self.dset_num_elems)
 
-    def LabelFilter(self, label, *filters):
-        '''Merge a filter matching the label with another filter.'''
-        label_filter = [dset_label.decode() == label for dset_label in self.ds["label"]]
-        return self._MergeFilters(label_filter, filters)
+        # Initialize the filter
+        self.filter = self._TrueFilter()
 
-    def TimeFilter(self, time, *filters):
-        '''Merge a filter matching the label with another filters.'''
-        time_filter = [np.abs(t - time) < dt for t, dt in zip(self.ds["time"], self.dset_time_steps)]
-        return self._MergeFilters(time_filter, filters)
+    def AddNewFilter(self, *, label=None, time=None):
+        '''Override the current filter.'''
+        self.filter = self._TrueFilter()
+        self.AddFilter(label=label, time=time)
 
-    def Plot(self, convergence, variable, ref_variable=None, filter=None, ax=None, add_labels=True, **kwargs):
-        '''Add a plot to the given axes.'''
+    def AddFilter(self, *, label=None, time=None):
+        '''Merge the current filter with the new conditions.'''
+        if label is not None:
+            label_filter = [dset_label.decode() == label for dset_label in self.ds["label"]]
+            self._MergeFilter(label_filter)
+        if time is not None:
+            time_filter = [np.abs(t - time) < dt for t, dt in zip(self.ds["time"], self.dset_time_steps)]
+            self._MergeFilter(time_filter)
 
+    def Plot(self, convergence, variable, ref_variable=None, ax=None, add_labels=True, **kwargs):
+        '''Add a plot to the given axes.
+
+        Parameters
+        ----------
+        convergence : str
+            'spatial' or 'temporal'
+        variable : str
+            The name of the error variable to plot
+        ref_variable : str
+            If it is specified, the variable will be scaled to it
+        ax : Axes
+            An axes instance. Optional
+        add_labels : bool
+            Add labels to the plot
+        kwargs
+            Other arguments to pass to the plot
+        '''
         # Get the data
-        error, increments = self._GetData(convergence, variable, ref_variable, filter)
+        error, increments = self._GetData(convergence, variable, ref_variable)
 
         # Get the labels
         x_label, y_label = self._GetLabels(convergence, add_labels)
@@ -52,11 +83,25 @@ class ConvergencePlotter:
         else:
             print("[WARNING]: There is no data to plot")
 
-    def Slope(self, convergence, variable, ref_variable=None, filter=None):
-        '''Get the average convergence slope.'''
+    def Slope(self, convergence, variable, ref_variable=None):
+        '''Get the average convergence slope.
 
+        Parameters
+        ----------
+        convergence : str
+            'spatial' or 'temporal'
+        variable : str
+            The name of the error variable to compute the convergence slope
+        ref_variable : str
+            If it is specified, the variable will be scaled to it
+
+        Returns
+        -------
+        float 
+            The convergence slope
+        '''
         # Get the data
-        error, increments = self._GetData(convergence, variable, ref_variable, filter)
+        error, increments = self._GetData(convergence, variable, ref_variable)
 
         # Compute the slope
         if len(error) > 0:
@@ -67,18 +112,23 @@ class ConvergencePlotter:
                 slopes.append(d_err / d_incr)
         return sum(slopes) / len(slopes)
 
-    def PrintLatexTable(self, variable, ref_variable=None, filter=None):
-        '''Print to screen the content of a LaTeX tabular.'''
+    def PrintLatexTable(self, variable, ref_variable=None):
+        '''Print to screen the contents of a LaTeX tabular.
 
-        # Check the filter
-        filter = self._CheckFilter(filter)
+        Parameters
+        ----------
+        variable : str
+            The name of the error variable to include in the tabular
+        ref_variable : str
+            If it is specified, the variable will be scaled to it
+        '''
 
         # Get the data
-        num_nodes = self.dset_num_nodes[filter]
-        elem_sizes = self.dset_elem_sizes[filter]
-        time_steps = self.dset_time_steps[filter]
+        num_nodes = self.dset_num_nodes[self.filter]
+        elem_sizes = self.dset_elem_sizes[self.filter]
+        time_steps = self.dset_time_steps[self.filter]
         dset_error = self._GetDsetError(variable, ref_variable)
-        error = dset_error[filter]
+        error = dset_error[self.filter]
 
         # Print the LaTeX table
         if len(error) > 0:
@@ -90,16 +140,11 @@ class ConvergencePlotter:
         else:
             print("[WARNING]: There is no data to generate the table")
 
-    def _GetData(self, convergence, variable, ref_variable, filter):
-        # Check the filter
-        filter = self._CheckFilter(filter)
-
-        # Get the data
+    def _GetData(self, convergence, variable, ref_variable):
         dset_error = self._GetDsetError(variable, ref_variable)
         dset_increments = self._GetDsetIncrements(convergence)
-        error = dset_error[filter]
-        increments = dset_increments[filter]
-
+        error = dset_error[self.filter]
+        increments = dset_increments[self.filter]
         return error, increments
 
     def _GetDsetError(self, variable, ref_variable):
@@ -133,19 +178,8 @@ class ConvergencePlotter:
             raise Exception("Unknown convergence type. Invoked with '{}'. The possible values are 'spatial' or 'temporal'.")
         return x_label, y_label
 
-    def _CheckFilter(self, filter):
-        if filter is None:
-            filter = [True] * len(self.ds["num_elems"])
-        return filter
+    def _MergeFilter(self, new_filter):
+        self.filter = [a and b for a, b in zip(new_filter, self.filter)]
 
-    def _MergeFilters(self, filter_a, filters):
-        result = []
-        for filter_b in filters:
-            filter_b = self._CheckFilter(filter_b)
-            result.append([a and b for a, b in zip(filter_a, filter_b)])
-        if len(result) == 0:
-            return filter_a
-        elif len(result) == 1:
-            return result[0]
-        else:
-            return result
+    def _TrueFilter(self):
+        return [True] * len(self.dset_num_elems)
