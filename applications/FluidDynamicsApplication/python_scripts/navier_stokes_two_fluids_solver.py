@@ -283,7 +283,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             if self.mass_source:
                 water_volume_after_transport = KratosCFD.FluidAuxiliaryUtilities.CalculateFluidNegativeVolume(self.GetComputingModelPart())
                 volume_error = (water_volume_after_transport - system_volume) / system_volume
-                self.initial_system_volume=water_volume_after_transport
+                self.initial_system_volume=system_volume
             else:
                 volume_error=0
 
