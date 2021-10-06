@@ -131,7 +131,7 @@ void UpdateSystemVectorFromModelPart(
     // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
     const int num_threads = InParallel ? ParallelUtilities::GetNumThreads() : 1;
 
-    IndexPartition<std::size_t, max_threads>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
+    IndexPartition<std::size_t>(num_local_nodes, num_threads).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 }
