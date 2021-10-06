@@ -232,7 +232,8 @@ private:
         const Communicator& rModelPartCommunicator,
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
     {
-        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+        MapperUtilities::CreateMapperLocalSystemsFromNodes(
+            NearestNeighborLocalSystem(nullptr),
             rModelPartCommunicator,
             rLocalSystems);
     }
