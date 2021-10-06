@@ -61,8 +61,7 @@ public:
         return InterfaceObject::ConstructionType::Node_Coords;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(int& rValue,
                   const InfoType ValueType) const override

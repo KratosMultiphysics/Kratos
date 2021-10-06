@@ -271,7 +271,6 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
-        std::vector<double> neighbor_distances(num_interface_obj_bin);
         auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
 
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
@@ -287,16 +286,15 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
                 // reset the containers
                 auto results_itr = neighbor_results.begin();
-                auto distance_itr = neighbor_distances.begin();
 
                 const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
                     interface_obj, search_radius, results_itr,
-                    distance_itr, num_interface_obj_bin);
+                    num_interface_obj_bin);
 
                 sum_num_results += number_of_results;
 
                 for (IndexType j=0; j<number_of_results; ++j) {
-                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]), neighbor_distances[j]);
+                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]));
                 }
 
                 // If the search did not result in a "valid" result (e.g. the projection fails)
@@ -304,7 +302,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                 if (!r_interface_info->GetLocalSearchWasSuccessful()) {
                     for (IndexType j=0; j<number_of_results; ++j) {
                         r_interface_info->ProcessSearchResultForApproximation(
-                            *(neighbor_results[j]), neighbor_distances[j]);
+                            *(neighbor_results[j]));
                     }
                 }
             }
