@@ -18,7 +18,6 @@ class DEM3D_ContinuumTestVsDiscontinuumSolution(KratosMultiphysics.DEMApplicatio
 
     def InitializeSolutionStep(self):
         super().InitializeSolutionStep()
-
         self.tolerance = 5e-5
 
     def FinalizeSolutionStep(self):
