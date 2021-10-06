@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:         BSD License
+//                   license: HDF5Application/license.txt
 //
 //  Main author:     Máté Kelemen
 //
@@ -24,58 +24,76 @@ VertexContainerIO::VertexContainerIO(Parameters parameters, File::Pointer pFile)
         : VertexContainerIO::BaseType(
             VertexContainerIO::FormatParameters(parameters),
             pFile,
-            VertexContainerIO::GetComponentPath(parameters))
+            VertexContainerIO::GetPath(parameters))
 {
     KRATOS_TRY
 
-    // Parse input parameters
     parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
     
-    const std::string prefix = parameters["group_prefix"].GetString(); 
-    mCoordinatesPath = prefix + parameters["coordinates_path"].GetString();
-
-    // Check/create prefix path
-    // TODO: this doesn't take care of multi-level prefixes
-    if (!mpFile->IsGroup(prefix)) {
-        KRATOS_ERROR_IF(mpFile->HasPath(prefix)) << "'prefix' points to an existing dataset!";
-        mpFile->CreateGroup(prefix);
-    }
-
     KRATOS_CATCH("");
 }
 
 
-void VertexContainerIO::WriteCoordinates(const Detail::VertexContainerType& rVertices)
+Parameters VertexContainerIO::GetDefaultParameters()
+{
+    return Parameters(R"({
+        "prefix"            : "/",
+        "list_of_variables" : []
+    })");
+}
+
+
+Parameters VertexContainerIO::FormatParameters(Parameters parameters)
 {
     KRATOS_TRY
 
-    // Collect vertex coordinates into a buffer
-    Matrix<double> buffer;
-    buffer.resize(rVertices.size(),
-                  3,
-                  false);
-
-    for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
-        const auto& rVertex = *(rVertices.begin() + i_vertex);
-
-        for (std::size_t i_component=0; i_component<3; ++i_component) {
-            buffer(i_vertex, i_component) = rVertex[i_component];
-        }
-    }
-
-    // Write buffer to the requested path
-    WriteInfo write_info;
-    mpFile->WriteDataSet(mCoordinatesPath,
-                         buffer,
-                         write_info);
+    Parameters output = parameters.Clone();
+    output.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    output["prefix"].SetString("");
+    return output;
 
     KRATOS_CATCH("");
 }
 
 
-void VertexContainerIO::WriteCoordinatesAndIDs(const Detail::VertexContainerType& rVertices)
+std::string VertexContainerIO::GetPath(Parameters parameters)
 {
-        KRATOS_TRY
+    KRATOS_TRY
+
+    parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
+    return parameters["prefix"].GetString();
+
+    KRATOS_CATCH("");
+}
+
+
+VertexContainerCoordinateIO::VertexContainerCoordinateIO(Parameters parameters,
+                                                         File::Pointer pFile)
+    : VertexContainerIO(VertexContainerCoordinateIO::FormatParameters(parameters), pFile)
+{
+    KRATOS_TRY
+
+    parameters.ValidateAndAssignDefaults(VertexContainerCoordinateIO::GetDefaultParameters());
+    mWriteIDs = parameters["write_vertex_ids"].GetBool();
+
+    KRATOS_CATCH("");
+}
+
+
+void VertexContainerCoordinateIO::Write(const Detail::VertexContainerType& rVertices)
+{
+    if (mWriteIDs)
+        WriteWithIDs(rVertices);
+    else
+        WriteWithoutIDs(rVertices);
+}
+
+
+void VertexContainerCoordinateIO::WriteWithIDs(const Detail::VertexContainerType& rVertices)
+{
+    KRATOS_TRY
+
+    const std::string path = mComponentPath + "/POSITION";
 
     // Collect vertex coordinates into a buffer
     Matrix<double> buffer;
@@ -95,7 +113,7 @@ void VertexContainerIO::WriteCoordinatesAndIDs(const Detail::VertexContainerType
 
     // Write buffer to the requested path
     WriteInfo write_info;
-    mpFile->WriteDataSet(mCoordinatesPath,
+    mpFile->WriteDataSet(path,
                          buffer,
                          write_info);
 
@@ -103,16 +121,64 @@ void VertexContainerIO::WriteCoordinatesAndIDs(const Detail::VertexContainerType
 }
 
 
-void VertexContainerIO::WriteVariables(const Detail::VertexContainerType& rVertices)
+void VertexContainerCoordinateIO::WriteWithoutIDs(const Detail::VertexContainerType& rVertices)
 {
     KRATOS_TRY
 
-    // Check/create variables path
-    // TODO: this doesn't take care of multi-level prefixes
-    if (!mpFile->IsGroup(mComponentPath)) {
-        KRATOS_ERROR_IF(mpFile->HasPath(mComponentPath)) << "'variables_path' points to an existing dataset!";
-        mpFile->CreateGroup(mComponentPath);
+    const std::string path = mComponentPath + "/POSITION";
+
+    // Collect vertex coordinates into a buffer
+    Matrix<double> buffer;
+    buffer.resize(rVertices.size(),
+                  3,
+                  false);
+
+    for (std::size_t i_vertex=0; i_vertex<rVertices.size(); ++i_vertex) {
+        const auto& rVertex = *(rVertices.begin() + i_vertex);
+
+        for (std::size_t i_component=0; i_component<3; ++i_component) {
+            buffer(i_vertex, i_component) = rVertex[i_component];
+        }
     }
+
+    // Write buffer to the requested path
+    WriteInfo write_info;
+    mpFile->WriteDataSet(path,
+                         buffer,
+                         write_info);
+
+    KRATOS_CATCH("");
+}
+
+
+Parameters VertexContainerCoordinateIO::GetDefaultParameters()
+{
+    return Parameters(R"({
+        "prefix"            : "/POSITION",
+        "write_vertex_ids"  : false
+    })");
+}
+
+
+Parameters VertexContainerCoordinateIO::FormatParameters(Parameters parameters)
+{
+    KRATOS_TRY
+
+    parameters.ValidateAndAssignDefaults(VertexContainerCoordinateIO::GetDefaultParameters());
+    
+    Parameters output = parameters.Clone();
+    output.RemoveValue("write_vertex_ids");
+
+    return output;
+
+    KRATOS_CATCH("");
+
+}
+
+
+void VertexContainerVariableIO::Write(const Detail::VertexContainerType& rVertices)
+{
+    KRATOS_TRY
 
     this->WriteContainerComponents(rVertices);
 
@@ -120,43 +186,12 @@ void VertexContainerIO::WriteVariables(const Detail::VertexContainerType& rVerti
 }
 
 
-Parameters VertexContainerIO::GetDefaultParameters()
+Parameters VertexContainerVariableIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "group_prefix" : "/",
-        "coordinates_path" : "/coordinates",
-        "variables_path" : "/variables",
+        "prefix"            : "/",
         "list_of_variables" : []
     })");
-}
-
-
-Parameters VertexContainerIO::FormatParameters(Parameters parameters)
-{
-    KRATOS_TRY
-
-    Parameters output = parameters.Clone();
-    output.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
-    output.RemoveValue("coordinates_path");
-    output.RemoveValue("variables_path");
-
-    output.RemoveValue("group_prefix");
-    output.AddValue("prefix", parameters["group_prefix"].Clone());
-
-    return output;
-
-    KRATOS_CATCH("");
-}
-
-
-std::string VertexContainerIO::GetComponentPath(Parameters parameters)
-{
-    KRATOS_TRY
-
-    parameters.ValidateAndAssignDefaults(VertexContainerIO::GetDefaultParameters());
-    return parameters["variables_path"].GetString();
-
-    KRATOS_CATCH("");
 }
 
 

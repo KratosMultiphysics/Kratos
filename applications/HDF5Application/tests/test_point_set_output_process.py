@@ -34,13 +34,13 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             edge_length = edge_length)
 
         parameters = KratosMultiphysics.Parameters("""{
-            "model_part_name"   : "main",
-            "positions"         : [],
-            "output_variables"  : ["DISPLACEMENT", "REACTION"],
-            "group_prefix"      : "/test_point_set_output",
-            "step_group_pattern": "test_step_<step>",
-            "file_parameters"   : {
-                "file_name"     : ""
+            "model_part_name"    : "main",
+            "positions"          : [],
+            "output_variables"   : ["DISPLACEMENT", "REACTION"],
+            "coordinates_prefix" : "/test_point_set_output_<model_part_name>",
+            "variables_prefix"   : "/test_point_set_output_<model_part_name>/test_step_<step>",
+            "file_parameters"    : {
+                "file_name"      : ""
             }
         }""")
         parameters["file_parameters"]["file_name"].SetString(self.file_name)
@@ -68,26 +68,8 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
 #        file = HDF5File(file_parameters)
 #
 #        # Check paths
-#        group_prefix = parameters["group_prefix"].GetString()
-#        coordinates_path = pathlib.Path(group_prefix) / "coordinates"
-#        step_group_pattern = parameters["step_group_pattern"].GetString()
-#
-#        self.assertTrue(file.IsGroup(group_prefix))
-#        self.assertTrue(file.IsDataSet(str(coordinates_path)))
-#
-#        # TODO: check coordinate values (no python interface for reading data yet)
-#
-#        # TODO: multiple solution steps
-#        for i_step in range(1):
-#            step_group = pathlib.Path(group_prefix) / step_group_pattern.replace("<step>", str(i_step))
-#            displacement_path = pathlib.Path(step_group) / "DISPLACEMENT"
-#            reaction_path = pathlib.Path(step_group) / "REACTION"
-#
-#            self.assertTrue(file.IsGroup(str(step_group)))
-#            self.assertTrue(file.IsDataSet(str(displacement_path)))
-#            self.assertTrue(file.IsDataSet(str(reaction_path)))
-#
-#            # TODO: check variable values (no python interface for reading data yet)
+#        self.assertTrue(file.IsGroup("test_point_set_output_main"))
+#        self.assertTrue(file.IsDataSet("test_point_set_output_main/POSITION"))
 
 
     @staticmethod

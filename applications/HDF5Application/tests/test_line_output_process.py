@@ -39,8 +39,8 @@ class TestLineOutputProcess(UnitTest.TestCase):
             "end_point"         : [100.0, 0.5, 0.0],
             "number_of_points"  : 201,
             "output_variables"  : ["DISPLACEMENT", "REACTION"],
-            "group_prefix"      : "/test_line_output",
-            "step_group_pattern": "test_step_<step>",
+            "coordinates_prefix" : "/test_line_output_<model_part_name>",
+            "variables_prefix"   : "/test_line_output_<model_part_name>/test_step_<step>",
             "file_parameters"   : {
                 "file_name"     : ""
             }

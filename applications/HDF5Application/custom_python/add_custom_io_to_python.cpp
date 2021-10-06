@@ -49,6 +49,27 @@
 namespace Kratos {
 namespace Python {
 
+
+
+class VertexContainerIOTrampoline : public HDF5::VertexContainerIO
+{
+public:
+    using HDF5::VertexContainerIO::VertexContainerIO;
+
+    void Write(const HDF5::Detail::VertexContainerType& rVertices) override
+    {
+        using ReturnType = void;
+        using BaseType = HDF5::VertexContainerIO;
+        PYBIND11_OVERRIDE_PURE(
+            ReturnType,
+            BaseType,
+            Write,
+            rVertices);
+    }
+}; // class VertexContainerIOTrampoline
+
+
+
 void AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -147,12 +168,19 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
         ;
 
-    py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer>(m, "VertexContainerIO")
+    py::class_<HDF5::VertexContainerIO, HDF5::VertexContainerIO::Pointer, VertexContainerIOTrampoline>(m, "VertexContainerIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteCoordinates", &HDF5::VertexContainerIO::WriteCoordinates)
-        .def("WriteCoordinatesAndIDs", &HDF5::VertexContainerIO::WriteCoordinatesAndIDs)
-        .def("WriteVariables", &HDF5::VertexContainerIO::WriteVariables)
-        .def("GetDefaultParameters", &HDF5::VertexContainerIO::GetDefaultParameters)
+        .def("Write", &HDF5::VertexContainerIO::Write)
+        ;
+
+    py::class_<HDF5::VertexContainerCoordinateIO, HDF5::VertexContainerCoordinateIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerCoordinateIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerCoordinateIO::Write)
+        ;
+
+    py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer, HDF5::VertexContainerIO>(m, "VertexContainerVariableIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
 
 #ifdef KRATOS_USING_MPI

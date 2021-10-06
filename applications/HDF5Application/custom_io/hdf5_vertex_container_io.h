@@ -24,13 +24,23 @@ namespace HDF5
 {
 
 
-class VertexContainerIO : private ContainerComponentIO<Detail::VertexContainerType,
-                                                       Detail::Vertex,
-                                                       Variable<array_1d<double, 3>>,
-                                                       Variable<double>,
-                                                       Variable<int>,
-                                                       Variable<Vector<double>>,
-                                                       Variable<Matrix<double>>>
+/** Interface for writing @ref{Vertex} data
+ *
+ *  Default parameters:
+ *  {
+ *      "prefix" : "/"
+ *  }
+ * 
+ *  @note Derived classes take care of writing coordinates and variables of the vertices
+ *  separately (see @ref{VertexContainerCoordinateIO} and @ref{VertexContainerVariableIO} respectively).
+ */
+class VertexContainerIO : protected ContainerComponentIO<Detail::VertexContainerType,
+                                                         Detail::Vertex,
+                                                         Variable<array_1d<double, 3>>,
+                                                         Variable<double>,
+                                                         Variable<int>,
+                                                         Variable<Vector<double>>,
+                                                         Variable<Matrix<double>>>
 {
 public:
     ///@name Type Definitions
@@ -45,23 +55,13 @@ public:
 
     VertexContainerIO(Parameters parameters, File::Pointer pFile);
 
+    virtual ~VertexContainerIO() {}
+
     ///@}
     ///@name Operations
     ///@{
 
-    void WriteCoordinates(const Detail::VertexContainerType& rVertices);
-
-    /** Write point coordinates and their IDs to the HDF5 file. 
-     *
-     *  @details This function is necessary for line output with MPI runs to
-     *  identify the order of points along the line. All data is written into
-     *  a single (Nx4) matrix.
-     */
-    void WriteCoordinatesAndIDs( const Detail::VertexContainerType& rVertices );
-
-    void WriteVariables(const Detail::VertexContainerType& rVertices);
-
-    static Parameters GetDefaultParameters();
+    virtual void Write(const Detail::VertexContainerType& rVertices) = 0;
 
     ///@}
 private:
@@ -73,23 +73,119 @@ private:
                                           Variable<Vector<double>>,
                                           Variable<Matrix<double>>>;
 
-    ///@name Member Variables
+    static Parameters GetDefaultParameters();
+
+    static Parameters FormatParameters(Parameters parameters);
+
+    static std::string GetPath(Parameters parameters);
+
+}; // class VertexContainerIO
+
+
+
+
+/** IO class for writing the coordinates (and IDs) of a set of vertices
+ * 
+ *  @details Vertex coordinates are written to an (Nx3) matrix to
+ *  <prefix>/POSITION. If "write_vertex_ids" is true, @ref{Vertex} IDs are
+ *  written to an additional column (making the dataset an (Nx4) matrix).
+ *  IDs are necessary for line outputs with MPI runs to identify the order
+ *  of points along the line.
+ * 
+ *  Default parameters:
+ *  {
+ *      "prefix"           : "/",
+ *      "write_vertex_ids" : false
+ *  }
+ */
+class VertexContainerCoordinateIO final : public VertexContainerIO
+{
+public:
+    ///@name Type Definitions
     ///@{
 
-    std::string mCoordinatesPath;
+    /// Pointer definition
+    KRATOS_CLASS_POINTER_DEFINITION(VertexContainerCoordinateIO);
 
     ///@}
+    ///@name Life Cycle
+    ///@{
+
+    VertexContainerCoordinateIO(Parameters parameters, File::Pointer pFile);
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Write(const Detail::VertexContainerType& rVertices) override;
+
+    ///@}
+
+private:
     ///@name Private Operations
     ///@{
 
-    // Format the input parameters for use in the base class
+    void WriteWithoutIDs(const Detail::VertexContainerType& rVertices);
+
+    void WriteWithIDs(const Detail::VertexContainerType& rVertices);
+
+    // Format input parameters for initializing the base class
     static Parameters FormatParameters(Parameters parameters);
 
-    // Get 'component path' from parameters required by the base class
-    static std::string GetComponentPath(Parameters parameters);
+    static Parameters GetDefaultParameters();
 
     ///@}
-};
+    ///@name Private Member Variables
+    ///@{
+
+    bool mWriteIDs;
+
+    ///@}
+}; // class VertexContainerCoordinateIO
+
+
+
+
+/** IO class for writing variables of a set of vertices
+ * 
+ *  Variables are written to (NxM) datasets at 'prefix'/variable.Name().
+ *  N:  number of vertices
+ *  M:  number of variable components
+ *  
+ *  Default parameters:
+ *  {
+ *      "prefix"            : "/",
+ *      "list_of_variables" : []
+ *  }
+ */
+class VertexContainerVariableIO final : public VertexContainerIO
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition
+    KRATOS_CLASS_POINTER_DEFINITION(VertexContainerVariableIO);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    using VertexContainerIO::VertexContainerIO;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Write(const Detail::VertexContainerType& rVertices) override;
+
+    ///@}
+
+private:
+    static Parameters GetDefaultParameters();
+}; // class VertexContainerVariableIO
+
+
 
 
 } // namespace HDF5
