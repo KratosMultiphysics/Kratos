@@ -84,12 +84,10 @@ namespace Kratos
          * 
          * Method ActivateIfInsideTimeInterval must be called at the beginning
          * of the time step to see if the BC is active or not. This will cause
-         * the following behaviour in the other two public methods:
+         * the following behaviour in the public method:
          * - Enforce:
          *     - If t inside interval  -> Fix dof
          *     - If t outside interval -> Do nothing
-         * - Free
-         *     - Always -> Free dof
          * 
          * This allows for checking the time only once at the beginning of the
          * time-step rather than at every node.
@@ -115,28 +113,25 @@ namespace Kratos
              */
             void Enforce(NodeType& rNode) const;
 
-            /// @brief Frees the Dof.
-            void Free(NodeType& rNode) const;
+            /// @brief Returns a reference to the stored variable
+            const Variable<double> & GetVariable() const;
 
         private:
-            const Variable<double> * mpVariable;
-            const double mValue; // Value to enforce
-            IntervalUtility mInterval;
+            const Variable<double> * mpVariable;    // Variable to fix
+            const double mValue;                    // Value to enforce
+            IntervalUtility mInterval;              // Interval to enforce in
             
-            /* @brief Fixes the Dof managed by this class and sets the value
+            /** 
+             * @brief Fixes the Dof managed by this class and sets the value
              * to the one specified by mValue
              */
             static void FixDof(const BoundaryConditionUtility& rUtility, NodeType& rNode);
 
-            /** @brief Does nothing. Used to replace FixDof when t is outside
-             * time interval
-             */
-            static void DoNothing(const BoundaryConditionUtility& rUtility, NodeType& rNode);
-
-            /** @brief This object points to the proper (FixDof|DoNothing)
+            /** 
+             * @brief This object points to the proper (FixDof|nullptr)
              * function according to the time interval.
              */
-            decltype(FixDof) * mEnforceInternal = & DoNothing;
+            decltype(FixDof) * mEnforceInternal = nullptr;
         };
 
         /// Pointer definition of ApplyCompressibleNavierStokesBoundaryConditionsProcess

@@ -103,14 +103,14 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ExecuteFinalizeSolu
 {
     block_for_each(mpModelPart->Nodes(), [&](NodeType& rNode)
     {
-        for(const auto& boundary_condition: mSupersonicBCs)
+        for(const auto& util: mSupersonicBCs)
         {
-            boundary_condition.Free(rNode);
+            rNode.pGetDof(util.GetVariable())->FreeDof();
         }
 
-        for(const auto& boundary_condition: mSubsonicBCs)
+        for(const auto& util: mSubsonicBCs)
         {
-            boundary_condition.Free(rNode);
+            rNode.pGetDof(util.GetVariable())->FreeDof();
         }
     });
 }
@@ -142,21 +142,23 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUt
     }
     else
     {
-        mEnforceInternal = &DoNothing;
+        mEnforceInternal = nullptr;
     }
 }
 
 
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::Enforce(NodeType& rNode) const
 {
-    mEnforceInternal(*this, rNode);
+    if(mEnforceInternal)
+    {
+       mEnforceInternal(*this, rNode);
+    }
 }
 
 
-void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::Free(NodeType& rNode) const
+const Variable<double> & ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::GetVariable() const
 {
-    rNode.pGetDof(*mpVariable)->FreeDof();
-    // TODO: Sustituir por GetVariable
+    return *mpVariable;
 }
 
 
@@ -166,13 +168,6 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUt
 {
     rNode.GetSolutionStepValue(*rUtility.mpVariable) = rUtility.mValue;
     rNode.pGetDof(*rUtility.mpVariable)->FixDof();
-}
-
-
-void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::DoNothing(
-    const BoundaryConditionUtility& rUtility,
-    NodeType& rNode)
-{
 }
 
 
