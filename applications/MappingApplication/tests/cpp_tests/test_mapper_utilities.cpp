@@ -481,9 +481,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const double dist_2_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_2);
     const double dist_3_1 = MapperUtilities::ComputeDistance(coords_1, *interface_node_3);
 
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1, dist_1_1);
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2, dist_2_1);
-    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3, dist_3_1);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_1->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     int found_id;
@@ -497,9 +497,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const double dist_2_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_2);
     const double dist_3_2 = MapperUtilities::ComputeDistance(coords_2, *interface_node_3);
 
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1, dist_1_2);
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2, dist_2_2);
-    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_3, dist_3_2);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_2->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_2->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
@@ -511,9 +511,9 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     const double dist_2_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_2);
     const double dist_3_3 = MapperUtilities::ComputeDistance(coords_3, *interface_node_3);
 
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1, dist_1_3);
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2, dist_2_3);
-    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_3, dist_3_3);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_1);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_2);
+    p_nearest_neighbor_info_3->ProcessSearchResult(*interface_node_3);
 
     // Now some the checks are performed to make sure the objects are correctly initialized
     p_nearest_neighbor_info_3->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
