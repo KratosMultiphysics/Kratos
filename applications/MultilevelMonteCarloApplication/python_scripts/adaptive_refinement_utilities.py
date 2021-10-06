@@ -57,26 +57,54 @@ class AdaptiveRefinement(object):
         # otherwise raise an error
         if not CheckIfApplicationsAvailable("MeshingApplication"):
             raise Exception("[MultilevelMonteCarloApplication]: MeshingApplication cannot be imported, but it is necessary to perform adaptive refinement.")
+        model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
+
+        if metric_param.Has("level_set_strategy_parameters"):
+
+            level_set_metric_parameters = metric_param["level_set_strategy_parameters"]
+            original_min_size = metric_param["minimal_size"].GetDouble()
+            if current_level > 0:
+                coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                min_size = original_min_size*(coefficient_interp_error)**(-current_level)
+                size_distribution = level_set_metric_parameters["sizing_parameters"]["size_distribution"].GetMatrix()
+                size_distribution[2,1] = min_size
+                level_set_metric_parameters["sizing_parameters"]["size_distribution"].SetMatrix(size_distribution)
+            local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(model_coarse.GetModelPart(model_part_name), KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
+            local_gradient.Execute()
+            find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
+            find_nodal_h.Execute()
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+            metric_process = KratosMultiphysics.MeshingApplication.ComputeLevelSetSolMetricProcess2D(model_coarse.GetModelPart(model_part_name),  KratosMultiphysics.DISTANCE_GRADIENT, level_set_metric_parameters)
+            metric_process.Execute()
+            metric_param.RemoveValue("level_set_strategy_parameters")
+
 
         if (self.metric is "hessian"):
             # initialize interpolation error
             original_interp_error = metric_param["hessian_strategy_parameters"]["interpolation_error"].GetDouble()
+            original_min_size = metric_param["minimal_size"].GetDouble()
             # set interpolation error for current level
             if current_level > 0:
+                # coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
+                # metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
+                # interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                # # interp_error = original_interp_error/(coefficient_interp_error*current_level)
+                # metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
                 coefficient_interp_error =  metric_param["hessian_strategy_parameters"]["coefficient_interpolation_error"].GetDouble()
                 metric_param["hessian_strategy_parameters"].RemoveValue("coefficient_interpolation_error")
-                interp_error = original_interp_error*(coefficient_interp_error)**(-current_level)
+                min_size = original_min_size*(coefficient_interp_error)**(-current_level)
                 # interp_error = original_interp_error/(coefficient_interp_error*current_level)
-                metric_param["hessian_strategy_parameters"]["interpolation_error"].SetDouble(interp_error)
+                metric_param["minimal_size"].SetDouble(min_size)
+            print("Setting MINSIZE", metric_param["minimal_size"].GetDouble())
             # Setting metric tensor to 0
             domain_size = self.wrapper.GetDomainSize()
             model_part_name = parameters_coarse["solver_settings"]["model_part_name"].GetString()
-            if domain_size == 2:
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
-            elif domain_size == 3:
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,model_coarse.GetModelPart(model_part_name).Nodes)
-            else:
-                err_msg = "Domain size is {}. Supported values are 2 and 3.\n".format(domain_size)
+            # if domain_size == 2:
+            #     KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D,model_coarse.GetModelPart(model_part_name).Nodes)
+            # elif domain_size == 3:
+            #     KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.MeshingApplication.METRIC_TENSOR_3D,model_coarse.GetModelPart(model_part_name).Nodes)
+            # else:
+            #     err_msg = "Domain size is {}. Supported values are 2 and 3.\n".format(domain_size)
             # calculate NODAL_H
             find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(model_coarse.GetModelPart(model_part_name))
             find_nodal_h.Execute()
@@ -88,6 +116,14 @@ class AdaptiveRefinement(object):
                 metric_param["hessian_strategy_parameters"].RemoveValue("metric_variable")
             else:
                 raise Exception("A list of variable is expected under the key [\"hessian_strategy_parameters\"][\"metric_variable\"] of the \"metric\" dictionary.")
+
+
+            # Write metrics to model to preserver element size across levels
+            # primal_model_part = model_coarse.GetModelPart(model_part_name)
+            # find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(primal_model_part)
+            # find_nodal_h.Execute()
+            # KratosMultiphysics.CompressiblePotentialFlowApplication.PotentialFlowUtilities.ComputeMeshMetrics2D(primal_model_part)
+            # KratosMultiphysics.VariableUtils().SaveNonHistoricalVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_METRIC_TENSOR_2D,KratosMultiphysics.MeshingApplication.METRIC_TENSOR_2D, primal_model_part.Nodes)
 
             for mv in metric_variables:
                 local_gradient = KratosMultiphysics.MeshingApplication.ComputeHessianSolMetricProcess(model_coarse.GetModelPart(model_part_name),mv,metric_param)
