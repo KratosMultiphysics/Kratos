@@ -35,15 +35,40 @@ class FlattenVectorProcess(PreprocessingProcess):
         # Flatten for input
         if self.objective == "input":
             input_log = ImportDictionaryFromText(self.input_log_name)
-            new_data_in = data_in.reshape((data_in.shape[0],data_in.shape[1]*data_in.shape[2]))
+            try:
+                new_data_in = data_in.reshape((data_in.shape[0],data_in.shape[1]*data_in.shape[2]))
+            except IndexError:
+                new_data_in = data_in.reshape((data_in.shape[0]*data_in.shape[1]))
             new_data_out = data_out
             input_log.update({self.log_denominator : list(data_in.shape[1:])})
+        # Flatten for predict input
+        if self.objective == "predict_input":
+            input_log = ImportDictionaryFromText(self.input_log_name)
+            try:
+                new_data_in = data_in.reshape((data_in.shape[0],data_in.shape[1]*data_in.shape[2]))
+            except IndexError:
+                new_data_in = data_in.reshape((data_in.shape[0]*data_in.shape[1]))
+            new_data_out = data_out
+            input_log.update({self.log_denominator : list(data_in.shape)})
         # Flatten for output
         if self.objective == "output":
             output_log = ImportDictionaryFromText(self.output_log_name)
             new_data_in = data_in
-            new_data_out = data_out.reshape((data_out.shape[0],data_out.shape[1]*data_out.shape[2]))
+            try:
+                new_data_out = data_out.reshape((data_out.shape[0],data_out.shape[1]*data_out.shape[2]))
+            except IndexError:
+                new_data_out = data_out.reshape((data_out.shape[0]*data_out.shape[1]))
+
             output_log.update({self.log_denominator : list(data_out.shape[1:])})
+        if self.objective == "output":
+            output_log = ImportDictionaryFromText(self.output_log_name)
+            new_data_in = data_in
+            try:
+                new_data_out = data_out.reshape((data_out.shape[0],data_out.shape[1]*data_out.shape[2]))
+            except IndexError:
+                new_data_out = data_out.reshape((data_out.shape[0]*data_out.shape[1]))
+
+            output_log.update({self.log_denominator : list(data_out.shape)})
 
         # Updating the file log
         if not self.load_from_log:
@@ -63,28 +88,69 @@ class FlattenVectorProcess(PreprocessingProcess):
 
     def Invert(self, data_structure_in, data_structure_out):
 
-        data_in = data_structure_in.ExportDataOnly()
-        data_out = data_structure_out.ExportDataOnly()
+        data_in_array = data_structure_in.ExportDataOnly()
+        data_out_array = data_structure_out.ExportDataOnly()
+        for (data_in, data_out) in zip(data_in_array,data_out_array):
+            if self.objective == "input":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_shape = input_log.get(self.log_denominator)
+                try:
+                    new_data_in = data_in.reshape(data_in.shape[0],input_shape[0],input_shape[1])
+                except IndexError:
+                    new_data_in = data_in.reshape(data_in.shape[0],input_shape[0])
+                new_data_out = data_out
+            if self.objective == "predict_input":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_shape = input_log.get(self.log_denominator)
+                try:
+                    new_data_in = data_in.reshape(input_shape[0],input_shape[1])
+                except IndexError:
+                    new_data_in = data_in.reshape(input_shape[0])
+                new_data_out = data_out
+            if self.objective == "output":
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_shape = output_log.get(self.log_denominator)
+                try:
+                    new_data_out = data_out.reshape(data_out.shape[0],output_shape[0],output_shape[1])
+                except IndexError:
+                    new_data_out = data_out.reshape(data_out.shape[0],output_shape[0])
+                new_data_in = data_in
+            if self.objective == "predict_output":
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_shape = output_log.get(self.log_denominator)
+                try:
+                    new_data_out = data_out.reshape(output_shape[0],output_shape[1])
+                except IndexError:
+                    new_data_out = data_out.reshape(output_shape[0])
+                new_data_in = data_in
+            if self.objective == "all":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_shape = input_log.get(self.log_denominator)
+                try:
+                    new_data_in = data_in.reshape(data_in.shape[0],input_shape[0],input_shape[1])
+                except IndexError:
+                    new_data_in = data_in.reshape(data_in.shape[0],input_shape[0])
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_shape = output_log.get(self.log_denominator)
+                try:
+                    new_data_out = data_out.reshape(data_out.shape[0],output_shape[0],output_shape[1])
+                except IndexError:
+                    new_data_out = data_out.reshape(data_out.shape[0],output_shape[0])
+            if self.objective == "predict_all":
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                input_shape = input_log.get(self.log_denominator)
+                try:
+                    new_data_in = data_in.reshape(input_shape[0],input_shape[1])
+                except IndexError:
+                    new_data_in = data_in.reshape(input_shape[0])
+                output_log = ImportDictionaryFromText(self.output_log_name)
+                output_shape = output_log.get(self.log_denominator)
+                try:
+                    new_data_out = data_out.reshape(output_shape[0],output_shape[1])
+                except IndexError:
+                    new_data_out = data_out.reshape(output_shape[0])
 
-        if self.objective == "input" or self.objective == "predict_input":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            input_shape = input_log.get(self.log_denominator)
-            new_data_in = data_in.reshape(data_in.shape[0],input_shape[0],input_shape[1])
-            new_data_out = data_out
-        if self.objective == "output" or self.objective == "predict_output":
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            output_shape = output_log.get(self.log_denominator)
-            new_data_out = data_out.reshape(data_out.shape[0],output_shape[0],output_shape[1])
-            new_data_in = data_in
-        if self.objective == "all" or self.objective == "predict_all":
-            input_log = ImportDictionaryFromText(self.input_log_name)
-            input_shape = input_log.get(self.log_denominator)
-            new_data_in = data_in.reshape(data_in.shape[0],input_shape[0],input_shape[1])
-            output_log = ImportDictionaryFromText(self.output_log_name)
-            output_shape = output_log.get(self.log_denominator)
-            new_data_out = data_out.reshape(data_out.shape[0],output_shape[0],output_shape[1])
-
-        data_structure_in.UpdateData(new_data_in)
-        data_structure_out.UpdateData(new_data_out)
+            data_structure_in.UpdateData(new_data_in)
+            data_structure_out.UpdateData(new_data_out)
 
         return [data_structure_in, data_structure_out]

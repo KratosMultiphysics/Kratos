@@ -3,6 +3,7 @@ import numpy as np
 import h5py
 import ast
 import json
+import pickle
 from KratosMultiphysics.NeuralNetworkApplication.input_dataclasses import ListDataWithLookback, ListNeuralNetworkData
 
 def ImportDataFromFile(external_file,category, lookback = False):
@@ -16,9 +17,12 @@ def ImportDataFromFile(external_file,category, lookback = False):
     # Data loading for npy
     elif external_file.endswith('.npy'):
         data = ImportNpy(external_file, lookback)
+    # Data loading for pkl
+    elif external_file.endswith('.pkl'):
+        data = ImportPkl(external_file)
     # Exception for non-supported formats
     else:
-        raise Exception(category + " data format not supported. Supported formats are .dat, .npy and .h5")
+        raise Exception(category + " data format not supported. Supported formats are .dat, .npy, .pkl and .h5")
     return data
 
 def ImportH5(external_file,category,lookback):
@@ -69,6 +73,12 @@ def ImportNpy(external_file,lookback):
     else:
         raw = ListNeuralNetworkData()
     raw.ImportFromArray(np.squeeze(np.load(external_file)))
+    return raw
+
+def ImportPkl(external_file):
+    "Import the data from a pkl file that contains a ListNeurakNetworkData or ListDataWithLookback object."
+    with open(external_file,'rb') as file:
+        raw = pickle.load(file)
     return raw
 
 def ImportDictionaryFromText(external_file):

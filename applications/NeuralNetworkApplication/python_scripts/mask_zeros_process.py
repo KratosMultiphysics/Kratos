@@ -5,6 +5,7 @@ from KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities import I
 
 import numpy as np
 
+
 def Factory(settings):
     if not isinstance(settings, KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -34,47 +35,47 @@ class MaskZerosProcess(PreprocessingProcess):
         data_out = data_structure_out.ExportAsArray()
         
         mask_parameters = KM.Parameters()
-        # Setup for input
-        if self.objective == 'input':
-            try:
-                dimension_variables = range(len(data_in[0]))
-                dataset_length = range(len(data_in[:,0]))
-            except IndexError:
-                raise Exception("Trying to mask a one-dimensional array.")
-            masking_variables = []
-            # Extract which variables are always 0
-            for variable in dimension_variables:
-                if all(abs(data_in[i,variable]) < 1e-13 for i in dataset_length):
-                    masking_variables.append(variable)
-            try:
-                mask_parameters.AddEmptyValue("input_log_name")
-                mask_parameters["input_log_name"].SetString(self.input_log_name)
-            except AttributeError:
-                print("No input_log_name defined.")
-                mask_parameters.RemoveValue("input_log_name")
+        masking_variables = []
+        if not self.load_from_log:
+            # Setup for input
+            if self.objective == 'input':
+                try:
+                    dimension_variables = range(len(data_in[0]))
+                    dataset_length = range(len(data_in[:,0]))
+                except IndexError:
+                    raise Exception("Trying to mask a one-dimensional array.")
+                # Extract which variables are always 0
+                for variable in dimension_variables:
+                    if all(abs(data_in[i,variable]) < 1e-13 for i in dataset_length):
+                        masking_variables.append(variable)
+                try:
+                    mask_parameters.AddEmptyValue("input_log_name")
+                    mask_parameters["input_log_name"].SetString(self.input_log_name)
+                except AttributeError:
+                    print("No input_log_name defined.")
+                    mask_parameters.RemoveValue("input_log_name")
 
-        # Setup for output
-        elif self.objective == 'output':
-            try:
-                dimension_variables = range(len(data_out[0]))
-                dataset_length = range(len(data_out[:,0]))
-            except:
-                raise Exception("Trying to mask one-dimensional array.")
-            masking_variables = []
-            # Extract which variables are always 0
-            for variable in dimension_variables:
-                if all(abs(data_out[i,variable]) < 1e-13 for i in dataset_length):
-                    masking_variables.append(variable)
-            try:
-                mask_parameters.AddEmptyValue("output_log_name")
-                mask_parameters["output_log_name"].SetString(self.output_log_name)
-            except AttributeError:
-                    print("No output_log_name defined.")
-                    mask_parameters.RemoveValue("output_log_name")
-        else:
-            raise Exception("Masking objective not supported. Supported objectives are input and output")
+            # Setup for output
+            elif self.objective == 'output':
+                try:
+                    dimension_variables = range(len(data_out[0]))
+                    dataset_length = range(len(data_out[:,0]))
+                except:
+                    raise Exception("Trying to mask one-dimensional array.")
+                # Extract which variables are always 0
+                for variable in dimension_variables:
+                    if all(abs(data_out[i,variable]) < 1e-13 for i in dataset_length):
+                        masking_variables.append(variable)
+                try:
+                    mask_parameters.AddEmptyValue("output_log_name")
+                    mask_parameters["output_log_name"].SetString(self.output_log_name)
+                except AttributeError:
+                        print("No output_log_name defined.")
+                        mask_parameters.RemoveValue("output_log_name")
+            # else:
+            #     raise Exception("Masking objective not supported. Supported objectives are input and output")
 
-        if len(masking_variables) > 0:
+        if len(masking_variables) > 0 or self.load_from_log:
             # Load the parameters to the masking process
             mask_parameters.AddEmptyValue("objective")
             mask_parameters["objective"].SetString(self.objective)
@@ -84,13 +85,19 @@ class MaskZerosProcess(PreprocessingProcess):
             mask_parameters["variable_ids"].SetVector(masking_variables)
             mask_parameters.AddEmptyValue("log_denominator")
             mask_parameters["log_denominator"].SetString(self.log_denominator)
+            if hasattr(self, 'input_log_name'):
+                mask_parameters.AddEmptyValue("input_log_name")
+                mask_parameters["input_log_name"].SetString(self.input_log_name)
+            if hasattr(self, 'output_log_name'):   
+                mask_parameters.AddEmptyValue("output_log_name")
+                mask_parameters["output_log_name"].SetString(self.output_log_name)
 
             # Mask the dataset
             self.mask_process = MaskingProcess(mask_parameters)
             [data_structure_in , data_structure_out] = self.mask_process.Preprocess(data_structure_in, data_structure_out)
 
         return [data_structure_in, data_structure_out]
-    
+
     def Invert(self, data_structure_in, data_structure_out):
 
         data_in = data_structure_in.ExportDataOnly()
@@ -122,3 +129,4 @@ class MaskZerosProcess(PreprocessingProcess):
         data_structure_out.UpdateData(data_out)
 
         return [data_structure_in, data_structure_out]
+

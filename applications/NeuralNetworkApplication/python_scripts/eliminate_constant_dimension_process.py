@@ -30,45 +30,59 @@ class EliminateConstantDimensionProcess(PreprocessingProcess):
     def Preprocess(self, data_structure_in, data_structure_out):
 
         data_in = data_structure_in.ExportAsArray()
-        # data_in = np.reshape(data_in, (len(data_structure_in),int(data_in.shape[0]/len(data_structure_in)),data_in.shape[1]))
         data_out = data_structure_out.ExportAsArray()
-        # data_out = np.reshape(data_out, (len(data_structure_out),int(data_out.shape[0]/len(data_structure_out)),data_out.shape[1]))
+        if not self.load_from_log:
+            # Setup for input
+            if self.objective == 'input':
+                non_constant_dim = np.zeros(data_in.shape[-1], dtype=np.bool)
+                # Extract which variables are always 0
+                for ix in range(data_in.shape[-1]):
+                    non_constant_dim[ix] = (abs(data_in[...,ix]- data_in[0,0,ix]) > 1e-8).any()
+                data_structure_in.UpdateData(data_in[...,non_constant_dim])
 
-        # Setup for input
-        if self.objective == 'input':
-            non_constant_dim = np.zeros(data_in.shape[-1], dtype=np.bool)
-            # Extract which variables are always 0
-            for ix in range(data_in.shape[-1]):
-                non_constant_dim[ix] = (abs(data_in[...,ix]- data_in[0,0,ix]) > 1e-8).any()
-            data_structure_in.UpdateData(data_in[...,non_constant_dim])
+                try:
+                    input_log = ImportDictionaryFromText(self.input_log_name)
+                    input_log.update({self.log_denominator: non_constant_dim.astype(int).tolist()})
+                    UpdateDictionaryJson(self.input_log_name, input_log)
+                except AttributeError:
+                    print("Input not logged")
 
-            try:
-                input_log = ImportDictionaryFromText(self.input_log_name)
-                input_log.update({self.log_denominator: non_constant_dim.astype(int).tolist()})
-                UpdateDictionaryJson(self.input_log_name, input_log)
-            except AttributeError:
-                print("Input not logged")
+                return [data_structure_in, data_structure_out]
+                
+            # Setup for output
+            elif self.objective == 'output':
+                non_constant_dim = np.zeros(data_out.shape[-1], dtype=np.bool)
+                # Extract which variables are always 0
+                for ix in range(data_out.shape[-1]):
+                    non_constant_dim[ix] = (abs(data_out[...,ix]- data_out[0,0,ix]) > 1e-8).any()
+                data_structure_out.UpdateData(data_out[...,non_constant_dim])
 
-            return [data_structure_in, data_structure_out]
-            
-        # Setup for output
-        if self.objective == 'output':
-            non_constant_dim = np.zeros(data_out.shape[-1], dtype=np.bool)
-            # Extract which variables are always 0
-            for ix in range(data_out.shape[-1]):
-                non_constant_dim[ix] = (abs(data_out[...,ix]- data_out[0,0,ix]) > 1e-8).any()
-            data_structure_out.UpdateData(data_out[...,non_constant_dim])
+                try:
+                    output_log = ImportDictionaryFromText(self.output_log_name)
+                    output_log.update({self.log_denominator: non_constant_dim.astype(int).tolist()})
+                    UpdateDictionaryJson(self.output_log_name, output_log)
+                except AttributeError:
+                    print("Output not logged")
 
-            try:
-                output_log = ImportDictionaryFromText(self.output_log_name)
-                output_log.update({self.log_denominator: non_constant_dim.astype(int).tolist()})
-                UpdateDictionaryJson(self.output_log_name, output_log)
-            except AttributeError:
-                print("Output not logged")
-
-            return [data_structure_in, data_structure_out]
+                return [data_structure_in, data_structure_out]
+            else:
+                raise Exception("Masking objective not supported. Supported objectives are input and output")
         else:
-            raise Exception("Masking objective not supported. Supported objectives are input and output")
+            # Setup for input
+            if self.objective == 'input' or self.objective == 'predict_input':
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                non_constant_dim = np.array(input_log.get(self.log_denominator)).astype(bool)
+                data_structure_in.UpdateData(data_in[...,non_constant_dim])
+                return [data_structure_in, data_structure_out]
+                
+            # Setup for output
+            elif self.objective == 'output' or self.objective == 'predict_output':
+                input_log = ImportDictionaryFromText(self.input_log_name)
+                non_constant_dim = np.array(input_log.get(self.log_denominator)).astype(bool)
+                data_structure_out.UpdateData(data_out[...,non_constant_dim])
+                return [data_structure_in, data_structure_out]
+            else:
+                raise Exception("Masking objective not supported. Supported objectives are input, output, predict_input and predict_output.")
 
     def Invert(self, data_structure_in, data_structure_out):
         

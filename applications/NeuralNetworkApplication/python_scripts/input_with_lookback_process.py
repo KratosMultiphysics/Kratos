@@ -22,27 +22,42 @@ class LookbackProcess(PreprocessingProcess):
         """
         if not self.load_from_log:
             self.lookback = settings["lookback"].GetInt()
+            try:
+                self.record = settings["record"].GetBool()
+            except RuntimeError:
+                self.record = False
+            try:
+                self.timesteps_as_features = settings["timesteps_as_features"].GetBool()
+            except RuntimeError:
+                self.timesteps_as_features = False
+            try:
+                self.features_as_timesteps = settings["features_as_timesteps"].GetBool()
+            except RuntimeError:
+                self.features_as_timesteps = False
+            
 
     def Preprocess(self, data_structure_in, data_structure_out):
         """ This method records the lookback of timeseries and saves them. 
             Normally applied before LSTM and RNN layers. """
 
         if not isinstance(data_structure_in, ListDataWithLookback) or not isinstance(data_structure_in, DataWithLookback):
-            new_data_structure_in = ListDataWithLookback(lookback_index = self.lookback)
+            new_data_structure_in = ListDataWithLookback(lookback_index = self.lookback, record_data=self.record, 
+                                                        timesteps_as_features = self.timesteps_as_features, 
+                                                        features_as_timesteps = self.features_as_timesteps)
             new_data_structure_in.ExtendFromNeuralNetworkData(data_structure_in)
         
 
         for i in reversed(range(self.lookback)):
             
-            data_in = data_structure_out.ExportAsArray()
-            new_data_in = np.zeros_like(data_in)
-            new_data_in[i+1:] = data_in[:-i-1]
-            # if len(new_data_in.shape) == 1: 
-            #     new_data_in = np.reshape(new_data_in, (1, 1,new_data_in.shape[0]))
-
-            # if len(new_data_in.shape) == 2: 
-            #     new_data_in = np.reshape(new_data_in, (new_data_in.shape[0],1, new_data_in.shape[1]))
-
+            data_in_lookback = data_structure_out.ExportAsArray()
+            new_data_in = np.zeros_like(data_in_lookback)
+            new_data_in[i+1:] = data_in_lookback[:-i-1]
             new_data_structure_in.CheckLookbackAndUpdate(new_data_in)
+
+            if self.record:
+                data_in_record = data_structure_in.ExportAsArray()
+                new_data_in_record = np.zeros_like(data_in_record)
+                new_data_in_record[i+1:] = data_in_record[:-i-1]
+                new_data_structure_in.CheckRecordAndUpdate(new_data_in_record)
 
         return [new_data_structure_in, data_structure_out]

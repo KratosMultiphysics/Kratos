@@ -52,13 +52,14 @@ class MaskingProcess(PreprocessingProcess):
                     UpdateDictionaryJson(self.input_log_name, input_log)
             except AttributeError:
                 print("Input not logged")
-
-            data_in = np.delete(data_in, masking_ids, 1)
+            try:
+                data_in = np.delete(data_in, masking_ids, 1)
+            except np.AxisError:
+                data_in = np.delete(data_in, masking_ids)
 
         # Check if masking is in the output
         elif self.objective == "output": 
-            try:
-                
+            try:             
                 # Mask from log
                 if self.load_from_log:
                     output_log = ImportDictionaryFromText(self.output_log_name)
@@ -74,7 +75,10 @@ class MaskingProcess(PreprocessingProcess):
                     UpdateDictionaryJson(self.output_log_name, output_log)
             except AttributeError:
                 print("Output not logged")
-            data_out = np.delete(data_out, masking_ids, 1)
+            try:
+                data_out = np.delete(data_out, masking_ids, 1)
+            except np.AxisError:
+                data_out = np.delete(data_out, masking_ids)
      
         else:
             raise Exception("Masking objective not supported. Supported objectives are input and output")    

@@ -21,19 +21,27 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
         super(NeuralNetworkWrapper, self).__init__(settings, model, solver_name)
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
+        # TODO: The input and output can only be one variable in the current state.
         self.input_variable = self.settings["solver_wrapper_settings"]["input_variable"].GetString()
         self.output_variable = self.settings["solver_wrapper_settings"]["output_variable"].GetString()
         self.mp = self.model.CreateModelPart("NeuralNetwork")
-        # self.mp.AddNodalSolutionStepVariable(getattr(KM, self.input_variable))
-        self.mp.AddNodalSolutionStepVariable(getattr(KM, "FORCE_Y"))
-        # self.mp.AddNodalSolutionStepVariable(getattr(KM, self.output_variable))
-        self.mp.AddNodalSolutionStepVariable(getattr(KM, "DISPLACEMENT_Y"))
-        mdpa_file_name = self.settings["solver_wrapper_settings"]["mdpa_file_name"].GetString()
         self.lookback = self.settings["solver_wrapper_settings"] ["lookback"].GetInt()
-    
-        # KM.ModelPartIO(mdpa_file_name).ReadModelPart(self.mp)
-
-        # self.mp.ProcessInfo[KM.DOMAIN_SIZE] = self.project_parameters["domain_size"].GetInt()
+        try:
+            self.record = settings["solver_wrapper_settings"]["record"].GetBool()
+        except RuntimeError:
+            self.record = False
+        try:
+            self.timesteps_as_features = settings["solver_wrapper_settings"]["timesteps_as_features"].GetBool()
+        except RuntimeError:
+            self.timesteps_as_features = False
+        try:
+            self.feaures_as_timestpes = settings["solver_wrapper_settings"]["features_as_timesteps"].GetBool()
+        except RuntimeError:
+            self.feaures_as_timestpes = False
+        try:
+            self.soft_start_flag = settings["solver_wrapper_settings"]["soft_start"].GetBool()
+        except RuntimeError:
+            self.soft_start_flag = True
 
     def AdvanceInTime(self, current_time):
         return 0.0
@@ -56,11 +64,22 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
             # Initialize preprocessed input to the network in first iteration
             if self.lookback>0 and not self.preprocessed_data_structure.lookback_state:
                 self.preprocessed_data_structure.CheckLookbackAndUpdate(self.output_data_structure.ExportAsArray())
+                if self.record:
+                    self.preprocessed_data_structure.CheckRecordAndUpdate(self.output_data_structure.ExportAsArray())
             # Preprocess input and output 
             [self.input_data_structure, self.output_data_structure] = self._analysis_stage.Preprocessing(
                 data_in = self.input_data_structure, data_out = self.output_data_structure)
             # Update input to the structure with the new preprocessed input
-            self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
+            if self.record:
+                self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
+                # This flag softens the initial lookback in the record (stabilizes the behaviour)
+                if self.soft_start_flag:
+                    for i in range(self.lookback-1):
+                        self.preprocessed_data_structure.UpdateRecordLast(self.input_data_structure.ExportAsArray())
+                    self.soft_start_flag = False
+                self.record_data = self.preprocessed_data_structure.data
+            else:
+                self.preprocessed_data_structure.UpdateData(self.input_data_structure.ExportAsArray())
             # Predict (and invert the transformations) from the new input and update it to the output
             self.output_data_structure.UpdateData(self._analysis_stage.Predict(data_structure_in = self.preprocessed_data_structure))
             # Export output to the interface
@@ -87,8 +106,9 @@ class NeuralNetworkWrapper(kratos_base_wrapper.KratosBaseWrapper):
         pass
 
     def FinalizeSolutionStep(self):
+        if self.record:
+            self.preprocessed_data_structure.data=self.record_data
         self.preprocessed_previous =self.preprocessed_data_structure
-        pass
 
     def OutputSolutionStep(self):
         pass

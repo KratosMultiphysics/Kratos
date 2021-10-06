@@ -25,8 +25,6 @@ class TrainerFromSavedModel(NeuralNetworkTrainingProcess):
     def ExecuteTraining(self, loss_function, optimizer, callbacks_list, metrics_list):
         """ Processes to act directly during the training step. """
         self.reconstructed_model = keras.models.load_model(self.model_name)
-        # This has yet to be implemented, it should read the loss and optimizer from the json
-        # self.reconstructed_model.compile(loss="mean_squared_error", optimizer=keras.optimizers.Adam(learning_rate=0.001, decay = 1e-3 / 200))
         self.reconstructed_model.compile(loss=loss_function, optimizer=optimizer, metrics = metrics_list)
         if self.validation:
             history = self.reconstructed_model.fit(self.test_input.ExportAsArray(), self.test_output.ExportAsArray(), epochs = self.epochs, 

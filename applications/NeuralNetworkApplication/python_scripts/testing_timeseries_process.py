@@ -44,9 +44,17 @@ class TestingTimeseriesProcess(NeuralNetworkProcess):
     def ExecuteFinalize(self):
 
         print("Testing process started... \n")
-        input = ImportDataFromFile(self.input_file, "InputData",lookback=False).ExportAsArray()
-        target = ImportDataFromFile(self.target_file, "OutputData").ExportAsArray()
-        input = np.reshape(input, (target.shape[0],input.shape[1],target.shape[1]))
+        input_structure = ImportDataFromFile(self.input_file, "InputData",lookback=False)
+        input = input_structure.ExportAsArray()
+        target_structure = ImportDataFromFile(self.target_file, "OutputData")
+        target = target_structure.ExportAsArray()
+
+        if not self.input_file.endswith('.pkl'):
+            try:
+                input = np.reshape(input, (target.shape[0],input.shape[1],target.shape[1]))
+            except ValueError:
+                raise Exception('The shape of the data may have been lost in the traning. Try using pkl format.')
+
         # The compiling options of the model do not matter, as it will not be trained
         model = keras.models.load_model(self.model)
         model.compile()
@@ -57,17 +65,9 @@ class TestingTimeseriesProcess(NeuralNetworkProcess):
             test = np.reshape(test, (1, test.shape[0], test.shape[1]))
             predictions.append(model.predict(test)[0])
             if i > initial_length - 2:
-                for j in range(self.lookback-1):
-                    if j == 0:
-                        new_timestep = np.asarray(input[-1][j+1])
-                    else:
-                        new_timestep = np.vstack([new_timestep,np.asarray(input[-1][j+1])])
-                new_timestep= np.vstack([new_timestep, np.asarray(predictions[-1])])
-                if len(new_timestep.shape)>1:
-                    new_timestep = np.reshape(new_timestep, (1,new_timestep.shape[0], new_timestep.shape[1]))
-                else:
-                    new_timestep = np.reshape(new_timestep, (1, new_timestep.shape[0],1))
-                input = np.vstack([input,new_timestep])
+
+                input_structure.AddDataAndUpdate(input_structure[-1].ExportDataOnly(), predictions[-1])
+                input = np.vstack([input,input_structure.ExportElementAsArray(-1)])
                 if self.echo > 0:
                     print('Predicted: ' + str(predictions[i]))
             else:

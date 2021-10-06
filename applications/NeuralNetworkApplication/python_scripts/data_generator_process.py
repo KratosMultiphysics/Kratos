@@ -38,9 +38,11 @@ class DataGeneratorProcess(KM.Process):
             "input_variables"          : [""],
             "input_sources"            : [""],
             "input_model_part"         : "",
+            "input_order"              : "variables_first",
             "output_variables"         : [""],
-            "output_sources"            : [""],
+            "output_sources"           : [""],
             "output_format"            : "ascii",
+            "output_order"            : "variables_first",
             "perturbate_variables"     : [""],
             "random_distribution"      : [""],
             "random_parameters"        : [[]],
@@ -107,7 +109,8 @@ class DataGeneratorProcess(KM.Process):
         if not (len(self.input_variables) == len(self.input_sources)):
             raise Exception('The number of input variables and sources are different.')
         self.dict_input = dict(zip(self.input_variables, self.input_sources))
-
+        # getting input order
+        self.input_order = settings["input_order"].GetString()
 
         # retrieving the output variables
         output_var_names = settings["output_variables"]
@@ -120,7 +123,8 @@ class DataGeneratorProcess(KM.Process):
         if not (len(self.output_variables) == len(self.output_sources)):
             raise Exception('The number of output variables and sources are different.')
         self.dict_output = dict(zip(self.output_variables, self.output_sources))
-
+        # getting output order
+        self.output_order = settings["output_order"].GetString()
 
         # Output file names handling
         if (self.write_output_file):
@@ -240,6 +244,9 @@ class DataGeneratorProcess(KM.Process):
                     elif source == "condition":
                         for condition in self.input_model_part.GetConditions():
                             input_value_list.append(condition.GetValue(variable))
+            # Reorder if indicated
+            if self.input_order == 'sources_first':
+                input_value_list = self._OrderSourcesFirst(input_value_list, self.dict_output.items())
 
             # Writing input file
             if (self.write_output_file):
@@ -256,28 +263,30 @@ class DataGeneratorProcess(KM.Process):
         current_time = self.model_part.ProcessInfo[KM.TIME]
         current_step = self.model_part.ProcessInfo[KM.STEP]
         if((current_time >= self.interval[0]) and (current_time < self.interval[1])):
-            output_value =[]
+            output_value_list =[]
 
             for variable, source in self.dict_output.items():
                 # Process related variables (e.g. TIME, STEP)
                 if source == 'process':
-                    output_value.append(self.model_part.ProcessInfo[variable])
+                    output_value_list.append(self.model_part.ProcessInfo[variable])
                 # Node properties (e.g. position)
                 elif source == 'node':
                     for node in self.model_part.Nodes:
-                        output_value.append(getattr(node,variable.Name()))
+                        output_value_list.append(getattr(node,variable.Name()))
                 # Node step values (e.g. variables like displacement)
                 elif source == "solution_step":
                     for node in self.model_part.Nodes:
-                        output_value.append(node.GetSolutionStepValue(variable,0))
+                        output_value_list.append(node.GetSolutionStepValue(variable,0))
                 # Condition values
                 elif source == "condition":
                     for condition in self.model_part.GetConditions():
-                        output_value.append(condition.GetValue(variable))
-
+                        output_value_list.append(condition.GetValue(variable))
+            # Reorder if indicated
+            if self.output_order == 'sources_first':
+                output_value_list = self._OrderSourcesFirst(output_value_list, self.dict_output.items())
             if (self.write_output_file):
                 if self.output_format == "ascii":
-                    self.training_output_file.write(' '.join(str(v) for v in output_value) + '\n')
+                    self.training_output_file.write(' '.join(str(v) for v in output_value_list) + '\n')
                 if self.output_format == "h5":
                     self.hdf5_output_parameters["prefix"].SetString("/"+str(current_step)+"/OutputData")
                     nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_output_parameters, self.hdf5_file_training_output)
@@ -285,4 +294,25 @@ class DataGeneratorProcess(KM.Process):
 
     def IsOutputStep(self):
         return False
+
+    @staticmethod
+    def _OrderSourcesFirst(values_list, variables_dictionary):
+        """ Reorders the values list by sources instead of by variables (e.g. node by node)."""
+        ordered_list = []
+        k, m = divmod(len(values_list), len(variables_dictionary))
+        # Split the lists
+        split_list = list(values_list[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(len(variables_dictionary)))
+        # Reorder the lists by source entry
+        for index in range(len(split_list[0])):
+            for variable_list in split_list:
+                ordered_list.append(variable_list[index])
+
+        return ordered_list
+        
+
+
+
+
+
+
 
