@@ -166,7 +166,7 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     }
 
     const int num_nodes = static_cast<int>(mrMainModelPart.NumberOfNodes());
-    const auto nodes_begin = mrMainModelPart.ElementsBegin();
+    const auto nodes_begin = mrMainModelPart.NodesBegin();
 
 #pragma omp parallel for
     for (int i_bn = 0; i_bn < num_nodes; ++i_bn) {
