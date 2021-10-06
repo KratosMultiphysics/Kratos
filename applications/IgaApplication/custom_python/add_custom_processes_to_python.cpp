@@ -15,6 +15,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/output_quadrature_domain_process.h"
+#include "custom_processes/nitsche_stabilization_model_part_process.h"
 #include "custom_processes/mpm_process.h"
 
 #include "iga_application_variables.h"
@@ -31,6 +32,11 @@ void AddCustomProcessesToPython(
     py::class_<OutputQuadratureDomainProcess, OutputQuadratureDomainProcess::Pointer, Process>(m, "OutputQuadratureDomainProcess")
         .def(py::init<Model&, Parameters >())
         ;
+
+    py::class_<NitscheStabilizationModelPartProcess, NitscheStabilizationModelPartProcess::Pointer, Process>(m, "NitscheStabilizationModelPartProcess")
+        .def(py::init<ModelPart& >())
+        ;
+
 
     py::class_<MpmProcess, MpmProcess::Pointer, Process>(m, "MpmProcess")
         .def(py::init<Model&, Parameters >())

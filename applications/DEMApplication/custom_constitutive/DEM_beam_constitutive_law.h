@@ -4,15 +4,13 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "../custom_utilities/AuxiliaryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 #include "includes/serializer.h"
-
-
 #include "containers/flags.h"
 
 #include "custom_utilities/GeometryFunctions.h"
-#include "../custom_elements/discrete_element.h"
-#include "../custom_elements/Particle_Contact_Element.h"
+#include "custom_elements/discrete_element.h"
+#include "custom_elements/Particle_Contact_Element.h"
 #include "containers/array_1d.h"
 
 
@@ -29,9 +27,11 @@ namespace Kratos {
 
         DEMBeamConstitutiveLaw();
 
-        virtual void Initialize(SphericContinuumParticle* owner_sphere);
+        virtual void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps);
 
         virtual void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true);
+
+        virtual void SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose = true);
 
         virtual void Check(Properties::Pointer pProp) const;
 
@@ -49,7 +49,7 @@ namespace Kratos {
                                                double equiv_poisson,
                                                double calculation_area,
                                                SphericContinuumParticle* element1,
-                                               SphericContinuumParticle* element2);
+                                               SphericContinuumParticle* element2, double indentation);
 
         virtual void CalculateViscoDampingCoeff(double& equiv_visco_damp_coeff_normal,
                                                 double& equiv_visco_damp_coeff_tangential_0,
@@ -95,6 +95,7 @@ namespace Kratos {
         virtual void CalculateTangentialForces(double OldLocalElasticContactForce[3],
                                                double LocalElasticContactForce[3],
                                                double LocalDeltDisp[3],
+                                               double LocalRelVel[3],
                                                const double kt_el_0,
                                                const double kt_el_1);
 
@@ -116,6 +117,10 @@ namespace Kratos {
                                                       double indentation);
 
         virtual bool CheckRequirementsOfStressTensor();
+
+    protected:
+
+        Properties::Pointer mpProperties;
 
     private:
 

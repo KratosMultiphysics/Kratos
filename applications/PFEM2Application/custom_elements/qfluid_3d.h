@@ -69,7 +69,7 @@ namespace Kratos
     ///@{
 
     /// Counted pointer of QFluid3DCoupled
-    KRATOS_CLASS_POINTER_DEFINITION(QFluid3D);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(QFluid3D);
 
     ///@}
     ///@name Life Cycle

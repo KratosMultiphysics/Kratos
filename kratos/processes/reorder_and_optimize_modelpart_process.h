@@ -14,21 +14,17 @@
 #if !defined(KRATOS_REORDER_AND_OPTIMIZE_MODELPART_PROCESS_H_INCLUDED )
 #define  KRATOS_REORDER_AND_OPTIMIZE_MODELPART_PROCESS_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-
+#include "utilities/parallel_utilities.h"
 
 namespace Kratos
 {
@@ -245,8 +241,9 @@ protected:
             }
 
             //computing the inverse permutation
-            #pragma omp parallel for
-            for(int i = 0; i < n; ++i) invperm[perm[i]] = i;
+            IndexPartition<std::size_t>(n).for_each([&] (std::size_t Index){
+                invperm[perm[Index]] = Index;
+            });
 
         }
     };

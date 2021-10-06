@@ -364,7 +364,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
         rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rDistributedVariable);
     }
 
-    TValueType value_j;
+    TValueType value_j = rPointVariable.Zero();
     block_for_each(rEntitiesContainer, value_j, [&](typename TContainerType::value_type& rEntity, TValueType& rValueJ){
         auto& r_geometry = rEntity.GetGeometry();
         const double size = r_geometry.DomainSize();
@@ -373,7 +373,7 @@ void VariableRedistributionUtility::SpecializedConvertDistributedValuesToPoint(
             for (unsigned int k = 0; k < TPointNumber; ++k) {
                 rValueJ += size * MassMatrix(j,k) * r_geometry[k].FastGetSolutionStepValue(rDistributedVariable);
             }
-            ThreadsafeAdd(AuxiliaryGet<TIsHistorical>(rPointVariable, r_geometry[j]), rValueJ);
+            AtomicAdd(AuxiliaryGet<TIsHistorical>(rPointVariable, r_geometry[j]), rValueJ);
         }
     });
 
@@ -604,7 +604,7 @@ void VariableRedistributionUtility::UpdateDistributionRHS(
             for (unsigned int k = 0; k < TNumNodes; k++) {
                 rhs_j -= size * rMassMatrix(j,k) * AuxiliaryGet<TIsHistorical>(rDistributedVariable, r_geometry[k]);
             }
-            ThreadsafeAdd(r_geometry[j].GetValue(rhs_variable), rhs_j);
+            AtomicAdd(r_geometry[j].GetValue(rhs_variable), rhs_j);
         }
     });
 
@@ -632,8 +632,8 @@ double VariableRedistributionUtility::SolveDistributionIteration(
     ModelPart& rModelPart,
     const Variable< TValueType >& rDistributedVariable)
 {
-    TValueType delta;
     double domain_size, error_l2_norm;
+    TValueType delta = rDistributedVariable.Zero();
     const auto& r_rhs_variable = GetRHSVariable(rDistributedVariable);
     typedef CombinedReduction<SumReduction<double>,SumReduction<double>> TwoSumReduction;
     std::tie(domain_size, error_l2_norm) = block_for_each<TwoSumReduction>(rModelPart.Nodes(), delta, [&](NodeType& rNode, TValueType& rDelta){
@@ -680,22 +680,6 @@ template<>
 double VariableRedistributionUtility::AddToNorm< array_1d<double,3> >(array_1d<double,3> NodalValue, double NodalSize)
 {
     return NodalSize*( NodalValue[0]*NodalValue[0]+NodalValue[1]*NodalValue[1]+NodalValue[2]*NodalValue[2] );
-}
-
-template<>
-void VariableRedistributionUtility::ThreadsafeAdd<double>(
-    double& rLHS,
-    const double& rRHS)
-{
-    AtomicAdd<double>(rLHS,rRHS);
-}
-
-template<>
-void VariableRedistributionUtility::ThreadsafeAdd<array_1d<double,3>>(
-    array_1d<double,3>& rLHS,
-    const array_1d<double,3>& rRHS)
-{
-    AtomicAdd<array_1d<double,3>, array_1d<double,3>>(rLHS, rRHS);
 }
 
 template<>

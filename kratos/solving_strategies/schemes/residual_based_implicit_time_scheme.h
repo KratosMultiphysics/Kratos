@@ -20,6 +20,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/entities_utilities.h"
 
 namespace Kratos
 {
@@ -144,82 +145,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief It initializes a non-linear iteration (for the element)
-     * @param rModelPart The model part of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-        ) override
-    {
-        KRATOS_TRY;
-
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Definition of the first element iterator
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first condition iterator
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = it_cond_begin + i;
-            it_cond->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        // Definition of the first constraint iterator
-        const auto it_const_begin = rModelPart.MasterSlaveConstraintsBegin();
-
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i) {
-            auto it_const = it_const_begin + i;
-            it_const->InitializeNonLinearIteration(r_current_process_info);
-        }
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual condition)
-     * @param pCurrentCondition The condition to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Condition::Pointer pCurrentCondition,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        const auto& r_const_process_info = rCurrentProcessInfo;
-        pCurrentCondition->InitializeNonLinearIteration(r_const_process_info);
-    }
-
-    /**
-     * @brief It initializes a non-linear iteration (for an individual element)
-     * @param pCurrentElement The element to compute
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void InitializeNonLinearIteration(
-        Element::Pointer pCurrentElement,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        const auto& r_const_process_info = rCurrentProcessInfo;
-        pCurrentElement->InitializeNonLinearIteration(r_const_process_info);
-    }
 
     /**
      * @brief This function is designed to be called in the builder and solver to introduce the selected time integration scheme.

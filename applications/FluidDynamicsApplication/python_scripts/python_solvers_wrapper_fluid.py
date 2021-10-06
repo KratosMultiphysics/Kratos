@@ -14,13 +14,13 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "Monolithic"):
+        if solver_type == "monolithic" or solver_type == "Monolithic":
             solver_module_name = "navier_stokes_solver_vmsmonolithic"
 
-        elif (solver_type == "MonolithicStokes"):
+        elif solver_type == "monolithic_stokes" or solver_type == "MonolithicStokes":
             solver_module_name = "stokes_solver_monolithic"
 
-        elif (solver_type == "FractionalStep"):
+        elif solver_type == "fractional_step" or solver_type == "FractionalStep":
             solver_module_name = "navier_stokes_solver_fractionalstep"
 
         elif (solver_type == "Embedded"):
@@ -35,7 +35,7 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "ConjugateHeatTransfer"):
             solver_module_name = "conjugate_heat_transfer_solver"
 
-        elif (solver_type == "TwoFluids"):
+        elif solver_type == "two_fluids" or solver_type == "TwoFluids":
             solver_module_name = "navier_stokes_two_fluids_solver"
 
         else:
@@ -43,16 +43,16 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        if (solver_type == "Monolithic"):
+        if solver_type == "monolithic" or solver_type == "Monolithic":
             solver_module_name = "trilinos_navier_stokes_solver_vmsmonolithic"
 
-        elif (solver_type == "FractionalStep"):
+        elif solver_type == "fractional_step" or solver_type == "FractionalStep":
             solver_module_name = "trilinos_navier_stokes_solver_fractionalstep"
 
         elif (solver_type == "Embedded"):
             solver_module_name = "trilinos_navier_stokes_embedded_solver"
 
-        elif (solver_type == "TwoFluids"):
+        elif solver_type == "two_fluids" or solver_type == "TwoFluids":
             solver_module_name = "trilinos_navier_stokes_two_fluids_solver"
 
         else:

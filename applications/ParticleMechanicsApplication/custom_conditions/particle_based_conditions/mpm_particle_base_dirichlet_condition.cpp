@@ -93,7 +93,7 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
 
 void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
     const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > > rValues,
+    const std::vector<array_1d<double, 3 > >& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)

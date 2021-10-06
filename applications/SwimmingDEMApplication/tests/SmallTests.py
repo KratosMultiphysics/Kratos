@@ -27,6 +27,16 @@ try:
      fluid_DEM_coupling_imports_available = True
 except ImportError:
      fluid_DEM_coupling_imports_available = False
+try:
+     import AnalyticTestFactory as AnalyticTF
+     analytic_imports_available = True
+except ImportError:
+     analytic_imports_available = False
+try:
+     import DragTestFactory as DragTF
+     drag_imports_available = True
+except ImportError:
+     drag_imports_available = False
 
 class interpolation_test_linear(InterpolationTF.TestFactory):
      file_name = "interpolation_tests/cube"
@@ -81,12 +91,25 @@ class CFD_DEM_two_way_test_DVMS(FDEMTF.TestFactory):
      file_name = "CFD_DEM_two_way_tests/Two_way_testFluid_DVMS"
      file_parameters = "CFD_DEM_two_way_tests/ProjectParameters_DVMS.json"
 
+class analytic_multiple_ghosts_test(AnalyticTF.TestFactory):
+     file_name = "analytic_tests/multiple_phantoms/multiple_phantom_test"
+     file_parameters = "analytic_tests/multiple_phantoms/ProjectParameters.json"
+
+class chien_drag_test(DragTF.TestFactory):
+     from  drag_tests.chien_law.chien_drag_test_analysis import ChienDragAnalysis
+     analysis_stage_to_be_launched = ChienDragAnalysis
+     file_name = "drag_tests/chien_law/chien_drag_test"
+     file_parameters = "drag_tests/chien_law/ProjectParameters.json"
+
 available_tests = []
 available_tests += [test_class for test_class in InterpolationTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in BackwardCouplingTF.TestFactory.__subclasses__()]
 if candelier_imports_available:
      available_tests += [test_class for test_class in CandelierTF.TestFactory.__subclasses__()]
 available_tests += [test_class for test_class in FDEMTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in AnalyticTF.TestFactory.__subclasses__()]
+available_tests += [test_class for test_class in DragTF.TestFactory.__subclasses__()]
+
 
 def SetTestSuite(suites):
     small_suite = suites['small']

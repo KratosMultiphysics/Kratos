@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "custom_friction_laws/friction_law.h"
 
 namespace Kratos
 {
@@ -54,7 +55,7 @@ public:
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of ShallowWater2D3
-    KRATOS_CLASS_POINTER_DEFINITION(ShallowWater2D3);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(ShallowWater2D3);
 
     ///@}
     ///@name Life Cycle
@@ -182,6 +183,11 @@ public:
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
 
     /**
+     * This is called in the beginning of each solution step
+     */
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
@@ -275,19 +281,25 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
+    /**
+     * @brief Turn back information as a string.
+     */
     std::string Info() const override
     {
         return "Shallow water element";
     }
 
-    /// Print information about this object.
+    /**
+     * @brief Print information about this object.
+     */
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
     }
 
-    /// Print object's data.
+    /**
+     * @brief Print object's data.
+     */
     void PrintData(std::ostream& rOStream) const override
     {
         rOStream << Info() << Id();
@@ -306,21 +318,26 @@ protected:
 
     struct ElementData
     {
-        double dt_inv;
         double stab_factor;
         double shock_stab_factor;
         double rel_dry_height;
         double gravity;
+        double dry_height;
+
+        double damping;
+        array_1d<double,3> boundary_velocity;
 
         double height;
         array_1d<double,3> flow_rate;
         array_1d<double,3> velocity;
-        double manning2;
 
         array_1d<double,3> topography;
         array_1d<double,3> rain;
         array_1d<double,9> unknown;
         array_1d<double,9> mesh_acc;
+
+        FrictionLaw::Pointer pBottomFriction;
+        FrictionLaw::Pointer pSurfaceFriction;
 
         void InitializeData(const ProcessInfo& rCurrentProcessInfo);
         void GetNodalData(const GeometryType& rGeometry, const BoundedMatrix<double,3,2>& rDN_DX);
@@ -442,9 +459,14 @@ protected:
 
     double StabilizationParameter(const ElementData& rData);
 
-    double HeightInverse(double Height, double Epsilon);
+    void ComputeDampingCoefficient(
+        double& rDamping,
+        const double DistanceThreshold,
+        const double MaximumDamping);
 
-    double WetFraction(double Height, double Epsilon);
+    array_1d<double,9> ToNodalVector(const array_1d<double,3>& rVector);
+
+    array_1d<double,9> ToNodalVector(const double& rScalar);
 
     ///@}
     ///@name Protected  Access

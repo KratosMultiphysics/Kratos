@@ -18,13 +18,26 @@ namespace Kratos {
         return type_of_law;
     }
 
-    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* owner_sphere) {
+    void DEMContinuumConstitutiveLaw::Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) {
+        mpProperties = pProps;
     }
 
     void DEMContinuumConstitutiveLaw::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) {
         if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
         this->Check(pProp);
+    }
+
+    void DEMContinuumConstitutiveLaw::SetConstitutiveLawInPropertiesWithParameters(Properties::Pointer pProp, const Parameters& parameters, bool verbose) {
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEMContinuumConstitutiveLaw to Properties " << pProp->Id() << std::endl;
+        pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
+
+        TransferParametersToProperties(parameters, pProp);
+
+        this->Check(pProp);
+    }
+
+    void DEMContinuumConstitutiveLaw::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp)  {
     }
 
     void DEMContinuumConstitutiveLaw::Check(Properties::Pointer pProp) const {
@@ -50,23 +63,11 @@ namespace Kratos {
                 pProp->GetValue(DYNAMIC_FRICTION) = pProp->GetValue(FRICTION);
             }
         }
-        if(!pProp->Has(YOUNG_MODULUS)) {
+        if(!pProp->Has(FRICTION_DECAY)) {
             KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable YOUNG_MODULUS should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
+            KRATOS_WARNING("DEM")<<"WARNING: Variable FRICTION_DECAY should be present in the properties when using DEMContinuumConstitutiveLaw. 500.0 value assigned by default."<<std::endl;
             KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(YOUNG_MODULUS) = 0.0;
-        }
-        if(!pProp->Has(POISSON_RATIO)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable POISSON_RATIO should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(POISSON_RATIO) = 0.0;
-        }
-        if(!pProp->Has(DAMPING_GAMMA)) {
-            KRATOS_WARNING("DEM")<<std::endl;
-            KRATOS_WARNING("DEM")<<"WARNING: Variable DAMPING_GAMMA should be present in the properties when using DEMContinuumConstitutiveLaw. 0.0 value assigned by default."<<std::endl;
-            KRATOS_WARNING("DEM")<<std::endl;
-            pProp->GetValue(DAMPING_GAMMA) = 0.0;
+            pProp->GetValue(FRICTION_DECAY) = 500.0;
         }
         if(!pProp->Has(COEFFICIENT_OF_RESTITUTION)) {
             KRATOS_WARNING("DEM")<<std::endl;
@@ -153,11 +154,11 @@ namespace Kratos {
         const double &other_real_mass = element2->GetMass();
 
         // calculation of damping gamma
-        const double my_gamma    = element1->GetProperties()[DAMPING_GAMMA];
-        const double other_gamma = element2->GetProperties()[DAMPING_GAMMA];
-        const double equiv_gamma = 0.5 * (my_gamma + other_gamma);
+
+        const double& damping_gamma = (*mpProperties)[DAMPING_GAMMA];
+
         double equiv_mass = (mRealMass*other_real_mass)/(mRealMass+other_real_mass);
-        const double viscous_damping_coeff     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
+        const double viscous_damping_coeff     = 2.0 * damping_gamma * sqrt(equiv_mass * kn_el);
         //double viscous_damping_coeff = (1-equiv_coefficientOfRestitution) * 2.0 * sqrt(kn_el * equiv_mass);
 
         double rescaled_damping = viscous_damping_coeff/(2*equiv_mass);

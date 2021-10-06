@@ -89,7 +89,7 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
@@ -112,8 +112,8 @@ void LinearPlaneStress::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Param
 //************************************************************************************
 
 void LinearPlaneStress::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    Vector& rStressVector,
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues
 )
 {
@@ -136,15 +136,15 @@ void LinearPlaneStress::CalculatePK2Stress(
 void LinearPlaneStress::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
     //1.-Compute total deformation gradient
-    const Matrix& F = rValues.GetDeformationGradientF();
+    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
 
     // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
+    BoundedMatrix<double,2,2> F2x2;
     for (unsigned int i = 0; i<2; ++i)
         for (unsigned int j = 0; j<2; ++j)
             F2x2(i, j) = F(i, j);
 
-    Matrix E_tensor = prod(trans(F2x2), F2x2);
+    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
 
     for (unsigned int i = 0; i<2; ++i)
         E_tensor(i, i) -= 1.0;

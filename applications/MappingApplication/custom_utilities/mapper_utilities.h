@@ -26,13 +26,11 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "mapping_application_variables.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
-namespace Kratos
-{
-namespace MapperUtilities
-{
+namespace Kratos {
+namespace MapperUtilities {
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
@@ -49,8 +47,6 @@ typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
 typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
 using BoundingBoxType = std::array<double, 6>;
-// using BoundingBoxContainerType = std::vector<BoundingBoxType>;
-
 
 template< class TVarType >
 static void FillFunction(const NodeType& rNode,
@@ -165,6 +161,14 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
     for (int i=0; i<num_local_nodes; i++) {
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     }
+
+    if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
+        if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
+            rModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
+        } else {
+            rModelPart.GetCommunicator().SynchronizeVariable(rVariable);
+        }
+    }
 }
 
 /**
@@ -194,10 +198,11 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
         rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
     }
 
-    int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
 
-    KRATOS_ERROR_IF_NOT(num_local_systems > 0)
-        << "No mapper local systems were created" << std::endl;
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
 }
 
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,

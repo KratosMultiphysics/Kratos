@@ -64,11 +64,9 @@ public:
         return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                             const double NeighborDistance) override;
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
@@ -163,8 +161,9 @@ private:
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-template<class TSparseSpace, class TDenseSpace>
-class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
+template<class TSparseSpace, class TDenseSpace, class TMapperBackend>
+class KRATOS_API(MAPPING_APPLICATION) NearestElementMapper
+    : public InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend>
 {
 public:
     ///@name Type Definitions
@@ -173,7 +172,7 @@ public:
     /// Pointer definition of NearestElementMapper
     KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
-    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
+    typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace, TMapperBackend> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
     typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
@@ -193,12 +192,16 @@ public:
                                     rModelPartDestination,
                                     JsonParameters)
     {
+        KRATOS_TRY;
+
         this->ValidateInput();
 
         mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
         KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
 
         this->Initialize();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -212,10 +215,14 @@ public:
                                   ModelPart& rModelPartDestination,
                                   Parameters JsonParameters) const override
     {
-        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace>>(
+        KRATOS_TRY;
+
+        return Kratos::make_unique<NearestElementMapper<TSparseSpace, TDenseSpace, TMapperBackend>>(
             rModelPartOrigin,
             rModelPartDestination,
             JsonParameters);
+
+        KRATOS_CATCH("");
     }
 
     ///@}

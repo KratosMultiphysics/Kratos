@@ -25,6 +25,7 @@
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/poro_element_utilities.hpp"
 #include "poromechanics_application_variables.h"
 
 namespace Kratos
@@ -35,7 +36,7 @@ class KRATOS_API(POROMECHANICS_APPLICATION) SmallStrainUPwDiffOrderElement : pub
 
 public:
 
-    KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( SmallStrainUPwDiffOrderElement );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -79,16 +80,18 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable, const std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable, const std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValuesOnIntegrationPoints(const Variable<Matrix>& rVariable, const std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
@@ -134,7 +137,6 @@ protected:
         double BiotCoefficient;
         double BiotModulusInverse;
         double DynamicViscosity;
-        Matrix IntrinsicPermeability;
         double NewmarkCoefficient1;
         double NewmarkCoefficient2;
     };
@@ -146,6 +148,10 @@ protected:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
     Geometry< Node<3> >::Pointer mpPressureGeometry;
+
+    Matrix mIntrinsicPermeability;
+    
+    std::vector<double> mImposedZStrainVector; /// The vector containing the imposed z strains (for 2.5D element: 2D geom with 3D CL)
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

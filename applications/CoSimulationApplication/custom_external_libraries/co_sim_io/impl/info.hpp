@@ -26,10 +26,8 @@
 namespace CoSimIO {
 namespace Internals {
 
-inline std::string Name(int dummy)         {return "int";}
-inline std::string Name(double dummy)      {return "double";}
-inline std::string Name(bool dummy)        {return "bool";}
-inline std::string Name(std::string dummy) {return "string";}
+template<typename T>
+std::string Name();
 
 class InfoDataBase
 {
@@ -41,18 +39,11 @@ public:
     // virtual void Print(const void* pSource, std::ostream& rOStream) const;
     virtual void Save(std::ostream& O_OutStream) const = 0;
     virtual void Load(std::istream& I_InStream) = 0;
-    virtual void Print(std::ostream& rOStream) const = 0;
+    virtual void Print(
+        std::ostream& rOStream,
+        const std::string& rPrefixString) const {CO_SIM_IO_ERROR << "This is the baseclass!" << std::endl;};
 };
 
-/// output stream function
-inline std::ostream & operator <<(
-    std::ostream& rOStream,
-    const InfoDataBase& rThis)
-{
-    rThis.Print(rOStream);
-
-    return rOStream;
-}
 
 template<class TDataType>
 class InfoData : public InfoDataBase
@@ -60,7 +51,7 @@ class InfoData : public InfoDataBase
 public:
     explicit InfoData(const TDataType Source) : mData(Source) {}
 
-    std::string GetDataTypeName() const override {return Internals::Name(TDataType());}
+    std::string GetDataTypeName() const override {return Internals::Name<TDataType>();}
 
     const void* GetData() const override
     {
@@ -81,9 +72,11 @@ public:
         I_InStream >> mData;
     }
 
-    void Print(std::ostream& rOStream) const override
+    void Print(
+        std::ostream& rOStream,
+        const std::string& rPrefixString) const override
     {
-        rOStream << "value: " << mData << " | type: " << GetDataTypeName();
+        rOStream << "value: " << mData << " | type: " << GetDataTypeName() << "\n";
     }
 
 
@@ -112,9 +105,18 @@ public:
     const TDataType& Get(const std::string& I_Key) const
     {
         CO_SIM_IO_ERROR_IF_NOT(Has(I_Key)) << "Trying to get \"" << I_Key << "\" which does not exist!" << std::endl;
-        const auto& r_val = mOptions.at(I_Key);
-        CO_SIM_IO_ERROR_IF(r_val->GetDataTypeName() != Internals::Name(TDataType())) << "Wrong DataType! Trying to get \"" << I_Key << "\" which is of type \"" << r_val->GetDataTypeName() << "\" with \"" << Internals::Name(TDataType()) << "\"!" << std::endl;
-        return *static_cast<const TDataType*>(r_val->GetData());
+        return GetExistingKey<TDataType>(I_Key);
+    }
+
+    template<typename TDataType>
+    const TDataType& Get(const std::string& I_Key, const TDataType& I_Default) const
+    {
+        if (Has(I_Key)) {
+            return GetExistingKey<TDataType>(I_Key);
+        } else {
+            // this does NOT insert the value! (same behavior as in python)
+            return I_Default;
+        }
     }
 
     bool Has(const std::string& I_Key) const
@@ -129,7 +131,7 @@ public:
             std::is_same<TDataType, double>::value ||
             std::is_same<TDataType, int>::value    ||
             std::is_same<TDataType, bool>::value   ||
-            // std::is_same<TDataType, Info>::value   || // makes it recursive
+            std::is_same<TDataType, Info>::value   || // makes it recursive
             std::is_same<TDataType, std::string>::value,
                 "Only allowed types are double, int, bool, string");
 
@@ -159,6 +161,7 @@ public:
     void Save(std::ostream& O_OutStream) const
     {
         static std::map<std::string, std::string> s_registered_object_names {
+            {typeid(Internals::InfoData<Info>).name(),        "InfoData_info"},
             {typeid(Internals::InfoData<int>).name(),         "InfoData_int"},
             {typeid(Internals::InfoData<double>).name(),      "InfoData_double"},
             {typeid(Internals::InfoData<bool>).name(),        "InfoData_bool"},
@@ -179,6 +182,7 @@ public:
     void Load(std::istream& I_InStream)
     {
         static std::map<std::string, std::shared_ptr<Internals::InfoDataBase>> s_registered_object_prototypes {
+            {"InfoData_info"   , std::make_shared<Internals::InfoData<Info>>(Info())},
             {"InfoData_int"    , std::make_shared<Internals::InfoData<int>>(1)},
             {"InfoData_double" , std::make_shared<Internals::InfoData<double>>(1)},
             {"InfoData_bool"   , std::make_shared<Internals::InfoData<bool>>(1)},
@@ -201,18 +205,28 @@ public:
             mOptions[key] = p_clone;
         }
     }
-
-    virtual void Print(std::ostream& rOStream) const
+    void Print(
+        std::ostream& rOStream,
+        const std::string& rPrefixString="") const
     {
         rOStream << "CoSimIO-Info; containing " << Size() << " entries\n";
 
         for (const auto& r_pair: mOptions) {
-            rOStream << "  name: " << r_pair.first << " | " << *(r_pair.second) << std::endl;
+            rOStream << rPrefixString << "  name: " << r_pair.first << " | ";
+            r_pair.second->Print(rOStream, rPrefixString + "  ");
         }
     }
 
 private:
     std::map<std::string, std::shared_ptr<Internals::InfoDataBase>> mOptions;
+
+    template<typename TDataType>
+    const TDataType& GetExistingKey(const std::string& I_Key) const
+    {
+        const auto& r_val = mOptions.at(I_Key);
+        CO_SIM_IO_ERROR_IF(r_val->GetDataTypeName() != Internals::Name<TDataType>()) << "Wrong DataType! Trying to get \"" << I_Key << "\" which is of type \"" << r_val->GetDataTypeName() << "\" with \"" << Internals::Name<TDataType>() << "\"!" << std::endl;
+        return *static_cast<const TDataType*>(r_val->GetData());
+    }
 };
 
 /// output stream function
@@ -224,6 +238,44 @@ inline std::ostream & operator <<(
     return rOStream;
 }
 
+namespace Internals {
+
+template<> inline std::string Name<int>()         {return "int";}
+template<> inline std::string Name<double>()      {return "double";}
+template<> inline std::string Name<bool>()        {return "bool";}
+template<> inline std::string Name<std::string>() {return "string";}
+template<> inline std::string Name<Info>()        {return "info";}
+
+template<>
+inline void InfoData<bool>::Print(
+    std::ostream& rOStream,
+    const std::string& rPrefixString) const
+{
+    rOStream << "value: " << std::boolalpha << mData << std::noboolalpha << " | type: " << GetDataTypeName() << "\n";
+}
+
+template<>
+inline void InfoData<Info>::Print(
+    std::ostream& rOStream,
+    const std::string& rPrefixString) const
+{
+    rOStream << "type: ";
+    mData.Print(rOStream, rPrefixString);
+}
+
+template<>
+inline void InfoData<Info>::Save(std::ostream& O_OutStream) const
+{
+    mData.Save(O_OutStream);
+}
+
+template<>
+inline void InfoData<Info>::Load(std::istream& I_InStream)
+{
+    mData.Load(I_InStream);
+}
+
+} // namespace Internals
 } // namespace CoSimIO
 
 #endif // CO_SIM_IO_INFO_INCLUDED

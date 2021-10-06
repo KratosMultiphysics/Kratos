@@ -26,14 +26,12 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
-void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, false);
 }
 
-void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                                                      const double NeighborDistance)
+void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject)
 {
     SaveSearchResult(rInterfaceObject, true);
 }

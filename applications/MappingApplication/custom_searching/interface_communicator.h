@@ -27,7 +27,7 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "custom_searching/custom_configures/interface_object_configure.h"
 #include "custom_utilities/mapper_local_system.h"
-#include "custom_utilities/mapper_flags.h"
+#include "mappers/mapper_flags.h"
 
 
 namespace Kratos
@@ -87,7 +87,6 @@ public:
     ///@{
 
     void ExchangeInterfaceData(const Communicator& rComm,
-                               const Kratos::Flags& rOptions,
                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     ///@}
@@ -143,13 +142,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual void InitializeSearch(const Kratos::Flags& rOptions,
-                                        const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+    virtual void InitializeSearch(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     virtual void FinalizeSearch();
 
-    virtual void InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
+    virtual void InitializeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo);
 
     virtual void FinalizeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo);
 
@@ -172,8 +169,7 @@ private:
     void InitializeBinsSearchStructure();
 
     // this function performs the search and the exchange of the data on the interface
-    void ConductSearchIteration(const Kratos::Flags& rOptions,
-                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
+    void ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                 const Communicator& rComm);
 
     bool AllNeighborsFound(const Communicator& rComm) const;
