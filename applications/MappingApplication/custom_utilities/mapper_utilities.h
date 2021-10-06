@@ -122,7 +122,7 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
     return &UpdateFunction<TVarType>;
 }
 
-template< class TVectorType, class TVarType, bool TParallel=true >
+template< class TVectorType, class TVarType >
 void UpdateSystemVectorFromModelPart(TVectorType& rVector,
                         ModelPart& rModelPart,
                         const TVarType& rVariable,
@@ -134,15 +134,13 @@ void UpdateSystemVectorFromModelPart(TVectorType& rVector,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
-    constexpr bool max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
-
-    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    });
+    }
 }
 
-template< class TVectorType, class TVarType, bool TParallel=true >
+template< class TVectorType, class TVarType >
 void UpdateModelPartFromSystemVector(const TVectorType& rVector,
             ModelPart& rModelPart,
             const TVarType& rVariable,
@@ -159,12 +157,10 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
-    constexpr bool max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
-
-    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
+    #pragma omp parallel for
+    for (int i=0; i<num_local_nodes; i++) {
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    });
+    }
 
     if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
         if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
