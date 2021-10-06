@@ -16,6 +16,7 @@ class InitialPerturbationProcess(KM.Process):
         default_settings = KM.Parameters("""
             {
                 "model_part_name"            : "main_model_part",
+                "interval"                   : [0,0],
                 "source_type"                : "point or model_part",
                 "source_point_coordinates"   : [0.0, 0.0, 0.0],
                 "source_model_part_name"     : "main_model_part.sub_model_part",
