@@ -74,7 +74,7 @@ void ConstructMatrixStructure(Epetra_FECrsGraph& rGraph,
     }
 }
 
-void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
+void BuildMatrix(typename MappingSparseSpaceType::MatrixType& rMdo,
                  std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems)
 {
     MatrixType local_mapping_matrix;
@@ -89,7 +89,7 @@ void BuildMatrix(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>
         KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())<< "MPI-MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
 
         if (local_mapping_matrix.size1() > 0) {
-            ierr = rpMdo->SumIntoGlobalValues(
+            ierr = rMdo.SumIntoGlobalValues(
                 destination_ids.size(), destination_ids.data(),
                 origin_ids.size(), origin_ids.data(),
                 local_mapping_matrix.data().begin(), // TODO I think this changes with AMatrix
@@ -215,7 +215,7 @@ void MappingMatrixUtilitiesType::BuildMappingMatrix(
     Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType> p_Mdo =
         Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(Epetra_DataAccess::Copy, epetra_graph);
 
-    BuildMatrix(p_Mdo, rMapperLocalSystems);
+    BuildMatrix(*p_Mdo, rMapperLocalSystems);
 
     // range- and domain-map have to be passed since the matrix is rectangular
     ierr = p_Mdo->GlobalAssemble(epetra_domain_map, epetra_range_map);
