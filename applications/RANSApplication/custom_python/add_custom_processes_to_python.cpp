@@ -39,6 +39,7 @@
 #include "custom_processes/rans_variable_data_transfer_process.h"
 #include "custom_processes/rans_initialize_bossak_previous_step_variable_derivatives_process.h"
 #include "custom_processes/rans_omega_viscous_log_wall_process.h"
+#include "custom_processes/rans_omega_viscous_log_binomial_wall_process.h"
 #include "custom_processes/rans_wall_properties_update_process.h"
 #include "custom_processes/rans_compute_y_plus_process.h"
 #include "custom_processes/rans_vtk_output_process.h"
@@ -112,6 +113,9 @@ void AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<Model&, const std::string&, const bool, const bool, const std::vector<std::string>&, const int>());
 
     py::class_<RansOmegaViscousLogWallProcess, RansOmegaViscousLogWallProcess::Pointer, RansFormulationProcess>(m, "RansOmegaViscousLogWallProcess")
+        .def(py::init<Model&, Parameters&>());
+
+    py::class_<RansOmegaViscousLogBinomialWallProcess, RansOmegaViscousLogBinomialWallProcess::Pointer, RansFormulationProcess>(m, "RansOmegaViscousLogBinomialWallProcess")
         .def(py::init<Model&, Parameters&>());
 
     py::class_<RansComputeYPlusProcess, RansComputeYPlusProcess::Pointer, RansFormulationProcess>(m, "RansComputeYPlusProcess")

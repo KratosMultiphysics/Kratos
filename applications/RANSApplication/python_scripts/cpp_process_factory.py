@@ -72,6 +72,10 @@ def Factory(settings, Model):
             KratosRANS.RansOmegaViscousLogWallProcess
         ],
         [
+            "OmegaViscousLogBinomialWallProcess",
+            KratosRANS.RansOmegaViscousLogBinomialWallProcess
+        ],
+        [
             "WallPropertiesUpdateProcess",
             KratosRANS.RansWallPropertiesUpdateProcess
         ],
