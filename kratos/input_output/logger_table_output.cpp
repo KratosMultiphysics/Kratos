@@ -55,9 +55,10 @@ namespace Kratos
     mCurrentColumnIndex(0),
     mColumnsHeaders({}),
     mColumnsWidth({}),
+    mColumnsTexts({}),
     mColumnsLabels({}),
-    mFileHeader(""),
-    mColumnsTexts({})
+    mFileHeader("")
+
     {
       Parameters default_settings(R"({
           "file_header" : "",
@@ -101,9 +102,10 @@ namespace Kratos
     mCurrentColumnIndex(Other.mCurrentColumnIndex),
     mColumnsHeaders(Other.mColumnsHeaders),
     mColumnsWidth({Other.mColumnsWidth}),
+    mColumnsTexts(Other.mColumnsTexts),
     mColumnsLabels(Other.mColumnsLabels),
-    mFileHeader(Other.mFileHeader),
-    mColumnsTexts(Other.mColumnsTexts)
+    mFileHeader(Other.mFileHeader)
+
   {}
 
   std::string LoggerTableOutput::Info() const
