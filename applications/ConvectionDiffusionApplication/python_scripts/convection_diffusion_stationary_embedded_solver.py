@@ -38,9 +38,6 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
         # Add distance variable to represent the embedded skin
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
 
-    def AddDofs(self):
-        # Add heat transfer DOFs
-        super().AddDofs()
 
     def Initialize(self):
 
