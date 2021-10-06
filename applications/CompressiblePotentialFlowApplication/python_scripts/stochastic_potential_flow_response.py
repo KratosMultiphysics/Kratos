@@ -327,8 +327,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         parameterPointsSpace = [10,10**3+1]
         parameterPoints = np.linspace(0.5,0.9,num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
         sampleNumberSpace = [10,10**5]
-        # initialHierarchy = [[[0],50,parameterPoints],[[1],50,parameterPoints],[[2],50,parameterPoints], [[3],50,parameterPoints], [[4],50,parameterPoints]]
-        initialHierarchy = [[[0],5,parameterPoints],[[1],5,parameterPoints],[[2],5,parameterPoints]]
+        initialHierarchy = parameters["initialHierarchy"]
+        for i, _ in enumerate(initialHierarchy):
+            initialHierarchy[i].append(parameterPoints)
         sampleNumberSpace = list(np.ceil(sampleNumberSpace).astype(int))
 
         # RandomGeneratorWrapper
@@ -337,6 +338,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         # Parameters are [c_mean,r_mean,c_std,r_std,c_time,r_time],
         # marc: READING FROM JSON
         solverWrapperInputDict = parameters["solverWrapperInputDictionary"]
+        solverWrapperInputDict["outputBatchSize"] = optiParameters+1
 
         # SampleGenerator
         # marc: READING FROM JSON
@@ -678,7 +680,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             'assemblersForHierarchy':[iCVaRAssembler],
             'tolerancesForHierarchy':[-1],
             'outputFolderPath':folder,
-            'isDataDumped':False,
+            'isDataDumped': True,
             'toleranceSplitting':toleranceSplitting
         }
         self.xmc_analysis = xmc.XMCAlgorithm(**algoInputDict)
