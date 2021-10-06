@@ -127,10 +127,9 @@ void UpdateSystemVectorFromModelPart(
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
+    IndexPartition<std::size_t>(num_local_nodes).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
+    });
 }
 
 template<class TVectorType>
@@ -151,10 +150,9 @@ void UpdateModelPartFromSystemVector(
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    #pragma omp parallel for
-    for (int i=0; i<num_local_nodes; i++) {
+    IndexPartition<std::size_t>(num_local_nodes).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
-    }
+    });
 
     if (rModelPart.GetCommunicator().GetDataCommunicator().IsDefinedOnThisRank()) {
         if (rMappingOptions.Is(MapperFlags::TO_NON_HISTORICAL)) {
