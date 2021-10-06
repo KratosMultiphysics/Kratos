@@ -18,7 +18,7 @@ class SetInitialWaterLevelProcess(KM.Process):
                 "model_part_name"      : "please_specify_model_part_name",
                 "variable_name"        : "HEIGHT",
                 "constrained"          : false,
-                "interval"             : [0,0],
+                "interval"             : [0.0, 0.0],
                 "value"                : "1.0",
                 "set_minimum_height"   : true,
                 "minimum_height_value" : 1e-4
