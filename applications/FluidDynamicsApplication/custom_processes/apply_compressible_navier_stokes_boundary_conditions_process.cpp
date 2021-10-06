@@ -156,6 +156,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUt
 void ApplyCompressibleNavierStokesBoundaryConditionsProcess::BoundaryConditionUtility::Free(NodeType& rNode) const
 {
     rNode.pGetDof(*mpVariable)->FreeDof();
+    // TODO: Sustituir por GetVariable
 }
 
 
@@ -223,7 +224,7 @@ void ApplyCompressibleNavierStokesBoundaryConditionsProcess::ReadBoundaryConditi
 
         std::string variable_component_name = Parameters["variable_name"].GetString() + "_X";
         
-        for(std::size_t i=0; i<n_components; i++)
+        for(std::size_t i=0; i<n_components; ++i)
         {
             if(constraints[i].GetBool())
             {
