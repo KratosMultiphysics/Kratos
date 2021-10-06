@@ -56,7 +56,7 @@ class StabilizedShallowWaterSolver(ShallowWaterBaseSolver):
         "time_integration_order"     : 2,
         "relative_dry_height"        : 0.1,
         "stabilization_factor"       : 0.005,
-        "shock_stabilization_factor" : 0.0,
+        "shock_stabilization_factor" : 0.5,
         "shock_capturing_type"       : "residual_viscosity"
         }
         """)
