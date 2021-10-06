@@ -290,7 +290,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                 sum_num_results += number_of_results;
 
                 for (IndexType j=0; j<number_of_results; ++j) {
-                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]), neighbor_distances[j]);
+                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]));
                 }
 
                 // If the search did not result in a "valid" result (e.g. the projection fails)
@@ -298,7 +298,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                 if (!r_interface_info->GetLocalSearchWasSuccessful()) {
                     for (IndexType j=0; j<number_of_results; ++j) {
                         r_interface_info->ProcessSearchResultForApproximation(
-                            *(neighbor_results[j]), neighbor_distances[j]);
+                            *(neighbor_results[j]));
                     }
                 }
             }

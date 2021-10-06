@@ -24,8 +24,7 @@
 namespace Kratos
 {
 
-void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                                                      const double NeighborDistance)
+void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject)
 {
     SetLocalSearchWasSuccessful();
 

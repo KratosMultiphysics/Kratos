@@ -64,11 +64,9 @@ public:
         return InterfaceObject::ConstructionType::Geometry_Center;
     }
 
-    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
-                             const double NeighborDistance) override;
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject) override;
 
-    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
-                                             const double NeighborDistance) override;
+    void ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject) override;
 
     void GetValue(std::vector<int>& rValue,
                   const InfoType ValueType) const override
