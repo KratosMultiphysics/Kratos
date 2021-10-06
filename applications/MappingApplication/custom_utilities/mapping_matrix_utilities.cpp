@@ -53,6 +53,7 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
 {
     // one set for each row storing the corresponding col-IDs
     std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
+    std::vector<LockObject> lock_array(NumNodesDestination);
 
     // preallocate memory for the column indices
     block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
@@ -61,17 +62,22 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         rIndices.reserve(3);
     });
 
-    EquationIdVectorType origin_ids;
-    EquationIdVectorType destination_ids;
+    struct EquationIdTLS
+    {
+        EquationIdVectorType OriginIds;
+        EquationIdVectorType DestinationIds;
+    };
+
 
     // Looping the local-systems to get the entries for the matrix
-    // TODO omp
-    for (/*const*/auto& r_local_sys : rMapperLocalSystems) { // TODO I think this can be const bcs it is the ptr
-        r_local_sys->EquationIdVectors(origin_ids, destination_ids);
-        for (const auto dest_idx : destination_ids) {
-            indices[dest_idx].insert(origin_ids.begin(), origin_ids.end());
-        }
-    }
+    block_for_each(rMapperLocalSystems, EquationIdTLS(),
+        [&](Kratos::unique_ptr<MapperLocalSystem>& rpLocalSys, EquationIdTLS& rIdsTLS){
+            rpLocalSys->EquationIdVectors(rIdsTLS.OriginIds, rIdsTLS.DestinationIds);
+            for (const auto dest_idx : rIdsTLS.DestinationIds) {
+                const std::lock_guard<LockObject> scope_lock(lock_array[dest_idx]);
+                indices[dest_idx].insert(rIdsTLS.OriginIds.begin(), rIdsTLS.OriginIds.end());
+            }
+    });
 
     // computing the number of non-zero entries
     const SizeType num_non_zero_entries = block_for_each<SumReduction<SizeType>>(indices,
@@ -94,7 +100,7 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
         p_matrix_row_indices[i+1] = p_matrix_row_indices[i] + indices[i].size();
     }
 
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
+    IndexPartition<std::size_t>(NumNodesDestination).for_each([&](std::size_t i){
         const IndexType row_begin = p_matrix_row_indices[i];
         const IndexType row_end = p_matrix_row_indices[i+1];
         IndexType j = row_begin;
@@ -104,10 +110,8 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
             ++j;
         }
 
-        indices[i].clear(); //deallocating the memory // TODO necessary?
-
         std::sort(&p_matrix_col_indices[row_begin], &p_matrix_col_indices[row_end]);
-    }
+    });
 
     p_Mdo->set_filled(indices.size()+1, num_non_zero_entries);
 
