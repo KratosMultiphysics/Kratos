@@ -80,6 +80,8 @@ def GetDefaultInputParameters():
             "SkinFactorRadius" : 1.0,
             "AmplifiedSearchRadiusExtension"   : 0.0,
             "MaxAmplificationRatioOfSearchRadius" : 10,
+            "YCoordinateOfCylinderBottomBase"     : 0.0,
+            "ZCoordinateOfCylinderBottomBase"     : 0.0,
             "ModelDataInfo"                    : false,
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,

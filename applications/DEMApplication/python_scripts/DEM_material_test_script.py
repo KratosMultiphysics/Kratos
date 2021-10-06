@@ -188,9 +188,9 @@ class MaterialTest():
     def ComputeLoadingVelocity(self):
         top_vel = bot_vel = 0.0
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 top_vel = smp[LINEAR_VELOCITY_Y]
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOTTOM':
                 bot_vel = smp[LINEAR_VELOCITY_Y]
         self.LoadingVelocity = top_vel - bot_vel
 
@@ -325,19 +325,19 @@ class MaterialTest():
         self.total_check = 0
 
         for smp in self.rigid_face_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[0] = 1
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOT':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[1] = 1
 
         for smp in self.spheres_model_part.SubModelParts:
-            if smp[TOP]:
+            if smp[IDENTIFIER] == 'TOP':
                 self.top_mesh_nodes = smp.Nodes
                 prepare_check[2] = -1
 
-            if smp[BOTTOM]:
+            if smp[IDENTIFIER] == 'BOT':
                 self.bot_mesh_nodes = smp.Nodes
                 prepare_check[3] = -1
 
