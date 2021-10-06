@@ -74,7 +74,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         if (self.nusselt_correlation != "sphere_hanz_marshall" and
             self.nusselt_correlation != "sphere_whitaker"      and
             self.nusselt_correlation != "sphere_gunn"          and
-            self.nusselt_correlation != "sphere_li _mason"):
+            self.nusselt_correlation != "sphere_li_mason"):
             raise Exception('DEM', 'Nusselt number correlation \'' + self.nusselt_correlation + '\' is not implemented.')
         
         if (self.radiation_model != "continuum_zhou" and
