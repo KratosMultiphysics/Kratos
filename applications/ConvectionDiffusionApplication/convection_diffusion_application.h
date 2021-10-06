@@ -29,6 +29,7 @@
 #include "custom_elements/eulerian_diff.h"
 #include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/mixed_laplacian_element.h"
 #include "custom_elements/adjoint_diffusion_element.h"
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
@@ -74,6 +75,7 @@ namespace Kratos
      * Thermal conditions
 - Elements:
     * Laplacian element (both 2D/3D)
+    * Mixed Laplacian element (both 2D/3D)
     * Eulerian convection-diffusion (both 2D/3D)
     * Convection-diffusion (both 2D/3D)
     * Convection-diffusion with change of phase (2D)
@@ -236,6 +238,9 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
+
+    const MixedLaplacianElement<2,3> mMixedLaplacianElement2D3N;
+    const MixedLaplacianElement<3,4> mMixedLaplacianElement3D4N;
 
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;
