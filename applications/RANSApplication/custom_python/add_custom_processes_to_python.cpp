@@ -36,7 +36,7 @@
 #include "custom_processes/rans_line_output_process.h"
 #include "custom_processes/rans_nut_nodal_update_process.h"
 #include "custom_processes/rans_compute_reactions_process.h"
-// #include "custom_processes/apply_rans_chimera_process_monolithic.h"
+#include "custom_processes/apply_rans_chimera_process_monolithic.h"
 #include "custom_processes/rans_vtk_output_process.h"
 
 // Include base h
