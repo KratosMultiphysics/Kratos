@@ -114,7 +114,7 @@ GetUpdateFunction(const Kratos::Flags& rMappingOptions)
     return &UpdateFunction;
 }
 
-template<class TVectorType>
+template<class TVectorType, bool TParallel=true>
 void UpdateSystemVectorFromModelPart(
     TVectorType& rVector,
     ModelPart& rModelPart,
@@ -127,12 +127,15 @@ void UpdateSystemVectorFromModelPart(
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    IndexPartition<std::size_t>(num_local_nodes).for_each([&](const std::size_t i){
+    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
+    constexpr int max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
+
+    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
         fill_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 }
 
-template<class TVectorType>
+template<class TVectorType, bool TParallel=true>
 void UpdateModelPartFromSystemVector(
     const TVectorType& rVector,
     ModelPart& rModelPart,
@@ -150,7 +153,10 @@ void UpdateModelPartFromSystemVector(
     const int num_local_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
     const auto nodes_begin = rModelPart.GetCommunicator().LocalMesh().NodesBegin();
 
-    IndexPartition<std::size_t>(num_local_nodes).for_each([&](const std::size_t i){
+    // necessary bcs the Trilinos Vector is not threadsafe in the default configuration
+    constexpr int max_threads = TParallel ? Globals::MaxAllowedThreads : 1;
+
+    IndexPartition<std::size_t, max_threads>(num_local_nodes).for_each([&](const std::size_t i){
         update_fct(*(nodes_begin + i), rVariable, rVector[i]);
     });
 
