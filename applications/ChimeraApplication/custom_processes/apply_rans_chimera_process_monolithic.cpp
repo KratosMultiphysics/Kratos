@@ -20,65 +20,71 @@
 namespace Kratos {
 
 template <int TDim>
-    ApplyRANSChimeraProcessMonolithic<TDim>::ApplyRANSChimeraProcessMonolithic(
-        ModelPart& rMainModelPart, Parameters iParameters, SolvingVariablesVectorType rSolvingVariablesVector)
-        : BaseType(rMainModelPart, iParameters), mSolvingVariableNamesVector(rSolvingVariablesVector)
-    {
-        BaseType::mNumberofSolvingVariables = mSolvingVariableNamesVector.size(); // updating the value set by BaseType constructor        
-    }
-    ///@}
-    ///@name Operators
-    ///@{
+ApplyRANSChimeraProcessMonolithic<TDim>::ApplyRANSChimeraProcessMonolithic(
+    ModelPart& rMainModelPart, Parameters iParameters, SolvingVariablesVectorType rSolvingVariablesVector)
+    : BaseType(rMainModelPart, iParameters), mSolvingVariableNamesVector(rSolvingVariablesVector)
+{
+    BaseType::mNumberofSolvingVariables = mSolvingVariableNamesVector.size(); // updating the value set by BaseType constructor        
+}
+///@}
+///@name Operators
+///@{
 
-    ///@}
-    ///@name Operations
-    ///@{
-
-template <int TDim>
-    std::string ApplyRANSChimeraProcessMonolithic<TDim>::Info() const
-    {
-        return "ApplyRANSChimeraProcessMonolithic";
-    }
+///@}
+///@name Operations
+///@{
 
 template <int TDim>
-    void ApplyRANSChimeraProcessMonolithic<TDim>::PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "ApplyRANSChimeraProcessMonolithic" << std::endl;
-    }
+std::string ApplyRANSChimeraProcessMonolithic<TDim>::Info() const
+{
+    return "ApplyRANSChimeraProcessMonolithic";
+}
 
 template <int TDim>
-    void ApplyRANSChimeraProcessMonolithic<TDim>::PrintData(std::ostream& rOStream) const
-    {
-        KRATOS_INFO("ApplyRANSChimeraProcessMonolithic") << std::endl;
-    }
+void ApplyRANSChimeraProcessMonolithic<TDim>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << "ApplyRANSChimeraProcessMonolithic" << std::endl;
+}
 
 template <int TDim>
-    void ApplyRANSChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart, PointLocatorType& rBinLocator)
-    {
-        // loop over nodes and find the triangle in which it falls, then do
-        // interpolation
-        MasterSlaveConstraintContainerType master_slave_constraint_container;
-        ApplyRANSChimeraProcessMonolithic::ReserveMemoryForConstraintContainers(
-            rBoundaryModelPart, master_slave_constraint_container);
+void ApplyRANSChimeraProcessMonolithic<TDim>::PrintData(std::ostream& rOStream) const
+{
+    KRATOS_INFO("ApplyRANSChimeraProcessMonolithic") << std::endl;
+}
 
-        const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
-        for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
-            ModelPart::NodesContainerType::iterator i_boundary_node =
-                rBoundaryModelPart.NodesBegin() + i_bn;
-            BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
-        }
+template <int TDim>
+typename ApplyRANSChimeraProcessMonolithic<TDim>::PointLocatorsMapType const& ApplyRANSChimeraProcessMonolithic<TDim>::GetPointLocatorsMap() const
+{
+    return BaseType::mPointLocatorsMap;
+}
 
-        ApplyRANSChimeraProcessMonolithic::FormulateConstraints(rBoundaryModelPart, rBinLocator,
-                                       master_slave_constraint_container);
-        BuiltinTimer mpc_add_time;
-        ApplyRANSChimeraProcessMonolithic::AddConstraintsToModelpart(BaseType::mrMainModelPart,
-                                            master_slave_constraint_container);
-        KRATOS_INFO_IF(
-            "Adding of MPCs from containers to modelpart took         : ",
-            BaseType::mEchoLevel > 1)
-            << mpc_add_time.ElapsedSeconds() << " seconds" << std::endl;
+template <int TDim>
+void ApplyRANSChimeraProcessMonolithic<TDim>::ApplyContinuityWithMpcs(ModelPart& rBoundaryModelPart, PointLocatorType& rBinLocator)
+{
+    // loop over nodes of the boundary model part and find the triangle in which it falls, then do
+    // interpolation
+    MasterSlaveConstraintContainerType master_slave_constraint_container;
+    ApplyRANSChimeraProcessMonolithic::ReserveMemoryForConstraintContainers(
+        rBoundaryModelPart, master_slave_constraint_container);
+
+    const int n_boundary_nodes = static_cast<int>(rBoundaryModelPart.Nodes().size());
+    for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
+        ModelPart::NodesContainerType::iterator i_boundary_node =
+            rBoundaryModelPart.NodesBegin() + i_bn;
+        BaseType::mNodeIdToConstraintIdsMap[i_boundary_node->Id()].reserve(150);
     }
-    
+
+    ApplyRANSChimeraProcessMonolithic::FormulateConstraints(rBoundaryModelPart, rBinLocator,
+                                    master_slave_constraint_container);
+    BuiltinTimer mpc_add_time;
+    ApplyRANSChimeraProcessMonolithic::AddConstraintsToModelpart(BaseType::mrMainModelPart,
+                                        master_slave_constraint_container);
+    KRATOS_INFO_IF(
+        "Adding of MPCs from containers to modelpart took         : ",
+        BaseType::mEchoLevel > 1)
+        << mpc_add_time.ElapsedSeconds() << " seconds" << std::endl;
+}
+
 template <int TDim>
 void ApplyRANSChimeraProcessMonolithic<TDim>::ReserveMemoryForConstraintContainers(
     ModelPart& rModelPart, MasterSlaveConstraintContainerType& rMsConstraintContainer)
@@ -104,9 +110,9 @@ void ApplyRANSChimeraProcessMonolithic<TDim>::FormulateConstraints(
     IndexType removed_counter = 0;
 
     BuiltinTimer loop_over_b_nodes;
-#pragma omp parallel for shared(constraints_id_vector,  \
-                                rMsConstraintContainer, \
-                                rBinLocator) reduction(+ : found_counter)
+// #pragma omp parallel for shared(constraints_id_vector,  \
+//                                 rMsConstraintContainer, \
+//                                 rBinLocator) reduction(+ : found_counter)
     for (int i_bn = 0; i_bn < n_boundary_nodes; ++i_bn) {
         ModelPart::NodesContainerType::iterator i_boundary_node =
             rBoundaryModelPart.NodesBegin() + i_bn;

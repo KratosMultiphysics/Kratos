@@ -70,6 +70,7 @@ public:
     typedef typename BaseType::ConstraintIdsVectorType ConstraintIdsVectorType;
     typedef typename BaseType::NodeType NodeType;
     typedef std::vector<std::string> SolvingVariablesVectorType;
+    typedef std::map<std::string, PointLocatorPointerType> PointLocatorsMapType;
 
     ///@}
     ///@name Life Cycle
@@ -103,6 +104,11 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override;
+
+    /**
+     * @brief Returns the map of submodelpart name and its corresponding PointLocatorPointer.
+     */
+    PointLocatorsMapType const& GetPointLocatorsMap() const; // removed reference to const return type to reference type
 
     ///@}
     ///@name Friends
