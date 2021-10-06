@@ -321,12 +321,13 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         print(toleranceSequence)
         toleranceSplitting = [.001, .8] # fractions on interpolation and bias errors, respectively
         optiParameters = self.current_model_part.NumberOfNodes()*2
-        optiWeights = [(2.5-1.5), (2.0-0.0)]
+        optiWeights = [1.0]*(optiParameters+1)# THIS SHOULD BE LEN() == optiparameters
         derivationOrder = 1
         indexSpace = [0,3]
         parameterPointsSpace = [10,10**3+1]
-        parameterPoints = np.linspace(0.2,1.8,num=parameterPointsSpace[0]).tolist()
+        parameterPoints = np.linspace(0.5,0.9,num=parameterPointsSpace[0]).tolist() #TRY to set this interval as small as possible.
         sampleNumberSpace = [10,10**5]
+        # initialHierarchy = [[[0],50,parameterPoints],[[1],50,parameterPoints],[[2],50,parameterPoints], [[3],50,parameterPoints], [[4],50,parameterPoints]]
         initialHierarchy = [[[0],5,parameterPoints],[[1],5,parameterPoints],[[2],5,parameterPoints]]
         sampleNumberSpace = list(np.ceil(sampleNumberSpace).astype(int))
 
@@ -533,10 +534,11 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         cvarAssemblerInputDict = {'interpolator':interpolatorSchematics,
                                 'pointwiseAssembler':pointwiseAssemblerSchematics,
                                 'post-processing':['argmin','min']}
-        for i in iSensAssembler:
-            mcsAssemblers[i] = xmc.parametricEstimationInterpolator.ParametricEstimationInterpolator(**cvarAssemblerInputDict)
-            estForAssblr[i] = [[2+2*i,[0]]]
 
+        for i in range(len(iSensAssembler)):
+            j = iSensAssembler[i]
+            mcsAssemblers[j] = xmc.parametricEstimationInterpolator.ParametricEstimationInterpolator(**cvarAssemblerInputDict)
+            estForAssblr[j] = [[2+2*i,[0]]]
         # ErrorEstimator
         mcsErrEst = [None]*(1+4+optiParameters*4)
         errorOrders = [None]*(1+4+optiParameters*4)
@@ -682,7 +684,7 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         self.xmc_analysis = xmc.XMCAlgorithm(**algoInputDict)
         self.xmc_analysis.runXMC()
 
-        self._value = self.xmc_analysis.estimation(0)[0]['argmin']
+        self._value = self.xmc_analysis.estimation(0)[0]['min'] #armgmin is quantile, min is cvar.
 
         print("OBTAINED VALUE FROM XMC", self._value)
 
@@ -868,32 +870,7 @@ class EmbeddedSimulationScenario(potential_flow_analysis.PotentialFlowAnalysis):
 
         nodal_velocity_process = KCPFApp.ComputeNodalValueProcess(self.primal_model_part, ["VELOCITY", "PRESSURE_COEFFICIENT"])
         nodal_velocity_process.Execute()
-        # from KratosMultiphysics.gid_output_process import GiDOutputProcess
-        # gid_output = GiDOutputProcess(
-        #         self.primal_model_part,
-        #         "primal_"+str(self.sample[0]),
-        #         KratosMultiphysics.Parameters("""
-        #             {
-        #                 "result_file_configuration" : {
-        #                     "gidpost_flags": {
-        #                         "GiDPostMode": "GiD_PostBinary",
-        #                         "MultiFileFlag": "SingleFile"
-        #                     },
-        #                     "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL","GEOMETRY_DISTANCE"],
-        #                     "nodal_nonhistorical_results": ["VELOCITY","METRIC_TENSOR_2D","PRESSURE_COEFFICIENT","DISTANCE","TRAILING_EDGE"],
-        #                     "gauss_point_results" : ["WAKE","KUTTA"],
-        #                     "nodal_flags_results": [],
-        #                     "elemental_conditional_flags_results": ["TO_SPLIT","THERMAL","STRUCTURE"]
-        #                 }
-        #             }
-        #             """)
-        #         )
-        # gid_output.ExecuteInitialize()
-        # gid_output.ExecuteBeforeSolutionLoop()
-        # gid_output.ExecuteInitializeSolutionStep()
-        # gid_output.PrintOutput()
-        # gid_output.ExecuteFinalizeSolutionStep()
-        # gid_output.ExecuteFinalize()
+
         # Store mesh to solve with adjoint after remeshing
         self.primal_model_part.RemoveSubModelPart("fluid_computational_model_part")
         self.primal_model_part.RemoveSubModelPart("wake_sub_model_part")
@@ -1189,10 +1166,11 @@ class EmbeddedCVaRSimulationScenario(potential_flow_analysis.PotentialFlowAnalys
         """
         mach = abs(self.sample[1])
         alpha = self.sample[2]
+        # print("MACH ALPHA", mach, alpha)
         for i_boundary, boundary_process in enumerate(self.project_parameters["processes"]["boundary_conditions_process_list"]):
             if boundary_process["python_module"].GetString() == "apply_far_field_process":
-                boundary_process["Parameters"]["mach_infinity"].SetDouble(0.2+mach*0.001)
-                boundary_process["Parameters"]["angle_of_attack"].SetDouble(0.0)
+                boundary_process["Parameters"]["mach_infinity"].SetDouble(mach)
+                boundary_process["Parameters"]["angle_of_attack"].SetDouble(alpha)
                 self.i_boundary = i_boundary
                 break
         super().ModifyInitialProperties()
