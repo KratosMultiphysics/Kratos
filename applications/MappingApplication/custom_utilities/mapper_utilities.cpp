@@ -350,7 +350,6 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
     KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(rBoundingBoxes.size(), 6) == 0)
         << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
 
-    // #pragma omp parallel for => "bounding_box" has to be threadprivate!
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         auto& r_rank_buffer = rSendBuffer[i_rank];
         r_rank_buffer.clear();
