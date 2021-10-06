@@ -266,6 +266,29 @@ bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
     return false;
 }
 
+void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                       const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
+    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
+
+    if (rLocalSystems.size() != num_nodes) {
+        rLocalSystems.resize(num_nodes);
+    }
+
+    IndexPartition<std::size_t>(num_nodes).for_each([&](std::size_t i){
+        InterfaceObject::NodePointerType p_node = (nodes_ptr_begin + i)->get();
+        rLocalSystems[i] = rMapperLocalSystemPrototype.Create(p_node);
+    });
+
+    if (rModelPartCommunicator.GetDataCommunicator().IsDefinedOnThisRank()) {
+        int num_local_systems = rModelPartCommunicator.GetDataCommunicator().SumAll((int)(rLocalSystems.size())); // int bcs of MPI
+
+        KRATOS_ERROR_IF_NOT(num_local_systems > 0) << "No mapper local systems were created" << std::endl;
+    }
+}
+
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                             const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)

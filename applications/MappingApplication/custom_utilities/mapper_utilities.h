@@ -197,6 +197,10 @@ void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicato
     }
 }
 
+void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
+                                       const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
+
 void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                             const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems);
