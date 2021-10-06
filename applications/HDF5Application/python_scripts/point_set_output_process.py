@@ -11,10 +11,10 @@ def Factory(parameters: KratosMultiphysics.Parameters,
 
 
 
-class PointSetOutputProcess(KratosMultiphysics.Process):
+class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters):
-        KratosMultiphysics.Process.__init__(self)
+        KratosMultiphysics.OutputProcess.__init__(self)
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         parameters["file_parameters"].ValidateAndAssignDefaults(self.GetDefaultParameters()["file_parameters"])
 
@@ -35,6 +35,8 @@ class PointSetOutputProcess(KratosMultiphysics.Process):
                                                                 search_tolerance)
 
         self.interval_utility = KratosMultiphysics.IntervalUtility(parameters)
+        self.output_frequency = parameters["output_frequency"].GetInt()
+        self.output_counter = 0
 
         self.file_parameters = parameters["file_parameters"].Clone()
 
@@ -57,6 +59,11 @@ class PointSetOutputProcess(KratosMultiphysics.Process):
                 self.vertices.push_back(vertex)
 
 
+    def IsOutputStep(self):
+        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        return self.interval_utility.IsInInterval(time) and (self.output_counter % self.output_frequency == 0)
+
+
     def ExecuteInitialize(self):
         coordinates_path = Prefix(
             self.coordinates_prefix_pattern,
@@ -71,20 +78,17 @@ class PointSetOutputProcess(KratosMultiphysics.Process):
             HDF5Application.VertexContainerCoordinateIO(io_parameters, file).Write(self.vertices)
 
 
-    def ExecuteFinalizeSolutionStep(self):
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+    def PrintOutput(self):
+        prefix = Prefix(
+            self.variables_prefix_pattern,
+            self.model_part)
 
-        if self.interval_utility.IsInInterval(time):
-            prefix = Prefix(
-                self.variables_prefix_pattern,
-                self.model_part)
+        io_parameters = KratosMultiphysics.Parameters()
+        io_parameters.AddString("prefix", prefix)
+        io_parameters.AddValue("list_of_variables", self.variables.Clone())
 
-            io_parameters = KratosMultiphysics.Parameters()
-            io_parameters.AddString("prefix", prefix)
-            io_parameters.AddValue("list_of_variables", self.variables.Clone())
-
-            with PointSetOutputProcess.OpenHDF5File(self.__GetCurrentFileParameters(), self.isMPIRun) as file:
-                HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
+        with PointSetOutputProcess.OpenHDF5File(self.__GetCurrentFileParameters(), self.isMPIRun) as file:
+            HDF5Application.VertexContainerVariableIO(io_parameters, file).Write(self.vertices)
 
 
     @staticmethod
@@ -92,6 +96,7 @@ class PointSetOutputProcess(KratosMultiphysics.Process):
         return KratosMultiphysics.Parameters("""{
             "model_part_name"       : "",
             "interval"              : [0.0, "End"],
+            "output_frequency"      : 1,
             "positions"             : [[]],
             "output_variables"      : [],
             "historical_value"      : true,

@@ -54,7 +54,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
         # Write coordinates and variables
         point_set_output_process = PointSetOutputProcessFactory(parameters, model)
         point_set_output_process.ExecuteInitialize()
-        point_set_output_process.ExecuteFinalizeSolutionStep()
+        point_set_output_process.PrintOutput()
 
 #        # Open the results' file
 #        file_parameters = parameters["file_parameters"].Clone()

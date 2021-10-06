@@ -11,20 +11,24 @@ def Factory(parameters: KratosMultiphysics.Parameters,
     return LineOutputProcess(model, parameters)
 
 
-class LineOutputProcess(KratosMultiphysics.Process):
+class LineOutputProcess(KratosMultiphysics.OutputProcess):
     """Convenience process wrapping PointSetOutputProcess with points along a line."""
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters):
-        KratosMultiphysics.Process.__init__(self)
+        KratosMultiphysics.OutputProcess.__init__(self)
         self.wrapped_process = PointSetOutputProcess(model, self.__ConvertToPointSetOutputParameters(parameters))
+
+
+    def IsOutputStep(self):
+        return self.wrapped_process.IsOutputStep()
 
 
     def ExecuteInitialize(self):
         self.wrapped_process.ExecuteInitialize()
 
 
-    def ExecuteFinalizeSolutionStep(self):
-        self.wrapped_process.ExecuteFinalizeSolutionStep()
+    def PrintOutput(self):
+        self.wrapped_process.PrintOutput()
 
 
     @staticmethod
@@ -32,6 +36,7 @@ class LineOutputProcess(KratosMultiphysics.Process):
         return KratosMultiphysics.Parameters("""{
             "model_part_name"       : "",
             "interval"              : [0.0, "End"],
+            "output_frequency"      : 1,
             "start_point"           : [0.0, 0.0, 0.0],
             "end_point"             : [0.0, 0.0, 0.0],
             "number_of_points"      : 2,

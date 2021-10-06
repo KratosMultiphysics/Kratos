@@ -50,40 +50,7 @@ class TestLineOutputProcess(UnitTest.TestCase):
         # Write coordinates and variables
         point_set_output_process = LineOutputProcessFactory(parameters, model)
         point_set_output_process.ExecuteInitialize()
-        point_set_output_process.ExecuteFinalizeSolutionStep()
-
-#        # Open the results' file
-#        file_parameters = parameters["file_parameters"].Clone()
-#        file_parameters["file_access_mode"].SetString("read_only")
-#        if 1 < self.communicator.Size():
-#            HDF5File = KratosMultiphysics.HDF5Application.HDF5FileParallel
-#            file_parameters.AddString("file_driver", "mpio")
-#        else:
-#            HDF5File = KratosMultiphysics.HDF5Application.HDF5FileSerial
-#
-#        file = HDF5File(file_parameters)
-#
-#        # Check paths
-#        group_prefix = parameters["group_prefix"].GetString()
-#        coordinates_path = pathlib.Path(group_prefix) / "coordinates"
-#        step_group_pattern = parameters["step_group_pattern"].GetString()
-#
-#        self.assertTrue(file.IsGroup(group_prefix))
-#        self.assertTrue(file.IsDataSet(str(coordinates_path)))
-#
-#        # TODO: check coordinate values (no python interface for reading data yet)
-#
-#        # TODO: multiple solution steps
-#        for i_step in range(1):
-#            step_group = pathlib.Path(group_prefix) / step_group_pattern.replace("<step>", str(i_step))
-#            displacement_path = pathlib.Path(step_group) / "DISPLACEMENT"
-#            reaction_path = pathlib.Path(step_group) / "REACTION"
-#
-#            self.assertTrue(file.IsGroup(str(step_group)))
-#            self.assertTrue(file.IsDataSet(str(displacement_path)))
-#            self.assertTrue(file.IsDataSet(str(reaction_path)))
-#
-#            # TODO: check variable values (no python interface for reading data yet)
+        point_set_output_process.PrintOutput()
 
 
     @staticmethod
