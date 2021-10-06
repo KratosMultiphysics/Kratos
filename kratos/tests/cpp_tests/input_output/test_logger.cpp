@@ -289,117 +289,163 @@ namespace Kratos {
             int rank = DataCommunicator::GetDefault().Rank();
 
             static std::stringstream buffer;
-            LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
+            Parameters logger_settings(R"({
+                "file_header" : "My Test",
+                "label"       : "TEST",
+                "columns" : [
+                    {
+                        "column_label" : "TIME_STEP",
+                        "column_header": "Time Step"
+                    },
+                                        {
+                        "column_label" : "IT_NUMBER",
+                        "column_header": "Iteration Number"
+                    },
+                                        {
+                        "column_label" : "CONVERGENCE",
+                        "column_header": "Convergence"
+                    },
+                                        {
+                        "column_label" : "IS_CONVERGED",
+                        "column_header": "Is converged"
+                    }
+                ]
+            })");
+            LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, logger_settings));
             Logger::AddOutput(p_output);
 
-            std::stringstream reference_output;
-            if (rank == 0)
-                reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-
-            std::size_t time_step = 1;
-            Logger("Time Step") << time_step << std::endl;
-            if (rank == 0) reference_output << "1             ";
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-
             Logger("Label") << "This log has a label which is not in the output columns and will not be printed in output " << std::endl;
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-
             double convergence = 0.00;
-            for(time_step = 2;time_step < 4; time_step++){
-                Logger("Time Step") << time_step << std::endl;
+            for(std::size_t time_step = 1;time_step < 4; time_step++){
                 for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
+                    Logger("TEST.TIME_STEP") << time_step << std::endl;
                     convergence = 0.3 / (iteration_number * time_step);
-                    Logger("Iteration Number") << iteration_number << std::endl;
-                    Logger("Convergence") << convergence << std::endl;
-                }
-                if(convergence < 0.06) {
-                    Logger("Is converged") << "Yes" << std::endl;
-                }
-                else {
-                    Logger("Is converged") << "No" << std::endl;
+                    Logger("TEST.IT_NUMBER") << iteration_number << std::endl;
+                    Logger("TEST.CONVERGENCE") << convergence << std::endl;
+                    if(convergence < 0.06) {
+                        Logger("TEST.IS_CONVERGED") << "Yes" << std::endl;
+                    }
+                    else {
+                        Logger("TEST.IS_CONVERGED") << "No" << std::endl;
+                    }
+
                 }
 
             }
+
+            std::stringstream reference_output;
 
             if (rank == 0) {
-                reference_output << std::endl << "2             1                        0.15                ";
-                reference_output << std::endl << "              2                        0.075               No           ";
-                reference_output << std::endl << "3             1                        0.1                 ";
-                reference_output << std::endl << "              2                        0.05                Yes          ";
+                reference_output << "My Test" << std::endl ;
+                reference_output << std::endl;
+                reference_output << " Time Step  Iteration Number  Convergence  Is converged " << std::endl;
+                reference_output << " ---------  ----------------  -----------  ------------ " << std::endl;
+                reference_output << "     1              1             0.3           No      " << std::endl;
+                reference_output << "     1              2             0.15          No      " << std::endl ;
+                reference_output << "     2              1             0.15          No      " << std::endl ;
+                reference_output << "     2              2            0.075          No      " << std::endl ;
+                reference_output << "     3              1             0.1           No      " << std::endl ;
+                reference_output << "     3              2             0.05          Yes     " << std::endl ;
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-
-            std::cout << std::endl;
-            std::cout << buffer.str() << std::endl;
-
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableDistributedOutput, KratosCoreFastSuite)
         {
-            static std::stringstream buffer;
             const DataCommunicator& r_comm = DataCommunicator::GetDefault();
             int rank = r_comm.Rank();
-
-            // table can be is defined on all ranks
-            LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
+            static std::stringstream buffer;
+            Parameters logger_settings(R"({
+                "file_header" : "My Test",
+                "label"       : "TEST",
+                "columns" : [
+                    {
+                        "column_label" : "TIME_STEP",
+                        "column_header": "Time Step"
+                    },
+                                        {
+                        "column_label" : "IT_NUMBER",
+                        "column_header": "Iteration Number"
+                    },
+                                        {
+                        "column_label" : "CONVERGENCE",
+                        "column_header": "Convergence"
+                    },
+                                        {
+                        "column_label" : "IS_CONVERGED",
+                        "column_header": "Is converged"
+                    }
+                ]
+            })");
+            LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, logger_settings));
             Logger::AddOutput(p_output);
 
             // Header is printed immediately on rank 0, but in other ranks it will be printed only if there is output.
             std::stringstream reference_output;
-
-            if (rank == 0) reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
-
+            if (rank == 0){
+                reference_output << "My Test" << std::endl ;
+                reference_output << std::endl;
+                reference_output << " Time Step  Iteration Number  Convergence  Is converged " << std::endl;
+                reference_output << " ---------  ----------------  -----------  ------------ " << std::endl;
+            }
+            // Only in rank 0 should be printed
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
+            if (rank != 0){
+                reference_output << "My Test" << std::endl ;
+                reference_output << std::endl;
+                reference_output << " Time Step  Iteration Number  Convergence  Is converged " << std::endl;
+                reference_output << " ---------  ----------------  -----------  ------------ " << std::endl;
+            }
 
-            // Print time step on all ranks
-            std::size_t time_step = 1;
-            Logger("Time Step") << Logger::DistributedFilter::FromAllRanks() << time_step << std::endl;
+            double convergence = 0.00;
+            for(std::size_t time_step = 1;time_step < 4; time_step++){
+                for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
+                    if(time_step !=1 && iteration_number!=1)
+                    {
+                        Logger("TEST.TIME_STEP") << time_step << std::endl;
+                        convergence = 0.3 / (iteration_number * time_step);
+                        Logger("TEST.IT_NUMBER") << iteration_number << std::endl;
+                        Logger("TEST.CONVERGENCE") << convergence << std::endl;
+                        if(convergence < 0.06) {
+                            Logger("TEST.IS_CONVERGED") << "Yes" << std::endl;
+                        }
+                        else {
+                            Logger("TEST.IS_CONVERGED") << "No" << std::endl;
+                        }
+                    } else {
+                        // This should be printed to all ranks + the header if not done before
+                        Logger("TEST.TIME_STEP") << Logger::DistributedFilter::FromAllRanks() << time_step << std::endl;
+                        convergence = 0.3 / (iteration_number * time_step);
+                        Logger("TEST.IT_NUMBER") << Logger::DistributedFilter::FromAllRanks() << iteration_number << std::endl;
+                        Logger("TEST.CONVERGENCE") << Logger::DistributedFilter::FromAllRanks() << convergence << std::endl;
+                        if(convergence < 0.06) {
+                            Logger("TEST.IS_CONVERGED") << Logger::DistributedFilter::FromAllRanks() << "Yes" << std::endl;
+                        }
+                        else {
+                            Logger("TEST.IS_CONVERGED") << Logger::DistributedFilter::FromAllRanks() << "No" << std::endl << Logger::DistributedFilter::FromRoot();
+                        }
+                    }
+                }
 
-            // now the header should appear on the remaining ranks too
-            if (rank != 0) reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
-            // add time step to logger output on all ranks
-            reference_output << "1             ";
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
+            }
 
             // Messages with unknown labels are ignored, regardless of the rank
             Logger("Label") << "This log has a label which is not in the output columns and will not be printed in output " << std::endl;
             Logger("Label") << Logger::DistributedFilter::FromAllRanks() << "This should not be in the output, either" << std::endl;
+            reference_output << "     1              1             0.3           No      " << std::endl;
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-
-            // reported results may be different on different ranks
-            Logger("Time Step") << Logger::DistributedFilter::FromAllRanks() << 2 << std::endl;
-            // printing from 0-9 because I do not want to bother with spacing...
-            Logger("Iteration Number") << Logger::DistributedFilter::FromAllRanks() << rank % 10 << std::endl;
-            Logger("Convergence") << 0.25 << std::endl; // only on root!
-            // tryign out multiple lines
-            Logger("Iteration Number") << Logger::DistributedFilter::FromAllRanks() << (rank + 1) % 10 << std::endl;
-            Logger("Convergence") << Logger::DistributedFilter::FromAllRanks() << 0.05 << std::endl;
-            Logger("Is converged") << Logger::DistributedFilter::FromAllRanks() << (rank == 0 ? "Yes" : "No") << std::endl;
-
-            reference_output << std::endl << "2             " << rank     % 10 << "                        ";
             if (rank == 0) {
-                reference_output << "0.25                ";
-            }
-            reference_output << std::endl << "              " << (rank+1) % 10 << "                        " << "0.05                ";
-            if (rank == 0) {
-                reference_output << "Yes          ";
-            }
-            else {
-                reference_output << "No           ";
+                reference_output << "     1              2             0.15          No      " << std::endl ;
+                reference_output << "     2              1             0.15          No      " << std::endl ;
+                reference_output << "     2              2            0.075          No      " << std::endl ;
+                reference_output << "     3              1             0.1           No      " << std::endl ;
+                reference_output << "     3              2             0.05          Yes     " << std::endl ;
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
-            std::cout << "Final table from rank " << rank << ":" << std::endl << buffer.str() << std::endl;
         }
-
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoAllRanks, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
