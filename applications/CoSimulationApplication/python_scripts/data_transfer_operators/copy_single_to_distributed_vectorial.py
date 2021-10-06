@@ -13,15 +13,24 @@ class CopySingleToDistributedVectorial(CoSimulationDataTransferOperator):
         to_solver_values = to_solver_data.GetData()
         data_value = from_solver_data.GetData()
 
+        data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
+
+        if data_value.size == 0:
+            value = [float(0)] * from_solver_data.dimension
+        else:
+            value = data_value
+
+        # sum Up Value from solver from all ranks -> so not zero when not definied in this rank
+        value = from_solver_data.model_part.GetCommunicator().GetDataCommunicator().SumAll(value)
+
         for to_index in range(len(to_solver_values)):
             from_index = to_index % from_solver_data.dimension
-            to_solver_values[to_index] = data_value[from_index]
+            to_solver_values[to_index] = value[from_index]
 
         # the order is IMPORTANT here!
         if "swap_sign" in transfer_options.GetStringArray():
             to_solver_values *= (-1)
         if "distribute_values" in transfer_options.GetStringArray():
-            data_comm = from_solver_data.model_part.GetCommunicator().GetDataCommunicator()
             to_solver_values /= (data_comm.SumAll(to_solver_data.Size()) / to_solver_data.dimension)
         if "add_values" in transfer_options.GetStringArray():
             to_solver_values += to_solver_data.GetData()
