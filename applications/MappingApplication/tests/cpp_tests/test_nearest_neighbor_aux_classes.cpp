@@ -95,8 +95,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_NeighborsFound, KratosMap
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(coords, *interface_node_1);
-    const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
     const double dist_3 = MapperUtilities::ComputeDistance(coords, *interface_node_3);
 
     nearest_neighbor_info.ProcessSearchResult(*interface_node_1);
@@ -139,7 +137,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_MatchingNeighborFound, Kr
     node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(coords, *interface_node_1);
     const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
 
     KRATOS_CHECK_IS_FALSE(nearest_neighbor_info.GetLocalSearchWasSuccessful()); // this is the default
@@ -180,7 +177,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborInterfaceInfo_Serialization, KratosMapp
     node_3->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
 
     // We compute the real distance bcs this would also be computed by the search
-    const double dist_2 = MapperUtilities::ComputeDistance(coords, *interface_node_2);
     const double dist_3 = MapperUtilities::ComputeDistance(coords, *interface_node_3);
 
     nearest_neighbor_info.ProcessSearchResult(*interface_node_2);
@@ -270,10 +266,6 @@ KRATOS_TEST_CASE_IN_SUITE(NearestNeighborLocalSystem_ComputeLocalSystem, KratosM
 
     node_1->SetValue(INTERFACE_EQUATION_ID, 35);
     node_2->SetValue(INTERFACE_EQUATION_ID, expected_id_found);
-
-    // We compute the real distance bcs this would also be computed by the search
-    const double dist_1 = MapperUtilities::ComputeDistance(local_sys.Coordinates(), *interface_node_1);
-    const double dist_2 = MapperUtilities::ComputeDistance(local_sys.Coordinates(), *interface_node_2);
 
     MapperInterfaceInfo::Pointer p_nearest_neighbor_info_1(Kratos::make_shared<NearestNeighborInterfaceInfo>(local_sys.Coordinates(), 0, 0));
     MapperInterfaceInfo::Pointer p_nearest_neighbor_info_2(Kratos::make_shared<NearestNeighborInterfaceInfo>(local_sys.Coordinates(), 0, 0));
