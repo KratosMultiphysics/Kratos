@@ -6,12 +6,13 @@ import KratosMultiphysics as KM
 import numpy as np
 import json
 import os
+from pathlib import Path
 
 class SDoFSolver(object):
     """ This class implements an SDof solver, independent of Kratos
     Several types of applying loads are available
     """
-    def __init__(self, input_name):
+    def __init__(self, input_name, model_part):
 
         # mimicing two constructors
         if isinstance(input_name, dict):
@@ -59,7 +60,18 @@ class SDoFSolver(object):
                 "output_parameters":{
                     "write_output_file": True,
                     "file_name" : "sdof_solver/results_sdof.dat"
-                }}
+                },
+                "restart_parameters":{
+                    "load_restart_file": False,
+                    "input_file_name": "",
+                    "write_restart_file": False,
+                    "restart_save_frequency": 0.0,
+                    "restart_control_type": "time",
+                    "save_restart_files_in_folder"   : True,
+                    "output_path"                  : "sdof_solver",
+                    "max_files_to_keep"            : -1
+                }
+                }
 
         RecursivelyValidateAndAssignDefaults(default_settings, parameters)
 
@@ -107,6 +119,38 @@ class SDoFSolver(object):
         self.output_file_name = parameters["output_parameters"]["file_name"]
         self.write_output_file = parameters["output_parameters"]["write_output_file"]
 
+        ## Restart
+        self.model_part = model_part
+        self.load_restart_file = parameters["restart_parameters"]["load_restart_file"]
+        if self.load_restart_file:
+            self.input_file_name = parameters["restart_parameters"]["input_file_name"]
+
+        self.write_restart_file = parameters["restart_parameters"]["write_restart_file"]
+
+        if self.write_restart_file:
+            self.restart_output_path = parameters["restart_parameters"]["output_path"]
+            self.restart_save_frequency = parameters["restart_parameters"]["restart_save_frequency"]
+
+            self.save_restart_files_in_folder   = parameters["restart_parameters"]["save_restart_files_in_folder"]
+
+
+            restart_control_type = parameters["restart_parameters"]["restart_control_type"]
+            if restart_control_type == "time":
+                self.restart_control_type_is_time = True
+            elif restart_control_type == "step":
+                self.restart_control_type_is_time = False
+                self.restart_save_frequency = int(self.restart_save_frequency) # STEP is an integer
+            else:
+                err_msg =  'The requested restart_control_type "' + restart_control_type + '" is not available!\n'
+                err_msg += 'Available options are: "time", "step"'
+                raise Exception(err_msg)
+
+            self.next_output = self.restart_save_frequency # Schedule the first output to avoid printing in first step
+
+            self.max_files_to_keep = parameters["restart_parameters"]["max_files_to_keep"]
+
+            self.raw_path = os.getcwd()
+       
     def Initialize(self):
         #solution buffer
         self.x = np.zeros((3, self.buffer_size))
@@ -122,6 +166,10 @@ class SDoFSolver(object):
 
         self.root_point_displacement = 0.0
 
+        #restart
+        if self.load_restart_file:
+            self.LoadRestart()
+
         #x and dx contain: [displacement, velocity, acceleration]
         if self.write_output_file:
             if os.path.isfile(self.output_file_name):
@@ -132,7 +180,7 @@ class SDoFSolver(object):
         self.load_vector = np.array([0,
                                      0,
                                      self.load_impulse])
-
+    
     def InitializeOutput(self):
         data_comm = KM.DataCommunicator.GetDefault()
         if data_comm.Rank()==0:
@@ -149,6 +197,10 @@ class SDoFSolver(object):
                                    "relative accleration" + " " +
                                    "reaction" + "\n")
             self.OutputSolutionStep()
+
+            #restart
+            if self.write_restart_file:
+                self.CreateOutputFolder()
 
     def OutputSolutionStep(self):
         data_comm = KM.DataCommunicator.GetDefault()
@@ -169,6 +221,10 @@ class SDoFSolver(object):
                                     str(self.dx[2] - self.dx_f[2]) + " " +
                                     str(reaction) + "\n")
 
+            #restart
+            if self.write_restart_file:
+                if self.IsRestartOutputStep():
+                    self.SaveRestart()
 
     def AdvanceInTime(self, current_time):
         # similar to the Kratos CloneTimeStep function
@@ -254,6 +310,145 @@ class SDoFSolver(object):
         else:
             raise Exception("Identifier is unknown!")
 
+    ####### RESTART
+    def LoadRestart(self):
+        input_file = self.__GetFolderPathLoad()
+
+        data = json.load(open(input_file + '.json'))
+
+        self.time = data["time"]
+        
+        self.dx[0] = data["displacement"]
+        self.dx[1] = data ["velocity"]
+        self.dx[2] = data ["acceleration"]
+        
+        self.dx_f[0] = data["displacement_r"]
+        self.dx_f[1] = data ["velocity_r"]
+        self.dx_f[2] = data ["acceleration_r"]
+
+        print(self.dx)
+        print(self.dx_f)
+
+        self.model_part.ProcessInfo[KM.IS_RESTARTED] = True
+
+        KM.Logger.PrintInfo("Restart Utility", "Finished loading model part from restart file.")       
+
+    def SaveRestart(self):
+        """
+        This function saves the restart file. It should be called at the end of a time-step.
+        Use "IsRestartOutputStep" to check if a restart file should be written in this time-step
+        """
+
+        if self.restart_control_type_is_time:
+            time = self.time
+            control_label = self.__GetPrettyTime(time)
+        else:
+            pass
+            # control_label = self.model_part.ProcessInfo[KM.STEP]
+
+        self.time = time
+        self.displacement = self.dx[0]
+        self.velocity = self.dx[1]
+        self.acceleration = self.dx[2]
+
+        self.displacement_root = self.dx_f[0]
+        self.velocity_root = self.dx_f[1]
+        self.acceleration_root = self.dx_f[2]
+        
+        self.dictionary = {
+            "time": self.time, "displacement": self.displacement,"displacement_r": self.displacement_root,
+            "velocity": self.velocity,"velocity_r": self.velocity_root, "acceleration": self.acceleration,"acceleration_r": self.acceleration_root}
+        with open(self.__GetFolderPathSave()+'//Sdof_' + str(self.__GetPrettyTime(time)) + '.json', 'w') as outfile:
+            json.dump(self.dictionary, outfile)
+        
+        # Schedule next output
+        if self.restart_save_frequency > 0.0: # Note: if == 0, we'll just always print
+            while self.next_output <= control_label:
+                self.next_output += self.restart_save_frequency      
+
+        # Cleanup
+        self._ClearObsoleteRestartFiles()
+        
+    def IsRestartOutputStep(self):
+        """
+        This function checks and returns whether a restart file should be written in this time-step
+        """
+        if self.restart_control_type_is_time:
+            return (self.time > self.next_output)
+        else:
+            pass
+            # return (self.model_part.ProcessInfo[KM.STEP] >= self.next_output)
+
+    def CreateOutputFolder(self):
+        if self.save_restart_files_in_folder:
+            folder_path = self.__GetFolderPathSave()
+            if not os.path.isdir(folder_path) and self.model_part.GetCommunicator().MyPID() == 0:
+                os.makedirs(folder_path)
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
+    def _ClearObsoleteRestartFiles(self):
+        """Delete restart files that are no longer needed."""
+        if self.max_files_to_keep > -1:
+            self.restart_files = self._GetRestartFiles()
+
+            number_of_obsolete_files = len(self.restart_files) - self.max_files_to_keep
+            restart_file_keys = sorted(self.restart_files)
+
+            for i in range(number_of_obsolete_files):
+                i_key = restart_file_keys[i]
+                file_path = os.path.join(self.__GetFolderPathSave(), self.restart_files[i_key])
+                KM.kratos_utilities.DeleteFileIfExisting(file_path)
+
+    def _GetFileNamePattern(self):
+        """Return the pattern of flags in the file name for FileNameDataCollector."""
+        file_name_pattern = "<model_part_name>"
+        if self.restart_control_type_is_time:
+            file_name_pattern += "_<time>"
+        else:
+            file_name_pattern += "_<step>"
+        file_name_pattern += ".json"
+        return file_name_pattern
+
+    def __GetFolderPathLoad(self):
+        return os.path.join(self.raw_path, self.input_file_name)
+        
+    def __GetFolderPathSave(self):
+        if self.save_restart_files_in_folder:
+            return os.path.join(self.raw_path, self.restart_output_path)
+        else:
+            return self.raw_path
+
+    def __GetPrettyTime(self, time):
+        """This functions reduces the digits of a number to a relevant precision
+        """
+        pretty_time = "{0:.12g}".format(time)
+        pretty_time = float(pretty_time)
+        return pretty_time
+
+    def _GetRestartFiles(self):
+        """Return a dictionary of stepID - restart_file_list dictionary that stores sets of restart files for each step."""
+        restart_path    = Path(self.__GetFolderPathSave())
+        restart_files   = {}
+        if restart_path.is_dir():
+            file_name_data_collector = KM.FileNameDataCollector(self.model_part, os.path.join(self.__GetFolderPathSave(), self._GetFileNamePattern()), {})
+
+            for file_name_data in file_name_data_collector.GetFileNameDataList():
+                # Get step id
+                if self.restart_control_type_is_time:
+                    step_id = file_name_data.GetTime()
+                else:
+                    step_id = file_name_data.GetStep()
+
+                self._UpdateRestartFilesMap(restart_files, step_id, file_name_data)
+
+            # barrier is necessary to avoid having some ranks deleting files while other ranks still detect them in the same directory
+            self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
+
+        return restart_files
+
+    def _UpdateRestartFilesMap(self, restart_files_map, step_id, file_name_data):
+        restart_files_map[step_id] = file_name_data.GetFileName()
+
 def ValidateAndAssignDefaults(defaults, settings, recursive=False):
     for key, val in settings.items():
         # check if the current entry also exists in the defaults
@@ -287,3 +482,8 @@ def ValidateAndAssignDefaults(defaults, settings, recursive=False):
 
 def RecursivelyValidateAndAssignDefaults(defaults, settings):
     ValidateAndAssignDefaults(defaults, settings, recursive=True)
+
+def is_restarted(self):
+        # this function avoids the long call to ProcessInfo and is also safer
+        # in case the detection of a restart is changed later
+        return self.main_model_part.ProcessInfo[KM.IS_RESTARTED]

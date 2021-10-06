@@ -21,11 +21,11 @@ class SdofSolverWrapper(CoSimulationSolverWrapper):
         self.mp.ProcessInfo[KM.DOMAIN_SIZE] = 1
 
         input_file_name = self.settings["solver_wrapper_settings"]["input_file"].GetString()
-        self._sdof_solver = self._CreateSDofSolver(input_file_name)
+        self._sdof_solver = self._CreateSDofSolver(input_file_name, self.mp)
 
     @classmethod
-    def _CreateSDofSolver(cls, input_file_name):
-        return SDoFSolver(input_file_name)
+    def _CreateSDofSolver(cls, input_file_name, model_part):
+        return SDoFSolver(input_file_name, model_part)
 
     def Initialize(self):
         super().Initialize()
