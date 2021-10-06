@@ -93,12 +93,16 @@ template <int TDim>
 void ApplyChimera<TDim>::ExecuteInitializeSolutionStep()
 {
     KRATOS_TRY;
-    VariableUtils().SetFlag(ACTIVE, true, mrMainModelPart.Elements());
-    // Actual execution of the functionality of this class
-    if (mReformulateEveryStep || !mIsFormulated) {
+    // If mReformulateEveryStep is True, mIsFormulated attribute is reset to False in ExecuteFinalizeSolutionStep().
+    // That way, the below code will execute every time when mReformulateEveryStep is True, else will run
+    // only at the first step.
+    if (!mIsFormulated){        
+        VariableUtils().SetFlag(ACTIVE, true, mrMainModelPart.Elements());
         DoChimeraLoop();
+        std::cout << "PointLocator size after DoChimeraLoop: " << mPointLocatorsMap.size() << std::endl;
         mIsFormulated = true;
     }
+
     KRATOS_CATCH("");
 }
 
@@ -137,6 +141,9 @@ void ApplyChimera<TDim>::PrintData(std::ostream& rOStream) const
 template <int TDim>
 void ApplyChimera<TDim>::DoChimeraLoop()
 {
+    mPointLocatorsMap.clear();
+    std::cout << "PointLocator size at start of DoChimeraLoop: " << mPointLocatorsMap.size() << std::endl;
+
     const int num_elements = static_cast<int>(mrMainModelPart.NumberOfElements());
     const auto elem_begin = mrMainModelPart.ElementsBegin();
 
@@ -213,8 +220,6 @@ void ApplyChimera<TDim>::DoChimeraLoop()
                                               // boundary
                         domain_type = ChimeraHoleCuttingUtility::Domain::OTHER;
                     FormulateChimera(background_patch_param, slave_patch_param, domain_type);
-                    mPointLocatorsMap.erase(
-                        background_patch_param["model_part_name"].GetString());
                 }
             }
         }
@@ -222,7 +227,6 @@ void ApplyChimera<TDim>::DoChimeraLoop()
     }
 
     mNodeIdToConstraintIdsMap.clear();
-    mPointLocatorsMap.clear();
 
     KRATOS_INFO_IF(
         "ApplyChimera : Chimera Initialization took               : ", mEchoLevel > 0)
@@ -551,15 +555,18 @@ ModelPart& ApplyChimera<TDim>::ExtractPatchBoundary(const Parameters PatchParame
 template <int TDim>
 typename ApplyChimera<TDim>::PointLocatorPointerType ApplyChimera<TDim>::GetPointLocator(ModelPart& rModelPart)
 {
+    std::cout << "PointLocatorName: " << rModelPart.Name() << std::endl;
     if (mPointLocatorsMap.count(rModelPart.Name()) == 0) {
         PointLocatorPointerType p_point_locator =
             Kratos::make_shared<PointLocatorType>(rModelPart);
         p_point_locator->UpdateSearchDatabase();
         mPointLocatorsMap[rModelPart.Name()] = p_point_locator;
+        std::cout << "PointLocator size in GetPointLocator: " << mPointLocatorsMap.size() << std::endl;
         return p_point_locator;
     }
     else {
         auto p_point_locator = mPointLocatorsMap.at(rModelPart.Name());
+        std::cout << "PointLocator size in GetPointLocator: " << mPointLocatorsMap.size() << std::endl;
         if (mReformulateEveryStep)
             p_point_locator->UpdateSearchDatabase();
         return p_point_locator;

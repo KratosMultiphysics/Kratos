@@ -311,11 +311,10 @@ protected:
 
     /**
      * @brief Searches for a given node using given locator and adds the
-     * velocity
-     *        and pressureconstraints to the respective containers.
+     * velocity and pressureconstraints to the respective containers.
      * @param rBinLocator The bin based locator formulated on the background.
      * This is used to locate nodes on rBoundaryModelPart.
-     * @param pNodeToFind The node which is to be found
+     * @param pNodeToFind The patch node which is to be found.
      * @param[out] prHostElement The element where the node is found.
      * @param[out] rWeights the values of the shape functions at the node inside
      * the elements.
