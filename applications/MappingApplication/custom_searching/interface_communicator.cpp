@@ -23,15 +23,6 @@
 
 namespace Kratos {
 
-namespace {
-
-bool SearchNotSuccessful(const InterfaceCommunicator::MapperInterfaceInfoPointerType& rpInterfaceInfo)
-{
-    return !(rpInterfaceInfo->GetLocalSearchWasSuccessful());
-}
-
-}
-
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
@@ -39,8 +30,7 @@ typedef std::size_t SizeType;
 /* PUBLIC Methods */
 /***********************************************************************************/
 void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
-                            const Kratos::Flags& rOptions,
-                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
+                                                  const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
     KRATOS_TRY;
 
@@ -49,7 +39,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 
     const double increase_factor = 4.0;
     int num_iteration = 1;
-    InitializeSearch(rOptions, rpInterfaceInfo);
+    InitializeSearch(rpInterfaceInfo);
 
     // First Iteration is done outside the search loop bcs it has
     // to be done in any case
@@ -58,7 +48,7 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     // only if some points did not find a neighbor or dont have a valid
     // projection, more search iterations are necessary
     mMeshesAreConforming = 1;
-    ConductSearchIteration(rOptions, rpInterfaceInfo, rComm);
+    ConductSearchIteration(rpInterfaceInfo, rComm);
 
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
@@ -72,12 +62,14 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
             << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius " << mSearchRadius << std::endl;
 
-        ConductSearchIteration(rOptions, rpInterfaceInfo, rComm);
+        ConductSearchIteration(rpInterfaceInfo, rComm);
     }
 
     FinalizeSearch();
 
-    rComm.GetDataCommunicator().Barrier();
+    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+        rComm.GetDataCommunicator().Barrier();
+    }
 
     KRATOS_CATCH("");
 }
@@ -85,21 +77,12 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 /***********************************************************************************/
 /* PROTECTED Methods */
 /***********************************************************************************/
-void InterfaceCommunicator::InitializeSearch(const Kratos::Flags& rOptions,
-                                             const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+void InterfaceCommunicator::InitializeSearch(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     KRATOS_TRY;
 
-    if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED)) {
-        CreateInterfaceObjectsOrigin(rpRefInterfaceInfo);
-    }
-    else {
-        UpdateInterfaceObjectsOrigin();
-    }
-
-    if (mpLocalBinStructure == nullptr || !rOptions.Is(MapperFlags::DESTINATION_ONLY)) {
-        InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
-    }
+    CreateInterfaceObjectsOrigin(rpRefInterfaceInfo);
+    InitializeBinsSearchStructure(); // This cannot be updated, has to be recreated
 
     KRATOS_CATCH("");
 }
@@ -115,8 +98,7 @@ void InterfaceCommunicator::FinalizeSearch()
     KRATOS_CATCH("");
 }
 
-void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                                      const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+void InterfaceCommunicator::InitializeSearchIteration(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     KRATOS_TRY;
 
@@ -160,7 +142,8 @@ void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
         auto new_end = std::remove_if(
             r_interface_infos_rank.begin(),
             r_interface_infos_rank.end(),
-            SearchNotSuccessful); // cannot use lambda here bcs it is not supported by some older compilers
+            [](const MapperInterfaceInfoPointerType& rpInterfaceInfo)
+            { return !(rpInterfaceInfo->GetLocalSearchWasSuccessful()); });
 
         r_interface_infos_rank.erase(new_end, r_interface_infos_rank.end());
     }
@@ -193,6 +176,10 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     KRATOS_TRY;
 
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
+
+    if (mrModelPartOrigin.GetCommunicator().GetDataCommunicator().IsNullOnThisRank()) {
+        return;
+    }
 
     const auto interface_obj_type = rpRefInterfaceInfo->GetInterfaceObjectType();
 
@@ -254,20 +241,6 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceIn
     KRATOS_ERROR_IF_NOT(num_interface_objects > 0)
         << "No interface objects were created in Origin-ModelPart \""
         << mrModelPartOrigin.Name() << "\"!" << std::endl;
-
-    KRATOS_CATCH("");
-}
-
-void InterfaceCommunicator::UpdateInterfaceObjectsOrigin()
-{
-    KRATOS_TRY;
-
-    const auto begin = mpInterfaceObjectsOrigin->begin();
-
-    #pragma omp parallel for
-    for (int i = 0; i< static_cast<int>(mpInterfaceObjectsOrigin->size()); ++i) {
-        (*(begin + i))->UpdateCoordinates();
-    }
 
     KRATOS_CATCH("");
 }
@@ -340,8 +313,10 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
     if (mEchoLevel > 1) {
         const auto& r_data_comm = rComm.GetDataCommunicator();
-        sum_num_results = r_data_comm.Sum(sum_num_results, 0);
-        sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+        if (r_data_comm.IsDefinedOnThisRank()) {
+            sum_num_results = r_data_comm.Sum(sum_num_results, 0);
+            sum_num_searched_objects = r_data_comm.Sum(sum_num_searched_objects, 0);
+        }
 
         const double avg_num_results = sum_num_results / static_cast<double>(sum_num_searched_objects);
 
@@ -352,13 +327,12 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     KRATOS_CATCH("");
 }
 
-void InterfaceCommunicator::ConductSearchIteration(const Kratos::Flags& rOptions,
-                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                            const Communicator& rComm)
+void InterfaceCommunicator::ConductSearchIteration(const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
+                                                   const Communicator& rComm)
 {
     KRATOS_TRY;
 
-    InitializeSearchIteration(rOptions, rpInterfaceInfo);
+    InitializeSearchIteration(rpInterfaceInfo);
 
     ConductLocalSearch(rComm);
 
@@ -382,7 +356,9 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     }
 
     // This is necessary bcs not all partitions would start a new search iteration!
-    all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
+    if (rComm.GetDataCommunicator().IsDefinedOnThisRank()) {
+        all_neighbors_found = rComm.GetDataCommunicator().MinAll(all_neighbors_found);
+    }
 
     return all_neighbors_found > 0;
 

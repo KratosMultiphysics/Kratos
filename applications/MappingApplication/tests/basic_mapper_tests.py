@@ -20,9 +20,9 @@ class BasicMapperTests(mapper_test_case.MapperTestCase):
     @classmethod
     def setUpMapper(cls, mapper_parameters, switch_sides=False):
         if switch_sides:
-            super(BasicMapperTests, cls).setUpModelParts("cube_quad", "cube_tri")
+            super().setUpModelParts("cube_quad", "cube_tri")
         else:
-            super(BasicMapperTests, cls).setUpModelParts("cube_tri", "cube_quad")
+            super().setUpModelParts("cube_tri", "cube_quad")
         # TODO ATTENTION: currently the MapperFactory removes some keys, hence those checks have to be done beforehand => improve this!
 
         cls.mapper_type = mapper_parameters["mapper_type"].GetString()
