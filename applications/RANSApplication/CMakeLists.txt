@@ -4,11 +4,29 @@ message("**** configuring KratosRANSApplication ****")
 
 kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
 
+MACRO(LIST_CONTAINS var value)
+  SET(${var})
+  FOREACH (value2 ${ARGN})
+    IF (${value} STREQUAL ${value2})
+      SET(${var} TRUE)
+    ENDIF (${value} STREQUAL ${value2})
+  ENDFOREACH (value2)
+ENDMACRO(LIST_CONTAINS)
+
+LIST_CONTAINS(uses_chimera "ChimeraApplication" ${LIST_OF_APPLICATIONS_TO_BE_COMPILED})
+IF (uses_chimera)
+    MESSAGE("RANSApplication is compiled with Chimera support.")
+    kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/ChimeraApplication)
+ENDIF (uses_chimera)
+
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 include_directories( ${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication )
+IF (uses_chimera)
+    include_directories( ${KRATOS_SOURCE_DIR}/applications/ChimeraApplication )
+ENDIF (uses_chimera)
 
 ## RANSApplication Core instances sources
 set(KRATOS_RANS_APPLICATION_CORE_INSTANCES
@@ -42,7 +60,13 @@ file(GLOB_RECURSE KRATOS_RANS_APPLICATION_TESTING_SOURCES
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 add_library(KratosRANSCore SHARED ${KRATOS_RANS_APPLICATION_CORE_INSTANCES} ${KRATOS_RANS_APPLICATION_CORE_UTILITIES} ${KRATOS_RANS_APPLICATION_CORE} ${KRATOS_RANS_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore)
+
+IF (uses_chimera)
+    target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore KratosChimeraApplicationCore)
+else()
+    target_link_libraries(KratosRANSCore PUBLIC KratosCore KratosFluidDynamicsCore)
+ENDIF (uses_chimera)
+
 set_target_properties(KratosRANSCore PROPERTIES COMPILE_DEFINITIONS "RANS_APPLICATION=EXPORT,API")
 
 pybind11_add_module(KratosRANSApplication MODULE THIN_LTO ${KRATOS_RANS_APPLICATION_PYTHON_INTERFACE})
