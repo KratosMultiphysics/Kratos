@@ -178,15 +178,6 @@ bool apply_constraints=true;
 
     if (apply_constraints)
     {  
-        // Calculate gap_function: nodal_displacement - imposed_displacement
-        Vector gap_function = ZeroVector(matrix_size);
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            for ( unsigned int j = 0; j < dimension; j++)
-            {
-                gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
-            }
-        }
 
        // Arrange shape function
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
@@ -220,11 +211,8 @@ bool apply_constraints=true;
       
         else if(dimension==3) 
         {
-            array_1d<double,3> n = ZeroVector(3);//m_unit_normal;
-            n[0]=1;
-           
-            Matrix T =ZeroMatrix(dimension,n,dimension);
-            ParticleMechanicsMathUtilities<double>::GetRotationMatrix(T,dimension);
+            Matrix T =ZeroMatrix(dimension,dimension);
+            ParticleMechanicsMathUtilities<double>::GetRotationMatrix(T,m_unit_normal,dimension);
         }
 
 
@@ -239,20 +227,30 @@ bool apply_constraints=true;
                 {
                     for( unsigned int k = 0; k < dimension; k++)
                     {
-                        A(j+m,k+i*dimension)=T(j,k)*Variables.N[i];
-                        A(k+i*dimension,j+m)=T(j,k)*Variables.N[i];
+                        A(j+m,k+i*dimension)=T(j,k)*Variables.N[i];   //H*T
+                        A(k+i*dimension,j+m)=T(j,k)*Variables.N[i];   
                     }
 
-                    R[i*dimension+j]=Variables.N[i]*c[j];
+                    R[i*dimension+j]=Variables.N[i]*c[j]; // H*T* LM
                 }
             }    
 
 
-        b = prod(shape_function,gap_function);
-        b = prod(T, b);
+        Vector CurrentDispVector = ZeroVector(m); // 
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            for ( unsigned int j = 0; j < dimension; j++)
+            {
+                CurrentDispVector[dimension * i + j] = Variables.CurrentDisp(i,j) ;
+            }
+        }
+
+            b = prod (shape_function, CurrentDispVector);    // H*u
+            b = prod (T,b);                                 // T * H * u 
+
             for (unsigned int i = 0; i < dimension; i++)
             {
-                    R[i+m]=b[i];
+                    R[i+m] = ( b[i] -  m_imposed_displacement[i]);  // 
             }
 
      if(Is(SLIP)) // Set last LAGRANGE_MULTIPLIER = 0!
@@ -310,7 +308,7 @@ void MPMParticleLagrangeDirichletCondition::FinalizeSolutionStep( const ProcessI
 
     MPMParticleBaseDirichletCondition::FinalizeSolutionStep(rCurrentProcessInfo);
 
-// LM Output can be deleted
+// LM Output 
     auto pBoundaryParticle = GetValue(MPC_LAGRANGE_NODE);
     array_1d<double, 3 > & r_lagrange_multiplier  = pBoundaryParticle->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
 

@@ -171,13 +171,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                         
                 mpc.SetValuesOnIntegrationPoints(KratosParticle.MPC_IMPOSED_DISPLACEMENT,[self.value],self.model_part.ProcessInfo)
 
-
-        self.model_part_3=self.model["MPM_Material"]
-        #for element in self.model_part_3.Element:
-        #elementIdVector[element] = element.GetGeometry().PartentId() 
-
-
-
         oldValue=0.0
         particleCounter=0
         self.model_part_2=self.model["MPM_Material.Slip2D_Slip_Auto1"]
@@ -190,8 +183,5 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 oldValue=id_parent
             if particleCounter >2: #set inactive   
                 mpc.Set(KratosMultiphysics.ACTIVE,False)
-         #   if id_parent in elementIdVector   
-          #      mpc.Set(KratosMultiphysics.ACTIVE,False)
             else:
                 mpc.Set(KratosMultiphysics.ACTIVE,True)
-        
