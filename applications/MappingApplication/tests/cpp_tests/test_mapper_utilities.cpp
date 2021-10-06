@@ -588,7 +588,8 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, Kra
 
     std::vector<Kratos::unique_ptr<MapperLocalSystem>> mapper_local_systems;
 
-    MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+    MapperUtilities::CreateMapperLocalSystemsFromNodes(
+        NearestNeighborLocalSystem(nullptr),
         model_part.GetCommunicator(),
         mapper_local_systems);
 
