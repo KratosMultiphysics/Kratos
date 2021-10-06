@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/builtin_timer.h"
 #include "interface_communicator.h"
 
 namespace Kratos {
@@ -291,19 +290,14 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
         };
 
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
-            // #pragma omp parallel for // TODO this requires to make some things thread-local!
-            // it makes more sense to omp this loop even though it is not the outermost one ...
-            BuiltinTimer timer;
-
             sum_num_searched_objects += r_interface_infos_rank.size();
+            // intentionally not the outermost loop is parallelized as this one can be large
             sum_num_results += IndexPartition<std::size_t>(r_interface_infos_rank.size()).for_each<SumReduction<int>>(
                 SearchTLS(num_interface_obj_bin), [
                 &r_interface_infos_rank,
                 num_interface_obj_bin,
                 this](const std::size_t Index, SearchTLS& rTLS) {
                 auto& r_interface_info = r_interface_infos_rank[Index];
-
-                std::cout << " >>> Search iter " << Index << " / " << r_interface_infos_rank.size() << std::endl;
 
                 rTLS.mInterfaceObject->Coordinates() = r_interface_info->Coordinates();
 
@@ -328,40 +322,6 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 
                 return number_of_results;
             });
-
-
-            // for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
-            //     sum_num_searched_objects++;
-
-            //     auto& r_interface_info = r_interface_infos_rank[i];
-
-            //     interface_obj->Coordinates() = r_interface_info->Coordinates();
-            //     double search_radius = mSearchRadius; // reset search radius // TODO check this
-
-            //     // reset the containers
-            //     auto results_itr = neighbor_results.begin();
-
-            //     const SizeType number_of_results = mpLocalBinStructure->SearchObjectsInRadius(
-            //         interface_obj, search_radius, results_itr,
-            //         num_interface_obj_bin);
-
-            //     sum_num_results += number_of_results;
-
-            //     for (IndexType j=0; j<number_of_results; ++j) {
-            //         r_interface_info->ProcessSearchResult(*(neighbor_results[j]));
-            //     }
-
-            //     // If the search did not result in a "valid" result (e.g. the projection fails)
-            //     // we try to compute an approximation
-            //     if (!r_interface_info->GetLocalSearchWasSuccessful()) {
-            //         for (IndexType j=0; j<number_of_results; ++j) {
-            //             r_interface_info->ProcessSearchResultForApproximation(*(neighbor_results[j]));
-            //         }
-            //     }
-            // }
-
-            std::cout << "MApper search took: " << timer.ElapsedSeconds() << std::endl;
-
         }
     }
 
