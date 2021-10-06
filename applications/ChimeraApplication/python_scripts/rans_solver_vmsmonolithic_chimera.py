@@ -59,11 +59,8 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
             super().ImportModelPart()
 
     def Initialize(self):
-        # Call the base solver to create the solution strategy
-        super().Initialize()
-
         # Chimera utilities initialization
-        self.solving_variables = [variable.Name() for variable in self._GetSolver().formulation.GetSolvingVariables()]
+        self.solving_variables = [variable.Name() for variable in self.formulation.GetSolvingVariables()]
         self.chimera_process = chimera_setup_utils.GetApplyChimeraProcess(
             self.model,
             self.chimera_settings,
@@ -73,6 +70,11 @@ class RansSolverMonolithicChimera(CoupledRANSSolver):
         chimera_setup_utils.SetChimeraInternalPartsFlag(
             self.model,
             self.chimera_internal_parts)
+
+        self.formulation.SetChimeraProcess(self.chimera_process)
+
+        # Call the base solver to create the solution strategy
+        super().Initialize()
 
     def GetComputingModelPart(self):
         # chimera implementation
