@@ -78,6 +78,13 @@ def ReadModelPart(mdpa_file_name, model_part, materials_file_name=""):
             materials_string = json.dumps(json.load(materials_file))
         model_part.ProcessInfo[KratosMultiphysics.IDENTIFIER] = materials_string
         model_part[KratosMultiphysics.IDENTIFIER] = materials_string
+    
+    #verify the orientation of the skin
+    tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+    throw_errors = False
+    flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+    flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+    KratosMultiphysics.TetrahedralMeshOrientationCheck(model_part,throw_errors, flags).Execute()
 
     __RemoveAuxFiles()
 
