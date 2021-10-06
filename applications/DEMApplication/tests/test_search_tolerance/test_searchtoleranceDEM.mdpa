@@ -45,6 +45,7 @@ Begin SubModelPart DEMParts_Define_particle_groups_Auto1 // Group Define particl
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
+
 Begin SubModelPart DEMParts_Define_particle_groups_Auto2 // Group Define particle groups Auto2 // Subtree DEMParts
     Begin SubModelPartNodes
             4
@@ -55,30 +56,18 @@ Begin SubModelPart DEMParts_Define_particle_groups_Auto2 // Group Define particl
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart DEMParts_Define_particle_groups_Auto3 // Group Define particle groups Auto3 // Subtree DEMParts
-    Begin SubModelPartNodes
-            3
-    End SubModelPartNodes
-    Begin SubModelPartElements
-            5
-    End SubModelPartElements
-    Begin SubModelPartConditions
-    End SubModelPartConditions
-End SubModelPart
-Begin SubModelPart DEM-VelocityIC_Define_particle_groups_Auto3 // GUI DEM-VelocityIC - DEM-VelocityIC - group identifier: Define particle groups Auto3
-  Begin SubModelPartData // DEM-VelocityIC. Group name: Define particle groups Auto3
-    INITIAL_VELOCITY_X_VALUE 0.0
-    INITIAL_VELOCITY_Y_VALUE -6.0
-    INITIAL_VELOCITY_Z_VALUE 0.0
-    INITIAL_ANGULAR_VELOCITY_X_VALUE 0.0
-    INITIAL_ANGULAR_VELOCITY_Y_VALUE 0.0
-    INITIAL_ANGULAR_VELOCITY_Z_VALUE 0.0
+
+Begin SubModelPart DEM-VelocityIC
+  Begin SubModelPartData
     RIGID_BODY_MOTION 0
-    FORCE_INTEGRATION_GROUP 0
-    IDENTIFIER Define_particle_groups_Auto3
   End SubModelPartData
   Begin SubModelPartNodes
          3
   End SubModelPartNodes
+      Begin SubModelPartElements
+            5
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
 End SubModelPart
 
