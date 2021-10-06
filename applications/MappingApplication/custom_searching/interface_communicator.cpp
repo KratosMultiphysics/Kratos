@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/builtin_timer.h"
 #include "interface_communicator.h"
 
 namespace Kratos {
@@ -262,10 +263,9 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
 {
     KRATOS_TRY;
 
-    SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
+    const SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
-    KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!"
-        << std::endl;
+    KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!" << std::endl;
 
     int sum_num_results = 0;
     int sum_num_searched_objects = 0;
@@ -293,11 +293,17 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
             // #pragma omp parallel for // TODO this requires to make some things thread-local!
             // it makes more sense to omp this loop even though it is not the outermost one ...
-            IndexPartition<std::size_t>(r_interface_infos_rank.size()).for_each(SearchTLS(num_interface_obj_bin), [
+            BuiltinTimer timer;
+
+            sum_num_searched_objects += r_interface_infos_rank.size();
+            sum_num_results += IndexPartition<std::size_t>(r_interface_infos_rank.size()).for_each<SumReduction<int>>(
+                SearchTLS(num_interface_obj_bin), [
                 &r_interface_infos_rank,
                 num_interface_obj_bin,
                 this](const std::size_t Index, SearchTLS& rTLS) {
                 auto& r_interface_info = r_interface_infos_rank[Index];
+
+                std::cout << " >>> Search iter " << Index << " / " << r_interface_infos_rank.size() << std::endl;
 
                 rTLS.mInterfaceObject->Coordinates() = r_interface_info->Coordinates();
 
@@ -320,8 +326,9 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
                     }
                 }
 
-
+                return number_of_results;
             });
+
 
             // for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
             //     sum_num_searched_objects++;
@@ -352,6 +359,9 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
             //         }
             //     }
             // }
+
+            std::cout << "MApper search took: " << timer.ElapsedSeconds() << std::endl;
+
         }
     }
 
