@@ -103,6 +103,7 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         return Kratos.Parameters("""
         {
             "formulation_name": "monolithic",
+            "rans_chimera_settings" :{},
             "maximum_iterations": 10,
             "echo_level": 0,
             "compute_reactions": false,
@@ -123,7 +124,6 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
                 "use_orthogonal_subscales": false,
                 "dynamic_tau": 0.01
             },
-            "apply_chimera_constraints_every_step": false,
             "wall_function_settings": {
                 "wall_function_region_type": "logarithmic_region_only",
                 "wall_friction_velocity_calculation_method": "velocity_based"
@@ -269,13 +269,13 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
     def InitializeSolutionStep(self):
         settings = self.GetParameters()
         if (self.IsBufferInitialized()):
-            if settings["apply_chimera_constraints_every_step"].GetBool():  
-                for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
-                    if (constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_X or
-                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Y or
-                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.Velocity_Z or
-                        constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.PRESSURE):
-                        self.monolithic_model_part.AddMasterSlaveConstraint(constraint)
+            # if settings["apply_chimera_constraints_every_step"].GetBool():  
+            #     for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+            #         if (constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_X or
+            #             constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.VELOCITY_Y or
+            #             constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.Velocity_Z or
+            #             constraint.GetSlaveDofsVector()[0].GetVariable() == Kratos.PRESSURE):
+            #             self.monolithic_model_part.AddMasterSlaveConstraint(constraint)
             super().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -300,6 +300,9 @@ class MonolithicVelocityPressureRansFormulation(RansFormulation):
         else:
             raise Exception("\"scheme_type\" is missing in time scheme settings")
 
+    # def GetModelPart(self):
+    #     return self.monolithic_model_part
+    # 
     def SetConstants(self, settings):
         defaults = Kratos.Parameters('''{
             "von_karman": 0.41,

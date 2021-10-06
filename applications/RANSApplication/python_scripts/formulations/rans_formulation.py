@@ -2,6 +2,7 @@ from abc import abstractmethod, ABC
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.RANSApplication as KratosRANS
+from KratosMultiphysics.process_factory import KratosProcessFactory
 
 class RansFormulation(ABC):
     def __init__(self, base_computing_model_part, settings, deprecated_settings_dict):
@@ -21,6 +22,8 @@ class RansFormulation(ABC):
         self.__list_of_formulations = []
         self.__list_of_processes = []
         self.__move_mesh = False
+        # self.__chimera_initialized = False
+        # self.__chimera_process = None
 
     @abstractmethod
     def GetDefaultParameters(self):
@@ -83,6 +86,12 @@ class RansFormulation(ABC):
         """
         self.__ExecuteRansFormulationMethods("AddDofs")
 
+    def AddProcessList(self, kratos_parameters_processes_list):
+        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
+        self.auxiliar_process_list = factory.ConstructListOfProcesses(kratos_parameters_processes_list)
+        for process in self.auxiliar_process_list:
+            self.AddProcess(process)
+
     def PrepareModelPart(self):
         """Recursively calls PrepareModelPart methods of existing formulations in this formulaton
         """
@@ -108,6 +117,9 @@ class RansFormulation(ABC):
     def Initialize(self):
         """Recursively calls Initialize methods of existing formulations, processes and strategy in this formulaton
         """
+        if self.GetParameters().Has("auxiliar_process_list"):
+            self.AddProcessList(self.GetParameters()["auxiliar_process_list"])
+
         self.__ExecuteProcessMethods("ExecuteInitialize")
         self.__ExecuteRansFormulationMethods("Initialize")
 
@@ -121,6 +133,8 @@ class RansFormulation(ABC):
         self.__ExecuteRansFormulationMethods("InitializeSolutionStep")
 
         if (self.GetStrategy() is not None):
+            # if self.IsChimera():
+            #     self.__AddActiveFlagAndChimeraConstraints()
             self.GetStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -421,6 +435,81 @@ class RansFormulation(ABC):
             info += str(formulation.GetInfo()).replace("\n", "\n   ")
         return info
 
+    # def __AddActiveFlagAndChimeraConstraints(self):
+    #     """Add the ACTIVE flag and chimera constraints to the leaf node formulation's model part.
+
+    #        This function corresponds to RANSChimera analysis. ACTIVE Flag and constraints created during 
+    #        chimera formulation are available in the BaseModelPart and have to be added to the ModelPart 
+    #        of the the leaf node formulations.
+    #     """
+    #     if not self.__chimera_initialized:
+    #         # ACTIVE Flag
+    #         # set the ACTIVE flag in the destination element if defined in the original modelpart
+    #         for source_element in self.GetBaseModelPart().Elements:
+    #             if source_element.IsDefined(Kratos.ACTIVE):
+    #                 # NOTE below line of code is a very expensive process: should be moved to KratosCore.VariableUtils()
+    #                 self.GetModelPart().GetElement(source_element.Id).Set(Kratos.ACTIVE, source_element.Is(Kratos.ACTIVE))
+
+    #         # CONSTRAINTS
+    #         # remove any existing Chimera master-slave constraints (Assuming only chimera constraints exist.)
+    #         self.GetModelPart().RemoveMasterSlaveConstraintsFromAllLevels(Kratos.TO_ERASE)
+    #         # add constraints to the model part
+    #         for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+    #             if (constraint.GetSlaveDofsVector()[0].GetVariable() in self.GetSolvingVariables()):
+    #                 self.GetModelPart().AddMasterSlaveConstraint(constraint)
+            
+    #         self.__chimera_initialized = True
+    #         if self.IsApplyChimeraConstraintsEveryStep():
+    #             self.__chimera_initialized = False # for next time step
+
+    # def SetChimeraProcess(self, chimera_process):
+    #     """Set the rans_chimera_settings in the root node formulation.
+      
+    #     Args:
+    #         chimera_process (Kratos.Process): constructed chimera process
+    #     """
+    #     if isinstance(chimera_process, Kratos.Process):
+    #         self.__ExecuteRansFormulationMethods("SetChimeraProcess", [chimera_process])
+    #         self.__chimera_process = chimera_process
+    #     else:
+    #         err = "Wrong argument type passed. The passed argument must be of type KratosMultiphysics.Process"
+    #         raise TypeError(err)
+
+    # def GetChimeraProcess(self):
+    #     return self.__chimera_process
+
+    # def SetChimeraSettings(self, rans_chimera_settings):
+    #     """Recursively set the rans_chimera_settings in the leaf node formulations.
+      
+    #     Args:
+    #         settings (Kratos.Parameters): RANSChimera settings
+    #     """
+    #     self.__ExecuteRansFormulationMethods("SetChimeraSettings", [rans_chimera_settings])
+    #     self.__is_chimera = rans_chimera_settings["is_chimera"].GetBool()
+    #     self.__apply_chimera_constraints_every_step = rans_chimera_settings["apply_chimera_constraints_every_step"].GetBool()
+
+    # def IsChimera(self):
+    #     """Checks whether current formulations are RANSChimera or RANS.
+
+    #     Returns:
+    #         bool: True if RANSChimera, False if just RANS
+    #     """
+    #     if (hasattr(self, "_RansFormulation__is_chimera")):
+    #         return self.__is_chimera
+    #     else:
+    #         raise Exception(self.__class__.__name__ + " needs to use \"SetChimeraSettings\" first before calling \"IsChimera\".")
+
+    # def IsApplyChimeraConstraintsEveryStep(self):
+    #     """Checks if chimera constraints are to be added at every time step to the model part of current formulations.
+
+    #     Returns:
+    #         bool: True if chimera constraints are to be added at every time step, False if not
+    #     """
+    #     if (hasattr(self, "_RansFormulation__apply_chimera_constraints_every_step")):
+    #         return self.__apply_chimera_constraints_every_step
+    #     else:
+    #         raise Exception(self.__class__.__name__ + " needs to use \"SetChimeraSettings\" first before calling \"IsApplyChimeraConstraintsEveryStep\".")
+    # 
     def __ExecuteRansFormulationMethods(self, method_name, args = []):
         for formulation in self.__list_of_formulations:
             getattr(formulation, method_name)(*args)

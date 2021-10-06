@@ -47,11 +47,12 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
                 "solver_type"  : "amgcl"
             },
             "boundary_flags": ["INLET", "STRUCTURE"],
-            "apply_chimera_constraints_every_step": false,
             "wall_function_settings": {
                 "wall_function_region_type": "logarithmic_region_only",
                 "wall_friction_velocity_calculation_method": "velocity_based"
-            }
+            },
+            "reform_dofs_at_each_step": true,
+            "vtk_output_settings": {}
         }""")
 
     def BackwardCompatibilityHelper(self, settings, deprecated_settings_dict):
@@ -118,7 +119,14 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
              settings["absolute_tolerance"].GetDouble())])
 
         if (self.is_steady_simulation):
-            scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
+            vtk_settings = settings["vtk_output_settings"]
+            if vtk_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
+                scheme = self.scheme_type(settings["relaxation_factor"].GetDouble())
+            else:
+                if not vtk_settings.Has("model_part_name"):
+                    vtk_settings.AddEmptyValue("model_part_name")
+                vtk_settings["model_part_name"].SetString(self.GetModelPart().FullName())
+                scheme = self.scheme_type(settings["relaxation_factor"].GetDouble(), Kratos.VtkOutput(self.GetModelPart(), vtk_settings))
         else:
             scheme_type = GetKratosObjectPrototype("BossakRelaxationScalarScheme")
             scheme = scheme_type(
@@ -134,7 +142,7 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
             builder_and_solver,
             settings["max_iterations"].GetInt(),
             False,
-            False,
+            settings["reform_dofs_at_each_step"].GetBool(),
             False)
 
         self.solver.SetEchoLevel(self.echo_level)
@@ -144,11 +152,11 @@ class ScalarTurbulenceModelRansFormulation(RansFormulation):
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Initialized formulation")
 
     def InitializeSolutionStep(self):
-        settings = self.GetParameters()
-        if settings["apply_chimera_constraints_every_step"].GetBool():
-            for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
-                if (constraint.GetSlaveDofsVector()[0].GetVariable() == self.GetSolvingVariable()):
-                    self.GetModelPart().AddMasterSlaveConstraint(constraint)
+        # settings = self.GetParameters()
+        # if settings["apply_chimera_constraints_every_step"].GetBool():
+        #     for constraint in self.GetBaseModelPart().MasterSlaveConstraints:
+        #         if (constraint.GetSlaveDofsVector()[0].GetVariable() == self.GetSolvingVariable()):
+        #             self.GetModelPart().AddMasterSlaveConstraint(constraint)
         super().InitializeSolutionStep()
 
     def SolveCouplingStep(self):

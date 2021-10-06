@@ -22,6 +22,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/openmp_utils.h"
+#include "input_output/vtk_output.h"
 
 // Application includes
 #include "custom_strategies/relaxed_dof_updater.h"
@@ -68,6 +69,18 @@ public:
 
         mpDofUpdater = Kratos::make_unique<DofUpdaterType>(mRelaxationFactor);
     }
+
+    SteadyScalarScheme(
+        const double RelaxationFactor,
+        VtkOutput::Pointer pVtkOutput)
+        : mRelaxationFactor(RelaxationFactor),
+          mpVtkOutput(pVtkOutput)
+    {  
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        mDampingMatrix.resize(num_threads);
+
+        mpDofUpdater = Kratos::make_unique<DofUpdaterType>(mRelaxationFactor);        
+    }  
 
     ~SteadyScalarScheme() override = default;
 
@@ -189,6 +202,32 @@ public:
         KRATOS_CATCH("");
     }
 
+    void FinalizeNonLinIteration(
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb) override
+    {
+        KRATOS_TRY
+
+        BaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        if (mpVtkOutput) {
+            const auto& r_process_info = rModelPart.GetProcessInfo();
+
+            std::stringstream file_name;
+            file_name << rModelPart.FullName() << "_step_"
+                      << r_process_info[STEP] << "_local_index_" << mIndex++
+                      << "_non_lin_itr_" << r_process_info[NL_ITERATION_NUMBER];
+
+            mpVtkOutput->PrintOutput(file_name.str());
+
+            KRATOS_INFO("BossakRelaxationScalarScheme") << "Written vtk output " + file_name.str() << ".\n";
+        }
+
+        KRATOS_CATCH("")
+    }
+
     ///@}
     ///@name Input and output
     ///@{
@@ -247,6 +286,10 @@ private:
     using DofUpdaterPointerType = typename DofUpdaterType::UniquePointer;
 
     DofUpdaterPointerType mpDofUpdater;
+
+    std::size_t mIndex = 0;
+
+    VtkOutput::Pointer mpVtkOutput = nullptr;
 
     ///@}
 };
