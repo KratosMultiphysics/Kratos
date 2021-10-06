@@ -62,6 +62,7 @@ class CoupledRANSSolver(PythonSolver):
 
         self.formulation.SetConstants(self.settings["constants"])
         self.formulation.SetIsPeriodic(self.settings["consider_periodic_conditions"].GetBool())
+        self.formulation.SetChimeraSettings(self.settings["formulation_settings"]["rans_chimera_settings"])
 
         self.is_periodic = self.formulation.IsPeriodic()
 
