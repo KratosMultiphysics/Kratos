@@ -19,6 +19,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "mapping_matrix_utilities.h"
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
@@ -38,10 +39,13 @@ typedef typename MapperLocalSystem::EquationIdVectorType EquationIdVectorType;
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
+// The implementation follows the ResidualBasedBlockBuilderAndSolver
+
 /***********************************************************************************/
 /* Functions for internal use in this file */
 /***********************************************************************************/
 
+// see ResidualBasedBlockBuilderAndSolver::ConstructMatrixStructure
 void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMdo,
                               std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
                               const SizeType NumNodesOrigin,
@@ -51,11 +55,11 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
     std::vector<std::unordered_set<IndexType> > indices(NumNodesDestination);
 
     // preallocate memory for the column indices
-    for (IndexType i=0; i<NumNodesDestination; ++i) {
+    block_for_each(indices, [](std::unordered_set<std::size_t>& rIndices){
         // TODO I guess this can be optimized...
         // this highly depends on the used mapper => same goes for the Graph in Trilinos
-        indices[i].reserve(3);
-    }
+        rIndices.reserve(3);
+    });
 
     EquationIdVectorType origin_ids;
     EquationIdVectorType destination_ids;
@@ -70,10 +74,10 @@ void ConstructMatrixStructure(Kratos::unique_ptr<typename MappingSparseSpaceType
     }
 
     // computing the number of non-zero entries
-    SizeType num_non_zero_entries = 0;
-    for (const auto& r_row_indices : indices) { // looping the indices per row
-        num_non_zero_entries += r_row_indices.size(); // adding the number of col-indices
-    }
+    const SizeType num_non_zero_entries = block_for_each<SumReduction<SizeType>>(indices,
+        [](const std::unordered_set<std::size_t>& rIndices){
+            return rIndices.size();
+    });
 
     auto p_Mdo = Kratos::make_unique<typename MappingSparseSpaceType::MatrixType>(
         NumNodesDestination,
