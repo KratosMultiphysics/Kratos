@@ -43,12 +43,6 @@ class TwoEquationTurbulenceModelRansFormulation(RansFormulation):
             return 2
 
     def Initialize(self):
-        factory = KratosProcessFactory(self.GetBaseModelPart().GetModel())
-        self.auxiliar_process_list = factory.ConstructListOfProcesses(
-            self.GetParameters()["auxiliar_process_list"])
-        for process in self.auxiliar_process_list:
-            self.AddProcess(process)
-
         super().Initialize()
 
         # set formulation initialized historical solving variables to non historical nodal containers
