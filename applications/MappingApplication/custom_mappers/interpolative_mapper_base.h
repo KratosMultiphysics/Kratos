@@ -255,16 +255,16 @@ protected:
         }
 
         if (mMapperSettings.Has("search_iterations")) {
-            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified under \"search_settings\"!" << std::endl;
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified as \"max_num_search_iterations\" under \"search_settings\"!" << std::endl;
             const int search_iterations = mMapperSettings["search_iterations"].GetInt();
 
             if (mMapperSettings.Has("search_settings")) {
-                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_iterations")) << "\"search_iterations\" specified twice, please only speficy it in \"search_settings\"!" << std::endl;
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("max_num_search_iterations")) << "\"search_iterations\" specified twice, please only speficy it in \"search_settings\" (as \"max_num_search_iterations\")!" << std::endl;
             } else {
                 mMapperSettings.AddValue("search_settings", Parameters());
             }
 
-            mMapperSettings["search_settings"].AddEmptyValue("search_iterations").SetInt(search_iterations);
+            mMapperSettings["search_settings"].AddEmptyValue("max_num_search_iterations").SetInt(search_iterations);
             mMapperSettings.RemoveValue("search_iterations");
         }
 
