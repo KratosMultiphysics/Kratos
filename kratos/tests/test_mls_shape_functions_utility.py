@@ -76,7 +76,7 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
             DN_DX_container)
 
         # Save the obtained results in TEMPERATURE variable and visualize
-        output_results = False
+        output_results = True
         if output_results:
             i = 0
             for node in self.main_model_part.Nodes:
@@ -89,12 +89,15 @@ class TestMLSShapeFunctionsUtility(KratosUnittest.TestCase):
         # Check results
         N_tot = sum(N_container)
         self.assertAlmostEqual(N_tot, 1.0, 8)
-        self.assertAlmostEqual(N_container[0], 7.416763267830596e-08, 8)
-        self.assertAlmostEqual(DN_DX_container[0,0], -1.8594873082432379e-06, 8)
-        self.assertAlmostEqual(DN_DX_container[0,1], -1.859487308243242e-06, 8)
-        self.assertAlmostEqual(N_container[221], 0.018696143633106455, 8)
+        self.assertAlmostEqual(N_container[0], 5.525838549197062e-13, 8)
+        self.assertAlmostEqual(DN_DX_container[0,0], -2.7629285986488994e-11, 8)
+        self.assertAlmostEqual(DN_DX_container[0,1], -2.7629285976270593e-11, 8)
+        self.assertAlmostEqual(N_container[220], 0.039788744848771845, 8)
+        self.assertAlmostEqual(DN_DX_container[220,0], 0.0, 8)
+        self.assertAlmostEqual(DN_DX_container[220,1], 0.0, 8)
+        self.assertAlmostEqual(N_container[221], 0.035113444086769904, 8)
         self.assertAlmostEqual(DN_DX_container[221,0], 0.0, 8)
-        self.assertAlmostEqual(DN_DX_container[221,1], 0.046873872797914065, 8)
+        self.assertAlmostEqual(DN_DX_container[221,1], 0.17556781284797665, 8)
 
 if __name__ == '__main__':
     KratosUnittest.main()

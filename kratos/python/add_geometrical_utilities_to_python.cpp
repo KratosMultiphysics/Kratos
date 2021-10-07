@@ -104,6 +104,92 @@ void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCa
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
 }
 
+// MLS shape functions utility
+void AuxiliaryCalculateShapeFunctions(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN)
+{
+    switch (Dim)
+    {
+    case 2:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<2,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    case 3:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctions<3,2>(rPoints, rX, h, rN);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    default:
+        KRATOS_ERROR << "Wrong provided dimension: " << Dim << std::endl;
+        break;
+    }
+}
+
+void AuxiliaryCalculateShapeFunctionsAndGradients(
+    const std::size_t Dim,
+    const std::size_t Order,
+    const Matrix& rPoints,
+    const array_1d<double,3>& rX,
+    const double h,
+    Vector& rN,
+    Matrix& rDNDX)
+{
+    switch (Dim)
+    {
+    case 2:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    case 3:
+        switch (Order)
+        {
+        case 1:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>(rPoints, rX, h, rN, rDNDX);
+            break;
+        case 2:
+            MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,2>(rPoints, rX, h, rN, rDNDX);
+            break;
+        default:
+            KRATOS_ERROR << "Wrong provided order: " << Order << ". Only \'1\' and \'2\' are supported." << std::endl;
+            break;
+        }
+    default:
+        KRATOS_ERROR << "Wrong provided dimension: " << Dim << std::endl;
+        break;
+    }
+}
+
 void AddGeometricalUtilitiesToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -313,10 +399,12 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
 
     // MLS shape functions utility
     py::class_<MLSShapeFunctionsUtility>(m,"MLSShapeFunctionsUtility")
-        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2>)
-        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3>)
-        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2>)
-        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3>)
+        .def_static("CalculateShapeFunctions", &AuxiliaryCalculateShapeFunctions)
+        .def_static("CalculateShapeFunctions2D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>)
+        .def_static("CalculateShapeFunctions3D", &MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>)
+        .def_static("CalculateShapeFunctionsAndGradients", &AuxiliaryCalculateShapeFunctionsAndGradients)
+        .def_static("CalculateShapeFunctionsAndGradients2D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<2,1>)
+        .def_static("CalculateShapeFunctionsAndGradients3D", &MLSShapeFunctionsUtility::CalculateShapeFunctionsAndGradients<3,1>)
         ;
 }
 
