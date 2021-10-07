@@ -272,7 +272,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
 
         struct SearchTLS {
-            SearchTLS(std::size_t MaxNeighborResults) : mMaxNeighborResults(MaxNeighborResults) {}
+            explicit SearchTLS(std::size_t MaxNeighborResults) : mMaxNeighborResults(MaxNeighborResults) {}
 
             // the IndexPartition uses the CopyConstructor to create the thread local storage
             // hence using it to initialize the members
@@ -286,7 +286,7 @@ void InterfaceCommunicator::ConductLocalSearch(const Communicator& rComm)
             Kratos::shared_ptr<InterfaceObject> mInterfaceObject;
 
         private:
-            std::size_t mMaxNeighborResults;
+            std::size_t mMaxNeighborResults = 0;
         };
 
         for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
