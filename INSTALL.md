@@ -403,7 +403,7 @@ rem Enable this if your build is slow and you have a multi-core machine
 rem set KRATOS_PARALLEL_BUILD_FLAG=/MPX
 ```
 
-This will pass the `/MPX` option directly to `CL.exe`, where `X` is the nomber of threads you want to use.
+This will pass the `/MPX` option directly to `CL.exe`, where `X` is the number of threads you want to use.
 
 If you preffer to interact directly with `MSBuild.exe` you can use either of this options in the cmake build command:
 - `/p:CL_MPcount=X`: Enable multiples cpp to be compiled in parallel
