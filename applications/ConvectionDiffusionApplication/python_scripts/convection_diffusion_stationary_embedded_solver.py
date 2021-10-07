@@ -22,7 +22,6 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
         # Construct the base solver and validate the remaining settings in the base class
         super().__init__(main_model_part, custom_settings)
 
-        # TODO necessary?
         # Overwrite the base solver minimum buffer size
         self.min_buffer_size = 1
 
@@ -72,14 +71,39 @@ class ConvectionDiffusionStationaryEmbeddedSolver(convection_diffusion_stationar
             constraint_process.Execute()
 
         elif self.settings["use_distance_modification"].GetBool():
-            # FUTURE: initialize and use DistanceModificationProcess
-
-            # Avoid small cuts using positive epsilon for nodal distances
-            tol = 0.001
+            # FUTURE: use DistanceModificationProcess with tol_d
+            # Avoid small cuts
+            tol_d = 0.001
             for node in self.GetComputingModelPart().Nodes:
-                dist = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-                if abs(dist) < tol:
-                    node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol)
+                d = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if abs(d) < tol_d:
+                    if d > 0.0:
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol_d)
+                    else:
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol_d)
+
+            # Deactivate elements in negative distance region
+            for element in self.GetComputingModelPart().Elements:
+                n_pos = 0
+                for node in element.GetGeometry():
+                    if node.GetSolutionStepValue(KratosMultiphysics.DISTANCE) > 0.0:
+                        n_pos += 1
+                if n_pos == 0:
+                    element.Set(KratosMultiphysics.ACTIVE, False)
+                    for node in element.GetGeometry():
+                        node.Set(KratosMultiphysics.ACTIVE, False)
+
+        else:
+            # FUTURE: use DistanceModificationProcess with tol_d
+            # Avoid zero distances
+            tol_d = 1.0e-12
+            for node in self.GetComputingModelPart().Nodes:
+                d = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+                if abs(d) < tol_d:
+                    if d > 0.0:
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, tol_d)
+                    else:
+                        node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, -tol_d)
 
             # Deactivate elements in negative distance region
             for element in self.GetComputingModelPart().Elements:
