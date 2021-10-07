@@ -134,8 +134,8 @@ void SurfaceSmoothingProcess::Execute()
     std::vector<double> DistDiffAvg(NumNodes, 0.0);
     std::vector<double> NumNeighbors(NumNodes, 0.0);
 
-    /* Model& current_model = mrModelPart.GetModel();
-    auto& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName ); */
+    Model& current_model = mrModelPart.GetModel();
+    auto& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
 
     #pragma omp parallel for
     for (unsigned int k = 0; k < NumNodes; ++k) {
@@ -146,12 +146,12 @@ void SurfaceSmoothingProcess::Execute()
         const double distance = it_node->FastGetSolutionStepValue(DISTANCE);
         it_node->FastGetSolutionStepValue(DISTANCE_AUX) = distance;
 
-        /* auto it_node_smoothing = r_smoothing_model_part.NodesBegin() + k;
+        auto it_node_smoothing = r_smoothing_model_part.NodesBegin() + k;
         if (it_node->IsFixed(DISTANCE)){
             it_node_smoothing->Fix(DISTANCE_AUX);
         } else {
             it_node_smoothing->Free(DISTANCE_AUX);
-        } */
+        }
 
         if ( it_node->IsFixed(DISTANCE) ) { //GetValue(IS_STRUCTURE) == 1.0 ){
             it_node->Fix(DISTANCE_AUX);
@@ -170,9 +170,9 @@ void SurfaceSmoothingProcess::Execute()
         }
     }
 
-    Model& current_model = mrModelPart.GetModel();
-    ModelPart& r_smoothing_model_part = current_model.GetModelPart( mAuxModelPartName );
     r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,1);
+
+    //mpGradientCalculator->Execute();
 
     KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, for smoothing" << std::endl;
     mp_solving_strategy->Solve();
@@ -268,7 +268,7 @@ void SurfaceSmoothingProcess::Execute()
 
     r_smoothing_model_part.pGetProcessInfo()->SetValue(FRACTIONAL_STEP,2);
 
-    for (int iter = 0; iter<3; ++iter){
+    for (int iter = 0; iter<0; ++iter){
         mpGradientCalculator->Execute();
         KRATOS_INFO("SurfaceSmoothingProcess") << "About to solve the LSE, iteration: " << iter+1 << std::endl;
         mp_solving_strategy->Solve();

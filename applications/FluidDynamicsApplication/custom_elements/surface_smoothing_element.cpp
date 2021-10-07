@@ -336,7 +336,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     //KRATOS_INFO("STEP") << step << std::endl;
 
     if (step == 1){
-        epsilon = 5.0e-9;
+        epsilon = 1.0e-10;
     } else{
         if (norm_grad_phi_avg > 1.0){
             diffusion = 1.0/norm_grad_phi_avg;
@@ -356,21 +356,21 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
     }
 
     for(unsigned int i = 0; i<num_nodes; i++){
-        tempMlumped(i,i) = area*N[i];
+        tempMlumped(i,i) = 1.0e4*area*N[i];
 
         for(unsigned int j = 0; j<num_nodes; j++){
-            tempM(i,j) = area*N[i]*N[j];
+            tempM(i,j) = 1.0e4*area*N[i]*N[j];
 
             for (unsigned int k = 0; k<num_dim; k++){
 
                 if (step == 1){
-                    tempA(i,j) += area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+                    tempA(i,j) += 1.0e4*area*epsilon*DN_DX(i,k)*DN_DX(j,k);
 
-                    tempLaplacianRHS[i] += area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                    tempLaplacianRHS[i] += 1.0e4*area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
                 } else{
-                    tempA(i,j) += pseudo_time_step*area*DN_DX(i,k)*DN_DX(j,k);//area*epsilon*DN_DX(i,k)*DN_DX(j,k);
+                    tempA(i,j) += 1.0e4*pseudo_time_step*area*DN_DX(i,k)*DN_DX(j,k);//area*epsilon*DN_DX(i,k)*DN_DX(j,k);
 
-                    tempLaplacianRHS[i] += diffusion*area*DN_DX(i,k)*N[j]*grad_phi[k];//area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
+                    tempLaplacianRHS[i] += 1.0e4*diffusion*area*DN_DX(i,k)*N[j]*grad_phi[k];//area*epsilon*DN_DX(i,k)*N[j]*grad_phi_old[k]; //(GradPHIold[j])[k];
                 }
             }
 
@@ -593,7 +593,7 @@ void SurfaceSmoothingElement::CalculateLocalSystem(
                         minus_cos_contact_angle = Kratos::inner_prod(solid_normal,//1.0/norm_grad_phi_old*grad_phi_old);
                             GetGeometry()[i].FastGetSolutionStepValue(DISTANCE_GRADIENT));
                     }
-                    tempBCRHS[i] += epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
+                    tempBCRHS[i] += 1.0e4*epsilon * minus_cos_contact_angle * face_weight * face_shape_func(i);
                     //In case we use this process for the sake of redistancing, this RHS contribution should be turned off.
                 }
             }

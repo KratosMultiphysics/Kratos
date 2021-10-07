@@ -174,21 +174,21 @@ void VariationalNonEikonalDistanceElement::EquationIdVector(EquationIdVectorType
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
 
-    // num_dof = 4*num_nodes
-    if (rResult.size() != 4*num_nodes){
-        rResult.resize(4*num_nodes, false);
+    const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
+    if (rResult.size() != num_dof){
+        rResult.resize(num_dof, false);
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        /* rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
-        rResult[i*num_dim + num_nodes + 0]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_X).EquationId();
+        rResult[i]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
+        /* rResult[i*num_dim + num_nodes + 0]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_X).EquationId();
         rResult[i*num_dim + num_nodes + 1]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Y).EquationId();
         rResult[i*num_dim + num_nodes + 2]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Z).EquationId(); */
 
-        rResult[i*(num_dim+1)]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
+        /* rResult[i*(num_dim+1)]  =  this->GetGeometry()[i].GetDof(DISTANCE_AUX2).EquationId();
         rResult[i*(num_dim+1) + 1]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_X).EquationId();
         rResult[i*(num_dim+1) + 2]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Y).EquationId();
-        rResult[i*(num_dim+1) + 3]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Z).EquationId();
+        rResult[i*(num_dim+1) + 3]  =  this->GetGeometry()[i].GetDof(DISTANCE_GRADIENT_Z).EquationId(); */
     }
 }
 
@@ -200,25 +200,25 @@ void VariationalNonEikonalDistanceElement::EquationIdVector(EquationIdVectorType
 void VariationalNonEikonalDistanceElement::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo)
 {
     //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "GetDofList" << std::endl;
-    
+
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
 
-    // num_dof = 4*num_nodes
-    if (rElementalDofList.size() != 4*num_nodes){
-        rElementalDofList.resize(4*num_nodes);
+    const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
+    if (rElementalDofList.size() != num_dof){
+        rElementalDofList.resize(num_dof);
     }
 
     for(unsigned int i=0; i<num_nodes; i++){
-        /* rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
-        rElementalDofList[i*num_dim + num_nodes + 0] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_X);
+        rElementalDofList[i] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
+        /* rElementalDofList[i*num_dim + num_nodes + 0] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_X);
         rElementalDofList[i*num_dim + num_nodes + 1] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Y);
         rElementalDofList[i*num_dim + num_nodes + 2] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Z); */
 
-        rElementalDofList[i*(num_dim+1)] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
+        /* rElementalDofList[i*(num_dim+1)] = this->GetGeometry()[i].pGetDof(DISTANCE_AUX2);
         rElementalDofList[i*(num_dim+1) + 1] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_X);
         rElementalDofList[i*(num_dim+1) + 2] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Y);
-        rElementalDofList[i*(num_dim+1) + 3] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Z);
+        rElementalDofList[i*(num_dim+1) + 3] = this->GetGeometry()[i].pGetDof(DISTANCE_GRADIENT_Z); */
     }
 }
 
@@ -248,25 +248,32 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
     const int num_dim  = 3;
     const int num_nodes  = num_dim + 1;
+    const int num_dof = num_nodes; //(num_dim + 1)*num_nodes;
 
-    const double tau = 0.5;
-    const double penalty_curvature = 1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
-    const double penalty_phi0 = 0.0e0;
+    //const double tau = 0.5;
+    //const double penalty_curvature = 0.0;//1.0e-3; // Not possible for curvature itself since normalized DISTANCE_GRADIENT is needed.
+    const double penalty_phi0 = 1.0e8;//0.0;//
+    const double source_coeff = 1.0e2;
     //const double dissipative_coefficient = 1.0e-8;
 
-    GeometryData::ShapeFunctionsGradientsType DN_DX;  
+    GeometryData::ShapeFunctionsGradientsType DN_DX;
     Matrix N;
     Vector DetJ;
-    Vector weights; 
+    Vector weights;
+
     //Vector curvatures(num_nodes);
     Vector distances0(num_nodes);
-    Matrix distance_gradient0(num_nodes, num_dim);
-    Vector values(4*num_nodes);
-    BoundedMatrix<double,4*num_nodes,4*num_nodes> tempPhi; // Only the 4 rows associated with Phi will be filled
-    tempPhi = ZeroMatrix(4*num_nodes,4*num_nodes);
-    BoundedMatrix<double,4*num_nodes,4*num_nodes> tempGradPhi; // Only 3*4 rows associated with GradPhi will be filled
-    tempGradPhi = ZeroMatrix(4*num_nodes,4*num_nodes);
-    Vector rhs = ZeroVector(4*num_nodes);
+    //Matrix distance_gradient0(num_nodes, num_dim);
+    Vector values(num_dof);
+    VectorType grad_phi_avg;
+
+    //BoundedMatrix<double,num_dof,num_dof> tempPhi; // Only the 4 rows associated with Phi will be filled
+    //tempPhi = ZeroMatrix(num_dof,num_dof);
+    //BoundedMatrix<double,num_dof,num_dof> tempGradPhi; // Only 3*4 rows associated with GradPhi will be filled
+    //tempGradPhi = ZeroMatrix(num_dof,num_dof);
+
+    BoundedMatrix<double,num_dof,num_dof> lhs = ZeroMatrix(num_dof,num_dof);
+    Vector rhs = ZeroVector(num_dof);
 
     const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_2;
     //const GeometryType& r_geometry = this->GetGeometry();
@@ -289,47 +296,63 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         weights[gp] = DetJ[gp] * IntegrationPoints[gp].Weight();
     }
 
+    unsigned int nneg=0, npos=0;
+
     for (unsigned int i_node=0; i_node < num_nodes; ++i_node){
         //curvatures(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(CURVATURE);
         //KRATOS_INFO("VariationalNonEikonalDistanceElement, storing curvature") << curvatures(i_node) << std::endl;
 
-        distances0(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
+        const double dist0 = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE);
+        distances0(i_node) = dist0;
 
-        /* values(i_node) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
-        values(i_node*num_dim + num_nodes + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
+        if (dist0 > 0.0) npos += 1;
+        else nneg += 1;
+
+        const double dist_dof = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
+        values(i_node) = dist_dof;
+        /* values(i_node*num_dim + num_nodes + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
         values(i_node*num_dim + num_nodes + 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
         values(i_node*num_dim + num_nodes + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z); */
 
-        values(i_node*(num_dim + 1) + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
-        values(i_node*(num_dim + 1) + 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
-        values(i_node*(num_dim + 1) + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
-        values(i_node*(num_dim + 1) + 3) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
+        // values(i_node*(num_dim + 1) + 0) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_AUX2);
+        // values(i_node*(num_dim + 1) + 1) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_X);
+        // values(i_node*(num_dim + 1) + 2) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Y);
+        // values(i_node*(num_dim + 1) + 3) = (*p_geometry)[i_node].FastGetSolutionStepValue(DISTANCE_GRADIENT_Z);
 
-        distance_gradient0(i_node, 0) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_X);
-        distance_gradient0(i_node, 1) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Y);
-        distance_gradient0(i_node, 2) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Z);
-    }
-
-    unsigned int nneg=0, npos=0;
-    for (unsigned int i_node=0; i_node < num_nodes; ++i_node)
-    {
-        if (distances0(i_node) > 0.0) npos += 1;
-        else /* if (distances0(i_node) < 0.0) */ nneg += 1;
+        // distance_gradient0(i_node, 0) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_X);
+        // distance_gradient0(i_node, 1) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Y);
+        // distance_gradient0(i_node, 2) = (*p_geometry)[i_node].GetValue(DISTANCE_GRADIENT_Z);
     }
 
     // num_dof = 4*num_nodes
-    if(rLeftHandSideMatrix.size1() != 4*num_nodes)
-        rLeftHandSideMatrix.resize(4*num_nodes,4*num_nodes,false); //resizing the system in case it does not have the right size 
+    if(rLeftHandSideMatrix.size1() != num_dof)
+        rLeftHandSideMatrix.resize(num_dof,num_dof,false); //resizing the system in case it does not have the right size 
 
-    if(rRightHandSideVector.size() != 4*num_nodes)
-        rRightHandSideVector.resize(4*num_nodes,false);
+    if(rRightHandSideVector.size() != num_dof)
+        rRightHandSideVector.resize(num_dof,false);
 
     //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 2" << std::endl;
 
-    for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
-        for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-            for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
+    const unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
 
+    double diffusion = 0.0;
+
+    for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
+        grad_phi_avg = ZeroVector(num_dim);
+        for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+            grad_phi_avg += GetGeometry()[i_node].GetValue(DISTANCE_GRADIENT)*N(gp, i_node);
+        }
+
+        const double norm_grad_phi_avg = norm_2(grad_phi_avg);
+        //KRATOS_WATCH(norm_grad_phi_avg)
+        if (norm_grad_phi_avg > 1.0){
+            diffusion = 1.0/norm_grad_phi_avg;
+        } else{
+            diffusion = (3.0 - 2.0*norm_grad_phi_avg)*norm_grad_phi_avg;
+        }
+
+        for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+            for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
                 //tempPhi: LHS associated with the dissipative smoother
                 //tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
                 //    weights(gp) /* * (1/dissipative_coefficient) */ * N(gp, i_node) * N(gp, j_node);
@@ -340,28 +363,34 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
 
                 for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
 
-                    /* //tempPhi: LHS for the first 4 rows 
-                    tempPhi(i_node, j_node) += weights(gp) * tau * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
-                    tempPhi(i_node, j_node*num_dim + num_nodes + k_dim) += 
+                    //tempPhi: LHS for the first 4 rows
+                    /* tempPhi(i_node, j_node) += weights(gp) * tau * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                    tempPhi(i_node, j_node*num_dim + num_nodes + k_dim) +=
                         weights(gp) * (1-tau) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
 
                     //tempGradPhi: LHS for the next 3*4 rows
-                    tempGradPhi(i_node*num_dim + num_nodes + k_dim, j_node*num_dim + num_nodes + k_dim) += 
+                    tempGradPhi(i_node*num_dim + num_nodes + k_dim, j_node*num_dim + num_nodes + k_dim) +=
                         weights(gp) * N(gp, i_node) * N(gp, j_node);
-                    tempGradPhi(i_node*num_dim + num_nodes + k_dim, j_node) -= 
+                    tempGradPhi(i_node*num_dim + num_nodes + k_dim, j_node) -=
                         weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim); */
 
-                    //tempPhi: LHS for the first 4 rows 
-                    tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) += 
-                        weights(gp) * (/* dissipative_coefficient + */ tau) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
-                    tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + k_dim + 1) += 
-                        weights(gp) * (1 - tau) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
+                    //tempPhi: LHS for the first 4 rows
+                    // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
+                    //     weights(gp) * (/* dissipative_coefficient + */ tau) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+                    // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + k_dim + 1) +=
+                    //     weights(gp) * (1 - tau) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
 
                     //tempGradPhi: LHS for the next 3*4 rows
-                    tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) += 
-                        weights(gp) * N(gp, i_node) * N(gp, j_node);
-                    tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + 0) -= 
-                        weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
+                    // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) +=
+                    //     weights(gp) * N(gp, i_node) * N(gp, j_node);
+                    // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + 0) -=
+                    //     weights(gp) * N(gp, i_node) * (DN_DX[gp])(j_node, k_dim);
+
+                    lhs(i_node, j_node) += weights(gp) * (DN_DX[gp])(i_node, k_dim) * (DN_DX[gp])(j_node, k_dim);
+
+                    if (step > 1){
+                        rhs[i_node] += diffusion * weights(gp) * (DN_DX[gp])(i_node, k_dim) * N(gp, j_node) * grad_phi_avg[k_dim];
+                    }
                 }
             }
         }
@@ -372,45 +401,54 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
     if (npos != 0 && nneg != 0)
     {
         //KRATOS_INFO("VariationalNonEikonalDistanceElement, nneg, npos") << nneg << ", " << npos << std::endl;
-        //KRATOS_INFO("VariationalNonEikonalDistanceElement, distances0") 
+        //KRATOS_INFO("VariationalNonEikonalDistanceElement, distances0")
         //    << "0: " << distances0(0)
         //    << ", 1: " << distances0(1)
         //    << ", 2: " << distances0(2)
         //    << ", 3: " << distances0(3)
         //    << std::endl;
 
-        ModifiedShapeFunctions::Pointer p_modified_sh_func = 
-                Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geometry, distances0);
+        ModifiedShapeFunctions::Pointer p_modified_sh_func =
+            Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(p_geometry, distances0);
 
-        Matrix neg_N, pos_N, int_N;
-        GeometryType::ShapeFunctionsGradientsType neg_DN_DX, pos_DN_DX, int_DN_DX;
-        Vector neg_weights, pos_weights, int_weights;
+        Matrix int_N;
+        GeometryType::ShapeFunctionsGradientsType int_DN_DX;
+        Vector int_weights;
 
-        p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
-            pos_N,        // N
-            pos_DN_DX,    // DN_DX
-            pos_weights,  // weight * detJ
-            integration_method);
+        if (step == 1){
+            //KRATOS_WATCH(nneg)
+            Matrix neg_N, pos_N;
+            GeometryType::ShapeFunctionsGradientsType neg_DN_DX, pos_DN_DX;
+            Vector neg_weights, pos_weights;
 
-        const std::size_t number_of_pos_gauss_points = pos_weights.size();
+            p_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(
+                pos_N,        // N
+                pos_DN_DX,    // DN_DX
+                pos_weights,  // weight * detJ
+                integration_method);
 
-        for (unsigned int pos_gp = 0; pos_gp < number_of_pos_gauss_points; pos_gp++){
-            for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-                rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+            const std::size_t number_of_pos_gauss_points = pos_weights.size();
+
+            for (unsigned int pos_gp = 0; pos_gp < number_of_pos_gauss_points; pos_gp++){
+                for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                    //rhs(i_node*(num_dim + 1) + 0) += pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                    rhs(i_node) += source_coeff * pos_weights(pos_gp) * pos_N(pos_gp, i_node);
+                }
             }
-        }
 
-        p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
-            neg_N,        // N
-            neg_DN_DX,    // DN_DX
-            neg_weights,  // weight * detJ
-            integration_method);
+            p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
+                neg_N,        // N
+                neg_DN_DX,    // DN_DX
+                neg_weights,  // weight * detJ
+                integration_method);
 
-        const std::size_t number_of_neg_gauss_points = neg_weights.size();
+            const std::size_t number_of_neg_gauss_points = neg_weights.size();
 
-        for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
-            for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-                rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+            for (unsigned int neg_gp = 0; neg_gp < number_of_neg_gauss_points; neg_gp++){
+                for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                    //rhs(i_node*(num_dim + 1) + 0) -= neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                    rhs(i_node) -= 1.0e2 * source_coeff * neg_weights(neg_gp) * neg_N(neg_gp, i_node);
+                }
             }
         }
 
@@ -425,64 +463,82 @@ void VariationalNonEikonalDistanceElement::CalculateLocalSystem(
         const std::size_t number_of_int_gauss_points = int_weights.size();
 
         for (unsigned int int_gp = 0; int_gp < number_of_int_gauss_points; int_gp++){
-            //KRATOS_INFO("VariationalNonEikonalDistanceElement, int_gp") << int_gp << std::endl;
             for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
-                //KRATOS_INFO("VariationalNonEikonalDistanceElement, i_node") << i_node << std::endl;
                 for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
-                    //KRATOS_INFO("VariationalNonEikonalDistanceElement, j_node") << j_node << std::endl;
-
-                    //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "before curvature" << std::endl;
-
                     //tempPhi: LHS for 4 rows associated with Phi
-                    tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) += 
-                        penalty_phi0 * int_weights(int_gp) * int_N(int_gp, i_node) * int_N(int_gp, j_node);
-                    
-                    for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
+                    // tempPhi(i_node*(num_dim + 1) + 0, j_node*(num_dim + 1) + 0) +=
+                    //     penalty_phi0 * int_weights(int_gp) * int_N(int_gp, i_node) * int_N(int_gp, j_node);
 
-                        //KRATOS_INFO("VariationalNonEikonalDistanceElement, k_dim") << k_dim << std::endl;
-
+                    /* for (unsigned int k_dim = 0; k_dim < num_dim; k_dim++){
                         //tempGradPhi: LHS for 3*4 rows associated with GradPhi
-                        tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) +=
-                            penalty_curvature * int_weights(int_gp) * int_N(int_gp, i_node) * (int_DN_DX[int_gp])(j_node,k_dim);
+                        // tempGradPhi(i_node*(num_dim + 1) + k_dim + 1, j_node*(num_dim + 1) + k_dim + 1) +=
+                        //     penalty_curvature * int_weights(int_gp) * int_N(int_gp, i_node) * (int_DN_DX[int_gp])(j_node,k_dim);
 
-                        //KRATOS_INFO("VariationalNonEikonalDistanceElement") << k_dim << ", Here 4-2" << std::endl;
+                        // rhs(i_node*(num_dim + 1) + k_dim + 1) +=
+                        //     penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, i_node);
 
-                        rhs(i_node*(num_dim + 1) + k_dim + 1) += 
-                            penalty_curvature*int_weights(int_gp)*(int_DN_DX[int_gp])(j_node,k_dim)*distance_gradient0(j_node, k_dim)*int_N(int_gp, i_node);
+                    } */
 
-                    }
-
-                    //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "after curvature" << std::endl;
+                    lhs(i_node, j_node) += penalty_phi0*int_weights(int_gp)*int_N(int_gp, i_node)*int_N(int_gp, j_node);
                 }
             }
         }
 
-        //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 5" << std::endl;
+        std::vector<unsigned int> contact_line_faces;
+        std::vector<unsigned int> contact_line_indices;
 
-    } else {
+        std::vector<MatrixType> contact_N;                                   //std::vector for multiple contact lines
+        std::vector<GeometryType::ShapeFunctionsGradientsType> contact_DN_DX;//std::vector for multiple contact lines
+        std::vector<Kratos::Vector> contact_weights;                         //std::vector for multiple contact lines
 
-        //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 6" << std::endl;
-        
+        auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+        for (unsigned int i_cl = 0; i_cl < contact_line_faces.size(); i_cl++){
+            if (neighbour_elems[ contact_line_faces[i_cl] ].Id() == this->Id() ){
+                contact_line_indices.push_back(i_cl);
+            }
+        }
+
+        // Call the Contact Line negative side shape functions calculator
+        p_modified_sh_func->ComputeContactLineNegativeSideShapeFunctionsAndGradientsValues(
+            contact_line_indices, //ADDED
+            contact_N,
+            contact_DN_DX,
+            contact_weights,
+            GeometryData::GI_GAUSS_2);
+
+        for (unsigned int i_cl = 0; i_cl < contact_weights.size(); i_cl++){
+            const std::size_t number_of_contact_gauss_points = (contact_weights[i_cl]).size();
+            for (unsigned int contact_gp = 0; contact_gp < number_of_contact_gauss_points; contact_gp++){
+                for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                    for (unsigned int j_node = 0; j_node < num_nodes; j_node++){
+
+                        lhs(i_node, j_node) +=
+                            1.0e2 * penalty_phi0*(contact_weights[i_cl])(contact_gp)*(contact_N[i_cl])(contact_gp, i_node)*(contact_N[i_cl])(contact_gp, j_node);
+
+                    }
+                }
+            }
+        }
+
+    } else if (step == 1){
+        //KRATOS_WATCH(nneg)
         double source;
         if (npos != 0)
             source = 1.0;
         else
-            source = -1.0;
+            source = -1.0e2;
 
         for (unsigned int gp = 0; gp < number_of_gauss_points; gp++){
-            for (unsigned int i_node = 0; i_node < num_nodes; i_node++){ 
-                rhs(i_node*(num_dim + 1) + 0) += weights(gp) * source * N(gp, i_node);
+            for (unsigned int i_node = 0; i_node < num_nodes; i_node++){
+                //rhs(i_node*(num_dim + 1) + 0) += weights(gp) * source * N(gp, i_node);
+                rhs(i_node) += source_coeff * source * weights(gp) * N(gp, i_node);
             }
-        } 
-
-        //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 7" << std::endl;          
-
+        }
     }
 
-    noalias(rLeftHandSideMatrix) = tempPhi + tempGradPhi;
-    noalias(rRightHandSideVector) = rhs - prod(rLeftHandSideMatrix,values); // Reducing the contribution of the last known values 
-
-    //KRATOS_INFO("VariationalNonEikonalDistanceElement") << "Here 8" << std::endl;
+    noalias(rLeftHandSideMatrix) = lhs;// tempPhi + tempGradPhi;
+    noalias(rRightHandSideVector) = rhs - prod(rLeftHandSideMatrix,values); // Reducing the contribution of the last known values
 
     KRATOS_CATCH("");
 }
@@ -656,25 +712,25 @@ int VariationalNonEikonalDistanceElement::Check(const ProcessInfo& rCurrentProce
       // Check that all required variables have been registered
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_AUX2)
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_X)
+      /* KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_X)
       KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Y)
-      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Z)
+      KRATOS_CHECK_VARIABLE_KEY(DISTANCE_GRADIENT_Z) */
   
       unsigned const int number_of_points = GetGeometry().size(); 
       // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
       for ( unsigned int i = 0; i < number_of_points; i++ )
       {
           Node<3> &rnode = this->GetGeometry()[i];
-          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
-          KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode)
+          /* KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE,rnode)
+          KRATOS_CHECK_DOF_IN_NODE(DISTANCE,rnode) */
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_AUX2,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_AUX2,rnode)
-          KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_X,rnode)
+          /* KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_X,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_Y,rnode)
           KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_Y,rnode)
           KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE_GRADIENT_Z,rnode)
-          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_Z,rnode)
+          KRATOS_CHECK_DOF_IN_NODE(DISTANCE_GRADIENT_Z,rnode) */
       }
   
       return ierr;

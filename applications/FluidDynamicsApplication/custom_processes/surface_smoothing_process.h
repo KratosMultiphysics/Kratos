@@ -132,6 +132,7 @@ public:
         r_smoothing_model_part.Conditions().clear();
         r_smoothing_model_part.Elements().clear();
         mp_solving_strategy->Clear();
+        mpGradientCalculator->Clear();
     }
 
     ///@}

@@ -34,9 +34,11 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "processes/compute_nodal_gradient_process.h"
 #include "utilities/variable_utils.h" //Now necessary!
 //#include "processes/compute_nodal_normal_divergence_process.h" //Not needed, already done in python
 #include "custom_utilities/element_size_calculator.h"
+#include "includes/deprecated_variables.h" //For IS_STRUCTURED
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -88,6 +90,9 @@ public:
 
     typedef SolvingStrategy< TSparseSpace, TDenseSpace, TLinearSolver > SolvingStrategyType;
 
+    typedef ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable> ComputeGradientProcessType;
+    typedef ComputeGradientProcessType::Pointer ComputeGradientProcessPointerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -127,6 +132,7 @@ public:
         r_non_eikonal_distance_model_part.Conditions().clear();
         r_non_eikonal_distance_model_part.Elements().clear();
         mp_solving_strategy->Clear();
+        mpGradientCalculator->Clear();
     }
 
     ///@}
@@ -179,6 +185,8 @@ private:
     std::string mAuxModelPartName = "Aux_Variational_Non_Eikonal_Distance_Model_Part";
 
     SolvingStrategyType::UniquePointer mp_solving_strategy;
+
+    ComputeGradientProcessPointerType mpGradientCalculator = nullptr;
 
     ///@}
     ///@name Protected Operators

@@ -726,7 +726,7 @@ void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
     #pragma omp parallel for
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
         ModelPart::NodesContainerType::iterator i_node = rNodes.begin() + count;
-        if (i_node->GetValue(IS_STRUCTURE) == 0.0){
+        if (i_node->GetValue(IS_STRUCTURE) != 1.0){
         //if(!i_node->IsFixed(DISTANCE)){
             i_node->FastGetSolutionStepValue( DISTANCE ) += deltaDist;
             i_node->GetValue(DISTANCE_AUX2) = -deltaDist;
