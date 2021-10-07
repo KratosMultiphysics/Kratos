@@ -239,17 +239,44 @@ protected:
 
     void ValidateInput()
     {
+        // backward compatibility
+        if (mMapperSettings.Has("search_radius")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_radius\" should be specified under \"search_settings\"!" << std::endl;
+            const double search_radius = mMapperSettings["search_radius"].GetDouble();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_radius")) << "\"search_radius\" specified twice, please only speficy it in \"search_settings\"!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("search_radius").SetDouble(search_radius);
+            mMapperSettings.RemoveValue("search_radius");
+        }
+
+        if (mMapperSettings.Has("search_iterations")) {
+            KRATOS_WARNING("Mapper") << "DEPRECATION-WARNING: \"search_iterations\" should be specified under \"search_settings\"!" << std::endl;
+            const int search_iterations = mMapperSettings["search_iterations"].GetInt();
+
+            if (mMapperSettings.Has("search_settings")) {
+                KRATOS_ERROR_IF(mMapperSettings["search_settings"].Has("search_iterations")) << "\"search_iterations\" specified twice, please only speficy it in \"search_settings\"!" << std::endl;
+            } else {
+                mMapperSettings.AddValue("search_settings", Parameters());
+            }
+
+            mMapperSettings["search_settings"].AddEmptyValue("search_iterations").SetInt(search_iterations);
+            mMapperSettings.RemoveValue("search_iterations");
+        }
+
         MapperUtilities::CheckInterfaceModelParts(0);
 
         Parameters mapper_default_settings(GetMapperDefaultSettings());
+
         mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
 
-        if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
-            const double search_radius = MapperUtilities::ComputeSearchRadius(
-                                            mrModelPartOrigin,
-                                            mrModelPartDestination,
-                                            mMapperSettings["echo_level"].GetInt());
-            mMapperSettings["search_radius"].SetDouble(search_radius);
+        if (!mMapperSettings["search_settings"].Has("echo_level")) {
+            // use the echo level of the mapper in case none was specified for the search
+            mMapperSettings["search_settings"].AddEmptyValue("echo_level").SetInt(mMapperSettings["echo_level"].GetInt());
         }
     }
 
@@ -299,7 +326,7 @@ private:
         auto p_interface_comm = Kratos::make_unique<InterfaceCommunicatorType>(
             mrModelPartOrigin,
             mMapperLocalSystems,
-            mMapperSettings);
+            mMapperSettings["search_settings"]);
 
         const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
