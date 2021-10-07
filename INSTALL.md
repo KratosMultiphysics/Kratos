@@ -376,7 +376,7 @@ The result should be:
 
 ### Parallel Compilation
 
-We Provide several flavours in order to paralelize Kratos compilation. We have divided this option according to the operating system specifics.
+We provide several flavours in order to parallelize Kratos compilation. We have divided this option according to the operating system specifics.
 
 #### Linux
 
